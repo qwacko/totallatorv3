@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../app.css';
+	import "../app.postcss";
 	import { page } from '$app/stores';
 	import { pwaInfo } from 'virtual:pwa-info';
 	import { onMount } from 'svelte';
@@ -58,21 +58,21 @@
 
 <div class="col">
 	<div class="nav">
-		<a href="/" class:bold={homePage}>Home</a>
-		<a href="/params" class:bold={paramsPage}>Search Params</a>
+		<a href="/" class:bold="{homePage}">Home</a>
+		<a href="/params" class:bold="{paramsPage}">Search Params</a>
 		{#if data.user}
-			<a href="/backup" class:bold={backup}>Backups</a>
-			<a href="/users/{data.user.userId}" class:bold={user}>User</a>
-			<a href="/users" class:bold={users}>Users</a>
+			<a href="/backup" class:bold="{backup}">Backups</a>
+			<a href="/users/{data.user.userId}" class:bold="{user}">User</a>
+			<a href="/users" class:bold="{users}">Users</a>
 			<form action="/?/logout" method="post">
-				<button type="submit" class:bold={login}>Logout</button>
+				<button type="submit" class:bold="{login}">Logout</button>
 			</form>
 		{:else}
-			<a href="/login" class:bold={login}>Login</a>
+			<a href="/login" class:bold="{login}">Login</a>
 		{/if}
 	</div>
 
-	<slot />
+	<slot></slot>
 </div>
 
 <style>

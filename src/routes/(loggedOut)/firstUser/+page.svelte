@@ -1,12 +1,10 @@
 <script lang="ts">
-	import Button from '$lib/components/Button.svelte';
-	import LinkButton from '$lib/components/LinkButton.svelte';
-	import CenterCard from '$lib/components/CenterCard.svelte';
+	import { Button } from 'flowbite-svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
-	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import type { signupSchemaType } from '$lib/schema/signupSchema.js';
+	import PageLayout from '$lib/components/PageLayout.svelte';
 
 	export let data;
 	const { form, errors, constraints, message, enhance } = superForm<signupSchemaType>(data.form, {
@@ -14,8 +12,18 @@
 	});
 </script>
 
-<CenterCard title="Create First User" maxWidthRem={30}>
-	<form method="POST" use:enhance>
+<PageLayout title="Create First User" size="xs" class="pt-10">
+	<form method="POST" class="flex flex-col space-y-4" autocomplete="off" use:enhance>
+		<TextInput
+			title="Name"
+			errorMessage={$errors.name}
+			id="name"
+			name="name"
+			type="text"
+			data-invalid={$errors.name}
+			bind:value={$form.name}
+			{...$constraints.name}
+		/>
 		<TextInput
 			title="Username"
 			errorMessage={$errors.username}
@@ -47,8 +55,6 @@
 			{...$constraints.confirmPassword}
 		/>
 		<ErrorText message={$message} />
-		<SpreadButtons>
-			<Button type="submit" style="primary">Create First Admin User</Button>
-		</SpreadButtons>
+		<Button type="submit" class="w-full">Create First Admin User</Button>
 	</form>
-</CenterCard>
+</PageLayout>
