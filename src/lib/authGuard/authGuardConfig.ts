@@ -15,21 +15,24 @@ const loggedOutConfig: RouteConfig<UserValidationOutput> = {
 	check: (data) => (data.user ? '/' : undefined)
 };
 
-const postActionAuthOnly = (data: UserValidationOutput) => {
-	console.log('POSTCheckInner', data);
-	return data.admin ? null : 'Action Not Allowed';
-};
+const POSTAllowUsers = (data: UserValidationOutput) => (data.user ? undefined : 'Not Authorised');
+
+const POSTAllowNonUsers = (data: UserValidationOutput) =>
+	data.user ? 'Not Authorised' : undefined;
+const POSTAllowAdminOnly = (data: UserValidationOutput) =>
+	data.admin ? undefined : 'Not Authorised';
 
 export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 	routeConfig: {
 		'/': {
 			...openConfig,
 			POSTCheck: {
-				testFunction: postActionAuthOnly
+				testFunction: POSTAllowAdminOnly,
+				logout: POSTAllowUsers
 			}
 		},
 
-		'/(open)/params': { ...openConfig, POSTCheck: { testAction: postActionAuthOnly } },
+		'/(open)/params': { ...openConfig, POSTCheck: { testAction: POSTAllowUsers } },
 
 		'/(loggedIn)/backup': adminOnlyConfig,
 
@@ -42,26 +45,23 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		'/(loggedOut)/login': {
 			...loggedOutConfig,
 			POSTCheck: {
-				default: (data: UserValidationOutput) =>
-					data.user ? 'Cannot Sign In If Already Signed In' : undefined
+				default: POSTAllowNonUsers
 			}
 		},
 		'/(loggedOut)/signup': {
 			...loggedOutConfig,
 			POSTCheck: {
-				default: (data: UserValidationOutput) =>
-					data.user ? 'Cannot Create User If Logged In' : undefined
+				default: POSTAllowNonUsers
 			}
 		},
 		'/(loggedOut)/firstUser': {
 			...loggedOutConfig,
 			POSTCheck: {
-				default: (data: UserValidationOutput) =>
-					data.user ? 'Cannot Create User If Logged In' : undefined
+				default: POSTAllowNonUsers
 			}
 		},
 
-		'/(loggedIn)/testFunctions': { ...adminOnlyConfig, POSTCheck: { default: postActionAuthOnly } }
+		'/(loggedIn)/testFunctions': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowUsers } }
 	},
 	validationBackend: (data) => {
 		return {

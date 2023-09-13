@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { authGuardFrontend } from '$lib/authGuard/authGuardConfig';
 	import { onNavigate } from '$app/navigation';
+	import { dev } from '$app/environment';
 
 	onNavigate((navigation) => {
 		//@ts-expect-error startViewTransition is not defined on Document
@@ -24,7 +25,7 @@
 	$: authGuardFrontend($page, { admin: data.user?.admin || false, user: data.user ? true : false });
 
 	onMount(async () => {
-		if (pwaInfo) {
+		if (pwaInfo && !dev) {
 			const { registerSW } = await import('virtual:pwa-register');
 			registerSW({
 				immediate: true,
