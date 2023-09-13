@@ -7,12 +7,12 @@ type UserValidationOutput = {
 };
 
 const adminOnlyConfig: RouteConfig<UserValidationOutput> = {
-	check: (data) => (data.admin ? null : data.user ? '/' : '/login')
+	check: (data) => (data.admin ? undefined : data.user ? '/' : '/login')
 };
 // const userOnlyConfig: RouteConfig = { nonUserRedirect: '/login' };
-const openConfig: RouteConfig<UserValidationOutput> = { check: () => null };
+const openConfig: RouteConfig<UserValidationOutput> = { check: () => undefined };
 const loggedOutConfig: RouteConfig<UserValidationOutput> = {
-	check: (data) => (data.user ? '/' : null)
+	check: (data) => (data.user ? '/' : undefined)
 };
 
 const postActionAuthOnly = (data: UserValidationOutput) => {
@@ -39,9 +39,27 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		'/(loggedIn)/users/[id]/delete': adminOnlyConfig,
 		'/(loggedIn)/users/[id]/password': adminOnlyConfig,
 
-		'/(loggedOut)/login': loggedOutConfig,
-		'/(loggedOut)/signup': loggedOutConfig,
-		'/(loggedOut)/firstUser': loggedOutConfig,
+		'/(loggedOut)/login': {
+			...loggedOutConfig,
+			POSTCheck: {
+				default: (data: UserValidationOutput) =>
+					data.user ? 'Cannot Sign In If Already Signed In' : undefined
+			}
+		},
+		'/(loggedOut)/signup': {
+			...loggedOutConfig,
+			POSTCheck: {
+				default: (data: UserValidationOutput) =>
+					data.user ? 'Cannot Create User If Logged In' : undefined
+			}
+		},
+		'/(loggedOut)/firstUser': {
+			...loggedOutConfig,
+			POSTCheck: {
+				default: (data: UserValidationOutput) =>
+					data.user ? 'Cannot Create User If Logged In' : undefined
+			}
+		},
 
 		'/(loggedIn)/testFunctions': { ...adminOnlyConfig, POSTCheck: { default: postActionAuthOnly } }
 	},
@@ -55,6 +73,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		console.log('Routing Error : ', { status, body });
 	},
 	redirectFuncFrontend: (_, location) => {
+		console.log('Redirecting On Frontend');
 		goto(location);
 	}
 });

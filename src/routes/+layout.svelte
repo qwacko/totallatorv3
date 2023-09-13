@@ -1,5 +1,5 @@
 <script lang="ts">
-	import "../app.postcss";
+	import '../app.postcss';
 	import { page } from '$app/stores';
 	import { pwaInfo } from 'virtual:pwa-info';
 	import { onMount } from 'svelte';
@@ -55,58 +55,4 @@
 <svelte:head>
 	{@html webManifestLink}
 </svelte:head>
-
-<div class="col">
-	<div class="nav">
-		<a href="/" class:bold="{homePage}">Home</a>
-		<a href="/params" class:bold="{paramsPage}">Search Params</a>
-		{#if data.user}
-			<a href="/backup" class:bold="{backup}">Backups</a>
-			<a href="/users/{data.user.userId}" class:bold="{user}">User</a>
-			<a href="/users" class:bold="{users}">Users</a>
-			<form action="/?/logout" method="post">
-				<button type="submit" class:bold="{login}">Logout</button>
-			</form>
-		{:else}
-			<a href="/login" class:bold="{login}">Login</a>
-		{/if}
-	</div>
-
-	<slot></slot>
-</div>
-
-<style>
-	.bold {
-		font-weight: bold;
-	}
-
-	.nav {
-		background-color: rgb(212, 230, 250);
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		height: 3.5rem;
-		padding: 0 1rem;
-	}
-
-	.nav a,
-	button {
-		color: blue;
-		font-size: 1rem;
-		text-decoration: none;
-		padding: 0.75rem;
-		border-radius: 0.375rem;
-
-		transition: background-color 0.3s ease-in-out;
-	}
-
-	.nav a:hover,
-	button:hover {
-		background-color: #9dc0fd;
-	}
-
-	.col {
-		display: flex;
-		flex-direction: column;
-	}
-</style>
+<slot />

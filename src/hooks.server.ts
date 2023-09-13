@@ -1,6 +1,7 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { initateCronJobs } from '$lib/server/cron/cron';
 import { dbNoAdmins } from '$lib/server/db/actions/firstUser';
+import { logging } from '$lib/server/logging';
 
 import { auth } from '$lib/server/lucia';
 import { redirect, type Handle } from '@sveltejs/kit';
@@ -17,9 +18,21 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	event.locals.user = user?.user;
 
+	logging.info('Hooks Route Info : ', { user, noAdmin, route: event.route });
+
 	if (!event.route.id) {
 		throw redirect(302, '/login');
 	}
+
+	if (event.route.id === '/(loggedOut)/firstUser' && !noAdmin) {
+		logging.info('Redirecting from firstUser');
+		if (user) {
+			throw redirect(302, '/users');
+		} else {
+			throw redirect(302, '/login');
+		}
+	}
+
 	if (event.route.id !== '/(loggedOut)/firstUser' && noAdmin) {
 		throw redirect(302, '/firstUser');
 	}
