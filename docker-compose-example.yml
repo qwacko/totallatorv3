@@ -1,0 +1,20 @@
+version: "3.8"
+name: "sveltekite-lucia-starter"
+
+services:
+  sveltekit-lucia-starter:
+    image: sveltekit-lucia-starter
+    build: 
+      context: ./
+    environment:
+      - DATABASE_FILE=/app/db/db.db
+      - ORIGIN=https://www.example.com
+      - PORT=3000
+      - ALLOW_SIGNUP=false
+    volumes:
+      - ./db/:/app/db
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+  
+  
