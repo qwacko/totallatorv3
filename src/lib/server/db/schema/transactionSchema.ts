@@ -1,8 +1,8 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, unique } from 'drizzle-orm/sqlite-core';
 
 const timestampColumns = {
-	createdAt: integer('created_at', { mode: 'timestamp_ms' }),
+	createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
 };
 
