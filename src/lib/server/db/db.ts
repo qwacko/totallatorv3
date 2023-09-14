@@ -12,6 +12,8 @@ sqliteDatabase.pragma('journal_mode = WAL');
 
 export const db = drizzle(sqliteDatabase, { schema });
 
+export type DBType = typeof db;
+
 logging.info('Migrating DB!!');
 
 migrate(db, { migrationsFolder: './src/lib/server/db/migrations' });

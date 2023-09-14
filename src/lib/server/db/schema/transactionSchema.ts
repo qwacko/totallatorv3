@@ -1,3 +1,4 @@
+import { statusEnum } from '$lib/schema/statusSchema';
 import { relations, sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, unique } from 'drizzle-orm/sqlite-core';
 
@@ -7,9 +8,7 @@ const timestampColumns = {
 };
 
 const statusColumns = {
-	status: text('status', { enum: ['active', 'disabled', 'deleted'] })
-		.notNull()
-		.default('active'),
+	status: text('status', { enum: statusEnum }).notNull().default('active'),
 	active: integer('active', { mode: 'boolean' }).notNull().default(true),
 	deleted: integer('deleted', { mode: 'boolean' }).notNull().default(true),
 	disabled: integer('disabled', { mode: 'boolean' }).notNull().default(true),
