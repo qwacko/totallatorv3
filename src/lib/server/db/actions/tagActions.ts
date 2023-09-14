@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { tag } from '../schema';
-import { SQL, and, asc, desc, eq, ilike } from 'drizzle-orm';
+import { SQL, and, asc, desc, eq, ilike, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { combinedTitle } from './helpers/combinedTitle';
 import { updatedTime } from './helpers/updatedTime';
@@ -33,14 +33,23 @@ export const tagActions = {
 				: desc(tag[currentOrder.field])
 		);
 
-		const results = await db.query.tag.findMany({
+		const results = db.query.tag.findMany({
 			where: and(...where),
 			offset: page * pageSize,
 			limit: pageSize,
 			orderBy: orderByResult
 		});
 
-		return results;
+		const resultCount = await db
+			.select({ count: sql<number>`count(${tag.id})`.mapWith(Number) })
+			.from(tag)
+			.where(and(...where))
+			.execute();
+
+		const count = resultCount[0].count;
+		const pageCount = Math.ceil(count / pageSize);
+
+		return { count, data: await results, pageCount, page, pageSize };
 	},
 	create: async (db: DBType, data: CreateTagSchemaType) => {
 		const id = nanoid();
