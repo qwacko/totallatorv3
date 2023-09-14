@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import Button from '$lib/components/Button.svelte';
 	import CenterCard from '$lib/components/CenterCard.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import LinkButton from '$lib/components/LinkButton.svelte';
+	import { Button } from 'flowbite-svelte';
 
 	export let data;
 </script>

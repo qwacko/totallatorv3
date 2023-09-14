@@ -18,8 +18,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	event.locals.user = user?.user;
 
-	logging.info('Hooks Route Info : ', { user, noAdmin, route: event.route });
-
 	if (!event.route.id) {
 		throw redirect(302, '/login');
 	}

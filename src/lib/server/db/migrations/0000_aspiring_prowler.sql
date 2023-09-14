@@ -1,14 +1,35 @@
+CREATE TABLE `user_key` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`hashed_password` text,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `user_session` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`active_expires` blob NOT NULL,
+	`idle_expires` blob NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `user` (
+	`id` text PRIMARY KEY NOT NULL,
+	`username` text NOT NULL,
+	`admin` integer DEFAULT false NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `account` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
-	`type` text,
+	`type` text DEFAULT 'expense' NOT NULL,
 	`is_cash` integer DEFAULT false NOT NULL,
 	`is_net_worth` integer DEFAULT false NOT NULL,
-	`account_group` text,
-	`account_group_2` text,
-	`account_group_3` text,
-	`account_group_combined` text,
-	`account_title_combined` text,
+	`account_group` text NOT NULL,
+	`account_group_2` text NOT NULL,
+	`account_group_3` text NOT NULL,
+	`account_group_combined` text NOT NULL,
+	`account_title_combined` text NOT NULL,
 	`start_date` integer,
 	`end_date` integer,
 	`status` text DEFAULT 'active' NOT NULL,
@@ -16,8 +37,8 @@ CREATE TABLE `account` (
 	`deleted` integer DEFAULT true NOT NULL,
 	`disabled` integer DEFAULT true NOT NULL,
 	`allow_update` integer DEFAULT true NOT NULL,
-	`created_at` integer DEFAULT CURRENT_TIMESTAMP,
-	`updated_at` integer
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `bill` (
@@ -28,8 +49,8 @@ CREATE TABLE `bill` (
 	`deleted` integer DEFAULT true NOT NULL,
 	`disabled` integer DEFAULT true NOT NULL,
 	`allow_update` integer DEFAULT true NOT NULL,
-	`created_at` integer DEFAULT CURRENT_TIMESTAMP,
-	`updated_at` integer
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `budget` (
@@ -40,22 +61,22 @@ CREATE TABLE `budget` (
 	`deleted` integer DEFAULT true NOT NULL,
 	`disabled` integer DEFAULT true NOT NULL,
 	`allow_update` integer DEFAULT true NOT NULL,
-	`created_at` integer DEFAULT CURRENT_TIMESTAMP,
-	`updated_at` integer
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `category` (
 	`id` text PRIMARY KEY NOT NULL,
-	`title` text,
-	`group` text,
-	`single` text,
+	`title` text NOT NULL,
+	`group` text NOT NULL,
+	`single` text NOT NULL,
 	`status` text DEFAULT 'active' NOT NULL,
 	`active` integer DEFAULT true NOT NULL,
 	`deleted` integer DEFAULT true NOT NULL,
 	`disabled` integer DEFAULT true NOT NULL,
 	`allow_update` integer DEFAULT true NOT NULL,
-	`created_at` integer DEFAULT CURRENT_TIMESTAMP,
-	`updated_at` integer
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `journal_entry` (
@@ -79,33 +100,34 @@ CREATE TABLE `journal_entry` (
 	`reconciled` integer DEFAULT false NOT NULL,
 	`data_checked` integer DEFAULT false NOT NULL,
 	`complete` integer DEFAULT false NOT NULL,
-	`created_at` integer DEFAULT CURRENT_TIMESTAMP,
-	`updated_at` integer
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `tag` (
 	`id` text PRIMARY KEY NOT NULL,
-	`title` text,
-	`group` text,
-	`single` text,
+	`title` text NOT NULL,
+	`group` text NOT NULL,
+	`single` text NOT NULL,
 	`status` text DEFAULT 'active' NOT NULL,
 	`active` integer DEFAULT true NOT NULL,
 	`deleted` integer DEFAULT true NOT NULL,
 	`disabled` integer DEFAULT true NOT NULL,
 	`allow_update` integer DEFAULT true NOT NULL,
-	`created_at` integer DEFAULT CURRENT_TIMESTAMP,
-	`updated_at` integer
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `transaction` (
 	`id` text PRIMARY KEY NOT NULL,
-	`created_at` integer DEFAULT CURRENT_TIMESTAMP,
-	`updated_at` integer
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `user_username_unique` ON `user` (`username`);--> statement-breakpoint
 CREATE UNIQUE INDEX `account_title_unique` ON `account` (`title`);--> statement-breakpoint
-CREATE UNIQUE INDEX `account_account_group_account_group_2_account_group_3_title_unique` ON `account` (`account_group`,`account_group_2`,`account_group_3`,`title`);--> statement-breakpoint
+CREATE UNIQUE INDEX `account_account_title_combined_unique` ON `account` (`account_title_combined`);--> statement-breakpoint
 CREATE UNIQUE INDEX `bill_title_unique` ON `bill` (`title`);--> statement-breakpoint
 CREATE UNIQUE INDEX `budget_title_unique` ON `budget` (`title`);--> statement-breakpoint
-CREATE UNIQUE INDEX `category_group_single_unique` ON `category` (`group`,`single`);--> statement-breakpoint
-CREATE UNIQUE INDEX `tag_group_single_unique` ON `tag` (`group`,`single`);
+CREATE UNIQUE INDEX `category_title_unique` ON `category` (`title`);--> statement-breakpoint
+CREATE UNIQUE INDEX `tag_title_unique` ON `tag` (`title`);

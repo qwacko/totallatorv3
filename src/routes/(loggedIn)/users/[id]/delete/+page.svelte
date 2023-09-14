@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Button from '$lib/components/Button.svelte';
 	import { enhance } from '$app/forms';
 	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
 	import { page } from '$app/stores';
 	import LinkButton from '$lib/components/LinkButton.svelte';
+	import { Button } from 'flowbite-svelte';
 </script>
 
 <h1>Delete User?</h1>

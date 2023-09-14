@@ -6,15 +6,19 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { tag } from '../schema';
-import { SQL, and, asc, desc, eq, ilike, sql } from 'drizzle-orm';
+import { SQL, and, asc, desc, eq, ilike, not, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
-import { combinedTitle } from './helpers/combinedTitle';
+import { combinedTitleSplit, combinedTitleSplitRequired } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
+import { logging } from '$lib/server/logging';
 
 export const tagActions = {
+	getById: async (db: DBType, id: string) => {
+		return db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
+	},
 	list: async (db: DBType, filter: TagFilterSchemaType) => {
-		const { page, pageSize, orderBy, ...restFilter } = filter;
+		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where: SQL<unknown>[] = [];
 		if (restFilter.id) where.push(eq(tag.id, restFilter.id));
@@ -22,23 +26,28 @@ export const tagActions = {
 		if (restFilter.group) where.push(ilike(tag.title, `%${restFilter.group}%`));
 		if (restFilter.single) where.push(ilike(tag.title, `%${restFilter.single}%`));
 		if (restFilter.status) where.push(eq(tag.status, restFilter.status));
+		else where.push(not(eq(tag.status, 'deleted')));
 		if (restFilter.deleted) where.push(eq(tag.deleted, restFilter.deleted));
 		if (restFilter.disabled) where.push(eq(tag.disabled, restFilter.disabled));
 		if (restFilter.allowUpdate) where.push(eq(tag.allowUpdate, restFilter.allowUpdate));
 		if (restFilter.active) where.push(eq(tag.active, restFilter.active));
 
-		const orderByResult = orderBy.map((currentOrder) =>
-			currentOrder.direction === 'asc'
-				? asc(tag[currentOrder.field])
-				: desc(tag[currentOrder.field])
-		);
+		const orderByResult = orderBy
+			? orderBy.map((currentOrder) =>
+					currentOrder.direction === 'asc'
+						? asc(tag[currentOrder.field])
+						: desc(tag[currentOrder.field])
+			  )
+			: [asc(tag.title)];
 
-		const results = db.query.tag.findMany({
-			where: and(...where),
-			offset: page * pageSize,
-			limit: pageSize,
-			orderBy: orderByResult
-		});
+		const results = db.query.tag
+			.findMany({
+				where: and(...where),
+				offset: page * pageSize,
+				limit: pageSize,
+				orderBy: orderByResult
+			})
+			.execute();
 
 		const resultCount = await db
 			.select({ count: sql<number>`count(${tag.id})`.mapWith(Number) })
@@ -59,7 +68,7 @@ export const tagActions = {
 				id,
 				...statusUpdate(data.status),
 				...updatedTime(),
-				...combinedTitle(data)
+				...combinedTitleSplitRequired(data)
 			})
 			.execute();
 
@@ -68,19 +77,28 @@ export const tagActions = {
 	update: async (db: DBType, data: UpdateTagSchemaType) => {
 		const { id } = data;
 		const currentTag = await db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
+		logging.info('Update Tag: ', data, currentTag);
 
-		//Only update if the tag is disabled or active (signalled by "allowUpdate")
-		if (currentTag && currentTag.allowUpdate) {
-			await db
-				.update(tag)
-				.set({
-					...statusUpdate(data.status),
-					...updatedTime(),
-					...combinedTitle(data)
-				})
-				.where(eq(tag.id, id))
-				.execute();
+		if (!currentTag || currentTag.status === 'deleted') {
+			logging.info('Update Tag: Tag not found or deleted');
+			return id;
 		}
+
+		if (data.status && data.status === 'deleted') {
+			logging.info('Update Tag: Cannot Use Update To Set To Deleted');
+			return id;
+		}
+
+		await db
+			.update(tag)
+			.set({
+				...statusUpdate(data.status),
+				...updatedTime(),
+				...combinedTitleSplit(data)
+			})
+			.where(eq(tag.id, id))
+			.execute();
+
 		return id;
 	},
 	delete: async (db: DBType, data: IdSchemaType) => {

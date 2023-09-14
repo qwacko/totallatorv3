@@ -1,10 +1,12 @@
-import { statusEnum } from '$lib/schema/statusSchema';
+import { statusEnum } from '../../../schema/statusSchema';
 import { relations, sql } from 'drizzle-orm';
-import { sqliteTable, text, integer, unique } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
 const timestampColumns = {
-	createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(sql`CURRENT_TIMESTAMP`),
-	updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+	createdAt: integer('created_at', { mode: 'timestamp_ms' })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
 };
 
 const statusColumns = {
@@ -16,70 +18,55 @@ const statusColumns = {
 };
 
 const idColumn = {
-	id: text('id').primaryKey()
+	id: text('id').primaryKey().notNull()
 };
 
-export const account = sqliteTable(
-	'account',
-	{
-		...idColumn,
+export const account = sqliteTable('account', {
+	...idColumn,
 
-		title: text('title').unique().notNull(),
-		type: text('type', { enum: ['income', 'expense', 'asset', 'liability'] }),
+	title: text('title').unique().notNull(),
+	type: text('type', { enum: ['income', 'expense', 'asset', 'liability'] })
+		.notNull()
+		.default('expense'),
 
-		isCash: integer('is_cash', { mode: 'boolean' }).notNull().default(false),
-		isNetWorth: integer('is_net_worth', { mode: 'boolean' }).notNull().default(false),
-		accountGroup: text('account_group'),
-		accountGroup2: text('account_group_2'),
-		accountGroup3: text('account_group_3'),
-		accountGroupCombined: text('account_group_combined'),
-		accountTitleCombined: text('account_title_combined'),
-		startDate: integer('start_date', { mode: 'timestamp' }),
-		endDate: integer('end_date', { mode: 'timestamp' }),
-
-		...statusColumns,
-		...timestampColumns
-	},
-	(t) => ({ unq: unique().on(t.accountGroup, t.accountGroup2, t.accountGroup3, t.title) })
-);
+	isCash: integer('is_cash', { mode: 'boolean' }).notNull().default(false),
+	isNetWorth: integer('is_net_worth', { mode: 'boolean' }).notNull().default(false),
+	accountGroup: text('account_group').notNull(),
+	accountGroup2: text('account_group_2').notNull(),
+	accountGroup3: text('account_group_3').notNull(),
+	accountGroupCombined: text('account_group_combined').notNull(),
+	accountTitleCombined: text('account_title_combined').notNull().unique(),
+	startDate: integer('start_date', { mode: 'timestamp' }),
+	endDate: integer('end_date', { mode: 'timestamp' }),
+	...statusColumns,
+	...timestampColumns
+});
 
 export const accountRelations = relations(account, ({ many }) => ({
 	journals: many(journalEntry)
 }));
 
-export const tag = sqliteTable(
-	'tag',
-	{
-		...idColumn,
-		title: text('title'),
-		group: text('group'),
-		single: text('single'),
-		...statusColumns,
-		...timestampColumns
-	},
-	(t) => ({
-		unq: unique().on(t.group, t.single)
-	})
-);
+export const tag = sqliteTable('tag', {
+	...idColumn,
+	title: text('title').notNull().unique(),
+	group: text('group').notNull(),
+	single: text('single').notNull(),
+	...statusColumns,
+	...timestampColumns
+});
 
 export const tagRelations = relations(tag, ({ many }) => ({
 	journals: many(journalEntry)
 }));
 
-export const category = sqliteTable(
-	'category',
-	{
-		...idColumn,
-		title: text('title'),
-		group: text('group'),
-		single: text('single'),
-		...statusColumns,
-		...timestampColumns
-	},
-	(t) => ({
-		unq: unique().on(t.group, t.single)
-	})
-);
+export const category = sqliteTable('category', {
+	...idColumn,
+	title: text('title').notNull().unique(),
+	group: text('group').notNull(),
+	single: text('single').notNull(),
+	...statusColumns,
+	...timestampColumns
+});
 
 export const categoryRelations = relations(category, ({ many }) => ({
 	journals: many(journalEntry)

@@ -1,4 +1,4 @@
-import { updatePasswordSchema } from '$lib/schema/signupSchema.js';
+import { updatePasswordSchema } from '$lib/schema/updatePasswordSchema.js';
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { db } from '$lib/server/db/db.js';
 import { user } from '$lib/server/db/schema';

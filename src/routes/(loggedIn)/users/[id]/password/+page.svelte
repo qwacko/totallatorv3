@@ -5,9 +5,9 @@
 	import TextInput from '$lib/components/TextInput.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
-	import Button from '$lib/components/Button.svelte';
 	import LinkButton from '$lib/components/LinkButton.svelte';
 	import { page } from '$app/stores';
+	import { Button } from 'flowbite-svelte';
 
 	export let data;
 
