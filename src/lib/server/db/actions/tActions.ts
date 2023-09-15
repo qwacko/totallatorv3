@@ -1,3 +1,4 @@
+import { accountActions } from './accountActions';
 import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
@@ -9,5 +10,6 @@ export const tActions = {
 	category: categoryActions,
 	bill: billActions,
 	budget: budgetActions,
-	label: labelActions
+	label: labelActions,
+	account: accountActions
 };

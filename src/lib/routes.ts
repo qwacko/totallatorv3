@@ -5,6 +5,7 @@ import { billFilterSchema as billFilterSchema } from './schema/billSchema';
 import { budgetFilterSchema as budgetFilterSchema } from './schema/budgetSchema';
 import { categoryFilterSchema } from './schema/categorySchema';
 import { labelFilterSchema } from './schema/labelSchema';
+import { accountFilterSchema } from './schema/accountSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -15,7 +16,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// Accounts
 		// ----------------------------------------
 		'/(loggedIn)/accounts': {
-			searchParamsValidation: tagFilterSchema.optional().catch({}).parse
+			searchParamsValidation: accountFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/accounts/create': {},
 		'/(loggedIn)/accounts/[id]': {
