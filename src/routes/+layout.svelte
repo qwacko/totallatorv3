@@ -7,18 +7,18 @@
 	import { onNavigate } from '$app/navigation';
 	import { dev } from '$app/environment';
 
-	onNavigate((navigation) => {
-		//@ts-expect-error startViewTransition is not defined on Document
-		if (!document.startViewTransition) return;
+	// onNavigate((navigation) => {
+	// 	//@ts-expect-error startViewTransition is not defined on Document
+	// 	if (!document.startViewTransition) return;
 
-		return new Promise((resolve) => {
-			//@ts-expect-error startViewTransition is not defined on Document
-			document.startViewTransition(async () => {
-				resolve();
-				await navigation.complete;
-			});
-		});
-	});
+	// 	return new Promise((resolve) => {
+	// 		//@ts-expect-error startViewTransition is not defined on Document
+	// 		document.startViewTransition(async () => {
+	// 			resolve();
+	// 			await navigation.complete;
+	// 		});
+	// 	});
+	// });
 
 	export let data;
 
@@ -45,12 +45,7 @@
 	});
 
 	$: webManifestLink = pwaInfo ? pwaInfo.webManifest.linkTag : '';
-	$: homePage = $page.url.pathname === '/';
 	$: user = $page.url.pathname.startsWith(`/users/${data?.user?.userId}`);
-	$: backup = $page.route.id?.startsWith('/(loggedIn)/backup');
-	$: users = $page.route.id?.startsWith('/(loggedIn)/users') && !user;
-	$: login = $page.route.id?.startsWith('/(loggedOut)');
-	$: paramsPage = $page.route.id?.startsWith('/(open)/params');
 </script>
 
 <svelte:head>

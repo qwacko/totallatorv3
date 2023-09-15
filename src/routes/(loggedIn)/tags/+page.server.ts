@@ -9,5 +9,5 @@ export const load = async (data) => {
 
 	const tags = await tActions.tag.list(db, pageInfo.searchParams || { page: 0, pageSize: 10 });
 
-	return { tags };
+	return { tags, searchParams: pageInfo.searchParams };
 };

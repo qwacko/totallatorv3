@@ -32,13 +32,18 @@ export const tagActions = {
 		if (restFilter.allowUpdate) where.push(eq(tag.allowUpdate, restFilter.allowUpdate));
 		if (restFilter.active) where.push(eq(tag.active, restFilter.active));
 
+		const defaultOrderBy = [asc(tag.group), asc(tag.single), desc(tag.createdAt)];
+
 		const orderByResult = orderBy
-			? orderBy.map((currentOrder) =>
-					currentOrder.direction === 'asc'
-						? asc(tag[currentOrder.field])
-						: desc(tag[currentOrder.field])
-			  )
-			: [asc(tag.title)];
+			? [
+					...orderBy.map((currentOrder) =>
+						currentOrder.direction === 'asc'
+							? asc(tag[currentOrder.field])
+							: desc(tag[currentOrder.field])
+					),
+					...defaultOrderBy
+			  ]
+			: defaultOrderBy;
 
 		const results = db.query.tag
 			.findMany({

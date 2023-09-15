@@ -1,11 +1,11 @@
 <script lang="ts">
+	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { combinedTitleSplitRequired } from '$lib/helpers/combinedTitleSplit.js';
 	import { urlGenerator } from '$lib/routes.js';
 	import { statusEnumSelectionWithoutDeleted } from '$lib/schema/statusSchema.js';
 	import type { UpdateTagSchemaSuperType } from '$lib/schema/tagSchema.js';
@@ -18,10 +18,15 @@
 		data.form
 	);
 
+	let previousPage: string = '/tags';
+
+	afterNavigate(({ from }) => {
+		previousPage = from?.url.pathname || previousPage;
+	});
+
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/tags/[id]/delete',
-		paramsValue: { id: data.tag.id },
-		searchParamsValue: { return: $page.url.toString() }
+		paramsValue: { id: data.tag.id }
 	}).url;
 </script>
 
@@ -48,5 +53,6 @@
 		<ErrorText message={$message} />
 	</form>
 
+	<Button outline href={previousPage}>Cancel</Button>
 	<Button outline color="red" href={deleteURL}>Delete</Button>
 </PageLayout>
