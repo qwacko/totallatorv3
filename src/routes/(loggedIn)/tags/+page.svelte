@@ -24,13 +24,15 @@
 
 <PageLayout title="Tags" size="lg">
 	<Button href="/tags/create">Create</Button>
-	<TablePagination
-		count={data.tags.count}
-		page={data.tags.page}
-		perPage={data.tags.pageSize}
-		urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
-		buttonCount={5}
-	/>
+	<center>
+		<TablePagination
+			count={data.tags.count}
+			page={data.tags.page}
+			perPage={data.tags.pageSize}
+			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
+			buttonCount={5}
+		/>
+	</center>
 	<Table>
 		<TableHead>
 			<TableHeadCell></TableHeadCell>
@@ -112,4 +114,13 @@
 			{/each}
 		</TableBody>
 	</Table>
+	<center>
+		<TablePagination
+			count={data.tags.count}
+			page={data.tags.page}
+			perPage={data.tags.pageSize}
+			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
+			buttonCount={5}
+		/>
+	</center>
 </PageLayout>
