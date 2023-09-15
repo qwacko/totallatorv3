@@ -5,18 +5,18 @@
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { statusEnumSelectionWithoutDeleted } from '$lib/schema/statusSchema.js';
-	import type { CreateTagSchemaSuperType } from '$lib/schema/tagSchema.js';
+	import type { CreateCategorySchemaSuperType } from '$lib/schema/categorySchema.js';
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance } = superForm<CreateTagSchemaSuperType>(
+	const { form, errors, constraints, message, enhance } = superForm<CreateCategorySchemaSuperType>(
 		data.form
 	);
 </script>
 
-<PageLayout title="Create Tag" size="xs">
+<PageLayout title="Create Category" size="xs">
 	<form method="POST" use:enhance class="flex flex-col gap-2">
 		<TextInput
 			title="Title"

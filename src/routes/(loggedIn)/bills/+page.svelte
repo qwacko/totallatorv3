@@ -24,10 +24,10 @@
 	import { browser } from '$app/environment';
 
 	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
+	$: urlInfo = pageInfo('/(loggedIn)/bills', $page);
 
 	const urlStore = pageInfoStore({
-		routeId: '/(loggedIn)/tags',
+		routeId: '/(loggedIn)/bills',
 		pageInfo: page,
 		onUpdate: (newURL) => {
 			if (browser && newURL !== urlInfo.current.url) {
@@ -38,13 +38,13 @@
 	});
 </script>
 
-<PageLayout title="Tags" size="lg">
-	<Button href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>Create</Button>
+<PageLayout title="Bills" size="lg">
+	<Button href={urlGenerator({ address: '/(loggedIn)/bills/create' }).url}>Create</Button>
 	<center>
 		<TablePagination
-			count={data.tags.count}
-			page={data.tags.page}
-			perPage={data.tags.pageSize}
+			count={data.bills.count}
+			page={data.bills.page}
+			perPage={data.bills.pageSize}
 			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
 			buttonCount={5}
 		/>
@@ -55,44 +55,29 @@
 		{/if}
 	</div>
 
-	{#if data.tags.count === 0}
-		<Alert color="dark">No Matching Tags Found</Alert>
+	{#if data.bills.count === 0}
+		<Alert color="dark">No Matching Bills Found</Alert>
 	{:else}
 		<Table>
 			<TableHead>
 				<TableHeadCell></TableHeadCell>
 				<TableHeadCell>
 					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Group</div>
+						<div class="flex">Title</div>
 						<div class="flex">
 							<Button
 								href={urlInfo.updateParams({
-									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'group') }
+									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'title') }
 								}).url}
 								class="p-1 border-0"
 								outline
 							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'group')} />
+								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'title')} />
 							</Button>
 						</div>
 					</div>
 				</TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Single</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'single') }
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'single')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
+
 				<TableHeadCell>
 					<div class="flex flex-row gap-2 items-center">
 						<div class="flex">Status</div>
@@ -111,15 +96,15 @@
 				</TableHeadCell>
 			</TableHead>
 			<TableBody>
-				{#each data.tags.data as currentTag}
+				{#each data.bills.data as currentBill}
 					{@const detailURL = urlGenerator({
-						address: '/(loggedIn)/tags/[id]',
-						paramsValue: { id: currentTag.id }
+						address: '/(loggedIn)/bills/[id]',
+						paramsValue: { id: currentBill.id }
 					}).url}
 
 					{@const deleteURL = urlGenerator({
-						address: '/(loggedIn)/tags/[id]/delete',
-						paramsValue: { id: currentTag.id }
+						address: '/(loggedIn)/bills/[id]/delete',
+						paramsValue: { id: currentBill.id }
 					}).url}
 					<TableBodyRow>
 						<TableBodyCell>
@@ -132,9 +117,8 @@
 								</Button>
 							</ButtonGroup>
 						</TableBodyCell>
-						<TableBodyCell>{currentTag.group}</TableBodyCell>
-						<TableBodyCell>{currentTag.single}</TableBodyCell>
-						<TableBodyCell>{statusToDisplay(currentTag.status)}</TableBodyCell>
+						<TableBodyCell>{currentBill.title}</TableBodyCell>
+						<TableBodyCell>{statusToDisplay(currentBill.status)}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>
@@ -142,9 +126,9 @@
 	{/if}
 	<center>
 		<TablePagination
-			count={data.tags.count}
-			page={data.tags.page}
-			perPage={data.tags.pageSize}
+			count={data.bills.count}
+			page={data.bills.page}
+			perPage={data.bills.pageSize}
 			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
 			buttonCount={5}
 		/>

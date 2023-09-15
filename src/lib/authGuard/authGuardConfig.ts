@@ -36,6 +36,8 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 
 		'/(loggedIn)/backup': adminOnlyConfig,
 
+		// Tags
+		// ----------------------------------------
 		'/(loggedIn)/tags': adminOnlyConfig,
 		'/(loggedIn)/tags/[id]': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowAdminOnly } },
 		'/(loggedIn)/tags/[id]/delete': {
@@ -43,6 +45,54 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: { default: POSTAllowAdminOnly }
 		},
 		'/(loggedIn)/tags/create': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowAdminOnly } },
+
+		// Categories
+		// ----------------------------------------
+		'/(loggedIn)/categories': adminOnlyConfig,
+		'/(loggedIn)/categories/[id]': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/categories/[id]/delete': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/categories/create': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+
+		// Bills
+		// ----------------------------------------
+		'/(loggedIn)/bills': adminOnlyConfig,
+		'/(loggedIn)/bills/[id]': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/bills/[id]/delete': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/bills/create': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+
+		// Budgets
+		// ----------------------------------------
+		'/(loggedIn)/budgets': adminOnlyConfig,
+		'/(loggedIn)/budgets/[id]': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/budgets/[id]/delete': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/budgets/create': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
 
 		'/(loggedIn)/users': adminOnlyConfig,
 		'/(loggedIn)/users/create': adminOnlyConfig,

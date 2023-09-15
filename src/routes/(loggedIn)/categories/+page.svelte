@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		Alert,
 		Button,
 		ButtonGroup,
 		Input,
@@ -8,8 +9,7 @@
 		TableBodyCell,
 		TableBodyRow,
 		TableHead,
-		TableHeadCell,
-		Alert
+		TableHeadCell
 	} from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
@@ -24,10 +24,10 @@
 	import { browser } from '$app/environment';
 
 	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
+	$: urlInfo = pageInfo('/(loggedIn)/categories', $page);
 
 	const urlStore = pageInfoStore({
-		routeId: '/(loggedIn)/tags',
+		routeId: '/(loggedIn)/categories',
 		pageInfo: page,
 		onUpdate: (newURL) => {
 			if (browser && newURL !== urlInfo.current.url) {
@@ -38,13 +38,13 @@
 	});
 </script>
 
-<PageLayout title="Tags" size="lg">
-	<Button href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>Create</Button>
+<PageLayout title="Categories" size="lg">
+	<Button href={urlGenerator({ address: '/(loggedIn)/categories/create' }).url}>Create</Button>
 	<center>
 		<TablePagination
-			count={data.tags.count}
-			page={data.tags.page}
-			perPage={data.tags.pageSize}
+			count={data.categories.count}
+			page={data.categories.page}
+			perPage={data.categories.pageSize}
 			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
 			buttonCount={5}
 		/>
@@ -54,9 +54,8 @@
 			<Input type="text" bind:value={$urlStore.searchParams.title} />
 		{/if}
 	</div>
-
-	{#if data.tags.count === 0}
-		<Alert color="dark">No Matching Tags Found</Alert>
+	{#if data.categories.count === 0}
+		<Alert color="dark">No Matching Categories Found</Alert>
 	{:else}
 		<Table>
 			<TableHead>
@@ -111,15 +110,15 @@
 				</TableHeadCell>
 			</TableHead>
 			<TableBody>
-				{#each data.tags.data as currentTag}
+				{#each data.categories.data as currentCategory}
 					{@const detailURL = urlGenerator({
-						address: '/(loggedIn)/tags/[id]',
-						paramsValue: { id: currentTag.id }
+						address: '/(loggedIn)/categories/[id]',
+						paramsValue: { id: currentCategory.id }
 					}).url}
 
 					{@const deleteURL = urlGenerator({
-						address: '/(loggedIn)/tags/[id]/delete',
-						paramsValue: { id: currentTag.id }
+						address: '/(loggedIn)/categories/[id]/delete',
+						paramsValue: { id: currentCategory.id }
 					}).url}
 					<TableBodyRow>
 						<TableBodyCell>
@@ -132,9 +131,9 @@
 								</Button>
 							</ButtonGroup>
 						</TableBodyCell>
-						<TableBodyCell>{currentTag.group}</TableBodyCell>
-						<TableBodyCell>{currentTag.single}</TableBodyCell>
-						<TableBodyCell>{statusToDisplay(currentTag.status)}</TableBodyCell>
+						<TableBodyCell>{currentCategory.group}</TableBodyCell>
+						<TableBodyCell>{currentCategory.single}</TableBodyCell>
+						<TableBodyCell>{statusToDisplay(currentCategory.status)}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>
@@ -142,9 +141,9 @@
 	{/if}
 	<center>
 		<TablePagination
-			count={data.tags.count}
-			page={data.tags.page}
-			perPage={data.tags.pageSize}
+			count={data.categories.count}
+			page={data.categories.page}
+			perPage={data.categories.pageSize}
 			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
 			buttonCount={5}
 		/>
