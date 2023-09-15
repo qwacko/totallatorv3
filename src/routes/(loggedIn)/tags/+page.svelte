@@ -19,7 +19,6 @@
 	import { getOrderBy, modifyOrderBy } from './orderByHelper.js';
 	import SortIcon from '$lib/components/SortIcon.svelte';
 	import TablePagination from '$lib/components/TablePagination.svelte';
-	import TextInput from '$lib/components/TextInput.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 
@@ -31,7 +30,7 @@
 		pageInfo: page,
 		onUpdate: (newURL) => {
 			if (browser && newURL !== urlInfo.current.url) {
-				goto(newURL);
+				goto(newURL, { keepFocus: true, noScroll: true });
 			}
 		},
 		updateDelay: 500
