@@ -8,7 +8,6 @@ import type { DBType } from '../db';
 import { budget } from '../schema';
 import { SQL, and, asc, desc, eq, like, not, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
-import { combinedTitleSplit, combinedTitleSplitRequired } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
@@ -71,7 +70,7 @@ export const budgetActions = {
 				id,
 				...statusUpdate(data.status),
 				...updatedTime(),
-				...combinedTitleSplitRequired(data)
+				title: data.title
 			})
 			.execute();
 
@@ -97,7 +96,7 @@ export const budgetActions = {
 			.set({
 				...statusUpdate(data.status),
 				...updatedTime(),
-				...combinedTitleSplit(data)
+				title: data.title
 			})
 			.where(eq(budget.id, id))
 			.execute();

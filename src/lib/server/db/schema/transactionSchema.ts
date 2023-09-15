@@ -102,7 +102,7 @@ export const label = sqliteTable('label', {
 	...timestampColumns
 });
 
-export const labelRelations = relations(budget, ({ many }) => ({
+export const labelRelations = relations(label, ({ many }) => ({
 	journals: many(labelsToJournals)
 }));
 

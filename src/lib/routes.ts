@@ -4,6 +4,7 @@ import { tagFilterSchema } from './schema/tagSchema';
 import { billFilterSchema as billFilterSchema } from './schema/billSchema';
 import { budgetFilterSchema as budgetFilterSchema } from './schema/budgetSchema';
 import { categoryFilterSchema } from './schema/categorySchema';
+import { labelFilterSchema } from './schema/labelSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -11,6 +12,30 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/': {},
 		'/(loggedIn)/backup': {},
 
+		// Accounts
+		// ----------------------------------------
+		'/(loggedIn)/accounts': {
+			searchParamsValidation: tagFilterSchema.optional().catch({}).parse
+		},
+		'/(loggedIn)/accounts/create': {},
+		'/(loggedIn)/accounts/[id]': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
+		'/(loggedIn)/accounts/[id]/delete': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
+		// Labels
+		// ----------------------------------------
+		'/(loggedIn)/labels': {
+			searchParamsValidation: labelFilterSchema.optional().catch({}).parse
+		},
+		'/(loggedIn)/labels/create': {},
+		'/(loggedIn)/labels/[id]': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
+		'/(loggedIn)/labels/[id]/delete': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
 		// Tags
 		// ----------------------------------------
 		'/(loggedIn)/tags': {

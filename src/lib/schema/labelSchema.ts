@@ -1,0 +1,39 @@
+import { z } from 'zod';
+import { statusEnum } from './statusSchema';
+
+export const createLabelSchema = z.object({
+	title: z.string(),
+	status: z.enum(statusEnum).default('active')
+});
+
+export type CreateLabelSchemaSuperType = typeof createLabelSchema;
+export type CreateLabelSchemaType = z.infer<typeof createLabelSchema>;
+
+export const updateLabelSchema = z.object({
+	id: z.string(),
+	title: z.string().optional(),
+	status: z.enum(statusEnum).optional()
+});
+
+export type UpdateLabelSchemaSuperType = typeof updateLabelSchema;
+export type UpdateLabelSchemaType = z.infer<typeof updateLabelSchema>;
+
+const orderByEnum = ['title', 'status', 'deleted', 'disabled', 'allowUpdate', 'active'] as const;
+
+export const labelFilterSchema = z.object({
+	id: z.string().optional(),
+	title: z.string().optional(),
+	status: z.enum(statusEnum).optional(),
+	deleted: z.boolean().default(false).optional(),
+	disabled: z.boolean().optional(),
+	allowUpdate: z.boolean().optional(),
+	active: z.boolean().optional(),
+	page: z.number().default(0).optional(),
+	pageSize: z.number().default(10).optional(),
+	orderBy: z
+		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.default([{ direction: 'asc', field: 'title' }])
+		.optional()
+});
+
+export type LabelFilterSchemaType = z.infer<typeof labelFilterSchema>;
