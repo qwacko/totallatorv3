@@ -1,6 +1,6 @@
 import { statusEnum } from '../../../schema/statusSchema';
 import { relations, sql } from 'drizzle-orm';
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, unique, index } from 'drizzle-orm/sqlite-core';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -95,6 +95,40 @@ export const budgetRelations = relations(budget, ({ many }) => ({
 	journals: many(journalEntry)
 }));
 
+export const label = sqliteTable('label', {
+	...idColumn,
+	title: text('title').unique().notNull(),
+	...statusColumns,
+	...timestampColumns
+});
+
+export const labelRelations = relations(budget, ({ many }) => ({
+	journals: many(labelsToJournals)
+}));
+
+export const labelsToJournals = sqliteTable(
+	'labels_to_journals',
+	{
+		...idColumn,
+		labelId: text('label_id').notNull(),
+		journalId: text('journal_id').notNull(),
+		...timestampColumns
+	},
+	(t) => ({
+		uniqueRelation: unique().on(t.journalId, t.labelId),
+		labelIdx: index('label_idx').on(t.labelId),
+		journallabelIdx: index('journal_idx').on(t.journalId)
+	})
+);
+
+export const labelToJournalsRelations = relations(labelsToJournals, ({ one }) => ({
+	journalEntry: one(journalEntry, {
+		fields: [labelsToJournals.journalId],
+		references: [journalEntry.id]
+	}),
+	label: one(label, { fields: [labelsToJournals.labelId], references: [label.id] })
+}));
+
 const journalSharedColumns = {
 	description: text('description').notNull(),
 
@@ -135,7 +169,7 @@ export const journalEntry = sqliteTable('journal_entry', {
 	...timestampColumns
 });
 
-export const journalEntryRelations = relations(journalEntry, ({ one }) => ({
+export const journalEntryRelations = relations(journalEntry, ({ one, many }) => ({
 	transaction: one(transaction, {
 		fields: [journalEntry.transactionId],
 		references: [transaction.id]
@@ -159,5 +193,6 @@ export const journalEntryRelations = relations(journalEntry, ({ one }) => ({
 	tag: one(tag, {
 		fields: [journalEntry.tagId],
 		references: [tag.id]
-	})
+	}),
+	labels: many(labelsToJournals)
 }));

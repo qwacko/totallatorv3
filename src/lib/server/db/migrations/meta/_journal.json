@@ -8,6 +8,13 @@
       "when": 1694716199383,
       "tag": "0000_aspiring_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1694804766917,
+      "tag": "0001_whole_warbound",
+      "breakpoints": true
     }
   ]
 }
