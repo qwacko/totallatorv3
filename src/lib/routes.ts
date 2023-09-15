@@ -2,7 +2,7 @@ import { skRoutes } from 'skroutes';
 import { z } from 'zod';
 import { tagFilterSchema } from './schema/tagSchema';
 
-export const { serverPageInfo, pageInfo, urlGenerator } = skRoutes({
+export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
 	config: {
 		'/': {},

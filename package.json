@@ -18,7 +18,7 @@
 		"generate-pwa-assets": "pwa-assets-generator"
 	},
 	"devDependencies": {
-		"@iconify/json": "^2.2.115",
+		"@iconify/json": "^2.2.116",
 		"@playwright/test": "^1.38.0",
 		"@sveltejs/adapter-auto": "^2.1.0",
 		"@sveltejs/kit": "^1.25.0",
@@ -61,7 +61,7 @@
 		"nanoid": "^5.0.1",
 		"node-schedule": "^2.1.1",
 		"skguard": "^0.0.13",
-		"skroutes": "^0.0.7",
+		"skroutes": "^0.0.9",
 		"zod": "^3.22.2"
 	}
 }

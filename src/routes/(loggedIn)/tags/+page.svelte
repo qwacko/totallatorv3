@@ -1,6 +1,8 @@
 <script lang="ts">
 	import {
 		Button,
+		ButtonGroup,
+		Input,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -13,17 +15,31 @@
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
-	import { pageInfo, urlGenerator } from '$lib/routes.js';
+	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
 	import { getOrderBy, modifyOrderBy } from './orderByHelper.js';
 	import SortIcon from '$lib/components/SortIcon.svelte';
 	import TablePagination from '$lib/components/TablePagination.svelte';
+	import TextInput from '$lib/components/TextInput.svelte';
+	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
+
+	const urlStore = pageInfoStore({
+		routeId: '/(loggedIn)/tags',
+		pageInfo: page,
+		onUpdate: (newURL) => {
+			if (browser && newURL !== urlInfo.current.url) {
+				goto(newURL);
+			}
+		},
+		updateDelay: 500
+	});
 </script>
 
 <PageLayout title="Tags" size="lg">
-	<Button href="/tags/create">Create</Button>
+	<Button href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>Create</Button>
 	<center>
 		<TablePagination
 			count={data.tags.count}
@@ -33,6 +49,11 @@
 			buttonCount={5}
 		/>
 	</center>
+	<div>
+		{#if $urlStore.searchParams}
+			<Input type="text" bind:value={$urlStore.searchParams.title} />
+		{/if}
+	</div>
 	<Table>
 		<TableHead>
 			<TableHeadCell></TableHeadCell>
@@ -98,14 +119,14 @@
 				}).url}
 				<TableBodyRow>
 					<TableBodyCell>
-						<center>
+						<ButtonGroup class="w-full justify-center">
 							<Button href={detailURL} class="p-2" outline>
 								<EditIcon height={15} width={15} />
 							</Button>
 							<Button href={deleteURL} class="p-2" outline color="red">
 								<DeleteIcon height={15} width={15} />
 							</Button>
-						</center>
+						</ButtonGroup>
 					</TableBodyCell>
 					<TableBodyCell>{currentTag.group}</TableBodyCell>
 					<TableBodyCell>{currentTag.single}</TableBodyCell>

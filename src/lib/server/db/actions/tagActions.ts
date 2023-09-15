@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { tag } from '../schema';
-import { SQL, and, asc, desc, eq, ilike, not, sql } from 'drizzle-orm';
+import { SQL, and, asc, desc, eq, ilike, like, not, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { combinedTitleSplit, combinedTitleSplitRequired } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/updatedTime';
@@ -22,7 +22,7 @@ export const tagActions = {
 
 		const where: SQL<unknown>[] = [];
 		if (restFilter.id) where.push(eq(tag.id, restFilter.id));
-		if (restFilter.title) where.push(ilike(tag.title, `%${restFilter.title}%`));
+		if (restFilter.title) where.push(like(tag.title, `%${restFilter.title}%`));
 		if (restFilter.group) where.push(ilike(tag.title, `%${restFilter.group}%`));
 		if (restFilter.single) where.push(ilike(tag.title, `%${restFilter.single}%`));
 		if (restFilter.status) where.push(eq(tag.status, restFilter.status));
@@ -61,7 +61,7 @@ export const tagActions = {
 			.execute();
 
 		const count = resultCount[0].count;
-		const pageCount = Math.ceil(count / pageSize);
+		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},

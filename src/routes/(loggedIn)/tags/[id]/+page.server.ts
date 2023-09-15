@@ -11,9 +11,11 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.params?.id) throw redirect(302, '/tags');
+	logging.info('tags/[id] load function : ', pageInfo);
 
-	const tag = await tActions.tag.getById(db, pageInfo.params?.id);
+	if (!pageInfo.current.params?.id) throw redirect(302, '/tags');
+
+	const tag = await tActions.tag.getById(db, pageInfo.current.params?.id);
 	if (!tag) throw redirect(302, '/tags');
 	const form = await superValidate(
 		{ id: tag.id, title: tag.title, status: tag.status },

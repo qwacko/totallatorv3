@@ -23,7 +23,15 @@
 				</div></span
 			>
 		{/if}
-		<Input bind:value {...$$restProps} {name} {required} class={$$props.class} />
+		<Input
+			bind:value
+			{...$$restProps}
+			{name}
+			{required}
+			class={$$props.class}
+			on:blur
+			on:keypress
+		/>
 		<ErrorText message={errorMessage} />
 	</Label>
 </div>

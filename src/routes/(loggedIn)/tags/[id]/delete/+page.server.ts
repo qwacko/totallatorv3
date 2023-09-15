@@ -10,9 +10,9 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.params?.id) throw redirect(302, '/tags');
+	if (!pageInfo.current.params?.id) throw redirect(302, '/tags');
 
-	const tag = await tActions.tag.getById(db, pageInfo.params?.id);
+	const tag = await tActions.tag.getById(db, pageInfo.current.params?.id);
 	if (!tag) throw redirect(302, '/tags');
 
 	return {
