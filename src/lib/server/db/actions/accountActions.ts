@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account } from '../schema';
-import { SQL, and, asc, desc, eq, like, not, sql } from 'drizzle-orm';
+import { SQL, and, asc, desc, eq, gt, inArray, like, not, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -35,10 +35,23 @@ export const accountActions = {
 			where.push(like(account.accountTitleCombined, `%${restFilter.accountTitleCombined}%`));
 		if (restFilter.status) where.push(eq(account.status, restFilter.status));
 		else where.push(not(eq(account.status, 'deleted')));
-		if (restFilter.deleted) where.push(eq(account.deleted, restFilter.deleted));
-		if (restFilter.disabled) where.push(eq(account.disabled, restFilter.disabled));
-		if (restFilter.allowUpdate) where.push(eq(account.allowUpdate, restFilter.allowUpdate));
-		if (restFilter.active) where.push(eq(account.active, restFilter.active));
+		if (restFilter.deleted !== undefined) where.push(eq(account.deleted, restFilter.deleted));
+		if (restFilter.disabled !== undefined) where.push(eq(account.disabled, restFilter.disabled));
+		if (restFilter.allowUpdate !== undefined)
+			where.push(eq(account.allowUpdate, restFilter.allowUpdate));
+		if (restFilter.active !== undefined) where.push(eq(account.active, restFilter.active));
+		if (restFilter.isCash !== undefined) where.push(eq(account.isCash, restFilter.isCash));
+		if (restFilter.isNetWorth !== undefined)
+			where.push(eq(account.isNetWorth, restFilter.isNetWorth));
+		if (restFilter.startDateAfter !== undefined)
+			where.push(gt(account.startDate, restFilter.startDateAfter));
+		if (restFilter.startDateBefore !== undefined)
+			where.push(gt(account.startDate, restFilter.startDateBefore));
+		if (restFilter.endDateAfter !== undefined)
+			where.push(gt(account.endDate, restFilter.endDateAfter));
+		if (restFilter.endDateBefore !== undefined)
+			where.push(gt(account.endDate, restFilter.endDateBefore));
+		if (restFilter.type !== undefined) where.push(inArray(account.type, restFilter.type));
 
 		const defaultOrderBy = [asc(account.title), desc(account.createdAt)];
 
@@ -79,6 +92,7 @@ export const accountActions = {
 			.insert(account)
 			.values({
 				id,
+				...data,
 				...statusUpdate(data.status),
 				...updatedTime(),
 				...combinedAccountTitleSplitRequired(data)
@@ -107,6 +121,7 @@ export const accountActions = {
 		await db
 			.update(account)
 			.set({
+				...data,
 				...statusUpdate(data.status),
 				...updatedTime(),
 				...combinedAccountTitleSplitRequired({

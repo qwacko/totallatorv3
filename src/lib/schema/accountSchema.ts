@@ -1,9 +1,15 @@
 import { z } from 'zod';
 import { statusEnum } from './statusSchema';
+import { accountTypeEnum } from './accountTypeSchema';
 
 export const createAccountSchema = z.object({
 	title: z.string(),
 	accountGroupCombined: z.string(),
+	type: z.enum(accountTypeEnum).optional().default('expense'),
+	startDate: z.date().optional(),
+	endDate: z.date().optional(),
+	isCash: z.boolean().optional(),
+	isNetWorth: z.boolean().optional(),
 	status: z.enum(statusEnum).default('active')
 });
 
@@ -13,7 +19,12 @@ export type CreateAccountSchemaType = z.infer<typeof createAccountSchema>;
 export const updateAccountSchema = z.object({
 	id: z.string(),
 	title: z.string().optional(),
+	type: z.enum(accountTypeEnum).optional(),
 	accountGroupCombined: z.string().optional(),
+	startDate: z.date().optional().nullable(),
+	endDate: z.date().optional().nullable(),
+	isCash: z.boolean().optional(),
+	isNetWorth: z.boolean().optional(),
 	status: z.enum(statusEnum).optional()
 });
 
@@ -27,6 +38,10 @@ const orderByEnum = [
 	'accountGroup3',
 	'accountGroupCombined',
 	'accountTitleCombined',
+	'isCash',
+	'isNetWorth',
+	'startDate',
+	'endDate',
 	'status',
 	'deleted',
 	'disabled',
@@ -37,6 +52,7 @@ const orderByEnum = [
 export const accountFilterSchema = z.object({
 	id: z.string().optional(),
 	title: z.string().optional(),
+	type: z.array(z.enum(accountTypeEnum)).optional(),
 	accountGroup: z.string().optional(),
 	accountGroup2: z.string().optional(),
 	accountGroup3: z.string().optional(),
@@ -47,6 +63,12 @@ export const accountFilterSchema = z.object({
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),
+	isCash: z.boolean().optional(),
+	isNetWorth: z.boolean().optional(),
+	startDateBefore: z.date().optional(),
+	startDateAfter: z.date().optional(),
+	endDateBefore: z.date().optional(),
+	endDateAfter: z.date().optional(),
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z

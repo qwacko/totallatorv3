@@ -1,3 +1,4 @@
+import { accountTypeEnum } from '$lib/schema/accountTypeSchema';
 import { statusEnum } from '../../../schema/statusSchema';
 import { relations, sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, unique, index } from 'drizzle-orm/sqlite-core';
@@ -25,9 +26,7 @@ export const account = sqliteTable('account', {
 	...idColumn,
 
 	title: text('title').unique().notNull(),
-	type: text('type', { enum: ['income', 'expense', 'asset', 'liability'] })
-		.notNull()
-		.default('expense'),
+	type: text('type', { enum: accountTypeEnum }).notNull().default('expense'),
 
 	isCash: integer('is_cash', { mode: 'boolean' }).notNull().default(false),
 	isNetWorth: integer('is_net_worth', { mode: 'boolean' }).notNull().default(false),
