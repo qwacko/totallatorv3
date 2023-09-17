@@ -1,13 +1,14 @@
 import { z } from 'zod';
 import { statusEnum } from './statusSchema';
 import { accountTypeEnum } from './accountTypeSchema';
+import { dateStringSchema } from './dateStringSchema';
 
 export const createAccountSchema = z.object({
 	title: z.string(),
 	accountGroupCombined: z.string(),
 	type: z.enum(accountTypeEnum).optional().default('expense'),
-	startDate: z.date().optional(),
-	endDate: z.date().optional(),
+	startDate: dateStringSchema.optional(),
+	endDate: dateStringSchema.optional(),
 	isCash: z.boolean().optional(),
 	isNetWorth: z.boolean().optional(),
 	status: z.enum(statusEnum).default('active')
@@ -21,8 +22,8 @@ export const updateAccountSchema = z.object({
 	title: z.string().optional(),
 	type: z.enum(accountTypeEnum).optional(),
 	accountGroupCombined: z.string().optional(),
-	startDate: z.date().optional().nullable(),
-	endDate: z.date().optional().nullable(),
+	startDate: dateStringSchema.optional().nullable(),
+	endDate: dateStringSchema.optional().nullable(),
 	isCash: z.boolean().optional(),
 	isNetWorth: z.boolean().optional(),
 	status: z.enum(statusEnum).optional()
@@ -65,10 +66,10 @@ export const accountFilterSchema = z.object({
 	active: z.boolean().optional(),
 	isCash: z.boolean().optional(),
 	isNetWorth: z.boolean().optional(),
-	startDateBefore: z.date().optional(),
-	startDateAfter: z.date().optional(),
-	endDateBefore: z.date().optional(),
-	endDateAfter: z.date().optional(),
+	startDateBefore: dateStringSchema.optional(),
+	startDateAfter: dateStringSchema.optional(),
+	endDateBefore: dateStringSchema.optional(),
+	endDateAfter: dateStringSchema.optional(),
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z

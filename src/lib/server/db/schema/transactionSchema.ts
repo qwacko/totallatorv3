@@ -1,4 +1,4 @@
-import { accountTypeEnum } from '$lib/schema/accountTypeSchema';
+import { accountTypeEnum } from '../../../schema/accountTypeSchema';
 import { statusEnum } from '../../../schema/statusSchema';
 import { relations, sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, unique, index } from 'drizzle-orm/sqlite-core';
@@ -35,8 +35,8 @@ export const account = sqliteTable('account', {
 	accountGroup3: text('account_group_3').notNull(),
 	accountGroupCombined: text('account_group_combined').notNull(),
 	accountTitleCombined: text('account_title_combined').notNull().unique(),
-	startDate: integer('start_date', { mode: 'timestamp' }),
-	endDate: integer('end_date', { mode: 'timestamp' }),
+	startDate: text('start_date', { length: 10 }),
+	endDate: text('end_date', { length: 10 }),
 	...statusColumns,
 	...timestampColumns
 });

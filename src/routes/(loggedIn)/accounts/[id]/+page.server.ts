@@ -11,8 +11,6 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	logging.info('accounts/[id] load function : ', pageInfo);
-
 	if (!pageInfo.current.params?.id) throw redirect(302, '/accounts');
 
 	const account = await tActions.account.getById(db, pageInfo.current.params?.id);
@@ -22,7 +20,12 @@ export const load = async (data) => {
 			id: account.id,
 			title: account.title,
 			status: account.status,
-			accountGroupCombined: account.accountGroupCombined
+			accountGroupCombined: account.accountGroupCombined,
+			isCash: account.isCash,
+			isNetWorth: account.isNetWorth,
+			startDate: account.startDate,
+			endDate: account.endDate,
+			type: account.type
 		},
 		updateAccountSchema
 	);
@@ -36,8 +39,6 @@ export const load = async (data) => {
 export const actions = {
 	default: async ({ request }) => {
 		const form = await superValidate(request, updateAccountSchema);
-
-		logging.info('Update Form: ', form);
 
 		if (!form.valid) {
 			return { form };

@@ -15,6 +15,13 @@
       "when": 1694804766917,
       "tag": "0001_whole_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1694990853410,
+      "tag": "0002_past_satana",
+      "breakpoints": true
     }
   ]
 }

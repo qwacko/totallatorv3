@@ -30,8 +30,6 @@ export const actions = {
 	default: async ({ request }) => {
 		const form = await superValidate(request, updateCategorySchema);
 
-		logging.info('Update Form: ', form);
-
 		if (!form.valid) {
 			return { form };
 		}

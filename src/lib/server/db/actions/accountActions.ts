@@ -88,16 +88,32 @@ export const accountActions = {
 	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
-		await db
-			.insert(account)
-			.values({
-				id,
-				...data,
-				...statusUpdate(data.status),
-				...updatedTime(),
-				...combinedAccountTitleSplitRequired(data)
-			})
-			.execute();
+		if (data.type === 'expense' || data.type === 'income') {
+			await db
+				.insert(account)
+				.values({
+					id,
+					...data,
+					...statusUpdate(data.status),
+					...updatedTime(),
+					...combinedAccountTitleSplitRequired(data)
+				})
+				.execute();
+		} else {
+			await db
+				.insert(account)
+				.values({
+					id,
+					...statusUpdate(data.status),
+					...updatedTime(),
+					...combinedAccountTitleSplitRequired({ title: data.title, accountGroupCombined: '' }),
+					startDate: null,
+					endDate: null,
+					isCash: false,
+					isNetWorth: false
+				})
+				.execute();
+		}
 
 		return id;
 	},
@@ -106,7 +122,6 @@ export const accountActions = {
 		const currentAccount = await db.query.account
 			.findFirst({ where: eq(account.id, id) })
 			.execute();
-		logging.info('Update Account: ', data, currentAccount);
 
 		if (!currentAccount || currentAccount.status === 'deleted') {
 			logging.info('Update Account: Account not found or deleted');
@@ -118,20 +133,60 @@ export const accountActions = {
 			return id;
 		}
 
-		await db
-			.update(account)
-			.set({
-				...data,
-				...statusUpdate(data.status),
-				...updatedTime(),
-				...combinedAccountTitleSplitRequired({
-					title: data.title || currentAccount.title,
-					accountGroupCombined: data.accountGroupCombined || currentAccount.accountGroupCombined
-				})
-			})
-			.where(eq(account.id, id))
-			.execute();
+		const changingToExpenseOrIncome =
+			data.type &&
+			(data.type === 'expense' || data.type === 'income') &&
+			data.type !== currentAccount.type;
 
+		//If an account is changed to an expense, then make sure that all the other aspects
+		//of the account are correctly updated to how an expense would be created.
+		if (changingToExpenseOrIncome) {
+			await db
+				.update(account)
+				.set({
+					type: data.type,
+					...statusUpdate(data.status),
+					...combinedAccountTitleSplitRequired({
+						title: data.title || currentAccount.title,
+						accountGroupCombined: ''
+					}),
+					...updatedTime(),
+					startDate: null,
+					endDate: null,
+					isCash: false,
+					isNetWorth: false
+				})
+				.where(eq(account.id, id))
+				.execute();
+		} else if (currentAccount.type === 'expense' || currentAccount.type === 'income') {
+			//Limit what can be updated for an income or expense account
+			await db
+				.update(account)
+				.set({
+					type: data.type || currentAccount.type,
+					...combinedAccountTitleSplitRequired({
+						title: data.title || currentAccount.title,
+						accountGroupCombined: ''
+					}),
+					...updatedTime()
+				})
+				.where(eq(account.id, id))
+				.execute();
+		} else {
+			await db
+				.update(account)
+				.set({
+					...data,
+					...statusUpdate(data.status),
+					...updatedTime(),
+					...combinedAccountTitleSplitRequired({
+						title: data.title || currentAccount.title,
+						accountGroupCombined: data.accountGroupCombined || currentAccount.accountGroupCombined
+					})
+				})
+				.where(eq(account.id, id))
+				.execute();
+		}
 		return id;
 	},
 	delete: async (db: DBType, data: IdSchemaType) => {
