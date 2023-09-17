@@ -11,8 +11,6 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	logging.info('budgets/[id] load function : ', pageInfo);
-
 	if (!pageInfo.current.params?.id) throw redirect(302, '/budgets');
 
 	const budget = await tActions.budget.getById(db, pageInfo.current.params?.id);

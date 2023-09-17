@@ -73,34 +73,39 @@
 		/>
 
 		{#if showExtended}
-			<CheckboxInput
-				bind:value={$form.isCash}
-				title="Is Cash"
-				errorMessage={$errors.isCash}
-				name="isCash"
-				{...$constraints.isCash}
-			/>
-			<CheckboxInput
-				bind:value={$form.isNetWorth}
-				title="Is Net Worth"
-				errorMessage={$errors.isNetWorth}
-				name="isNetWorth"
-				{...$constraints.isNetWorth}
-			/>
-			<DateInput
-				bind:value={$form.startDate}
-				title="Start Date"
-				errorMessage={$errors.startDate}
-				name="startDate"
-				{...$constraints.startDate}
-			/>
-			<DateInput
-				bind:value={$form.endDate}
-				title="End Date"
-				errorMessage={$errors.endDate}
-				name="endDate"
-				{...$constraints.startDate}
-			/>
+			<div class="grid grid-cols-2 gap-2">
+				<CheckboxInput
+					bind:value={$form.isCash}
+					displayText="Is Cash"
+					errorMessage={$errors.isCash}
+					name="isCash"
+					{...$constraints.isCash}
+				/>
+				<CheckboxInput
+					bind:value={$form.isNetWorth}
+					displayText="Is Net Worth"
+					errorMessage={$errors.isNetWorth}
+					name="isNetWorth"
+					{...$constraints.isNetWorth}
+				/>
+			</div>
+			<div class="grid grid-cols-2 gap-2">
+				<DateInput
+					bind:value={$form.startDate}
+					class="flex flex-grow"
+					title="Start Date"
+					errorMessage={$errors.startDate}
+					name="startDate"
+					{...$constraints.startDate}
+				/>
+				<DateInput
+					bind:value={$form.endDate}
+					title="End Date"
+					errorMessage={$errors.endDate}
+					name="endDate"
+					{...$constraints.startDate}
+				/>
+			</div>
 		{/if}
 
 		<Button type="submit">Update</Button>

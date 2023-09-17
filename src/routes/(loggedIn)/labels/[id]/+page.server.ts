@@ -11,8 +11,6 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	logging.info('labels/[id] load function : ', pageInfo);
-
 	if (!pageInfo.current.params?.id) throw redirect(302, '/labels');
 
 	const label = await tActions.label.getById(db, pageInfo.current.params?.id);
