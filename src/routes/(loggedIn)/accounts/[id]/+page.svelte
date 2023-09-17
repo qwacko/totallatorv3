@@ -109,12 +109,4 @@
 
 	<Button outline href={previousPage}>Cancel</Button>
 	<Button outline color="red" href={deleteURL}>Delete</Button>
-	<pre>
-		Form Data : 
-		{JSON.stringify($form, null, 2)}
-		Data: 
-		
-		{JSON.stringify(data, null, 2)}
-
-	</pre>
 </PageLayout>
