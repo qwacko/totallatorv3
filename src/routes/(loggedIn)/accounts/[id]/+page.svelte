@@ -23,7 +23,6 @@
 	let previousPage: string = '/accounts';
 
 	afterNavigate(({ from }) => {
-		console.log('Previous Page', from);
 		previousPage = from?.url.href || previousPage;
 	});
 
