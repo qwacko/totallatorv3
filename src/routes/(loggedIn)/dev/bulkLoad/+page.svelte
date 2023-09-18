@@ -9,7 +9,9 @@
 <PageLayout title="Bulk Actions">
 	<div class="flex flex-col gap-2">
 		<Heading tag="h3">Create Accounts</Heading>
-		<Heading tag="h5">Currently : {data.accountCount}</Heading>
+		<div class="flex">
+			Currently : {data.accountCount} Accounts Exist - {data.deletableAccountCount} can be deleted
+		</div>
 		<div class="flex flex-row gap-2">
 			{#each data.accountCreationOptions as currentOption}
 				<form class="flex" method="POST" action="?/bulkAddAccounts" use:enhance>
@@ -20,6 +22,11 @@
 					<Button type="submit" outline>{currentOption.title}</Button>
 				</form>
 			{/each}
+			<form class="flex" method="POST" action="?/deleteUnusedAccounts" use:enhance>
+				<Button type="submit" outline color="red"
+					>Delete {data.deletableAccountCount} Unused Accounts</Button
+				>
+			</form>
 		</div>
 	</div>
 </PageLayout>

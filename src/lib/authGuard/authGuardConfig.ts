@@ -47,7 +47,8 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		'/(loggedIn)/dev/bulkLoad': {
 			...devOnly,
 			POSTCheck: {
-				bulkAddAccounts: devOnlyPOST
+				bulkAddAccounts: devOnlyPOST,
+				deleteUnusedAccounts: devOnlyPOST
 			}
 		},
 

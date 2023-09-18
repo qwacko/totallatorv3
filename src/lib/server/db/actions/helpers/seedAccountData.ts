@@ -51,7 +51,7 @@ export const createAsset = (): CreateAccountSchemaType => {
 		type: 'asset',
 		title: `${getRandomArrayElement(assetTitleParts)} ${getRandomArrayElement(
 			assetTitleParts2
-		)} ${getRandomInteger(10)}`,
+		)} ${getRandomInteger(1000)}`,
 		accountGroupCombined: createAccountGroupCombined(),
 		isCash: getRandomBoolean(0.4),
 		isNetWorth: getRandomBoolean(0.95),
@@ -64,7 +64,7 @@ export const createLiability = (): CreateAccountSchemaType => {
 		type: 'liability',
 		title: `${getRandomArrayElement(assetTitleParts)} ${getRandomArrayElement(
 			liabilityTitleParts2
-		)} ${getRandomInteger(10)}`,
+		)} ${getRandomInteger(1000)}`,
 		accountGroupCombined: createAccountGroupCombined(),
 		isCash: getRandomBoolean(0.4),
 		isNetWorth: getRandomBoolean(0.95),
@@ -77,7 +77,7 @@ export const createIncome = (): CreateAccountSchemaType => {
 		type: 'income',
 		title: `${getRandomArrayElement(incomeGroupOptions)} ${getRandomArrayElement(
 			incomeOptions
-		)} ${getRandomInteger(10)}`,
+		)} ${getRandomInteger(1000)}`,
 		accountGroupCombined: '',
 		isCash: false,
 		isNetWorth: false,
@@ -90,7 +90,7 @@ export const createExpense = (): CreateAccountSchemaType => {
 		type: 'expense',
 		title: `${getRandomArrayElement(expenseLocations)} ${getRandomArrayElement(
 			expenseTypes
-		)} ${getRandomInteger(50)}`,
+		)} ${getRandomInteger(500)}`,
 		accountGroupCombined: '',
 		isCash: false,
 		isNetWorth: false,

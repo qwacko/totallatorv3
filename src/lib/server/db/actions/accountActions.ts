@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account } from '../schema';
-import { SQL, and, asc, desc, eq, gt, inArray, like, not, sql } from 'drizzle-orm';
+import { account, journalEntry } from '../schema';
+import { SQL, and, asc, desc, eq, getTableColumns, gt, inArray, like, not, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -54,8 +54,31 @@ export const accountActions = {
 
 		return count[0].count;
 	},
-	list: async (db: DBType, filter: AccountFilterSchemaType) => {
-		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
+	listWithTransactionCount: async (db: DBType) => {
+		const items = db
+			.select({ id: account.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.from(account)
+			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
+			.groupBy(account.id)
+			.execute();
+
+		return items;
+	},
+	list: async <T extends boolean>({
+		db,
+		filter,
+		includeJournalCount
+	}: {
+		db: DBType;
+		filter?: AccountFilterSchemaType;
+		includeJournalCount?: T;
+	}) => {
+		const {
+			page = 0,
+			pageSize = 10,
+			orderBy,
+			...restFilter
+		} = filter || { page: 10, pageSize: 10 };
 
 		const where: SQL<unknown>[] = [];
 		if (restFilter.id) where.push(eq(account.id, restFilter.id));
@@ -103,13 +126,18 @@ export const accountActions = {
 			  ]
 			: defaultOrderBy;
 
-		const results = db.query.account
-			.findMany({
-				where: and(...where),
-				offset: page * pageSize,
-				limit: pageSize,
-				orderBy: orderByResult
+		const results = await db
+			.select({
+				...getTableColumns(account),
+				...(includeJournalCount ? { journalCount: sql<number>`count(${journalEntry.id})` } : {})
 			})
+			.from(account)
+			.where(and(...where))
+			.limit(pageSize)
+			.offset(page * pageSize)
+			.orderBy(...orderByResult)
+			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
+			.groupBy(account.id)
 			.execute();
 
 		const resultCount = await db
@@ -121,7 +149,7 @@ export const accountActions = {
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
-		return { count, data: await results, pageCount, page, pageSize };
+		return { count, data: results, pageCount, page, pageSize };
 	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
@@ -216,6 +244,26 @@ export const accountActions = {
 		}
 
 		return data.id;
+	},
+	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		const currentAccounts = await accountActions.listWithTransactionCount(db);
+		const itemsForDeletion = data.filter((item) => {
+			const currentAccount = currentAccounts.find((current) => current.id === item.id);
+			return currentAccount && currentAccount.journalCount === 0;
+		});
+		if (itemsForDeletion.length === data.length) {
+			await db
+				.delete(account)
+				.where(
+					inArray(
+						account.id,
+						itemsForDeletion.map((item) => item.id)
+					)
+				)
+				.execute();
+			return true;
+		}
+		return false;
 	},
 	undelete: async (db: DBType, data: IdSchemaType) => {
 		const currentAccount = await db.query.account

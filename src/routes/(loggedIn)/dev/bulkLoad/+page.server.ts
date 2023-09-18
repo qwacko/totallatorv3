@@ -2,8 +2,12 @@ import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging.js';
 
-export const load = () => {
+export const load = async () => {
 	const accountCount = tActions.account.count(db);
+	const accountsWithJournalCount = await tActions.account.listWithTransactionCount(db);
+	const deletableAccountCount = accountsWithJournalCount.filter(
+		(item) => item.journalCount === 0
+	).length;
 	const accountCreationOptions = [
 		{ title: '+ 10', income: 3, expense: 3, asset: 3, liability: 1 },
 		{ title: '+ 40', income: 6, expense: 20, asset: 10, liability: 4 },
@@ -12,7 +16,8 @@ export const load = () => {
 
 	return {
 		accountCreationOptions,
-		accountCount
+		accountCount,
+		deletableAccountCount
 	};
 };
 
@@ -34,6 +39,15 @@ export const actions = {
 			});
 		} catch (e) {
 			logging.error('Error Creating Bulk Accounts : ', e);
+		}
+	},
+	deleteUnusedAccounts: async () => {
+		try {
+			const accountsWithJournalCount = await tActions.account.listWithTransactionCount(db);
+			const items = accountsWithJournalCount.filter((item) => item.journalCount === 0);
+			await tActions.account.deleteMany(db, items);
+		} catch (e) {
+			logging.error('Error Deleting Unused Accounts : ', e);
 		}
 	}
 };
