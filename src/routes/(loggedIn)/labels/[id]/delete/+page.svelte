@@ -9,7 +9,7 @@
 	let previousPage: string = '/labels';
 
 	afterNavigate(({ from }) => {
-		previousPage = from?.url.pathname || previousPage;
+		previousPage = from?.url.href || previousPage;
 	});
 </script>
 

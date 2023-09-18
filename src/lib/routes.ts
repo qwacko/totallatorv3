@@ -13,6 +13,10 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/': {},
 		'/(loggedIn)/backup': {},
 
+		// Bulk Data Load
+		// ----------------------------------------
+		'/(loggedIn)/dev/bulkLoad': {},
+
 		// Accounts
 		// ----------------------------------------
 		'/(loggedIn)/accounts': {

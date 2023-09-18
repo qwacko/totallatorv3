@@ -25,7 +25,7 @@ const idColumn = {
 export const account = sqliteTable('account', {
 	...idColumn,
 
-	title: text('title').unique().notNull(),
+	title: text('title').notNull(),
 	type: text('type', { enum: accountTypeEnum }).notNull().default('expense'),
 
 	isCash: integer('is_cash', { mode: 'boolean' }).notNull().default(false),

@@ -23,7 +23,8 @@
 	let previousPage: string = '/accounts';
 
 	afterNavigate(({ from }) => {
-		previousPage = from?.url.pathname || previousPage;
+		console.log('Previous Page', from);
+		previousPage = from?.url.href || previousPage;
 	});
 
 	$: deleteURL = urlGenerator({

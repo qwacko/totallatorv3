@@ -1,3 +1,4 @@
+import { dev } from '$app/environment';
 import { goto } from '$app/navigation';
 import { skGuard, type RouteConfig } from 'skguard';
 
@@ -14,6 +15,11 @@ const openConfig: RouteConfig<UserValidationOutput> = { check: () => undefined }
 const loggedOutConfig: RouteConfig<UserValidationOutput> = {
 	check: (data) => (data.user ? '/' : undefined)
 };
+const devOnly: RouteConfig<UserValidationOutput> = {
+	check: (data) => (data.admin && dev ? undefined : '/')
+};
+const devOnlyPOST = (data: UserValidationOutput) =>
+	data.admin && dev ? undefined : 'Not Authorised';
 
 const POSTAllowUsers = (data: UserValidationOutput) => (data.user ? undefined : 'Not Authorised');
 
@@ -35,6 +41,15 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		'/(open)/params': { ...openConfig, POSTCheck: { testAction: POSTAllowUsers } },
 
 		'/(loggedIn)/backup': adminOnlyConfig,
+
+		// Dev Actions
+		// ----------------------------------------
+		'/(loggedIn)/dev/bulkLoad': {
+			...devOnly,
+			POSTCheck: {
+				bulkAddAccounts: devOnlyPOST
+			}
+		},
 
 		// Accounts
 		// ----------------------------------------

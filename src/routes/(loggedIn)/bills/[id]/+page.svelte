@@ -21,7 +21,7 @@
 	let previousPage: string = '/bills';
 
 	afterNavigate(({ from }) => {
-		previousPage = from?.url.pathname || previousPage;
+		previousPage = from?.url.href || previousPage;
 	});
 
 	$: deleteURL = urlGenerator({

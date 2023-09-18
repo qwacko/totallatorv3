@@ -12,10 +12,47 @@ import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { combinedAccountTitleSplitRequired } from '$lib/helpers/combinedAccountTitleSplit';
+import {
+	createAsset,
+	createExpense,
+	createIncome,
+	createLiability
+} from './helpers/seedAccountData';
+
+const createInsertionData = (data: CreateAccountSchemaType, id: string) => {
+	if (data.type === 'asset' || data.type === 'liability') {
+		return {
+			id,
+			...data,
+			...statusUpdate(data.status),
+			...updatedTime(),
+			...combinedAccountTitleSplitRequired(data)
+		};
+	} else {
+		return {
+			id,
+			...statusUpdate(data.status),
+			...updatedTime(),
+			...combinedAccountTitleSplitRequired({ title: data.title, accountGroupCombined: '' }),
+			startDate: null,
+			endDate: null,
+			isCash: false,
+			isNetWorth: false
+		};
+	}
+};
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.account.findFirst({ where: eq(account.id, id) }).execute();
+	},
+	count: async (db: DBType) => {
+		const count = await db
+			.select({ count: sql<number>`count(${account.id})`.mapWith(Number) })
+			.from(account)
+			.execute();
+
+		return count[0].count;
 	},
 	list: async (db: DBType, filter: AccountFilterSchemaType) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
@@ -88,32 +125,7 @@ export const accountActions = {
 	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
-		if (data.type === 'expense' || data.type === 'income') {
-			await db
-				.insert(account)
-				.values({
-					id,
-					...data,
-					...statusUpdate(data.status),
-					...updatedTime(),
-					...combinedAccountTitleSplitRequired(data)
-				})
-				.execute();
-		} else {
-			await db
-				.insert(account)
-				.values({
-					id,
-					...statusUpdate(data.status),
-					...updatedTime(),
-					...combinedAccountTitleSplitRequired({ title: data.title, accountGroupCombined: '' }),
-					startDate: null,
-					endDate: null,
-					isCash: false,
-					isNetWorth: false
-				})
-				.execute();
-		}
+		await db.insert(account).values(createInsertionData(data, id));
 
 		return id;
 	},
@@ -216,5 +228,56 @@ export const accountActions = {
 				.where(eq(account.id, data.id))
 				.execute();
 		}
+	},
+	createMany: async (db: DBType, data: CreateAccountSchemaType[]) => {
+		const dataForInsertion = data.map((currentAccount) => {
+			const id = nanoid();
+			return createInsertionData(currentAccount, id);
+		});
+		await db.insert(account).values(dataForInsertion);
+
+		return dataForInsertion.map((item) => item.id);
+	},
+	seed: async (
+		db: DBType,
+		{
+			countAssets,
+			countLiabilities,
+			countIncome,
+			countExpenses
+		}: {
+			countAssets: number;
+			countLiabilities: number;
+			countIncome: number;
+			countExpenses: number;
+		}
+	) => {
+		logging.info('Seeding Accounts : ', {
+			countAssets,
+			countLiabilities,
+			countIncome,
+			countExpenses
+		});
+		const assetsToCreate = Array(countAssets)
+			.fill(1)
+			.map(() => createAsset());
+		const liabilitiesToCreate = Array(countLiabilities)
+			.fill(1)
+			.map(() => createLiability());
+		const incomeToCreate = Array(countIncome)
+			.fill(1)
+			.map(() => createIncome());
+		const expensesToCreate = Array(countExpenses)
+			.fill(1)
+			.map(() => createExpense());
+
+		const itemsToCreate = [
+			...assetsToCreate,
+			...liabilitiesToCreate,
+			...incomeToCreate,
+			...expensesToCreate
+		];
+
+		await accountActions.createMany(db, itemsToCreate);
 	}
 };

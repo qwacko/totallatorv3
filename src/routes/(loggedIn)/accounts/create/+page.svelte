@@ -1,9 +1,7 @@
 <script lang="ts">
 	import CombinedAccountTitleDisplay from '$lib/components/CombinedAccountTitleDisplay.svelte';
-import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import type { CreateAccountSchemaSuperType } from '$lib/schema/accountSchema.js';
 	import { Button } from 'flowbite-svelte';
@@ -32,7 +30,10 @@ import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
 			bind:value={$form.accountGroupCombined}
 			{...$constraints.accountGroupCombined}
 		/>
-		<CombinedAccountTitleDisplay title={$form.title} accountGroupCombined={$form.accountGroupCombined} />
+		<CombinedAccountTitleDisplay
+			title={$form.title}
+			accountGroupCombined={$form.accountGroupCombined}
+		/>
 		<Button type="submit">Create</Button>
 		<ErrorText message={$message} />
 	</form>
