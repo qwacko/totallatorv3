@@ -5,32 +5,45 @@ import type {
 } from '$lib/schema/tagSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { tag } from '../schema';
-import { SQL, and, asc, desc, eq, ilike, like, not, sql } from 'drizzle-orm';
+import { journalEntry, tag } from '../schema';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
-import { combinedTitleSplit, combinedTitleSplitRequired } from '$lib/helpers/combinedTitleSplit';
+import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
+import { tagCreateInsertionData } from './helpers/tagCreateInsertionData';
+import { tagFilterToQuery } from './helpers/tagFilterToQuery';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
 	},
+	count: async (db: DBType, filter: TagFilterSchemaType) => {
+		const where = tagFilterToQuery(filter);
+
+		const result = await db
+			.select({ count: sql<number>`count(${tag.id})`.mapWith(Number) })
+			.from(tag)
+			.where(and(...where))
+			.execute();
+
+		return result[0].count;
+	},
+	listWithTransactionCount: async (db: DBType) => {
+		const items = db
+			.select({ id: tag.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.from(tag)
+			.leftJoin(journalEntry, eq(journalEntry.accountId, tag.id))
+			.groupBy(tag.id)
+			.execute();
+
+		return items;
+	},
 	list: async (db: DBType, filter: TagFilterSchemaType) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where: SQL<unknown>[] = [];
-		if (restFilter.id) where.push(eq(tag.id, restFilter.id));
-		if (restFilter.title) where.push(like(tag.title, `%${restFilter.title}%`));
-		if (restFilter.group) where.push(ilike(tag.title, `%${restFilter.group}%`));
-		if (restFilter.single) where.push(ilike(tag.title, `%${restFilter.single}%`));
-		if (restFilter.status) where.push(eq(tag.status, restFilter.status));
-		else where.push(not(eq(tag.status, 'deleted')));
-		if (restFilter.deleted) where.push(eq(tag.deleted, restFilter.deleted));
-		if (restFilter.disabled) where.push(eq(tag.disabled, restFilter.disabled));
-		if (restFilter.allowUpdate) where.push(eq(tag.allowUpdate, restFilter.allowUpdate));
-		if (restFilter.active) where.push(eq(tag.active, restFilter.active));
+		const where = tagFilterToQuery(restFilter);
 
 		const defaultOrderBy = [asc(tag.group), asc(tag.single), desc(tag.createdAt)];
 
@@ -67,17 +80,19 @@ export const tagActions = {
 	},
 	create: async (db: DBType, data: CreateTagSchemaType) => {
 		const id = nanoid();
-		await db
-			.insert(tag)
-			.values({
-				id,
-				...statusUpdate(data.status),
-				...updatedTime(),
-				...combinedTitleSplitRequired(data)
-			})
-			.execute();
+		await db.insert(tag).values(tagCreateInsertionData(data, id)).execute();
 
 		return id;
+	},
+	createMany: async (db: DBType, data: CreateTagSchemaType[]) => {
+		const ids = data.map(() => nanoid());
+		const insertData = data.map((currentData, index) =>
+			tagCreateInsertionData(currentData, ids[index])
+		);
+
+		await db.insert(tag).values(insertData).execute();
+
+		return ids;
 	},
 	update: async (db: DBType, data: UpdateTagSchemaType) => {
 		const { id } = data;
@@ -121,6 +136,26 @@ export const tagActions = {
 		}
 
 		return data.id;
+	},
+	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		const currentTags = await tagActions.listWithTransactionCount(db);
+		const itemsForDeletion = data.filter((item) => {
+			const currentTag = currentTags.find((current) => current.id === item.id);
+			return currentTag && currentTag.journalCount === 0;
+		});
+		if (itemsForDeletion.length === data.length) {
+			await db
+				.delete(tag)
+				.where(
+					inArray(
+						tag.id,
+						itemsForDeletion.map((item) => item.id)
+					)
+				)
+				.execute();
+			return true;
+		}
+		return false;
 	},
 	undelete: async (db: DBType, data: IdSchemaType) => {
 		const currentTag = await db.query.tag.findFirst({ where: eq(tag.id, data.id) }).execute();

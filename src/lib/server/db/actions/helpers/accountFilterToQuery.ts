@@ -1,5 +1,5 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
-import { account } from '../schema';
+import { account } from '../../schema';
 import { SQL, eq, gt, inArray, like, not } from 'drizzle-orm';
 
 export const accountFilterToQuery = (

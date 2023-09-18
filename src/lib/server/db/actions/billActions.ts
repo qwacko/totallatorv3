@@ -5,29 +5,42 @@ import type {
 } from '$lib/schema/billSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { bill } from '../schema';
-import { SQL, and, asc, desc, eq, like, not, sql } from 'drizzle-orm';
+import { bill, journalEntry } from '../schema';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
+import { billCreateInsertionData } from './helpers/billCreateInsertionData';
+import { billFilterToQuery } from './helpers/billFilterToQuery';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
 	},
+	count: async (db: DBType, filter?: BillFilterSchemaType) => {
+		const count = await db
+			.select({ count: sql<number>`count(${bill.id})`.mapWith(Number) })
+			.from(bill)
+			.where(and(...(filter ? billFilterToQuery(filter) : [])))
+			.execute();
+
+		return count[0].count;
+	},
+	listWithTransactionCount: async (db: DBType) => {
+		const items = db
+			.select({ id: bill.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.from(bill)
+			.leftJoin(journalEntry, eq(journalEntry.accountId, bill.id))
+			.groupBy(bill.id)
+			.execute();
+
+		return items;
+	},
 	list: async (db: DBType, filter: BillFilterSchemaType) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where: SQL<unknown>[] = [];
-		if (restFilter.id) where.push(eq(bill.id, restFilter.id));
-		if (restFilter.title) where.push(like(bill.title, `%${restFilter.title}%`));
-		if (restFilter.status) where.push(eq(bill.status, restFilter.status));
-		else where.push(not(eq(bill.status, 'deleted')));
-		if (restFilter.deleted) where.push(eq(bill.deleted, restFilter.deleted));
-		if (restFilter.disabled) where.push(eq(bill.disabled, restFilter.disabled));
-		if (restFilter.allowUpdate) where.push(eq(bill.allowUpdate, restFilter.allowUpdate));
-		if (restFilter.active) where.push(eq(bill.active, restFilter.active));
+		const where = billFilterToQuery(restFilter);
 
 		const defaultOrderBy = [asc(bill.title), desc(bill.createdAt)];
 
@@ -64,17 +77,18 @@ export const billActions = {
 	},
 	create: async (db: DBType, data: CreateBillSchemaType) => {
 		const id = nanoid();
-		await db
-			.insert(bill)
-			.values({
-				id,
-				...statusUpdate(data.status),
-				...updatedTime(),
-				title: data.title
-			})
-			.execute();
+		await db.insert(bill).values(billCreateInsertionData(data, id)).execute();
 
 		return id;
+	},
+	createMany: async (db: DBType, data: CreateBillSchemaType[]) => {
+		const ids = data.map(() => nanoid());
+		const insertData = data.map((currentData, index) =>
+			billCreateInsertionData(currentData, ids[index])
+		);
+		await db.insert(bill).values(insertData).execute();
+
+		return ids;
 	},
 	update: async (db: DBType, data: UpdateBillSchemaType) => {
 		const { id } = data;
@@ -118,6 +132,26 @@ export const billActions = {
 		}
 
 		return data.id;
+	},
+	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		const currentBills = await billActions.listWithTransactionCount(db);
+		const itemsForDeletion = data.filter((item) => {
+			const currentBill = currentBills.find((current) => current.id === item.id);
+			return currentBill && currentBill.journalCount === 0;
+		});
+		if (itemsForDeletion.length === data.length) {
+			await db
+				.delete(bill)
+				.where(
+					inArray(
+						bill.id,
+						itemsForDeletion.map((item) => item.id)
+					)
+				)
+				.execute();
+			return true;
+		}
+		return false;
 	},
 	undelete: async (db: DBType, data: IdSchemaType) => {
 		const currentBill = await db.query.bill.findFirst({ where: eq(bill.id, data.id) }).execute();

@@ -5,29 +5,42 @@ import type {
 } from '$lib/schema/budgetSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { budget } from '../schema';
-import { SQL, and, asc, desc, eq, like, not, sql } from 'drizzle-orm';
+import { budget, journalEntry } from '../schema';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
+import { budgetCreateInsertionData } from './helpers/budgetCreateInsertionData';
+import { budgetFilterToQuery } from './helpers/budgetFilterToQuery';
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
 	},
+	count: async (db: DBType, filter: BudgetFilterSchemaType) => {
+		const count = await db
+			.select({ count: sql<number>`count(${budget.id})`.mapWith(Number) })
+			.from(budget)
+			.where(and(...(filter ? budgetFilterToQuery(filter) : [])))
+			.execute();
+
+		return count[0].count;
+	},
+	listWithTransactionCount: async (db: DBType) => {
+		const items = db
+			.select({ id: budget.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.from(budget)
+			.leftJoin(journalEntry, eq(journalEntry.accountId, budget.id))
+			.groupBy(budget.id)
+			.execute();
+
+		return items;
+	},
 	list: async (db: DBType, filter: BudgetFilterSchemaType) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where: SQL<unknown>[] = [];
-		if (restFilter.id) where.push(eq(budget.id, restFilter.id));
-		if (restFilter.title) where.push(like(budget.title, `%${restFilter.title}%`));
-		if (restFilter.status) where.push(eq(budget.status, restFilter.status));
-		else where.push(not(eq(budget.status, 'deleted')));
-		if (restFilter.deleted) where.push(eq(budget.deleted, restFilter.deleted));
-		if (restFilter.disabled) where.push(eq(budget.disabled, restFilter.disabled));
-		if (restFilter.allowUpdate) where.push(eq(budget.allowUpdate, restFilter.allowUpdate));
-		if (restFilter.active) where.push(eq(budget.active, restFilter.active));
+		const where = budgetFilterToQuery(restFilter);
 
 		const defaultOrderBy = [asc(budget.title), desc(budget.createdAt)];
 
@@ -64,17 +77,17 @@ export const budgetActions = {
 	},
 	create: async (db: DBType, data: CreateBudgetSchemaType) => {
 		const id = nanoid();
-		await db
-			.insert(budget)
-			.values({
-				id,
-				...statusUpdate(data.status),
-				...updatedTime(),
-				title: data.title
-			})
-			.execute();
+		await db.insert(budget).values(budgetCreateInsertionData(data, id)).execute();
 
 		return id;
+	},
+	createMany: async (db: DBType, data: CreateBudgetSchemaType[]) => {
+		const items = data.map((item) => {
+			const id = nanoid();
+			return budgetCreateInsertionData(item, id);
+		});
+
+		await db.insert(budget).values(items).execute();
 	},
 	update: async (db: DBType, data: UpdateBudgetSchemaType) => {
 		const { id } = data;
@@ -118,6 +131,25 @@ export const budgetActions = {
 		}
 
 		return data.id;
+	},
+	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		const currentBudgets = await budgetActions.listWithTransactionCount(db);
+		const itemsForDeletion = data.filter((item) => {
+			const currentBudget = currentBudgets.find((current) => current.id === item.id);
+			return currentBudget && currentBudget.journalCount === 0;
+		});
+
+		if (itemsForDeletion.length === data.length) {
+			await db
+				.delete(budget)
+				.where(
+					inArray(
+						budget.id,
+						itemsForDeletion.map((item) => item.id)
+					)
+				)
+				.execute();
+		}
 	},
 	undelete: async (db: DBType, data: IdSchemaType) => {
 		const currentBudget = await db.query.budget

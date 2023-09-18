@@ -25,10 +25,11 @@ export const accountActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.account.findFirst({ where: eq(account.id, id) }).execute();
 	},
-	count: async (db: DBType) => {
+	count: async (db: DBType, filter?: AccountFilterSchemaType) => {
 		const count = await db
 			.select({ count: sql<number>`count(${account.id})`.mapWith(Number) })
 			.from(account)
+			.where(and(...(filter ? accountFilterToQuery(filter) : [])))
 			.execute();
 
 		return count[0].count;
@@ -43,15 +44,7 @@ export const accountActions = {
 
 		return items;
 	},
-	list: async <T extends boolean>({
-		db,
-		filter,
-		includeJournalCount
-	}: {
-		db: DBType;
-		filter?: AccountFilterSchemaType;
-		includeJournalCount?: T;
-	}) => {
+	list: async ({ db, filter }: { db: DBType; filter?: AccountFilterSchemaType }) => {
 		const {
 			page = 0,
 			pageSize = 10,
@@ -73,10 +66,7 @@ export const accountActions = {
 			: defaultOrderBy;
 
 		const results = await db
-			.select({
-				...getTableColumns(account),
-				...(includeJournalCount ? { journalCount: sql<number>`count(${journalEntry.id})` } : {})
-			})
+			.select({ ...getTableColumns(account) })
 			.from(account)
 			.where(and(...where))
 			.limit(pageSize)

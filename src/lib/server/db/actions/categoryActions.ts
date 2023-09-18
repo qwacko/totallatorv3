@@ -5,32 +5,43 @@ import type {
 } from '$lib/schema/categorySchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { category } from '../schema';
-import { SQL, and, asc, desc, eq, ilike, like, not, sql } from 'drizzle-orm';
+import { category, journalEntry } from '../schema';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
-import { combinedTitleSplit, combinedTitleSplitRequired } from '$lib/helpers/combinedTitleSplit';
+import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
+import { categoryFilterToQuery } from './helpers/categoryFilterToQuery';
+import { categoryCreateInsertionData } from './helpers/categoryCreateInsertionData';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.category.findFirst({ where: eq(category.id, id) }).execute();
 	},
+	count: async (db: DBType, filter?: CategoryFilterSchemaType) => {
+		const count = await db
+			.select({ count: sql<number>`count(${category.id})`.mapWith(Number) })
+			.from(category)
+			.where(and(...(filter ? categoryFilterToQuery(filter) : [])))
+			.execute();
+
+		return count[0].count;
+	},
+	listWithTransactionCount: async (db: DBType) => {
+		const items = db
+			.select({ id: category.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.from(category)
+			.leftJoin(journalEntry, eq(journalEntry.accountId, category.id))
+			.groupBy(category.id)
+			.execute();
+
+		return items;
+	},
 	list: async (db: DBType, filter: CategoryFilterSchemaType) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where: SQL<unknown>[] = [];
-		if (restFilter.id) where.push(eq(category.id, restFilter.id));
-		if (restFilter.title) where.push(like(category.title, `%${restFilter.title}%`));
-		if (restFilter.group) where.push(ilike(category.title, `%${restFilter.group}%`));
-		if (restFilter.single) where.push(ilike(category.title, `%${restFilter.single}%`));
-		if (restFilter.status) where.push(eq(category.status, restFilter.status));
-		else where.push(not(eq(category.status, 'deleted')));
-		if (restFilter.deleted) where.push(eq(category.deleted, restFilter.deleted));
-		if (restFilter.disabled) where.push(eq(category.disabled, restFilter.disabled));
-		if (restFilter.allowUpdate) where.push(eq(category.allowUpdate, restFilter.allowUpdate));
-		if (restFilter.active) where.push(eq(category.active, restFilter.active));
+		const where = categoryFilterToQuery(restFilter);
 
 		const defaultOrderBy = [asc(category.group), asc(category.single), desc(category.createdAt)];
 
@@ -67,17 +78,18 @@ export const categoryActions = {
 	},
 	create: async (db: DBType, data: CreateCategorySchemaType) => {
 		const id = nanoid();
-		await db
-			.insert(category)
-			.values({
-				id,
-				...statusUpdate(data.status),
-				...updatedTime(),
-				...combinedTitleSplitRequired(data)
-			})
-			.execute();
+		await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();
 
 		return id;
+	},
+	createMany: async (db: DBType, data: CreateCategorySchemaType[]) => {
+		const ids = data.map(() => nanoid());
+		const insertData = data.map((currentData, index) =>
+			categoryCreateInsertionData(currentData, ids[index])
+		);
+		await db.insert(category).values(insertData).execute();
+
+		return ids;
 	},
 	update: async (db: DBType, data: UpdateCategorySchemaType) => {
 		const { id } = data;
@@ -123,6 +135,26 @@ export const categoryActions = {
 		}
 
 		return data.id;
+	},
+	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		const currentCategories = await categoryActions.listWithTransactionCount(db);
+		const itemsForDeletion = data.filter((item) => {
+			const currentCategory = currentCategories.find((current) => current.id === item.id);
+			return currentCategory && currentCategory.journalCount === 0;
+		});
+		if (itemsForDeletion.length === data.length) {
+			await db
+				.delete(category)
+				.where(
+					inArray(
+						category.id,
+						itemsForDeletion.map((item) => item.id)
+					)
+				)
+				.execute();
+			return true;
+		}
+		return false;
 	},
 	undelete: async (db: DBType, data: IdSchemaType) => {
 		const currentCategory = await db.query.category

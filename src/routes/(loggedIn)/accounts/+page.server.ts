@@ -10,8 +10,7 @@ export const load = async (data) => {
 
 	const accounts = await tActions.account.list({
 		db,
-		filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
-		includeJournalCount: true
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 	const redirectRequired = accounts.page >= accounts.pageCount;
 	if (redirectRequired) {

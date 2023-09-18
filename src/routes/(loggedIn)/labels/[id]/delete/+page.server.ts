@@ -23,7 +23,7 @@ export const load = async (data) => {
 export const actions = {
 	default: async ({ params }) => {
 		try {
-			await tActions.label.delete(db, idSchema.parse(params));
+			await tActions.label.softDelete(db, idSchema.parse(params));
 		} catch (e) {
 			logging.error('Delete Label Error', e);
 			return {};

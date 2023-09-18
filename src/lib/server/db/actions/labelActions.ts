@@ -5,29 +5,63 @@ import type {
 } from '$lib/schema/labelSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { label } from '../schema';
-import { SQL, and, asc, desc, eq, like, not, sql } from 'drizzle-orm';
+import { journalEntry, label, labelsToJournals } from '../schema';
+import { SQL, and, asc, desc, eq, inArray, like, not, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 
+const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
+	const where: SQL<unknown>[] = [];
+	if (filter.id) where.push(eq(label.id, filter.id));
+	if (filter.title) where.push(like(label.title, `%${filter.title}%`));
+	if (filter.status) where.push(eq(label.status, filter.status));
+	else where.push(not(eq(label.status, 'deleted')));
+	if (filter.deleted) where.push(eq(label.deleted, filter.deleted));
+	if (filter.disabled) where.push(eq(label.disabled, filter.disabled));
+	if (filter.allowUpdate) where.push(eq(label.allowUpdate, filter.allowUpdate));
+	if (filter.active) where.push(eq(label.active, filter.active));
+
+	return where;
+};
+
+const labelCreateInsertionData = (data: CreateLabelSchemaType, id: string) => {
+	return {
+		id,
+		title: data.title,
+		...statusUpdate(data.status),
+		...updatedTime()
+	};
+};
+
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.label.findFirst({ where: eq(label.id, id) }).execute();
 	},
-	list: async (db: DBType, filter: LabelFilterSchemaType) => {
-		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
+	count: async (db: DBType, filter: LabelFilterSchemaType) => {
+		const count = await db
+			.select({ count: sql<number>`count(${label.id})`.mapWith(Number) })
+			.from(label)
+			.where(and(...labelFilterToQuery(filter)))
+			.execute();
 
-		const where: SQL<unknown>[] = [];
-		if (restFilter.id) where.push(eq(label.id, restFilter.id));
-		if (restFilter.title) where.push(like(label.title, `%${restFilter.title}%`));
-		if (restFilter.status) where.push(eq(label.status, restFilter.status));
-		else where.push(not(eq(label.status, 'deleted')));
-		if (restFilter.deleted) where.push(eq(label.deleted, restFilter.deleted));
-		if (restFilter.disabled) where.push(eq(label.disabled, restFilter.disabled));
-		if (restFilter.allowUpdate) where.push(eq(label.allowUpdate, restFilter.allowUpdate));
-		if (restFilter.active) where.push(eq(label.active, restFilter.active));
+		return count[0].count;
+	},
+	listWithTransactionCount: async (db: DBType) => {
+		const items = db
+			.select({ id: label.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.from(label)
+			.leftJoin(journalEntry, eq(journalEntry.accountId, label.id))
+			.groupBy(label.id)
+			.execute();
+
+		return items;
+	},
+	list: async (db: DBType, filter: LabelFilterSchemaType) => {
+		const { page = 0, pageSize = 10, orderBy } = filter;
+
+		const where = labelFilterToQuery(filter);
 
 		const defaultOrderBy = [asc(label.title), desc(label.createdAt)];
 
@@ -64,17 +98,19 @@ export const labelActions = {
 	},
 	create: async (db: DBType, data: CreateLabelSchemaType) => {
 		const id = nanoid();
-		await db
-			.insert(label)
-			.values({
-				id,
-				...statusUpdate(data.status),
-				...updatedTime(),
-				title: data.title
-			})
-			.execute();
+		await db.insert(label).values(labelCreateInsertionData(data, id)).execute();
 
 		return id;
+	},
+	createMany: async (db: DBType, data: CreateLabelSchemaType[]) => {
+		const ids = data.map(() => nanoid());
+		const insertData = data.map((currentData, index) =>
+			labelCreateInsertionData(currentData, ids[index])
+		);
+
+		await db.insert(label).values(insertData).execute();
+
+		return ids;
 	},
 	update: async (db: DBType, data: UpdateLabelSchemaType) => {
 		const { id } = data;
@@ -103,21 +139,40 @@ export const labelActions = {
 
 		return id;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
-		const currentLabel = await db.query.label
-			.findFirst({ where: eq(label.id, data.id), with: { journals: { limit: 1 } } })
-			.execute();
-
-		//If the Label has no journals, then mark as deleted, otherwise do nothing
-		if (currentLabel && currentLabel.journals.length === 0) {
-			await db
-				.update(label)
-				.set({ ...statusUpdate('deleted'), ...updatedTime() })
-				.where(eq(label.id, data.id))
+	softDelete: async (db: DBType, data: IdSchemaType) => {
+		return await db.transaction(async (transDb) => {
+			const currentLabel = await transDb.query.label
+				.findFirst({ where: eq(label.id, data.id), with: { journals: { limit: 1 } } })
 				.execute();
-		}
 
-		return data.id;
+			//If the Label has no journals, then mark as deleted, otherwise do nothing
+			if (currentLabel && currentLabel.journals.length === 0) {
+				await transDb
+					.delete(labelsToJournals)
+					.where(eq(labelsToJournals.labelId, data.id))
+					.execute();
+
+				await transDb
+					.update(label)
+					.set({ ...statusUpdate('deleted'), ...updatedTime() })
+					.where(eq(label.id, data.id))
+					.execute();
+			}
+
+			return data.id;
+		});
+	},
+	hardDeleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		const idList = data.map((currentData) => currentData.id);
+
+		return await db.transaction(async (transDb) => {
+			await transDb
+				.delete(labelsToJournals)
+				.where(inArray(labelsToJournals.labelId, idList))
+				.execute();
+
+			await transDb.delete(label).where(inArray(label.id, idList)).execute();
+		});
 	},
 	undelete: async (db: DBType, data: IdSchemaType) => {
 		const currentLabel = await db.query.label.findFirst({ where: eq(label.id, data.id) }).execute();
