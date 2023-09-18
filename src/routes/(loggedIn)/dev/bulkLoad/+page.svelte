@@ -2,13 +2,14 @@
 	import { enhance } from '$app/forms';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { Button, Heading } from 'flowbite-svelte';
+	import BulkCreateDisplay from './BulkCreateDisplay.svelte';
 
 	export let data;
 </script>
 
 <PageLayout title="Bulk Actions">
 	<div class="flex flex-col gap-2">
-		<Heading tag="h3">Create Accounts</Heading>
+		<Heading tag="h3">Accounts</Heading>
 		<div class="flex">
 			Currently : {data.accountCount} Accounts Exist - {data.deletableAccountCount} can be deleted
 		</div>
@@ -23,10 +24,45 @@
 				</form>
 			{/each}
 			<form class="flex" method="POST" action="?/deleteUnusedAccounts" use:enhance>
-				<Button type="submit" outline color="red"
-					>Delete {data.deletableAccountCount} Unused Accounts</Button
-				>
+				<Button type="submit" outline color="red">
+					Delete {data.deletableAccountCount} Unused Accounts
+				</Button>
 			</form>
 		</div>
 	</div>
+	<BulkCreateDisplay
+		title="Tags"
+		createAction="?/bulkAddTags"
+		deleteAction="?/deleteUnusedTags"
+		currentCount={data.tagCount}
+		deletableCount={data.deletableTagCount}
+	/>
+	<BulkCreateDisplay
+		title="Bills"
+		createAction="?/bulkAddBills"
+		deleteAction="?/deleteUnusedBills"
+		currentCount={data.billCount}
+		deletableCount={data.deletableBillCount}
+	/>
+	<BulkCreateDisplay
+		title="Budgets"
+		createAction="?/bulkAddBudgets"
+		deleteAction="?/deleteUnusedBudgets"
+		currentCount={data.budgetCount}
+		deletableCount={data.deletableBudgetCount}
+	/>
+	<BulkCreateDisplay
+		title="Categories"
+		createAction="?/bulkAddCategories"
+		deleteAction="?/deleteUnusedCategories"
+		currentCount={data.categoryCount}
+		deletableCount={data.deletableCategoryCount}
+	/>
+	<BulkCreateDisplay
+		title="Labels"
+		createAction="?/bulkAddLabels"
+		deleteAction="?/deleteUnusedLabels"
+		currentCount={data.labelCount}
+		deletableCount={data.deletableLabelCount}
+	/>
 </PageLayout>

@@ -14,6 +14,8 @@ import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { categoryFilterToQuery } from './helpers/categoryFilterToQuery';
 import { categoryCreateInsertionData } from './helpers/categoryCreateInsertionData';
+import { createCategory } from './helpers/seedCategoryData';
+import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
@@ -167,5 +169,20 @@ export const categoryActions = {
 				.where(eq(category.id, data.id))
 				.execute();
 		}
+	},
+	seed: async (db: DBType, count: number) => {
+		logging.info('Seeding Categories : ', count);
+
+		const existingTitles = (
+			await db.query.category.findMany({ columns: { title: true } }).execute()
+		).map((item) => item.title);
+		const itemsToCreate = createUniqueItemsOnly({
+			existing: existingTitles,
+			creationToString: (creation) => creation.title,
+			createItem: createCategory,
+			count
+		});
+
+		await categoryActions.createMany(db, itemsToCreate);
 	}
 };

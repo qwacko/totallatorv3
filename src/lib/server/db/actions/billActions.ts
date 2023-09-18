@@ -13,6 +13,8 @@ import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { billCreateInsertionData } from './helpers/billCreateInsertionData';
 import { billFilterToQuery } from './helpers/billFilterToQuery';
+import { createBill } from './helpers/seedBillData';
+import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
@@ -162,5 +164,20 @@ export const billActions = {
 				.where(eq(bill.id, data.id))
 				.execute();
 		}
+	},
+	seed: async (db: DBType, count: number) => {
+		logging.info('Seeding Bills : ', count);
+
+		const existingTitles = (
+			await db.query.bill.findMany({ columns: { title: true } }).execute()
+		).map((item) => item.title);
+		const itemsToCreate = createUniqueItemsOnly({
+			existing: existingTitles,
+			creationToString: (creation) => creation.title,
+			createItem: createBill,
+			count
+		});
+
+		await billActions.createMany(db, itemsToCreate);
 	}
 };

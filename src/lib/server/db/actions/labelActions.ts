@@ -11,6 +11,8 @@ import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
+import { createLabel } from './helpers/seedLabelData';
+import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 
 const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
 	const where: SQL<unknown>[] = [];
@@ -39,11 +41,11 @@ export const labelActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.label.findFirst({ where: eq(label.id, id) }).execute();
 	},
-	count: async (db: DBType, filter: LabelFilterSchemaType) => {
+	count: async (db: DBType, filter?: LabelFilterSchemaType) => {
 		const count = await db
 			.select({ count: sql<number>`count(${label.id})`.mapWith(Number) })
 			.from(label)
-			.where(and(...labelFilterToQuery(filter)))
+			.where(and(...(filter ? labelFilterToQuery(filter) : [])))
 			.execute();
 
 		return count[0].count;
@@ -183,5 +185,20 @@ export const labelActions = {
 				.where(eq(label.id, data.id))
 				.execute();
 		}
+	},
+	seed: async (db: DBType, count: number) => {
+		logging.info('Seeding Labels : ', count);
+
+		const existingTitles = (
+			await db.query.label.findMany({ columns: { title: true } }).execute()
+		).map((item) => item.title);
+		const itemsToCreate = createUniqueItemsOnly({
+			existing: existingTitles,
+			creationToString: (creation) => creation.title,
+			createItem: createLabel,
+			count
+		});
+
+		await labelActions.createMany(db, itemsToCreate);
 	}
 };

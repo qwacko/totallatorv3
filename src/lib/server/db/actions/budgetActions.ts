@@ -13,12 +13,14 @@ import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { budgetCreateInsertionData } from './helpers/budgetCreateInsertionData';
 import { budgetFilterToQuery } from './helpers/budgetFilterToQuery';
+import { createBudget } from './helpers/seedBudgetData';
+import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
 	},
-	count: async (db: DBType, filter: BudgetFilterSchemaType) => {
+	count: async (db: DBType, filter?: BudgetFilterSchemaType) => {
 		const count = await db
 			.select({ count: sql<number>`count(${budget.id})`.mapWith(Number) })
 			.from(budget)
@@ -162,5 +164,20 @@ export const budgetActions = {
 				.where(eq(budget.id, data.id))
 				.execute();
 		}
+	},
+	seed: async (db: DBType, count: number) => {
+		logging.info('Seeding Budgets : ', count);
+
+		const existingTitles = (
+			await db.query.budget.findMany({ columns: { title: true } }).execute()
+		).map((item) => item.title);
+		const itemsToCreate = createUniqueItemsOnly({
+			existing: existingTitles,
+			creationToString: (creation) => creation.title,
+			createItem: createBudget,
+			count
+		});
+
+		await budgetActions.createMany(db, itemsToCreate);
 	}
 };

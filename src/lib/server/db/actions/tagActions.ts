@@ -14,13 +14,15 @@ import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { tagCreateInsertionData } from './helpers/tagCreateInsertionData';
 import { tagFilterToQuery } from './helpers/tagFilterToQuery';
+import { createTag } from './helpers/seedTagData';
+import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
 	},
-	count: async (db: DBType, filter: TagFilterSchemaType) => {
-		const where = tagFilterToQuery(filter);
+	count: async (db: DBType, filter?: TagFilterSchemaType) => {
+		const where = filter ? tagFilterToQuery(filter) : [];
 
 		const result = await db
 			.select({ count: sql<number>`count(${tag.id})`.mapWith(Number) })
@@ -166,5 +168,20 @@ export const tagActions = {
 				.where(eq(tag.id, data.id))
 				.execute();
 		}
+	},
+	seed: async (db: DBType, count: number) => {
+		logging.info('Seeding Tags : ', count);
+
+		const existingTitles = (
+			await db.query.tag.findMany({ columns: { title: true } }).execute()
+		).map((item) => item.title);
+		const itemsToCreate = createUniqueItemsOnly({
+			existing: existingTitles,
+			creationToString: (creation) => creation.title,
+			createItem: createTag,
+			count
+		});
+
+		await tagActions.createMany(db, itemsToCreate);
 	}
 };
