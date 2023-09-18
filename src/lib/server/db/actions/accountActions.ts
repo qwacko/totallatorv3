@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, journalEntry } from '../schema';
-import { SQL, and, asc, desc, eq, getTableColumns, gt, inArray, like, not, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -18,29 +18,8 @@ import {
 	createIncome,
 	createLiability
 } from './helpers/seedAccountData';
-
-const createInsertionData = (data: CreateAccountSchemaType, id: string) => {
-	if (data.type === 'asset' || data.type === 'liability') {
-		return {
-			id,
-			...data,
-			...statusUpdate(data.status),
-			...updatedTime(),
-			...combinedAccountTitleSplitRequired(data)
-		};
-	} else {
-		return {
-			id,
-			...statusUpdate(data.status),
-			...updatedTime(),
-			...combinedAccountTitleSplitRequired({ title: data.title, accountGroupCombined: '' }),
-			startDate: null,
-			endDate: null,
-			isCash: false,
-			isNetWorth: false
-		};
-	}
-};
+import { accountFilterToQuery } from './helpers/accountFilterToQuery';
+import { accountCreateInsertionData } from './helpers/accountCreateInsertionData';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -80,41 +59,8 @@ export const accountActions = {
 			...restFilter
 		} = filter || { page: 10, pageSize: 10 };
 
-		const where: SQL<unknown>[] = [];
-		if (restFilter.id) where.push(eq(account.id, restFilter.id));
-		if (restFilter.title) where.push(like(account.title, `%${restFilter.title}%`));
-		if (restFilter.accountGroup)
-			where.push(like(account.accountGroup, `%${restFilter.accountGroup}%`));
-		if (restFilter.accountGroup2)
-			where.push(like(account.accountGroup2, `%${restFilter.accountGroup2}%`));
-		if (restFilter.accountGroup3)
-			where.push(like(account.accountGroup3, `%${restFilter.accountGroup3}%`));
-		if (restFilter.accountGroupCombined)
-			where.push(like(account.accountGroupCombined, `%${restFilter.accountGroupCombined}%`));
-		if (restFilter.accountTitleCombined)
-			where.push(like(account.accountTitleCombined, `%${restFilter.accountTitleCombined}%`));
-		if (restFilter.status) where.push(eq(account.status, restFilter.status));
-		else where.push(not(eq(account.status, 'deleted')));
-		if (restFilter.deleted !== undefined) where.push(eq(account.deleted, restFilter.deleted));
-		if (restFilter.disabled !== undefined) where.push(eq(account.disabled, restFilter.disabled));
-		if (restFilter.allowUpdate !== undefined)
-			where.push(eq(account.allowUpdate, restFilter.allowUpdate));
-		if (restFilter.active !== undefined) where.push(eq(account.active, restFilter.active));
-		if (restFilter.isCash !== undefined) where.push(eq(account.isCash, restFilter.isCash));
-		if (restFilter.isNetWorth !== undefined)
-			where.push(eq(account.isNetWorth, restFilter.isNetWorth));
-		if (restFilter.startDateAfter !== undefined)
-			where.push(gt(account.startDate, restFilter.startDateAfter));
-		if (restFilter.startDateBefore !== undefined)
-			where.push(gt(account.startDate, restFilter.startDateBefore));
-		if (restFilter.endDateAfter !== undefined)
-			where.push(gt(account.endDate, restFilter.endDateAfter));
-		if (restFilter.endDateBefore !== undefined)
-			where.push(gt(account.endDate, restFilter.endDateBefore));
-		if (restFilter.type !== undefined) where.push(inArray(account.type, restFilter.type));
-
+		const where = accountFilterToQuery(restFilter);
 		const defaultOrderBy = [asc(account.title), desc(account.createdAt)];
-
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
@@ -153,7 +99,7 @@ export const accountActions = {
 	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
-		await db.insert(account).values(createInsertionData(data, id));
+		await db.insert(account).values(accountCreateInsertionData(data, id));
 
 		return id;
 	},
@@ -280,7 +226,7 @@ export const accountActions = {
 	createMany: async (db: DBType, data: CreateAccountSchemaType[]) => {
 		const dataForInsertion = data.map((currentAccount) => {
 			const id = nanoid();
-			return createInsertionData(currentAccount, id);
+			return accountCreateInsertionData(currentAccount, id);
 		});
 		await db.insert(account).values(dataForInsertion);
 
