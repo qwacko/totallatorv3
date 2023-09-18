@@ -25,6 +25,12 @@
 
 	$: pageMap = [
 		{
+			label: 'Journal Entries',
+			active: pageIsJournalEntries,
+			icon: JournalEntryIcon,
+			href: urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: {} })
+		},
+		{
 			label: 'Bills',
 			active: pageIsBills,
 			icon: BillIcon,
@@ -55,12 +61,6 @@
 			href: urlGenerator({ address: '/(loggedIn)/categories', searchParamsValue: {} })
 		},
 		{
-			label: 'Journal Entries',
-			active: pageIsJournalEntries,
-			icon: JournalEntryIcon,
-			href: urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: {} })
-		},
-		{
 			label: 'Accounts',
 			active: pageIsAccounts,
 			icon: AccountIcon,
@@ -80,7 +80,7 @@
 </script>
 
 <div class="flex flex-col justify-stretch p-2">
-	<div class="flex flex-row justify-center gap-2">
+	<div class="flex flex-row justify-center gap-2 pb-8 pt-4">
 		{#each pageMap as currentPage}
 			<Button
 				id={currentPage.label}
