@@ -31,9 +31,9 @@ const orderByEnum = [
 
 export const categoryFilterSchema = z.object({
 	id: z.string().optional(),
-	title: z.string().optional(),
-	group: z.string().optional(),
-	single: z.string().optional(),
+	title: z.coerce.string().optional(),
+	group: z.coerce.string().optional(),
+	single: z.coerce.string().optional(),
 	status: z.enum(statusEnum).optional(),
 	deleted: z.boolean().default(false).optional(),
 	disabled: z.boolean().optional(),

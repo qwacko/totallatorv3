@@ -22,7 +22,7 @@ const orderByEnum = ['title', 'status', 'deleted', 'disabled', 'allowUpdate', 'a
 
 export const billFilterSchema = z.object({
 	id: z.string().optional(),
-	title: z.string().optional(),
+	title: z.coerce.string().optional(),
 	status: z.enum(statusEnum).optional(),
 	deleted: z.boolean().default(false).optional(),
 	disabled: z.boolean().optional(),
