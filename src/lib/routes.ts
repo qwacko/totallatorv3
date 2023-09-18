@@ -17,6 +17,12 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// ----------------------------------------
 		'/(loggedIn)/dev/bulkLoad': {},
 
+		// Journals
+		// ----------------------------------------
+		'/(loggedIn)/journals': {
+			searchParamsValidation: accountFilterSchema.optional().catch({}).parse
+		},
+
 		// Accounts
 		// ----------------------------------------
 		'/(loggedIn)/accounts': {
