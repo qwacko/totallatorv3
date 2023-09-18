@@ -9,6 +9,10 @@
 	import TagIcon from '$lib/components/icons/TagIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 	import { Button, Tooltip } from 'flowbite-svelte';
+	import BulkCreateDisplay from './dev/bulkLoad/BulkCreateDisplay.svelte';
+	import DevIcon from '$lib/components/icons/DevIcon.svelte';
+
+	export let data;
 
 	$: pageIsBills = $page.route.id?.startsWith('/(loggedIn)/bills');
 	$: pageIsTags = $page.route.id?.startsWith('/(loggedIn)/tags');
@@ -17,6 +21,7 @@
 	$: pageIsCategories = $page.route.id?.startsWith('/(loggedIn)/categories');
 	$: pageIsJournalEntries = $page.route.id?.startsWith('/(loggedIn)/journal-entries');
 	$: pageIsAccounts = $page.route.id?.startsWith('/(loggedIn)/accounts');
+	$: pageIsDev = $page.route.id?.startsWith('/(loggedIn)/dev');
 
 	$: pageMap = [
 		{
@@ -60,11 +65,21 @@
 			active: pageIsAccounts,
 			icon: AccountIcon,
 			href: urlGenerator({ address: '/(loggedIn)/accounts', searchParamsValue: {} })
-		}
+		},
+		...(data.dev
+			? [
+					{
+						label: 'Dev',
+						active: pageIsDev,
+						icon: DevIcon,
+						href: urlGenerator({ address: '/(loggedIn)/dev/bulkLoad' })
+					}
+			  ]
+			: [])
 	];
 </script>
 
-<div class="flex flex-col justify-stretch">
+<div class="flex flex-col justify-stretch p-2">
 	<div class="flex flex-row justify-center gap-2">
 		{#each pageMap as currentPage}
 			<Button

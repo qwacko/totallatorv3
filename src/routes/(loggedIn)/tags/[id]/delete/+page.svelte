@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import { pageInfo, urlGenerator } from '$lib/routes.js';
 	import { Button } from 'flowbite-svelte';
 
 	export let data;
