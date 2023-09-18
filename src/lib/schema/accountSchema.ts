@@ -64,14 +64,14 @@ export const accountFilterSchema = z.object({
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),
-	isCash: z.boolean().optional(),
-	isNetWorth: z.boolean().optional(),
+	isCash: z.coerce.boolean().optional(),
+	isNetWorth: z.coerce.boolean().optional(),
 	startDateBefore: dateStringSchema.optional(),
 	startDateAfter: dateStringSchema.optional(),
 	endDateBefore: dateStringSchema.optional(),
 	endDateAfter: dateStringSchema.optional(),
-	page: z.number().default(0).optional(),
-	pageSize: z.number().default(10).optional(),
+	page: z.coerce.number().default(0).optional(),
+	pageSize: z.coerce.number().default(10).optional(),
 	orderBy: z
 		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
 		.default([{ direction: 'asc', field: 'title' }])
