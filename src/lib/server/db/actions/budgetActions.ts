@@ -33,7 +33,7 @@ export const budgetActions = {
 		const items = db
 			.select({ id: budget.id, journalCount: sql<number>`count(${journalEntry.id})` })
 			.from(budget)
-			.leftJoin(journalEntry, eq(journalEntry.accountId, budget.id))
+			.leftJoin(journalEntry, eq(journalEntry.budgetId, budget.id))
 			.groupBy(budget.id)
 			.execute();
 

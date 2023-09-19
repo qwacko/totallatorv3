@@ -52,9 +52,9 @@ export const labelActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: label.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.select({ id: label.id, journalCount: sql<number>`count(${labelsToJournals.id})` })
 			.from(label)
-			.leftJoin(journalEntry, eq(journalEntry.accountId, label.id))
+			.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, label.id))
 			.groupBy(label.id)
 			.execute();
 

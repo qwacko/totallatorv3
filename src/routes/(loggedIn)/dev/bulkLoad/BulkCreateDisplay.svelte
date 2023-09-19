@@ -7,11 +7,20 @@
 	export let deletableCount: number;
 	export let createAction: string;
 	export let deleteAction: string;
+	export let includeHigher: boolean = false;
 
 	const creationOptions = [
 		{ title: '+ 10', count: 10 },
 		{ title: '+ 40', count: 40 },
-		{ title: '+ 100', count: 100 }
+		{ title: '+ 100', count: 100 },
+		...(includeHigher
+			? [
+					{ title: '+ 500', count: 500 },
+					{ title: '+ 1000', count: 1000 },
+					{ title: '+ 5000', count: 5000 },
+					{ title: '+ 10000', count: 10000 }
+			  ]
+			: [])
 	];
 </script>
 

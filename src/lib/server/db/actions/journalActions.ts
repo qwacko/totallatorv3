@@ -6,13 +6,21 @@ import {
 } from '$lib/schema/journalSchema';
 import { getTableColumns, eq, and, sql, inArray } from 'drizzle-orm';
 import type { DBType } from '../db';
-import { account, journalEntry, bill, budget, category, tag, transaction } from '../schema';
+import {
+	account,
+	journalEntry,
+	bill,
+	budget,
+	category,
+	tag,
+	transaction,
+	labelsToJournals
+} from '../schema';
 import { journalFilterToQuery } from './helpers/journalFilterToQuery';
 import { labelActions } from './labelActions';
 import { updatedTime } from './helpers/updatedTime';
 import { nanoid } from 'nanoid';
 import { expandDate } from './helpers/expandDate';
-import { accountGetOrCreateLinkedItems } from './helpers/accountGetOrCreateLinkedItems';
 import { accountActions } from './accountActions';
 import { tActions } from './tActions';
 import { seedTransactionData } from './helpers/seedTransactionData';
@@ -88,25 +96,13 @@ export const journalActions = {
 		db: DBType;
 		journalEntries: CreateCombinedTransactionType;
 	}) => {
+		const { transactions, journals, labels } = generateItemsForTransactionCreation(journalEntries);
 		await dbParam.transaction(async (db) => {
-			const transactionId = nanoid();
-			await db
-				.insert(transaction)
-				.values({
-					id: transactionId,
-					...updatedTime()
-				})
-				.execute();
-
-			await Promise.all(
-				journalEntries.map(async (journalEntry) => {
-					const linkedItems = await accountGetOrCreateLinkedItems(db, journalEntry);
-					await journalActions.create(db, transactionId, {
-						...journalEntry,
-						...linkedItems
-					});
-				})
-			);
+			transactions &&
+				transactions.length > 0 &&
+				(await db.insert(transaction).values(transactions).execute());
+			journals && journals.length > 0 && (await db.insert(journalEntry).values(journals).execute());
+			labels && labels.length > 0 && (await db.insert(labelsToJournals).values(labels).execute());
 		});
 	},
 	createManyTransactionJournals: async ({
@@ -116,12 +112,32 @@ export const journalActions = {
 		db: DBType;
 		journalEntries: CreateCombinedTransactionType[];
 	}) => {
+		const itemsForCreation = journalEntries.map((journalEntry) =>
+			generateItemsForTransactionCreation(journalEntry)
+		);
+		const transactions = itemsForCreation
+			.map(({ transactions }) => transactions)
+			.reduce((a, b) => [...a, ...b], []);
+		const journals = itemsForCreation
+			.map(({ journals }) => journals)
+			.reduce((a, b) => [...a, ...b], []);
+		const labels = itemsForCreation.map(({ labels }) => labels).reduce((a, b) => [...a, ...b], []);
+
 		await db.transaction(async (db) => {
-			await Promise.all(
-				journalEntries.map(async (journalEntry) => {
-					await journalActions.createTransactionJournals({ db, journalEntries: journalEntry });
-				})
-			);
+			const transactionChunks = splitArrayInfoChunks(transactions, 5000);
+			for (const chunk of transactionChunks) {
+				await db.insert(transaction).values(chunk).execute();
+			}
+
+			const journalChunks = splitArrayInfoChunks(journals, 1000);
+			for (const chunk of journalChunks) {
+				await db.insert(journalEntry).values(chunk).execute();
+			}
+
+			const labelChunks = splitArrayInfoChunks(labels, 1000);
+			for (const chunk of labelChunks) {
+				await db.insert(labelsToJournals).values(chunk).execute();
+			}
 		});
 	},
 	hardDeleteTransactions: async (db: DBType, transactionIds: string[]) => {
@@ -134,6 +150,7 @@ export const journalActions = {
 		});
 	},
 	seed: async (db: DBType, count: number) => {
+		const startTime = Date.now();
 		const { data: assetLiabilityAccounts } = await accountActions.list({
 			db,
 			filter: { type: ['asset', 'liability'], allowUpdate: true, pageSize: 10000 }
@@ -166,7 +183,6 @@ export const journalActions = {
 			db,
 			filter: { allowUpdate: true, pageSize: 10000 }
 		});
-		logging.info('Complete Label List : ', labels);
 		const transactionsForCreation = Array(count)
 			.fill(0)
 			.map(() =>
@@ -188,5 +204,57 @@ export const journalActions = {
 				journalEntries: transactionsForCreation
 			});
 		});
+		const endTime = Date.now();
+		logging.info(`Seeding ${count} transactions took ${endTime - startTime}ms`);
 	}
+};
+
+const splitArrayInfoChunks = <T>(array: T[], chunkSize: number) => {
+	const numberChunks = Math.ceil(array.length / chunkSize);
+	const chunks = Array(numberChunks)
+		.fill(0)
+		.map((_, i) => {
+			return array.slice(i * chunkSize, (i + 1) * chunkSize);
+		});
+
+	return chunks;
+};
+
+const generateItemsForTransactionCreation = (data: CreateCombinedTransactionType) => {
+	const transactionId = nanoid();
+	const itemsForCreation = data.map((journalData) => {
+		return generateItemsForJournalCreation(transactionId, journalData);
+	});
+
+	return {
+		transactions: [{ id: transactionId, ...updatedTime() }],
+		journals: itemsForCreation.map(({ journal }) => journal),
+		labels: itemsForCreation.map(({ labels }) => labels).reduce((a, b) => [...a, ...b], [])
+	};
+};
+
+const generateItemsForJournalCreation = (
+	transactionId: string,
+	journalData: CreateJournalDBCoreType
+) => {
+	const processedJournalData = createJournalDBCore.parse(journalData);
+	const { labels, ...restJournalData } = processedJournalData;
+	const id = nanoid();
+
+	const journalForCreation = {
+		id,
+		transactionId,
+		...restJournalData,
+		...updatedTime(),
+		...expandDate(restJournalData.date)
+	};
+
+	const labelsForCreation = labels
+		? labels.map((label) => {
+				const id = nanoid();
+				return { id, journalId: id, labelId: label, ...updatedTime() };
+		  })
+		: [];
+
+	return { journal: journalForCreation, labels: labelsForCreation };
 };

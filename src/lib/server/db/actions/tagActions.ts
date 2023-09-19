@@ -36,7 +36,7 @@ export const tagActions = {
 		const items = db
 			.select({ id: tag.id, journalCount: sql<number>`count(${journalEntry.id})` })
 			.from(tag)
-			.leftJoin(journalEntry, eq(journalEntry.accountId, tag.id))
+			.leftJoin(journalEntry, eq(journalEntry.tagId, tag.id))
 			.groupBy(tag.id)
 			.execute();
 

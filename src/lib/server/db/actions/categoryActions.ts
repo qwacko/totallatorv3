@@ -34,7 +34,7 @@ export const categoryActions = {
 		const items = db
 			.select({ id: category.id, journalCount: sql<number>`count(${journalEntry.id})` })
 			.from(category)
-			.leftJoin(journalEntry, eq(journalEntry.accountId, category.id))
+			.leftJoin(journalEntry, eq(journalEntry.categoryId, category.id))
 			.groupBy(category.id)
 			.execute();
 

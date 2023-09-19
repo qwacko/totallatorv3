@@ -39,11 +39,13 @@ export const seedTransactionData = ({
 
 	const status = getRandomArrayElement(['complete', 'reconciled', 'data', 'nothing']);
 	const numberLabels = getRandomBoolean(0.2) ? getRandomInteger(3) : 0;
-	const labels = Array(numberLabels)
-		.fill(0)
-		.map(() => getRandomArrayElement(labelIds));
-
-	logging.info('Labels : ', labels);
+	const labels = [
+		...new Set(
+			Array(numberLabels)
+				.fill(0)
+				.map(() => getRandomArrayElement(labelIds))
+		)
+	];
 
 	const dateText = getRandomDate(new Date('2010-01-01'), new Date('2025-12-31'))
 		.toISOString()

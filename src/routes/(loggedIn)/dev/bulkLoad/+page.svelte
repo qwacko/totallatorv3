@@ -14,6 +14,7 @@
 		deleteAction="?/deleteUnusedJournals"
 		currentCount={data.journalCount}
 		deletableCount={data.deletableJournalCount}
+		includeHigher
 	/>
 	<div class="flex flex-col gap-2">
 		<Heading tag="h3">Accounts</Heading>
