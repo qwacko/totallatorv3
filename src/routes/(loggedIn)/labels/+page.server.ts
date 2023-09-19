@@ -9,7 +9,10 @@ export const load = async (data) => {
 
 	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 
-	const labels = await tActions.label.list(db, pageInfo.searchParams || { page: 0, pageSize: 10 });
+	const labels = await tActions.label.list({
+		db,
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+	});
 	const redirectRequired = labels.page >= labels.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, labels.pageCount - 1);

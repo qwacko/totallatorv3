@@ -42,7 +42,7 @@ export const tagActions = {
 
 		return items;
 	},
-	list: async (db: DBType, filter: TagFilterSchemaType) => {
+	list: async ({ db, filter }: { db: DBType; filter: TagFilterSchemaType }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = tagFilterToQuery(restFilter);

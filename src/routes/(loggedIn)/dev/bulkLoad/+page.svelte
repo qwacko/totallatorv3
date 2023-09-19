@@ -8,6 +8,13 @@
 </script>
 
 <PageLayout title="Bulk Actions">
+	<BulkCreateDisplay
+		title="Journals"
+		createAction="?/bulkAddJournals"
+		deleteAction="?/deleteUnusedJournals"
+		currentCount={data.journalCount}
+		deletableCount={data.deletableJournalCount}
+	/>
 	<div class="flex flex-col gap-2">
 		<Heading tag="h3">Accounts</Heading>
 		<div class="flex">

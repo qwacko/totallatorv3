@@ -40,6 +40,9 @@ export const load = async () => {
 		(item) => item.journalCount === 0
 	).length;
 
+	const journalCount = tActions.journal.count(db);
+	const deletableJournalCount = journalCount;
+
 	return {
 		accountCreationOptions,
 		accountCount,
@@ -58,11 +61,25 @@ export const load = async () => {
 		deletableTagCount,
 
 		labelCount,
-		deletableLabelCount
+		deletableLabelCount,
+
+		journalCount,
+		deletableJournalCount
 	};
 };
 
 export const actions = {
+	bulkAddJournals: async (data) => {
+		try {
+			const form = await data.request.formData();
+			const count = Number(form.get('count')?.toString() || '200');
+			logging.info("Creating Journals - Count : ", count)
+
+			await tActions.journal.seed(db, count);
+		} catch (e) {
+			logging.error('Error Creating Bulk Journals : ', e);
+		}
+	},
 	bulkAddAccounts: async (data) => {
 		try {
 			const form = await data.request.formData();
@@ -130,6 +147,13 @@ export const actions = {
 			await tActions.label.seed(db, count);
 		} catch (e) {
 			logging.error('Error Creating Bulk Labels : ', e);
+		}
+	},
+	deleteUnusedJournals: async () => {
+		try {
+			logging.info('Deleting Unused Journals');
+		} catch (e) {
+			logging.error('Error Deleting Unused Journals : ', e);
 		}
 	},
 	deleteUnusedAccounts: async () => {

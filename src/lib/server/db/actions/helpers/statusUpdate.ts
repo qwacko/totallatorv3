@@ -7,6 +7,6 @@ export const statusUpdate = <S extends StatusEnumType | undefined>(status: S) =>
 				active: status === 'active',
 				deleted: status === 'deleted',
 				disabled: status === 'disabled',
-				allowUpdate: status === 'active' && status === 'disabled'
+				allowUpdate: status === 'active' || status === 'disabled'
 		  }
 		: {};

@@ -8,7 +8,10 @@ export const load = async (data) => {
 	authGuard(data);
 	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 
-	const bills = await tActions.bill.list(db, pageInfo.searchParams || { page: 0, pageSize: 10 });
+	const bills = await tActions.bill.list({
+		db,
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+	});
 	const redirectRequired = bills.page >= bills.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, bills.pageCount - 1);

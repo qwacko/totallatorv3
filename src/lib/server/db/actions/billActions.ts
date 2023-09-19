@@ -39,7 +39,7 @@ export const billActions = {
 
 		return items;
 	},
-	list: async (db: DBType, filter: BillFilterSchemaType) => {
+	list: async ({ db, filter }: { db: DBType; filter: BillFilterSchemaType }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = billFilterToQuery(restFilter);

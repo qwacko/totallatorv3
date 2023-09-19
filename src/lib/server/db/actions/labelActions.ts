@@ -60,7 +60,7 @@ export const labelActions = {
 
 		return items;
 	},
-	list: async (db: DBType, filter: LabelFilterSchemaType) => {
+	list: async ({ db, filter }: { db: DBType; filter: LabelFilterSchemaType }) => {
 		const { page = 0, pageSize = 10, orderBy } = filter;
 
 		const where = labelFilterToQuery(filter);

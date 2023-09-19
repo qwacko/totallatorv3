@@ -40,7 +40,7 @@ export const categoryActions = {
 
 		return items;
 	},
-	list: async (db: DBType, filter: CategoryFilterSchemaType) => {
+	list: async ({ db, filter }: { db: DBType; filter: CategoryFilterSchemaType }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = categoryFilterToQuery(restFilter);
