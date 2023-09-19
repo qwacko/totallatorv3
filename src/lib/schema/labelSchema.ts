@@ -20,6 +20,26 @@ export type UpdateLabelSchemaType = z.infer<typeof updateLabelSchema>;
 
 const orderByEnum = ['title', 'status', 'deleted', 'disabled', 'allowUpdate', 'active'] as const;
 
+type OrderByEnumType = (typeof orderByEnum)[number];
+
+type OrderByEnumTitles = {
+	[K in OrderByEnumType]: string;
+};
+
+// This will be valid for demonstration purposes
+const enumTitles: OrderByEnumTitles = {
+	title: 'Title',
+	active: 'Active',
+	allowUpdate: 'Allow Update',
+	status: 'Status',
+	deleted: 'Deleted',
+	disabled: 'Disabled'
+};
+
+export const labelOrderByEnumToText = (input: OrderByEnumType) => {
+	return enumTitles[input];
+};
+
 export const labelFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),

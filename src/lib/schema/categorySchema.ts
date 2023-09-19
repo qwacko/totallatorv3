@@ -29,6 +29,28 @@ const orderByEnum = [
 	'active'
 ] as const;
 
+type OrderByEnumType = (typeof orderByEnum)[number];
+
+type OrderByEnumTitles = {
+	[K in OrderByEnumType]: string;
+};
+
+// This will be valid for demonstration purposes
+const enumTitles: OrderByEnumTitles = {
+	title: 'Title',
+	active: 'Active',
+	allowUpdate: 'Allow Update',
+	deleted: 'Deleted',
+	disabled: 'Disabled',
+	group: 'Group',
+	single: 'Single',
+	status: 'Status'
+};
+
+export const categoryOrderByEnumToText = (input: OrderByEnumType) => {
+	return enumTitles[input];
+};
+
 export const categoryFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),

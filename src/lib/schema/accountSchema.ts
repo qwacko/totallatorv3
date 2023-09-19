@@ -50,6 +50,35 @@ const orderByEnum = [
 	'active'
 ] as const;
 
+type OrderByEnumType = (typeof orderByEnum)[number];
+
+type OrderByEnumTitles = {
+	[K in OrderByEnumType]: string;
+};
+
+// This will be valid for demonstration purposes
+const enumTitles: OrderByEnumTitles = {
+	title: 'Title',
+	accountGroup: 'Account Group',
+	accountGroup2: 'Account Group 2',
+	accountGroup3: 'Account Group 3',
+	accountGroupCombined: 'Account Group Combined',
+	accountTitleCombined: 'Account Title Combined',
+	isCash: 'Is Cash',
+	isNetWorth: 'Is Net Worth',
+	startDate: 'Start Date',
+	endDate: 'End Date',
+	status: 'Status',
+	deleted: 'Deleted',
+	disabled: 'Disabled',
+	allowUpdate: 'Allow Update',
+	active: 'Active'
+};
+
+export const accountOrderByEnumToText = (input: OrderByEnumType) => {
+	return enumTitles[input];
+};
+
 export const accountFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
