@@ -77,6 +77,52 @@ export const budgetActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	createOrGet: async ({
+		db,
+		title,
+		id,
+		requireActive = true
+	}: {
+		db: DBType;
+		title?: string;
+		id?: string;
+		requireActive?: boolean;
+	}) => {
+		if (id) {
+			const currentBudget = await db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
+
+			if (currentBudget) {
+				if (requireActive && currentBudget.status !== 'active') {
+					throw new Error(`Budget ${currentBudget.title} is not active`);
+				}
+				return currentBudget;
+			}
+			throw new Error(`Budget ${id} not found`);
+		} else if (title) {
+			const currentBudget = await db.query.budget
+				.findFirst({ where: eq(budget.title, title) })
+				.execute();
+			if (currentBudget) {
+				if (requireActive && currentBudget.status !== 'active') {
+					throw new Error(`Budget ${currentBudget.title} is not active`);
+				}
+				return currentBudget;
+			}
+			const newBudgetId = await budgetActions.create(db, {
+				title,
+				status: 'active'
+			});
+			const newBudget = await db.query.budget
+				.findFirst({ where: eq(budget.id, newBudgetId) })
+				.execute();
+			if (!newBudget) {
+				throw new Error('Error Creating Budget');
+			}
+			return newBudget;
+		} else {
+			return undefined;
+		}
+	},
 	create: async (db: DBType, data: CreateBudgetSchemaType) => {
 		const id = nanoid();
 		await db.insert(budget).values(budgetCreateInsertionData(data, id)).execute();

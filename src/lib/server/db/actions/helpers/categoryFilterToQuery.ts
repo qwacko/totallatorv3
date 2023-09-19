@@ -1,6 +1,6 @@
 import type { CategoryFilterSchemaType } from '$lib/schema/categorySchema';
 import { category } from '../../schema';
-import { SQL, eq, ilike, like, not } from 'drizzle-orm';
+import { SQL, eq, ilike, inArray, like, not } from 'drizzle-orm';
 
 export const categoryFilterToQuery = (
 	filter: Omit<CategoryFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -9,6 +9,7 @@ export const categoryFilterToQuery = (
 
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(category.id, restFilter.id));
+	if (restFilter.idArray) where.push(inArray(category.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(category.title, `%${restFilter.title}%`));
 	if (restFilter.group) where.push(ilike(category.title, `%${restFilter.group}%`));
 	if (restFilter.single) where.push(ilike(category.title, `%${restFilter.single}%`));

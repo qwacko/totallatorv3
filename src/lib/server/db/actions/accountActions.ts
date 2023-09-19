@@ -93,6 +93,56 @@ export const accountActions = {
 
 		return id;
 	},
+	createOrGet: async ({
+		db,
+		title,
+		id,
+		requireActive = true
+	}: {
+		db: DBType;
+		title?: string;
+		id?: string;
+		requireActive?: boolean;
+	}) => {
+		if (id) {
+			const currentAccount = await db.query.account
+				.findFirst({ where: eq(account.id, id) })
+				.execute();
+
+			if (currentAccount) {
+				if (requireActive && currentAccount.status !== 'active') {
+					throw new Error(`Account ${currentAccount.title} is not active`);
+				}
+				return currentAccount;
+			}
+			throw new Error(`Account ${id} not found`);
+		} else if (title) {
+			const currentAccount = await db.query.account
+				.findFirst({ where: eq(account.accountTitleCombined, title) })
+				.execute();
+			if (currentAccount) {
+				if (requireActive && currentAccount.status !== 'active') {
+					throw new Error(`Account ${currentAccount.title} is not active`);
+				}
+				return currentAccount;
+			}
+			const newAccountId = await accountActions.create(db, {
+				type: 'expense',
+				title,
+				status: 'active',
+				accountGroupCombined: ''
+			});
+			const newAccount = await db.query.account
+				.findFirst({ where: eq(account.id, newAccountId) })
+				.execute();
+			if (!newAccount) {
+				throw new Error(`Account Creation Error`);
+			}
+			return newAccount;
+		} else {
+			return undefined;
+		}
+	},
 	update: async (db: DBType, data: UpdateAccountSchemaType) => {
 		const { id } = data;
 		const currentAccount = await db.query.account

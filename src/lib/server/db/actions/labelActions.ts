@@ -98,11 +98,67 @@ export const labelActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	createOrGet: async ({
+		db,
+		title,
+		id,
+		requireActive = true
+	}: {
+		db: DBType;
+		title?: string;
+		id?: string;
+		requireActive?: boolean;
+	}) => {
+		if (id) {
+			const currentLabel = await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
+
+			if (currentLabel) {
+				if (requireActive && currentLabel.status !== 'active') {
+					throw new Error(`Label ${currentLabel.title} is not active`);
+				}
+				return currentLabel;
+			}
+			throw new Error(`Label ${id} not found`);
+		} else if (title) {
+			const currentLabel = await db.query.label
+				.findFirst({ where: eq(label.title, title) })
+				.execute();
+			if (currentLabel) {
+				if (requireActive && currentLabel.status !== 'active') {
+					throw new Error(`Label ${currentLabel.title} is not active`);
+				}
+				return currentLabel;
+			}
+			const newLabelId = await labelActions.create(db, {
+				title,
+				status: 'active'
+			});
+			const newLabel = await db.query.label
+				.findFirst({ where: eq(label.id, newLabelId) })
+				.execute();
+			if (!newLabel) {
+				throw new Error('Error Creating Label');
+			}
+			return newLabel;
+		} else {
+			return undefined;
+		}
+	},
 	create: async (db: DBType, data: CreateLabelSchemaType) => {
 		const id = nanoid();
 		await db.insert(label).values(labelCreateInsertionData(data, id)).execute();
 
 		return id;
+	},
+	createLink: async (
+		db: DBType,
+		{ journalId, labelId }: { journalId: string; labelId: string }
+	) => {
+		const id = nanoid();
+		await db
+			.insert(labelsToJournals)
+			.values({ id, journalId, labelId, ...updatedTime() })
+			.execute();
 	},
 	createMany: async (db: DBType, data: CreateLabelSchemaType[]) => {
 		const ids = data.map(() => nanoid());

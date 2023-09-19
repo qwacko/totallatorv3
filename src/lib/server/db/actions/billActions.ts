@@ -77,6 +77,48 @@ export const billActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	createOrGet: async ({
+		db,
+		title,
+		id,
+		requireActive = true
+	}: {
+		db: DBType;
+		title?: string;
+		id?: string;
+		requireActive?: boolean;
+	}) => {
+		if (id) {
+			const currentBill = await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
+
+			if (currentBill) {
+				if (requireActive && currentBill.status !== 'active') {
+					throw new Error(`Bill ${currentBill.title} is not active`);
+				}
+				return currentBill;
+			}
+			throw new Error(`Bill ${id} not found`);
+		} else if (title) {
+			const currentBill = await db.query.bill.findFirst({ where: eq(bill.title, title) }).execute();
+			if (currentBill) {
+				if (requireActive && currentBill.status !== 'active') {
+					throw new Error(`Bill ${currentBill.title} is not active`);
+				}
+				return currentBill;
+			}
+			const newBillId = await billActions.create(db, {
+				title,
+				status: 'active'
+			});
+			const newBill = await db.query.bill.findFirst({ where: eq(bill.id, newBillId) }).execute();
+			if (!newBill) {
+				throw new Error('Error Creating Bill');
+			}
+			return newBill;
+		} else {
+			return undefined;
+		}
+	},
 	create: async (db: DBType, data: CreateBillSchemaType) => {
 		const id = nanoid();
 		await db.insert(bill).values(billCreateInsertionData(data, id)).execute();

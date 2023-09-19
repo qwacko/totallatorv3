@@ -80,6 +80,48 @@ export const tagActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	createOrGet: async ({
+		db,
+		title,
+		id,
+		requireActive = true
+	}: {
+		db: DBType;
+		title?: string;
+		id?: string;
+		requireActive?: boolean;
+	}) => {
+		if (id) {
+			const currentTag = await db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
+
+			if (currentTag) {
+				if (requireActive && currentTag.status !== 'active') {
+					throw new Error(`Tag ${currentTag.title} is not active`);
+				}
+				return currentTag;
+			}
+			throw new Error(`Tag ${id} not found`);
+		} else if (title) {
+			const currentTag = await db.query.tag.findFirst({ where: eq(tag.title, title) }).execute();
+			if (currentTag) {
+				if (requireActive && currentTag.status !== 'active') {
+					throw new Error(`Tag ${currentTag.title} is not active`);
+				}
+				return currentTag;
+			}
+			const newTagId = await tagActions.create(db, {
+				title,
+				status: 'active'
+			});
+			const newTag = await db.query.tag.findFirst({ where: eq(tag.id, newTagId) }).execute();
+			if (!newTag) {
+				throw new Error('Error Creating Tag');
+			}
+			return newTag;
+		} else {
+			return undefined;
+		}
+	},
 	create: async (db: DBType, data: CreateTagSchemaType) => {
 		const id = nanoid();
 		await db.insert(tag).values(tagCreateInsertionData(data, id)).execute();

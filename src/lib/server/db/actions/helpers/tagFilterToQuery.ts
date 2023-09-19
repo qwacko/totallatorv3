@@ -1,6 +1,6 @@
 import type { TagFilterSchemaType } from '$lib/schema/tagSchema';
 import { tag } from '../../schema';
-import { SQL, eq, ilike, like, not } from 'drizzle-orm';
+import { SQL, eq, ilike, inArray, like, not } from 'drizzle-orm';
 
 export const tagFilterToQuery = (
 	filter: Omit<TagFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -9,6 +9,7 @@ export const tagFilterToQuery = (
 
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(tag.id, restFilter.id));
+	if (restFilter.idArray) where.push(inArray(tag.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(tag.title, `%${restFilter.title}%`));
 	if (restFilter.group) where.push(ilike(tag.title, `%${restFilter.group}%`));
 	if (restFilter.single) where.push(ilike(tag.title, `%${restFilter.single}%`));

@@ -1,6 +1,6 @@
 import type { BillFilterSchemaType } from '$lib/schema/billSchema';
 import { bill } from '../../schema';
-import { SQL, eq, like, not } from 'drizzle-orm';
+import { SQL, eq, inArray, like, not } from 'drizzle-orm';
 
 export const billFilterToQuery = (
 	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -9,6 +9,7 @@ export const billFilterToQuery = (
 
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(bill.id, restFilter.id));
+	if (restFilter.idArray) where.push(inArray(bill.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(bill.title, `%${restFilter.title}%`));
 	if (restFilter.status) where.push(eq(bill.status, restFilter.status));
 	else where.push(not(eq(bill.status, 'deleted')));

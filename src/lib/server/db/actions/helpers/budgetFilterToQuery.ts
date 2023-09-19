@@ -1,6 +1,6 @@
 import type { BudgetFilterSchemaType } from '$lib/schema/budgetSchema';
 import { budget } from '../../schema';
-import { SQL, eq, like, not } from 'drizzle-orm';
+import { SQL, eq, inArray, like, not } from 'drizzle-orm';
 
 export const budgetFilterToQuery = (
 	filter: Omit<BudgetFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -9,6 +9,7 @@ export const budgetFilterToQuery = (
 
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(budget.id, restFilter.id));
+	if (restFilter.idArray) where.push(inArray(budget.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(budget.title, `%${restFilter.title}%`));
 	if (restFilter.status) where.push(eq(budget.status, restFilter.status));
 	else where.push(not(eq(budget.status, 'deleted')));

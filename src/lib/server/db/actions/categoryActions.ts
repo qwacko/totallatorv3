@@ -78,6 +78,54 @@ export const categoryActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	createOrGet: async ({
+		db,
+		title,
+		id,
+		requireActive = true
+	}: {
+		db: DBType;
+		title?: string;
+		id?: string;
+		requireActive?: boolean;
+	}) => {
+		if (id) {
+			const currentCategory = await db.query.category
+				.findFirst({ where: eq(category.id, id) })
+				.execute();
+
+			if (currentCategory) {
+				if (requireActive && currentCategory.status !== 'active') {
+					throw new Error(`Category ${currentCategory.title} is not active`);
+				}
+				return currentCategory;
+			}
+			throw new Error(`Category ${id} not found`);
+		} else if (title) {
+			const currentCategory = await db.query.category
+				.findFirst({ where: eq(category.title, title) })
+				.execute();
+			if (currentCategory) {
+				if (requireActive && currentCategory.status !== 'active') {
+					throw new Error(`Category ${currentCategory.title} is not active`);
+				}
+				return currentCategory;
+			}
+			const newCategoryId = await categoryActions.create(db, {
+				title,
+				status: 'active'
+			});
+			const newCategory = await db.query.category
+				.findFirst({ where: eq(category.id, newCategoryId) })
+				.execute();
+			if (!newCategory) {
+				throw new Error('Error Creating Category');
+			}
+			return newCategory;
+		} else {
+			return undefined;
+		}
+	},
 	create: async (db: DBType, data: CreateCategorySchemaType) => {
 		const id = nanoid();
 		await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();

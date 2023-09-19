@@ -1,12 +1,13 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import { account } from '../../schema';
-import { SQL, eq, gt, inArray, like, not } from 'drizzle-orm';
+import { SQL, eq, gt, inArray, like, lt, not } from 'drizzle-orm';
 
 export const accountFilterToQuery = (
 	filter: Omit<AccountFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>
 ) => {
 	const where: SQL<unknown>[] = [];
 	if (filter.id) where.push(eq(account.id, filter.id));
+	if (filter.idArray) where.push(inArray(account.id, filter.idArray));
 	if (filter.title) where.push(like(account.title, `%${filter.title}%`));
 	if (filter.accountGroup) where.push(like(account.accountGroup, `%${filter.accountGroup}%`));
 	if (filter.accountGroup2) where.push(like(account.accountGroup2, `%${filter.accountGroup2}%`));
@@ -25,9 +26,9 @@ export const accountFilterToQuery = (
 	if (filter.isNetWorth !== undefined) where.push(eq(account.isNetWorth, filter.isNetWorth));
 	if (filter.startDateAfter !== undefined) where.push(gt(account.startDate, filter.startDateAfter));
 	if (filter.startDateBefore !== undefined)
-		where.push(gt(account.startDate, filter.startDateBefore));
+		where.push(lt(account.startDate, filter.startDateBefore));
 	if (filter.endDateAfter !== undefined) where.push(gt(account.endDate, filter.endDateAfter));
-	if (filter.endDateBefore !== undefined) where.push(gt(account.endDate, filter.endDateBefore));
+	if (filter.endDateBefore !== undefined) where.push(lt(account.endDate, filter.endDateBefore));
 	if (filter.type !== undefined) where.push(inArray(account.type, filter.type));
 
 	return where;
