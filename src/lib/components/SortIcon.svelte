@@ -1,6 +1,6 @@
 <script lang="ts">
-	import AscendingIcon from '~icons/mdi/chevron-up';
-	import DescendingIcon from '~icons/mdi/chevron-down';
+	import AscendingIcon from '~icons/mdi/sort-reverse-variant';
+	import DescendingIcon from '~icons/mdi/sort-variant';
 	import NoOrderIcon from '~icons/bi/dash';
 
 	export let direction: 'asc' | 'desc' | undefined = undefined;

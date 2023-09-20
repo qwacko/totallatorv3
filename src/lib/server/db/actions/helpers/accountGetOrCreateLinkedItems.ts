@@ -1,3 +1,4 @@
+import type { CreateJournalSchemaType } from '$lib/schema/journalSchema';
 import type { DBType } from '../../db';
 import { accountActions } from '../accountActions';
 import { billActions } from '../billActions';
@@ -6,52 +7,54 @@ import { categoryActions } from '../categoryActions';
 import { labelActions } from '../labelActions';
 import { tagActions } from '../tagActions';
 
-export const accountGetOrCreateLinkedItems = async (
+export const journalGetOrCreateLinkedItems = async (
 	db: DBType,
-	journalEntry: {
-		categoryId?: string;
-		categoryTitle?: string;
-		accountId?: string;
-		accountTitle?: string;
-		billId?: string;
-		billTitle?: string;
-		budgetId?: string;
-		budgetTitle?: string;
-		tagId?: string;
-		tagTitle?: string;
-		labels?: string[];
-		labelTitles?: string[];
-	}
+	journalEntry: CreateJournalSchemaType
 ) => {
+	const {
+		categoryId,
+		categoryTitle,
+		accountId,
+		accountTitle,
+		billId,
+		billTitle,
+		budgetId,
+		budgetTitle,
+		tagId,
+		tagTitle,
+		labels,
+		labelTitles,
+		...restJournalData
+	} = journalEntry;
 	const targetAccount = await accountActions.createOrGet({
 		db,
-		id: journalEntry.accountId,
-		title: journalEntry.accountTitle
+		id: accountId,
+		title: accountTitle
 	});
 	const targetBill = await billActions.createOrGet({
 		db,
-		id: journalEntry.billId,
-		title: journalEntry.billTitle
+		id: billId,
+		title: billTitle
 	});
 	const targetBudget = await budgetActions.createOrGet({
 		db,
-		id: journalEntry.budgetId,
-		title: journalEntry.budgetTitle
+		id: budgetId,
+		title: budgetTitle
 	});
 	const targetCategory = await categoryActions.createOrGet({
 		db,
-		id: journalEntry.categoryId,
-		title: journalEntry.categoryTitle
+		id: categoryId,
+		title: categoryTitle
 	});
 
 	const targetTag = await tagActions.createOrGet({
 		db,
-		id: journalEntry.tagId,
-		title: journalEntry.tagTitle
+		id: tagId,
+		title: tagTitle
 	});
-	const targetLabelIds = journalEntry.labels
+	const targetLabelIds = labels
 		? await Promise.all(
-				journalEntry.labels.map(async (label) => {
+				labels.map(async (label) => {
 					return await labelActions.createOrGet({
 						db,
 						id: label
@@ -59,9 +62,9 @@ export const accountGetOrCreateLinkedItems = async (
 				})
 		  )
 		: [];
-	const targetLabelTitles = journalEntry.labelTitles
+	const targetLabelTitles = labelTitles
 		? await Promise.all(
-				journalEntry.labelTitles.map(async (labelTitle) => {
+				labelTitles.map(async (labelTitle) => {
 					return await labelActions.createOrGet({
 						db,
 						title: labelTitle
@@ -73,6 +76,7 @@ export const accountGetOrCreateLinkedItems = async (
 	const targetLabels = filterUndefinedFromArray([...targetLabelIds, ...targetLabelTitles]);
 
 	return {
+		...restJournalData,
 		accountId: targetAccount?.id,
 		billId: targetBill?.id,
 		budgetId: targetBudget?.id,

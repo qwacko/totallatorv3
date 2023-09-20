@@ -22,6 +22,8 @@
 	import TablePagination from '$lib/components/TablePagination.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import OrderDropDown from '../../../lib/components/OrderDropDown.svelte';
+	import { accountOrderByEnum, accountOrderByEnumToText } from '$lib/schema/accountSchema';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -39,7 +41,12 @@
 </script>
 
 <PageLayout title="Accounts" size="xl">
-	<Button href={urlGenerator({ address: '/(loggedIn)/accounts/create' }).url}>Create</Button>
+	<Button
+		href={urlGenerator({ address: '/(loggedIn)/accounts/create' }).url}
+		class="flex self-center"
+	>
+		Create
+	</Button>
 	<center>
 		<TablePagination
 			count={data.accounts.count}
@@ -49,9 +56,15 @@
 			buttonCount={5}
 		/>
 	</center>
-	<div>
+	<div class="flex flex-row gap-2">
 		{#if $urlStore.searchParams}
-			<Input type="text" bind:value={$urlStore.searchParams.title} />
+			<Input type="text" bind:value={$urlStore.searchParams.title} class="flex flex-grow" />
+			<OrderDropDown
+				currentSort={$urlStore.searchParams.orderBy}
+				options={[...accountOrderByEnum]}
+				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+				optionToTitle={accountOrderByEnumToText}
+			/>
 		{/if}
 	</div>
 

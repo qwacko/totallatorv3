@@ -32,7 +32,7 @@ export const updateAccountSchema = z.object({
 export type UpdateAccountSchemaSuperType = typeof updateAccountSchema;
 export type UpdateAccountSchemaType = z.infer<typeof updateAccountSchema>;
 
-const orderByEnum = [
+export const accountOrderByEnum = [
 	'title',
 	'accountGroup',
 	'accountGroup2',
@@ -50,7 +50,7 @@ const orderByEnum = [
 	'active'
 ] as const;
 
-type OrderByEnumType = (typeof orderByEnum)[number];
+type OrderByEnumType = (typeof accountOrderByEnum)[number];
 
 type OrderByEnumTitles = {
 	[K in OrderByEnumType]: string;
@@ -103,7 +103,7 @@ export const accountFilterSchema = z.object({
 	page: z.coerce.number().default(0).optional(),
 	pageSize: z.coerce.number().default(10).optional(),
 	orderBy: z
-		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(z.object({ field: z.enum(accountOrderByEnum), direction: z.enum(['asc', 'desc']) }))
 		.default([{ direction: 'asc', field: 'title' }])
 		.optional()
 });

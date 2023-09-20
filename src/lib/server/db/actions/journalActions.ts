@@ -2,7 +2,8 @@ import {
 	createJournalDBCore,
 	type CreateCombinedTransactionType,
 	type CreateJournalDBCoreType,
-	type JournalFilterSchemaType
+	type JournalFilterSchemaType,
+	type CreateJournalSchemaType
 } from '$lib/schema/journalSchema';
 import { getTableColumns, eq, and, sql, inArray } from 'drizzle-orm';
 import type { DBType } from '../db';
@@ -26,6 +27,7 @@ import { tActions } from './tActions';
 import { seedTransactionData } from './helpers/seedTransactionData';
 import { journalFilterToOrderBy } from './helpers/journalFilterToOrderBy';
 import { logging } from '$lib/server/logging';
+import { journalGetOrCreateLinkedItems } from './helpers/accountGetOrCreateLinkedItems';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -96,8 +98,11 @@ export const journalActions = {
 		db: DBType;
 		journalEntries: CreateCombinedTransactionType;
 	}) => {
-		const { transactions, journals, labels } = generateItemsForTransactionCreation(journalEntries);
 		await dbParam.transaction(async (db) => {
+			const { transactions, journals, labels } = await generateItemsForTransactionCreation(
+				db,
+				journalEntries
+			);
 			transactions &&
 				transactions.length > 0 &&
 				(await db.insert(transaction).values(transactions).execute());
@@ -112,18 +117,21 @@ export const journalActions = {
 		db: DBType;
 		journalEntries: CreateCombinedTransactionType[];
 	}) => {
-		const itemsForCreation = journalEntries.map((journalEntry) =>
-			generateItemsForTransactionCreation(journalEntry)
-		);
-		const transactions = itemsForCreation
-			.map(({ transactions }) => transactions)
-			.reduce((a, b) => [...a, ...b], []);
-		const journals = itemsForCreation
-			.map(({ journals }) => journals)
-			.reduce((a, b) => [...a, ...b], []);
-		const labels = itemsForCreation.map(({ labels }) => labels).reduce((a, b) => [...a, ...b], []);
-
 		await db.transaction(async (db) => {
+			const itemsForCreation = await Promise.all(
+				journalEntries.map(
+					async (journalEntry) => await generateItemsForTransactionCreation(db, journalEntry)
+				)
+			);
+			const transactions = itemsForCreation
+				.map(({ transactions }) => transactions)
+				.reduce((a, b) => [...a, ...b], []);
+			const journals = itemsForCreation
+				.map(({ journals }) => journals)
+				.reduce((a, b) => [...a, ...b], []);
+			const labels = itemsForCreation
+				.map(({ labels }) => labels)
+				.reduce((a, b) => [...a, ...b], []);
 			const transactionChunks = splitArrayInfoChunks(transactions, 5000);
 			for (const chunk of transactionChunks) {
 				await db.insert(transaction).values(chunk).execute();
@@ -220,11 +228,16 @@ const splitArrayInfoChunks = <T>(array: T[], chunkSize: number) => {
 	return chunks;
 };
 
-const generateItemsForTransactionCreation = (data: CreateCombinedTransactionType) => {
+const generateItemsForTransactionCreation = async (
+	db: DBType,
+	data: CreateCombinedTransactionType
+) => {
 	const transactionId = nanoid();
-	const itemsForCreation = data.map((journalData) => {
-		return generateItemsForJournalCreation(transactionId, journalData);
-	});
+	const itemsForCreation = await Promise.all(
+		data.map(async (journalData) => {
+			return await generateItemsForJournalCreation(db, transactionId, journalData);
+		})
+	);
 
 	return {
 		transactions: [{ id: transactionId, ...updatedTime() }],
@@ -233,11 +246,13 @@ const generateItemsForTransactionCreation = (data: CreateCombinedTransactionType
 	};
 };
 
-const generateItemsForJournalCreation = (
+const generateItemsForJournalCreation = async (
+	db: DBType,
 	transactionId: string,
-	journalData: CreateJournalDBCoreType
+	journalData: CreateJournalSchemaType
 ) => {
-	const processedJournalData = createJournalDBCore.parse(journalData);
+	const linkedCorrections = await journalGetOrCreateLinkedItems(db, journalData);
+	const processedJournalData = createJournalDBCore.parse(linkedCorrections);
 	const { labels, ...restJournalData } = processedJournalData;
 	const id = nanoid();
 

@@ -71,10 +71,14 @@ export const load = async () => {
 export const actions = {
 	bulkAddJournals: async (data) => {
 		try {
+			const startTime = new Date();
 			const form = await data.request.formData();
 			const count = Number(form.get('count')?.toString() || '200');
 
 			await tActions.journal.seed(db, count);
+			const endTime = new Date();
+			const timeDiff = (endTime.getTime() - startTime.getTime()) / 1000;
+			logging.info(`Added ${count} transactions in ${timeDiff.toString()} seconds`);
 		} catch (e) {
 			logging.error('Error Creating Bulk Journals : ', e);
 		}
