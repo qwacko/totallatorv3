@@ -64,6 +64,10 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			}
 		},
 
+		// Journals
+		// ----------------------------------------
+		'/(loggedIn)/journals': adminOnlyConfig,
+
 		// Accounts
 		// ----------------------------------------
 		'/(loggedIn)/accounts': adminOnlyConfig,

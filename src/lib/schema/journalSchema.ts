@@ -5,6 +5,7 @@ import { tagFilterSchema } from './tagSchema';
 import { billFilterSchema } from './billSchema';
 import { budgetFilterSchema } from './budgetSchema';
 import { categoryFilterSchema } from './categorySchema';
+import { labelFilterSchema } from './labelSchema';
 
 export const createJournalDBCore = z.object({
 	date: dateStringSchema,
@@ -140,20 +141,24 @@ export const journalFilterSchema = z.object({
 	reconciled: z.coerce.boolean().optional(),
 	dataChecked: z.coerce.boolean().optional(),
 	complete: z.coerce.boolean().optional(),
-	account: accountFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+	account: accountFilterSchema
+		.omit({ page: true, pageSize: true, orderBy: true })
+		.optional()
+		.default({ type: ['asset', 'liability'] }),
 	tag: tagFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
 	bill: billFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
 	budget: budgetFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
 	category: categoryFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	page: z.coerce.number().default(0).optional(),
-	pageSize: z.coerce.number().default(10).optional(),
+	label: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+	page: z.coerce.number().optional().default(0),
+	pageSize: z.coerce.number().optional().default(10),
 	orderBy: z
 		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.optional()
 		.default([
-			{ direction: 'asc', field: 'date' },
+			{ direction: 'desc', field: 'date' },
 			{ direction: 'desc', field: 'amount' }
 		])
-		.optional()
 });
 
 export type JournalFilterSchemaType = z.infer<typeof journalFilterSchema>;

@@ -6,6 +6,7 @@ import { billFilterToQuery } from './billFilterToQuery';
 import { budgetFilterToQuery } from './budgetFilterToQuery';
 import { tagFilterToQuery } from './tagFilterToQuery';
 import { categoryFilterToQuery } from './categoryFilterToQuery';
+import { labelFilterToQuery } from './labelFilterToQuery';
 
 export const journalFilterToQuery = (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -45,6 +46,11 @@ export const journalFilterToQuery = (
 	if (filter.tag) {
 		const tagFilter = tagFilterToQuery(filter.tag);
 		where.push(...tagFilter);
+	}
+
+	if (filter.label) {
+		const labelFilter = labelFilterToQuery(filter.label);
+		where.push(...labelFilter);
 	}
 
 	return where;

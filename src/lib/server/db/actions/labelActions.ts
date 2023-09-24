@@ -5,37 +5,16 @@ import type {
 } from '$lib/schema/labelSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { journalEntry, label, labelsToJournals } from '../schema';
-import { SQL, and, asc, desc, eq, inArray, like, not, sql } from 'drizzle-orm';
+import { label, labelsToJournals } from '../schema';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { createLabel } from './helpers/seedLabelData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
-
-const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
-	const where: SQL<unknown>[] = [];
-	if (filter.id) where.push(eq(label.id, filter.id));
-	if (filter.title) where.push(like(label.title, `%${filter.title}%`));
-	if (filter.status) where.push(eq(label.status, filter.status));
-	else where.push(not(eq(label.status, 'deleted')));
-	if (filter.deleted) where.push(eq(label.deleted, filter.deleted));
-	if (filter.disabled) where.push(eq(label.disabled, filter.disabled));
-	if (filter.allowUpdate) where.push(eq(label.allowUpdate, filter.allowUpdate));
-	if (filter.active) where.push(eq(label.active, filter.active));
-
-	return where;
-};
-
-const labelCreateInsertionData = (data: CreateLabelSchemaType, id: string) => {
-	return {
-		id,
-		title: data.title,
-		...statusUpdate(data.status),
-		...updatedTime()
-	};
-};
+import { labelFilterToQuery } from './helpers/labelFilterToQuery';
+import { labelCreateInsertionData } from './helpers/labelCreateInsertionData';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {

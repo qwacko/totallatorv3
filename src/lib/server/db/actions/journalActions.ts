@@ -43,14 +43,16 @@ export const journalActions = {
 		return count[0].count;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaType }) => {
-		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
-		const journals = await db
+		const { page = 0, pageSize = 10, ...restFilter } = filter;
+
+		const journalsPromise = db
 			.select({
 				...getTableColumns(journalEntry),
 				tagTitle: tag.title,
 				billTitle: bill.title,
 				budgetTitle: budget.title,
-				categoryTitle: category.title
+				categoryTitle: category.title,
+				accountTitle: account.title
 			})
 			.from(journalEntry)
 			.leftJoin(account, eq(journalEntry.accountId, account.id))
@@ -59,12 +61,88 @@ export const journalActions = {
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.accountId, tag.id))
 			.where(and(...journalFilterToQuery(restFilter)))
-			.orderBy(...journalFilterToOrderBy({ orderBy }))
+			.orderBy(...journalFilterToOrderBy(filter))
 			.offset(page * pageSize)
 			.limit(pageSize)
 			.execute();
 
-		return journals;
+		const runningTotalInner = db
+			.select({
+				amount: getTableColumns(journalEntry).amount
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.accountId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.accountId, tag.id))
+			.where(and(...journalFilterToQuery(restFilter)))
+			.offset(page * pageSize)
+			.limit(-1)
+			.as('sumInner');
+
+		const runningTotalPromise = db
+			.select({ sum: sql<number>`sum(${runningTotalInner.amount})`.mapWith(Number) })
+			.from(runningTotalInner)
+			.execute();
+
+		const resultCount = await db
+			.select({
+				count: sql<number>`count(${journalEntry.id})`.mapWith(Number)
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.accountId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.accountId, tag.id))
+			.where(and(...journalFilterToQuery(restFilter)))
+			.execute();
+
+		const count = resultCount[0].count;
+		const pageCount = Math.max(1, Math.ceil(count / pageSize));
+
+		const journals = await journalsPromise;
+		const runningTotal = (await runningTotalPromise)[0].sum;
+
+		const transactionIds = journals.map((journal) => journal.transactionId);
+
+		const transactionJournals = await db
+			.select({
+				id: journalEntry.id,
+				transactionId: journalEntry.transactionId,
+				accountId: journalEntry.accountId,
+				accountTitle: account.title,
+				amount: journalEntry.amount
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.where(inArray(journalEntry.transactionId, transactionIds))
+			.execute();
+
+		const journalsMerged = journals.map((journal, index) => {
+			const otherJournals = transactionJournals.filter(
+				(x) => x.transactionId === journal.transactionId && x.id !== journal.id
+			);
+			const priorJournals = journals.filter((_, i) => i < index);
+			const priorJournalTotal = priorJournals.reduce((prev, current) => prev + current.amount, 0);
+			const total = runningTotal - priorJournalTotal;
+
+			return {
+				...journal,
+				total,
+				otherJournals
+			};
+		});
+
+		return {
+			count,
+			data: journalsMerged,
+			pageCount,
+			page,
+			pageSize,
+			runningTotal
+		};
 	},
 	create: async (dbOuter: DBType, transactionId: string, journalData: CreateJournalDBCoreType) => {
 		const processedJournalData = createJournalDBCore.parse(journalData);
