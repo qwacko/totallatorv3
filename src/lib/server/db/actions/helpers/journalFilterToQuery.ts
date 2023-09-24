@@ -14,6 +14,8 @@ export const journalFilterToQuery = (
 	const where: SQL<unknown>[] = [];
 	if (filter.id) where.push(eq(journalEntry.id, filter.id));
 	if (filter.idArray) where.push(inArray(journalEntry.id, filter.idArray));
+	if (filter.transactionIdArray)
+		where.push(inArray(journalEntry.transactionId, filter.transactionIdArray));
 	if (filter.description) where.push(like(journalEntry.description, `%${filter.description}%`));
 	if (filter.dateAfter !== undefined) where.push(gt(journalEntry.dateText, filter.dateAfter));
 	if (filter.dateBefore !== undefined) where.push(gt(journalEntry.dateText, filter.dateBefore));

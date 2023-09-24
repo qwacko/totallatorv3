@@ -77,6 +77,14 @@ export const billActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	listForDropdown: async ({ db }: { db: DBType }) => {
+		const items = db
+			.select({ id: bill.id, title: bill.title, enabled: bill.allowUpdate })
+			.from(bill)
+			.execute();
+
+		return items;
+	},
 	createOrGet: async ({
 		db,
 		title,

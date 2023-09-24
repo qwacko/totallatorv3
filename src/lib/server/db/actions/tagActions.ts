@@ -80,6 +80,14 @@ export const tagActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	listForDropdown: async ({ db }: { db: DBType }) => {
+		const items = db
+			.select({ id: tag.id, title: tag.title, group: tag.group, enabled: tag.allowUpdate })
+			.from(tag)
+			.execute();
+
+		return items;
+	},
 	createOrGet: async ({
 		db,
 		title,

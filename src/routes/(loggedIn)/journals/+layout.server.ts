@@ -20,5 +20,15 @@ export const load = async (data) => {
 		filter
 	});
 
-	return { journals: journalData };
+	const tags = tActions.tag.listForDropdown({ db });
+	const bills = tActions.bill.listForDropdown({ db });
+	const budgets = tActions.budget.listForDropdown({ db });
+	const categories = tActions.category.listForDropdown({ db });
+	const labels = tActions.label.listForDropdown({ db });
+	const accounts = tActions.account.listForDropdown({ db });
+
+	return {
+		journals: journalData,
+		dropdownInfo: { tags, bills, budgets, categories, labels, accounts }
+	};
 };

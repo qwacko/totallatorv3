@@ -77,6 +77,14 @@ export const labelActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	listForDropdown: async ({ db }: { db: DBType }) => {
+		const items = db
+			.select({ id: label.id, title: label.title, enabled: label.allowUpdate })
+			.from(label)
+			.execute();
+
+		return items;
+	},
 	createOrGet: async ({
 		db,
 		title,

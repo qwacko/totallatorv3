@@ -135,6 +135,7 @@ export const journalOrderByEnum = [
 export const journalFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
+	transactionIdArray: z.array(z.string()).optional(),
 	dateBefore: dateStringSchema.optional(),
 	dateAfter: dateStringSchema.optional(),
 	description: z.string().optional(),

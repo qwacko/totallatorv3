@@ -87,6 +87,19 @@ export const accountActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
+	listForDropdown: async ({ db }: { db: DBType }) => {
+		const items = db
+			.select({
+				id: account.id,
+				title: account.title,
+				enabled: account.allowUpdate,
+				group: account.accountGroupCombined
+			})
+			.from(account)
+			.execute();
+
+		return items;
+	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
 		await db.insert(account).values(accountCreateInsertionData(data, id));

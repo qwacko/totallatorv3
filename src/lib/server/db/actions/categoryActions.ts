@@ -78,6 +78,19 @@ export const categoryActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	listForDropdown: async ({ db }: { db: DBType }) => {
+		const items = db
+			.select({
+				id: category.id,
+				title: category.title,
+				group: category.group,
+				enabled: category.allowUpdate
+			})
+			.from(category)
+			.execute();
+
+		return items;
+	},
 	createOrGet: async ({
 		db,
 		title,

@@ -77,6 +77,14 @@ export const budgetActions = {
 
 		return { count, data: await results, pageCount, page, pageSize };
 	},
+	listForDropdown: async ({ db }: { db: DBType }) => {
+		const items = db
+			.select({ id: budget.id, title: budget.title, enabled: budget.allowUpdate })
+			.from(budget)
+			.execute();
+
+		return items;
+	},
 	createOrGet: async ({
 		db,
 		title,

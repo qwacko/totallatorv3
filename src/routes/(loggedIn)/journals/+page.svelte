@@ -9,6 +9,7 @@
 		Alert,
 		Badge,
 		Button,
+		ButtonGroup,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -22,6 +23,8 @@
 	import DisplayCurrency from './DisplayCurrency.svelte';
 	import OrderDropDown from '$lib/components/OrderDropDown.svelte';
 	import { journalOrderByEnum, journalOrderByEnumToText } from '$lib/schema/journalSchema';
+	import EditIcon from '$lib/components/icons/EditIcon.svelte';
+	import { enhance } from '$app/forms';
 
 	export let data;
 
@@ -77,9 +80,35 @@
 			</TableHead>
 			<TableBody>
 				{#each data.journals.data as currentJournal}
-					<TableBodyRow>
+					<TableBodyRow class={currentJournal.complete && 'bg-gray-100'}>
 						<TableBodyCell></TableBodyCell>
-						<TableBodyCell></TableBodyCell>
+						<TableBodyCell>
+							<form action="?/update" method="post" use:enhance>
+								<input type="hidden" value={currentJournal.id} name="journalId" />
+								<ButtonGroup size="xs">
+									<Button
+										disabled={currentJournal.complete}
+										href={urlGenerator({
+											address: '/(loggedIn)/journals/[id]/edit',
+											paramsValue: { id: currentJournal.id },
+											searchParamsValue: $urlStore.searchParams
+										}).url}
+										class="p-2"
+									>
+										<EditIcon height="15" width="15" />
+									</Button>
+									<Button class="p-2" type="submit" name="action" value={currentJournal.complete ? "uncomplete" : "complete"}>
+										<EditIcon height="15" width="15" />
+									</Button>
+									<Button class="p-2" type="submit" name="action" value={currentJournal.reconciled ? "unreconcile" : "reconcile"}>
+										<EditIcon height="15" width="15" />
+									</Button>
+									<Button class="p-2" type="submit" name="action" value={currentJournal.dataChecked ? "unchecked" : "checked"}>
+										<EditIcon height="15" width="15" />
+									</Button>
+								</ButtonGroup>
+							</form>
+						</TableBodyCell>
 						<TableBodyCell>{currentJournal.dateText}</TableBodyCell>
 						<TableBodyCell>{currentJournal.accountTitle}</TableBodyCell>
 						<TableBodyCell>
