@@ -121,14 +121,15 @@ export const updateJournalSchema = z.object({
 export type UpdateJournalSchemaSuperType = typeof updateJournalSchema;
 export type UpdateJournalSchemaType = z.infer<typeof updateJournalSchema>;
 
-const orderByEnum = [
+export const journalOrderByEnum = [
 	'date',
 	'description',
 	'amount',
 	'linked',
 	'reconciled',
 	'dataChecked',
-	'complete'
+	'complete',
+	'accountName'
 ] as const;
 
 export const journalFilterSchema = z.object({
@@ -153,7 +154,7 @@ export const journalFilterSchema = z.object({
 	page: z.coerce.number().optional().default(0),
 	pageSize: z.coerce.number().optional().default(10),
 	orderBy: z
-		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(z.object({ field: z.enum(journalOrderByEnum), direction: z.enum(['asc', 'desc']) }))
 		.optional()
 		.default([
 			{ direction: 'desc', field: 'date' },
@@ -161,4 +162,34 @@ export const journalFilterSchema = z.object({
 		])
 });
 
+export type JournalFilterSchemaInputType = z.input<typeof journalFilterSchema>;
+
 export type JournalFilterSchemaType = z.infer<typeof journalFilterSchema>;
+
+export const defaultJournalFilter: JournalFilterSchemaType = {
+	account: { type: ['asset', 'liability'] },
+	page: 0,
+	pageSize: 10,
+	orderBy: [{ field: 'date', direction: 'desc' }]
+};
+
+type OrderByEnumType = (typeof journalOrderByEnum)[number];
+
+type OrderByEnumTitles = {
+	[K in OrderByEnumType]: string;
+};
+
+const enumTitles: OrderByEnumTitles = {
+	date: 'Date',
+	description: 'Description',
+	amount: 'Amount',
+	linked: 'Linked',
+	reconciled: 'Reconciled',
+	dataChecked: 'Data Checked',
+	complete: 'Complete',
+	accountName: 'Account Title'
+};
+
+export const journalOrderByEnumToText = (input: OrderByEnumType) => {
+	return enumTitles[input];
+};

@@ -23,7 +23,9 @@ export const auth = lucia({
 	getUserAttributes: (data) => {
 		return {
 			username: data.username,
-			admin: Boolean(data.admin)
+			admin: Boolean(data.admin),
+			currencyFormat: data.currencyFormat || 'USD',
+			dateFormat: data.dateFormat || 'YYYY-MM-DD'
 		};
 	}
 });

@@ -1,6 +1,6 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { asc, desc, SQL } from 'drizzle-orm';
-import { journalEntry } from '../../schema';
+import { account, journalEntry } from '../../schema';
 
 export const journalFilterToOrderBy = (filter: JournalFilterSchemaType): SQL<unknown>[] => {
 	const { orderBy } = filter;
@@ -22,6 +22,12 @@ export const journalFilterToOrderBy = (filter: JournalFilterSchemaType): SQL<unk
 				return asc(journalEntry[currentOrder.field]);
 			}
 			return desc(journalEntry[currentOrder.field]);
+		}
+		if (currentOrder.field === 'accountName') {
+			if (currentOrder.direction === 'asc') {
+				return asc(account.title);
+			}
+			return desc(account.title);
 		}
 
 		return desc(journalEntry.createdAt);

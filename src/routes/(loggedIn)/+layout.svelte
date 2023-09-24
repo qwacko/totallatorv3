@@ -11,6 +11,7 @@
 	import { Button, Tooltip } from 'flowbite-svelte';
 	import BulkCreateDisplay from './dev/bulkLoad/BulkCreateDisplay.svelte';
 	import DevIcon from '$lib/components/icons/DevIcon.svelte';
+	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 
 	export let data;
 
@@ -28,7 +29,10 @@
 			label: 'Journal Entries',
 			active: pageIsJournalEntries,
 			icon: JournalEntryIcon,
-			href: urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: {} })
+			href: urlGenerator({
+				address: '/(loggedIn)/journals',
+				searchParamsValue: defaultJournalFilter
+			})
 		},
 		{
 			label: 'Bills',

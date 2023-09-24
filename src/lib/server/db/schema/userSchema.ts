@@ -1,9 +1,12 @@
+import { currencyFormatEnum, dateFormatEnum } from '../../../schema/userSchema';
 import { sqliteTable, text, blob, integer } from 'drizzle-orm/sqlite-core';
 
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey(),
 	username: text('username').notNull().unique(),
-	admin: integer('admin', { mode: 'boolean' }).notNull().default(false)
+	admin: integer('admin', { mode: 'boolean' }).notNull().default(false),
+	currencyFormat: text('currencyFormat', { enum: currencyFormatEnum }).notNull().default('USD'),
+	dateFormat: text('dateFormat', { enum: dateFormatEnum }).notNull().default('YYYY-MM-DD')
 });
 
 export const session = sqliteTable('user_session', {

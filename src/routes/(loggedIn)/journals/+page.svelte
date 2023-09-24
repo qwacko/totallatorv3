@@ -7,6 +7,7 @@
 	import TablePagination from '$lib/components/TablePagination.svelte';
 	import {
 		Alert,
+		Badge,
 		Button,
 		Table,
 		TableBody,
@@ -15,13 +16,19 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
+	import CategoryIcon from '$lib/components/icons/CategoryIcon.svelte';
+	import TagIcon from '$lib/components/icons/TagIcon.svelte';
+	import BillIcon from '$lib/components/icons/BillIcon.svelte';
+	import DisplayCurrency from './DisplayCurrency.svelte';
+	import OrderDropDown from '$lib/components/OrderDropDown.svelte';
+	import { journalOrderByEnum, journalOrderByEnumToText } from '$lib/schema/journalSchema';
 
 	export let data;
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals', $page);
 
 	const urlStore = pageInfoStore({
-		routeId: '/(loggedIn)/budgets',
+		routeId: '/(loggedIn)/journals',
 		pageInfo: page,
 		onUpdate: (newURL) => {
 			if (browser && newURL !== urlInfo.current.url) {
@@ -45,10 +52,14 @@
 			buttonCount={5}
 		/>
 	</center>
-	<div class="flex">
-		{data.journals.runningTotal}
-	</div>
-
+	{#if $urlStore.searchParams}
+		<OrderDropDown
+			currentSort={$urlStore.searchParams.orderBy || []}
+			options={[...journalOrderByEnum]}
+			onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+			optionToTitle={journalOrderByEnumToText}
+		/>
+	{/if}
 	{#if data.journals.count === 0}
 		<Alert color="dark">No Matching Journals Found</Alert>
 	{:else}
@@ -71,19 +82,59 @@
 						<TableBodyCell></TableBodyCell>
 						<TableBodyCell>{currentJournal.dateText}</TableBodyCell>
 						<TableBodyCell>{currentJournal.accountTitle}</TableBodyCell>
-						<TableBodyCell>{JSON.stringify(currentJournal.otherJournals)}</TableBodyCell>
+						<TableBodyCell>
+							{#if currentJournal.otherJournals.length === 1}
+								{@const currentOtherJournal = currentJournal.otherJournals[0]}
+								<Badge>{currentOtherJournal.accountTitle}</Badge>
+							{:else}
+								<div class="flex flex-col">
+									{#each currentJournal.otherJournals as currentOtherJournal}
+										<Badge class="flex flex-col gap-1">
+											<div class="flex">
+												{currentOtherJournal.accountTitle}
+											</div>
+											<div class="flex">
+												{currentOtherJournal.amount}
+											</div>
+										</Badge>
+									{/each}
+								</div>
+							{/if}
+						</TableBodyCell>
 						<TableBodyCell>{currentJournal.description}</TableBodyCell>
-						<TableBodyCell>{currentJournal.amount}</TableBodyCell>
-						<TableBodyCell>{currentJournal.total.toFixed(2)}</TableBodyCell>
-						<TableBodyCell class="flex flex-col">
-							{#if currentJournal.categoryTitle}<div class="flex">
+						<TableBodyCell>
+							<div class="text-right">
+								<DisplayCurrency
+									format={data.user?.currencyFormat || 'USD'}
+									amount={currentJournal.amount}
+								/>
+							</div>
+						</TableBodyCell>
+						<TableBodyCell>
+							<div class="text-right">
+								<DisplayCurrency
+									format={data.user?.currencyFormat || 'USD'}
+									amount={currentJournal.total}
+								/>
+							</div>
+						</TableBodyCell>
+						<TableBodyCell class="flex flex-row gap-2">
+							{#if currentJournal.categoryTitle}<Badge class="flex flex-row gap-1">
+									<CategoryIcon />
 									{currentJournal.categoryTitle}
-								</div>{/if}
-							{#if currentJournal.tagTitle}<div class="flex">{currentJournal.tagTitle}</div>{/if}
-							{#if currentJournal.billTitle}<div class="flex">{currentJournal.billTitle}</div>{/if}
-							{#if currentJournal.budgetTitle}<div class="flex">
+								</Badge>{/if}
+							{#if currentJournal.tagTitle}<Badge class="flex flex-row gap-1">
+									<TagIcon />
+									{currentJournal.tagTitle}
+								</Badge>{/if}
+							{#if currentJournal.billTitle}<Badge class="flex flex-row gap-1">
+									<BillIcon />
+									{currentJournal.billTitle}
+								</Badge>{/if}
+							{#if currentJournal.budgetTitle}<Badge class="flex flex-row gap-1">
+									<CategoryIcon />
 									{currentJournal.budgetTitle}
-								</div>{/if}
+								</Badge>{/if}
 						</TableBodyCell>
 					</TableBodyRow>
 				{/each}

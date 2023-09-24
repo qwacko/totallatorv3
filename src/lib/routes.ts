@@ -6,7 +6,7 @@ import { budgetFilterSchema as budgetFilterSchema } from './schema/budgetSchema'
 import { categoryFilterSchema } from './schema/categorySchema';
 import { labelFilterSchema } from './schema/labelSchema';
 import { accountFilterSchema } from './schema/accountSchema';
-import { journalFilterSchema } from './schema/journalSchema';
+import { defaultJournalFilter, journalFilterSchema } from './schema/journalSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -21,7 +21,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// Journals
 		// ----------------------------------------
 		'/(loggedIn)/journals': {
-			searchParamsValidation: journalFilterSchema.optional().catch({}).parse
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
 		},
 
 		// Accounts

@@ -16,6 +16,8 @@ declare global {
 		type DatabaseUserAttributes = {
 			username: string;
 			admin: boolean;
+			dateFormat: import('$lib/schema/userSchema').dateFormatType;
+			currencyFormat: import('$lib/schema/userSchema').currencyFormatType;
 		};
 		type DatabaseSessionAttributes = Record<string, never>;
 	}

@@ -156,7 +156,7 @@ export const actions = {
 		try {
 			logging.info('Deleting Unused Journals');
 			const journals = await tActions.journal.list({ db, filter: { pageSize: 100000 } });
-			const transactionIds = journals.map((item) => item.transactionId);
+			const transactionIds = journals.data.map((item) => item.transactionId);
 			await tActions.journal.hardDeleteTransactions(db, transactionIds);
 		} catch (e) {
 			logging.error('Error Deleting Unused Journals : ', e);
