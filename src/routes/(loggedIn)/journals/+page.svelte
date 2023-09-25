@@ -25,6 +25,12 @@
 	import { journalOrderByEnum, journalOrderByEnumToText } from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { enhance } from '$app/forms';
+	import CompleteIcon from '$lib/components/icons/CompleteIcon.svelte';
+	import DataCheckedIcon from '$lib/components/icons/DataCheckedIcon.svelte';
+	import ReconciledIcon from '$lib/components/icons/ReconciledIcon.svelte';
+	import AccountBadge from './AccountBadge.svelte';
+	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
+	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
 
 	export let data;
 
@@ -72,6 +78,7 @@
 				<TableHeadCell>Actions</TableHeadCell>
 				<TableHeadCell>Date</TableHeadCell>
 				<TableHeadCell>Account</TableHeadCell>
+				<TableHeadCell></TableHeadCell>
 				<TableHeadCell>Payee(s)</TableHeadCell>
 				<TableHeadCell>Description</TableHeadCell>
 				<TableHeadCell>Amount</TableHeadCell>
@@ -97,35 +104,89 @@
 									>
 										<EditIcon height="15" width="15" />
 									</Button>
-									<Button class="p-2" type="submit" name="action" value={currentJournal.complete ? "uncomplete" : "complete"}>
-										<EditIcon height="15" width="15" />
-									</Button>
-									<Button class="p-2" type="submit" name="action" value={currentJournal.reconciled ? "unreconcile" : "reconcile"}>
-										<EditIcon height="15" width="15" />
-									</Button>
-									<Button class="p-2" type="submit" name="action" value={currentJournal.dataChecked ? "unchecked" : "checked"}>
-										<EditIcon height="15" width="15" />
-									</Button>
+									{#if currentJournal.complete}
+										<Button
+											class="p-2"
+											type="submit"
+											name="action"
+											color="primary"
+											value="uncomplete"
+										>
+											<CompleteIcon height="15" width="15" />
+										</Button>
+									{:else}
+										<Button class="p-2" type="submit" name="action" value="complete">
+											<CompleteIcon height="15" width="15" />
+										</Button>
+									{/if}
+									{#if currentJournal.reconciled}
+										<Button
+											class="p-2"
+											type="submit"
+											name="action"
+											color="primary"
+											value="unreconcile"
+										>
+											<ReconciledIcon height="15" width="15" />
+										</Button>
+									{:else}
+										<Button class="p-2" type="submit" name="action" value="reconcile">
+											<ReconciledIcon height="15" width="15" />
+										</Button>
+									{/if}
+
+									{#if currentJournal.dataChecked}
+										<Button class="p-2" type="submit" name="action" color="primary" value="uncheck">
+											<DataCheckedIcon height="15" width="15" />
+										</Button>
+									{:else}
+										<Button class="p-2" type="submit" name="action" value="check">
+											<DataCheckedIcon height="15" width="15" />
+										</Button>
+									{/if}
 								</ButtonGroup>
 							</form>
 						</TableBodyCell>
 						<TableBodyCell>{currentJournal.dateText}</TableBodyCell>
-						<TableBodyCell>{currentJournal.accountTitle}</TableBodyCell>
+						<TableBodyCell>
+							<AccountBadge
+								accountInfo={{
+									type: currentJournal.accountType,
+									title: currentJournal.accountTitle,
+									id: currentJournal.accountId,
+									accountGroupCombinedTitle: currentJournal.accountGroup
+								}}
+							/>
+						</TableBodyCell>
+						<TableBodyCell>
+							{#if currentJournal.amount > 0}
+								<ArrowLeftIcon />
+							{:else}
+								<ArrowRightIcon />
+							{/if}
+						</TableBodyCell>
 						<TableBodyCell>
 							{#if currentJournal.otherJournals.length === 1}
 								{@const currentOtherJournal = currentJournal.otherJournals[0]}
-								<Badge>{currentOtherJournal.accountTitle}</Badge>
+								<AccountBadge
+									accountInfo={{
+										type: currentOtherJournal.accountType,
+										title: currentOtherJournal.accountTitle,
+										id: currentOtherJournal.accountId,
+										accountGroupCombinedTitle: currentOtherJournal.accountGroup
+									}}
+								/>
 							{:else}
 								<div class="flex flex-col">
 									{#each currentJournal.otherJournals as currentOtherJournal}
-										<Badge class="flex flex-col gap-1">
-											<div class="flex">
-												{currentOtherJournal.accountTitle}
-											</div>
-											<div class="flex">
-												{currentOtherJournal.amount}
-											</div>
-										</Badge>
+										<AccountBadge
+											accountInfo={{
+												type: currentOtherJournal.accountType,
+												title: currentOtherJournal.accountTitle,
+												id: currentOtherJournal.accountId,
+												accountGroupCombinedTitle: currentOtherJournal.accountGroup
+											}}
+										/>
 									{/each}
 								</div>
 							{/if}

@@ -57,7 +57,9 @@ export const journalActions = {
 				billTitle: bill.title,
 				budgetTitle: budget.title,
 				categoryTitle: category.title,
-				accountTitle: account.title
+				accountTitle: account.title,
+				accountType: account.type,
+				accountGroup: account.accountGroupCombined
 			})
 			.from(journalEntry)
 			.leftJoin(account, eq(journalEntry.accountId, account.id))
@@ -121,6 +123,8 @@ export const journalActions = {
 							transactionId: journalEntry.transactionId,
 							accountId: journalEntry.accountId,
 							accountTitle: account.title,
+							accountType: account.type,
+							accountGroup: account.accountGroupCombined,
 							amount: journalEntry.amount
 						})
 						.from(journalEntry)
