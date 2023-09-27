@@ -6,7 +6,9 @@ import {
 	type CreateJournalSchemaType,
 	journalFilterSchema,
 	defaultJournalFilter,
-	type JournalFilterSchemaInputType
+	type JournalFilterSchemaInputType,
+	type UpdateJournalSchemaInputType,
+	updateJournalSchema
 } from '$lib/schema/journalSchema';
 import { getTableColumns, eq, and, sql, inArray } from 'drizzle-orm';
 import type { DBType } from '../db';
@@ -32,6 +34,125 @@ import { journalFilterToOrderBy } from './helpers/journalFilterToOrderBy';
 import { logging } from '$lib/server/logging';
 import { journalGetOrCreateLinkedItems } from './helpers/accountGetOrCreateLinkedItems';
 
+const journalList = async ({
+	db,
+	filter
+}: {
+	db: DBType;
+	filter: JournalFilterSchemaInputType;
+}) => {
+	const processedFilter = journalFilterSchema.catch(defaultJournalFilter).parse(filter);
+
+	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
+
+	const journalsPromise = db
+		.select({
+			...getTableColumns(journalEntry),
+			tagTitle: tag.title,
+			billTitle: bill.title,
+			budgetTitle: budget.title,
+			categoryTitle: category.title,
+			accountTitle: account.title,
+			accountType: account.type,
+			accountGroup: account.accountGroupCombined
+		})
+		.from(journalEntry)
+		.leftJoin(account, eq(journalEntry.accountId, account.id))
+		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+		.leftJoin(budget, eq(journalEntry.accountId, budget.id))
+		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+		.leftJoin(tag, eq(journalEntry.accountId, tag.id))
+		.where(and(...journalFilterToQuery(restFilter)))
+		.orderBy(...journalFilterToOrderBy(processedFilter))
+		.offset(page * pageSize)
+		.limit(pageSize)
+		.execute();
+
+	const runningTotalInner = db
+		.select({
+			amount: getTableColumns(journalEntry).amount
+		})
+		.from(journalEntry)
+		.leftJoin(account, eq(journalEntry.accountId, account.id))
+		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+		.leftJoin(budget, eq(journalEntry.accountId, budget.id))
+		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+		.leftJoin(tag, eq(journalEntry.accountId, tag.id))
+		.where(and(...journalFilterToQuery(restFilter)))
+		.orderBy(...journalFilterToOrderBy(processedFilter))
+		.offset(page * pageSize)
+		.limit(-1)
+		.as('sumInner');
+
+	const runningTotalPromise = db
+		.select({ sum: sql<number>`sum(${runningTotalInner.amount})`.mapWith(Number) })
+		.from(runningTotalInner)
+		.execute();
+
+	const resultCount = await db
+		.select({
+			count: sql<number>`count(${journalEntry.id})`.mapWith(Number)
+		})
+		.from(journalEntry)
+		.leftJoin(account, eq(journalEntry.accountId, account.id))
+		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+		.leftJoin(budget, eq(journalEntry.accountId, budget.id))
+		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+		.leftJoin(tag, eq(journalEntry.accountId, tag.id))
+		.where(and(...journalFilterToQuery(restFilter)))
+		.execute();
+
+	const count = resultCount[0].count;
+	const pageCount = Math.max(1, Math.ceil(count / pageSize));
+
+	const journals = await journalsPromise;
+	const runningTotal = (await runningTotalPromise)[0].sum;
+
+	const transactionIds = journals.map((journal) => journal.transactionId);
+
+	const transactionJournals =
+		transactionIds.length > 0
+			? await db
+					.select({
+						id: journalEntry.id,
+						transactionId: journalEntry.transactionId,
+						accountId: journalEntry.accountId,
+						accountTitle: account.title,
+						accountType: account.type,
+						accountGroup: account.accountGroupCombined,
+						amount: journalEntry.amount
+					})
+					.from(journalEntry)
+					.leftJoin(account, eq(journalEntry.accountId, account.id))
+					.where(inArray(journalEntry.transactionId, transactionIds))
+					.execute()
+			: [];
+
+	const journalsMerged = journals.map((journal, index) => {
+		const otherJournals = transactionJournals.filter(
+			(x) => x.transactionId === journal.transactionId && x.id !== journal.id
+		);
+		const priorJournals = journals.filter((_, i) => i < index);
+		const priorJournalTotal = priorJournals.reduce((prev, current) => prev + current.amount, 0);
+		const total = runningTotal - priorJournalTotal;
+
+		return {
+			...journal,
+			total,
+			otherJournals
+		};
+	});
+
+	return {
+		count,
+		data: journalsMerged,
+		pageCount,
+		page,
+		pageSize,
+		runningTotal
+	};
+};
+
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.journalEntry.findFirst({ where: eq(journalEntry.id, id) }).execute();
@@ -46,116 +167,7 @@ export const journalActions = {
 		return count[0].count;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
-		const processedFilter = journalFilterSchema.catch(defaultJournalFilter).parse(filter);
-
-		const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
-
-		const journalsPromise = db
-			.select({
-				...getTableColumns(journalEntry),
-				tagTitle: tag.title,
-				billTitle: bill.title,
-				budgetTitle: budget.title,
-				categoryTitle: category.title,
-				accountTitle: account.title,
-				accountType: account.type,
-				accountGroup: account.accountGroupCombined
-			})
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.accountId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.accountId, tag.id))
-			.where(and(...journalFilterToQuery(restFilter)))
-			.orderBy(...journalFilterToOrderBy(processedFilter))
-			.offset(page * pageSize)
-			.limit(pageSize)
-			.execute();
-
-		const runningTotalInner = db
-			.select({
-				amount: getTableColumns(journalEntry).amount
-			})
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.accountId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.accountId, tag.id))
-			.where(and(...journalFilterToQuery(restFilter)))
-			.orderBy(...journalFilterToOrderBy(processedFilter))
-			.offset(page * pageSize)
-			.limit(-1)
-			.as('sumInner');
-
-		const runningTotalPromise = db
-			.select({ sum: sql<number>`sum(${runningTotalInner.amount})`.mapWith(Number) })
-			.from(runningTotalInner)
-			.execute();
-
-		const resultCount = await db
-			.select({
-				count: sql<number>`count(${journalEntry.id})`.mapWith(Number)
-			})
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.accountId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.accountId, tag.id))
-			.where(and(...journalFilterToQuery(restFilter)))
-			.execute();
-
-		const count = resultCount[0].count;
-		const pageCount = Math.max(1, Math.ceil(count / pageSize));
-
-		const journals = await journalsPromise;
-		const runningTotal = (await runningTotalPromise)[0].sum;
-
-		const transactionIds = journals.map((journal) => journal.transactionId);
-
-		const transactionJournals =
-			transactionIds.length > 0
-				? await db
-						.select({
-							id: journalEntry.id,
-							transactionId: journalEntry.transactionId,
-							accountId: journalEntry.accountId,
-							accountTitle: account.title,
-							accountType: account.type,
-							accountGroup: account.accountGroupCombined,
-							amount: journalEntry.amount
-						})
-						.from(journalEntry)
-						.leftJoin(account, eq(journalEntry.accountId, account.id))
-						.where(inArray(journalEntry.transactionId, transactionIds))
-						.execute()
-				: [];
-
-		const journalsMerged = journals.map((journal, index) => {
-			const otherJournals = transactionJournals.filter(
-				(x) => x.transactionId === journal.transactionId && x.id !== journal.id
-			);
-			const priorJournals = journals.filter((_, i) => i < index);
-			const priorJournalTotal = priorJournals.reduce((prev, current) => prev + current.amount, 0);
-			const total = runningTotal - priorJournalTotal;
-
-			return {
-				...journal,
-				total,
-				otherJournals
-			};
-		});
-
-		return {
-			count,
-			data: journalsMerged,
-			pageCount,
-			page,
-			pageSize,
-			runningTotal
-		};
+		return journalList({ db, filter });
 	},
 	create: async (dbOuter: DBType, transactionId: string, journalData: CreateJournalDBCoreType) => {
 		const processedJournalData = createJournalDBCore.parse(journalData);
@@ -305,8 +317,160 @@ export const journalActions = {
 		});
 		const endTime = Date.now();
 		logging.info(`Seeding ${count} transactions took ${endTime - startTime}ms`);
+	},
+	markComplete: async (db: DBType, journalId: string) => {
+		const journal = await db.query.journalEntry
+			.findFirst({ where: eq(journalEntry.id, journalId) })
+			.execute();
+		if (!journal) return;
+		const { transactionId } = journal;
+		await db
+			.update(journalEntry)
+			.set({ complete: true, dataChecked: true, reconciled: true, ...updatedTime() })
+			.where(eq(journalEntry.transactionId, transactionId))
+			.execute();
+	},
+	markUncomplete: async (db: DBType, journalId: string) => {
+		const journal = await db.query.journalEntry
+			.findFirst({ where: eq(journalEntry.id, journalId) })
+			.execute();
+		if (!journal) return;
+		const { transactionId } = journal;
+		await db
+			.update(journalEntry)
+			.set({ complete: false, ...updatedTime() })
+			.where(eq(journalEntry.transactionId, transactionId))
+			.execute();
+	},
+	updateJournals: async ({
+		db,
+		filter,
+		journalData
+	}: {
+		db: DBType;
+		filter: JournalFilterSchemaInputType;
+		journalData: UpdateJournalSchemaInputType;
+	}) => {
+		const processedData = updateJournalSchema.safeParse(journalData);
+
+		if (!processedData.success) {
+			console.log(JSON.stringify(processedData.error));
+			throw new Error('Inavalid Journal Update Data');
+		}
+
+		const processedFilter = journalFilterSchema.catch(defaultJournalFilter).parse(filter);
+		const journals = await journalActions.list({ db, filter: processedFilter });
+
+		if (journals.data.length === 0) return;
+
+		const completedCount = journals.data.filter((journal) => journal.complete).length;
+
+		if (completedCount > 0) throw new Error('Cannot update journals that are already complete');
+
+		const linkedJournals = journals.data.filter((journal) => journal.linked);
+		const unlinkedJournals = journals.data.filter((journal) => !journal.linked);
+
+		await db.transaction(async (db) => {
+			const tagId =
+				processedData.data.tagTitle === null || processedData.data.tagId === null
+					? null
+					: (
+							await tActions.tag.createOrGet({
+								db,
+								title: processedData.data.tagTitle,
+								id: processedData.data.tagId,
+								requireActive: true
+							})
+					  )?.id;
+			const categoryId =
+				processedData.data.categoryTitle === null || processedData.data.categoryId === null
+					? null
+					: (
+							await tActions.category.createOrGet({
+								db,
+								title: processedData.data.categoryTitle,
+								id: processedData.data.categoryId,
+								requireActive: true
+							})
+					  )?.id;
+			const billId =
+				processedData.data.billTitle === null || processedData.data.billId === null
+					? null
+					: (
+							await tActions.bill.createOrGet({
+								db,
+								title: journalData.billTitle,
+								id: journalData.billId,
+								requireActive: true
+							})
+					  )?.id;
+			const budgetId =
+				journalData.budgetTitle === null || journalData.budgetId === null
+					? null
+					: (
+							await tActions.budget.createOrGet({
+								db,
+								title: journalData.budgetTitle,
+								id: journalData.budgetId,
+								requireActive: true
+							})
+					  )?.id;
+			const accountId = (
+				await tActions.account.createOrGet({
+					db,
+					title: journalData.accountTitle,
+					id: journalData.accountId,
+					requireActive: true
+				})
+			)?.id;
+
+			if (linkedJournals.length > 0) {
+				const transactionIds = linkedJournals.map((journal) => journal.transactionId);
+				await db
+					.update(journalEntry)
+					.set({
+						tagId,
+						categoryId,
+						billId,
+						budgetId,
+						dataChecked: journalData.dataChecked,
+						reconciled: journalData.reconciled,
+						...updatedTime(),
+						description: journalData.description
+					})
+					.where(inArray(journalEntry.transactionId, transactionIds))
+					.execute();
+			}
+
+			if (unlinkedJournals.length > 0) {
+				const journalIds = unlinkedJournals.map((journal) => journal.id);
+				await db
+					.update(journalEntry)
+					.set({
+						tagId,
+						categoryId,
+						billId,
+						budgetId,
+						dataChecked: journalData.dataChecked,
+						reconciled: journalData.reconciled,
+						...updatedTime()
+					})
+					.where(inArray(journalEntry.id, journalIds));
+			}
+			if (accountId) {
+				const journalIds = journals.data.map((journal) => journal.id);
+
+				await db
+					.update(journalEntry)
+					.set({ accountId })
+					.where(inArray(journalEntry.id, journalIds))
+					.execute();
+			}
+		});
 	}
 };
+
+export type ListJournalsReturnType = Awaited<ReturnType<typeof journalList>>['data'][number];
 
 const splitArrayInfoChunks = <T>(array: T[], chunkSize: number) => {
 	const numberChunks = Math.ceil(array.length / chunkSize);

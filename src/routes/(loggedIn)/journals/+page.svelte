@@ -125,22 +125,22 @@
 											type="submit"
 											name="action"
 											color="primary"
-											value="unreconcile"
+											value="unreconcile"  disabled={currentJournal.complete}
 										>
 											<ReconciledIcon height="15" width="15" />
 										</Button>
 									{:else}
-										<Button class="p-2" type="submit" name="action" value="reconcile">
+										<Button class="p-2" type="submit" name="action" value="reconcile"  disabled={currentJournal.complete}>
 											<ReconciledIcon height="15" width="15" />
 										</Button>
 									{/if}
 
 									{#if currentJournal.dataChecked}
-										<Button class="p-2" type="submit" name="action" color="primary" value="uncheck">
+										<Button class="p-2" type="submit" name="action" color="primary" value="uncheck" disabled={currentJournal.complete}>
 											<DataCheckedIcon height="15" width="15" />
 										</Button>
 									{:else}
-										<Button class="p-2" type="submit" name="action" value="check">
+										<Button class="p-2" type="submit" name="action" value="check"  disabled={currentJournal.complete}>
 											<DataCheckedIcon height="15" width="15" />
 										</Button>
 									{/if}

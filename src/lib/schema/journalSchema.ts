@@ -91,7 +91,6 @@ export type CreateJournalSchemaSuperType = typeof createJournalSchema;
 export type CreateJournalSchemaType = z.infer<typeof createJournalSchema>;
 
 export const updateJournalSchema = z.object({
-	id: z.string(),
 	date: dateStringSchema.optional(),
 	description: z.string().optional(),
 	amount: z.number().optional(),
@@ -120,6 +119,7 @@ export const updateJournalSchema = z.object({
 
 export type UpdateJournalSchemaSuperType = typeof updateJournalSchema;
 export type UpdateJournalSchemaType = z.infer<typeof updateJournalSchema>;
+export type UpdateJournalSchemaInputType = z.input<typeof updateJournalSchema>;
 
 export const journalOrderByEnum = [
 	'date',
