@@ -1,7 +1,6 @@
 import {
 	createJournalDBCore,
 	type CreateCombinedTransactionType,
-	type CreateJournalDBCoreType,
 	type JournalFilterSchemaType,
 	type CreateJournalSchemaType,
 	journalFilterSchema,
@@ -23,7 +22,7 @@ import {
 	labelsToJournals
 } from '../schema';
 import { journalFilterToQuery } from './helpers/journalFilterToQuery';
-import { labelActions } from './labelActions';
+
 import { updatedTime } from './helpers/updatedTime';
 import { nanoid } from 'nanoid';
 import { expandDate } from './helpers/expandDate';
@@ -168,50 +167,6 @@ export const journalActions = {
 	},
 	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
 		return journalList({ db, filter });
-	},
-	create: async (dbOuter: DBType, transactionId: string, journalData: CreateJournalDBCoreType) => {
-		const processedJournalData = createJournalDBCore.parse(journalData);
-		const { labels, ...restJournalData } = processedJournalData;
-		const id = nanoid();
-		await dbOuter.transaction(async (db) => {
-			await db
-				.insert(journalEntry)
-				.values({
-					id,
-					transactionId,
-					...restJournalData,
-					...updatedTime(),
-					...expandDate(restJournalData.date)
-				})
-				.execute();
-
-			if (labels) {
-				await Promise.all(
-					labels.map(async (label) => {
-						await labelActions.createLink(db, { journalId: id, labelId: label });
-					})
-				);
-			}
-		});
-	},
-	createTransactionJournals: async ({
-		db: dbParam,
-		journalEntries
-	}: {
-		db: DBType;
-		journalEntries: CreateCombinedTransactionType;
-	}) => {
-		await dbParam.transaction(async (db) => {
-			const { transactions, journals, labels } = await generateItemsForTransactionCreation(
-				db,
-				journalEntries
-			);
-			transactions &&
-				transactions.length > 0 &&
-				(await db.insert(transaction).values(transactions).execute());
-			journals && journals.length > 0 && (await db.insert(journalEntry).values(journals).execute());
-			labels && labels.length > 0 && (await db.insert(labelsToJournals).values(labels).execute());
-		});
 	},
 	createManyTransactionJournals: async ({
 		db,
@@ -399,8 +354,8 @@ export const journalActions = {
 					: (
 							await tActions.bill.createOrGet({
 								db,
-								title: journalData.billTitle,
-								id: journalData.billId,
+								title: journalData.billTitle || undefined,
+								id: journalData.billId || undefined,
 								requireActive: true
 							})
 					  )?.id;
@@ -418,8 +373,8 @@ export const journalActions = {
 			const accountId = (
 				await tActions.account.createOrGet({
 					db,
-					title: journalData.accountTitle,
-					id: journalData.accountId,
+					title: journalData.accountTitle || undefined,
+					id: journalData.accountId || undefined,
 					requireActive: true
 				})
 			)?.id;
@@ -508,12 +463,13 @@ const generateItemsForJournalCreation = async (
 ) => {
 	const linkedCorrections = await journalGetOrCreateLinkedItems(db, journalData);
 	const processedJournalData = createJournalDBCore.parse(linkedCorrections);
-	const { labels, ...restJournalData } = processedJournalData;
+	const { labels, accountId, ...restJournalData } = processedJournalData;
 	const id = nanoid();
 
 	const journalForCreation = {
 		id,
 		transactionId,
+		accountId: accountId || '',
 		...restJournalData,
 		...updatedTime(),
 		...expandDate(restJournalData.date)

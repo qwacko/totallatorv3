@@ -9,7 +9,8 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Alert
+		Alert,
+		Select
 	} from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
@@ -25,6 +26,8 @@
 	import OrderDropDown from '../../../lib/components/OrderDropDown.svelte';
 	import { accountOrderByEnum, accountOrderByEnumToText } from '$lib/schema/accountSchema';
 
+	import AccountTypeSelect from '$lib/components/AccountTypeSelect.svelte';
+
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
 
@@ -32,6 +35,7 @@
 		routeId: '/(loggedIn)/accounts',
 		pageInfo: page,
 		onUpdate: (newURL) => {
+			console.log('New Url In urlStore : ', newURL);
 			if (browser && newURL !== urlInfo.current.url) {
 				goto(newURL, { keepFocus: true, noScroll: true });
 			}
@@ -56,9 +60,11 @@
 			buttonCount={5}
 		/>
 	</center>
-	<div class="flex flex-row gap-2">
+	<div class="flex flex-col gap-2">
 		{#if $urlStore.searchParams}
+			<pre>{JSON.stringify($urlStore.searchParams, null, 2)}</pre>
 			<Input type="text" bind:value={$urlStore.searchParams.title} class="flex flex-grow" />
+			<AccountTypeSelect bind:type={$urlStore.searchParams.type} />
 			<OrderDropDown
 				currentSort={$urlStore.searchParams.orderBy}
 				options={[...accountOrderByEnum]}

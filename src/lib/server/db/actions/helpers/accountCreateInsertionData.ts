@@ -15,6 +15,7 @@ export const accountCreateInsertionData = (data: CreateAccountSchemaType, id: st
 	} else {
 		return {
 			id,
+			...data,
 			...statusUpdate(data.status),
 			...updatedTime(),
 			...combinedAccountTitleSplitRequired({ title: data.title, accountGroupCombined: '' }),

@@ -1,5 +1,5 @@
 import type { CreateCombinedTransactionType } from '$lib/schema/journalSchema';
-import { logging } from '$lib/server/logging';
+
 import {
 	getRandomArrayElement,
 	getRandomBoolean,
@@ -35,6 +35,18 @@ export const seedTransactionData = ({
 	const toAccountId = getRandomArrayElement(
 		isTransfer && !isIncome ? expenseIds : assetLiabilityIds
 	);
+
+	if (fromAccountId === undefined || toAccountId === undefined) {
+		console.log('Pre Throw : ', {
+			fromAccountId,
+			toAccountId,
+			numberAssetLiabilities: assetLiabilityIds.length,
+			numberIncomes: incomeIds.length,
+			numberExpenses: expenseIds.length
+		});
+		throw new Error('fromAccountId or toAccountId is undefined');
+	}
+
 	const amount = getRandomInteger(100000) / 100;
 
 	const status = getRandomArrayElement(['complete', 'reconciled', 'data', 'nothing']);

@@ -281,6 +281,7 @@ export const accountActions = {
 			const id = nanoid();
 			return accountCreateInsertionData(currentAccount, id);
 		});
+
 		await db.insert(account).values(dataForInsertion);
 
 		return dataForInsertion.map((item) => item.id);

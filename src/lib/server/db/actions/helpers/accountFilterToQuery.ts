@@ -29,7 +29,8 @@ export const accountFilterToQuery = (
 		where.push(lt(account.startDate, filter.startDateBefore));
 	if (filter.endDateAfter !== undefined) where.push(gt(account.endDate, filter.endDateAfter));
 	if (filter.endDateBefore !== undefined) where.push(lt(account.endDate, filter.endDateBefore));
-	if (filter.type !== undefined) where.push(inArray(account.type, filter.type));
+	if (filter.type !== undefined && filter.type.length > 0)
+		where.push(inArray(account.type, filter.type));
 
 	return where;
 };

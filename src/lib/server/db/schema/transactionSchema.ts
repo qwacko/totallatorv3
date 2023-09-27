@@ -137,7 +137,7 @@ const journalSharedColumns = {
 	billId: text('bill_id'),
 	budgetId: text('budget_id'),
 	categoryId: text('category_id'),
-	accountId: text('account_id'),
+	accountId: text('account_id').notNull(),
 
 	yearMonthDay: text('year_month_day').notNull(),
 	yearWeek: text('year_week').notNull(),

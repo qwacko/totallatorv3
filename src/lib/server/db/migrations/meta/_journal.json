@@ -36,6 +36,13 @@
       "when": 1695586663348,
       "tag": "0004_hesitant_doorman",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1695811159313,
+      "tag": "0005_magical_swordsman",
+      "breakpoints": true
     }
   ]
 }
