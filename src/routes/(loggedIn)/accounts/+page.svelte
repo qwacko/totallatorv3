@@ -26,7 +26,7 @@
 	import OrderDropDown from '../../../lib/components/OrderDropDown.svelte';
 	import { accountOrderByEnum, accountOrderByEnumToText } from '$lib/schema/accountSchema';
 
-	import AccountTypeSelect from '$lib/components/AccountTypeSelect.svelte';
+	import AccountTypeFilterLinks from '$lib/components/AccountTypeFilterLinks.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -35,7 +35,6 @@
 		routeId: '/(loggedIn)/accounts',
 		pageInfo: page,
 		onUpdate: (newURL) => {
-			console.log('New Url In urlStore : ', newURL);
 			if (browser && newURL !== urlInfo.current.url) {
 				goto(newURL, { keepFocus: true, noScroll: true });
 			}
@@ -62,9 +61,11 @@
 	</center>
 	<div class="flex flex-col gap-2">
 		{#if $urlStore.searchParams}
-			<pre>{JSON.stringify($urlStore.searchParams, null, 2)}</pre>
 			<Input type="text" bind:value={$urlStore.searchParams.title} class="flex flex-grow" />
-			<AccountTypeSelect bind:type={$urlStore.searchParams.type} />
+			<AccountTypeFilterLinks
+				type={$urlStore.searchParams.type}
+				generateURL={(newType) => urlInfo.updateParams({ searchParams: { type: newType } }).url}
+			/>
 			<OrderDropDown
 				currentSort={$urlStore.searchParams.orderBy}
 				options={[...accountOrderByEnum]}
