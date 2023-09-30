@@ -4,6 +4,7 @@
 	import type { UpdateJournalSchemaSuperType } from '$lib/schema/journalSchema.js';
 	import { Badge, Button, Heading } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
+	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
 	export let data;
 
@@ -17,6 +18,7 @@
 		<Badge>Journal Complete - No Update Possible</Badge>
 	{:else}
 		<form use:enhance method="post" action="?/update" class="flex flex-col gap-2">
+			<PreviousUrlInput defaultURL="/journals" />
 			<TextInput
 				title="Description"
 				errorMessage={$errors.description}

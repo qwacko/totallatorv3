@@ -326,50 +326,39 @@ export const journalActions = {
 		const unlinkedJournals = journals.data.filter((journal) => !journal.linked);
 
 		await db.transaction(async (db) => {
-			const tagId =
-				processedData.data.tagTitle === null || processedData.data.tagId === null
-					? null
-					: (
-							await tActions.tag.createOrGet({
-								db,
-								title: processedData.data.tagTitle,
-								id: processedData.data.tagId,
-								requireActive: true
-							})
-					  )?.id;
-			const categoryId =
-				processedData.data.categoryTitle === null || processedData.data.categoryId === null
-					? null
-					: (
-							await tActions.category.createOrGet({
-								db,
-								title: processedData.data.categoryTitle,
-								id: processedData.data.categoryId,
-								requireActive: true
-							})
-					  )?.id;
-			const billId =
-				processedData.data.billTitle === null || processedData.data.billId === null
-					? null
-					: (
-							await tActions.bill.createOrGet({
-								db,
-								title: journalData.billTitle || undefined,
-								id: journalData.billId || undefined,
-								requireActive: true
-							})
-					  )?.id;
-			const budgetId =
-				journalData.budgetTitle === null || journalData.budgetId === null
-					? null
-					: (
-							await tActions.budget.createOrGet({
-								db,
-								title: journalData.budgetTitle,
-								id: journalData.budgetId,
-								requireActive: true
-							})
-					  )?.id;
+			const tagId = handleLinkedItem({
+				db,
+				id: processedData.data.tagId,
+				title: processedData.data.tagTitle,
+				clear: processedData.data.tagClear,
+				requireActive: true,
+				createOrGetItem: tActions.tag.createOrGet
+			});
+			const categoryId = handleLinkedItem({
+				db,
+				id: processedData.data.categoryId,
+				title: processedData.data.categoryTitle,
+				clear: processedData.data.categoryClear,
+				requireActive: true,
+				createOrGetItem: tActions.category.createOrGet
+			});
+			const billId = handleLinkedItem({
+				db,
+				id: processedData.data.billId,
+				title: processedData.data.billTitle,
+				clear: processedData.data.billClear,
+				requireActive: true,
+				createOrGetItem: tActions.bill.createOrGet
+			});
+			const budgetId = handleLinkedItem({
+				db,
+				id: processedData.data.budgetId,
+				title: processedData.data.budgetTitle,
+				clear: processedData.data.budgetClear,
+				requireActive: true,
+				createOrGetItem: tActions.budget.createOrGet
+			});
+
 			const accountId = (
 				await tActions.account.createOrGet({
 					db,
@@ -384,14 +373,14 @@ export const journalActions = {
 				await db
 					.update(journalEntry)
 					.set({
-						tagId,
-						categoryId,
-						billId,
-						budgetId,
+						tagId: await tagId,
+						categoryId: await categoryId,
+						billId: await billId,
+						budgetId: await budgetId,
 						dataChecked: journalData.dataChecked,
 						reconciled: journalData.reconciled,
-						...updatedTime(),
-						description: journalData.description
+						description: journalData.description,
+						...updatedTime()
 					})
 					.where(inArray(journalEntry.transactionId, transactionIds))
 					.execute();
@@ -402,10 +391,10 @@ export const journalActions = {
 				await db
 					.update(journalEntry)
 					.set({
-						tagId,
-						categoryId,
-						billId,
-						budgetId,
+						tagId: await tagId,
+						categoryId: await categoryId,
+						billId: await billId,
+						budgetId: await budgetId,
 						dataChecked: journalData.dataChecked,
 						reconciled: journalData.reconciled,
 						...updatedTime()
@@ -483,4 +472,41 @@ const generateItemsForJournalCreation = async (
 		: [];
 
 	return { journal: journalForCreation, labels: labelsForCreation };
+};
+
+const handleLinkedItem = async <T extends { id: string }>({
+	id,
+	title,
+	clear,
+	createOrGetItem,
+	requireActive,
+	db
+}: {
+	db: DBType;
+	id?: string | null;
+	title?: string | null;
+	clear?: boolean | null;
+	requireActive?: boolean;
+	createOrGetItem: ({
+		db,
+		id,
+		title,
+		requireActive
+	}: {
+		db: DBType;
+		id?: string | null;
+		title?: string | null;
+		requireActive?: boolean;
+	}) => Promise<T | undefined>;
+}) => {
+	if (clear) {
+		return null;
+	}
+
+	const newItem = await createOrGetItem({ db, id, title, requireActive });
+
+	if (newItem) {
+		return newItem.id;
+	}
+	return undefined;
 };

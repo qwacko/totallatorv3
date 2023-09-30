@@ -98,8 +98,8 @@ export const categoryActions = {
 		requireActive = true
 	}: {
 		db: DBType;
-		title?: string;
-		id?: string;
+		title?: string | null;
+		id?: string | null;
 		requireActive?: boolean;
 	}) => {
 		if (id) {

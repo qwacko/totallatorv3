@@ -67,7 +67,10 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// Journals
 		// ----------------------------------------
 		'/(loggedIn)/journals': { ...adminOnlyConfig, POSTCheck: { update: POSTAllowAdminOnly } },
-		'/(loggedIn)/journals/[id]/edit': adminOnlyConfig,
+		'/(loggedIn)/journals/[id]/edit': {
+			...adminOnlyConfig,
+			POSTCheck: { update: POSTAllowAdminOnly }
+		},
 
 		// Accounts
 		// ----------------------------------------
