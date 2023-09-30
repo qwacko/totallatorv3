@@ -26,19 +26,42 @@
 	export let itemToOption: OptionFunction;
 	export let itemToDisplay: DisplayFunction;
 	export let highlightSearch = true;
+	export let value: string | undefined;
+	export let name: string | undefined = undefined;
 
 	const {
 		elements: { menu, input, option, label },
-		states: { open, inputValue, touchedInput },
+		states: { open, inputValue, touchedInput, selected, highlighted },
 		helpers: { isSelected, isHighlighted }
 	} = createCombobox({
 		forceVisible: true
 	});
 
+	const updateSelection = (id: string | undefined) => {
+		if (id) {
+			const selection = items.find((item) => item.id === id);
+			if (!selection) {
+				$selected = undefined;
+				$inputValue = '';
+			} else {
+				const itemOption = itemToOption(selection);
+				$selected = itemOption;
+				$inputValue = itemOption.label;
+			}
+		} else {
+			$selected = undefined;
+			$inputValue = '';
+		}
+	};
+
+	$: updateSelection(value);
+
 	$: filteredItems = $touchedInput ? filterItems(items, $inputValue.toLowerCase()) : items;
-	$: console.log('Input : ', input);
 </script>
 
+{#if name}
+	<input type="hidden" {name} value={$selected ? $selected.value : undefined} />
+{/if}
 <div class="flex flex-col gap-2">
 	{#if title}
 		<Label {...$label}>{title}</Label>
@@ -72,16 +95,20 @@
 	>
 		<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 		<div class="flex max-h-full flex-col gap-0 overflow-y-auto px-2 py-2 text-black" tabindex="0">
-			{#each filteredItems as currentItem, index (index)}
+			{#each filteredItems as currentItem (currentItem.id)}
 				{@const currentItemDisplay = itemToDisplay(currentItem)}
+				{@const currentHighlighted = $isHighlighted(currentItem.id)}
+				{@const currentSelected = $isSelected(currentItem.id)}
+				{@const currentItemOption = itemToOption(currentItem)}
+
 				<li
-					{...$option(itemToOption(currentItem))}
+					{...$option(currentItemOption)}
 					use:option
 					class="relative cursor-pointer scroll-my-2 rounded-md py-2 pl-4 pr-4
         data-[highlighted]:bg-magnum-200 data-[highlighted]:text-magnum-900
-          data-[disabled]:opacity-50"
+          data-[disabled]:opacity-50 {currentHighlighted ? 'bg-gray-200' : ''}"
 				>
-					{#if $isSelected(itemToOption(currentItem))}
+					{#if currentSelected}
 						<div class="check absolute left-2 top-1/2 z-10 text-magnum-900">
 							<Check class="square-4" />
 						</div>

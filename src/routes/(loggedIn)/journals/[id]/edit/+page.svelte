@@ -22,6 +22,8 @@
 			<PreviousUrlInput defaultURL="/journals" />
 			{#await data.dropdownInfo.accounts then accountsDropdown}
 				<ComboSelect
+					name="accountId"
+					value={$form.accountId}
 					items={accountsDropdown}
 					placeholder="Select Account..."
 					title="Account"
