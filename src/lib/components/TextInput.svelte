@@ -10,28 +10,20 @@
 	export let wrapperClass: string | undefined = undefined;
 </script>
 
-<div class={wrapperClass}>
-	<Label class="w-full space-y-2">
-		{#if title}
-			<span class="flex flex-row gap-1"
-				><div>
+<div class="flex flex-col gap-2 {wrapperClass}">
+	{#if title}
+		<Label for={name} class="w-full space-y-2">
+			<span class="flex flex-row gap-1">
+				<div>
 					{title}
 				</div>
 				<div>
 					{#if required}
 						*{/if}
-				</div></span
-			>
-		{/if}
-		<Input
-			bind:value
-			{...$$restProps}
-			{name}
-			{required}
-			class={$$props.class}
-			on:blur
-			on:keypress
-		/>
-		<ErrorText message={errorMessage} />
-	</Label>
+				</div>
+			</span>
+		</Label>
+	{/if}
+	<Input bind:value {...$$restProps} {name} {required} class={$$props.class} on:blur on:keypress />
+	<ErrorText message={errorMessage} />
 </div>

@@ -5,6 +5,7 @@
 	import { Badge, Button, Heading } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
+	import ComboSelect from '$lib/components/ComboSelect.svelte';
 
 	export let data;
 
@@ -19,6 +20,15 @@
 	{:else}
 		<form use:enhance method="post" action="?/update" class="flex flex-col gap-2">
 			<PreviousUrlInput defaultURL="/journals" />
+			{#await data.dropdownInfo.accounts then accountsDropdown}
+				<ComboSelect
+					items={accountsDropdown}
+					placeholder="Select Account..."
+					title="Account"
+					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+					itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+				/>
+			{/await}
 			<TextInput
 				title="Description"
 				errorMessage={$errors.description}
