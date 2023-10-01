@@ -22,6 +22,7 @@
 	import TablePagination from '$lib/components/TablePagination.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/categories', $page);
@@ -129,6 +130,7 @@
 								<Button href={deleteURL} class="p-2" outline color="red">
 									<DeleteIcon height={15} width={15} />
 								</Button>
+								<RawDataModal data={currentCategory} title="Raw Category Data" dev={data.dev} />
 							</ButtonGroup>
 						</TableBodyCell>
 						<TableBodyCell>{currentCategory.group}</TableBodyCell>

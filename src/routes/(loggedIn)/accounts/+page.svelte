@@ -27,6 +27,7 @@
 	import { accountOrderByEnum, accountOrderByEnumToText } from '$lib/schema/accountSchema';
 
 	import AccountTypeFilterLinks from '$lib/components/AccountTypeFilterLinks.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -189,6 +190,7 @@
 								<Button href={deleteURL} class="p-2" outline color="red">
 									<DeleteIcon height={15} width={15} />
 								</Button>
+								<RawDataModal data={currentAccount} title="Raw Account Data" dev={data.dev} />
 							</ButtonGroup>
 						</TableBodyCell>
 						<TableBodyCell>{currentAccount.accountGroup}</TableBodyCell>

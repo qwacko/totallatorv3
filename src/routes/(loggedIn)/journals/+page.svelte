@@ -20,7 +20,7 @@
 	import CategoryIcon from '$lib/components/icons/CategoryIcon.svelte';
 	import TagIcon from '$lib/components/icons/TagIcon.svelte';
 	import BillIcon from '$lib/components/icons/BillIcon.svelte';
-	import DisplayCurrency from './DisplayCurrency.svelte';
+	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import OrderDropDown from '$lib/components/OrderDropDown.svelte';
 	import { journalOrderByEnum, journalOrderByEnumToText } from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
@@ -28,10 +28,10 @@
 	import CompleteIcon from '$lib/components/icons/CompleteIcon.svelte';
 	import DataCheckedIcon from '$lib/components/icons/DataCheckedIcon.svelte';
 	import ReconciledIcon from '$lib/components/icons/ReconciledIcon.svelte';
-	import AccountBadge from './AccountBadge.svelte';
+	import AccountBadge from '$lib/components/AccountBadge.svelte';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
-	import RawDataOnHover from './RawDataOnHover.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	export let data;
 
@@ -165,9 +165,7 @@
 											<DataCheckedIcon height="15" width="15" />
 										</Button>
 									{/if}
-									{#if data.dev}
-										<RawDataOnHover data={currentJournal} />
-									{/if}
+									<RawDataModal data={currentJournal} dev={data.dev} title="Raw Journal Data" />
 								</ButtonGroup>
 							</form>
 						</TableBodyCell>

@@ -22,6 +22,7 @@
 	import TablePagination from '$lib/components/TablePagination.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -129,7 +130,8 @@
 								</Button>
 								<Button href={deleteURL} class="p-2" outline color="red">
 									<DeleteIcon height={15} width={15} />
-								</Button>
+								</Button>								
+								<RawDataModal data={currentTag} title="Raw Tag Data" dev={data.dev} />
 							</ButtonGroup>
 						</TableBodyCell>
 						<TableBodyCell>{currentTag.group}</TableBodyCell>
