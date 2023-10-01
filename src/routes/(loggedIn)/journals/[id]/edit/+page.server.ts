@@ -24,7 +24,15 @@ export const load = async (data) => {
 	}
 
 	const journalForm = await superValidate(
-		{ ...journal, date: journal.date.toISOString().slice(0, 10) },
+		{
+			...journal,
+			date: journal.date.toISOString().slice(0, 10),
+			accountTitle: undefined,
+			tagTitle: undefined,
+			categoryTitle: undefined,
+			billTitle: undefined,
+			budgetTitle: undefined
+		},
 		updateJournalSchema
 	);
 
@@ -45,6 +53,8 @@ export const actions = {
 		if (!form.valid) {
 			return { form };
 		}
+
+		logging.info('Updating Single Journal : ', form.data);
 
 		try {
 			await tActions.journal.updateJournals({

@@ -5,10 +5,11 @@
 	import Check from '~icons/mdi/check';
 	import { fly } from 'svelte/transition';
 	import HighlightText from './HighlightText.svelte';
-	import { Label } from 'flowbite-svelte';
+	import { Button, Label } from 'flowbite-svelte';
 
 	type T = $$Generic<{ id: string }>;
-	type OptionFunction = (data: T) => { value: string; label: string; disabled?: boolean };
+	type SelectionType = { value: string; label: string; disabled?: boolean };
+	type OptionFunction = (data: T) => SelectionType;
 	type DisplayFunction = (data: T) => { group?: string; title: string };
 
 	export let items: T[];
@@ -26,18 +27,36 @@
 	export let itemToOption: OptionFunction;
 	export let itemToDisplay: DisplayFunction;
 	export let highlightSearch = true;
-	export let value: string | undefined;
+	export let value: string | undefined | null;
 	export let name: string | undefined = undefined;
+	export let clearValue: boolean | undefined = undefined;
+	export let clearable = false;
+	export let clearName: string | undefined = undefined;
 
 	const {
 		elements: { menu, input, option, label },
-		states: { open, inputValue, touchedInput, selected, highlighted },
+		states: { open, inputValue, touchedInput, selected },
 		helpers: { isSelected, isHighlighted }
-	} = createCombobox({
-		forceVisible: true
+	} = createCombobox<string>({
+		forceVisible: true,
+		onSelectedChange: (newSelection) => {
+			const newValue = newSelection.next ? newSelection.next?.value : undefined;
+			value = newValue;
+			if (newValue === undefined) {
+				clearValue = true;
+			} else {
+				clearValue = undefined;
+			}
+			return newSelection.next;
+		}
 	});
 
-	const updateSelection = (id: string | undefined) => {
+	const clearSelection = () => {
+		clearValue = true;
+		value = undefined;
+	};
+
+	const updateSelection = (id: string | undefined | null) => {
 		if (id) {
 			const selection = items.find((item) => item.id === id);
 			if (!selection) {
@@ -54,36 +73,46 @@
 		}
 	};
 
+	//Updates selection when the external value changes.
 	$: updateSelection(value);
 
 	$: filteredItems = $touchedInput ? filterItems(items, $inputValue.toLowerCase()) : items;
+	$: selectedVal = $selected ? $selected.value : undefined;
 </script>
 
-{#if name}
-	<input type="hidden" {name} value={$selected ? $selected.value : undefined} />
+{#if name && selectedVal}
+	<input type="hidden" {name} value={selectedVal} />
+{/if}
+{#if clearable && clearName}
+	<input type="hidden" name={clearName} value={clearValue} />
 {/if}
 <div class="flex flex-col gap-2">
 	{#if title}
 		<Label {...$label}>{title}</Label>
 	{/if}
 
-	<div class="relative">
-		<input
-			{...$input}
-			use:input
-			class="block w-full disabled:cursor-not-allowed disabled:opacity-50 p-2.5 focus:border-primary-500
+	<div class="flex flex-row w-full gap-2">
+		<div class="relative flex flex-grow">
+			<input
+				{...$input}
+				use:input
+				class="block w-full disabled:cursor-not-allowed disabled:opacity-50 p-2.5 focus:border-primary-500
             focus:ring-primary-500 dark:focus:border-primary-500 dark:focus:ring-primary-500
             bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400
             border-gray-300 dark:border-gray-600 text-sm rounded-lg border"
-			{placeholder}
-		/>
-		<div class="absolute right-2 top-1/2 z-10 -translate-y-1/2 text-magnum-900">
-			{#if $open}
-				<ChevronUp class="square-4" />
-			{:else}
-				<ChevronDown class="square-4" />
-			{/if}
+				{placeholder}
+			/>
+			<div class="absolute right-2 top-1/2 z-10 -translate-y-1/2 text-magnum-900">
+				{#if $open}
+					<ChevronUp class="square-4" />
+				{:else}
+					<ChevronDown class="square-4" />
+				{/if}
+			</div>
 		</div>
+		{#if clearable}
+			<Button on:click={clearSelection} color="light" disabled={clearValue}>Clear</Button>
+		{/if}
 	</div>
 </div>
 {#if $open}

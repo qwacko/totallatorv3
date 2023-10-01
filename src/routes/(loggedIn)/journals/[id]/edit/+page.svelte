@@ -23,11 +23,66 @@
 			{#await data.dropdownInfo.accounts then accountsDropdown}
 				<ComboSelect
 					name="accountId"
-					value={$form.accountId}
+					bind:value={$form.accountId}
 					items={accountsDropdown}
 					placeholder="Select Account..."
 					title="Account"
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+					itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+				/>
+			{/await}
+			{#await data.dropdownInfo.tags then tagsDropdown}
+				<ComboSelect
+					name="tagId"
+					bind:value={$form.tagId}
+					bind:clearValue={$form.tagClear}
+					clearable
+					items={tagsDropdown}
+					placeholder="Select Tag..."
+					title="Tag"
+					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+					itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+				/>
+			{/await}
+
+			{#await data.dropdownInfo.categories then categoriesDropdown}
+				<ComboSelect
+					name="categoryId"
+					bind:value={$form.categoryId}
+					bind:clearValue={$form.categoryClear}
+					clearable
+					items={categoriesDropdown}
+					placeholder="Select Category..."
+					title="Category"
+					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+					itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+				/>
+			{/await}
+
+			{#await data.dropdownInfo.bills then billsDropdown}
+				<ComboSelect
+					name="billId"
+					bind:value={$form.billId}
+					bind:clearValue={$form.billClear}
+					clearable
+					items={billsDropdown}
+					placeholder="Select Bill..."
+					title="Bill"
+					itemToDisplay={(item) => ({ title: item.title })}
+					itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+				/>
+			{/await}
+
+			{#await data.dropdownInfo.budgets then budgetsDropdown}
+				<ComboSelect
+					name="budgetId"
+					bind:value={$form.budgetId}
+					bind:clearValue={$form.budgetClear}
+					clearable
+					items={budgetsDropdown}
+					placeholder="Select Budget..."
+					title="Budget"
+					itemToDisplay={(item) => ({ title: item.title })}
 					itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
 				/>
 			{/await}
@@ -42,6 +97,8 @@
 			<Button type="submit">Update</Button>
 		</form>
 	{/if}
+	<Heading tag="h2">Form Data</Heading>
+	<pre>{JSON.stringify($form, null, 2)}</pre>
 	<Heading tag="h2">Form Info</Heading>
 	<pre>{JSON.stringify(data.journalForm, null, 2)}</pre>
 	<Heading tag="h2">Debug</Heading>

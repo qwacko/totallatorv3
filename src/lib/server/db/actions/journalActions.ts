@@ -503,7 +503,10 @@ const handleLinkedItem = async <T extends { id: string }>({
 		return null;
 	}
 
-	const newItem = await createOrGetItem({ db, id, title, requireActive });
+	//Deal with ID being the text "undefined".
+	const tidiedId = id ? (id === 'undefined' ? undefined : id) : undefined;
+
+	const newItem = await createOrGetItem({ db, id: tidiedId, title, requireActive });
 
 	if (newItem) {
 		return newItem.id;
