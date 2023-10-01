@@ -31,6 +31,7 @@
 	import AccountBadge from './AccountBadge.svelte';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
+	import RawDataOnHover from './RawDataOnHover.svelte';
 
 	export let data;
 
@@ -164,6 +165,7 @@
 											<DataCheckedIcon height="15" width="15" />
 										</Button>
 									{/if}
+									<RawDataOnHover data={currentJournal} />
 								</ButtonGroup>
 							</form>
 						</TableBodyCell>
@@ -228,7 +230,7 @@
 								/>
 							</div>
 						</TableBodyCell>
-						<TableBodyCell class="flex flex-row gap-2">
+						<TableBodyCell class="flex flex-row flex-wrap gap-2">
 							{#if currentJournal.categoryTitle}<Badge class="flex flex-row gap-1">
 									<CategoryIcon />
 									{currentJournal.categoryTitle}

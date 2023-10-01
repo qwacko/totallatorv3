@@ -42,9 +42,7 @@
 		onSelectedChange: (newSelection) => {
 			const newValue = newSelection.next ? newSelection.next?.value : undefined;
 			value = newValue;
-			if (newValue === undefined) {
-				clearValue = true;
-			} else {
+			if (newValue !== undefined) {
 				clearValue = undefined;
 			}
 			return newSelection.next;
