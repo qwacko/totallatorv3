@@ -165,7 +165,9 @@
 											<DataCheckedIcon height="15" width="15" />
 										</Button>
 									{/if}
-									<RawDataOnHover data={currentJournal} />
+									{#if data.dev}
+										<RawDataOnHover data={currentJournal} />
+									{/if}
 								</ButtonGroup>
 							</form>
 						</TableBodyCell>
