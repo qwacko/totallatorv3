@@ -6,6 +6,7 @@
 	import { superForm } from 'sveltekit-superforms/client';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import ComboSelect from '$lib/components/ComboSelect.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	export let data;
 
@@ -97,10 +98,5 @@
 			<Button type="submit">Update</Button>
 		</form>
 	{/if}
-	<Heading tag="h2">Form Data</Heading>
-	<pre>{JSON.stringify($form, null, 2)}</pre>
-	<Heading tag="h2">Form Info</Heading>
-	<pre>{JSON.stringify(data.journalForm, null, 2)}</pre>
-	<Heading tag="h2">Debug</Heading>
-	<pre>{JSON.stringify(data.journal, null, 2)}</pre>
+	<RawDataModal data={{ form: $form, data: data }} title="Page Date" dev={data.dev} />
 </PageLayout>
