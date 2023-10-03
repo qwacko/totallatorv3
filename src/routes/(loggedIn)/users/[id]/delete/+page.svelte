@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import LinkButton from '$lib/components/LinkButton.svelte';
 	import { Button } from 'flowbite-svelte';
+	import { urlGenerator } from '$lib/routes';
 </script>
 
 <h1>Delete User?</h1>
@@ -11,7 +12,15 @@
 	<div>
 		<SpreadButtons>
 			<Button type="submit">Delete User</Button>
-			<LinkButton href="/users/{$page.params.id}" style="secondary">Cancel</LinkButton>
+			<LinkButton
+				href={urlGenerator({
+					address: '/(loggedIn)/users/[id]',
+					paramsValue: { id: $page.params.id }
+				}).url}
+				style="secondary"
+			>
+				Cancel
+			</LinkButton>
 		</SpreadButtons>
 	</div>
 </form>

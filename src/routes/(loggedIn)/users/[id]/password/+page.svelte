@@ -8,6 +8,7 @@
 	import LinkButton from '$lib/components/LinkButton.svelte';
 	import { page } from '$app/stores';
 	import { Button } from 'flowbite-svelte';
+	import { urlGenerator } from '$lib/routes.js';
 
 	export let data;
 
@@ -45,7 +46,15 @@
 	<ErrorText message={$message} />
 	<SpreadButtons>
 		<Button type="submit" style="primary">Update</Button>
-		<LinkButton href="/users/{$page.params.id}" style="secondary">Cancel</LinkButton>
+		<LinkButton
+			href={urlGenerator({
+				address: '/(loggedIn)/users/[id]',
+				paramsValue: { id: $page.params.id }
+			}).url}
+			style="secondary"
+		>
+			Cancel
+		</LinkButton>
 	</SpreadButtons>
 </form>
 

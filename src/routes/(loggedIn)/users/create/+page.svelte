@@ -5,6 +5,7 @@
 	import LinkButton from '$lib/components/LinkButton.svelte';
 	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
+	import { urlGenerator } from '$lib/routes.js';
 	import type { signupSchemaType } from '$lib/schema/signupSchema.js';
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
@@ -56,7 +57,9 @@
 		<ErrorText message={$message} />
 		<SpreadButtons>
 			<Button type="submit" style="primary">Create</Button>
-			<LinkButton href="/users" style="secondary">Cancel</LinkButton>
+			<LinkButton href={urlGenerator({ address: '/(loggedIn)/users' }).url} style="secondary">
+				Cancel
+			</LinkButton>
 		</SpreadButtons>
 	</form>
 </CenterCard>

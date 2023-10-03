@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import CenterCard from '$lib/components/CenterCard.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import LinkButton from '$lib/components/LinkButton.svelte';
+	import { urlGenerator } from '$lib/routes';
 	import { Button } from 'flowbite-svelte';
 
 	export let data;
@@ -29,16 +29,29 @@
 
 		{#if data.user}
 			{#if data.user.admin || data.user.userId === data.currentUser.id}
-				<LinkButton href="/users/{data.currentUser.id}/password">Edit Password</LinkButton>
+				<LinkButton
+					href={urlGenerator({
+						address: '/(loggedIn)/users/[id]/password',
+						paramsValue: { id: data.currentUser.id }
+					}).url}
+				>
+					Edit Password
+				</LinkButton>
 			{/if}
 		{/if}
 	</div>
 
 	{#if data.user?.admin && data.user.userId !== data.currentUser.id}
 		<div class="centerButton">
-			<LinkButton href="/users/{data.currentUser.id}/delete" style="secondary"
-				>Delete User</LinkButton
+			<LinkButton
+				href={urlGenerator({
+					address: '/(loggedIn)/users/[id]/delete',
+					paramsValue: { id: data.currentUser.id }
+				}).url}
+				style="secondary"
 			>
+				Delete User
+			</LinkButton>
 		</div>
 	{/if}
 {:else}

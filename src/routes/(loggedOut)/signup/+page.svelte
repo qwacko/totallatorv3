@@ -6,6 +6,7 @@
 	import { superForm } from 'sveltekit-superforms/client';
 	import type { signupSchemaType } from '$lib/schema/signupSchema.js';
 	import PageLayout from '$lib/components/PageLayout.svelte';
+	import { urlGenerator } from '$lib/routes.js';
 
 	export let data;
 	const { form, errors, constraints, message, enhance } = superForm<signupSchemaType>(data.form, {
@@ -58,7 +59,7 @@
 		<ErrorText message={$message} />
 		<SpreadButtons>
 			<Button type="submit">Sign Up</Button>
-			<Button href="/login">Login</Button>
+			<Button href={urlGenerator({ address: '/(loggedOut)/login' }).url}>Login</Button>
 		</SpreadButtons>
 	</form>
 </PageLayout>

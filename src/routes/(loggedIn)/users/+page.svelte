@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CenterCard from '$lib/components/CenterCard.svelte';
 	import LinkButton from '$lib/components/LinkButton.svelte';
+	import { urlGenerator } from '$lib/routes.js';
 
 	export let data;
 </script>
@@ -8,7 +9,14 @@
 <CenterCard title="Users">
 	{#each data.users as currentUser}
 		<div class="userRow">
-			<a href="/users/{currentUser.id}">{currentUser.username}</a>
+			<a
+				href={urlGenerator({
+					address: '/(loggedIn)/users/[id]',
+					paramsValue: { id: currentUser.id }
+				}).url}
+			>
+				{currentUser.username}
+			</a>
 			{#if currentUser.admin}
 				(Admin)
 			{/if}
@@ -16,8 +24,11 @@
 	{/each}
 
 	<div class="gap" />
+	\
 
-	<LinkButton href="/users/create">Create User</LinkButton>
+	<LinkButton href={urlGenerator({ address: '/(loggedIn)/users/create' }).url}>
+		Create User
+	</LinkButton>
 </CenterCard>
 
 <style>

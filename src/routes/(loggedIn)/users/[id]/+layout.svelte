@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CenterCard from '$lib/components/CenterCard.svelte';
 	import LinkButton from '$lib/components/LinkButton.svelte';
+	import { urlGenerator } from '$lib/routes';
 
 	export let data;
 </script>
@@ -9,7 +10,7 @@
 	<slot />
 </CenterCard>
 <div class="buttonSize">
-	<LinkButton href="/users">Users List</LinkButton>
+	<LinkButton href={urlGenerator({ address: '/(loggedIn)/users' }).url}>Users List</LinkButton>
 </div>
 
 <style>
