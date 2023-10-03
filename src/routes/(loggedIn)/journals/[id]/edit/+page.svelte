@@ -94,6 +94,13 @@
 				bind:value={$form.description}
 				{...$constraints.description}
 			/>
+			<TextInput
+				title="Date"
+				errorMessage={$errors.date}
+				name="date"
+				bind:value={$form.date}
+				{...$constraints.date}
+			/>
 
 			<Button type="submit">Update</Button>
 		</form>

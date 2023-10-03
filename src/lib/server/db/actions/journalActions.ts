@@ -368,6 +368,8 @@ export const journalActions = {
 				})
 			)?.id;
 
+			const targetDate = journalData.date ? expandDate(journalData.date) : {};
+
 			if (linkedJournals.length > 0) {
 				const transactionIds = linkedJournals.map((journal) => journal.transactionId);
 				await db
@@ -380,6 +382,7 @@ export const journalActions = {
 						dataChecked: journalData.dataChecked,
 						reconciled: journalData.reconciled,
 						description: journalData.description,
+						...targetDate,
 						...updatedTime()
 					})
 					.where(inArray(journalEntry.transactionId, transactionIds))
@@ -397,6 +400,7 @@ export const journalActions = {
 						budgetId: await budgetId,
 						dataChecked: journalData.dataChecked,
 						reconciled: journalData.reconciled,
+						...targetDate,
 						...updatedTime()
 					})
 					.where(inArray(journalEntry.id, journalIds));
