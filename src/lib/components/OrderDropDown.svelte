@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="T extends string">
 	import DeleteIcon from './icons/DeleteIcon.svelte';
 
 	import SortIcon from './SortIcon.svelte';
@@ -6,8 +6,6 @@
 	import SortingIcon from '$lib/components/icons/SortingIcon.svelte';
 	import { modifyOrderBy, type OrderByType } from '$lib/helpers/orderByHelper';
 	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
-
-	type T = $$Generic<string>;
 
 	export let options: T[];
 	export let optionToTitle: (option: T) => string;

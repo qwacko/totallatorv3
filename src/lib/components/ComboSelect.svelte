@@ -1,4 +1,10 @@
-<script lang="ts">
+<script lang="ts" context="module">
+	type IDRecord = {
+		id: string;
+	};
+</script>
+
+<script lang="ts" generics="T extends IDRecord">
 	import { createCombobox, melt } from '@melt-ui/svelte';
 	import ChevronDown from '~icons/mdi/chevron-down';
 	import ChevronUp from '~icons/mdi/chevron-up';
@@ -7,7 +13,6 @@
 	import HighlightText from './HighlightText.svelte';
 	import { Button, Label } from 'flowbite-svelte';
 
-	type T = $$Generic<{ id: string }>;
 	type SelectionType = { value: string; label: string; disabled?: boolean };
 	type OptionFunction = (data: T) => SelectionType;
 	type DisplayFunction = (data: T) => { group?: string; title: string };
