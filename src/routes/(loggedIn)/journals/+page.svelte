@@ -32,8 +32,12 @@
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import ToggleFromArray from '$lib/components/ToggleFromArray.svelte';
+	import ToggleHeader from '$lib/components/ToggleHeader.svelte';
 
 	export let data;
+
+	let selectedIds: string[] = [];
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals', $page);
 
@@ -47,6 +51,8 @@
 		},
 		updateDelay: 500
 	});
+
+	$: visibleIds = data.journals.data.map((journal) => journal.id);
 </script>
 
 <PageLayout title="Journals" size="xl">
@@ -75,7 +81,7 @@
 	{:else}
 		<Table>
 			<TableHead>
-				<TableHeadCell></TableHeadCell>
+				<TableHeadCell><ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} /></TableHeadCell>
 				<TableHeadCell>Actions</TableHeadCell>
 				<TableHeadCell>Date</TableHeadCell>
 				<TableHeadCell>Account</TableHeadCell>
@@ -89,7 +95,9 @@
 			<TableBody>
 				{#each data.journals.data as currentJournal}
 					<TableBodyRow class={currentJournal.complete && 'bg-gray-100'}>
-						<TableBodyCell></TableBodyCell>
+						<TableBodyCell>
+							<ToggleFromArray id={currentJournal.id} bind:selectedIds />
+						</TableBodyCell>
 						<TableBodyCell>
 							<form action="?/update" method="post" use:enhance>
 								<input type="hidden" value={currentJournal.id} name="journalId" />
