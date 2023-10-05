@@ -1,5 +1,5 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
-import { urlGenerator } from '$lib/routes.js';
+import { serverPageInfo, urlGenerator } from '$lib/routes.js';
 import { defaultJournalFilter, updateJournalSchema } from '$lib/schema/journalSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db.js';
@@ -9,10 +9,11 @@ import { message, superValidate } from 'sveltekit-superforms/server';
 
 export const load = async (data) => {
 	authGuard(data);
+	const pageInfo = serverPageInfo(data.route.id, data);
 
 	const journalInformation = await tActions.journal.list({
 		db: db,
-		filter: { id: data.params.id }
+		filter: { id: pageInfo.current.params.id }
 	});
 
 	const journal = journalInformation.data[0];
