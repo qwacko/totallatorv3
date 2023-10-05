@@ -109,6 +109,8 @@ export const updateJournalSchema = z.object({
 	categoryClear: z.boolean().optional(),
 	accountId: z.string().optional(),
 	accountTitle: z.string().nullable().optional(),
+	otherAccountId: z.string().optional(),
+	otherAccountTitle: z.string().optional(),
 	addLabels: z.array(z.string()).optional(),
 	addLabelTitles: z.array(z.string()).optional(),
 	removeLabels: z.array(z.string()).optional(),

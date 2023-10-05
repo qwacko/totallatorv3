@@ -7,6 +7,9 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import ComboSelect from '$lib/components/ComboSelect.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import DateInput from '$lib/components/DateInput.svelte';
+	import CurrencyInput from '$lib/components/CurrencyInput.svelte';
+	import ErrorText from '$lib/components/ErrorText.svelte';
 
 	export let data;
 
@@ -19,8 +22,30 @@
 	{#if data.journal.complete}
 		<Badge>Journal Complete - No Update Possible</Badge>
 	{:else}
-		<form use:enhance method="post" action="?/update" class="flex flex-col gap-2">
+		<form use:enhance method="post" action="?/update" class="flex flex-col gap-4">
 			<PreviousUrlInput defaultURL="/journals" />
+			<DateInput
+				title="Date"
+				name="date"
+				bind:value={$form.date}
+				{...$constraints.date}
+				errorMessage={$errors.date}
+				clearable={false}
+			/>
+			<TextInput
+				title="Description"
+				errorMessage={$errors.description}
+				name="description"
+				bind:value={$form.description}
+				{...$constraints.description}
+			/>
+			<CurrencyInput
+				title="Amount"
+				errorMessage={$errors.amount}
+				name="amount"
+				bind:value={$form.amount}
+				step={0.01}
+			/>
 			{#await data.dropdownInfo.accounts then accountsDropdown}
 				<ComboSelect
 					name="accountId"
@@ -31,6 +56,21 @@
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 					itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
 				/>
+				{#if $form.otherAccountId}
+					<ComboSelect
+						name="otherAccountId"
+						bind:value={$form.otherAccountId}
+						items={accountsDropdown}
+						placeholder="Select Account..."
+						title="Payee"
+						itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+						itemToOption={(item) => ({
+							label: item.title,
+							value: item.id,
+							disabled: !item.enabled
+						})}
+					/>
+				{/if}
 			{/await}
 			{#await data.dropdownInfo.tags then tagsDropdown}
 				<ComboSelect
@@ -87,21 +127,7 @@
 					itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
 				/>
 			{/await}
-			<TextInput
-				title="Description"
-				errorMessage={$errors.description}
-				name="description"
-				bind:value={$form.description}
-				{...$constraints.description}
-			/>
-			<TextInput
-				title="Date"
-				errorMessage={$errors.date}
-				name="date"
-				bind:value={$form.date}
-				{...$constraints.date}
-			/>
-
+			<ErrorText message={$message} />
 			<Button type="submit">Update</Button>
 		</form>
 	{/if}

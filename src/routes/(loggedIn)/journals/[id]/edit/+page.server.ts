@@ -22,26 +22,32 @@ export const load = async (data) => {
 			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter }).url
 		);
 	}
+	const otherJournalsRaw = await tActions.journal.list({
+		db,
+		filter: {
+			transactionIdArray: [journalInformation.data[0].transactionId],
+			account: { type: ['asset', 'expense', 'income', 'liability'] }
+		}
+	});
+
+	const otherJournals = otherJournalsRaw.data.filter((item) => item.id !== journal.id);
+
+	const otherAccountId = otherJournals.length === 1 ? otherJournals[0].accountId : undefined;
 
 	const journalForm = await superValidate(
 		{
 			...journal,
 			date: journal.date.toISOString().slice(0, 10),
 			accountTitle: undefined,
+			otherAccountTitle: undefined,
 			tagTitle: undefined,
 			categoryTitle: undefined,
 			billTitle: undefined,
-			budgetTitle: undefined
+			budgetTitle: undefined,
+			otherAccountId
 		},
 		updateJournalSchema
 	);
-
-	const otherJournalsRaw = await tActions.journal.list({
-		db,
-		filter: { transactionIdArray: [journalInformation.data[0].transactionId] }
-	});
-
-	const otherJournals = otherJournalsRaw.data.filter((item) => item.id !== journal.id);
 
 	return { journal, otherJournals, journalForm };
 };
@@ -53,8 +59,6 @@ export const actions = {
 		if (!form.valid) {
 			return { form };
 		}
-
-		logging.info('Updating Single Journal : ', form.data);
 
 		try {
 			await tActions.journal.updateJournals({

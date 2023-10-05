@@ -9,7 +9,7 @@ import {
 	type UpdateJournalSchemaInputType,
 	updateJournalSchema
 } from '$lib/schema/journalSchema';
-import { getTableColumns, eq, and, sql, inArray } from 'drizzle-orm';
+import { getTableColumns, eq, and, sql, inArray, not } from 'drizzle-orm';
 import type { DBType } from '../db';
 import {
 	account,
@@ -368,6 +368,15 @@ export const journalActions = {
 				})
 			)?.id;
 
+			const otherAccountId = (
+				await tActions.account.createOrGet({
+					db,
+					title: journalData.otherAccountTitle || undefined,
+					id: journalData.otherAccountId || undefined,
+					requireActive: true
+				})
+			)?.id;
+
 			const targetDate = journalData.date ? expandDate(journalData.date) : {};
 
 			if (linkedJournals.length > 0) {
@@ -413,6 +422,96 @@ export const journalActions = {
 					.set({ accountId })
 					.where(inArray(journalEntry.id, journalIds))
 					.execute();
+			}
+			if (otherAccountId) {
+				const transactions = journals.data.map((journal) => journal.transactionId);
+
+				const otherJournals = await db.query.journalEntry.findMany({
+					where: and(
+						inArray(journalEntry.transactionId, transactions),
+						not(
+							inArray(
+								journalEntry.id,
+								journals.data.map((journal) => journal.id)
+							)
+						)
+					),
+					columns: {
+						id: true,
+						accountId: true,
+						transactionId: true
+					}
+				});
+
+				//Make sure there isn't any journals that will have more than one journal after the update.
+				const transactionIds = otherJournals.map((journal) => journal.transactionId);
+				const transactionJournalCount = transactionIds.map((transactionId) => {
+					return otherJournals.filter((journal) => journal.transactionId === transactionId).length;
+				});
+				const numberWithMoreTHan1 = transactionJournalCount.filter((count) => count > 1).length;
+				if (numberWithMoreTHan1 > 1)
+					throw new Error(
+						'Cannot update other account if there is a transaction with more than 2 journals'
+					);
+
+				const updatingJournalIds = otherJournals.map((journal) => journal.id);
+
+				await db
+					.update(journalEntry)
+					.set({ accountId: otherAccountId })
+					.where(inArray(journalEntry.id, updatingJournalIds))
+					.execute();
+			}
+
+			if (journalData.amount !== undefined) {
+				const journalIds = journals.data.map((journal) => journal.id);
+
+				await db
+					.update(journalEntry)
+					.set({ amount: journalData.amount, ...updatedTime() })
+					.where(
+						and(
+							inArray(journalEntry.id, journalIds),
+							not(eq(journalEntry.amount, journalData.amount))
+						)
+					)
+					.execute();
+
+				//Get Transactions that have a non-zero combined total and update the one with the oldest update time.
+				const transactionIds = journals.data.map((journal) => journal.transactionId);
+
+				const transactionJournals = await db.query.transaction.findMany({
+					where: inArray(transaction.id, transactionIds),
+					columns: {
+						id: true
+					},
+					with: {
+						journals: {
+							columns: {
+								id: true,
+								amount: true,
+								updatedAt: true
+							}
+						}
+					}
+				});
+
+				await Promise.all(
+					transactionJournals.map(async (transaction) => {
+						const total = transaction.journals.reduce((prev, current) => prev + current.amount, 0);
+
+						if (total !== 0) {
+							const journalToUpdate = transaction.journals.sort((a, b) =>
+								a.updatedAt.toISOString().localeCompare(b.updatedAt.toISOString())
+							)[0];
+							await db
+								.update(journalEntry)
+								.set({ amount: journalToUpdate.amount - total, ...updatedTime() })
+								.where(eq(journalEntry.id, journalToUpdate.id))
+								.execute();
+						}
+					})
+				);
 			}
 		});
 	}

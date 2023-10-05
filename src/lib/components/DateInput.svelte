@@ -42,8 +42,10 @@
 			size="sm"
 			class="px-2 py-1 {clearableVisible ? '' : 'hidden'}"
 			outline
-			on:click={() => (value = null)}><CancelIcon /></Button
+			on:click={() => (value = null)}
 		>
+			<CancelIcon />
+		</Button>
 		<input type="date" value={usedValue} on:change={handleUpdate} {...props} />
 	</Input>
 	<ErrorText message={errorMessage} />
