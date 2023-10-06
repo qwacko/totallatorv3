@@ -22,7 +22,11 @@
 	import BillIcon from '$lib/components/icons/BillIcon.svelte';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import OrderDropDown from '$lib/components/OrderDropDown.svelte';
-	import { journalOrderByEnum, journalOrderByEnumToText } from '$lib/schema/journalSchema';
+	import {
+		defaultJournalFilter,
+		journalOrderByEnum,
+		journalOrderByEnumToText
+	} from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { enhance } from '$app/forms';
 	import CompleteIcon from '$lib/components/icons/CompleteIcon.svelte';
@@ -81,7 +85,27 @@
 	{:else}
 		<Table>
 			<TableHead>
-				<TableHeadCell><ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} /></TableHeadCell>
+				<TableHeadCell class="flex flex-row gap-1 justify-center">
+					<ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} />
+					{#if selectedIds.length > 0}
+						<Button
+							class="p-2"
+							color="light"
+							href={urlGenerator({
+								address: '/(loggedIn)/journals/bulkEdit',
+								searchParamsValue: {
+									idArray: selectedIds,
+									page: 0,
+									pageSize: 10000,
+									orderBy: [{ direction: 'asc', field: 'date' }],
+									account: { type: ['asset', 'liability', 'income', 'expense'] }
+								}
+							}).url}
+						>
+							<EditIcon />
+						</Button>
+					{/if}
+				</TableHeadCell>
 				<TableHeadCell>Actions</TableHeadCell>
 				<TableHeadCell>Date</TableHeadCell>
 				<TableHeadCell>Account</TableHeadCell>

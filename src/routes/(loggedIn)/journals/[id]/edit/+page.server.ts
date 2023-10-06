@@ -13,7 +13,7 @@ export const load = async (data) => {
 
 	const journalInformation = await tActions.journal.list({
 		db: db,
-		filter: { id: pageInfo.current.params.id }
+		filter: { id: pageInfo.current?.params?.id }
 	});
 
 	const journal = journalInformation.data[0];

@@ -1,22 +1,34 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo, urlGenerator } from '$lib/routes.js';
-import { defaultJournalFilter, updateJournalSchema } from '$lib/schema/journalSchema.js';
+import {
+	defaultJournalFilter,
+	journalFilterSchema,
+	updateJournalSchema
+} from '$lib/schema/journalSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db.js';
+import { logging } from '$lib/server/logging';
+import { redirect } from '@sveltejs/kit';
 // import { logging } from '$lib/server/logging';
 // import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { superValidate } from 'sveltekit-superforms/server';
+import { z } from 'zod';
 
 const getCommonData = <
 	T extends string,
-	U extends Record<T, string | number | undefined | null | date>
+	U extends Record<T, string | number | undefined | null | Date | boolean>
 >(
 	key: T,
-	data: U[]
+	data: U[],
+	log = false
 ) => {
 	const targetSet = [...new Set(data.map((item) => item[key]))];
 
-	if (targetSet.length === 0) {
+	if (log) {
+		logging.info('Target Set : ', targetSet, ' - Length - ', targetSet.length);
+	}
+
+	if (targetSet.length === 1) {
 		return targetSet[0];
 	}
 	return undefined;
@@ -25,6 +37,8 @@ const getCommonData = <
 export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
+
+	logging.info('Loading Data : ', pageInfo);
 
 	const journalInformation = await tActions.journal.list({
 		db: db,
@@ -62,7 +76,11 @@ export const load = async (data) => {
 		updateJournalSchema
 	);
 
-	return { journalInformation, form };
+	return {
+		selectedJournals: { reconciled, complete, dataChecked, count: journalInformation.data.length },
+		journalInformation,
+		form
+	};
 
 	// const journal = journalInformation.data[0];
 	// if (!journal) {
@@ -99,4 +117,90 @@ export const load = async (data) => {
 	// );
 
 	// return { journal, otherJournals, journalForm };
+};
+
+const updateStateActionValidation = z.object({
+	action: z.enum([
+		'reconciled',
+		'complete',
+		'dataChecked',
+		'unreconciled',
+		'incomplete',
+		'dataNotChecked'
+	]),
+	filter: z.string(),
+	prevPage: z
+		.string()
+		.optional()
+		.default(
+			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter }).url
+		),
+	currentPage: z
+		.string()
+		.optional()
+		.default(
+			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter }).url
+		)
+});
+
+export const actions = {
+	updateState: async ({ request }) => {
+		const form = await superValidate(request, updateStateActionValidation);
+
+		if (!form.valid) {
+			throw redirect(302, form.data.currentPage);
+		}
+
+		const parsedFilter = journalFilterSchema.safeParse(JSON.parse(form.data.filter));
+
+		if (!parsedFilter.success) {
+			return;
+		}
+
+		try {
+			if (form.data.action === 'complete') {
+				await tActions.journal.markManyComplete({
+					db,
+					journalFilter: parsedFilter.data
+				});
+			} else if (form.data.action === 'incomplete') {
+				await tActions.journal.markManyUncomplete({
+					db,
+					journalFilter: parsedFilter.data
+				});
+			} else {
+				const reconciled =
+					form.data.action === 'reconciled'
+						? true
+						: form.data.action === 'unreconciled'
+						? false
+						: undefined;
+				const dataChecked =
+					form.data.action === 'dataChecked'
+						? true
+						: form.data.action === 'dataNotChecked'
+						? false
+						: undefined;
+
+				await tActions.journal.updateJournals({
+					db,
+					filter: parsedFilter.data,
+					journalData: {
+						reconciled,
+						dataChecked
+					}
+				});
+			}
+		} catch (e) {
+			logging.error('Error Updating Journal State : ', e);
+			throw redirect(
+				302,
+				form.data.prevPage ||
+					urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter })
+						.url
+			);
+		}
+
+		throw redirect(302, form.data.prevPage);
+	}
 };

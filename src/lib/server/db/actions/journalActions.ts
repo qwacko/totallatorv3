@@ -273,6 +273,40 @@ export const journalActions = {
 		const endTime = Date.now();
 		logging.info(`Seeding ${count} transactions took ${endTime - startTime}ms`);
 	},
+	markManyComplete: async ({
+		db,
+		journalFilter
+	}: {
+		db: DBType;
+		journalFilter: JournalFilterSchemaInputType;
+	}) => {
+		const journals = await journalActions.list({ db, filter: journalFilter });
+
+		await db.transaction(async (db) => {
+			await Promise.all(
+				journals.data.map((journal) => {
+					return journalActions.markComplete(db, journal.id);
+				})
+			);
+		});
+	},
+	markManyUncomplete: async ({
+		db,
+		journalFilter
+	}: {
+		db: DBType;
+		journalFilter: JournalFilterSchemaInputType;
+	}) => {
+		const journals = await journalActions.list({ db, filter: journalFilter });
+
+		await db.transaction(async (db) => {
+			await Promise.all(
+				journals.data.map((journal) => {
+					return journalActions.markUncomplete(db, journal.id);
+				})
+			);
+		});
+	},
 	markComplete: async (db: DBType, journalId: string) => {
 		const journal = await db.query.journalEntry
 			.findFirst({ where: eq(journalEntry.id, journalId) })
