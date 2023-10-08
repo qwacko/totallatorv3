@@ -38,6 +38,7 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import ToggleFromArray from '$lib/components/ToggleFromArray.svelte';
 	import ToggleHeader from '$lib/components/ToggleHeader.svelte';
+	import BudgetIcon from '$lib/components/icons/BudgetIcon.svelte';
 
 	export let data;
 
@@ -276,7 +277,7 @@
 									{currentJournal.billTitle}
 								</Badge>{/if}
 							{#if currentJournal.budgetTitle}<Badge class="flex flex-row gap-1">
-									<CategoryIcon />
+									<BudgetIcon />
 									{currentJournal.budgetTitle}
 								</Badge>{/if}
 						</TableBodyCell>

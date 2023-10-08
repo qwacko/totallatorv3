@@ -618,7 +618,7 @@ export const journalActions = {
 			await journalActions.updateJournals({
 				db,
 				filter: {
-					transactionIdArray: originalTransactionIds
+					transactionIdArray: transactionIds
 				},
 				journalData: processedFilter
 			});
