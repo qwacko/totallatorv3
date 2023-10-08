@@ -8,6 +8,8 @@
 	export let required: boolean | undefined | null = undefined;
 	export let value: string | undefined;
 	export let wrapperClass: string | undefined = undefined;
+	export let tainted: boolean | undefined = undefined;
+	export let highlightTainted: boolean | undefined = undefined;
 </script>
 
 <div class="flex flex-col gap-2 {wrapperClass}">
@@ -18,12 +20,19 @@
 					{title}
 				</div>
 				<div>
-					{#if required}
-						*{/if}
+					{#if required}*{/if}
 				</div>
 			</span>
 		</Label>
 	{/if}
-	<Input bind:value {...$$restProps} {name} {required} class={$$props.class} on:blur on:keypress />
+	<Input
+		bind:value
+		{...$$restProps}
+		{name}
+		{required}
+		class="{$$props.class} {highlightTainted && tainted ? 'ring-2' : ''} "
+		on:blur
+		on:keypress
+	/>
 	<ErrorText message={errorMessage} />
 </div>

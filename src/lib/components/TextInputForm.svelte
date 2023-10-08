@@ -16,8 +16,9 @@
 	export let field: FormPathLeaves<z.infer<T>>;
 	export let wrapperClass: string | undefined = undefined;
 	export let title: string | null;
+	export let highlightTainted: boolean | undefined = true;
 
-	const { value, errors, constraints } = formFieldProxy(form, field);
+	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
 
 	$: stringValue = value as Writable<string>;
 </script>
@@ -27,6 +28,8 @@
 	name={field}
 	bind:value={$stringValue}
 	errorMessage={$errors}
+	tainted={$tainted}
+	{highlightTainted}
 	aria-invalid={$errors ? 'true' : undefined}
 	class={$$props.class}
 	{wrapperClass}
