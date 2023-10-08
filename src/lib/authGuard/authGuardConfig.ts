@@ -73,7 +73,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		},
 		'/(loggedIn)/journals/bulkEdit': {
 			...adminOnlyConfig,
-			POSTCheck: { updateState: POSTAllowAdminOnly }
+			POSTCheck: { updateState: POSTAllowAdminOnly, clone: POSTAllowAdminOnly }
 		},
 
 		// Accounts

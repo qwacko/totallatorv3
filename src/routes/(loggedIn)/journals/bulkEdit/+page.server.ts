@@ -11,7 +11,7 @@ import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 // import { logging } from '$lib/server/logging';
 // import { redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms/server';
 import { z } from 'zod';
 
 const getCommonData = <
@@ -38,7 +38,7 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	logging.info('Loading Data : ', pageInfo);
+	// logging.info('Loading Data : ', pageInfo);
 
 	const journalInformation = await tActions.journal.list({
 		db: db,
@@ -58,6 +58,8 @@ export const load = async (data) => {
 	const complete = getCommonData('complete', journalInformation.data);
 	const dataChecked = getCommonData('dataChecked', journalInformation.data);
 
+	const canEdit = complete === false;
+
 	const form = await superValidate(
 		{
 			accountId,
@@ -76,58 +78,39 @@ export const load = async (data) => {
 		updateJournalSchema
 	);
 
+	const cloneForm = await superValidate(
+		{
+			accountId,
+			amount,
+			tagId,
+			categoryId,
+			billId,
+			budgetId,
+			date,
+			description,
+			linked,
+			reconciled,
+			complete,
+			dataChecked
+		},
+		updateJournalSchema
+	);
+
 	return {
-		selectedJournals: { reconciled, complete, dataChecked, count: journalInformation.data.length },
+		selectedJournals: {
+			reconciled,
+			complete,
+			dataChecked,
+			count: journalInformation.data.length,
+			canEdit
+		},
 		journalInformation,
-		form
+		form,
+		cloneForm
 	};
-
-	// const journal = journalInformation.data[0];
-	// if (!journal) {
-	// 	throw redirect(
-	// 		302,
-	// 		urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter }).url
-	// 	);
-	// }
-	// const otherJournalsRaw = await tActions.journal.list({
-	// 	db,
-	// 	filter: {
-	// 		transactionIdArray: [journalInformation.data[0].transactionId],
-	// 		account: { type: ['asset', 'expense', 'income', 'liability'] }
-	// 	}
-	// });
-
-	// const otherJournals = otherJournalsRaw.data.filter((item) => item.id !== journal.id);
-
-	// const otherAccountId = otherJournals.length === 1 ? otherJournals[0].accountId : undefined;
-
-	// const journalForm = await superValidate(
-	// 	{
-	// 		...journal,
-	// 		date: journal.date.toISOString().slice(0, 10),
-	// 		accountTitle: undefined,
-	// 		otherAccountTitle: undefined,
-	// 		tagTitle: undefined,
-	// 		categoryTitle: undefined,
-	// 		billTitle: undefined,
-	// 		budgetTitle: undefined,
-	// 		otherAccountId
-	// 	},
-	// 	updateJournalSchema
-	// );
-
-	// return { journal, otherJournals, journalForm };
 };
 
-const updateStateActionValidation = z.object({
-	action: z.enum([
-		'reconciled',
-		'complete',
-		'dataChecked',
-		'unreconciled',
-		'incomplete',
-		'dataNotChecked'
-	]),
+const pageAndFilterValidation = z.object({
 	filter: z.string(),
 	prevPage: z
 		.string()
@@ -142,6 +125,20 @@ const updateStateActionValidation = z.object({
 			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter }).url
 		)
 });
+const cloneValidation = updateJournalSchema.merge(pageAndFilterValidation);
+
+const updateStateActionValidation = pageAndFilterValidation.merge(
+	z.object({
+		action: z.enum([
+			'reconciled',
+			'complete',
+			'dataChecked',
+			'unreconciled',
+			'incomplete',
+			'dataNotChecked'
+		])
+	})
+);
 
 export const actions = {
 	updateState: async ({ request }) => {
@@ -154,7 +151,7 @@ export const actions = {
 		const parsedFilter = journalFilterSchema.safeParse(JSON.parse(form.data.filter));
 
 		if (!parsedFilter.success) {
-			return;
+			throw redirect(302, form.data.currentPage);
 		}
 
 		try {
@@ -199,6 +196,37 @@ export const actions = {
 					urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter })
 						.url
 			);
+		}
+
+		throw redirect(302, form.data.prevPage);
+	},
+	clone: async ({ request }) => {
+		const form = await superValidate(request, cloneValidation);
+
+		if (!form.valid) {
+			logging.error('Clone Form Is Not Valid');
+			throw redirect(302, form.data.currentPage);
+		}
+
+		const parsedFilter = journalFilterSchema.safeParse(JSON.parse(form.data.filter));
+
+		if (!parsedFilter.success) {
+			logging.error('Clone Filter Is Not Valid');
+			throw redirect(302, form.data.currentPage);
+		}
+
+		try {
+			logging.info('Cloning Journals : ', { filter: parsedFilter.data, journalData: form.data });
+
+			await tActions.journal.cloneJournals({
+				db,
+				filter: parsedFilter.data,
+				journalData: form.data
+			});
+		} catch (e) {
+			logging.error('Error Cloning Journals : ', e);
+
+			return message(form, 'Error Cloning Journals');
 		}
 
 		throw redirect(302, form.data.prevPage);

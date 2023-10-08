@@ -12,6 +12,7 @@
 	export let filter: Record<string, any> | undefined;
 	export let prevPage: string;
 	export let currentPage: string;
+	export let canEdit: boolean;
 </script>
 
 {#if filter}
@@ -45,7 +46,7 @@
 				name="action"
 				value="unreconciled"
 				class="flex-row gap-2  w-48"
-				disabled={reconciled === false}
+				disabled={reconciled === false || !canEdit}
 			>
 				<ReconciledIcon />Unreconciled
 			</Button>
@@ -54,7 +55,7 @@
 				name="action"
 				value="reconciled"
 				class="flex-row gap-2  w-48"
-				disabled={reconciled === true}
+				disabled={reconciled === true || !canEdit}
 			>
 				<ReconciledIcon />Reconciled
 			</Button>
@@ -66,7 +67,7 @@
 				name="action"
 				value="dataNotChecked"
 				class="flex-row gap-2  w-48"
-				disabled={dataChecked === false}
+				disabled={dataChecked === false || !canEdit}
 			>
 				<DataCheckedIcon />Data Not Checked
 			</Button>
@@ -75,7 +76,7 @@
 				name="action"
 				value="dataChecked"
 				class="flex-row gap-2  w-48"
-				disabled={dataChecked === true}
+				disabled={dataChecked === true || !canEdit}
 			>
 				<DataCheckedIcon />Data Checked
 			</Button>

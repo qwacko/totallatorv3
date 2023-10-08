@@ -175,15 +175,21 @@ export const journalActions = {
 		db: DBType;
 		journalEntries: CreateCombinedTransactionType[];
 	}) => {
+		let transactionIds: string[] = [];
+
 		await db.transaction(async (db) => {
 			const itemsForCreation = await Promise.all(
 				journalEntries.map(
 					async (journalEntry) => await generateItemsForTransactionCreation(db, journalEntry)
 				)
 			);
+
 			const transactions = itemsForCreation
 				.map(({ transactions }) => transactions)
 				.reduce((a, b) => [...a, ...b], []);
+
+			transactionIds = transactions.map((trans) => trans.id);
+
 			const journals = itemsForCreation
 				.map(({ journals }) => journals)
 				.reduce((a, b) => [...a, ...b], []);
@@ -205,6 +211,8 @@ export const journalActions = {
 				await db.insert(labelsToJournals).values(chunk).execute();
 			}
 		});
+
+		return transactionIds;
 	},
 	hardDeleteTransactions: async (db: DBType, transactionIds: string[]) => {
 		await db.transaction(async (db) => {
@@ -548,6 +556,75 @@ export const journalActions = {
 				);
 			}
 		});
+	},
+	cloneJournals: async ({
+		db,
+		filter,
+		journalData
+	}: {
+		db: DBType;
+		filter: JournalFilterSchemaInputType;
+		journalData: UpdateJournalSchemaInputType;
+	}) => {
+		const processedData = updateJournalSchema.safeParse(journalData);
+
+		if (!processedData.success) {
+			console.log(JSON.stringify(processedData.error));
+			throw new Error('Inavalid Journal Update Data');
+		}
+
+		const processedFilter = journalFilterSchema.parse(filter);
+		const journals = await journalActions.list({ db, filter: processedFilter });
+
+		if (journals.data.length === 0) return;
+
+		const originalTransactionIds = [
+			...new Set(journals.data.map((journal) => journal.transactionId))
+		];
+
+		const transactions = await db.query.transaction
+			.findMany({
+				where: inArray(transaction.id, originalTransactionIds),
+				with: {
+					journals: { with: { labels: true } }
+				}
+			})
+			.execute();
+
+		const transactionsForCreation = transactions.map((transaction) => {
+			const journals: CreateCombinedTransactionType = transaction.journals.map((journal) => ({
+				date: journal.date.toISOString().slice(0, 10),
+				amount: journal.amount,
+				description: journal.description,
+				accountId: journal.accountId,
+				tagId: journal.tagId || undefined,
+				billId: journal.billId || undefined,
+				budgetId: journal.budgetId || undefined,
+				categoryId: journal.categoryId || undefined,
+				labels: journal.labels.map((label) => label.id)
+			}));
+
+			return journals;
+		});
+
+		let transactionIds: string[] = [];
+
+		await db.transaction(async (db) => {
+			transactionIds = await journalActions.createManyTransactionJournals({
+				db,
+				journalEntries: transactionsForCreation
+			});
+
+			await journalActions.updateJournals({
+				db,
+				filter: {
+					transactionIdArray: originalTransactionIds
+				},
+				journalData: processedFilter
+			});
+		});
+
+		return transactionIds;
 	}
 };
 
