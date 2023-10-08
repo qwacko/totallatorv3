@@ -10,6 +10,7 @@
 		Badge,
 		Button,
 		ButtonGroup,
+		P,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -39,6 +40,7 @@
 	import ToggleFromArray from '$lib/components/ToggleFromArray.svelte';
 	import ToggleHeader from '$lib/components/ToggleHeader.svelte';
 	import BudgetIcon from '$lib/components/icons/BudgetIcon.svelte';
+	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 
 	export let data;
 
@@ -73,14 +75,76 @@
 			buttonCount={5}
 		/>
 	</center>
-	{#if $urlStore.searchParams}
-		<OrderDropDown
-			currentSort={$urlStore.searchParams.orderBy || []}
-			options={[...journalOrderByEnum]}
-			onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
-			optionToTitle={journalOrderByEnumToText}
-		/>
-	{/if}
+	<div class="flex flex-row gap-2 items-center">
+		<P size="sm" weight="semibold">
+			Selected ({selectedIds.length})
+		</P>
+		<ButtonGroup>
+			<Button
+				href={urlGenerator({
+					address: '/(loggedIn)/journals/bulkEdit',
+					searchParamsValue: {
+						idArray: selectedIds,
+						page: 0,
+						pageSize: 10000,
+						orderBy: [{ direction: 'asc', field: 'date' }],
+						account: { type: ['asset', 'liability', 'income', 'expense'] }
+					}
+				}).url}
+				disabled={selectedIds.length === 0}
+			>
+				<EditIcon />
+			</Button>
+			<Button
+				href={urlGenerator({
+					address: '/(loggedIn)/journals/clone',
+					searchParamsValue: {
+						idArray: selectedIds,
+						page: 0,
+						pageSize: 10000,
+						orderBy: [{ direction: 'asc', field: 'date' }],
+						account: { type: ['asset', 'liability', 'income', 'expense'] }
+					}
+				}).url}
+				disabled={selectedIds.length === 0}
+			>
+				<CloneIcon />
+			</Button>
+		</ButtonGroup>
+
+		<P size="sm" weight="semibold">
+			All ({data.journals.count})
+		</P>
+		<ButtonGroup>
+			<Button
+				href={urlGenerator({
+					address: '/(loggedIn)/journals/bulkEdit',
+					searchParamsValue: $urlStore.searchParams
+				}).url}
+				disabled={data.journals.count === 0}
+			>
+				<EditIcon />
+			</Button>
+			<Button
+				href={urlGenerator({
+					address: '/(loggedIn)/journals/clone',
+					searchParamsValue: $urlStore.searchParams
+				}).url}
+				disabled={data.journals.count === 0}
+			>
+				<CloneIcon />
+			</Button>
+		</ButtonGroup>
+		<div class="flex flex-grow" />
+		{#if $urlStore.searchParams}
+			<OrderDropDown
+				currentSort={$urlStore.searchParams.orderBy || []}
+				options={[...journalOrderByEnum]}
+				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+				optionToTitle={journalOrderByEnumToText}
+			/>
+		{/if}
+	</div>
 	{#if data.journals.count === 0}
 		<Alert color="dark">No Matching Journals Found</Alert>
 	{:else}
@@ -88,24 +152,6 @@
 			<TableHead>
 				<TableHeadCell class="flex flex-row gap-1 justify-center">
 					<ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} />
-					{#if selectedIds.length > 0}
-						<Button
-							class="p-2"
-							color="light"
-							href={urlGenerator({
-								address: '/(loggedIn)/journals/bulkEdit',
-								searchParamsValue: {
-									idArray: selectedIds,
-									page: 0,
-									pageSize: 10000,
-									orderBy: [{ direction: 'asc', field: 'date' }],
-									account: { type: ['asset', 'liability', 'income', 'expense'] }
-								}
-							}).url}
-						>
-							<EditIcon />
-						</Button>
-					{/if}
 				</TableHeadCell>
 				<TableHeadCell>Actions</TableHeadCell>
 				<TableHeadCell>Date</TableHeadCell>

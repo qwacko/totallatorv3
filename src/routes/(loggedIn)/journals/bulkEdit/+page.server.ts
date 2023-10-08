@@ -9,124 +9,32 @@ import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-// import { logging } from '$lib/server/logging';
-// import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { superValidate } from 'sveltekit-superforms/server';
 import { z } from 'zod';
-
-const getCommonData = <
-	T extends string,
-	U extends Record<T, string | number | undefined | null | Date | boolean>
->(
-	key: T,
-	data: U[],
-	log = false
-) => {
-	const targetSet = [...new Set(data.map((item) => item[key]))];
-
-	if (log) {
-		logging.info('Target Set : ', targetSet, ' - Length - ', targetSet.length);
-	}
-
-	if (targetSet.length === 1) {
-		return targetSet[0];
-	}
-	return undefined;
-};
+import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 
 export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	// logging.info('Loading Data : ', pageInfo);
-
-	const journalInformation = await tActions.journal.list({
+	const journalData = await tActions.journal.listWithCommonData({
 		db: db,
 		filter: pageInfo.current.searchParams || defaultJournalFilter
 	});
 
-	const accountId = getCommonData('accountId', journalInformation.data);
-	const amount = getCommonData('amount', journalInformation.data);
-	const tagId = getCommonData('tagId', journalInformation.data);
-	const categoryId = getCommonData('categoryId', journalInformation.data);
-	const billId = getCommonData('billId', journalInformation.data);
-	const budgetId = getCommonData('budgetId', journalInformation.data);
-	const date = getCommonData('dateText', journalInformation.data);
-	const description = getCommonData('description', journalInformation.data);
-	const linked = getCommonData('linked', journalInformation.data);
-	const reconciled = getCommonData('reconciled', journalInformation.data);
-	const complete = getCommonData('complete', journalInformation.data);
-	const dataChecked = getCommonData('dataChecked', journalInformation.data);
-
-	const canEdit = complete === false;
-
-	const form = await superValidate(
-		{
-			accountId,
-			amount,
-			tagId,
-			categoryId,
-			billId,
-			budgetId,
-			date,
-			description,
-			linked,
-			reconciled,
-			complete,
-			dataChecked
-		},
-		updateJournalSchema
-	);
-
-	const cloneForm = await superValidate(
-		{
-			accountId,
-			amount,
-			tagId,
-			categoryId,
-			billId,
-			budgetId,
-			date,
-			description,
-			linked,
-			reconciled,
-			complete,
-			dataChecked
-		},
-		updateJournalSchema
-	);
+	const form = await superValidate(journalData.common, updateJournalSchema);
 
 	return {
 		selectedJournals: {
-			reconciled,
-			complete,
-			dataChecked,
-			count: journalInformation.data.length,
-			canEdit
+			reconciled: journalData.common.reconciled,
+			complete: journalData.common.complete,
+			dataChecked: journalData.common.dataChecked,
+			count: journalData.journals.data.length,
+			canEdit: journalData.common.complete === false
 		},
-		journalInformation,
-		form,
-		cloneForm
+		form
 	};
 };
-
-const pageAndFilterValidation = z.object({
-	filter: z.string(),
-	prevPage: z
-		.string()
-		.optional()
-		.default(
-			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter }).url
-		),
-	currentPage: z
-		.string()
-		.optional()
-		.default(
-			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter }).url
-		)
-});
-const cloneValidation = updateJournalSchema.merge(pageAndFilterValidation);
-
 const updateStateActionValidation = pageAndFilterValidation.merge(
 	z.object({
 		action: z.enum([
@@ -196,37 +104,6 @@ export const actions = {
 					urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter })
 						.url
 			);
-		}
-
-		throw redirect(302, form.data.prevPage);
-	},
-	clone: async ({ request }) => {
-		const form = await superValidate(request, cloneValidation);
-
-		if (!form.valid) {
-			logging.error('Clone Form Is Not Valid');
-			throw redirect(302, form.data.currentPage);
-		}
-
-		const parsedFilter = journalFilterSchema.safeParse(JSON.parse(form.data.filter));
-
-		if (!parsedFilter.success) {
-			logging.error('Clone Filter Is Not Valid');
-			throw redirect(302, form.data.currentPage);
-		}
-
-		try {
-			logging.info('Cloning Journals : ', { filter: parsedFilter.data, journalData: form.data });
-
-			await tActions.journal.cloneJournals({
-				db,
-				filter: parsedFilter.data,
-				journalData: form.data
-			});
-		} catch (e) {
-			logging.error('Error Cloning Journals : ', e);
-
-			return message(form, 'Error Cloning Journals');
 		}
 
 		throw redirect(302, form.data.prevPage);

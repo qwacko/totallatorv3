@@ -168,6 +168,46 @@ export const journalActions = {
 	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
 		return journalList({ db, filter });
 	},
+	listWithCommonData: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: JournalFilterSchemaInputType;
+	}) => {
+		const journalInformation = await journalActions.list({ db, filter });
+
+		const accountId = getCommonData('accountId', journalInformation.data);
+		const amount = getCommonData('amount', journalInformation.data);
+		const tagId = getCommonData('tagId', journalInformation.data);
+		const categoryId = getCommonData('categoryId', journalInformation.data);
+		const billId = getCommonData('billId', journalInformation.data);
+		const budgetId = getCommonData('budgetId', journalInformation.data);
+		const date = getCommonData('dateText', journalInformation.data);
+		const description = getCommonData('description', journalInformation.data);
+		const linked = getCommonData('linked', journalInformation.data);
+		const reconciled = getCommonData('reconciled', journalInformation.data);
+		const complete = getCommonData('complete', journalInformation.data);
+		const dataChecked = getCommonData('dataChecked', journalInformation.data);
+
+		return {
+			journals: journalInformation,
+			common: {
+				accountId,
+				amount,
+				tagId,
+				categoryId,
+				billId,
+				budgetId,
+				date,
+				description,
+				linked,
+				reconciled,
+				complete,
+				dataChecked
+			}
+		};
+	},
 	createManyTransactionJournals: async ({
 		db,
 		journalEntries
@@ -724,6 +764,26 @@ const handleLinkedItem = async <T extends { id: string }>({
 
 	if (newItem) {
 		return newItem.id;
+	}
+	return undefined;
+};
+
+const getCommonData = <
+	T extends string,
+	U extends Record<T, string | number | undefined | null | Date | boolean>
+>(
+	key: T,
+	data: U[],
+	log = false
+) => {
+	const targetSet = [...new Set(data.map((item) => item[key]))];
+
+	if (log) {
+		logging.info('Target Set : ', targetSet, ' - Length - ', targetSet.length);
+	}
+
+	if (targetSet.length === 1) {
+		return targetSet[0];
 	}
 	return undefined;
 };
