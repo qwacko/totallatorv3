@@ -44,32 +44,7 @@ const journalList = async ({
 
 	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
 
-	// const query = db
-	// 	.select({
-	// 		...getTableColumns(journalEntry),
-	// 		tagTitle: tag.title,
-	// 		billTitle: bill.title,
-	// 		budgetTitle: budget.title,
-	// 		categoryTitle: category.title,
-	// 		accountTitle: account.title,
-	// 		accountType: account.type,
-	// 		accountGroup: account.accountGroupCombined
-	// 	})
-	// 	.from(journalEntry)
-	// 	.leftJoin(account, eq(journalEntry.accountId, account.id))
-	// 	.leftJoin(bill, eq(journalEntry.billId, bill.id))
-	// 	.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-	// 	.leftJoin(category, eq(journalEntry.categoryId, category.id))
-	// 	.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-	// 	.where(and(...journalFilterToQuery(restFilter)))
-	// 	.orderBy(...journalFilterToOrderBy(processedFilter))
-	// 	.offset(page * pageSize)
-	// 	.limit(pageSize);
-
-	// logging.info('Query Params : ', restFilter);
-	// logging.info('Query Text : ', query.toSQL());
-
-	const journalsPromise = db
+	const journalQueryCore = db
 		.select({
 			...getTableColumns(journalEntry),
 			tagTitle: tag.title,
@@ -89,8 +64,12 @@ const journalList = async ({
 		.where(and(...journalFilterToQuery(restFilter)))
 		.orderBy(...journalFilterToOrderBy(processedFilter))
 		.offset(page * pageSize)
-		.limit(pageSize)
-		.execute();
+		.limit(pageSize);
+
+	// logging.info('Query Params : ', restFilter);
+	// logging.info('Query Text : ', journalQueryCore.toSQL());
+
+	const journalsPromise = journalQueryCore.execute();
 
 	const runningTotalInner = db
 		.select({
@@ -120,9 +99,9 @@ const journalList = async ({
 		.from(journalEntry)
 		.leftJoin(account, eq(journalEntry.accountId, account.id))
 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
-		.leftJoin(budget, eq(journalEntry.accountId, budget.id))
+		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
-		.leftJoin(tag, eq(journalEntry.accountId, tag.id))
+		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
 		.where(and(...journalFilterToQuery(restFilter)))
 		.execute();
 
