@@ -20,13 +20,12 @@
 	const form = superForm<UpdateJournalSchemaSuperType>(data.form, { taintedMessage: null });
 
 	$: enhance = form.enhance;
-	$: formShow = form.form;
+
+	$: titleText =
+		data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`;
 </script>
 
-<PageLayout title="Bulk Edit {data.journals.count} Journals">
-	<RawDataModal data={data.selectedJournals} dev={data.dev} />
-	<RawDataModal data={urlInfo} dev={data.dev} />
-	<RawDataModal data={$formShow} dev={data.dev} />
+<PageLayout title={titleText}>
 	<Heading tag="h3">Set Journal State</Heading>
 	<BulkEditState
 		currentPage={urlInfo.current.url}

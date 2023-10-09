@@ -8,7 +8,6 @@ export const updatePageStore = () => {
 		const currentURL = get(pageStore).currentURL;
 		const toURL = to ? to.url.href : '/';
 		if (toURL !== currentURL) {
-			console.log('Updating PageStore : ', toURL);
 			pageStore.set({ currentURL: toURL, prevURL: currentURL });
 		}
 	});

@@ -28,6 +28,8 @@
 
 	import AccountTypeFilterLinks from '$lib/components/AccountTypeFilterLinks.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
+	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -169,6 +171,7 @@
 						</div>
 					</div>
 				</TableHeadCell>
+				<TableHeadCell>Journals</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each data.accounts.data as currentAccount}
@@ -198,6 +201,21 @@
 						<TableBodyCell>{currentAccount.accountGroup3}</TableBodyCell>
 						<TableBodyCell>{currentAccount.title}</TableBodyCell>
 						<TableBodyCell>{statusToDisplay(currentAccount.status)}</TableBodyCell>
+						<TableBodyCell>
+							<Button
+								outline
+								href={urlGenerator({
+									address: '/(loggedIn)/journals',
+									searchParamsValue: {
+										...defaultJournalFilter,
+										account: { id: currentAccount.id, type: defaultAllJournalFilter.account.type }
+									}
+								}).url}
+								size="xs"
+							>
+								<JournalEntryIcon />
+							</Button>
+						</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

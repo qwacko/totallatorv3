@@ -44,6 +44,31 @@ const journalList = async ({
 
 	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
 
+	// const query = db
+	// 	.select({
+	// 		...getTableColumns(journalEntry),
+	// 		tagTitle: tag.title,
+	// 		billTitle: bill.title,
+	// 		budgetTitle: budget.title,
+	// 		categoryTitle: category.title,
+	// 		accountTitle: account.title,
+	// 		accountType: account.type,
+	// 		accountGroup: account.accountGroupCombined
+	// 	})
+	// 	.from(journalEntry)
+	// 	.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 	.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 	.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 	.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 	.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 	.where(and(...journalFilterToQuery(restFilter)))
+	// 	.orderBy(...journalFilterToOrderBy(processedFilter))
+	// 	.offset(page * pageSize)
+	// 	.limit(pageSize);
+
+	// logging.info('Query Params : ', restFilter);
+	// logging.info('Query Text : ', query.toSQL());
+
 	const journalsPromise = db
 		.select({
 			...getTableColumns(journalEntry),

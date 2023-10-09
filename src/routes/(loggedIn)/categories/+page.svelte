@@ -23,6 +23,8 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
+	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/categories', $page);
@@ -109,6 +111,7 @@
 						</div>
 					</div>
 				</TableHeadCell>
+				<TableHeadCell>Journals</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each data.categories.data as currentCategory}
@@ -136,6 +139,21 @@
 						<TableBodyCell>{currentCategory.group}</TableBodyCell>
 						<TableBodyCell>{currentCategory.single}</TableBodyCell>
 						<TableBodyCell>{statusToDisplay(currentCategory.status)}</TableBodyCell>
+						<TableBodyCell>
+							<Button
+								outline
+								href={urlGenerator({
+									address: '/(loggedIn)/journals',
+									searchParamsValue: {
+										category: { id: currentCategory.id },
+										...defaultJournalFilter
+									}
+								}).url}
+								size="xs"
+							>
+								<JournalEntryIcon />
+							</Button>
+						</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>
