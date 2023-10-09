@@ -17,6 +17,7 @@
 
 <ButtonGroup>
 	<Button
+		color="light"
 		href={urlForPage(paginationInfo.firstPage)}
 		disabled={!paginationInfo.enableFirst}
 		class="p-2"
@@ -24,6 +25,7 @@
 		<ChevronDoubleLeft />
 	</Button>
 	<Button
+		color="light"
 		href={urlForPage(paginationInfo.prevPage)}
 		disabled={!paginationInfo.enablePrev}
 		class="p-2"
@@ -41,6 +43,7 @@
 	{/each}
 
 	<Button
+		color="light"
 		href={urlForPage(paginationInfo.nextPage)}
 		disabled={!paginationInfo.enableNext}
 		class="p-2"
@@ -48,6 +51,7 @@
 		<ChevronRight />
 	</Button>
 	<Button
+		color="light"
 		href={urlForPage(paginationInfo.lastPage)}
 		disabled={!paginationInfo.enableLast}
 		class="p-2"

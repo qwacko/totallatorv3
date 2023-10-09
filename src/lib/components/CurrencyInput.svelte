@@ -8,6 +8,8 @@
 	export let required: boolean | undefined | null = undefined;
 	export let value: number | undefined;
 	export let wrapperClass: string | undefined = undefined;
+	export let tainted: boolean | undefined = undefined;
+	export let highlightTainted: boolean | undefined = undefined;
 </script>
 
 <div class="flex flex-col gap-2 {wrapperClass}">
@@ -27,10 +29,11 @@
 	<Input
 		type="number"
 		bind:value
+		step={0.01}
 		{...$$restProps}
 		{name}
 		{required}
-		class={$$props.class}
+		class="{$$props.class} {highlightTainted && tainted ? 'ring-2' : ''} "
 		on:blur
 		on:keypress
 	/>

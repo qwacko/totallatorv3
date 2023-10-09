@@ -41,6 +41,7 @@
 	import ToggleHeader from '$lib/components/ToggleHeader.svelte';
 	import BudgetIcon from '$lib/components/icons/BudgetIcon.svelte';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
+	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 
 	export let data;
 
@@ -81,6 +82,7 @@
 		</P>
 		<ButtonGroup>
 			<Button
+				color="light"
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: {
@@ -96,6 +98,7 @@
 				<EditIcon />
 			</Button>
 			<Button
+				color="light"
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: {
@@ -109,6 +112,22 @@
 				disabled={selectedIds.length === 0}
 			>
 				<CloneIcon />
+			</Button>
+			<Button
+				color="light"
+				href={urlGenerator({
+					address: '/(loggedIn)/journals/delete',
+					searchParamsValue: {
+						idArray: selectedIds,
+						page: 0,
+						pageSize: 10000,
+						orderBy: [{ direction: 'asc', field: 'date' }],
+						account: { type: ['asset', 'liability', 'income', 'expense'] }
+					}
+				}).url}
+				disabled={selectedIds.length === 0}
+			>
+				<DeleteIcon />
 			</Button>
 		</ButtonGroup>
 
@@ -117,6 +136,7 @@
 		</P>
 		<ButtonGroup>
 			<Button
+				color="light"
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: $urlStore.searchParams
@@ -126,6 +146,7 @@
 				<EditIcon />
 			</Button>
 			<Button
+				color="light"
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: $urlStore.searchParams
@@ -133,6 +154,22 @@
 				disabled={data.journals.count === 0}
 			>
 				<CloneIcon />
+			</Button>
+			<Button
+				color="light"
+				href={urlGenerator({
+					address: '/(loggedIn)/journals/delete',
+					searchParamsValue: {
+						idArray: selectedIds,
+						page: 0,
+						pageSize: 10000,
+						orderBy: [{ direction: 'asc', field: 'date' }],
+						account: { type: ['asset', 'liability', 'income', 'expense'] }
+					}
+				}).url}
+				disabled={data.journals.count === 0}
+			>
+				<DeleteIcon />
 			</Button>
 		</ButtonGroup>
 		<div class="flex flex-grow" />

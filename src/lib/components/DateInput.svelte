@@ -10,6 +10,8 @@
 	export let required: boolean | undefined | null = undefined;
 	export let value: string | null | undefined;
 	export let clearable = true;
+	export let tainted: boolean | undefined = undefined;
+	export let highlightTainted: boolean | undefined = undefined;
 
 	$: usedValue = value ? value : '';
 	$: clearableVisible = clearable && value;
@@ -35,7 +37,13 @@
 			</div>
 		</span>
 	{/if}
-	<Input {...$$restProps} {name} {required} let:props>
+	<Input
+		{...$$restProps}
+		{name}
+		{required}
+		class="{$$props.class} {highlightTainted && tainted ? 'ring-2' : ''} "
+		let:props
+	>
 		<Button
 			slot="right"
 			color="none"

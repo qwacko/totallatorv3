@@ -3,13 +3,13 @@
 </script>
 
 <script lang="ts" generics="T extends AnyZodObject">
+	import DateInput from './DateInput.svelte';
+
 	import type { Writable } from 'svelte/store';
 
 	import type { z } from 'zod';
 	import type { ZodValidation, FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms/client';
-
-	import TextInput from './TextInput.svelte';
 
 	export let form: SuperForm<ZodValidation<T>, unknown>;
 	export let field: FormPathLeaves<z.infer<T>>;
@@ -22,7 +22,7 @@
 	$: stringValue = value as Writable<string>;
 </script>
 
-<TextInput
+<DateInput
 	{title}
 	name={field}
 	bind:value={$stringValue}

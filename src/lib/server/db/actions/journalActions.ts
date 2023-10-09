@@ -254,7 +254,13 @@ export const journalActions = {
 
 		return transactionIds;
 	},
-	hardDeleteTransactions: async (db: DBType, transactionIds: string[]) => {
+	hardDeleteTransactions: async ({
+		db,
+		transactionIds
+	}: {
+		db: DBType;
+		transactionIds: string[];
+	}) => {
 		await db.transaction(async (db) => {
 			await db
 				.delete(journalEntry)
@@ -660,7 +666,7 @@ export const journalActions = {
 				filter: {
 					transactionIdArray: transactionIds
 				},
-				journalData: processedFilter
+				journalData: processedData.data
 			});
 		});
 
