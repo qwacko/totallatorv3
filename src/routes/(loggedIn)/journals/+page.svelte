@@ -213,9 +213,14 @@
 									<Button
 										disabled={currentJournal.complete}
 										href={urlGenerator({
-											address: '/(loggedIn)/journals/[id]/edit',
-											paramsValue: { id: currentJournal.id },
-											searchParamsValue: $urlStore.searchParams
+											address: '/(loggedIn)/journals/bulkEdit',
+											searchParamsValue: {
+												idArray: [currentJournal.id],
+												orderBy: [{ direction: 'asc', field: 'date' }],
+												account: { type: ['asset', 'liability', 'income', 'expense'] },
+												page: 0,
+												pageSize: 1000
+											}
 										}).url}
 										class="p-2"
 									>
