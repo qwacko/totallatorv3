@@ -58,7 +58,7 @@ const accountIdsToTitle = async (ids: string[]) => {
 
 export const accountFilterToText = async (
 	filter: Omit<AccountFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-	prefix?: string
+	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
 ) => {
 	const restFilter = filter;
 
@@ -105,7 +105,7 @@ export const accountFilterToText = async (
 		}
 	}
 
-	if (stringArray.length === 0) {
+	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');
 	}
 

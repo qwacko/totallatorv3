@@ -46,7 +46,8 @@ const tagIdsToTitle = async (ids: string[]) => {
 
 export const tagFilterToText = async (
 	filter: Omit<TagFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-	prefix?: string
+
+	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
 ) => {
 	const restFilter = filter;
 
@@ -70,7 +71,7 @@ export const tagFilterToText = async (
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
 	if (restFilter.active) stringArray.push(`Is Active`);
 
-	if (stringArray.length === 0) {
+	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');
 	}
 

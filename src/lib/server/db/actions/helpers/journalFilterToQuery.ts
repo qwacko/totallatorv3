@@ -60,13 +60,28 @@ export const journalFilterToQuery = (
 
 export const journalFilterToText = async (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-	prefix?: string
+	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
 ) => {
 	const stringArray: string[] = [];
 	if (filter.id) stringArray.push(`ID is ${filter.id}`);
-	if (filter.idArray) stringArray.push(`ID is one of ${filter.idArray.join(', ')}`);
-	if (filter.transactionIdArray)
-		stringArray.push(`Transaction ID is one of ${filter.transactionIdArray.join(', ')}`);
+	if (filter.idArray) {
+		if (filter.idArray.length === 1) {
+			stringArray.push(`ID is ${filter.idArray[0]}`);
+		} else if (filter.idArray.length > 4) {
+			stringArray.push(`ID is one of  ${filter.idArray.length} values`);
+		} else {
+			stringArray.push(`ID is one of ${filter.idArray.join(', ')}`);
+		}
+	}
+	if (filter.transactionIdArray) {
+		if (filter.transactionIdArray.length === 1) {
+			stringArray.push(`Transaction ID is one of ${filter.transactionIdArray.join(', ')}`);
+		} else if (filter.transactionIdArray.length > 4) {
+			stringArray.push(`Transaction ID is one of ${filter.transactionIdArray.length} values`);
+		} else {
+			stringArray.push(`Transaction ID is one of ${filter.transactionIdArray.join(', ')} values`);
+		}
+	}
 	if (filter.description) stringArray.push(`Description contains ${filter.description}`);
 	if (filter.dateAfter !== undefined) stringArray.push(`Date is after ${filter.dateAfter}`);
 	if (filter.dateBefore !== undefined) stringArray.push(`Date is before ${filter.dateBefore}`);
@@ -81,27 +96,35 @@ export const journalFilterToText = async (
 
 	const linkedArray: string[] = [];
 	if (filter.account) {
-		linkedArray.push(...(await accountFilterToText(filter.account, 'Account')));
+		linkedArray.push(
+			...(await accountFilterToText(filter.account, { prefix: 'Account', allText: false }))
+		);
 	}
 
 	if (filter.bill) {
-		linkedArray.push(...(await billFilterToText(filter.bill, 'Bill')));
+		linkedArray.push(...(await billFilterToText(filter.bill, { prefix: 'Bill', allText: false })));
 	}
 
 	if (filter.budget) {
-		linkedArray.push(...(await budgetFilterToText(filter.budget, 'Budget')));
+		linkedArray.push(
+			...(await budgetFilterToText(filter.budget, { prefix: 'Budget', allText: false }))
+		);
 	}
 
 	if (filter.category) {
-		linkedArray.push(...(await categoryFilterToText(filter.category, 'Category')));
+		linkedArray.push(
+			...(await categoryFilterToText(filter.category, { prefix: 'Category', allText: false }))
+		);
 	}
 
 	if (filter.tag) {
-		linkedArray.push(...(await tagFilterToText(filter.tag, 'Tag')));
+		linkedArray.push(...(await tagFilterToText(filter.tag, { prefix: 'Tag', allText: false })));
 	}
 
 	if (filter.label) {
-		linkedArray.push(...(await labelFilterToText(filter.label, 'Label')));
+		linkedArray.push(
+			...(await labelFilterToText(filter.label, { prefix: 'Label', allText: false }))
+		);
 	}
 
 	const stringArrayWithPrefix = prefix
@@ -109,7 +132,7 @@ export const journalFilterToText = async (
 		: stringArray;
 	const combinedArray = [...stringArrayWithPrefix, ...linkedArray];
 
-	if (combinedArray.length === 0) {
+	if (combinedArray.length === 0 && allText) {
 		combinedArray.push('Showing All');
 	}
 

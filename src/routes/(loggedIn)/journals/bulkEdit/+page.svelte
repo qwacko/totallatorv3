@@ -12,6 +12,7 @@
 	import UpdateJournalForm from '../clone/UpdateJournalForm.svelte';
 	import UpdateJournalLinksForm from '../clone/UpdateJournalLinksForm.svelte';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
+	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 
 	export let data;
 
@@ -26,6 +27,7 @@
 </script>
 
 <PageLayout title={titleText}>
+	<FilterTextDisplay text={data.filterText} />
 	<Heading tag="h3">Set Journal State</Heading>
 	<BulkEditState
 		currentPage={urlInfo.current.url}

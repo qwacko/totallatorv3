@@ -39,7 +39,7 @@ const labelIdsToTitle = async (ids: string[]) => {
 
 export const labelFilterToText = async (
 	filter: Omit<LabelFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-	prefix?: string
+	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
 ) => {
 	const restFilter = filter;
 
@@ -61,7 +61,7 @@ export const labelFilterToText = async (
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
 	if (restFilter.active) stringArray.push(`Is Active`);
 
-	if (stringArray.length === 0) {
+	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');
 	}
 
