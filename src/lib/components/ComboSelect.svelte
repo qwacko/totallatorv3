@@ -1,7 +1,5 @@
 <script lang="ts" context="module">
-	type IDRecord = {
-		id: string;
-	};
+	import type { IDRecord, OptionFunction, DisplayFunction } from './ComboSelectTypes';
 </script>
 
 <script lang="ts" generics="T extends IDRecord">
@@ -12,10 +10,6 @@
 	import { fly } from 'svelte/transition';
 	import HighlightText from './HighlightText.svelte';
 	import { Button, Label } from 'flowbite-svelte';
-
-	type SelectionType = { value: string; label: string; disabled?: boolean };
-	type OptionFunction = (data: T) => SelectionType;
-	type DisplayFunction = (data: T) => { group?: string; title: string };
 
 	export let items: T[];
 	export let filterItems: (data: T[], target: string) => T[] = (items, search) => {
@@ -28,15 +22,17 @@
 		});
 	};
 	export let placeholder = 'Select Item...';
-	export let title: string | undefined;
-	export let itemToOption: OptionFunction;
-	export let itemToDisplay: DisplayFunction;
+	export let title: string | undefined | null;
+	export let itemToOption: OptionFunction<T>;
+	export let itemToDisplay: DisplayFunction<T>;
 	export let highlightSearch = true;
 	export let value: string | undefined | null;
 	export let name: string | undefined = undefined;
 	export let clearValue: boolean | undefined = undefined;
 	export let clearable = false;
 	export let clearName: string | undefined = undefined;
+	export let tainted: boolean | undefined = undefined;
+	export let highlightTainted: boolean = true;
 
 	const {
 		elements: { menu, input, option, label },
@@ -102,7 +98,10 @@
 				class="block w-full disabled:cursor-not-allowed disabled:opacity-50 p-2.5 focus:border-primary-500
             focus:ring-primary-500 dark:focus:border-primary-500 dark:focus:ring-primary-500
             bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400
-            border-gray-300 dark:border-gray-600 text-sm rounded-lg border"
+            border-gray-300 dark:border-gray-600 text-sm rounded-lg border {tainted &&
+				highlightTainted
+					? 'ring-2'
+					: ''}"
 				{placeholder}
 			/>
 			<div class="absolute right-2 top-1/2 z-10 -translate-y-1/2 text-magnum-900">
