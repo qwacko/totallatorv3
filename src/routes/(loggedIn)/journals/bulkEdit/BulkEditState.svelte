@@ -2,6 +2,7 @@
 	import CompleteIcon from '$lib/components/icons/CompleteIcon.svelte';
 	import ReconciledIcon from '$lib/components/icons/ReconciledIcon.svelte';
 	import DataCheckedIcon from '$lib/components/icons/DataCheckedIcon.svelte';
+	import { pageStore } from '$lib/prevPageStore';
 
 	import { Button } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
@@ -10,7 +11,6 @@
 	export let reconciled: boolean | undefined;
 	export let dataChecked: boolean | undefined;
 	export let filter: Record<string, any> | undefined;
-	export let prevPage: string;
 	export let currentPage: string;
 	export let canEdit: boolean;
 </script>
@@ -18,7 +18,7 @@
 {#if filter}
 	<form method="post" class="flex flex-col gap-2" action="?/updateState" use:enhance>
 		<input type="hidden" name="filter" value={JSON.stringify(filter)} />
-		<input type="hidden" name="prevPage" value={prevPage} />
+		<input type="hidden" name="prevPage" value={$pageStore.prevURL} />
 		<input type="hidden" name="currentPage" value={currentPage} />
 		<div class="flex flex-row gap-2">
 			<Button

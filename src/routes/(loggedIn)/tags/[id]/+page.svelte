@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { afterNavigate } from '$app/navigation';
 	import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
+	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { urlGenerator } from '$lib/routes.js';
@@ -16,12 +16,6 @@
 	const { form, errors, constraints, message, enhance } = superForm<UpdateTagSchemaSuperType>(
 		data.form
 	);
-
-	let previousPage: string = '/tags';
-
-	afterNavigate(({ from }) => {
-		previousPage = from?.url.href || previousPage;
-	});
 
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/tags/[id]/delete',
@@ -52,6 +46,6 @@
 		<ErrorText message={$message} />
 	</form>
 
-	<Button outline href={previousPage}>Cancel</Button>
+	<PrevPageButton outline>Cancel</PrevPageButton>
 	<Button outline color="red" href={deleteURL}>Delete</Button>
 </PageLayout>

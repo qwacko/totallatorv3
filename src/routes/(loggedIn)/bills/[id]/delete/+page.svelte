@@ -1,18 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import { pageInfo, urlGenerator } from '$lib/routes.js';
+	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import { Button } from 'flowbite-svelte';
 
 	export let data;
-
-	let previousPage: string = '/bills';
-
-	afterNavigate(({ from }) => {
-		previousPage = from?.url.href || previousPage;
-	});
 </script>
 
 <PageLayout title={data.bill.title} size="sm">
@@ -20,7 +12,7 @@
 		<div class="flex">Are you sure you want to delete bill {data.bill.title}?</div>
 
 		<div class="flex flex-row gap-4 pt-4">
-			<Button href={previousPage} class="flex flex-grow" outline>Cancel</Button>
+			<PrevPageButton class="flex flex-grow" outline>Cancel</PrevPageButton>
 			<Button type="submit" color="red" class="flex flex-grow">Delete</Button>
 		</div>
 	</form>

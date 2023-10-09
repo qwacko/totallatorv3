@@ -174,6 +174,13 @@ export type JournalFilterSchemaInputType = z.input<typeof journalFilterSchema>;
 
 export type JournalFilterSchemaType = z.infer<typeof journalFilterSchema>;
 
+export const defaultAllJournalFilter: JournalFilterSchemaType = {
+	account: { type: ['asset', 'liability', 'expense', 'income'] },
+	page: 0,
+	pageSize: 100000000,
+	orderBy: [{ field: 'date', direction: 'desc' }]
+};
+
 export const defaultJournalFilter: JournalFilterSchemaType = {
 	account: { type: ['asset', 'liability'] },
 	page: 0,

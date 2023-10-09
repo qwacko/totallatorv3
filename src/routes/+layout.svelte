@@ -4,8 +4,10 @@
 	import { pwaInfo } from 'virtual:pwa-info';
 	import { onMount } from 'svelte';
 	import { authGuardFrontend } from '$lib/authGuard/authGuardConfig';
-	import { onNavigate } from '$app/navigation';
 	import { dev } from '$app/environment';
+	import { updatePageStore } from '$lib/prevPageStore';
+
+	updatePageStore();
 
 	// onNavigate((navigation) => {
 	// 	//@ts-expect-error startViewTransition is not defined on Document

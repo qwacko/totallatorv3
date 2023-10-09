@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { afterNavigate } from '$app/navigation';
 	import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
@@ -10,18 +9,13 @@
 	import type { UpdateLabelSchemaSuperType } from '$lib/schema/labelSchema.js';
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
+	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 
 	export let data;
 
 	const { form, errors, constraints, message, enhance } = superForm<UpdateLabelSchemaSuperType>(
 		data.form
 	);
-
-	let previousPage: string = '/labels';
-
-	afterNavigate(({ from }) => {
-		previousPage = from?.url.href || previousPage;
-	});
 
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/labels/[id]/delete',
@@ -52,6 +46,6 @@
 		<ErrorText message={$message} />
 	</form>
 
-	<Button outline href={previousPage}>Cancel</Button>
+	<PrevPageButton outline>Cancel</PrevPageButton>
 	<Button outline color="red" href={deleteURL}>Delete</Button>
 </PageLayout>

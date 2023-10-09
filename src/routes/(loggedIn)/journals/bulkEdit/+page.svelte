@@ -5,31 +5,22 @@
 	import BulkEditState from './BulkEditState.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, urlGenerator } from '$lib/routes';
-	import { afterNavigate } from '$app/navigation';
 	import { superForm } from 'sveltekit-superforms/client';
-	import {
-		defaultJournalFilter,
-		type UpdateJournalSchemaSuperType
-	} from '$lib/schema/journalSchema';
+	import type { UpdateJournalSchemaSuperType } from '$lib/schema/journalSchema';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import UpdateJournalForm from '../clone/UpdateJournalForm.svelte';
 	import UpdateJournalLinksForm from '../clone/UpdateJournalLinksForm.svelte';
+	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 
 	export let data;
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals/bulkEdit', $page);
 
-	let prevPage = '';
-
-	afterNavigate(({ from }) => {
-		prevPage = from?.url.href || prevPage;
-	});
-
 	const form = superForm<UpdateJournalSchemaSuperType>(data.form, { taintedMessage: null });
 
 	$: enhance = form.enhance;
-	$: formShow = form.form
+	$: formShow = form.form;
 </script>
 
 <PageLayout title="Bulk Edit {data.journals.count} Journals">
@@ -38,7 +29,6 @@
 	<RawDataModal data={$formShow} dev={data.dev} />
 	<Heading tag="h3">Set Journal State</Heading>
 	<BulkEditState
-		{prevPage}
 		currentPage={urlInfo.current.url}
 		filter={urlInfo.current.searchParams}
 		complete={data.selectedJournals.complete}
@@ -52,19 +42,15 @@
 			title="Complete Journals Present"
 		/>
 	{:else}
-		<form method="post" action="?/update" use:enhance>
-			<PreviousUrlInput
-				defaultURL={urlGenerator({
-					address: '/(loggedIn)/journals',
-					searchParamsValue: defaultJournalFilter
-				}).url}
-				name="prevPage"
-			/>
+		<form method="post" class="flex flex-col gap-2" action="?/update" use:enhance>
+			<PreviousUrlInput name="prevPage" />
 			<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
 			<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 			<UpdateJournalForm {form} />
 			<UpdateJournalLinksForm {form} dropdownInfo={data.dropdownInfo} />
 			<Button type="submit">Update {data.journals.count} Journals</Button>
+			<Button on:click={() => form.reset()}>Reset</Button>
+			<PrevPageButton>Cancel</PrevPageButton>
 		</form>
 	{/if}
 </PageLayout>

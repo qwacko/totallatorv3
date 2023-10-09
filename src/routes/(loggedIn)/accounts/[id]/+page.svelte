@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { afterNavigate } from '$app/navigation';
 	import CombinedAccountTitleDisplay from '$lib/components/CombinedAccountTitleDisplay.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
@@ -13,18 +12,13 @@
 	import { superForm } from 'sveltekit-superforms/client';
 	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
 	import { accountTypeEnumSelection } from '$lib/schema/accountTypeSchema.js';
+	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 
 	export let data;
 
 	const { form, errors, constraints, message, enhance } = superForm<UpdateAccountSchemaSuperType>(
 		data.form
 	);
-
-	let previousPage: string = '/accounts';
-
-	afterNavigate(({ from }) => {
-		previousPage = from?.url.href || previousPage;
-	});
 
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/accounts/[id]/delete',
@@ -112,6 +106,6 @@
 		<ErrorText message={$message} />
 	</form>
 
-	<Button outline href={previousPage}>Cancel</Button>
+	<PrevPageButton outline>Cancel</PrevPageButton>
 	<Button outline color="red" href={deleteURL}>Delete</Button>
 </PageLayout>

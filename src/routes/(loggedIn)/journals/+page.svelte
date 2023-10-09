@@ -24,6 +24,7 @@
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import OrderDropDown from '$lib/components/OrderDropDown.svelte';
 	import {
+		defaultAllJournalFilter,
 		defaultJournalFilter,
 		journalOrderByEnum,
 		journalOrderByEnumToText
@@ -87,10 +88,7 @@
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: {
 						idArray: selectedIds,
-						page: 0,
-						pageSize: 10000,
-						orderBy: [{ direction: 'asc', field: 'date' }],
-						account: { type: ['asset', 'liability', 'income', 'expense'] }
+						...defaultAllJournalFilter
 					}
 				}).url}
 				disabled={selectedIds.length === 0}
@@ -103,10 +101,7 @@
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: {
 						idArray: selectedIds,
-						page: 0,
-						pageSize: 10000,
-						orderBy: [{ direction: 'asc', field: 'date' }],
-						account: { type: ['asset', 'liability', 'income', 'expense'] }
+						...defaultAllJournalFilter
 					}
 				}).url}
 				disabled={selectedIds.length === 0}
@@ -119,10 +114,7 @@
 					address: '/(loggedIn)/journals/delete',
 					searchParamsValue: {
 						idArray: selectedIds,
-						page: 0,
-						pageSize: 10000,
-						orderBy: [{ direction: 'asc', field: 'date' }],
-						account: { type: ['asset', 'liability', 'income', 'expense'] }
+						...defaultAllJournalFilter
 					}
 				}).url}
 				disabled={selectedIds.length === 0}
@@ -159,13 +151,7 @@
 				color="light"
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/delete',
-					searchParamsValue: {
-						idArray: selectedIds,
-						page: 0,
-						pageSize: 10000,
-						orderBy: [{ direction: 'asc', field: 'date' }],
-						account: { type: ['asset', 'liability', 'income', 'expense'] }
-					}
+					searchParamsValue: $urlStore.searchParams
 				}).url}
 				disabled={data.journals.count === 0}
 			>
@@ -216,15 +202,38 @@
 											address: '/(loggedIn)/journals/bulkEdit',
 											searchParamsValue: {
 												idArray: [currentJournal.id],
-												orderBy: [{ direction: 'asc', field: 'date' }],
-												account: { type: ['asset', 'liability', 'income', 'expense'] },
-												page: 0,
-												pageSize: 1000
+												...defaultAllJournalFilter
 											}
 										}).url}
 										class="p-2"
 									>
 										<EditIcon height="15" width="15" />
+									</Button>
+									<Button
+										disabled={currentJournal.complete}
+										href={urlGenerator({
+											address: '/(loggedIn)/journals/clone',
+											searchParamsValue: {
+												idArray: [currentJournal.id],
+												...defaultAllJournalFilter
+											}
+										}).url}
+										class="p-2"
+									>
+										<CloneIcon height="15" width="15" />
+									</Button>
+									<Button
+										disabled={currentJournal.complete}
+										href={urlGenerator({
+											address: '/(loggedIn)/journals/delete',
+											searchParamsValue: {
+												idArray: [currentJournal.id],
+												...defaultAllJournalFilter
+											}
+										}).url}
+										class="p-2"
+									>
+										<DeleteIcon height="15" width="15" />
 									</Button>
 									{#if currentJournal.complete}
 										<Button
