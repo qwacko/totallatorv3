@@ -30,6 +30,7 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
+	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -77,7 +78,7 @@
 			/>
 		{/if}
 	</div>
-
+	<FilterTextDisplay text={data.filterText} />
 	{#if data.accounts.count === 0}
 		<Alert color="dark">No Matching Accoounts Found</Alert>
 	{:else}

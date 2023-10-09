@@ -43,6 +43,7 @@
 	import BudgetIcon from '$lib/components/icons/BudgetIcon.svelte';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
+	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 
 	export let data;
 
@@ -168,6 +169,7 @@
 			/>
 		{/if}
 	</div>
+	<FilterTextDisplay text={data.filterText} />
 	{#if data.journals.count === 0}
 		<Alert color="dark">No Matching Journals Found</Alert>
 	{:else}

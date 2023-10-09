@@ -25,6 +25,7 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
+	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -58,6 +59,7 @@
 		{/if}
 	</div>
 
+	<FilterTextDisplay text={data.filterText} />
 	{#if data.tags.count === 0}
 		<Alert color="dark">No Matching Tags Found</Alert>
 	{:else}
@@ -133,7 +135,7 @@
 								</Button>
 								<Button href={deleteURL} class="p-2" outline color="red">
 									<DeleteIcon height={15} width={15} />
-								</Button>								
+								</Button>
 								<RawDataModal data={currentTag} title="Raw Tag Data" dev={data.dev} />
 							</ButtonGroup>
 						</TableBodyCell>

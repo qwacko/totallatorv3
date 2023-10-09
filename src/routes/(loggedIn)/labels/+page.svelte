@@ -23,6 +23,7 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/labels', $page);
@@ -56,6 +57,7 @@
 		{/if}
 	</div>
 
+	<FilterTextDisplay text={data.filterText} />
 	{#if data.labels.count === 0}
 		<Alert color="dark">No Matching labels Found</Alert>
 	{:else}
@@ -115,7 +117,7 @@
 								</Button>
 								<Button href={deleteURL} class="p-2" outline color="red">
 									<DeleteIcon height={15} width={15} />
-								</Button>								
+								</Button>
 								<RawDataModal data={currentLabel} title="Raw Label Data" dev={data.dev} />
 							</ButtonGroup>
 						</TableBodyCell>

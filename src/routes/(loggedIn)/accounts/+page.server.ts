@@ -1,5 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
+import { accountFilterToText } from '$lib/server/db/actions/helpers/accountFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 import { redirect } from '@sveltejs/kit';
@@ -18,5 +19,9 @@ export const load = async (data) => {
 		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	return { accounts, searchParams: pageInfo.searchParams };
+	return {
+		accounts,
+		searchParams: pageInfo.searchParams,
+		filterText: accountFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 })
+	};
 };

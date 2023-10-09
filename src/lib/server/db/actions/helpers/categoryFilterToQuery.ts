@@ -1,4 +1,5 @@
 import type { CategoryFilterSchemaType } from '$lib/schema/categorySchema';
+import { db } from '../../db';
 import { category } from '../../schema';
 import { SQL, eq, ilike, inArray, like, not } from 'drizzle-orm';
 
@@ -21,4 +22,61 @@ export const categoryFilterToQuery = (
 	if (restFilter.active) where.push(eq(category.active, restFilter.active));
 
 	return where;
+};
+
+const categoryIdToTitle = async (id: string) => {
+	const foundCategory = await db
+		.select({ title: category.title })
+		.from(category)
+		.where(eq(category.id, id))
+		.limit(1)
+		.execute();
+
+	if (foundCategory?.length === 1) {
+		return foundCategory[0].title;
+	}
+	return id;
+};
+
+const categoryIdsToTitle = async (ids: string[]) => {
+	const titles = await Promise.all(ids.map(async (id) => categoryIdToTitle(id)));
+
+	return titles;
+};
+
+export const categoryFilterToText = async (
+	filter: Omit<CategoryFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	prefix?: string
+) => {
+	const restFilter = filter;
+
+	const stringArray: string[] = [];
+	if (restFilter.id) stringArray.push(`Is ${await categoryIdToTitle(restFilter.id)}`);
+	if (restFilter.idArray) {
+		if (restFilter.idArray.length === 1) {
+			stringArray.push(`Is ${await categoryIdToTitle(restFilter.idArray[0])}`);
+		} else {
+			stringArray.push(`Is One Of ${(await categoryIdsToTitle(restFilter.idArray)).join(',')}`);
+		}
+	}
+	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
+	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
+	if (restFilter.group) stringArray.push(`Group contains ${restFilter.group}`);
+	if (restFilter.single) stringArray.push(`Single contains ${restFilter.single}`);
+	//Not including text for not deleted as this doesn't really add much value.
+	//else where.push(not(eq(budget.status, 'deleted')));
+	if (restFilter.deleted) stringArray.push(`Is Deleted`);
+	if (restFilter.disabled) stringArray.push(`Is Disabled`);
+	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
+	if (restFilter.active) stringArray.push(`Is Active`);
+
+	if (stringArray.length === 0) {
+		stringArray.push('Showing All');
+	}
+
+	if (prefix) {
+		return stringArray.map((item) => `${prefix} ${item}`);
+	}
+
+	return stringArray;
 };

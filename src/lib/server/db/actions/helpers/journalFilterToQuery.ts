@@ -1,12 +1,12 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { journalEntry } from '../../schema';
 import { SQL, eq, gt, inArray, like } from 'drizzle-orm';
-import { accountFilterToQuery } from './accountFilterToQuery';
-import { billFilterToQuery } from './billFilterToQuery';
-import { budgetFilterToQuery } from './budgetFilterToQuery';
-import { tagFilterToQuery } from './tagFilterToQuery';
-import { categoryFilterToQuery } from './categoryFilterToQuery';
-import { labelFilterToQuery } from './labelFilterToQuery';
+import { accountFilterToQuery, accountFilterToText } from './accountFilterToQuery';
+import { billFilterToQuery, billFilterToText } from './billFilterToQuery';
+import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
+import { tagFilterToQuery, tagFilterToText } from './tagFilterToQuery';
+import { categoryFilterToQuery, categoryFilterToText } from './categoryFilterToQuery';
+import { labelFilterToQuery, labelFilterToText } from './labelFilterToQuery';
 
 export const journalFilterToQuery = (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -56,4 +56,62 @@ export const journalFilterToQuery = (
 	}
 
 	return where;
+};
+
+export const journalFilterToText = async (
+	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	prefix?: string
+) => {
+	const stringArray: string[] = [];
+	if (filter.id) stringArray.push(`ID is ${filter.id}`);
+	if (filter.idArray) stringArray.push(`ID is one of ${filter.idArray.join(', ')}`);
+	if (filter.transactionIdArray)
+		stringArray.push(`Transaction ID is one of ${filter.transactionIdArray.join(', ')}`);
+	if (filter.description) stringArray.push(`Description contains ${filter.description}`);
+	if (filter.dateAfter !== undefined) stringArray.push(`Date is after ${filter.dateAfter}`);
+	if (filter.dateBefore !== undefined) stringArray.push(`Date is before ${filter.dateBefore}`);
+	if (filter.complete !== undefined)
+		stringArray.push(`Is ${filter.complete ? 'Complete' : 'Incomplete'}`);
+	if (filter.linked !== undefined)
+		stringArray.push(`Is ${filter.linked ? 'Linked' : 'Not Linked'}`);
+	if (filter.dataChecked !== undefined)
+		stringArray.push(filter.dataChecked ? 'Has had data checked' : "Hasn't had data checked");
+	if (filter.reconciled !== undefined)
+		stringArray.push(filter.reconciled ? 'Is Reconciled' : 'Is Not Reconciled');
+
+	const linkedArray: string[] = [];
+	if (filter.account) {
+		linkedArray.push(...(await accountFilterToText(filter.account, 'Account')));
+	}
+
+	if (filter.bill) {
+		linkedArray.push(...(await billFilterToText(filter.bill, 'Bill')));
+	}
+
+	if (filter.budget) {
+		linkedArray.push(...(await budgetFilterToText(filter.budget, 'Budget')));
+	}
+
+	if (filter.category) {
+		linkedArray.push(...(await categoryFilterToText(filter.category, 'Category')));
+	}
+
+	if (filter.tag) {
+		linkedArray.push(...(await tagFilterToText(filter.tag, 'Tag')));
+	}
+
+	if (filter.label) {
+		linkedArray.push(...(await labelFilterToText(filter.label, 'Label')));
+	}
+
+	const stringArrayWithPrefix = prefix
+		? stringArray.map((item) => `${prefix} ${item}`)
+		: stringArray;
+	const combinedArray = [...stringArrayWithPrefix, ...linkedArray];
+
+	if (combinedArray.length === 0) {
+		combinedArray.push('Showing All');
+	}
+
+	return combinedArray;
 };

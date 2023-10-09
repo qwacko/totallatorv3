@@ -25,6 +25,7 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
+	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/bills', $page);
@@ -58,6 +59,7 @@
 		{/if}
 	</div>
 
+	<FilterTextDisplay text={data.filterText} />
 	{#if data.bills.count === 0}
 		<Alert color="dark">No Matching Bills Found</Alert>
 	{:else}

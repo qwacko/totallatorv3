@@ -1,6 +1,7 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema.js';
+import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 
@@ -29,6 +30,7 @@ export const load = async (data) => {
 
 	return {
 		journals: journalData,
-		dropdownInfo: { tags, bills, budgets, categories, labels, accounts }
+		dropdownInfo: { tags, bills, budgets, categories, labels, accounts },
+		filterText: journalFilterToText(filter, 'Journal')
 	};
 };

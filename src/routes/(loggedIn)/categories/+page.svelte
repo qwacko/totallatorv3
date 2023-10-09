@@ -25,6 +25,7 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
+	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/categories', $page);
@@ -56,7 +57,8 @@
 		{#if $urlStore.searchParams}
 			<Input type="text" bind:value={$urlStore.searchParams.title} />
 		{/if}
-	</div>
+	</div>	
+	<FilterTextDisplay text={data.filterText} />
 	{#if data.categories.count === 0}
 		<Alert color="dark">No Matching Categories Found</Alert>
 	{:else}
