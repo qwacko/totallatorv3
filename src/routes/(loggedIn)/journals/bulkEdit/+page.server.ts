@@ -9,7 +9,7 @@ import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms/server';
 import { z } from 'zod';
 import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 
@@ -47,6 +47,8 @@ const updateStateActionValidation = pageAndFilterValidation.merge(
 		])
 	})
 );
+
+const updateValidation = updateJournalSchema.merge(pageAndFilterValidation);
 
 export const actions = {
 	updateState: async ({ request }) => {
@@ -104,6 +106,35 @@ export const actions = {
 					urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter })
 						.url
 			);
+		}
+
+		throw redirect(302, form.data.prevPage);
+	},
+	update: async ({ request }) => {
+		const form = await superValidate(request, updateValidation);
+
+		if (!form.valid) {
+			logging.error('Update Form Is Not Valid');
+			throw redirect(302, form.data.currentPage);
+		}
+
+		const parsedFilter = journalFilterSchema.safeParse(JSON.parse(form.data.filter));
+
+		if (!parsedFilter.success) {
+			logging.error('Update Filter Is Not Valid');
+			throw redirect(302, form.data.currentPage);
+		}
+
+		try {
+			await tActions.journal.updateJournals({
+				db,
+				filter: parsedFilter.data,
+				journalData: form.data
+			});
+		} catch (e) {
+			logging.error('Error Updating Journals : ', e);
+
+			return message(form, 'Error Updating Journals');
 		}
 
 		throw redirect(302, form.data.prevPage);

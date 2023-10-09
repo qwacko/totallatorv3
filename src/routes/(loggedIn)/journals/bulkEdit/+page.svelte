@@ -13,6 +13,8 @@
 	} from '$lib/schema/journalSchema';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
+	import UpdateJournalForm from '../clone/UpdateJournalForm.svelte';
+	import UpdateJournalLinksForm from '../clone/UpdateJournalLinksForm.svelte';
 
 	export let data;
 
@@ -24,15 +26,16 @@
 		prevPage = from?.url.href || prevPage;
 	});
 
-	const { form, errors, constraints, message, enhance } = superForm<UpdateJournalSchemaSuperType>(
-		data.form,
-		{ taintedMessage: null }
-	);
+	const form = superForm<UpdateJournalSchemaSuperType>(data.form, { taintedMessage: null });
+
+	$: enhance = form.enhance;
+	$: formShow = form.form
 </script>
 
 <PageLayout title="Bulk Edit {data.journals.count} Journals">
 	<RawDataModal data={data.selectedJournals} dev={data.dev} />
 	<RawDataModal data={urlInfo} dev={data.dev} />
+	<RawDataModal data={$formShow} dev={data.dev} />
 	<Heading tag="h3">Set Journal State</Heading>
 	<BulkEditState
 		{prevPage}
@@ -47,19 +50,21 @@
 	{#if !data.selectedJournals.canEdit}<ErrorText
 			message="At Least One Journal Is Complete So Cannot Update Journals"
 			title="Complete Journals Present"
-		/>{:else}<div>Hi</div>{/if}
-
-	<Heading tag="h3">Clone Journals</Heading>
-	<form method="post" action="?/clone" use:enhance>
-		<PreviousUrlInput
-			defaultURL={urlGenerator({
-				address: '/(loggedIn)/journals',
-				searchParamsValue: defaultJournalFilter
-			}).url}
-			name="prevPage"
 		/>
-		<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
-		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
-		<Button type="submit">Clone {data.journals.count} Journals</Button>
-	</form>
+	{:else}
+		<form method="post" action="?/update" use:enhance>
+			<PreviousUrlInput
+				defaultURL={urlGenerator({
+					address: '/(loggedIn)/journals',
+					searchParamsValue: defaultJournalFilter
+				}).url}
+				name="prevPage"
+			/>
+			<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
+			<input type="hidden" name="currentPage" value={urlInfo.current.url} />
+			<UpdateJournalForm {form} />
+			<UpdateJournalLinksForm {form} dropdownInfo={data.dropdownInfo} />
+			<Button type="submit">Update {data.journals.count} Journals</Button>
+		</form>
+	{/if}
 </PageLayout>

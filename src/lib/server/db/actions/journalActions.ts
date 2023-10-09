@@ -179,10 +179,12 @@ export const journalActions = {
 
 		const accountId = getCommonData('accountId', journalInformation.data);
 		const amount = getCommonData('amount', journalInformation.data);
-		const tagId = getCommonData('tagId', journalInformation.data);
-		const categoryId = getCommonData('categoryId', journalInformation.data);
-		const billId = getCommonData('billId', journalInformation.data);
-		const budgetId = getCommonData('budgetId', journalInformation.data);
+
+		//Note that the following have "undefined" as this removes the null option which isn't relevant for this functionaliy. This helps the forms work correctly.
+		const tagId = getCommonData('tagId', journalInformation.data) || undefined;
+		const categoryId = getCommonData('categoryId', journalInformation.data) || undefined;
+		const billId = getCommonData('billId', journalInformation.data) || undefined;
+		const budgetId = getCommonData('budgetId', journalInformation.data) || undefined;
 		const date = getCommonData('dateText', journalInformation.data);
 		const description = getCommonData('description', journalInformation.data);
 		const linked = getCommonData('linked', journalInformation.data);
@@ -402,6 +404,8 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.catch(defaultJournalFilter).parse(filter);
+		logging.info('Updating Journals - Filter : ', processedFilter);
+		logging.info('Updating Journals - New Data : ', processedData.data);
 		const journals = await journalActions.list({ db, filter: processedFilter });
 
 		if (journals.data.length === 0) return;

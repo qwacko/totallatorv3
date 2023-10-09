@@ -83,7 +83,7 @@
 	<input type="hidden" {name} value={selectedVal} />
 {/if}
 {#if clearable && clearName}
-	<input type="hidden" name={clearName} value={clearValue} />
+	<input type="hidden" name={clearName} value={clearValue === true ? 'true' : 'false'} />
 {/if}
 <div class="flex flex-col gap-2">
 	{#if title}

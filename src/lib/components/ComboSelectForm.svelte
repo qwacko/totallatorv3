@@ -27,8 +27,11 @@
 
 	const { value, tainted } = formFieldProxy(form, field);
 
+	$: taintedUse = $tainted;
 	$: stringValue = value as Writable<string | undefined>;
 	$: clearable = clearField !== undefined;
+
+	$: console.log('Combobox string Value : ', field, ' - ', $stringValue);
 </script>
 
 {#await items then resolvedItems}
