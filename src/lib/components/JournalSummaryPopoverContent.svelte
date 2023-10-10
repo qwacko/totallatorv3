@@ -3,7 +3,7 @@
 	import { getCurrencyFormatter, type currencyFormatType } from '$lib/schema/userSchema';
 
 	import { Button, Chart, Tabs, TabItem } from 'flowbite-svelte';
-	import { generateTotalTrendConfig } from './helpers/generateTrendConfig';
+	import { generateFlowTrendConfig, generateTotalTrendConfig } from './helpers/generateTrendConfig';
 	import { generateYearMonthsBeforeToday } from '$lib/helpers/generateYearMonthsBetween';
 	import { filterTrendData } from './helpers/FilterTrendData';
 	import DisplayCurrency from './DisplayCurrency.svelte';
@@ -12,15 +12,33 @@
 	export let href: string;
 	export let item: JournalSummaryType & { id: string };
 	export let format: currencyFormatType = 'USD';
+	export let onYearMonthClick: (yearMonth: string) => void = () => {};
 
-	let selection: 'Recent' | 'All' = 'Recent';
+	let selection: 'Recent' | 'All' | 'Flow' = 'Recent';
+	const chartHeight = '250';
 
 	$: latestYearMonth = generateYearMonthsBeforeToday(12);
 	$: last12Months = filterTrendData({ data: item.monthlySummary, dates: latestYearMonth });
 
 	$: formatter = getCurrencyFormatter(format);
-	$: chartConfig = generateTotalTrendConfig({ data: item.monthlySummary, formatter });
-	$: recentChartConfig = generateTotalTrendConfig({ data: last12Months, formatter });
+	$: chartConfig = generateTotalTrendConfig({
+		data: item.monthlySummary,
+		formatter,
+		height: chartHeight,
+		onYearMonthClick
+	});
+	$: recentChartConfig = generateTotalTrendConfig({
+		data: last12Months,
+		formatter,
+		height: chartHeight,
+		onYearMonthClick
+	});
+	$: recentFlowChartConfig = generateFlowTrendConfig({
+		data: last12Months,
+		formatter,
+		height: chartHeight,
+		onYearMonthClick
+	});
 	$: yearChange = last12Months.reduce((prev, current) => prev + current.sum, 0);
 	$: yearCount = last12Months.reduce((prev, current) => prev + current.count, 0);
 </script>
@@ -43,6 +61,17 @@
 	<Tabs contentClass="" style="underline">
 		<TabItem open title="Recent" on:click={() => (selection = 'Recent')} />
 		<TabItem title="All" on:click={() => (selection = 'All')} />
+		<TabItem title="Flow" on:click={() => (selection = 'Flow')} />
 	</Tabs>
-	<Chart {...selection === 'Recent' ? recentChartConfig : chartConfig} />
+	{#if selection === 'Recent'}
+		<Chart {...recentChartConfig} />
+	{/if}
+
+	{#if selection === 'All'}
+		<Chart {...chartConfig} />
+	{/if}
+
+	{#if selection === 'Flow'}
+		<Chart {...recentFlowChartConfig} />
+	{/if}
 </div>
