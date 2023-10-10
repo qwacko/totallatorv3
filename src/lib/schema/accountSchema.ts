@@ -86,7 +86,7 @@ export const accountFilterSchema = z.object({
 	type: z
 		.array(z.enum(accountTypeEnum))
 		.optional()
-		.refine((e) => (e && e.length === 0 ? undefined : e)),
+		.transform((e) => (e && e.length === 0 ? undefined : e)),
 	accountGroup: z.coerce.string().optional(),
 	accountGroup2: z.coerce.string().optional(),
 	accountGroup3: z.coerce.string().optional(),

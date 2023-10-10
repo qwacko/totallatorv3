@@ -1,5 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
+import { defaultAllJournalFilter } from '$lib/schema/journalSchema';
 import { tagFilterToText } from '$lib/server/db/actions/helpers/tagFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
@@ -19,9 +20,27 @@ export const load = async (data) => {
 		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
+	const tagIds = tags.data.map((item) => item.id);
+
+	const journalSummaries = Promise.all(
+		tagIds.map(async (tagId) => {
+			const summary = await tActions.journal.summary({
+				db,
+				filter: {
+					...defaultAllJournalFilter,
+					tag: { id: tagId },
+					account: { type: ['asset', 'liability'] }
+				}
+			});
+
+			return { id: tagId, sum: summary.sum, count: summary.count };
+		})
+	);
+
 	return {
 		tags,
 		searchParams: pageInfo.searchParams,
-		filterText: tagFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 })
+		filterText: tagFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		deferred: { journalSummaries }
 	};
 };

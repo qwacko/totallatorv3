@@ -1,15 +1,13 @@
 import {
-	createJournalDBCore,
 	type CreateCombinedTransactionType,
 	type JournalFilterSchemaType,
-	type CreateJournalSchemaType,
 	journalFilterSchema,
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType,
 	type UpdateJournalSchemaInputType,
 	updateJournalSchema
 } from '$lib/schema/journalSchema';
-import { getTableColumns, eq, and, sql, inArray, not } from 'drizzle-orm';
+import { eq, and, sql, inArray, not } from 'drizzle-orm';
 import type { DBType } from '../db';
 import {
 	account,
@@ -24,137 +22,17 @@ import {
 import { journalFilterToQuery } from './helpers/journalFilterToQuery';
 
 import { updatedTime } from './helpers/updatedTime';
-import { nanoid } from 'nanoid';
 import { expandDate } from './helpers/expandDate';
 import { accountActions } from './accountActions';
 import { tActions } from './tActions';
 import { seedTransactionData } from './helpers/seedTransactionData';
-import { journalFilterToOrderBy } from './helpers/journalFilterToOrderBy';
 import { logging } from '$lib/server/logging';
-import { journalGetOrCreateLinkedItems } from './helpers/accountGetOrCreateLinkedItems';
-
-const journalList = async ({
-	db,
-	filter
-}: {
-	db: DBType;
-	filter: JournalFilterSchemaInputType;
-}) => {
-	const processedFilter = journalFilterSchema.catch(defaultJournalFilter).parse(filter);
-
-	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
-
-	const journalQueryCore = db
-		.select({
-			...getTableColumns(journalEntry),
-			tagTitle: tag.title,
-			billTitle: bill.title,
-			budgetTitle: budget.title,
-			categoryTitle: category.title,
-			accountTitle: account.title,
-			accountType: account.type,
-			accountGroup: account.accountGroupCombined
-		})
-		.from(journalEntry)
-		.leftJoin(account, eq(journalEntry.accountId, account.id))
-		.leftJoin(bill, eq(journalEntry.billId, bill.id))
-		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-		.leftJoin(category, eq(journalEntry.categoryId, category.id))
-		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-		.where(and(...journalFilterToQuery(restFilter)))
-		.orderBy(...journalFilterToOrderBy(processedFilter))
-		.offset(page * pageSize)
-		.limit(pageSize);
-
-	// logging.info('Query Params : ', restFilter);
-	// logging.info('Query Text : ', journalQueryCore.toSQL());
-
-	const journalsPromise = journalQueryCore.execute();
-
-	const runningTotalInner = db
-		.select({
-			amount: getTableColumns(journalEntry).amount
-		})
-		.from(journalEntry)
-		.leftJoin(account, eq(journalEntry.accountId, account.id))
-		.leftJoin(bill, eq(journalEntry.billId, bill.id))
-		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-		.leftJoin(category, eq(journalEntry.categoryId, category.id))
-		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-		.where(and(...journalFilterToQuery(restFilter)))
-		.orderBy(...journalFilterToOrderBy(processedFilter))
-		.offset(page * pageSize)
-		.limit(-1)
-		.as('sumInner');
-
-	const runningTotalPromise = db
-		.select({ sum: sql<number>`sum(${runningTotalInner.amount})`.mapWith(Number) })
-		.from(runningTotalInner)
-		.execute();
-
-	const resultCount = await db
-		.select({
-			count: sql<number>`count(${journalEntry.id})`.mapWith(Number)
-		})
-		.from(journalEntry)
-		.leftJoin(account, eq(journalEntry.accountId, account.id))
-		.leftJoin(bill, eq(journalEntry.billId, bill.id))
-		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-		.leftJoin(category, eq(journalEntry.categoryId, category.id))
-		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-		.where(and(...journalFilterToQuery(restFilter)))
-		.execute();
-
-	const count = resultCount[0].count;
-	const pageCount = Math.max(1, Math.ceil(count / pageSize));
-
-	const journals = await journalsPromise;
-	const runningTotal = (await runningTotalPromise)[0].sum;
-
-	const transactionIds = journals.map((journal) => journal.transactionId);
-
-	const transactionJournals =
-		transactionIds.length > 0
-			? await db
-					.select({
-						id: journalEntry.id,
-						transactionId: journalEntry.transactionId,
-						accountId: journalEntry.accountId,
-						accountTitle: account.title,
-						accountType: account.type,
-						accountGroup: account.accountGroupCombined,
-						amount: journalEntry.amount
-					})
-					.from(journalEntry)
-					.leftJoin(account, eq(journalEntry.accountId, account.id))
-					.where(inArray(journalEntry.transactionId, transactionIds))
-					.execute()
-			: [];
-
-	const journalsMerged = journals.map((journal, index) => {
-		const otherJournals = transactionJournals.filter(
-			(x) => x.transactionId === journal.transactionId && x.id !== journal.id
-		);
-		const priorJournals = journals.filter((_, i) => i < index);
-		const priorJournalTotal = priorJournals.reduce((prev, current) => prev + current.amount, 0);
-		const total = runningTotal - priorJournalTotal;
-
-		return {
-			...journal,
-			total,
-			otherJournals
-		};
-	});
-
-	return {
-		count,
-		data: journalsMerged,
-		pageCount,
-		page,
-		pageSize,
-		runningTotal
-	};
-};
+import { getMonthlySummary } from './helpers/getMonthlySummary';
+import { getCommonData } from './helpers/getCommonData';
+import { handleLinkedItem } from './helpers/handleLinkedItem';
+import { generateItemsForTransactionCreation } from './helpers/generateItemsForTransactionCreation';
+import { splitArrayIntoChunks } from './helpers/splitArrayIntoChunks';
+import { journalList } from './helpers/journalList';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -189,6 +67,90 @@ export const journalActions = {
 		const count = await countQueryCore.execute();
 
 		return count[0].sum;
+	},
+	summary: async ({
+		db,
+		filter,
+		startDate,
+		endDate
+	}: {
+		db: DBType;
+		filter?: JournalFilterSchemaType;
+		startDate?: string;
+		endDate?: string;
+	}) => {
+		const summaryQueryCore = db
+			.select({
+				count: sql`count(${journalEntry.id})`.mapWith(Number),
+				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+				average: sql`avg(${journalEntry.amount})`.mapWith(Number),
+				earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
+				latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
+				lastUpdated: sql`max(${journalEntry.updatedAt})`.mapWith(journalEntry.updatedAt)
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+			.where(and(...(filter ? journalFilterToQuery(filter) : [])));
+
+		const monthlyQueryCore = db
+			.select({
+				yearMonth: journalEntry.yearMonth,
+				count: sql`count(${journalEntry.id})`.mapWith(Number),
+				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+				average: sql`avg(${journalEntry.amount})`.mapWith(Number),
+				positiveSum:
+					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+						Number
+					),
+				positiveCount: sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN 1 ELSE 0 END)`.mapWith(
+					Number
+				),
+				negativeSum:
+					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+						Number
+					),
+				negativeCount: sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN 1 ELSE 0 END)`.mapWith(
+					Number
+				)
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.groupBy(journalEntry.yearMonth);
+
+		const summaryQuery = (await summaryQueryCore.execute())[0];
+
+		logging.info('Summary Info : ', summaryQuery);
+
+		const monthlyQuery = await monthlyQueryCore.execute();
+
+		const monthlySummary = getMonthlySummary({
+			monthlyQuery,
+			startDate,
+			endDate,
+			defaultValue: {
+				sum: 0,
+				average: 0,
+				count: 0,
+				negativeCount: 0,
+				positiveCount: 0,
+				negativeSum: 0,
+				positiveSum: 0
+			}
+		});
+
+		return {
+			...summaryQuery,
+			monthlySummary
+		};
 	},
 	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
 		return journalList({ db, filter });
@@ -263,17 +225,17 @@ export const journalActions = {
 			const labels = itemsForCreation
 				.map(({ labels }) => labels)
 				.reduce((a, b) => [...a, ...b], []);
-			const transactionChunks = splitArrayInfoChunks(transactions, 5000);
+			const transactionChunks = splitArrayIntoChunks(transactions, 5000);
 			for (const chunk of transactionChunks) {
 				await db.insert(transaction).values(chunk).execute();
 			}
 
-			const journalChunks = splitArrayInfoChunks(journals, 1000);
+			const journalChunks = splitArrayIntoChunks(journals, 1000);
 			for (const chunk of journalChunks) {
 				await db.insert(journalEntry).values(chunk).execute();
 			}
 
-			const labelChunks = splitArrayInfoChunks(labels, 1000);
+			const labelChunks = splitArrayIntoChunks(labels, 1000);
 			for (const chunk of labelChunks) {
 				await db.insert(labelsToJournals).values(chunk).execute();
 			}
@@ -703,122 +665,4 @@ export const journalActions = {
 	}
 };
 
-export type ListJournalsReturnType = Awaited<ReturnType<typeof journalList>>['data'][number];
-
-const splitArrayInfoChunks = <T>(array: T[], chunkSize: number) => {
-	const numberChunks = Math.ceil(array.length / chunkSize);
-	const chunks = Array(numberChunks)
-		.fill(0)
-		.map((_, i) => {
-			return array.slice(i * chunkSize, (i + 1) * chunkSize);
-		});
-
-	return chunks;
-};
-
-const generateItemsForTransactionCreation = async (
-	db: DBType,
-	data: CreateCombinedTransactionType
-) => {
-	const transactionId = nanoid();
-	const itemsForCreation = await Promise.all(
-		data.map(async (journalData) => {
-			return await generateItemsForJournalCreation(db, transactionId, journalData);
-		})
-	);
-
-	return {
-		transactions: [{ id: transactionId, ...updatedTime() }],
-		journals: itemsForCreation.map(({ journal }) => journal),
-		labels: itemsForCreation.map(({ labels }) => labels).reduce((a, b) => [...a, ...b], [])
-	};
-};
-
-const generateItemsForJournalCreation = async (
-	db: DBType,
-	transactionId: string,
-	journalData: CreateJournalSchemaType
-) => {
-	const linkedCorrections = await journalGetOrCreateLinkedItems(db, journalData);
-	const processedJournalData = createJournalDBCore.parse(linkedCorrections);
-	const { labels, accountId, ...restJournalData } = processedJournalData;
-	const id = nanoid();
-
-	const journalForCreation = {
-		id,
-		transactionId,
-		accountId: accountId || '',
-		...restJournalData,
-		...updatedTime(),
-		...expandDate(restJournalData.date)
-	};
-
-	const labelsForCreation = labels
-		? labels.map((label) => {
-				const id = nanoid();
-				return { id, journalId: id, labelId: label, ...updatedTime() };
-		  })
-		: [];
-
-	return { journal: journalForCreation, labels: labelsForCreation };
-};
-
-const handleLinkedItem = async <T extends { id: string }>({
-	id,
-	title,
-	clear,
-	createOrGetItem,
-	requireActive,
-	db
-}: {
-	db: DBType;
-	id?: string | null;
-	title?: string | null;
-	clear?: boolean | null;
-	requireActive?: boolean;
-	createOrGetItem: ({
-		db,
-		id,
-		title,
-		requireActive
-	}: {
-		db: DBType;
-		id?: string | null;
-		title?: string | null;
-		requireActive?: boolean;
-	}) => Promise<T | undefined>;
-}) => {
-	if (clear) {
-		return null;
-	}
-
-	//Deal with ID being the text "undefined".
-	const tidiedId = id ? (id === 'undefined' ? undefined : id) : undefined;
-
-	const newItem = await createOrGetItem({ db, id: tidiedId, title, requireActive });
-
-	if (newItem) {
-		return newItem.id;
-	}
-	return undefined;
-};
-
-const getCommonData = <
-	T extends string,
-	U extends Record<T, string | number | undefined | null | Date | boolean>
->(
-	key: T,
-	data: U[],
-	log = false
-) => {
-	const targetSet = [...new Set(data.map((item) => item[key]))];
-
-	if (log) {
-		logging.info('Target Set : ', targetSet, ' - Length - ', targetSet.length);
-	}
-
-	if (targetSet.length === 1) {
-		return targetSet[0];
-	}
-	return undefined;
-};
+export type JournalSummaryType = Awaited<ReturnType<(typeof journalActions)['summary']>>;

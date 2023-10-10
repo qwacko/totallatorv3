@@ -28,9 +28,11 @@
 
 	import AccountTypeFilterLinks from '$lib/components/AccountTypeFilterLinks.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
+	import JournalCountBadge from '$lib/components/JournalCountBadge.svelte';
+	import JournalCurrencyBadge from '$lib/components/JournalCurrencyBadge.svelte';
+	import JournalSummary from '$lib/components/JournalSummary.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -172,7 +174,7 @@
 						</div>
 					</div>
 				</TableHeadCell>
-				<TableHeadCell>Journals</TableHeadCell>
+				<TableHeadCell>Total</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each data.accounts.data as currentAccount}
@@ -203,19 +205,18 @@
 						<TableBodyCell>{currentAccount.title}</TableBodyCell>
 						<TableBodyCell>{statusToDisplay(currentAccount.status)}</TableBodyCell>
 						<TableBodyCell>
-							<Button
-								outline
+							<JournalSummary
 								href={urlGenerator({
 									address: '/(loggedIn)/journals',
 									searchParamsValue: {
 										...defaultJournalFilter,
-										account: { id: currentAccount.id, type: defaultAllJournalFilter.account.type }
+										account: { id: currentAccount.id }
 									}
 								}).url}
-								size="xs"
-							>
-								<JournalEntryIcon />
-							</Button>
+								items={data.deferred.journalSummaries}
+								id={currentAccount.id}
+								format={data.user?.currencyFormat || 'USD'}
+							/>
 						</TableBodyCell>
 					</TableBodyRow>
 				{/each}

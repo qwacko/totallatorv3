@@ -44,6 +44,7 @@
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
+	import EyeIcon from '$lib/components/icons/EyeIcon.svelte';
 
 	export let data;
 
@@ -121,6 +122,20 @@
 				disabled={selectedIds.length === 0}
 			>
 				<DeleteIcon />
+			</Button>
+			<Button
+				color="light"
+				href={urlGenerator({
+					address: '/(loggedIn)/journals',
+					searchParamsValue: {
+						...defaultJournalFilter,
+						idArray: selectedIds,
+						account: {}
+					}
+				}).url}
+				disabled={selectedIds.length === 0}
+			>
+				<EyeIcon />
 			</Button>
 		</ButtonGroup>
 

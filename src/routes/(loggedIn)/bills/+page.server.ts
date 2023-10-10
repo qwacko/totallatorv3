@@ -21,26 +21,19 @@ export const load = async (data) => {
 	}
 
 	const billIds = bills.data.map((item) => item.id);
-	const journalCount = Promise.all(
+
+	const journalSummaries = Promise.all(
 		billIds.map(async (billId) => {
-			const count = await tActions.journal.count(db, {
-				...defaultAllJournalFilter,
-				bill: { id: billId },
-				account: { type: ['asset', 'liability'] }
+			const summary = await tActions.journal.summary({
+				db,
+				filter: {
+					...defaultAllJournalFilter,
+					bill: { id: billId },
+					account: { type: ['asset', 'liability'] }
+				}
 			});
 
-			return { id: billId, count };
-		})
-	);
-	const journalSum = Promise.all(
-		billIds.map(async (billId) => {
-			const sum = await tActions.journal.sum(db, {
-				...defaultAllJournalFilter,
-				bill: { id: billId },
-				account: { type: ['asset', 'liability'] }
-			});
-
-			return { id: billId, sum };
+			return { id: billId, ...summary };
 		})
 	);
 
@@ -49,8 +42,7 @@ export const load = async (data) => {
 		searchParams: pageInfo.searchParams,
 		filterText: billFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
 		deferred: {
-			journalCount,
-			journalSum
+			journalSummaries
 		}
 	};
 };

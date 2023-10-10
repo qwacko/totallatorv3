@@ -30,6 +30,7 @@
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import JournalCountBadge from '$lib/components/JournalCountBadge.svelte';
 	import JournalCurrencyBadge from '$lib/components/JournalCurrencyBadge.svelte';
+	import JournalSummary from '$lib/components/JournalSummary.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/bills', $page);
@@ -103,7 +104,6 @@
 						</div>
 					</div>
 				</TableHeadCell>
-				<TableHeadCell>Journals</TableHeadCell>
 				<TableHeadCell>Total</TableHeadCell>
 			</TableHead>
 			<TableBody>
@@ -133,8 +133,9 @@
 						<TableBodyCell>
 							{statusToDisplay(currentBill.status)}
 						</TableBodyCell>
+
 						<TableBodyCell>
-							<JournalCountBadge
+							<JournalSummary
 								href={urlGenerator({
 									address: '/(loggedIn)/journals',
 									searchParamsValue: {
@@ -142,20 +143,7 @@
 										...defaultJournalFilter
 									}
 								}).url}
-								items={data.deferred.journalCount}
-								id={currentBill.id}
-							/>
-						</TableBodyCell>
-						<TableBodyCell>
-							<JournalCurrencyBadge
-								href={urlGenerator({
-									address: '/(loggedIn)/journals',
-									searchParamsValue: {
-										bill: { id: currentBill.id },
-										...defaultJournalFilter
-									}
-								}).url}
-								items={data.deferred.journalSum}
+								items={data.deferred.journalSummaries}
 								id={currentBill.id}
 								format={data.user?.currencyFormat || 'USD'}
 							/>
