@@ -9,7 +9,8 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Alert
+		Alert,
+		Badge
 	} from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
@@ -26,6 +27,9 @@
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
+	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
+	import JournalCountBadge from '$lib/components/JournalCountBadge.svelte';
+	import JournalCurrencyBadge from '$lib/components/JournalCurrencyBadge.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/bills', $page);
@@ -65,7 +69,7 @@
 	{:else}
 		<Table>
 			<TableHead>
-				<TableHeadCell></TableHeadCell>
+				<TableHeadCell class="w-0"></TableHeadCell>
 				<TableHeadCell>
 					<div class="flex flex-row gap-2 items-center">
 						<div class="flex">Title</div>
@@ -100,6 +104,7 @@
 					</div>
 				</TableHeadCell>
 				<TableHeadCell>Journals</TableHeadCell>
+				<TableHeadCell>Total</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each data.bills.data as currentBill}
@@ -114,7 +119,7 @@
 					}).url}
 					<TableBodyRow>
 						<TableBodyCell>
-							<ButtonGroup class="w-full justify-center">
+							<ButtonGroup>
 								<Button href={detailURL} class="p-2" outline>
 									<EditIcon height={15} width={15} />
 								</Button>
@@ -125,10 +130,11 @@
 							</ButtonGroup>
 						</TableBodyCell>
 						<TableBodyCell>{currentBill.title}</TableBodyCell>
-						<TableBodyCell>{statusToDisplay(currentBill.status)}</TableBodyCell>
 						<TableBodyCell>
-							<Button
-								outline
+							{statusToDisplay(currentBill.status)}
+						</TableBodyCell>
+						<TableBodyCell>
+							<JournalCountBadge
 								href={urlGenerator({
 									address: '/(loggedIn)/journals',
 									searchParamsValue: {
@@ -136,10 +142,23 @@
 										...defaultJournalFilter
 									}
 								}).url}
-								size="xs"
-							>
-								<JournalEntryIcon />
-							</Button>
+								items={data.deferred.journalCount}
+								id={currentBill.id}
+							/>
+						</TableBodyCell>
+						<TableBodyCell>
+							<JournalCurrencyBadge
+								href={urlGenerator({
+									address: '/(loggedIn)/journals',
+									searchParamsValue: {
+										bill: { id: currentBill.id },
+										...defaultJournalFilter
+									}
+								}).url}
+								items={data.deferred.journalSum}
+								id={currentBill.id}
+								format={data.user?.currencyFormat || 'USD'}
+							/>
 						</TableBodyCell>
 					</TableBodyRow>
 				{/each}
