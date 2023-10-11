@@ -43,6 +43,13 @@
       "when": 1695811159313,
       "tag": "0005_magical_swordsman",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1696997012221,
+      "tag": "0006_thankful_surge",
+      "breakpoints": true
     }
   ]
 }

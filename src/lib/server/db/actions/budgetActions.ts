@@ -88,18 +88,19 @@ export const budgetActions = {
 		return items;
 	},
 	getSummary: async ({ db, id }: { db: DBType; id: string }) => {
-		const summary = await tActions.journal.summary({
+		return tActions.summaryCache.getOrUpdate({
 			db,
-			filter: {
-				...defaultAllJournalFilter,
-				budget: { id },
-				account: { type: ['asset', 'liability'] }
-			}
+			id,
+			generateData: ({ db, id }) =>
+				tActions.journal.summary({
+					db,
+					filter: {
+						...defaultAllJournalFilter,
+						budget: { id },
+						account: { type: ['asset', 'liability'] }
+					}
+				})
 		});
-		return {
-			id: id,
-			...summary
-		};
 	},
 	createOrGet: async ({
 		db,

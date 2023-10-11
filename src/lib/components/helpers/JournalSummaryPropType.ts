@@ -1,5 +1,5 @@
-import type { JournalSummaryType } from '$lib/server/db/actions/journalActions';
+import type { SummaryCacheSchemaDataType } from '$lib/schema/summaryCacheSchema';
 
 export type JournalSummaryPropType =
-	| Promise<(JournalSummaryType & { id: string })[]>
-	| Promise<JournalSummaryType>;
+	| Promise<SummaryCacheSchemaDataType[]>
+	| Promise<SummaryCacheSchemaDataType>;

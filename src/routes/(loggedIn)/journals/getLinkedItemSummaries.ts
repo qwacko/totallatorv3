@@ -83,7 +83,7 @@ export const getLinkedItemSummaries = async ({
 	const endTime = new Date();
 	const timeDifference = endTime.getTime() - startTime.getTime();
 
-	if (timeDifference > 800) {
+	if (timeDifference > 300) {
 		logging.warn(
 			`Retrieved Information for ${returnInformation.length} linked items in ${timeDifference}ms`
 		);

@@ -13,7 +13,8 @@ export const journalFilterToQuery = (
 ) => {
 	const where: SQL<unknown>[] = [];
 	if (filter.id) where.push(eq(journalEntry.id, filter.id));
-	if (filter.idArray) where.push(inArray(journalEntry.id, filter.idArray));
+	if (filter.idArray && filter.idArray.length > 0)
+		where.push(inArray(journalEntry.id, filter.idArray));
 	if (filter.yearMonth && filter.yearMonth.length > 0)
 		where.push(inArray(journalEntry.yearMonth, filter.yearMonth));
 	if (filter.transactionIdArray)

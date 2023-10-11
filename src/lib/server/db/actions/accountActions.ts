@@ -102,16 +102,19 @@ export const accountActions = {
 
 		return items;
 	},
+
 	getSummary: async ({ db, id }: { db: DBType; id: string }) => {
-		const summary = await tActions.journal.summary({
+		return tActions.summaryCache.getOrUpdate({
 			db,
-			filter: { ...defaultAllJournalFilter, account: { id } }
+			id,
+			generateData: ({ db, id }) =>
+				tActions.journal.summary({
+					db,
+					filter: { ...defaultAllJournalFilter, account: { id } }
+				})
 		});
-		return {
-			id: id,
-			...summary
-		};
 	},
+
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
 		await db.insert(account).values(accountCreateInsertionData(data, id));
