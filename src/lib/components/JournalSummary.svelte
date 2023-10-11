@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { JournalSummaryType } from '$lib/server/db/actions/journalActions';
-	import { Badge, Button, Modal, Popover } from 'flowbite-svelte';
+	import { Badge, Button, Modal, Popover, Spinner } from 'flowbite-svelte';
 	import type { currencyFormatType } from '$lib/schema/userSchema';
 	import DisplayCurrency from './DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from './JournalSummaryPopoverContent.svelte';
@@ -37,7 +37,9 @@
 		{...$$restProps}
 	>
 		{#await getItems()}
-			...
+			<div class="flex flex-row gap-1">
+				<div class="flex">Loading...</div>
+			</div>
 		{:then matchingItem}
 			{#if matchingItem}
 				<div class="flex flex-row gap-1">
@@ -50,7 +52,7 @@
 	</Button>
 	<Modal title={summaryTitle} bind:open={showModal} outsideclose>
 		{#await getItems()}
-			Loading
+			<Spinner />
 		{:then matchingItem}
 			{#if matchingItem}
 				<JournalSummaryPopoverContent item={matchingItem} {href} {format} {onYearMonthClick} />

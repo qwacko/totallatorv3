@@ -69,12 +69,6 @@
 				type={$urlStore.searchParams.type}
 				generateURL={(newType) => urlInfo.updateParams({ searchParams: { type: newType } }).url}
 			/>
-			<OrderDropDown
-				currentSort={$urlStore.searchParams.orderBy}
-				options={[...accountOrderByEnum]}
-				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
-				optionToTitle={accountOrderByEnumToText}
-			/>
 		{/if}
 	</div>
 	<div class="flex flex-row gap-2">
@@ -88,11 +82,31 @@
 					account: $urlStore.searchParams || { type: undefined }
 				}
 			}).url}
+			onYearMonthClick={(yearMonth) => {
+				goto(
+					urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: {
+							...defaultJournalFilter,
+							account: $urlStore.searchParams || { type: undefined },
+							yearMonth: [yearMonth]
+						}
+					}).url
+				);
+			}}
 			items={data.deferred.accountSummary}
 			id=""
 			format={data.user?.currencyFormat || 'USD'}
 			summaryTitle="Account {data.filterText.join('and ')} - Summary"
 		/>
+		{#if $urlStore.searchParams}
+			<OrderDropDown
+				currentSort={$urlStore.searchParams.orderBy}
+				options={[...accountOrderByEnum]}
+				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+				optionToTitle={accountOrderByEnumToText}
+			/>
+		{/if}
 	</div>
 	{#if data.accounts.count === 0}
 		<Alert color="dark">No Matching Accoounts Found</Alert>
