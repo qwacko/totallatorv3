@@ -80,7 +80,23 @@
 			/>
 		{/if}
 	</div>
-	<FilterTextDisplay text={data.filterText} />
+	<div class="flex flex-row gap-2">
+		<FilterTextDisplay text={data.filterText} />
+		<div class="flex flex-grow items-center" />
+		<JournalSummary
+			href={urlGenerator({
+				address: '/(loggedIn)/journals',
+				searchParamsValue: {
+					...defaultJournalFilter,
+					account: $urlStore.searchParams || { type: undefined }
+				}
+			}).url}
+			items={data.deferred.accountSummary}
+			id=""
+			format={data.user?.currencyFormat || 'USD'}
+			summaryTitle="Account {data.filterText.join('and ')} - Summary"
+		/>
+	</div>
 	{#if data.accounts.count === 0}
 		<Alert color="dark">No Matching Accoounts Found</Alert>
 	{:else}
@@ -216,6 +232,18 @@
 								items={data.deferred.journalSummaries}
 								id={currentAccount.id}
 								format={data.user?.currencyFormat || 'USD'}
+								summaryTitle="{currentAccount.title} - Summary"
+								onYearMonthClick={(yearMonth) =>
+									goto(
+										urlGenerator({
+											address: '/(loggedIn)/journals',
+											searchParamsValue: {
+												...defaultJournalFilter,
+												account: { id: currentAccount.id },
+												yearMonth: [yearMonth]
+											}
+										}).url
+									)}
 							/>
 						</TableBodyCell>
 					</TableBodyRow>

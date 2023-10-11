@@ -14,6 +14,8 @@ export const journalFilterToQuery = (
 	const where: SQL<unknown>[] = [];
 	if (filter.id) where.push(eq(journalEntry.id, filter.id));
 	if (filter.idArray) where.push(inArray(journalEntry.id, filter.idArray));
+	if (filter.yearMonth && filter.yearMonth.length > 0)
+		where.push(inArray(journalEntry.yearMonth, filter.yearMonth));
 	if (filter.transactionIdArray)
 		where.push(inArray(journalEntry.transactionId, filter.transactionIdArray));
 	if (filter.description) where.push(like(journalEntry.description, `%${filter.description}%`));
@@ -71,6 +73,15 @@ export const journalFilterToText = async (
 			stringArray.push(`ID is one of  ${filter.idArray.length} values`);
 		} else {
 			stringArray.push(`ID is one of ${filter.idArray.join(', ')}`);
+		}
+	}
+	if (filter.yearMonth && filter.yearMonth.length > 0) {
+		if (filter.yearMonth.length === 1) {
+			stringArray.push(`Year-Month is ${filter.yearMonth[0]}`);
+		} else if (filter.yearMonth.length > 4) {
+			stringArray.push(`Year-Month is one of  ${filter.yearMonth.length} values`);
+		} else {
+			stringArray.push(`Year-Month is one of ${filter.yearMonth.join(', ')}`);
 		}
 	}
 	if (filter.transactionIdArray) {

@@ -145,6 +145,7 @@ export const journalFilterSchema = z.object({
 	transactionIdArray: z.array(z.string()).optional(),
 	dateBefore: dateStringSchema.optional(),
 	dateAfter: dateStringSchema.optional(),
+	yearMonth: z.array(z.string()).optional(),
 	description: z.string().optional(),
 	linked: z.coerce.boolean().optional(),
 	reconciled: z.coerce.boolean().optional(),

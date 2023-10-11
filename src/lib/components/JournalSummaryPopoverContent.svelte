@@ -10,7 +10,7 @@
 	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 
 	export let href: string;
-	export let item: JournalSummaryType & { id: string };
+	export let item: JournalSummaryType & { id?: string };
 	export let format: currencyFormatType = 'USD';
 	export let onYearMonthClick: (yearMonth: string) => void = () => {};
 
@@ -43,7 +43,7 @@
 	$: yearCount = last12Months.reduce((prev, current) => prev + current.count, 0);
 </script>
 
-<div class="flex flex-col gap-2 w-60">
+<div class="flex flex-col gap-2">
 	<div class="flex flex-row">
 		<div class="flex">
 			<Button {href} color="none" size="xs"><JournalEntryIcon /></Button>
@@ -63,15 +63,17 @@
 		<TabItem title="All" on:click={() => (selection = 'All')} />
 		<TabItem title="Flow" on:click={() => (selection = 'Flow')} />
 	</Tabs>
-	{#if selection === 'Recent'}
-		<Chart {...recentChartConfig} />
-	{/if}
+	<div class="min-h-[280px]">
+		{#if selection === 'Recent'}
+			<Chart {...recentChartConfig} />
+		{/if}
 
-	{#if selection === 'All'}
-		<Chart {...chartConfig} />
-	{/if}
+		{#if selection === 'All'}
+			<Chart {...chartConfig} />
+		{/if}
 
-	{#if selection === 'Flow'}
-		<Chart {...recentFlowChartConfig} />
-	{/if}
+		{#if selection === 'Flow'}
+			<Chart {...recentFlowChartConfig} />
+		{/if}
+	</div>
 </div>
