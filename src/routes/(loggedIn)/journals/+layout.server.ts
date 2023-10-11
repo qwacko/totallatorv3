@@ -31,6 +31,6 @@ export const load = async (data) => {
 	return {
 		journals: journalData,
 		dropdownInfo: { tags, bills, budgets, categories, labels, accounts },
-		filterText: journalFilterToText(filter, 'Journal')
+		filterText: journalFilterToText(filter, { prefix: 'Journal' })
 	};
 };

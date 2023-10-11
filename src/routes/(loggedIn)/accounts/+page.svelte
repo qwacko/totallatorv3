@@ -9,8 +9,7 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Alert,
-		Select
+		Alert
 	} from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
@@ -28,10 +27,8 @@
 
 	import AccountTypeFilterLinks from '$lib/components/AccountTypeFilterLinks.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
+	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
-	import JournalCountBadge from '$lib/components/JournalCountBadge.svelte';
-	import JournalCurrencyBadge from '$lib/components/JournalCurrencyBadge.svelte';
 	import JournalSummary from '$lib/components/JournalSummary.svelte';
 
 	export let data;
