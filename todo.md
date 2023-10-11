@@ -1,6 +1,5 @@
 TODO : Make column visibility controlled by a dropdown and matching wrapper component (possibly just make a cell and header wrapper?). Use a local storage store for this rather than the URL.
 TODO : Improve filtering for journals (dropdown?)
-TODO : Add statistics / summary / graphcs to journal page
 TODO : Importing - Setup importing
 TODO : Importing - Setup database structure (and env variables) to support importing. This will require "importId" and "importData" columns for journals, and an import table.
 TODO : Make "/" page work correctly.
@@ -8,18 +7,25 @@ TODO : Labels - Make these show on journal page
 TODO : Labels - Confirm filters for these work correctly.
 TODO : Labels - Make add / remove labels when editing or cloning journals work.
 TODO : Labels - Confirm that cloning a journal also clones labels.
-TODO : Other Journals - Allow filtering by other journal accounts (possibly could improve performance by storing this in the journal or something)
+TODO : Other Journals - Allow filtering by other journal accounts (possibly could improve performance by storing this relationship in the journal or something)
 TODO : More columns in linked item views, including journal count.
 TODO : Favicon + Page Titles
 TODO : Add "Create Transaction" page (currently links to creating a new tag)
 OPTION : Make Clone and Edit Journals pages so that they don't waste as much space.
-OPTION : Make "tags" in journal list be a link to the page for something. Possibly have a dropdown that allows for selection of editing that item, bulk editing related journals, or show related journals.
 OPTION : Consider whether direct editing from a table view is beneficial for journals, or if the current approach is OK. Maybe have a special edit journals mode or something? Could have that clicking an item opens a dropdown to edit it.
 OPTION : Consider pre-loading page data.
 OPTION : Consider adding "otherAccountId" / "payee" to the bulk update form.
 OPTION : Consider colour coding tags / bills / budgets / categories / tags etc...
 OPTION : Consider refactoring out the journals table if this is useful elsehwere - currently this isn't required.
 OPTION : Improve mobile functionality.
-OPTION : Add Spark Graph to link information views to show relevant information.
 OPTION : Figure out how to make table columns consistent width (and adjustable)
-OPTION : Allow linked items (tags etc...) to be sorted by journal count and total. Possibly this would require the original query to get the sums and counts as well.
+OPTION : Allow linked items (tags etc...) to be sorted by journal count and total. Possibly this would require the original query to get the sums and counts as well. This could actually use the "summary" info that is created, and join that? But this is more joining, more complexity.... I guess this only needs to be done for the "linked items" and not the main journal, so possibly beneficial. Just need to make sure the summaries are updated...
+OPTION : Make the cached summary have a count, value, and needs refresh column. Then when retrieving the data, refresh the summary if necessary. This will mean that th summaries are more long lasting nad so can be used for sorting / filtering etc...
+OPTION : Have Export Functionality
+OPTION : Reports - Create Reports / Pivot Tables to allow for viewing of data etc... (this would also be well served by creating direct links from the values to journals)
+OPTION : Reports - Make reports "saveable" to allow for easy retrieval.
+OPTION : Reports - Allow reports to have data tables as well as graphics. Use JSON to store the configuration in a db table (to allow for flexbility of configuration).
+OPTION : Reports - For reports, possibly consider allowing creation of "visualisations" which can be used across multiple "reports"
+OPTION : May be useful to have the bulkEdit / bulkDelete pages include the summary to make it easy to confirm the journals, and navigate to the latest.
+OPTION : May be useful to have the summary information include the latest 5 journals or something.
+OPTION : May be useful to allow bulkEdit / bulkDelete from the summary popup.
