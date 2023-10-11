@@ -16,8 +16,6 @@ import { categoryFilterToQuery } from './helpers/categoryFilterToQuery';
 import { categoryCreateInsertionData } from './helpers/categoryCreateInsertionData';
 import { createCategory } from './helpers/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
-import { tActions } from './tActions';
-import { defaultAllJournalFilter } from '$lib/schema/journalSchema';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
@@ -99,21 +97,6 @@ export const categoryActions = {
 			.execute();
 
 		return items;
-	},
-	getSummary: async ({ db, id }: { db: DBType; id: string }) => {
-		return tActions.summaryCache.getOrUpdate({
-			db,
-			id,
-			generateData: ({ db, id }) =>
-				tActions.journal.summary({
-					db,
-					filter: {
-						...defaultAllJournalFilter,
-						category: { id },
-						account: { type: ['asset', 'liability'] }
-					}
-				})
-		});
 	},
 	createOrGet: async ({
 		db,

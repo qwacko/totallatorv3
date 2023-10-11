@@ -15,8 +15,6 @@ import { budgetCreateInsertionData } from './helpers/budgetCreateInsertionData';
 import { budgetFilterToQuery } from './helpers/budgetFilterToQuery';
 import { createBudget } from './helpers/seedBudgetData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
-import { tActions } from './tActions';
-import { defaultAllJournalFilter } from '$lib/schema/journalSchema';
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
@@ -93,21 +91,6 @@ export const budgetActions = {
 			.execute();
 
 		return items;
-	},
-	getSummary: async ({ db, id }: { db: DBType; id: string }) => {
-		return tActions.summaryCache.getOrUpdate({
-			db,
-			id,
-			generateData: ({ db, id }) =>
-				tActions.journal.summary({
-					db,
-					filter: {
-						...defaultAllJournalFilter,
-						budget: { id },
-						account: { type: ['asset', 'liability'] }
-					}
-				})
-		});
 	},
 	createOrGet: async ({
 		db,

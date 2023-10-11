@@ -34,10 +34,10 @@ import { handleLinkedItem } from './helpers/handleLinkedItem';
 import { generateItemsForTransactionCreation } from './helpers/generateItemsForTransactionCreation';
 import { splitArrayIntoChunks } from './helpers/splitArrayIntoChunks';
 import { journalList } from './helpers/journalList';
-import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
 import { reconcileJournalsToOtherJournals } from './helpers/reconcileJournalsToOtherJournals';
+import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -396,8 +396,6 @@ export const journalActions = {
 			await journalActions.updateOtherJournals({ db, transactionIds });
 		});
 
-		await tActions.summaryCache.clear({ db });
-
 		return transactionIds;
 	},
 	hardDeleteTransactions: async ({
@@ -413,7 +411,7 @@ export const journalActions = {
 				.where(inArray(journalEntry.transactionId, transactionIds))
 				.execute();
 			await db.delete(transaction).where(inArray(transaction.id, transactionIds)).execute();
-			await tActions.summaryCache.clear({ db });
+
 			await journalActions.updateOtherJournals({ db });
 		});
 	},
@@ -490,7 +488,6 @@ export const journalActions = {
 					return journalActions.markComplete(db, journal.id);
 				})
 			);
-			await tActions.summaryCache.clear({ db });
 		});
 	},
 	markManyUncomplete: async ({
@@ -508,7 +505,6 @@ export const journalActions = {
 					return journalActions.markUncomplete(db, journal.id);
 				})
 			);
-			await tActions.summaryCache.clear({ db });
 		});
 	},
 	markComplete: async (db: DBType, journalId: string) => {
@@ -522,7 +518,6 @@ export const journalActions = {
 			.set({ complete: true, dataChecked: true, reconciled: true, ...updatedTime() })
 			.where(eq(journalEntry.transactionId, transactionId))
 			.execute();
-		await tActions.summaryCache.clear({ db });
 	},
 	markUncomplete: async (db: DBType, journalId: string) => {
 		const journal = await db.query.journalEntry
@@ -535,7 +530,6 @@ export const journalActions = {
 			.set({ complete: false, ...updatedTime() })
 			.where(eq(journalEntry.transactionId, transactionId))
 			.execute();
-		await tActions.summaryCache.clear({ db });
 	},
 	updateJournals: async ({
 		db,
@@ -755,7 +749,6 @@ export const journalActions = {
 					})
 				);
 			}
-			await tActions.summaryCache.clear({ db });
 		});
 	},
 	cloneJournals: async ({
@@ -823,7 +816,6 @@ export const journalActions = {
 				},
 				journalData: processedData.data
 			});
-			await tActions.summaryCache.clear({ db });
 		});
 
 		return transactionIds;

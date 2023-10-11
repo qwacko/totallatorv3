@@ -1,16 +1,16 @@
 TODO : Make column visibility controlled by a dropdown and matching wrapper component (possibly just make a cell and header wrapper?). Use a local storage store for this rather than the URL.
-TODO : Improve filtering for journals (dropdown?)
-TODO : Importing - Setup importing
+TODO : Improve filtering for journals (dropdown?).
+TODO : Importing - Setup importing.
 TODO : Importing - Setup database structure (and env variables) to support importing. This will require "importId" and "importData" columns for journals, and an import table.
 TODO : Make "/" page work correctly.
-TODO : Labels - Make these show on journal page
+TODO : Labels - Make these show on journal page.
 TODO : Labels - Confirm filters for these work correctly.
 TODO : Labels - Make add / remove labels when editing or cloning journals work.
 TODO : Labels - Confirm that cloning a journal also clones labels.
-TODO : Other Journals - Allow filtering by other journal accounts (possibly could improve performance by storing this relationship in the journal or something)
-TODO : More columns in linked item views, including journal count.
-TODO : Favicon + Page Titles
-TODO : Add "Create Transaction" page (currently links to creating a new tag)
+TODO : Other Journals - Allow filtering by other journal accounts (possibly could improve performance by storing this relationship in the journal or something).
+TODO : Favicon + Page Titles.
+TODO : Add "Create Transaction" page (currently links to creating a new tag).
+OPTION : More columns in linked item views, including journal count.
 OPTION : Make Clone and Edit Journals pages so that they don't waste as much space.
 OPTION : Consider whether direct editing from a table view is beneficial for journals, or if the current approach is OK. Maybe have a special edit journals mode or something? Could have that clicking an item opens a dropdown to edit it.
 OPTION : Consider pre-loading page data.

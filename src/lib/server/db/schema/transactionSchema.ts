@@ -1,4 +1,3 @@
-import type { SummaryCacheSchemaDataType } from '$lib/schema/summaryCacheSchema';
 import { accountTypeEnum } from '../../../schema/accountTypeSchema';
 import { statusEnum } from '../../../schema/statusSchema';
 import { relations, sql } from 'drizzle-orm';
@@ -224,8 +223,3 @@ export const journalEntryRelations = relations(journalEntry, ({ one, many }) => 
 	labels: many(labelsToJournals),
 	otherJournals: many(journalsToOtherJournals, { relationName: 'otherJournalsRelation' })
 }));
-
-export const summaryCache = sqliteTable('summary_cache', {
-	...idColumn,
-	data: text('data', { mode: 'json' }).$type<SummaryCacheSchemaDataType>()
-});
