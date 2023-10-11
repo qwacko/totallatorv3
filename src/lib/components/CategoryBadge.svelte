@@ -35,24 +35,7 @@
 						items={summaryData}
 						format="USD"
 						summaryTitle="{data.categoryTitle || ''} Summary"
-						href={urlGenerator({
-							address: '/(loggedIn)/journals',
-							searchParamsValue: { ...defaultJournalFilter, category: { id: data.categoryId } }
-						}).url}
-						onYearMonthClick={(yearMonth) => {
-							if (data.categoryId) {
-								goto(
-									urlGenerator({
-										address: '/(loggedIn)/journals',
-										searchParamsValue: {
-											...defaultJournalFilter,
-											category: { id: data.categoryId },
-											yearMonth: [yearMonth]
-										}
-									}).url
-								);
-							}
-						}}
+						summaryFilter={{ category: { id: data.categoryId } }}
 					/>
 				{/if}
 				<div class="flex flex-grow" />

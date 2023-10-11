@@ -30,6 +30,7 @@
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import JournalSummary from '$lib/components/JournalSummary.svelte';
+	import { accountTypeEnum } from '$lib/schema/accountTypeSchema';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -75,25 +76,7 @@
 		<FilterTextDisplay text={data.filterText} />
 		<div class="flex flex-grow items-center" />
 		<JournalSummary
-			href={urlGenerator({
-				address: '/(loggedIn)/journals',
-				searchParamsValue: {
-					...defaultJournalFilter,
-					account: $urlStore.searchParams || { type: undefined }
-				}
-			}).url}
-			onYearMonthClick={(yearMonth) => {
-				goto(
-					urlGenerator({
-						address: '/(loggedIn)/journals',
-						searchParamsValue: {
-							...defaultJournalFilter,
-							account: $urlStore.searchParams || { type: undefined },
-							yearMonth: [yearMonth]
-						}
-					}).url
-				);
-			}}
+			summaryFilter={{ account: $urlStore.searchParams || { type: undefined } }}
 			items={data.deferred.accountSummary}
 			id=""
 			format={data.user?.currencyFormat || 'USD'}
@@ -233,28 +216,11 @@
 						<TableBodyCell>{statusToDisplay(currentAccount.status)}</TableBodyCell>
 						<TableBodyCell>
 							<JournalSummary
-								href={urlGenerator({
-									address: '/(loggedIn)/journals',
-									searchParamsValue: {
-										...defaultJournalFilter,
-										account: { id: currentAccount.id }
-									}
-								}).url}
+								summaryFilter={{ account: { id: currentAccount.id, type: [...accountTypeEnum] } }}
 								items={data.deferred.journalSummaries}
 								id={currentAccount.id}
 								format={data.user?.currencyFormat || 'USD'}
 								summaryTitle="{currentAccount.title} - Summary"
-								onYearMonthClick={(yearMonth) =>
-									goto(
-										urlGenerator({
-											address: '/(loggedIn)/journals',
-											searchParamsValue: {
-												...defaultJournalFilter,
-												account: { id: currentAccount.id },
-												yearMonth: [yearMonth]
-											}
-										}).url
-									)}
 							/>
 						</TableBodyCell>
 					</TableBodyRow>

@@ -3,7 +3,7 @@
 	import AccountIconExpense from '$lib/components/icons/AccountIconExpense.svelte';
 	import AccountIconIncome from '$lib/components/icons/AccountIconIncome.svelte';
 	import AccountIconLiability from '$lib/components/icons/AccountIconLiability.svelte';
-	import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
+	import { accountTypeEnum, type AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 	import { Badge, Button, Dropdown, Tooltip } from 'flowbite-svelte';
 	import type { JournalSummaryPropType } from './helpers/JournalSummaryPropType';
 	import JournalSummary from './JournalSummary.svelte';
@@ -68,24 +68,7 @@
 						items={summaryData}
 						format="USD"
 						summaryTitle="{accountInfo.title || ''} Summary"
-						href={urlGenerator({
-							address: '/(loggedIn)/journals',
-							searchParamsValue: { ...defaultJournalFilter, account: { id: accountInfo.id } }
-						}).url}
-						onYearMonthClick={(yearMonth) => {
-							if (accountInfo.id) {
-								goto(
-									urlGenerator({
-										address: '/(loggedIn)/journals',
-										searchParamsValue: {
-											...defaultJournalFilter,
-											account: { id: accountInfo.id },
-											yearMonth: [yearMonth]
-										}
-									}).url
-								);
-							}
-						}}
+						summaryFilter={{ account: { id: accountInfo.id, type: [...accountTypeEnum] } }}
 					/>
 				{/if}
 				<div class="flex flex-grow" />

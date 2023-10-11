@@ -154,7 +154,8 @@ export const journalFilterSchema = z.object({
 	account: accountFilterSchema
 		.omit({ page: true, pageSize: true, orderBy: true })
 		.optional()
-		.default({ type: ['asset', 'liability'] }),
+		.default({ type: ['asset', 'liability'] })
+		.optional(),
 	tag: tagFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
 	bill: billFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
 	budget: budgetFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),

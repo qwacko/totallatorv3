@@ -4,13 +4,16 @@
 	import DisplayCurrency from './DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from './JournalSummaryPopoverContent.svelte';
 	import type { JournalSummaryPropType } from './helpers/JournalSummaryPropType';
+	import type { JournalFilterSchemaInputType } from '$lib/schema/journalSchema';
+	import type { DeepPartialWithoutArray } from '$lib/helpers/DeepPartialType';
 
-	export let href: string;
 	export let id: string;
 	export let items: JournalSummaryPropType;
 	export let format: currencyFormatType = 'USD';
 	export let summaryTitle: string = 'Summary';
-	export let onYearMonthClick: (yearMonth: string) => void = () => {};
+	export let summaryFilter: DeepPartialWithoutArray<
+		Omit<JournalFilterSchemaInputType, 'orderBy' | 'page' | 'pageSize'>
+	> = {};
 
 	$: getItems = async () => {
 		const resolvedItems = await items;
@@ -55,7 +58,7 @@
 			<Spinner />
 		{:then matchingItem}
 			{#if matchingItem}
-				<JournalSummaryPopoverContent item={matchingItem} {href} {format} {onYearMonthClick} />
+				<JournalSummaryPopoverContent item={matchingItem} {format} {summaryFilter} />
 			{:else}
 				Error
 			{/if}

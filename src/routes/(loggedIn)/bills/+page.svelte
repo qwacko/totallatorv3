@@ -136,13 +136,8 @@
 
 						<TableBodyCell>
 							<JournalSummary
-								href={urlGenerator({
-									address: '/(loggedIn)/journals',
-									searchParamsValue: {
-										bill: { id: currentBill.id },
-										...defaultJournalFilter
-									}
-								}).url}
+								summaryFilter={{ bill: { id: currentBill.id } }}
+								summaryTitle="{currentBill.title} Summary"
 								items={data.deferred.journalSummaries}
 								id={currentBill.id}
 								format={data.user?.currencyFormat || 'USD'}

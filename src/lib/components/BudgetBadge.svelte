@@ -35,24 +35,7 @@
 						items={summaryData}
 						format="USD"
 						summaryTitle="{data.budgetTitle || ''} Summary"
-						href={urlGenerator({
-							address: '/(loggedIn)/journals',
-							searchParamsValue: { ...defaultJournalFilter, budget: { id: data.budgetId } }
-						}).url}
-						onYearMonthClick={(yearMonth) => {
-							if (data.budgetId) {
-								goto(
-									urlGenerator({
-										address: '/(loggedIn)/journals',
-										searchParamsValue: {
-											...defaultJournalFilter,
-											budget: { id: data.budgetId },
-											yearMonth: [yearMonth]
-										}
-									}).url
-								);
-							}
-						}}
+						summaryFilter={{ budget: { id: data.budgetId } }}
 					/>
 				{/if}
 				<div class="flex flex-grow" />

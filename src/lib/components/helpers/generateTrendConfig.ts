@@ -190,13 +190,15 @@ export const generatePIChartConfig = ({
 	formatter,
 	height,
 	title,
-	removeNull = true
+	removeNull = true,
+	onClick
 }: {
 	data: SummaryItemDetailsType[];
 	formatter: ReturnType<typeof getCurrencyFormatter>;
 	height: string;
 	title: string;
-	removeNull: boolean;
+	removeNull?: boolean;
+	onClick?: (id: string | null | undefined) => Promise<unknown>;
 }): ChartProps => {
 	const sortedData = data
 		.sort((a, b) => b.sum - a.sum)
@@ -214,8 +216,13 @@ export const generatePIChartConfig = ({
 					enabled: false
 				},
 				events: {
-					markerClick: (_1, _2, clickData) => {
-						console.log('Clicked Marker : ', clickData);
+					markerClick: async (_1, _2, clickData) => {
+						const clickedData = sortedData[clickData.dataPointIndex];
+						const clickedId = clickedData.id;
+
+						if (onClick) {
+							await onClick(clickedId);
+						}
 					}
 				}
 			},

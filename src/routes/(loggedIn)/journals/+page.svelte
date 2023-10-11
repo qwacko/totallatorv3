@@ -181,14 +181,11 @@
 		</ButtonGroup>
 		<div class="flex flex-grow" />
 		<JournalSummary
-			href={urlInfo.current.url}
 			id=""
 			items={data.deferred.summary}
 			format={data.user?.currencyFormat || 'USD'}
 			summaryTitle="Journal Summary"
-			onYearMonthClick={(yearMonth) => {
-				goto(urlInfo.updateParams({ searchParams: { yearMonth: [yearMonth] } }).url);
-			}}
+			summaryFilter={$urlStore.searchParams || defaultJournalFilter}
 		/>
 		{#if $urlStore.searchParams}
 			<OrderDropDown

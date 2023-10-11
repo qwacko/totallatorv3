@@ -20,6 +20,9 @@ dependencies:
   drizzle-orm:
     specifier: ^0.28.6
     version: 0.28.6(@types/better-sqlite3@7.6.5)(better-sqlite3@8.7.0)
+  lodash-es:
+    specifier: ^4.17.21
+    version: 4.17.21
   lucia:
     specifier: ^2.7.1
     version: 2.7.1
@@ -55,6 +58,9 @@ devDependencies:
   '@types/better-sqlite3':
     specifier: ^7.6.5
     version: 7.6.5
+  '@types/lodash-es':
+    specifier: ^4.17.9
+    version: 4.17.9
   '@types/node-schedule':
     specifier: ^2.1.1
     version: 2.1.1
@@ -1974,6 +1980,16 @@ packages:
 
   /@types/json-schema@7.0.13:
     resolution: {integrity: sha512-RbSSoHliUbnXj3ny0CNFOoxrIDV6SUGyStHsvDqosw6CkdPV8TtWGlfecuK4ToyMEAql6pzNxgCFKanovUzlgQ==}
+    dev: true
+
+  /@types/lodash-es@4.17.9:
+    resolution: {integrity: sha512-ZTcmhiI3NNU7dEvWLZJkzG6ao49zOIjEgIE0RgV7wbPxU0f2xT3VSAHw2gmst8swH6V0YkLRGp4qPlX/6I90MQ==}
+    dependencies:
+      '@types/lodash': 4.14.199
+    dev: true
+
+  /@types/lodash@4.14.199:
+    resolution: {integrity: sha512-Vrjz5N5Ia4SEzWWgIVwnHNEnb1UE1XMkvY5DGXrAeOGE9imk0hgTHh5GyDjLDJi9OTCn9oo9dXH1uToK1VRfrg==}
     dev: true
 
   /@types/node-schedule@2.1.1:

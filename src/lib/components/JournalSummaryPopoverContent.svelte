@@ -13,15 +13,52 @@
 	import DisplayCurrency from './DisplayCurrency.svelte';
 	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 	import type { SummaryCacheSchemaDataType } from '$lib/schema/summaryCacheSchema';
+	import {
+		type JournalFilterSchemaInputType,
+		defaultJournalFilter
+	} from '$lib/schema/journalSchema';
+	import { merge } from 'lodash-es';
+	import { goto } from '$app/navigation';
+	import { urlGenerator } from '$lib/routes';
+	import type { DeepPartialWithoutArray } from '$lib/helpers/DeepPartialType';
 
-	export let href: string;
 	export let item: SummaryCacheSchemaDataType;
 	export let format: currencyFormatType = 'USD';
-	export let onYearMonthClick: (yearMonth: string) => void = () => {};
+	export let summaryFilter: DeepPartialWithoutArray<
+		Omit<JournalFilterSchemaInputType, 'orderBy' | 'page' | 'pageSize'>
+	> = {};
 
 	let selection: 'Recent' | 'All' | 'Flow' | 'Tag' | 'Account' | 'Category' | 'Bill' | 'Budget' =
 		'Recent';
 	const chartHeight = '250';
+
+	$: href = urlGenerator({
+		address: '/(loggedIn)/journals',
+		searchParamsValue: {
+			...defaultJournalFilter,
+			...summaryFilter
+		}
+	}).url;
+
+	const gotoUpdatedFilter = async (
+		updatedFilter: DeepPartialWithoutArray<
+			Omit<JournalFilterSchemaInputType, 'orderBy' | 'page' | 'pageSize'>
+		>
+	) => {
+		const combinedFilter = merge(summaryFilter, updatedFilter);
+
+		const newURL = urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...defaultJournalFilter,
+				...combinedFilter
+			}
+		}).url;
+
+		console.log('New URL : ', newURL);
+
+		await goto(newURL);
+	};
 
 	$: latestYearMonth = generateYearMonthsBeforeToday(12);
 	$: last12Months = filterTrendData({ data: item.monthlySummary, dates: latestYearMonth });
@@ -31,52 +68,59 @@
 		data: item.monthlySummary,
 		formatter,
 		height: chartHeight,
-		onYearMonthClick
+		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] })
 	});
 	$: recentChartConfig = generateTotalTrendConfig({
 		data: last12Months,
 		formatter,
 		height: chartHeight,
-		onYearMonthClick
+		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] })
 	});
 	$: recentFlowChartConfig = generateFlowTrendConfig({
 		data: last12Months,
 		formatter,
 		height: chartHeight,
-		onYearMonthClick
+		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] })
 	});
 	$: accountsChartConfig = generatePIChartConfig({
 		data: item.accounts,
 		formatter,
 		height: chartHeight,
-		title: 'Account'
+		title: 'Account',
+		onClick: async (id) =>
+			id
+				? gotoUpdatedFilter({ account: { id, type: ['asset', 'liability', 'income', 'expense'] } })
+				: null
 	});
 	$: tagsChartConfig = generatePIChartConfig({
 		data: item.tags,
 		formatter,
 		height: chartHeight,
-		title: 'Tag'
+		title: 'Tag',
+		onClick: async (id) => (id ? gotoUpdatedFilter({ tag: { id } }) : null)
 	});
 	$: billsChartConfig = generatePIChartConfig({
 		data: item.bills,
 		formatter,
 		height: chartHeight,
-		title: 'Bills'
+		title: 'Bills',
+		onClick: async (id) => (id ? gotoUpdatedFilter({ bill: { id } }) : null)
 	});
 	$: budgetsChartConfig = generatePIChartConfig({
 		data: item.budgets,
 		formatter,
 		height: chartHeight,
-		title: 'Budget'
+		title: 'Budget',
+		onClick: async (id) => (id ? gotoUpdatedFilter({ budget: { id } }) : null)
 	});
 	$: categoriesChartConfig = generatePIChartConfig({
 		data: item.categories,
 		formatter,
 		height: chartHeight,
-		title: 'Category'
+		title: 'Category',
+		onClick: async (id) => (id ? gotoUpdatedFilter({ category: { id } }) : null)
 	});
 	$: yearChange = last12Months.reduce((prev, current) => prev + current.sum, 0);
-	$: yearCount = last12Months.reduce((prev, current) => prev + current.count, 0);
 </script>
 
 <div class="flex flex-col gap-2">
