@@ -50,6 +50,13 @@
       "when": 1696997012221,
       "tag": "0006_thankful_surge",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1697018536008,
+      "tag": "0007_needy_gauntlet",
+      "breakpoints": true
     }
   ]
 }

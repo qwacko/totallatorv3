@@ -129,6 +129,33 @@ export const labelToJournalsRelations = relations(labelsToJournals, ({ one }) =>
 	label: one(label, { fields: [labelsToJournals.labelId], references: [label.id] })
 }));
 
+export const journalsToOtherJournals = sqliteTable(
+	'journals_to_journals',
+	{
+		...idColumn,
+		parentJournalId: text('label_id').notNull(),
+		journalId: text('journal_id').notNull(),
+		...timestampColumns
+	},
+	(t) => ({
+		uniqueRelation: unique().on(t.journalId, t.parentJournalId),
+		labelIdx: index('parentJournal_idx').on(t.parentJournalId),
+		journallabelIdx: index('otherjournal_idx').on(t.journalId)
+	})
+);
+
+export const journalToOtherJournalsRelations = relations(journalsToOtherJournals, ({ one }) => ({
+	parentJournal: one(journalEntry, {
+		fields: [journalsToOtherJournals.parentJournalId],
+		references: [journalEntry.id],
+		relationName: 'otherJournalsRelation'
+	}),
+	journal: one(journalEntry, {
+		fields: [journalsToOtherJournals.journalId],
+		references: [journalEntry.id]
+	})
+}));
+
 const journalSharedColumns = {
 	description: text('description').notNull(),
 
@@ -194,7 +221,8 @@ export const journalEntryRelations = relations(journalEntry, ({ one, many }) => 
 		fields: [journalEntry.tagId],
 		references: [tag.id]
 	}),
-	labels: many(labelsToJournals)
+	labels: many(labelsToJournals),
+	otherJournals: many(journalsToOtherJournals, { relationName: 'otherJournalsRelation' })
 }));
 
 export const summaryCache = sqliteTable('summary_cache', {

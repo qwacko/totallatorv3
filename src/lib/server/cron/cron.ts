@@ -1,5 +1,4 @@
 import schedule from 'node-schedule';
-import { logging } from '../logging';
 import { cronJobs } from './cronJobs';
 
 export type CronJob = {

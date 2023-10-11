@@ -1,6 +1,7 @@
 import { tActions } from '$lib/server/db/actions/tActions';
 import type { DBType } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
+import { filterNullUndefinedAndDuplicates } from './filterNullUndefinedAndDuplicates';
 
 export const getLinkedItemSummaries = async ({
 	db,
@@ -90,13 +91,3 @@ export const getLinkedItemSummaries = async ({
 
 	return returnInformation;
 };
-function filterNullUndefinedAndDuplicates<T>(arr: (T | null | undefined)[]): T[] {
-	const seen = new Set<T>();
-	return arr.filter((item): item is T => {
-		if (item !== null && item !== undefined && !seen.has(item)) {
-			seen.add(item);
-			return true;
-		}
-		return false;
-	});
-}
