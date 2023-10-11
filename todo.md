@@ -29,3 +29,4 @@ OPTION : Reports - For reports, possibly consider allowing creation of "visualis
 OPTION : May be useful to have the bulkEdit / bulkDelete pages include the summary to make it easy to confirm the journals, and navigate to the latest.
 OPTION : May be useful to have the summary information include the latest 5 journals or something.
 OPTION : May be useful to allow bulkEdit / bulkDelete from the summary popup.
+OPTION : Consider how to better support more journals per transaction.
