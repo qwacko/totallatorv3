@@ -27,6 +27,7 @@
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
+	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -45,6 +46,12 @@
 
 <PageLayout title="Tags" size="lg">
 	<Button href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>Create</Button>
+	<JournalSummaryPopoverContent
+		item={data.tagSummary}
+		format={data.user?.currencyFormat || 'USD'}
+		summaryFilter={{ tag: $urlStore.searchParams } || defaultJournalFilter}
+		showJournalLink
+	/>
 	<center>
 		<TablePagination
 			count={data.tags.count}
@@ -141,18 +148,18 @@
 					<TableBodyRow>
 						<TableBodyCell>
 							<div class="flex flex-row justify-center">
-							<ButtonGroup class="w-full justify-center">
-								<Button href={journalsURL} class="p-2" outline color="blue">
+								<ButtonGroup class="w-full justify-center">
+									<Button href={journalsURL} class="p-2" outline color="blue">
 										<JournalEntryIcon height={15} width={15} />
 									</Button>
-								<Button href={detailURL} class="p-2" outline>
-									<EditIcon height={15} width={15} />
-								</Button>
-								<Button href={deleteURL} class="p-2" outline color="red">
-									<DeleteIcon height={15} width={15} />
-								</Button>
-								<RawDataModal data={currentTag} title="Raw Tag Data" dev={data.dev} />
-							</ButtonGroup>
+									<Button href={detailURL} class="p-2" outline>
+										<EditIcon height={15} width={15} />
+									</Button>
+									<Button href={deleteURL} class="p-2" outline color="red">
+										<DeleteIcon height={15} width={15} />
+									</Button>
+									<RawDataModal data={currentTag} title="Raw Tag Data" dev={data.dev} />
+								</ButtonGroup>
 							</div>
 						</TableBodyCell>
 						<TableBodyCell>{currentTag.group}</TableBodyCell>

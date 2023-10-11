@@ -27,6 +27,7 @@
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
+	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/categories', $page);
@@ -45,6 +46,12 @@
 
 <PageLayout title="Categories" size="lg">
 	<Button href={urlGenerator({ address: '/(loggedIn)/categories/create' }).url}>Create</Button>
+	<JournalSummaryPopoverContent
+		item={data.categorySummary}
+		format={data.user?.currencyFormat || 'USD'}
+		summaryFilter={{ category: $urlStore.searchParams } || defaultJournalFilter}
+		showJournalLink
+	/>
 	<center>
 		<TablePagination
 			count={data.categories.count}

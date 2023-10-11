@@ -31,6 +31,7 @@
 	import JournalCountBadge from '$lib/components/JournalCountBadge.svelte';
 	import JournalCurrencyBadge from '$lib/components/JournalCurrencyBadge.svelte';
 	import JournalSummary from '$lib/components/JournalSummary.svelte';
+	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/bills', $page);
@@ -49,6 +50,12 @@
 
 <PageLayout title="Bills" size="lg">
 	<Button href={urlGenerator({ address: '/(loggedIn)/bills/create' }).url}>Create</Button>
+	<JournalSummaryPopoverContent
+		item={data.billSummary}
+		format={data.user?.currencyFormat || 'USD'}
+		summaryFilter={{ bill: $urlStore.searchParams } || defaultJournalFilter}
+		showJournalLink
+	/>
 	<center>
 		<TablePagination
 			count={data.bills.count}

@@ -1,5 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
+import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { budgetFilterToText } from '$lib/server/db/actions/helpers/budgetFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
@@ -20,9 +21,15 @@ export const load = async (data) => {
 		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
+	const budgetSummary = tActions.journal.summary({
+		db,
+		filter: { ...defaultJournalFilter, budget: pageInfo.searchParams }
+	});
+
 	return {
 		budgets,
 		searchParams: pageInfo.searchParams,
-		filterText: budgetFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 })
+		filterText: budgetFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		budgetSummary
 	};
 };
