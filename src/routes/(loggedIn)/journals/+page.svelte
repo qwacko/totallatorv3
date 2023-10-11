@@ -45,6 +45,11 @@
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import EyeIcon from '$lib/components/icons/EyeIcon.svelte';
+	import JournalSummary from '$lib/components/JournalSummary.svelte';
+	import CategoryBadge from '$lib/components/CategoryBadge.svelte';
+	import TagBadge from '$lib/components/TagBadge.svelte';
+	import BillBadge from '$lib/components/BillBadge.svelte';
+	import BudgetBadge from '$lib/components/BudgetBadge.svelte';
 
 	export let data;
 
@@ -175,6 +180,16 @@
 			</Button>
 		</ButtonGroup>
 		<div class="flex flex-grow" />
+		<JournalSummary
+			href={urlInfo.current.url}
+			id=""
+			items={data.deferred.summary}
+			format={data.user?.currencyFormat || 'USD'}
+			summaryTitle="Journal Summary"
+			onYearMonthClick={(yearMonth) => {
+				goto(urlInfo.updateParams({ searchParams: { yearMonth: [yearMonth] } }).url);
+			}}
+		/>
 		{#if $urlStore.searchParams}
 			<OrderDropDown
 				currentSort={$urlStore.searchParams.orderBy || []}
@@ -325,6 +340,10 @@
 									id: currentJournal.accountId,
 									accountGroupCombinedTitle: currentJournal.accountGroup
 								}}
+								summaryData={data.deferred.linkedSummary}
+								filterURL={urlInfo.updateParams({
+									searchParams: { account: { id: currentJournal.accountId } }
+								}).url}
 							/>
 						</TableBodyCell>
 						<TableBodyCell>
@@ -344,6 +363,7 @@
 										id: currentOtherJournal.accountId,
 										accountGroupCombinedTitle: currentOtherJournal.accountGroup
 									}}
+									summaryData={data.deferred.linkedSummary}
 								/>
 							{:else}
 								<div class="flex flex-col">
@@ -355,6 +375,7 @@
 												id: currentOtherJournal.accountId,
 												accountGroupCombinedTitle: currentOtherJournal.accountGroup
 											}}
+											summaryData={data.deferred.linkedSummary}
 										/>
 									{/each}
 								</div>
@@ -378,22 +399,42 @@
 							</div>
 						</TableBodyCell>
 						<TableBodyCell class="flex flex-row flex-wrap gap-2">
-							{#if currentJournal.categoryTitle}<Badge class="flex flex-row gap-1">
-									<CategoryIcon />
-									{currentJournal.categoryTitle}
-								</Badge>{/if}
-							{#if currentJournal.tagTitle}<Badge class="flex flex-row gap-1">
-									<TagIcon />
-									{currentJournal.tagTitle}
-								</Badge>{/if}
-							{#if currentJournal.billTitle}<Badge class="flex flex-row gap-1">
-									<BillIcon />
-									{currentJournal.billTitle}
-								</Badge>{/if}
-							{#if currentJournal.budgetTitle}<Badge class="flex flex-row gap-1">
-									<BudgetIcon />
-									{currentJournal.budgetTitle}
-								</Badge>{/if}
+							<CategoryBadge
+								data={currentJournal}
+								summaryData={data.deferred.linkedSummary}
+								filterURL={currentJournal.categoryId
+									? urlInfo.updateParams({
+											searchParams: { category: { id: currentJournal.categoryId } }
+									  }).url
+									: undefined}
+							/>
+							<TagBadge
+								data={currentJournal}
+								summaryData={data.deferred.linkedSummary}
+								filterURL={currentJournal.tagId
+									? urlInfo.updateParams({
+											searchParams: { tag: { id: currentJournal.tagId } }
+									  }).url
+									: undefined}
+							/>
+							<BillBadge
+								data={currentJournal}
+								summaryData={data.deferred.linkedSummary}
+								filterURL={currentJournal.billId
+									? urlInfo.updateParams({
+											searchParams: { bill: { id: currentJournal.billId } }
+									  }).url
+									: undefined}
+							/>
+							<BudgetBadge
+								data={currentJournal}
+								summaryData={data.deferred.linkedSummary}
+								filterURL={currentJournal.budgetId
+									? urlInfo.updateParams({
+											searchParams: { budget: { id: currentJournal.budgetId } }
+									  }).url
+									: undefined}
+							/>
 						</TableBodyCell>
 					</TableBodyRow>
 				{/each}

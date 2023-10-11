@@ -8,6 +8,7 @@ TODO : Labels - Make these show on journal page
 TODO : Labels - Confirm filters for these work correctly.
 TODO : Labels - Make add / remove labels when editing or cloning journals work.
 TODO : Labels - Confirm that cloning a journal also clones labels.
+TODO : Other Journals - Allow filtering by other journal accounts (possibly could improve performance by storing this in the journal or something)
 TODO : More columns in linked item views, including journal count.
 TODO : Favicon + Page Titles
 TODO : Add "Create Transaction" page (currently links to creating a new tag)

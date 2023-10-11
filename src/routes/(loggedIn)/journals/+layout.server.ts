@@ -4,6 +4,7 @@ import type { JournalFilterSchemaType } from '$lib/schema/journalSchema.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
+import { getLinkedItemSummaries } from './getLinkedItemSummaries';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -21,6 +22,11 @@ export const load = async (data) => {
 		filter
 	});
 
+	const summary = tActions.journal.summary({
+		db,
+		filter: { ...filter, page: 0, pageSize: 1000000 }
+	});
+
 	const tags = tActions.tag.listForDropdown({ db });
 	const bills = tActions.bill.listForDropdown({ db });
 	const budgets = tActions.budget.listForDropdown({ db });
@@ -31,6 +37,7 @@ export const load = async (data) => {
 	return {
 		journals: journalData,
 		dropdownInfo: { tags, bills, budgets, categories, labels, accounts },
-		filterText: journalFilterToText(filter, { prefix: 'Journal' })
+		filterText: journalFilterToText(filter, { prefix: 'Journal' }),
+		deferred: { summary, linkedSummary: getLinkedItemSummaries({ db, data: journalData }) }
 	};
 };

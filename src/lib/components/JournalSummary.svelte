@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type { JournalSummaryType } from '$lib/server/db/actions/journalActions';
 	import { Badge, Button, Modal, Popover, Spinner } from 'flowbite-svelte';
 	import type { currencyFormatType } from '$lib/schema/userSchema';
 	import DisplayCurrency from './DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from './JournalSummaryPopoverContent.svelte';
+	import type { JournalSummaryPropType } from './helpers/JournalSummaryPropType';
 
 	export let href: string;
 	export let id: string;
-	export let items: Promise<(JournalSummaryType & { id: string })[]> | Promise<JournalSummaryType>;
+	export let items: JournalSummaryPropType;
 	export let format: currencyFormatType = 'USD';
 	export let summaryTitle: string = 'Summary';
 	export let onYearMonthClick: (yearMonth: string) => void = () => {};
