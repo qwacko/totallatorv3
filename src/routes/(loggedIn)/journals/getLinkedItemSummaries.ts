@@ -1,4 +1,3 @@
-import { defaultAllJournalFilter } from '$lib/schema/journalSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import type { DBType } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';

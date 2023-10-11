@@ -1,15 +1,14 @@
 import { generateYearMonthsBetween } from '$lib/helpers/generateYearMonthsBetween';
+import type { MonthlySummarySchemaType } from '$lib/schema/summaryCacheSchema';
 
-export type YearMonthSummaryType = { yearMonth: string; count: number; sum: number };
-
-export function getMonthlySummary<T extends YearMonthSummaryType>({
+export function getMonthlySummary({
 	monthlyQuery,
 	defaultValue,
 	startDate,
 	endDate
 }: {
-	monthlyQuery: T[];
-	defaultValue: Omit<T, 'yearMonth'>;
+	monthlyQuery: Omit<MonthlySummarySchemaType, 'runningTotal' | 'runningCount'>[];
+	defaultValue: Omit<MonthlySummarySchemaType, 'yearMonth'>;
 	startDate: string | undefined;
 	endDate: string | undefined;
 }) {

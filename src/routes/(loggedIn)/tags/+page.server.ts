@@ -1,6 +1,5 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
-import { defaultAllJournalFilter } from '$lib/schema/journalSchema';
 import { tagFilterToText } from '$lib/server/db/actions/helpers/tagFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';

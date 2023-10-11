@@ -1,6 +1,7 @@
 import type { JournalSummaryType } from '$lib/server/db/actions/journalActions';
 import type { getCurrencyFormatter } from '$lib/schema/userSchema';
 import type { ChartProps } from 'flowbite-svelte/dist/charts/Chart.svelte';
+import type { SummaryItemDetailsType } from '$lib/schema/summaryCacheSchema';
 
 export const generateTotalTrendConfig = ({
 	data,
@@ -183,3 +184,74 @@ export const generateFlowTrendConfig = ({
 		}
 	}
 });
+
+export const generatePIChartConfig = ({
+	data,
+	formatter,
+	height,
+	title,
+	removeNull = true
+}: {
+	data: SummaryItemDetailsType[];
+	formatter: ReturnType<typeof getCurrencyFormatter>;
+	height: string;
+	title: string;
+	removeNull: boolean;
+}): ChartProps => {
+	const sortedData = data
+		.sort((a, b) => b.sum - a.sum)
+		.filter((item) => item.sum !== 0)
+		.filter((item) => !removeNull || !(item.id === null || item.id === undefined));
+	const numberItems = data.length;
+	const showLabels = numberItems <= 8;
+
+	return {
+		options: {
+			chart: {
+				type: 'bar',
+				height,
+				animations: {
+					enabled: false
+				},
+				events: {
+					markerClick: (_1, _2, clickData) => {
+						console.log('Clicked Marker : ', clickData);
+					}
+				}
+			},
+			dataLabels: {
+				formatter: (val) => formatter.format(Number(val)),
+				enabled: showLabels
+			},
+			plotOptions: {
+				bar: {
+					horizontal: false
+				}
+			},
+			series: [
+				{
+					data: sortedData.map((item) => ({
+						x: item.title ? item.title : `No ${title}`,
+						y: item.sum
+					})),
+					name: 'Total'
+				}
+			],
+			tooltip: {
+				shared: true,
+				intersect: false,
+				y: {
+					formatter: (val) => formatter.format(val)
+				}
+			},
+			xaxis: {
+				labels: { show: false }
+			},
+			yaxis: {
+				labels: {
+					formatter: (val) => formatter.format(val)
+				}
+			}
+		}
+	};
+};

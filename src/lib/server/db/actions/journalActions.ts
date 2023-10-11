@@ -7,7 +7,7 @@ import {
 	type UpdateJournalSchemaInputType,
 	updateJournalSchema
 } from '$lib/schema/journalSchema';
-import { eq, and, sql, inArray, not } from 'drizzle-orm';
+import { eq, and, sql, inArray, not, SQL } from 'drizzle-orm';
 import type { DBType } from '../db';
 import {
 	account,
@@ -34,6 +34,7 @@ import { generateItemsForTransactionCreation } from './helpers/generateItemsForT
 import { splitArrayIntoChunks } from './helpers/splitArrayIntoChunks';
 import { journalList } from './helpers/journalList';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
+import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -80,15 +81,17 @@ export const journalActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
+		const commonSummary = {
+			count: sql`count(${journalEntry.id})`.mapWith(Number),
+			sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+			average: sql`avg(${journalEntry.amount})`.mapWith(Number),
+			earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
+			latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
+			lastUpdated: sql`max(${journalEntry.updatedAt})`.mapWith(journalEntry.updatedAt)
+		} satisfies Record<string, SQL<unknown> | SQLiteColumn>;
+
 		const summaryQueryCore = db
-			.select({
-				count: sql`count(${journalEntry.id})`.mapWith(Number),
-				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
-				average: sql`avg(${journalEntry.amount})`.mapWith(Number),
-				earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
-				latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
-				lastUpdated: sql`max(${journalEntry.updatedAt})`.mapWith(journalEntry.updatedAt)
-			})
+			.select(commonSummary)
 			.from(journalEntry)
 			.leftJoin(account, eq(journalEntry.accountId, account.id))
 			.leftJoin(bill, eq(journalEntry.billId, bill.id))
@@ -96,6 +99,86 @@ export const journalActions = {
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
 			.where(and(...(filter ? journalFilterToQuery(filter) : [])));
+
+		const tagsQuery = db
+			.select({
+				id: tag.id,
+				title: tag.title,
+				...commonSummary
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.groupBy(tag.id, tag.title)
+			.execute();
+
+		const categoriesQuery = db
+			.select({
+				id: category.id,
+				title: category.title,
+				...commonSummary
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.groupBy(category.id, category.title)
+			.execute();
+
+		const billsQuery = db
+			.select({
+				id: bill.id,
+				title: bill.title,
+				...commonSummary
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.groupBy(bill.id, bill.title)
+			.execute();
+
+		const budgetsQuery = db
+			.select({
+				id: budget.id,
+				title: budget.title,
+				...commonSummary
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.groupBy(budget.id, budget.title)
+			.execute();
+
+		const accountsQuery = db
+			.select({
+				id: account.id,
+				title: account.title,
+				...commonSummary
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.groupBy(account.id, account.title)
+			.execute();
 
 		const monthlyQueryCore = db
 			.select({
@@ -142,11 +225,21 @@ export const journalActions = {
 				negativeCount: 0,
 				positiveCount: 0,
 				negativeSum: 0,
-				positiveSum: 0
+				positiveSum: 0,
+				runningTotal: 0,
+				runningCount: 0
 			}
 		});
 
-		const parsedData = summaryCacheDataSchema.parse({ ...summaryQuery, monthlySummary });
+		const parsedData = summaryCacheDataSchema.parse({
+			...summaryQuery,
+			monthlySummary,
+			categories: await categoriesQuery,
+			tags: await tagsQuery,
+			bills: await billsQuery,
+			budgets: await budgetsQuery,
+			accounts: await accountsQuery
+		});
 
 		return parsedData;
 	},
