@@ -20,6 +20,8 @@ import {
 } from './helpers/seedAccountData';
 import { accountFilterToQuery } from './helpers/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/accountCreateInsertionData';
+import { defaultAllJournalFilter } from '$lib/schema/journalSchema';
+import { tActions } from './tActions';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -99,6 +101,16 @@ export const accountActions = {
 			.execute();
 
 		return items;
+	},
+	getSummary: async ({ db, id }: { db: DBType; id: string }) => {
+		const summary = await tActions.journal.summary({
+			db,
+			filter: { ...defaultAllJournalFilter, account: { id } }
+		});
+		return {
+			id: id,
+			...summary
+		};
 	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();

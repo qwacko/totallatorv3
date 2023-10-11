@@ -16,6 +16,8 @@ import { tagCreateInsertionData } from './helpers/tagCreateInsertionData';
 import { tagFilterToQuery } from './helpers/tagFilterToQuery';
 import { createTag } from './helpers/seedTagData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
+import { tActions } from './tActions';
+import { defaultAllJournalFilter } from '$lib/schema/journalSchema';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
@@ -87,6 +89,16 @@ export const tagActions = {
 			.execute();
 
 		return items;
+	},
+	getSummary: async ({ db, id }: { db: DBType; id: string }) => {
+		const summary = await tActions.journal.summary({
+			db,
+			filter: { ...defaultAllJournalFilter, tag: { id }, account: { type: ['asset', 'liability'] } }
+		});
+		return {
+			id: id,
+			...summary
+		};
 	},
 	createOrGet: async ({
 		db,

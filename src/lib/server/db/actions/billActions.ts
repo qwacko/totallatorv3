@@ -15,6 +15,8 @@ import { billCreateInsertionData } from './helpers/billCreateInsertionData';
 import { billFilterToQuery } from './helpers/billFilterToQuery';
 import { createBill } from './helpers/seedBillData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
+import { defaultAllJournalFilter } from '$lib/schema/journalSchema';
+import { tActions } from './tActions';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
@@ -84,6 +86,20 @@ export const billActions = {
 			.execute();
 
 		return items;
+	},
+	getSummary: async ({ db, id }: { db: DBType; id: string }) => {
+		const summary = await tActions.journal.summary({
+			db,
+			filter: {
+				...defaultAllJournalFilter,
+				bill: { id },
+				account: { type: ['asset', 'liability'] }
+			}
+		});
+		return {
+			id: id,
+			...summary
+		};
 	},
 	createOrGet: async ({
 		db,

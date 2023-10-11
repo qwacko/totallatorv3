@@ -6,6 +6,7 @@
 	import { urlGenerator } from '$lib/routes';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import BillIcon from './icons/BillIcon.svelte';
+	import { goto } from '$app/navigation';
 
 	export let data: { billId: string | null; billTitle: string | null };
 
@@ -38,6 +39,20 @@
 							address: '/(loggedIn)/journals',
 							searchParamsValue: { ...defaultJournalFilter, bill: { id: data.billId } }
 						}).url}
+						onYearMonthClick={(yearMonth) => {
+							if (data.billId) {
+								goto(
+									urlGenerator({
+										address: '/(loggedIn)/journals',
+										searchParamsValue: {
+											...defaultJournalFilter,
+											bill: { id: data.billId },
+											yearMonth: [yearMonth]
+										}
+									}).url
+								);
+							}
+						}}
 					/>
 				{/if}
 				<div class="flex flex-grow" />

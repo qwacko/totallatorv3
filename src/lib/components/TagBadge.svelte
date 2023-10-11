@@ -6,6 +6,7 @@
 	import { urlGenerator } from '$lib/routes';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import TagIcon from './icons/TagIcon.svelte';
+	import { goto } from '$app/navigation';
 
 	export let data: { tagId: string | null; tagTitle: string | null };
 
@@ -38,6 +39,20 @@
 							address: '/(loggedIn)/journals',
 							searchParamsValue: { ...defaultJournalFilter, tag: { id: data.tagId } }
 						}).url}
+						onYearMonthClick={(yearMonth) => {
+							if (data.tagId) {
+								goto(
+									urlGenerator({
+										address: '/(loggedIn)/journals',
+										searchParamsValue: {
+											...defaultJournalFilter,
+											tag: { id: data.tagId },
+											yearMonth: [yearMonth]
+										}
+									}).url
+								);
+							}
+						}}
 					/>
 				{/if}
 				<div class="flex flex-grow" />

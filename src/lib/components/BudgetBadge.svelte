@@ -6,6 +6,7 @@
 	import { urlGenerator } from '$lib/routes';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import BudgetIcon from './icons/BudgetIcon.svelte';
+	import { goto } from '$app/navigation';
 
 	export let data: { budgetId: string | null; budgetTitle: string | null };
 
@@ -38,6 +39,20 @@
 							address: '/(loggedIn)/journals',
 							searchParamsValue: { ...defaultJournalFilter, budget: { id: data.budgetId } }
 						}).url}
+						onYearMonthClick={(yearMonth) => {
+							if (data.budgetId) {
+								goto(
+									urlGenerator({
+										address: '/(loggedIn)/journals',
+										searchParamsValue: {
+											...defaultJournalFilter,
+											budget: { id: data.budgetId },
+											yearMonth: [yearMonth]
+										}
+									}).url
+								);
+							}
+						}}
 					/>
 				{/if}
 				<div class="flex flex-grow" />

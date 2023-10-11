@@ -23,18 +23,7 @@ export const load = async (data) => {
 	const tagIds = tags.data.map((item) => item.id);
 
 	const journalSummaries = Promise.all(
-		tagIds.map(async (tagId) => {
-			const summary = await tActions.journal.summary({
-				db,
-				filter: {
-					...defaultAllJournalFilter,
-					tag: { id: tagId },
-					account: { type: ['asset', 'liability'] }
-				}
-			});
-
-			return { id: tagId, sum: summary.sum, count: summary.count };
-		})
+		tagIds.map(async (id) => tActions.tag.getSummary({ db, id }))
 	);
 
 	return {

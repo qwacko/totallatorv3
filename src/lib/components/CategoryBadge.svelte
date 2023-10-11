@@ -6,6 +6,7 @@
 	import CategoryIcon from './icons/CategoryIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
+	import { goto } from '$app/navigation';
 
 	export let data: { categoryId: string | null; categoryTitle: string | null };
 
@@ -38,6 +39,20 @@
 							address: '/(loggedIn)/journals',
 							searchParamsValue: { ...defaultJournalFilter, category: { id: data.categoryId } }
 						}).url}
+						onYearMonthClick={(yearMonth) => {
+							if (data.categoryId) {
+								goto(
+									urlGenerator({
+										address: '/(loggedIn)/journals',
+										searchParamsValue: {
+											...defaultJournalFilter,
+											category: { id: data.categoryId },
+											yearMonth: [yearMonth]
+										}
+									}).url
+								);
+							}
+						}}
 					/>
 				{/if}
 				<div class="flex flex-grow" />

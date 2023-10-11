@@ -23,18 +23,7 @@ export const load = async (data) => {
 	const billIds = bills.data.map((item) => item.id);
 
 	const journalSummaries = Promise.all(
-		billIds.map(async (billId) => {
-			const summary = await tActions.journal.summary({
-				db,
-				filter: {
-					...defaultAllJournalFilter,
-					bill: { id: billId },
-					account: { type: ['asset', 'liability'] }
-				}
-			});
-
-			return { id: billId, ...summary };
-		})
+		billIds.map(async (id) => tActions.bill.getSummary({ db, id }))
 	);
 
 	return {

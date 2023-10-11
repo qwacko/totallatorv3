@@ -128,8 +128,6 @@ export const journalActions = {
 
 		const summaryQuery = (await summaryQueryCore.execute())[0];
 
-		logging.info('Summary Info : ', summaryQuery);
-
 		const monthlyQuery = await monthlyQueryCore.execute();
 
 		const monthlySummary = getMonthlySummary({

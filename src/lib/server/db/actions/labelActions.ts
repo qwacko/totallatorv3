@@ -15,6 +15,8 @@ import { createLabel } from './helpers/seedLabelData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 import { labelFilterToQuery } from './helpers/labelFilterToQuery';
 import { labelCreateInsertionData } from './helpers/labelCreateInsertionData';
+import { tActions } from './tActions';
+import { defaultAllJournalFilter } from '$lib/schema/journalSchema';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
@@ -84,6 +86,20 @@ export const labelActions = {
 			.execute();
 
 		return items;
+	},
+	getSummary: async ({ db, id }: { db: DBType; id: string }) => {
+		const summary = await tActions.journal.summary({
+			db,
+			filter: {
+				...defaultAllJournalFilter,
+				label: { id },
+				account: { type: ['asset', 'liability'] }
+			}
+		});
+		return {
+			id: id,
+			...summary
+		};
 	},
 	createOrGet: async ({
 		db,

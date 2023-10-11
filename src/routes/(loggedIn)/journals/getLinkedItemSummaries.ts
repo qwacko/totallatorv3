@@ -1,6 +1,7 @@
 import { defaultAllJournalFilter } from '$lib/schema/journalSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import type { DBType } from '$lib/server/db/db';
+import { logging } from '$lib/server/logging';
 
 export const getLinkedItemSummaries = async ({
 	db,
@@ -9,6 +10,8 @@ export const getLinkedItemSummaries = async ({
 	db: DBType;
 	data: Awaited<ReturnType<(typeof tActions)['journal']['list']>>;
 }) => {
+	const startTime = new Date();
+
 	const journals = data.data;
 
 	const otherJournalAccountIds = journals.reduce(
@@ -21,105 +24,72 @@ export const getLinkedItemSummaries = async ({
 		...otherJournalAccountIds
 	]);
 	const accountSummaries = await Promise.all(
-		accountIds
-			.filter((item) => item)
-			.map(async (id) => {
-				const summary = await tActions.journal.summary({
-					db,
-					filter: { ...defaultAllJournalFilter, account: { id } }
-				});
-				return {
-					id: id,
-					...summary
-				};
+		accountIds.map(async (id) =>
+			tActions.account.getSummary({
+				db,
+				id
 			})
+		)
 	);
 
 	const tagIds = filterNullUndefinedAndDuplicates(journals.map((item) => item.tagId));
 	const tagSummaries = await Promise.all(
-		tagIds.map(async (id) => {
-			const summary = await tActions.journal.summary({
+		tagIds.map(async (id) =>
+			tActions.tag.getSummary({
 				db,
-				filter: {
-					...defaultAllJournalFilter,
-					tag: { id },
-					account: { type: ['asset', 'liability'] }
-				}
-			});
-			return {
-				id: id,
-				...summary
-			};
-		})
+				id
+			})
+		)
 	);
 
 	const categoryIds = filterNullUndefinedAndDuplicates(journals.map((item) => item.categoryId));
 	const categorySummaries = await Promise.all(
-		categoryIds
-			.filter((item) => item)
-			.map(async (id) => {
-				const summary = await tActions.journal.summary({
-					db,
-					filter: {
-						...defaultAllJournalFilter,
-						category: { id },
-						account: { type: ['asset', 'liability'] }
-					}
-				});
-				return {
-					id: id,
-					...summary
-				};
+		categoryIds.map(async (id) =>
+			tActions.category.getSummary({
+				db,
+				id
 			})
+		)
 	);
 
 	const billIds = filterNullUndefinedAndDuplicates(journals.map((item) => item.billId));
 	const billSummaries = await Promise.all(
-		billIds
-			.filter((item) => item)
-			.map(async (id) => {
-				const summary = await tActions.journal.summary({
-					db,
-					filter: {
-						...defaultAllJournalFilter,
-						bill: { id },
-						account: { type: ['asset', 'liability'] }
-					}
-				});
-				return {
-					id: id,
-					...summary
-				};
+		billIds.map(async (id) =>
+			tActions.bill.getSummary({
+				db,
+				id
 			})
+		)
 	);
 
 	const budgetIds = filterNullUndefinedAndDuplicates(journals.map((item) => item.budgetId));
 	const budgetSummaries = await Promise.all(
-		budgetIds
-			.filter((item) => item)
-			.map(async (id) => {
-				const summary = await tActions.journal.summary({
-					db,
-					filter: {
-						...defaultAllJournalFilter,
-						budget: { id },
-						account: { type: ['asset', 'liability'] }
-					}
-				});
-				return {
-					id: id,
-					...summary
-				};
+		budgetIds.map(async (id) =>
+			tActions.budget.getSummary({
+				db,
+				id
 			})
+		)
 	);
 
-	return [
+	const returnInformation = [
 		...accountSummaries,
 		...tagSummaries,
 		...billSummaries,
 		...budgetSummaries,
 		...categorySummaries
 	];
+
+	const endTime = new Date();
+	const timeDifference = endTime.getTime() - startTime.getTime();
+
+	if (timeDifference > 800) {
+		logging.warn(
+			`Retrieved Information for ${returnInformation.length} linked items in ${timeDifference}ms`
+		);
+	}
+
+	return returnInformation;
 };
 function filterNullUndefinedAndDuplicates<T>(arr: (T | null | undefined)[]): T[] {
 	const seen = new Set<T>();

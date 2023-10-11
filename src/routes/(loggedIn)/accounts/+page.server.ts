@@ -26,17 +26,7 @@ export const load = async (data) => {
 	const accountIds = accounts.data.map((item) => item.id);
 
 	const journalSummaries = Promise.all(
-		accountIds.map(async (accountId) => {
-			const summary = await tActions.journal.summary({
-				db,
-				filter: {
-					...defaultAllJournalFilter,
-					account: { id: accountId }
-				}
-			});
-
-			return { id: accountId, ...summary };
-		})
+		accountIds.map(async (id) => tActions.account.getSummary({ db, id }))
 	);
 
 	logging.info('Accounts Search Params : ', searchParams);

@@ -10,6 +10,7 @@
 	import FilterIcon from './icons/FilterIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
+	import { goto } from '$app/navigation';
 
 	export let accountInfo: {
 		id: string | null;
@@ -71,6 +72,20 @@
 							address: '/(loggedIn)/journals',
 							searchParamsValue: { ...defaultJournalFilter, account: { id: accountInfo.id } }
 						}).url}
+						onYearMonthClick={(yearMonth) => {
+							if (accountInfo.id) {
+								goto(
+									urlGenerator({
+										address: '/(loggedIn)/journals',
+										searchParamsValue: {
+											...defaultJournalFilter,
+											account: { id: accountInfo.id },
+											yearMonth: [yearMonth]
+										}
+									}).url
+								);
+							}
+						}}
 					/>
 				{/if}
 				<div class="flex flex-grow" />
