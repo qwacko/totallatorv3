@@ -20,18 +20,9 @@ export const load = async (data) => {
 		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const budgetIds = budgets.data.map((item) => item.id);
-
-	const journalSummaries = Promise.all(
-		budgetIds.map(async (id) => tActions.budget.getSummary({ db, id }))
-	);
-
 	return {
 		budgets,
 		searchParams: pageInfo.searchParams,
-		filterText: budgetFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
-		deferred: {
-			journalSummaries
-		}
+		filterText: budgetFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 })
 	};
 };

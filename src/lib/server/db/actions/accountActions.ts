@@ -68,7 +68,11 @@ export const accountActions = {
 			: defaultOrderBy;
 
 		const results = await db
-			.select({ ...getTableColumns(account) })
+			.select({
+				...getTableColumns(account),
+				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+				count: sql`count(${journalEntry.id})`.mapWith(Number)
+			})
 			.from(account)
 			.where(and(...where))
 			.limit(pageSize)

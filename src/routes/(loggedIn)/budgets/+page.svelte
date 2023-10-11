@@ -26,6 +26,7 @@
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
+	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/budgets', $page);
@@ -99,7 +100,8 @@
 						</div>
 					</div>
 				</TableHeadCell>
-				<TableHeadCell>Journals</TableHeadCell>
+				<TableHeadCell>Total</TableHeadCell>
+				<TableHeadCell>Count</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each data.budgets.data as currentBudget}
@@ -112,36 +114,42 @@
 						address: '/(loggedIn)/budgets/[id]/delete',
 						paramsValue: { id: currentBudget.id }
 					}).url}
+					{@const journalsURL = urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: {
+							...defaultJournalFilter,
+							budget: {
+								id: currentBudget.id
+							}
+						}
+					}).url}
 					<TableBodyRow>
 						<TableBodyCell>
-							<ButtonGroup class="w-full justify-center">
-								<Button href={detailURL} class="p-2" outline>
-									<EditIcon height={15} width={15} />
-								</Button>
-								<Button href={deleteURL} class="p-2" outline color="red">
-									<DeleteIcon height={15} width={15} />
-								</Button>
+							<div class="flex flex-row justify-center">
+								<ButtonGroup>
+									<Button href={journalsURL} class="p-2" outline color="blue">
+										<JournalEntryIcon height={15} width={15} />
+									</Button>
+									<Button href={detailURL} class="p-2" outline>
+										<EditIcon height={15} width={15} />
+									</Button>
+									<Button href={deleteURL} class="p-2" outline color="red">
+										<DeleteIcon height={15} width={15} />
+									</Button>
 
-								<RawDataModal data={currentBudget} title="Raw Budget Data" dev={data.dev} />
-							</ButtonGroup>
+									<RawDataModal data={currentBudget} title="Raw Budget Data" dev={data.dev} />
+								</ButtonGroup>
+							</div>
 						</TableBodyCell>
 						<TableBodyCell>{currentBudget.title}</TableBodyCell>
 						<TableBodyCell>{statusToDisplay(currentBudget.status)}</TableBodyCell>
 						<TableBodyCell>
-							<Button
-								outline
-								href={urlGenerator({
-									address: '/(loggedIn)/journals',
-									searchParamsValue: {
-										budget: { id: currentBudget.id },
-										...defaultJournalFilter
-									}
-								}).url}
-								size="xs"
-							>
-								<JournalEntryIcon />
-							</Button>
+							<DisplayCurrency
+								amount={currentBudget.sum}
+								format={data.user?.currencyFormat || 'USD'}
+							/>
 						</TableBodyCell>
+						<TableBodyCell>{currentBudget.count}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

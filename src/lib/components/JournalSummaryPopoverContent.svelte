@@ -1,8 +1,7 @@
 <script lang="ts">
-	import type { JournalSummaryType } from '$lib/server/db/actions/journalActions';
 	import { getCurrencyFormatter, type currencyFormatType } from '$lib/schema/userSchema';
 
-	import { Button, Chart, Tabs, TabItem } from 'flowbite-svelte';
+	import { Chart, Tabs, TabItem, Button } from 'flowbite-svelte';
 	import {
 		generateFlowTrendConfig,
 		generatePIChartConfig,
@@ -11,7 +10,6 @@
 	import { generateYearMonthsBeforeToday } from '$lib/helpers/generateYearMonthsBetween';
 	import { filterTrendData } from './helpers/FilterTrendData';
 	import DisplayCurrency from './DisplayCurrency.svelte';
-	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 	import type { SummaryCacheSchemaDataType } from '$lib/schema/summaryCacheSchema';
 	import {
 		type JournalFilterSchemaInputType,
@@ -21,24 +19,18 @@
 	import { goto } from '$app/navigation';
 	import { urlGenerator } from '$lib/routes';
 	import type { DeepPartialWithoutArray } from '$lib/helpers/DeepPartialType';
+	import { popoverViewEnum, popoverViewStore, showSummaryStore } from '$lib/stores/popoverView';
+	import EyeIcon from './icons/EyeIcon.svelte';
+	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 
 	export let item: SummaryCacheSchemaDataType;
 	export let format: currencyFormatType = 'USD';
 	export let summaryFilter: DeepPartialWithoutArray<
 		Omit<JournalFilterSchemaInputType, 'orderBy' | 'page' | 'pageSize'>
 	> = {};
+	export let showJournalLink = false;
 
-	let selection: 'Recent' | 'All' | 'Flow' | 'Tag' | 'Account' | 'Category' | 'Bill' | 'Budget' =
-		'Recent';
 	const chartHeight = '250';
-
-	$: href = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...defaultJournalFilter,
-			...summaryFilter
-		}
-	}).url;
 
 	const gotoUpdatedFilter = async (
 		updatedFilter: DeepPartialWithoutArray<
@@ -59,6 +51,14 @@
 
 		await goto(newURL);
 	};
+
+	$: href = urlGenerator({
+		address: '/(loggedIn)/journals',
+		searchParamsValue: {
+			...defaultJournalFilter,
+			...summaryFilter
+		}
+	}).url;
 
 	$: latestYearMonth = generateYearMonthsBeforeToday(12);
 	$: last12Months = filterTrendData({ data: item.monthlySummary, dates: latestYearMonth });
@@ -123,62 +123,90 @@
 	$: yearChange = last12Months.reduce((prev, current) => prev + current.sum, 0);
 </script>
 
-<div class="flex flex-col gap-2">
-	<div class="flex flex-row">
-		<div class="flex">
-			<Button {href} color="none" size="xs"><JournalEntryIcon /></Button>
-		</div>
-		<div class="flex flex-col gap-0.5 items-end flex-grow">
-			<div class="flex text-lg">
-				<DisplayCurrency amount={item.sum} {format} />
-			</div>
+{#if $showSummaryStore}
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-row gap-2">
+			<Button
+				color="light"
+				size="xs"
+				on:click={() => ($showSummaryStore = false)}
+				class="flex-row gap-2 h-8"
+			>
+				<EyeIcon /> Hide Summary
+			</Button>
+			{#if showJournalLink}
+				<Button {href} color="light" size="xs" class="flex-row gap-2 h-8">
+					<JournalEntryIcon />
+				</Button>
+			{/if}
+			<div class="flex flex-col gap-0.5 items-end flex-grow">
+				<div class="flex text-lg">
+					<DisplayCurrency amount={item.sum} {format} />
+				</div>
 
-			<div class="flex text-xs">
-				<DisplayCurrency amount={yearChange} {format} positiveGreen={true} />
+				<div class="flex text-xs">
+					<DisplayCurrency amount={yearChange} {format} positiveGreen={true} />
+				</div>
 			</div>
+		</div>
+		<Tabs contentClass="" style="underline">
+			{#each popoverViewEnum as currentItem}
+				<TabItem
+					open={$popoverViewStore === currentItem}
+					title={currentItem}
+					on:click={() => ($popoverViewStore = currentItem)}
+				/>
+			{/each}
+		</Tabs>
+		<div class="min-h-[280px]">
+			{#if $popoverViewStore === 'Recent'}
+				<Chart {...recentChartConfig} />
+			{/if}
+
+			{#if $popoverViewStore === 'All'}
+				<Chart {...chartConfig} />
+			{/if}
+
+			{#if $popoverViewStore === 'Flow'}
+				<Chart {...recentFlowChartConfig} />
+			{/if}
+
+			{#if $popoverViewStore === 'Account'}
+				<Chart {...accountsChartConfig} />
+			{/if}
+
+			{#if $popoverViewStore === 'Tag'}
+				<Chart {...tagsChartConfig} />
+			{/if}
+
+			{#if $popoverViewStore === 'Category'}
+				<Chart {...categoriesChartConfig} />
+			{/if}
+
+			{#if $popoverViewStore === 'Bill'}
+				<Chart {...billsChartConfig} />
+			{/if}
+
+			{#if $popoverViewStore === 'Budget'}
+				<Chart {...budgetsChartConfig} />
+			{/if}
 		</div>
 	</div>
-	<Tabs contentClass="" style="underline">
-		<TabItem open title="Recent" on:click={() => (selection = 'Recent')} />
-		<TabItem title="All" on:click={() => (selection = 'All')} />
-		<TabItem title="Flow" on:click={() => (selection = 'Flow')} />
-		<TabItem title="Account" on:click={() => (selection = 'Account')} />
-		<TabItem title="Tag" on:click={() => (selection = 'Tag')} />
-		<TabItem title="Category" on:click={() => (selection = 'Category')} />
-		<TabItem title="Bill" on:click={() => (selection = 'Bill')} />
-		<TabItem title="Budget" on:click={() => (selection = 'Budget')} />
-	</Tabs>
-	<div class="min-h-[280px]">
-		{#if selection === 'Recent'}
-			<Chart {...recentChartConfig} />
+{:else}
+	<div class="flex flex-row gap-2">
+		<Button
+			on:click={() => ($showSummaryStore = true)}
+			color="light"
+			size="xs"
+			class="flex-row gap-2 h-8"
+		>
+			<EyeIcon /> Show Summary
+		</Button>
+		{#if showJournalLink}
+			<Button {href} color="light" size="xs" class="h-8">
+				<JournalEntryIcon />
+			</Button>
 		{/if}
-
-		{#if selection === 'All'}
-			<Chart {...chartConfig} />
-		{/if}
-
-		{#if selection === 'Flow'}
-			<Chart {...recentFlowChartConfig} />
-		{/if}
-
-		{#if selection === 'Account'}
-			<Chart {...accountsChartConfig} />
-		{/if}
-
-		{#if selection === 'Tag'}
-			<Chart {...tagsChartConfig} />
-		{/if}
-
-		{#if selection === 'Category'}
-			<Chart {...categoriesChartConfig} />
-		{/if}
-
-		{#if selection === 'Bill'}
-			<Chart {...billsChartConfig} />
-		{/if}
-
-		{#if selection === 'Budget'}
-			<Chart {...budgetsChartConfig} />
-		{/if}
+		<div class="flex flex-grow" />
 	</div>
-</div>
+{/if}

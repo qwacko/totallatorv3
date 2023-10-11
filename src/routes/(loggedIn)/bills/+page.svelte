@@ -105,6 +105,7 @@
 					</div>
 				</TableHeadCell>
 				<TableHeadCell>Total</TableHeadCell>
+				<TableHeadCell>Count</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each data.bills.data as currentBill}
@@ -117,17 +118,31 @@
 						address: '/(loggedIn)/bills/[id]/delete',
 						paramsValue: { id: currentBill.id }
 					}).url}
+					{@const journalsURL = urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: {
+							...defaultJournalFilter,
+							bill: {
+								id: currentBill.id
+							}
+						}
+					}).url}
 					<TableBodyRow>
 						<TableBodyCell>
-							<ButtonGroup>
-								<Button href={detailURL} class="p-2" outline>
-									<EditIcon height={15} width={15} />
-								</Button>
-								<Button href={deleteURL} class="p-2" outline color="red">
-									<DeleteIcon height={15} width={15} />
-								</Button>
-								<RawDataModal data={currentBill} title="Raw Bill Data" dev={data.dev} />
-							</ButtonGroup>
+							<div class="flex flex-row justify-center">
+								<ButtonGroup>
+									<Button href={journalsURL} class="p-2" outline color="blue">
+										<JournalEntryIcon height={15} width={15} />
+									</Button>
+									<Button href={detailURL} class="p-2" outline>
+										<EditIcon height={15} width={15} />
+									</Button>
+									<Button href={deleteURL} class="p-2" outline color="red">
+										<DeleteIcon height={15} width={15} />
+									</Button>
+									<RawDataModal data={currentBill} title="Raw Bill Data" dev={data.dev} />
+								</ButtonGroup>
+							</div>
 						</TableBodyCell>
 						<TableBodyCell>{currentBill.title}</TableBodyCell>
 						<TableBodyCell>
@@ -135,14 +150,12 @@
 						</TableBodyCell>
 
 						<TableBodyCell>
-							<JournalSummary
-								summaryFilter={{ bill: { id: currentBill.id } }}
-								summaryTitle="{currentBill.title} Summary"
-								items={data.deferred.journalSummaries}
-								id={currentBill.id}
+							<DisplayCurrency
+								amount={currentBill.sum}
 								format={data.user?.currencyFormat || 'USD'}
 							/>
 						</TableBodyCell>
+						<TableBodyCell>{currentBill.count}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

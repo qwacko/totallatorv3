@@ -26,6 +26,7 @@
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
+	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -114,7 +115,8 @@
 						</div>
 					</div>
 				</TableHeadCell>
-				<TableHeadCell>Journals</TableHeadCell>
+				<TableHeadCell>Total</TableHeadCell>
+				<TableHeadCell>Count</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each data.tags.data as currentTag}
@@ -127,9 +129,22 @@
 						address: '/(loggedIn)/tags/[id]/delete',
 						paramsValue: { id: currentTag.id }
 					}).url}
+					{@const journalsURL = urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: {
+							...defaultJournalFilter,
+							tag: {
+								id: currentTag.id
+							}
+						}
+					}).url}
 					<TableBodyRow>
 						<TableBodyCell>
+							<div class="flex flex-row justify-center">
 							<ButtonGroup class="w-full justify-center">
+								<Button href={journalsURL} class="p-2" outline color="blue">
+										<JournalEntryIcon height={15} width={15} />
+									</Button>
 								<Button href={detailURL} class="p-2" outline>
 									<EditIcon height={15} width={15} />
 								</Button>
@@ -138,25 +153,18 @@
 								</Button>
 								<RawDataModal data={currentTag} title="Raw Tag Data" dev={data.dev} />
 							</ButtonGroup>
+							</div>
 						</TableBodyCell>
 						<TableBodyCell>{currentTag.group}</TableBodyCell>
 						<TableBodyCell>{currentTag.single}</TableBodyCell>
 						<TableBodyCell>{statusToDisplay(currentTag.status)}</TableBodyCell>
 						<TableBodyCell>
-							<Button
-								outline
-								href={urlGenerator({
-									address: '/(loggedIn)/journals',
-									searchParamsValue: {
-										tag: { id: currentTag.id },
-										...defaultJournalFilter
-									}
-								}).url}
-								size="xs"
-							>
-								<JournalEntryIcon />
-							</Button>
+							<DisplayCurrency
+								amount={currentTag.sum}
+								format={data.user?.currencyFormat || 'USD'}
+							/>
 						</TableBodyCell>
+						<TableBodyCell>{currentTag.count}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

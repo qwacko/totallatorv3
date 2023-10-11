@@ -19,18 +19,9 @@ export const load = async (data) => {
 		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const categoryIds = categories.data.map((item) => item.id);
-
-	const journalSummaries = Promise.all(
-		categoryIds.map(async (id) => tActions.category.getSummary({ db, id }))
-	);
-
 	return {
 		categories,
 		searchParams: pageInfo.searchParams,
-		filterText: categoryFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
-		deferred: {
-			journalSummaries
-		}
+		filterText: categoryFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 })
 	};
 };

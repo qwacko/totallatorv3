@@ -7,7 +7,6 @@
 	import TablePagination from '$lib/components/TablePagination.svelte';
 	import {
 		Alert,
-		Badge,
 		Button,
 		ButtonGroup,
 		P,
@@ -18,9 +17,6 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
-	import CategoryIcon from '$lib/components/icons/CategoryIcon.svelte';
-	import TagIcon from '$lib/components/icons/TagIcon.svelte';
-	import BillIcon from '$lib/components/icons/BillIcon.svelte';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import OrderDropDown from '$lib/components/OrderDropDown.svelte';
 	import {
@@ -40,16 +36,15 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import ToggleFromArray from '$lib/components/ToggleFromArray.svelte';
 	import ToggleHeader from '$lib/components/ToggleHeader.svelte';
-	import BudgetIcon from '$lib/components/icons/BudgetIcon.svelte';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import EyeIcon from '$lib/components/icons/EyeIcon.svelte';
-	import JournalSummary from '$lib/components/JournalSummary.svelte';
 	import CategoryBadge from '$lib/components/CategoryBadge.svelte';
 	import TagBadge from '$lib/components/TagBadge.svelte';
 	import BillBadge from '$lib/components/BillBadge.svelte';
 	import BudgetBadge from '$lib/components/BudgetBadge.svelte';
+	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 
 	export let data;
 
@@ -75,6 +70,12 @@
 	<Button href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>
 		Create Transaction
 	</Button>
+	<JournalSummaryPopoverContent
+		item={data.summary}
+		format={data.user?.currencyFormat || 'USD'}
+		summaryFilter={$urlStore.searchParams || defaultJournalFilter}
+	/>
+
 	<center>
 		<TablePagination
 			count={data.journals.count}
@@ -180,13 +181,13 @@
 			</Button>
 		</ButtonGroup>
 		<div class="flex flex-grow" />
-		<JournalSummary
+		<!-- <JournalSummary
 			id=""
 			items={data.deferred.summary}
 			format={data.user?.currencyFormat || 'USD'}
 			summaryTitle="Journal Summary"
 			summaryFilter={$urlStore.searchParams || defaultJournalFilter}
-		/>
+		/> -->
 		{#if $urlStore.searchParams}
 			<OrderDropDown
 				currentSort={$urlStore.searchParams.orderBy || []}
@@ -337,10 +338,7 @@
 									id: currentJournal.accountId,
 									accountGroupCombinedTitle: currentJournal.accountGroup
 								}}
-								summaryData={data.deferred.linkedSummary}
-								filterURL={urlInfo.updateParams({
-									searchParams: { account: { id: currentJournal.accountId } }
-								}).url}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter}
 							/>
 						</TableBodyCell>
 						<TableBodyCell>
@@ -360,7 +358,7 @@
 										id: currentOtherJournal.accountId,
 										accountGroupCombinedTitle: currentOtherJournal.accountGroup
 									}}
-									summaryData={data.deferred.linkedSummary}
+									currentFilter={$urlStore.searchParams || defaultJournalFilter}
 								/>
 							{:else}
 								<div class="flex flex-col">
@@ -372,7 +370,7 @@
 												id: currentOtherJournal.accountId,
 												accountGroupCombinedTitle: currentOtherJournal.accountGroup
 											}}
-											summaryData={data.deferred.linkedSummary}
+											currentFilter={$urlStore.searchParams || defaultJournalFilter}
 										/>
 									{/each}
 								</div>
@@ -398,39 +396,19 @@
 						<TableBodyCell class="flex flex-row flex-wrap gap-2">
 							<CategoryBadge
 								data={currentJournal}
-								summaryData={data.deferred.linkedSummary}
-								filterURL={currentJournal.categoryId
-									? urlInfo.updateParams({
-											searchParams: { category: { id: currentJournal.categoryId } }
-									  }).url
-									: undefined}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter}
 							/>
 							<TagBadge
 								data={currentJournal}
-								summaryData={data.deferred.linkedSummary}
-								filterURL={currentJournal.tagId
-									? urlInfo.updateParams({
-											searchParams: { tag: { id: currentJournal.tagId } }
-									  }).url
-									: undefined}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter}
 							/>
 							<BillBadge
 								data={currentJournal}
-								summaryData={data.deferred.linkedSummary}
-								filterURL={currentJournal.billId
-									? urlInfo.updateParams({
-											searchParams: { bill: { id: currentJournal.billId } }
-									  }).url
-									: undefined}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter}
 							/>
 							<BudgetBadge
 								data={currentJournal}
-								summaryData={data.deferred.linkedSummary}
-								filterURL={currentJournal.budgetId
-									? urlInfo.updateParams({
-											searchParams: { budget: { id: currentJournal.budgetId } }
-									  }).url
-									: undefined}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter}
 							/>
 						</TableBodyCell>
 					</TableBodyRow>

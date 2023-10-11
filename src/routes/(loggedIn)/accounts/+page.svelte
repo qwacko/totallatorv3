@@ -31,6 +31,9 @@
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import JournalSummary from '$lib/components/JournalSummary.svelte';
 	import { accountTypeEnum } from '$lib/schema/accountTypeSchema';
+	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
+	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
+	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -54,6 +57,12 @@
 	>
 		Create
 	</Button>
+	<JournalSummaryPopoverContent
+		item={data.accountSummary}
+		format={data.user?.currencyFormat || 'USD'}
+		summaryFilter={{ account: $urlStore.searchParams } || defaultJournalFilter}
+		showJournalLink
+	/>
 	<center>
 		<TablePagination
 			count={data.accounts.count}
@@ -75,13 +84,7 @@
 	<div class="flex flex-row gap-2">
 		<FilterTextDisplay text={data.filterText} />
 		<div class="flex flex-grow items-center" />
-		<JournalSummary
-			summaryFilter={{ account: $urlStore.searchParams || { type: undefined } }}
-			items={data.deferred.accountSummary}
-			id=""
-			format={data.user?.currencyFormat || 'USD'}
-			summaryTitle="Account {data.filterText.join('and ')} - Summary"
-		/>
+
 		{#if $urlStore.searchParams}
 			<OrderDropDown
 				currentSort={$urlStore.searchParams.orderBy}
@@ -185,6 +188,7 @@
 					</div>
 				</TableHeadCell>
 				<TableHeadCell>Total</TableHeadCell>
+				<TableHeadCell>Count</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each data.accounts.data as currentAccount}
@@ -197,17 +201,32 @@
 						address: '/(loggedIn)/accounts/[id]/delete',
 						paramsValue: { id: currentAccount.id }
 					}).url}
+					{@const journalsURL = urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: {
+							...defaultJournalFilter,
+							account: {
+								id: currentAccount.id,
+								type: [...accountTypeEnum]
+							}
+						}
+					}).url}
 					<TableBodyRow>
 						<TableBodyCell>
-							<ButtonGroup class="w-full justify-center">
-								<Button href={detailURL} class="p-2" outline>
-									<EditIcon height={15} width={15} />
-								</Button>
-								<Button href={deleteURL} class="p-2" outline color="red">
-									<DeleteIcon height={15} width={15} />
-								</Button>
-								<RawDataModal data={currentAccount} title="Raw Account Data" dev={data.dev} />
-							</ButtonGroup>
+							<div class="flex flex-row justify-center">
+								<ButtonGroup>
+									<Button href={journalsURL} class="p-2" outline color="blue">
+										<JournalEntryIcon height={15} width={15} />
+									</Button>
+									<Button href={detailURL} class="p-2" outline>
+										<EditIcon height={15} width={15} />
+									</Button>
+									<Button href={deleteURL} class="p-2" outline color="red">
+										<DeleteIcon height={15} width={15} />
+									</Button>
+									<RawDataModal data={currentAccount} title="Raw Account Data" dev={data.dev} />
+								</ButtonGroup>
+							</div>
 						</TableBodyCell>
 						<TableBodyCell>{currentAccount.accountGroup}</TableBodyCell>
 						<TableBodyCell>{currentAccount.accountGroup2}</TableBodyCell>
@@ -215,14 +234,12 @@
 						<TableBodyCell>{currentAccount.title}</TableBodyCell>
 						<TableBodyCell>{statusToDisplay(currentAccount.status)}</TableBodyCell>
 						<TableBodyCell>
-							<JournalSummary
-								summaryFilter={{ account: { id: currentAccount.id, type: [...accountTypeEnum] } }}
-								items={data.deferred.journalSummaries}
-								id={currentAccount.id}
+							<DisplayCurrency
+								amount={currentAccount.sum}
 								format={data.user?.currencyFormat || 'USD'}
-								summaryTitle="{currentAccount.title} - Summary"
 							/>
 						</TableBodyCell>
+						<TableBodyCell>{currentAccount.count}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

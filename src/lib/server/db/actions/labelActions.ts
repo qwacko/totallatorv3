@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/labelSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { label, labelsToJournals } from '../schema';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { account, journalEntry, label, labelsToJournals } from '../schema';
+import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -59,13 +59,21 @@ export const labelActions = {
 			  ]
 			: defaultOrderBy;
 
-		const results = db.query.label
-			.findMany({
-				where: and(...where),
-				offset: page * pageSize,
-				limit: pageSize,
-				orderBy: orderByResult
+		const results = await db
+			.select({
+				...getTableColumns(label),
+				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+				count: sql`count(${journalEntry.id})`.mapWith(Number)
 			})
+			.from(label)
+			.where(and(...where, inArray(account.type, ['asset', 'liability'])))
+			.limit(pageSize)
+			.offset(page * pageSize)
+			.orderBy(...orderByResult)
+			.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, label.id))
+			.leftJoin(journalEntry, eq(journalEntry.id, labelsToJournals.journalId))
+			.leftJoin(account, eq(account.id, journalEntry.accountId))
+			.groupBy(label.id)
 			.execute();
 
 		const resultCount = await db
@@ -77,7 +85,7 @@ export const labelActions = {
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
-		return { count, data: await results, pageCount, page, pageSize };
+		return { count, data: results, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		const items = db

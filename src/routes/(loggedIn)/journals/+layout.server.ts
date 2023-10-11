@@ -4,7 +4,6 @@ import type { JournalFilterSchemaType } from '$lib/schema/journalSchema.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
-import { getLinkedItemSummaries } from './getLinkedItemSummaries';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -36,8 +35,9 @@ export const load = async (data) => {
 
 	return {
 		journals: journalData,
+		summary,
 		dropdownInfo: { tags, bills, budgets, categories, labels, accounts },
 		filterText: journalFilterToText(filter, { prefix: 'Journal' }),
-		deferred: { summary, linkedSummary: getLinkedItemSummaries({ db, data: journalData }) }
+		deferred: { linkedSummary: [] }
 	};
 };

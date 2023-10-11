@@ -19,18 +19,9 @@ export const load = async (data) => {
 		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const billIds = bills.data.map((item) => item.id);
-
-	const journalSummaries = Promise.all(
-		billIds.map(async (id) => tActions.bill.getSummary({ db, id }))
-	);
-
 	return {
 		bills,
 		searchParams: pageInfo.searchParams,
-		filterText: billFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
-		deferred: {
-			journalSummaries
-		}
+		filterText: billFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 })
 	};
 };

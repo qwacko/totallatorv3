@@ -1,19 +1,35 @@
 <script lang="ts">
 	import { Badge, Button, Dropdown } from 'flowbite-svelte';
-	import type { JournalSummaryPropType } from './helpers/JournalSummaryPropType';
-	import JournalSummary from './JournalSummary.svelte';
 	import FilterIcon from './icons/FilterIcon.svelte';
-	import { urlGenerator } from '$lib/routes';
-	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import TagIcon from './icons/TagIcon.svelte';
-	import { goto } from '$app/navigation';
+	import { urlGenerator } from '$lib/routes';
+	import { defaultJournalFilter, type JournalFilterSchemaType } from '$lib/schema/journalSchema';
+	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 
 	export let data: { tagId: string | null; tagTitle: string | null };
-
-	export let summaryData: JournalSummaryPropType | undefined = undefined;
-	export let filterURL: string | undefined = undefined;
+	export let currentFilter: JournalFilterSchemaType;
 
 	let opened = false;
+
+	$: filterURL = urlGenerator({
+		address: '/(loggedIn)/journals',
+		searchParamsValue: {
+			...currentFilter,
+			tag: {
+				id: data.tagId || undefined
+			}
+		}
+	}).url;
+
+	$: viewURL = urlGenerator({
+		address: '/(loggedIn)/journals',
+		searchParamsValue: {
+			...defaultJournalFilter,
+			tag: {
+				id: data.tagId || undefined
+			}
+		}
+	}).url;
 </script>
 
 {#if data.tagTitle && data.tagId}
@@ -28,20 +44,9 @@
 					{data.tagTitle}
 				</div>
 			{/if}
-			<div class="flex flex-row">
-				{#if summaryData}
-					<JournalSummary
-						id={data.tagId || 'dummy'}
-						items={summaryData}
-						format="USD"
-						summaryTitle="{data.tagTitle || ''} Summary"
-						summaryFilter={{ tag: { id: data.tagId } }}
-					/>
-				{/if}
-				<div class="flex flex-grow" />
-				{#if filterURL}
-					<Button href={filterURL} outline color="light" size="xs"><FilterIcon /></Button>
-				{/if}
+			<div class="flex flex-row justify-between">
+				<Button href={viewURL} outline color="light" size="xs"><JournalEntryIcon /></Button>
+				<Button href={filterURL} outline color="light" size="xs"><FilterIcon /></Button>
 			</div>
 		</div>
 	</Dropdown>

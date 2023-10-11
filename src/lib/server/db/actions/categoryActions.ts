@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/categorySchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { category, journalEntry } from '../schema';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { account, category, journalEntry } from '../schema';
+import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/updatedTime';
@@ -60,13 +60,20 @@ export const categoryActions = {
 			  ]
 			: defaultOrderBy;
 
-		const results = db.query.category
-			.findMany({
-				where: and(...where),
-				offset: page * pageSize,
-				limit: pageSize,
-				orderBy: orderByResult
+		const results = await db
+			.select({
+				...getTableColumns(category),
+				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+				count: sql`count(${journalEntry.id})`.mapWith(Number)
 			})
+			.from(category)
+			.where(and(...where, inArray(account.type, ['asset', 'liability'])))
+			.limit(pageSize)
+			.offset(page * pageSize)
+			.orderBy(...orderByResult)
+			.leftJoin(journalEntry, eq(journalEntry.categoryId, category.id))
+			.leftJoin(account, eq(account.id, journalEntry.accountId))
+			.groupBy(category.id)
 			.execute();
 
 		const resultCount = await db
@@ -78,7 +85,7 @@ export const categoryActions = {
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
-		return { count, data: await results, pageCount, page, pageSize };
+		return { count, data: results, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		const items = db
