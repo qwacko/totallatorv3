@@ -1,5 +1,12 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import { account, journalEntry, journalsToOtherJournals, transaction } from '../../schema';
+import {
+	account,
+	journalEntry,
+	journalsToOtherJournals,
+	label,
+	labelsToJournals,
+	transaction
+} from '../../schema';
 import { SQL, and, eq, gt, inArray, like, not } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
@@ -62,7 +69,20 @@ export const journalFilterToQuery = async (
 
 	if (filter.label) {
 		const labelFilter = labelFilterToQuery(filter.label);
-		where.push(...labelFilter);
+		if (labelFilter.length > 0) {
+			const labelIds = await db
+				.select({ id: journalEntry.id })
+				.from(journalEntry)
+				.leftJoin(labelsToJournals, eq(labelsToJournals.journalId, journalEntry.id))
+				.leftJoin(label, eq(label.id, labelsToJournals.labelId))
+				.where(and(...labelFilter))
+				.groupBy(journalEntry.id)
+				.execute();
+
+			const allowableJournalIds = labelIds.map((x) => x.id);
+
+			where.push(inArray(journalEntry.id, allowableJournalIds));
+		}
 	}
 
 	if (filter.payee) {
@@ -150,10 +170,6 @@ export const journalFilterToText = async (
 	if (filter.reconciled !== undefined)
 		stringArray.push(filter.reconciled ? 'Is Reconciled' : 'Is Not Reconciled');
 
-	if (filter.payee?.id) {
-		stringArray.push(`Payee is ${await accountIdsToTitle([filter.payee.id])}`);
-	}
-
 	const linkedArray: string[] = [];
 	if (filter.account) {
 		linkedArray.push(
@@ -185,6 +201,18 @@ export const journalFilterToText = async (
 		linkedArray.push(
 			...(await labelFilterToText(filter.label, { prefix: 'Label', allText: false }))
 		);
+	}
+
+	if (filter.payee?.id) {
+		linkedArray.push(`Payee is ${await accountIdsToTitle([filter.payee.id])}`);
+	}
+
+	if (filter.payee?.title) {
+		linkedArray.push(`Payee Title contains ${filter.payee.title}`);
+	}
+
+	if (filter.payee?.idArray) {
+		linkedArray.push(`Payee is one of ${await accountIdsToTitle(filter.payee.idArray)}`);
 	}
 
 	const stringArrayWithPrefix = prefix
