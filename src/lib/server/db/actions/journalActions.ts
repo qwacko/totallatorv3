@@ -17,8 +17,7 @@ import {
 	category,
 	tag,
 	transaction,
-	labelsToJournals,
-	label
+	labelsToJournals
 } from '../schema';
 import { journalFilterToQuery } from './helpers/journalFilterToQuery';
 
@@ -859,15 +858,6 @@ export const journalActions = {
 			transactionIds = await journalActions.createManyTransactionJournals({
 				db,
 				journalEntries: transactionsForCreation
-			});
-
-			const createdItems = await journalActions.list({
-				db,
-				filter: {
-					transactionIdArray: transactionIds,
-					page: 0,
-					pageSize: 1000000
-				}
 			});
 
 			await journalActions.updateJournals({

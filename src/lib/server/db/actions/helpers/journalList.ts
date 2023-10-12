@@ -13,7 +13,8 @@ import {
 	category,
 	tag,
 	label,
-	labelsToJournals
+	labelsToJournals,
+	importTable
 } from '../../schema';
 import { journalFilterToQuery } from './journalFilterToQuery';
 import { journalFilterToOrderBy } from './journalFilterToOrderBy';
@@ -38,7 +39,8 @@ export const journalList = async ({
 			categoryTitle: category.title,
 			accountTitle: account.title,
 			accountType: account.type,
-			accountGroup: account.accountGroupCombined
+			accountGroup: account.accountGroupCombined,
+			importTitle: importTable.title
 		})
 		.from(journalEntry)
 		.leftJoin(account, eq(journalEntry.accountId, account.id))
@@ -46,6 +48,7 @@ export const journalList = async ({
 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+		.leftJoin(importTable, eq(journalEntry.importId, importTable.id))
 		.where(and(...(await journalFilterToQuery(restFilter))))
 		.orderBy(...journalFilterToOrderBy(processedFilter))
 		.offset(page * pageSize)

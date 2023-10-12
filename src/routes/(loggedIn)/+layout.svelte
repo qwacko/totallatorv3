@@ -12,6 +12,7 @@
 	import BulkCreateDisplay from './dev/bulkLoad/BulkCreateDisplay.svelte';
 	import DevIcon from '$lib/components/icons/DevIcon.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
+	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
 
 	export let data;
 
@@ -23,6 +24,7 @@
 	$: pageIsJournalEntries = $page.route.id?.startsWith('/(loggedIn)/journal-entries');
 	$: pageIsAccounts = $page.route.id?.startsWith('/(loggedIn)/accounts');
 	$: pageIsDev = $page.route.id?.startsWith('/(loggedIn)/dev');
+	$: pageIsImport = $page.route.id?.startsWith('/(loggedIn)/import');
 
 	$: pageMap = [
 		{
@@ -69,6 +71,12 @@
 			active: pageIsAccounts,
 			icon: AccountIcon,
 			href: urlGenerator({ address: '/(loggedIn)/accounts', searchParamsValue: {} })
+		},
+		{
+			label: 'Import',
+			active: pageIsImport,
+			icon: ImportIcon,
+			href: urlGenerator({ address: '/(loggedIn)/import'})
 		},
 		...(data.dev
 			? [

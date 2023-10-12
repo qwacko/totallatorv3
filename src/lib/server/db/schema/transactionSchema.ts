@@ -164,6 +164,8 @@ export const journalEntry = sqliteTable('journal_entry', {
 	...idColumn,
 	amount: integer('amount', { mode: 'number' }).notNull().default(0),
 	transactionId: text('transaction_id').notNull(),
+	importId: text('import_id').unique(),
+	importDetailId: text('import_detail_id').unique(),
 	...journalSharedColumns,
 	...timestampColumns
 });
@@ -193,5 +195,60 @@ export const journalEntryRelations = relations(journalEntry, ({ one, many }) => 
 		fields: [journalEntry.tagId],
 		references: [tag.id]
 	}),
+	importDetail: one(importItemDetail, {
+		fields: [journalEntry.importDetailId],
+		references: [importItemDetail.id]
+	}),
+	import: one(importTable, {
+		fields: [journalEntry.importId],
+		references: [importTable.id]
+	}),
 	labels: many(labelsToJournals)
+}));
+
+export const importItemDetail = sqliteTable(
+	'import_item_detail',
+	{
+		...idColumn,
+		importId: text('import_id').notNull(),
+		journalId: text('journal_id'),
+		importInfo: text('import_info', { mode: 'json' }),
+		isDuplicate: integer('is_duplicate', { mode: 'boolean' }).notNull().default(false),
+		isError: integer('is_error', { mode: 'boolean' }).notNull().default(false),
+		isImported: integer('is_imported', { mode: 'boolean' }).notNull().default(false),
+		processedInfo: text('processed_info', { mode: 'json' }),
+		...timestampColumns
+	},
+	(t) => ({
+		uniqueRelation: unique().on(t.journalId, t.importId),
+		importIdx: index('label_import_idx').on(t.importId),
+		journalIdx: index('label_journal_idx').on(t.journalId)
+	})
+);
+
+export const importItemDetailRelations = relations(importItemDetail, ({ one }) => ({
+	import: one(importTable, {
+		fields: [importItemDetail.importId],
+		references: [importTable.id]
+	}),
+	journal: one(journalEntry, {
+		fields: [importItemDetail.journalId],
+		references: [journalEntry.id]
+	})
+}));
+
+export const importTable = sqliteTable('import', {
+	...idColumn,
+	...timestampColumns,
+	title: text('title').notNull(),
+	filename: text('filename').notNull(),
+	complete: integer('complete', { mode: 'boolean' }).notNull().default(false),
+	source: text('source').notNull(),
+	processed: integer('processed', { mode: 'boolean' }).notNull().default(false),
+	error: integer('error', { mode: 'boolean' }).notNull().default(false)
+});
+
+export const importTableRelations = relations(importTable, ({ many }) => ({
+	importDetails: many(importItemDetail),
+	journals: many(journalEntry)
 }));

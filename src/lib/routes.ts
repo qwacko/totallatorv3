@@ -18,6 +18,10 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// ----------------------------------------
 		'/(loggedIn)/dev/bulkLoad': {},
 
+		// Imports
+		// ----------------------------------------
+		'/(loggedIn)/import': {},
+
 		// Journals
 		// ----------------------------------------
 		'/(loggedIn)/journals': {

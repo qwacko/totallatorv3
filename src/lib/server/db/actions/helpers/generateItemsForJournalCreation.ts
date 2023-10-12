@@ -4,7 +4,6 @@ import { updatedTime } from './updatedTime';
 import { nanoid } from 'nanoid';
 import { expandDate } from './expandDate';
 import { journalGetOrCreateLinkedItems } from './accountGetOrCreateLinkedItems';
-import { logging } from '$lib/server/logging';
 
 export const generateItemsForJournalCreation = async (
 	db: DBType,

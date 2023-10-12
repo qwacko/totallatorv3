@@ -27,6 +27,7 @@ const serverEnvValidation = z.object({
 		.default('ERROR,WARN,INFO')
 		.transform((data) => data.split(',').map((d) => d.trim().toUpperCase())),
 	BACKUP_DIR: z.string().optional().default('./backup'),
+	IMPORT_DIR: z.string().optional().default('./import'),
 	BACKUP_SCHEDULE: z.string().optional().default('0 0 * * *'),
 	ALLOW_SIGNUP: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
 	DEV_OVERRIDE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
@@ -40,6 +41,7 @@ export const serverEnv = serverEnvValidation.parse({
 	LOOGGING_CLASSES: env.DEBUG_CLASSES,
 	BACKUP_DIR: env.BACKUP_DIR,
 	BACKUP_SCHEDULE: env.BACKUP_SCHEDULE,
+	IMPORT_DIR: env.IMPORT_DIR,
 	ALLOW_SIGNUP: env.ALLOW_SIGNUP,
 	DEV_OVERRIDE: env.DEV_OVERRIDE,
 	CSRF_CHECK_ORIGIN: env.CSRF_CHECK_ORIGIN,
