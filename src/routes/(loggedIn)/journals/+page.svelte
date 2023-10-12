@@ -359,6 +359,7 @@
 										accountGroupCombinedTitle: currentOtherJournal.accountGroup
 									}}
 									currentFilter={$urlStore.searchParams || defaultJournalFilter}
+									payeeFilter
 								/>
 							{:else}
 								<div class="flex flex-col">
@@ -371,6 +372,7 @@
 												accountGroupCombinedTitle: currentOtherJournal.accountGroup
 											}}
 											currentFilter={$urlStore.searchParams || defaultJournalFilter}
+											payeeFilter
 										/>
 									{/each}
 								</div>

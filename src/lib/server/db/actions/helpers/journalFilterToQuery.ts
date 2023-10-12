@@ -1,14 +1,21 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import { journalEntry } from '../../schema';
-import { SQL, eq, gt, inArray, like } from 'drizzle-orm';
-import { accountFilterToQuery, accountFilterToText } from './accountFilterToQuery';
+import { account, journalEntry, journalsToOtherJournals, transaction } from '../../schema';
+import { SQL, and, eq, gt, inArray, like, not } from 'drizzle-orm';
+import {
+	accountFilterToQuery,
+	accountFilterToText,
+	accountIdsToTitle
+} from './accountFilterToQuery';
 import { billFilterToQuery, billFilterToText } from './billFilterToQuery';
 import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
 import { tagFilterToQuery, tagFilterToText } from './tagFilterToQuery';
 import { categoryFilterToQuery, categoryFilterToText } from './categoryFilterToQuery';
 import { labelFilterToQuery, labelFilterToText } from './labelFilterToQuery';
+import { db } from '../../db';
+import { alias } from 'drizzle-orm/sqlite-core';
+import { logging } from '$lib/server/logging';
 
-export const journalFilterToQuery = (
+export const journalFilterToQuery = async (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
 ) => {
 	const where: SQL<unknown>[] = [];
@@ -58,6 +65,43 @@ export const journalFilterToQuery = (
 		where.push(...labelFilter);
 	}
 
+	if (filter.payee) {
+		const otherJournal = alias(journalEntry, 'otherJournal');
+
+		const payeeFilter: SQL<unknown>[] = [];
+
+		if (filter.payee.id) {
+			payeeFilter.push(eq(otherJournal.accountId, filter.payee.id));
+		}
+		if (filter.payee.title) {
+			payeeFilter.push(like(account.title, `%${filter.payee.title}%`));
+		}
+
+		if (filter.payee.idArray && filter.payee.idArray.length > 0) {
+			payeeFilter.push(inArray(otherJournal.accountId, filter.payee.idArray));
+		}
+
+		const payeeJournalSQ = await db
+			.select({ id: journalEntry.id })
+			.from(journalEntry)
+			.leftJoin(transaction, eq(journalEntry.transactionId, transaction.id))
+			.leftJoin(
+				otherJournal,
+				and(
+					eq(otherJournal.transactionId, transaction.id),
+					not(eq(otherJournal.id, journalEntry.id))
+				)
+			)
+			.leftJoin(account, eq(otherJournal.accountId, account.id))
+			.where(and(...payeeFilter))
+			.groupBy(journalEntry.id)
+			.execute();
+
+		const allowableJournalIds = payeeJournalSQ.map((x) => x.id);
+
+		where.push(inArray(journalEntry.id, allowableJournalIds));
+	}
+
 	return where;
 };
 
@@ -105,6 +149,10 @@ export const journalFilterToText = async (
 		stringArray.push(filter.dataChecked ? 'Has had data checked' : "Hasn't had data checked");
 	if (filter.reconciled !== undefined)
 		stringArray.push(filter.reconciled ? 'Is Reconciled' : 'Is Not Reconciled');
+
+	if (filter.payee?.id) {
+		stringArray.push(`Payee is ${await accountIdsToTitle([filter.payee.id])}`);
+	}
 
 	const linkedArray: string[] = [];
 	if (filter.account) {

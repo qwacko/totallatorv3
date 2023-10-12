@@ -50,7 +50,7 @@ const accountIdToTitle = async (id: string) => {
 	return id;
 };
 
-const accountIdsToTitle = async (ids: string[]) => {
+export const accountIdsToTitle = async (ids: string[]) => {
 	const titles = await Promise.all(ids.map(async (id) => accountIdToTitle(id)));
 
 	return titles;

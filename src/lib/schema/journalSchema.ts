@@ -151,6 +151,13 @@ export const journalFilterSchema = z.object({
 	reconciled: z.coerce.boolean().optional(),
 	dataChecked: z.coerce.boolean().optional(),
 	complete: z.coerce.boolean().optional(),
+	payee: z
+		.object({
+			id: z.string().optional(),
+			idArray: z.array(z.string()).optional(),
+			title: z.string().optional()
+		})
+		.optional(),
 	account: accountFilterSchema
 		.omit({ page: true, pageSize: true, orderBy: true })
 		.optional()

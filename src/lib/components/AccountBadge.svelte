@@ -18,6 +18,7 @@
 	};
 
 	export let currentFilter: JournalFilterSchemaType;
+	export let payeeFilter = false;
 
 	let opened = false;
 
@@ -25,10 +26,14 @@
 		address: '/(loggedIn)/journals',
 		searchParamsValue: {
 			...currentFilter,
-			account: {
-				id: accountInfo.id || undefined,
-				type: [...accountTypeEnum]
-			}
+			...(payeeFilter
+				? { payee: { id: accountInfo.id || undefined } }
+				: {
+						account: {
+							id: accountInfo.id || undefined,
+							type: [...accountTypeEnum]
+						}
+				  })
 		}
 	}).url;
 
@@ -36,10 +41,14 @@
 		address: '/(loggedIn)/journals',
 		searchParamsValue: {
 			...defaultJournalFilter,
-			account: {
-				id: accountInfo.id || undefined,
-				type: [...accountTypeEnum]
-			}
+			...(payeeFilter
+				? { payee: { id: accountInfo.id || undefined } }
+				: {
+						account: {
+							id: accountInfo.id || undefined,
+							type: [...accountTypeEnum]
+						}
+				  })
 		}
 	}).url;
 </script>

@@ -37,7 +37,7 @@ export const journalList = async ({
 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-		.where(and(...journalFilterToQuery(restFilter)))
+		.where(and(...(await journalFilterToQuery(restFilter))))
 		.orderBy(...journalFilterToOrderBy(processedFilter))
 		.offset(page * pageSize)
 		.limit(pageSize);
@@ -56,7 +56,7 @@ export const journalList = async ({
 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-		.where(and(...journalFilterToQuery(restFilter)))
+		.where(and(...(await journalFilterToQuery(restFilter))))
 		.orderBy(...journalFilterToOrderBy(processedFilter))
 		.offset(page * pageSize)
 		.limit(-1)
@@ -77,7 +77,7 @@ export const journalList = async ({
 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-		.where(and(...journalFilterToQuery(restFilter)))
+		.where(and(...(await journalFilterToQuery(restFilter))))
 		.execute();
 
 	const count = resultCount[0].count;

@@ -52,7 +52,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? journalFilterToQuery(filter) : [])));
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [])));
 
 		const count = await countQueryCore.execute();
 
@@ -67,7 +67,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? journalFilterToQuery(filter) : [])));
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [])));
 
 		const count = await countQueryCore.execute();
 
@@ -101,7 +101,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? journalFilterToQuery(filter) : [])));
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [])));
 
 		const tagsQuery = db
 			.select({
@@ -115,7 +115,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
 			.groupBy(tag.id, tag.title)
 			.execute();
 
@@ -131,7 +131,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
 			.groupBy(category.id, category.title)
 			.execute();
 
@@ -147,7 +147,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
 			.groupBy(bill.id, bill.title)
 			.execute();
 
@@ -163,7 +163,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
 			.groupBy(budget.id, budget.title)
 			.execute();
 
@@ -179,7 +179,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
 			.groupBy(account.id, account.title)
 			.execute();
 
@@ -210,7 +210,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
 			.groupBy(journalEntry.yearMonth);
 
 		const summaryQuery = (await summaryQueryCore.execute())[0];

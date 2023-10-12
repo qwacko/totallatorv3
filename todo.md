@@ -7,7 +7,6 @@ TODO : Labels - Make these show on journal page.
 TODO : Labels - Confirm filters for these work correctly.
 TODO : Labels - Make add / remove labels when editing or cloning journals work.
 TODO : Labels - Confirm that cloning a journal also clones labels.
-TODO : Other Journals - Allow filtering by other journal accounts (possibly could improve performance by storing this relationship in the journal or something).
 TODO : Favicon + Page Titles.
 TODO : Add "Create Transaction" page (currently links to creating a new tag).
 OPTION : More columns in linked item views, including journal count.
@@ -30,3 +29,4 @@ OPTION : May be useful to have the bulkEdit / bulkDelete pages include the summa
 OPTION : May be useful to have the summary information include the latest 5 journals or something.
 OPTION : May be useful to allow bulkEdit / bulkDelete from the summary popup.
 OPTION : Consider how to better support more journals per transaction.
+OPTION : Consider removing "Ohter Journals" link / relationship. This can be adequately handled by sufficient SQL functionality when joining)
