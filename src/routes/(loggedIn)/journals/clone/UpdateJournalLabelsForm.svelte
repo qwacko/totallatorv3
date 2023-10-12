@@ -284,5 +284,3 @@
 		{/await}
 	</TabItem>
 </Tabs>
-
-<div class="flex">Set Labels To</div>
