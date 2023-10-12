@@ -104,7 +104,9 @@ export const journalList = async ({
 		.from(journalEntry)
 		.leftJoin(labelsToJournals, eq(labelsToJournals.journalId, journalEntry.id))
 		.leftJoin(label, eq(label.id, labelsToJournals.labelId))
-		.where(inArray(journalEntry.id, journalIds))
+		.where(
+			journalIds.length > 0 ? inArray(journalEntry.id, journalIds) : eq(journalEntry.id, 'None')
+		)
 		.execute();
 
 	const runningTotal = (await runningTotalPromise)[0].sum;

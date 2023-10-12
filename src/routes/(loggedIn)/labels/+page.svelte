@@ -27,6 +27,7 @@
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
+	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/labels', $page);
@@ -49,6 +50,12 @@
 			Create
 		</Button>
 	</svelte:fragment>
+	<JournalSummaryPopoverContent
+		item={data.labelSummary}
+		format={data.user?.currencyFormat || 'USD'}
+		summaryFilter={{ label: $urlStore.searchParams } || defaultJournalFilter}
+		showJournalLink
+	/>
 
 	<center>
 		<TablePagination
