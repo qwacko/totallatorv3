@@ -2,8 +2,6 @@ TODO : Improve filtering for journals (dropdown?). Multiple Dropdowns where suit
 TODO : Importing - Setup importing.
 TODO : Importing - Setup database structure (and env variables) to support importing. This will require "importId" and "importData" columns for journals, and an import table.
 TODO : Make "/" page work correctly.
-TODO : Labels - Make these show on journal page.
-TODO : Labels - Make add / remove labels when editing or cloning journals work.
 TODO : Labels - Confirm that cloning a journal also clones labels.
 TODO : Favicon + Page Titles. Make it based on the page and description of filter.
 TODO : Add "Create Transaction" page (currently links to creating a new tag). Would be nice to have the ability to find similar items or something.

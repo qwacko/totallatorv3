@@ -27,6 +27,7 @@
 	export let itemToDisplay: DisplayFunction<T>;
 	export let highlightSearch = true;
 	export let value: string | undefined | null;
+	export let onChange: undefined | ((data: string | undefined) => void) = undefined;
 	export let name: string | undefined = undefined;
 	export let clearValue: boolean | undefined = undefined;
 	export let clearable = false;
@@ -43,6 +44,7 @@
 		onSelectedChange: (newSelection) => {
 			const newValue = newSelection.next ? newSelection.next?.value : undefined;
 			value = newValue;
+			onChange && onChange(newValue);
 			if (newValue !== undefined) {
 				clearValue = undefined;
 			}
@@ -85,7 +87,7 @@
 {#if clearable && clearName}
 	<input type="hidden" name={clearName} value={clearValue === true ? 'true' : 'false'} />
 {/if}
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2 {$$props.class}">
 	{#if title}
 		<Label {...$label}>{title}</Label>
 	{/if}

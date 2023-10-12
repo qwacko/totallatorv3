@@ -13,6 +13,7 @@
 	import UpdateJournalLinksForm from '../clone/UpdateJournalLinksForm.svelte';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
+	import UpdateJournalLabelsForm from '../clone/UpdateJournalLabelsForm.svelte';
 
 	export let data;
 
@@ -49,6 +50,12 @@
 			<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 			<UpdateJournalForm {form} />
 			<UpdateJournalLinksForm {form} dropdownInfo={data.dropdownInfo} />
+			<UpdateJournalLabelsForm
+				{form}
+				dropdownInfo={data.dropdownInfo}
+				allLabelIds={data.allLabelIds}
+				commonLabelIds={data.commonLabelIds}
+			/>
 			<Button type="submit">Update {data.journals.count} Journals</Button>
 			<Button on:click={() => form.reset()}>Reset</Button>
 			<PrevPageButton>Cancel</PrevPageButton>

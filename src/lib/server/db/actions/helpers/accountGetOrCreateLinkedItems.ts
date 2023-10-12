@@ -82,7 +82,7 @@ export const journalGetOrCreateLinkedItems = async (
 		budgetId: targetBudget?.id,
 		categoryId: targetCategory?.id,
 		tagId: targetTag?.id,
-		labelIds: targetLabels.map((label) => label.id)
+		labelIds: targetLabels
 	};
 };
 function filterUndefinedFromArray<T>(arr: (T | undefined)[]): T[] {

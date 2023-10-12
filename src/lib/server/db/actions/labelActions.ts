@@ -116,7 +116,7 @@ export const labelActions = {
 				if (requireActive && currentLabel.status !== 'active') {
 					throw new Error(`Label ${currentLabel.title} is not active`);
 				}
-				return currentLabel;
+				return currentLabel.id;
 			}
 			throw new Error(`Label ${id} not found`);
 		} else if (title) {
@@ -127,7 +127,7 @@ export const labelActions = {
 				if (requireActive && currentLabel.status !== 'active') {
 					throw new Error(`Label ${currentLabel.title} is not active`);
 				}
-				return currentLabel;
+				return currentLabel.id;
 			}
 			const newLabelId = await labelActions.create(db, {
 				title,
@@ -139,9 +139,9 @@ export const labelActions = {
 			if (!newLabel) {
 				throw new Error('Error Creating Label');
 			}
-			return newLabel;
+			return newLabel.id;
 		} else {
-			return undefined;
+			throw new Error(`Label id or title required`);
 		}
 	},
 	create: async (db: DBType, data: CreateLabelSchemaType) => {

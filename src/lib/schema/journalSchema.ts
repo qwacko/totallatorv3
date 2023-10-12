@@ -114,9 +114,9 @@ export const updateJournalSchema = z.object({
 	addLabels: z.array(z.string()).optional(),
 	addLabelTitles: z.array(z.string()).optional(),
 	removeLabels: z.array(z.string()).optional(),
-	removeLabelTitles: z.array(z.string()).optional(),
 	labels: z.array(z.string()).optional(),
 	labelTitles: z.array(z.string()).optional(),
+	clearLabels: z.boolean().optional().default(false),
 
 	linked: z.boolean().optional(),
 	reconciled: z.boolean().optional(),

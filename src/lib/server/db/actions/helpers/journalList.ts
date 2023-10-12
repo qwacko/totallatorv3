@@ -5,7 +5,16 @@ import {
 } from '$lib/schema/journalSchema';
 import { getTableColumns, eq, and, sql, inArray } from 'drizzle-orm';
 import type { DBType } from '../../db';
-import { account, journalEntry, bill, budget, category, tag } from '../../schema';
+import {
+	account,
+	journalEntry,
+	bill,
+	budget,
+	category,
+	tag,
+	label,
+	labelsToJournals
+} from '../../schema';
 import { journalFilterToQuery } from './journalFilterToQuery';
 import { journalFilterToOrderBy } from './journalFilterToOrderBy';
 
@@ -84,6 +93,17 @@ export const journalList = async ({
 	const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 	const journals = await journalsPromise;
+
+	const journalIds = journals.map((item) => item.id);
+
+	const journalLabels = await db
+		.select({ journalId: journalEntry.id, labelId: label.id, labelTitle: label.title })
+		.from(journalEntry)
+		.leftJoin(labelsToJournals, eq(labelsToJournals.journalId, journalEntry.id))
+		.leftJoin(label, eq(label.id, labelsToJournals.labelId))
+		.where(inArray(journalEntry.id, journalIds))
+		.execute();
+
 	const runningTotal = (await runningTotalPromise)[0].sum;
 
 	const transactionIds = journals.map((journal) => journal.transactionId);
@@ -113,11 +133,15 @@ export const journalList = async ({
 		const priorJournals = journals.filter((_, i) => i < index);
 		const priorJournalTotal = priorJournals.reduce((prev, current) => prev + current.amount, 0);
 		const total = runningTotal - priorJournalTotal;
+		const labels = journalLabels
+			.filter((item) => item.journalId === journal.id)
+			.map((item) => ({ id: item.labelId, title: item.labelTitle }));
 
 		return {
 			...journal,
 			total,
-			otherJournals
+			otherJournals,
+			labels
 		};
 	});
 

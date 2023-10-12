@@ -22,7 +22,9 @@ export const load = async (data) => {
 		filter: pageInfo.current.searchParams || defaultJournalFilter
 	});
 
-	const form = await superValidate(journalData.common, updateJournalSchema);
+	const { allLabelIds, commonLabelIds, ...journalDataForForm } = journalData.common;
+
+	const form = await superValidate(journalDataForForm, updateJournalSchema);
 
 	return {
 		selectedJournals: {
@@ -32,7 +34,9 @@ export const load = async (data) => {
 			count: journalData.journals.data.length,
 			canEdit: journalData.common.complete === false
 		},
-		form
+		form,
+		allLabelIds,
+		commonLabelIds
 	};
 };
 const updateStateActionValidation = pageAndFilterValidation.merge(

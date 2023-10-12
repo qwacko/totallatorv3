@@ -7,7 +7,7 @@ import {
 	type UpdateJournalSchemaInputType,
 	updateJournalSchema
 } from '$lib/schema/journalSchema';
-import { eq, and, sql, inArray, not, SQL } from 'drizzle-orm';
+import { eq, and, sql, inArray, not, SQL, or } from 'drizzle-orm';
 import type { DBType } from '../db';
 import {
 	account,
@@ -28,13 +28,14 @@ import { tActions } from './tActions';
 import { seedTransactionData } from './helpers/seedTransactionData';
 import { logging } from '$lib/server/logging';
 import { getMonthlySummary } from './helpers/getMonthlySummary';
-import { getCommonData } from './helpers/getCommonData';
+import { getCommonData, getCommonLabelData } from './helpers/getCommonData';
 import { handleLinkedItem } from './helpers/handleLinkedItem';
 import { generateItemsForTransactionCreation } from './helpers/generateItemsForTransactionCreation';
 import { splitArrayIntoChunks } from './helpers/splitArrayIntoChunks';
 import { journalList } from './helpers/journalList';
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
+import { nanoid } from 'nanoid';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -269,6 +270,7 @@ export const journalActions = {
 		const reconciled = getCommonData('reconciled', journalInformation.data);
 		const complete = getCommonData('complete', journalInformation.data);
 		const dataChecked = getCommonData('dataChecked', journalInformation.data);
+		const labelData = getCommonLabelData(journalInformation.data);
 
 		return {
 			journals: journalInformation,
@@ -284,7 +286,8 @@ export const journalActions = {
 				linked,
 				reconciled,
 				complete,
-				dataChecked
+				dataChecked,
+				...labelData
 			}
 		};
 	},
@@ -330,7 +333,6 @@ export const journalActions = {
 			for (const chunk of labelChunks) {
 				await db.insert(labelsToJournals).values(chunk).execute();
 			}
-			await journalActions.updateOtherJournals({ db, transactionIds });
 		});
 
 		return transactionIds;
@@ -343,13 +345,22 @@ export const journalActions = {
 		transactionIds: string[];
 	}) => {
 		await db.transaction(async (db) => {
+			const journalsForDeletion = await db
+				.select()
+				.from(journalEntry)
+				.where(inArray(journalEntry.transactionId, transactionIds))
+				.execute();
 			await db
 				.delete(journalEntry)
 				.where(inArray(journalEntry.transactionId, transactionIds))
 				.execute();
 			await db.delete(transaction).where(inArray(transaction.id, transactionIds)).execute();
-
-			await journalActions.updateOtherJournals({ db });
+			await db.delete(labelsToJournals).where(
+				inArray(
+					labelsToJournals.journalId,
+					journalsForDeletion.map((item) => item.id)
+				)
+			);
 		});
 	},
 	seed: async (db: DBType, count: number) => {
@@ -481,7 +492,7 @@ export const journalActions = {
 
 		if (!processedData.success) {
 			console.log(JSON.stringify(processedData.error));
-			throw new Error('Inavalid Journal Update Data');
+			throw new Error('Invalid Journal Update Data');
 		}
 
 		const processedFilter = journalFilterSchema.catch(defaultJournalFilter).parse(filter);
@@ -497,6 +508,24 @@ export const journalActions = {
 
 		const linkedJournals = journals.data.filter((journal) => journal.linked);
 		const unlinkedJournals = journals.data.filter((journal) => !journal.linked);
+		const transactionIds = linkedJournals.map((item) => item.transactionId);
+		const journalIds = unlinkedJournals.map((item) => item.id);
+		const targetJournals = (
+			await db
+				.select({ id: journalEntry.id })
+				.from(journalEntry)
+				.where(
+					or(
+						journalIds.length > 0
+							? inArray(journalEntry.id, journalIds)
+							: eq(journalEntry.id, 'empty'),
+						transactionIds.length > 0
+							? inArray(journalEntry.transactionId, transactionIds)
+							: eq(journalEntry.id, 'empty')
+					)
+				)
+				.execute()
+		).map((item) => item.id);
 
 		await db.transaction(async (db) => {
 			const tagId = handleLinkedItem({
@@ -685,6 +714,92 @@ export const journalActions = {
 						}
 					})
 				);
+			}
+
+			const labelSetting: { id?: string; title?: string }[] = [
+				...(journalData.labels ? journalData.labels.map((id) => ({ id })) : []),
+				...(journalData.labelTitles ? journalData.labelTitles.map((title) => ({ title })) : [])
+			];
+
+			const labelAddition: { id?: string; title?: string }[] = [
+				...(journalData.addLabels ? journalData.addLabels.map((id) => ({ id })) : []),
+				...(journalData.addLabelTitles
+					? journalData.addLabelTitles.map((title) => ({ title }))
+					: [])
+			];
+
+			const labelSettingIds = await Promise.all(
+				labelSetting.map(async (currentAdd) => {
+					return tActions.label.createOrGet({ db, ...currentAdd, requireActive: true });
+				})
+			);
+
+			const labelAdditionIds = await Promise.all(
+				labelAddition.map(async (currentAdd) => {
+					return tActions.label.createOrGet({ db, ...currentAdd, requireActive: true });
+				})
+			);
+
+			const combinedLabels = [...labelSettingIds, ...labelAdditionIds];
+
+			//Create Label Relationships for those to be added, as well as for those to be the only items
+			if (combinedLabels.length > 0) {
+				logging.info('Combined labels for creation : ', combinedLabels, targetJournals);
+				logging.info('Target Journals : ', targetJournals);
+				const itemsToCreate = targetJournals.reduce(
+					(prev, currentJournalId) => {
+						return [
+							...prev,
+							...combinedLabels.map((currentLabelId) => {
+								return {
+									id: nanoid(),
+									labelId: currentLabelId,
+									journalId: currentJournalId,
+									...updatedTime(),
+									createdAt: new Date()
+								};
+							})
+						];
+					},
+					[] as {
+						id: string;
+						journalId: string;
+						labelId: string;
+						createdAt: Date;
+						updatedAt: Date;
+					}[]
+				);
+
+				await db
+					.insert(labelsToJournals)
+					.values(itemsToCreate)
+					.onConflictDoNothing({ target: [labelsToJournals.journalId, labelsToJournals.labelId] })
+					.execute();
+			}
+
+			//Remove the labels that should be removed
+			if (journalData.removeLabels && journalData.removeLabels.length > 0) {
+				await db
+					.delete(labelsToJournals)
+					.where(
+						and(
+							inArray(labelsToJournals.labelId, journalData.removeLabels),
+							inArray(labelsToJournals.journalId, targetJournals)
+						)
+					);
+			}
+
+			//When a specific set of labels are specified, then remove the ones that aren't in that list
+			if (labelSettingIds.length > 0) {
+				await db
+					.delete(labelsToJournals)
+					.where(
+						and(
+							inArray(labelsToJournals.journalId, targetJournals),
+							not(inArray(labelsToJournals.labelId, labelSettingIds))
+						)
+					)
+					.execute();
 			}
 		});
 	},

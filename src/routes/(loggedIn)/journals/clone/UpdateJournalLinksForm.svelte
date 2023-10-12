@@ -14,7 +14,6 @@
 		budgets: Promise<DDINoGroup[]>;
 		categories: Promise<DDI[]>;
 		accounts: Promise<DDI[]>;
-		labels: Promise<DDINoGroup[]>;
 	};
 
 	$: formData = form.form;

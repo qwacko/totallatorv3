@@ -45,6 +45,7 @@
 	import BillBadge from '$lib/components/BillBadge.svelte';
 	import BudgetBadge from '$lib/components/BudgetBadge.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
+	import LabelBadge from '$lib/components/LabelBadge.svelte';
 
 	export let data;
 
@@ -412,6 +413,12 @@
 								data={currentJournal}
 								currentFilter={$urlStore.searchParams || defaultJournalFilter}
 							/>
+							{#each currentJournal.labels as currentLabel}
+								<LabelBadge
+									data={currentLabel}
+									currentFilter={$urlStore.searchParams || defaultJournalFilter}
+								/>
+							{/each}
 						</TableBodyCell>
 					</TableBodyRow>
 				{/each}
