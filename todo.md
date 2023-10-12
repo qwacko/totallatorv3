@@ -1,14 +1,16 @@
-TODO : Make column visibility controlled by a dropdown and matching wrapper component (possibly just make a cell and header wrapper?). Use a local storage store for this rather than the URL.
-TODO : Improve filtering for journals (dropdown?).
+TODO : Improve filtering for journals (dropdown?). Multiple Dropdowns where suitable?
 TODO : Importing - Setup importing.
 TODO : Importing - Setup database structure (and env variables) to support importing. This will require "importId" and "importData" columns for journals, and an import table.
 TODO : Make "/" page work correctly.
 TODO : Labels - Make these show on journal page.
 TODO : Labels - Make add / remove labels when editing or cloning journals work.
 TODO : Labels - Confirm that cloning a journal also clones labels.
-TODO : Favicon + Page Titles.
-TODO : Add "Create Transaction" page (currently links to creating a new tag).
+TODO : Favicon + Page Titles. Make it based on the page and description of filter.
+TODO : Add "Create Transaction" page (currently links to creating a new tag). Would be nice to have the ability to find similar items or something.
 TODO : When editing (or adding) a journal, allow for the creation of new accounts (or linked items) by name if they cannot be found.
+TODO : Make a slot in the page strucutre to have buttons to the right of the menu. Place the "Create xx" buttons here to clean up visually.
+TODO : Move the dropdowns to the Edit / Clone pages, they aren't needed all the time. Or possibly move them up to a higher level layout so they are only loaded on initial load or following data update.
+OPTION : Make column visibility controlled by a dropdown and matching wrapper component (possibly just make a cell and header wrapper?). Use a local storage store for this rather than the URL. Probably store this information in a localstorage store.
 OPTION : More columns in linked item views, including journal count.
 OPTION : Make Clone and Edit Journals pages so that they don't waste as much space.
 OPTION : Consider whether direct editing from a table view is beneficial for journals, or if the current approach is OK. Maybe have a special edit journals mode or something? Could have that clicking an item opens a dropdown to edit it.
@@ -19,7 +21,6 @@ OPTION : Consider refactoring out the journals table if this is useful elsehwere
 OPTION : Improve mobile functionality.
 OPTION : Figure out how to make table columns consistent width (and adjustable)
 OPTION : Allow linked items (tags etc...) to be sorted by journal count and total. Possibly this would require the original query to get the sums and counts as well. This could actually use the "summary" info that is created, and join that? But this is more joining, more complexity.... I guess this only needs to be done for the "linked items" and not the main journal, so possibly beneficial. Just need to make sure the summaries are updated...
-OPTION : Make the cached summary have a count, value, and needs refresh column. Then when retrieving the data, refresh the summary if necessary. This will mean that th summaries are more long lasting nad so can be used for sorting / filtering etc...
 OPTION : Have Export Functionality
 OPTION : Reports - Create Reports / Pivot Tables to allow for viewing of data etc... (this would also be well served by creating direct links from the values to journals)
 OPTION : Reports - Make reports "saveable" to allow for easy retrieval.
@@ -29,5 +30,4 @@ OPTION : May be useful to have the bulkEdit / bulkDelete pages include the summa
 OPTION : May be useful to have the summary information include the latest 5 journals or something.
 OPTION : May be useful to allow bulkEdit / bulkDelete from the summary popup.
 OPTION : Consider how to better support more journals per transaction.
-OPTION : Consider removing "Ohter Journals" link / relationship. This can be adequately handled by sufficient SQL functionality when joining)
 OPTION : Allow display of more rows (make it adjustable) This will need to somehow affect the "defaultJournalFilter" parameter, so not sure how to do it.

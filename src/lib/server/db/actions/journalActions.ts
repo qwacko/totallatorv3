@@ -17,8 +17,7 @@ import {
 	category,
 	tag,
 	transaction,
-	labelsToJournals,
-	journalsToOtherJournals
+	labelsToJournals
 } from '../schema';
 import { journalFilterToQuery } from './helpers/journalFilterToQuery';
 
@@ -290,66 +289,6 @@ export const journalActions = {
 				dataChecked
 			}
 		};
-	},
-	updateOtherJournals: async ({
-		db,
-		transactionIds
-	}: {
-		db: DBType;
-		transactionIds?: string[];
-	}) => {
-		if (transactionIds && transactionIds.length === 0)
-			return { toCreateLength: 0, toRemoveLength: 0 };
-
-		const transactionInfo2 = transactionIds
-			? await db
-					.select({
-						transactionId: journalEntry.transactionId,
-						journalId: journalEntry.id,
-						parentJournalId: journalsToOtherJournals.parentJournalId,
-						id: journalsToOtherJournals.id
-					})
-					.from(journalEntry)
-					.fullJoin(journalsToOtherJournals, eq(journalEntry.id, journalsToOtherJournals.journalId))
-					.leftJoin(transaction, eq(journalEntry.transactionId, transaction.id))
-					.where(inArray(journalEntry.transactionId, transactionIds))
-					.execute()
-			: await db
-					.select({
-						transactionId: journalEntry.transactionId,
-						journalId: journalEntry.id,
-						parentJournalId: journalsToOtherJournals.parentJournalId,
-						id: journalsToOtherJournals.id
-					})
-					.from(journalEntry)
-					.fullJoin(journalsToOtherJournals, eq(journalEntry.id, journalsToOtherJournals.journalId))
-					.leftJoin(transaction, eq(journalEntry.transactionId, transaction.id))
-					.execute();
-
-		const { toCreate, toRemove } = reconcileJournalsToOtherJournals(transactionInfo2);
-
-		await db.transaction(async (db) => {
-			if (toCreate.length > 0) {
-				const toCreateChunks = splitArrayIntoChunks(toCreate, 5000);
-				for (const chunk of toCreateChunks) {
-					await db
-						.insert(journalsToOtherJournals)
-						.values(chunk.map((item) => ({ id: nanoid(), ...item, ...updatedTime() })))
-						.execute();
-				}
-			}
-			if (toRemove.length > 0) {
-				const toRemoveChunks = splitArrayIntoChunks(toRemove, 5000);
-				for (const chunk of toRemoveChunks) {
-					await db
-						.delete(journalsToOtherJournals)
-						.where(inArray(journalsToOtherJournals.id, chunk))
-						.execute();
-				}
-			}
-		});
-
-		return { toCreateLength: toCreate.length, toRemoveLength: toRemove.length };
 	},
 	createManyTransactionJournals: async ({
 		db,

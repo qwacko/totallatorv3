@@ -1,12 +1,5 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import {
-	account,
-	journalEntry,
-	journalsToOtherJournals,
-	label,
-	labelsToJournals,
-	transaction
-} from '../../schema';
+import { account, journalEntry, label, labelsToJournals, transaction } from '../../schema';
 import { SQL, and, eq, gt, inArray, like, not } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
