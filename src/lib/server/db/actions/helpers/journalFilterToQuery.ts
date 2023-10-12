@@ -81,7 +81,11 @@ export const journalFilterToQuery = async (
 
 			const allowableJournalIds = labelIds.map((x) => x.id);
 
-			where.push(inArray(journalEntry.id, allowableJournalIds));
+			if (allowableJournalIds.length === 0) {
+				where.push(eq(journalEntry.id, 'nothing'));
+			} else {
+				where.push(inArray(journalEntry.id, allowableJournalIds));
+			}
 		}
 	}
 
@@ -119,7 +123,11 @@ export const journalFilterToQuery = async (
 
 		const allowableJournalIds = payeeJournalSQ.map((x) => x.id);
 
-		where.push(inArray(journalEntry.id, allowableJournalIds));
+		if (allowableJournalIds.length === 0) {
+			where.push(eq(journalEntry.id, 'nothing'));
+		} else {
+			where.push(inArray(journalEntry.id, allowableJournalIds));
+		}
 	}
 
 	return where;

@@ -60,11 +60,16 @@ export const budgetActions = {
 		const results = await db
 			.select({
 				...getTableColumns(budget),
-				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
-				count: sql`count(${journalEntry.id})`.mapWith(Number)
+				sum: sql`sum(CASE WHEN ${account.type} IN ('asset', 'liability') THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+					Number
+				),
+				count:
+					sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
+						Number
+					)
 			})
 			.from(budget)
-			.where(and(...where, inArray(account.type, ['asset', 'liability'])))
+			.where(and(...where))
 			.limit(pageSize)
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
