@@ -1,6 +1,5 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { Button, Heading } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { pageInfo } from '$lib/routes';
@@ -20,7 +19,6 @@
 
 	$: enhance = form.enhance;
 	$: tainted = form.tainted;
-	$: formStore = form.form;
 </script>
 
 <PageLayout title="Clone {data.journals.count} Journals">

@@ -1,10 +1,9 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { Button, Heading } from 'flowbite-svelte';
 	import BulkEditState from './BulkEditState.svelte';
 	import { page } from '$app/stores';
-	import { pageInfo, urlGenerator } from '$lib/routes';
+	import { pageInfo } from '$lib/routes';
 	import { superForm } from 'sveltekit-superforms/client';
 	import type { UpdateJournalSchemaSuperType } from '$lib/schema/journalSchema';
 	import ErrorText from '$lib/components/ErrorText.svelte';

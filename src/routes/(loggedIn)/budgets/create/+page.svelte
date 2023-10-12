@@ -1,11 +1,7 @@
 <script lang="ts">
-	import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { combinedTitleSplitRequired } from '$lib/helpers/combinedTitleSplit.js';
-	import { statusEnumSelectionWithoutDeleted } from '$lib/schema/statusSchema.js';
 	import type { CreateBudgetSchemaSuperType } from '$lib/schema/budgetSchema.js';
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';

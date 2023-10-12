@@ -9,19 +9,6 @@
 
 	updatePageStore();
 
-	// onNavigate((navigation) => {
-	// 	//@ts-expect-error startViewTransition is not defined on Document
-	// 	if (!document.startViewTransition) return;
-
-	// 	return new Promise((resolve) => {
-	// 		//@ts-expect-error startViewTransition is not defined on Document
-	// 		document.startViewTransition(async () => {
-	// 			resolve();
-	// 			await navigation.complete;
-	// 		});
-	// 	});
-	// });
-
 	export let data;
 
 	$: authGuardFrontend($page, { admin: data.user?.admin || false, user: data.user ? true : false });
@@ -47,7 +34,6 @@
 	});
 
 	$: webManifestLink = pwaInfo ? pwaInfo.webManifest.linkTag : '';
-	$: user = $page.url.pathname.startsWith(`/users/${data?.user?.userId}`);
 </script>
 
 <svelte:head>

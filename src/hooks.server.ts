@@ -7,7 +7,7 @@ import { auth } from '$lib/server/lucia';
 import { redirect, type Handle } from '@sveltejs/kit';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const runningJobs = initateCronJobs();
+initateCronJobs();
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// we can pass `event` because we used the SvelteKit middleware

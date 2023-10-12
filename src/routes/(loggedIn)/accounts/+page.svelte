@@ -29,7 +29,6 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
-	import JournalSummary from '$lib/components/JournalSummary.svelte';
 	import { accountTypeEnum } from '$lib/schema/accountTypeSchema';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';

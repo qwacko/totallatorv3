@@ -13,7 +13,6 @@ import { categoryFilterToQuery, categoryFilterToText } from './categoryFilterToQ
 import { labelFilterToQuery, labelFilterToText } from './labelFilterToQuery';
 import { db } from '../../db';
 import { alias } from 'drizzle-orm/sqlite-core';
-import { logging } from '$lib/server/logging';
 
 export const journalFilterToQuery = async (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>

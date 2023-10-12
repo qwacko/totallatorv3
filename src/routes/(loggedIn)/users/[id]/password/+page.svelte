@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { superForm } from 'sveltekit-superforms/client';
 	import type { passwordSchemaType } from './+page.server.js';
-	import CenterCard from '$lib/components/CenterCard.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
@@ -12,12 +11,9 @@
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance, allErrors } = superForm<passwordSchemaType>(
-		data.form,
-		{
-			taintedMessage: null
-		}
-	);
+	const { form, errors, constraints, message, enhance } = superForm<passwordSchemaType>(data.form, {
+		taintedMessage: null
+	});
 </script>
 
 <h1>Change Password</h1>

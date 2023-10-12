@@ -9,7 +9,6 @@
 	import TagIcon from '$lib/components/icons/TagIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 	import { Button, Tooltip } from 'flowbite-svelte';
-	import BulkCreateDisplay from './dev/bulkLoad/BulkCreateDisplay.svelte';
 	import DevIcon from '$lib/components/icons/DevIcon.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
@@ -76,7 +75,7 @@
 			label: 'Import',
 			active: pageIsImport,
 			icon: ImportIcon,
-			href: urlGenerator({ address: '/(loggedIn)/import'})
+			href: urlGenerator({ address: '/(loggedIn)/import' })
 		},
 		...(data.dev
 			? [

@@ -9,8 +9,7 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Alert,
-		Badge
+		Alert
 	} from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
@@ -28,9 +27,6 @@
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
-	import JournalCountBadge from '$lib/components/JournalCountBadge.svelte';
-	import JournalCurrencyBadge from '$lib/components/JournalCurrencyBadge.svelte';
-	import JournalSummary from '$lib/components/JournalSummary.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 
 	export let data;

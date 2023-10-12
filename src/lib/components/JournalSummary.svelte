@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Badge, Button, Modal, Popover, Spinner } from 'flowbite-svelte';
+	import { Button, Modal, Spinner } from 'flowbite-svelte';
 	import type { currencyFormatType } from '$lib/schema/userSchema';
 	import DisplayCurrency from './DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from './JournalSummaryPopoverContent.svelte';

@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts" generics="T extends IDRecord">
-	import { createCombobox, melt } from '@melt-ui/svelte';
+	import { createCombobox } from '@melt-ui/svelte';
 	import ChevronDown from '~icons/mdi/chevron-down';
 	import ChevronUp from '~icons/mdi/chevron-up';
 	import Check from '~icons/mdi/check';

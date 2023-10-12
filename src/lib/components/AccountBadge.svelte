@@ -4,7 +4,7 @@
 	import AccountIconIncome from '$lib/components/icons/AccountIconIncome.svelte';
 	import AccountIconLiability from '$lib/components/icons/AccountIconLiability.svelte';
 	import { accountTypeEnum, type AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
-	import { Badge, Button, Dropdown, Tooltip } from 'flowbite-svelte';
+	import { Badge, Button, Dropdown } from 'flowbite-svelte';
 	import FilterIcon from './icons/FilterIcon.svelte';
 	import { defaultJournalFilter, type JournalFilterSchemaType } from '$lib/schema/journalSchema';
 	import { urlGenerator } from '$lib/routes';

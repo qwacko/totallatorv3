@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Badge, Button, Dropdown, Tooltip } from 'flowbite-svelte';
+	import { Badge, Button, Dropdown } from 'flowbite-svelte';
 	import FilterIcon from './icons/FilterIcon.svelte';
 	import CategoryIcon from './icons/CategoryIcon.svelte';
 	import { urlGenerator } from '$lib/routes';

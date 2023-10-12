@@ -7,7 +7,6 @@
 
 	export let form: SuperForm<UpdateJournalSchemaSuperType>;
 
-	type DDI = { id: string; title: string; group: string; enabled: boolean };
 	type DDINoGroup = { id: string; title: string; enabled: boolean };
 	export let dropdownInfo: {
 		labels: Promise<DDINoGroup[]>;

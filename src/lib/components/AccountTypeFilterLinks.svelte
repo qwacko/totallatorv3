@@ -3,7 +3,7 @@
 		type AccountTypeEnumType,
 		accountTypeEnumSelection
 	} from '$lib/schema/accountTypeSchema';
-	import { Button, ButtonGroup, MultiSelect } from 'flowbite-svelte';
+	import { Button, ButtonGroup } from 'flowbite-svelte';
 
 	export let type: AccountTypeEnumType[] | undefined = undefined;
 	export let generateURL: (data: AccountTypeEnumType[] | undefined) => string;
