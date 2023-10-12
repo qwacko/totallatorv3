@@ -34,7 +34,7 @@
 		<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<UpdateJournalForm {form} />
-		<UpdateJournalLinksForm {form} dropdownInfo={data.dropdownInfo} />
+		<UpdateJournalLinksForm {form} dropdownInfo={data.dropdownInfo} hideAccount />
 		<UpdateJournalLabelsForm
 			{form}
 			dropdownInfo={data.dropdownInfo}

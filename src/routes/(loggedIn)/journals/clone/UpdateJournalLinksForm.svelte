@@ -5,6 +5,7 @@
 	import type { SuperForm } from 'sveltekit-superforms/client';
 
 	export let form: SuperForm<UpdateJournalSchemaSuperType>;
+	export let hideAccount: boolean = false;
 
 	type DDI = { id: string; title: string; group: string; enabled: boolean };
 	type DDINoGroup = { id: string; title: string; enabled: boolean };
@@ -19,15 +20,17 @@
 	$: formData = form.form;
 </script>
 
-<ComboSelectForm
-	{form}
-	title="Account"
-	items={dropdownInfo.accounts}
-	field="accountId"
-	placeholder="Select Account..."
-	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
-	itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
-/>
+{#if !hideAccount}
+	<ComboSelectForm
+		{form}
+		title="Account"
+		items={dropdownInfo.accounts}
+		field="accountId"
+		placeholder="Select Account..."
+		itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+		itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+	/>
+{/if}
 <ComboSelectForm
 	{form}
 	title="Tag"

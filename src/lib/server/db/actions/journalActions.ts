@@ -17,7 +17,8 @@ import {
 	category,
 	tag,
 	transaction,
-	labelsToJournals
+	labelsToJournals,
+	label
 } from '../schema';
 import { journalFilterToQuery } from './helpers/journalFilterToQuery';
 
@@ -302,9 +303,9 @@ export const journalActions = {
 
 		await db.transaction(async (db) => {
 			const itemsForCreation = await Promise.all(
-				journalEntries.map(
-					async (journalEntry) => await generateItemsForTransactionCreation(db, journalEntry)
-				)
+				journalEntries.map(async (journalEntry) => {
+					return generateItemsForTransactionCreation(db, journalEntry);
+				})
 			);
 
 			const transactions = itemsForCreation
@@ -319,6 +320,7 @@ export const journalActions = {
 			const labels = itemsForCreation
 				.map(({ labels }) => labels)
 				.reduce((a, b) => [...a, ...b], []);
+
 			const transactionChunks = splitArrayIntoChunks(transactions, 5000);
 			for (const chunk of transactionChunks) {
 				await db.insert(transaction).values(chunk).execute();
@@ -496,8 +498,8 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.catch(defaultJournalFilter).parse(filter);
-		logging.info('Updating Journals - Filter : ', processedFilter);
-		logging.info('Updating Journals - New Data : ', processedData.data);
+		// logging.info('Updating Journals - Filter : ', processedFilter);
+		// logging.info('Updating Journals - New Data : ', processedData.data);
 		const journals = await journalActions.list({ db, filter: processedFilter });
 
 		if (journals.data.length === 0) return;
@@ -744,8 +746,6 @@ export const journalActions = {
 
 			//Create Label Relationships for those to be added, as well as for those to be the only items
 			if (combinedLabels.length > 0) {
-				logging.info('Combined labels for creation : ', combinedLabels, targetJournals);
-				logging.info('Target Journals : ', targetJournals);
 				const itemsToCreate = targetJournals.reduce(
 					(prev, currentJournalId) => {
 						return [
@@ -847,7 +847,7 @@ export const journalActions = {
 				billId: journal.billId || undefined,
 				budgetId: journal.budgetId || undefined,
 				categoryId: journal.categoryId || undefined,
-				labels: journal.labels.map((label) => label.id)
+				labels: journal.labels.map((label) => label.labelId)
 			}));
 
 			return journals;
@@ -861,10 +861,21 @@ export const journalActions = {
 				journalEntries: transactionsForCreation
 			});
 
+			const createdItems = await journalActions.list({
+				db,
+				filter: {
+					transactionIdArray: transactionIds,
+					page: 0,
+					pageSize: 1000000
+				}
+			});
+
 			await journalActions.updateJournals({
 				db,
 				filter: {
-					transactionIdArray: transactionIds
+					transactionIdArray: transactionIds,
+					page: 0,
+					pageSize: 1000000
 				},
 				journalData: processedData.data
 			});

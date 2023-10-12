@@ -52,6 +52,7 @@ export const journalGetOrCreateLinkedItems = async (
 		id: tagId,
 		title: tagTitle
 	});
+
 	const targetLabelIds = labels
 		? await Promise.all(
 				labels.map(async (label) => {
@@ -62,6 +63,7 @@ export const journalGetOrCreateLinkedItems = async (
 				})
 		  )
 		: [];
+
 	const targetLabelTitles = labelTitles
 		? await Promise.all(
 				labelTitles.map(async (labelTitle) => {
@@ -82,7 +84,7 @@ export const journalGetOrCreateLinkedItems = async (
 		budgetId: targetBudget?.id,
 		categoryId: targetCategory?.id,
 		tagId: targetTag?.id,
-		labelIds: targetLabels
+		labels: targetLabels
 	};
 };
 function filterUndefinedFromArray<T>(arr: (T | undefined)[]): T[] {

@@ -4,6 +4,7 @@ import { updatedTime } from './updatedTime';
 import { nanoid } from 'nanoid';
 import { expandDate } from './expandDate';
 import { journalGetOrCreateLinkedItems } from './accountGetOrCreateLinkedItems';
+import { logging } from '$lib/server/logging';
 
 export const generateItemsForJournalCreation = async (
 	db: DBType,
@@ -26,8 +27,8 @@ export const generateItemsForJournalCreation = async (
 
 	const labelsForCreation = labels
 		? labels.map((label) => {
-				const id = nanoid();
-				return { id, journalId: id, labelId: label, ...updatedTime() };
+				const relId = nanoid();
+				return { id: relId, journalId: id, labelId: label, ...updatedTime() };
 		  })
 		: [];
 
