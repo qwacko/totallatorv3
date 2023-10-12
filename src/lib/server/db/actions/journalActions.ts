@@ -34,8 +34,6 @@ import { generateItemsForTransactionCreation } from './helpers/generateItemsForT
 import { splitArrayIntoChunks } from './helpers/splitArrayIntoChunks';
 import { journalList } from './helpers/journalList';
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
-import { nanoid } from 'nanoid';
-import { reconcileJournalsToOtherJournals } from './helpers/reconcileJournalsToOtherJournals';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 
 export const journalActions = {
