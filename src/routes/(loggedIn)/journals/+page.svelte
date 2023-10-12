@@ -68,9 +68,11 @@
 </script>
 
 <PageLayout title="Journals" size="xl">
-	<Button href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>
-		Create Transaction
-	</Button>
+	<svelte:fragment slot="right">
+		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>
+			Create Transaction
+		</Button>
+	</svelte:fragment>
 	<JournalSummaryPopoverContent
 		item={data.summary}
 		format={data.user?.currencyFormat || 'USD'}

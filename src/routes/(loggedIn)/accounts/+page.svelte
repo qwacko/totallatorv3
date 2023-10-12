@@ -51,12 +51,16 @@
 </script>
 
 <PageLayout title="Accounts" size="xl">
-	<Button
-		href={urlGenerator({ address: '/(loggedIn)/accounts/create' }).url}
-		class="flex self-center"
-	>
-		Create
-	</Button>
+	<svelte:fragment slot="right">
+		<Button
+			href={urlGenerator({ address: '/(loggedIn)/accounts/create' }).url}
+			class="flex self-center"
+			color="light"
+			outline
+		>
+			Create
+		</Button>
+	</svelte:fragment>
 	<JournalSummaryPopoverContent
 		item={data.accountSummary}
 		format={data.user?.currencyFormat || 'USD'}

@@ -45,7 +45,15 @@
 </script>
 
 <PageLayout title="Categories" size="lg">
-	<Button href={urlGenerator({ address: '/(loggedIn)/categories/create' }).url}>Create</Button>
+	<svelte:fragment slot="right">
+		<Button
+			color="light"
+			outline
+			href={urlGenerator({ address: '/(loggedIn)/categories/create' }).url}
+		>
+			Create
+		</Button>
+	</svelte:fragment>
 	<JournalSummaryPopoverContent
 		item={data.categorySummary}
 		format={data.user?.currencyFormat || 'USD'}

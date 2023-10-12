@@ -5,8 +5,9 @@ TODO : Make "/" page work correctly.
 TODO : Favicon + Page Titles. Make it based on the page and description of filter.
 TODO : Add "Create Transaction" page (currently links to creating a new tag). Would be nice to have the ability to find similar items or something.
 TODO : When editing (or adding) a journal, allow for the creation of new accounts (or linked items) by name if they cannot be found.
-TODO : Make a slot in the page strucutre to have buttons to the right of the menu. Place the "Create xx" buttons here to clean up visually.
 TODO : Move the dropdowns to the Edit / Clone pages, they aren't needed all the time. Or possibly move them up to a higher level layout so they are only loaded on initial load or following data update.
+TODO : User Management / User Page
+TODO : Check why backups are not working correctly.
 OPTION : Make column visibility controlled by a dropdown and matching wrapper component (possibly just make a cell and header wrapper?). Use a local storage store for this rather than the URL. Probably store this information in a localstorage store.
 OPTION : More columns in linked item views, including journal count.
 OPTION : Make Clone and Edit Journals pages so that they don't waste as much space.

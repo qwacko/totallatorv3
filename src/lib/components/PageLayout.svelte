@@ -16,16 +16,17 @@
 		class:max-w-xs={size === 'xs'}
 	>
 		<div class="flex flex-row gap-2">
-			{#if !hideBackButton}
-				<div class="flex flex-grow basis-0">
+			<div class="flex flex-grow basis-0">
+				{#if !hideBackButton}
 					<PrevPageButton color="light" outline><ArrowLeftIcon /></PrevPageButton>
-				</div>{/if}
+				{/if}
+			</div>
 			{#if title}
 				<h3 class="flex justify-center text-4xl font-bold">{title}</h3>
 			{/if}
-			{#if !hideBackButton}
-				<div class="flex flex-grow basis-0" />
-			{/if}
+			<div class="flex flex-grow basis-0 flex-row gap-2 justify-end">
+				<slot name="right" />
+			</div>
 		</div>
 		{#if subtitle}
 			<h5 class="flex justify-center text-xl font-bold">{subtitle}</h5>

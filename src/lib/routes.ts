@@ -21,6 +21,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// Imports
 		// ----------------------------------------
 		'/(loggedIn)/import': {},
+		'/(loggedIn)/import/create': {},
 
 		// Journals
 		// ----------------------------------------

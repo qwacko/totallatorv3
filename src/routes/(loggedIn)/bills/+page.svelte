@@ -49,7 +49,11 @@
 </script>
 
 <PageLayout title="Bills" size="lg">
-	<Button href={urlGenerator({ address: '/(loggedIn)/bills/create' }).url}>Create</Button>
+	<svelte:fragment slot="right">
+		<Button href={urlGenerator({ address: '/(loggedIn)/bills/create' }).url} color="light" outline>
+			Create
+		</Button>
+	</svelte:fragment>
 	<JournalSummaryPopoverContent
 		item={data.billSummary}
 		format={data.user?.currencyFormat || 'USD'}

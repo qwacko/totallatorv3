@@ -24,10 +24,6 @@
 </script>
 
 <PageLayout title="Clone {data.journals.count} Journals">
-	<RawDataModal data={data.selectedJournals} dev={data.dev} />
-	<RawDataModal data={urlInfo} dev={data.dev} />
-	<RawDataModal data={$formStore} dev={data.dev} />
-
 	<Heading tag="h3">Modify Cloned Journals</Heading>
 	<form method="post" action="?/clone" use:enhance class="flex flex-col gap-4">
 		<PreviousUrlInput name="prevPage" />
