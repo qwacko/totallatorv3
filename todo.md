@@ -4,11 +4,11 @@ TODO : Importing - Setup importing.
 TODO : Importing - Setup database structure (and env variables) to support importing. This will require "importId" and "importData" columns for journals, and an import table.
 TODO : Make "/" page work correctly.
 TODO : Labels - Make these show on journal page.
-TODO : Labels - Confirm filters for these work correctly.
 TODO : Labels - Make add / remove labels when editing or cloning journals work.
 TODO : Labels - Confirm that cloning a journal also clones labels.
 TODO : Favicon + Page Titles.
 TODO : Add "Create Transaction" page (currently links to creating a new tag).
+TODO : When editing (or adding) a journal, allow for the creation of new accounts (or linked items) by name if they cannot be found.
 OPTION : More columns in linked item views, including journal count.
 OPTION : Make Clone and Edit Journals pages so that they don't waste as much space.
 OPTION : Consider whether direct editing from a table view is beneficial for journals, or if the current approach is OK. Maybe have a special edit journals mode or something? Could have that clicking an item opens a dropdown to edit it.
@@ -30,3 +30,4 @@ OPTION : May be useful to have the summary information include the latest 5 jour
 OPTION : May be useful to allow bulkEdit / bulkDelete from the summary popup.
 OPTION : Consider how to better support more journals per transaction.
 OPTION : Consider removing "Ohter Journals" link / relationship. This can be adequately handled by sufficient SQL functionality when joining)
+OPTION : Allow display of more rows (make it adjustable) This will need to somehow affect the "defaultJournalFilter" parameter, so not sure how to do it.

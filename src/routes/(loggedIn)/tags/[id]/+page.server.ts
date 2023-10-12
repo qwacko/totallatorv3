@@ -11,8 +11,6 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	logging.info('tags/[id] load function : ', pageInfo);
-
 	if (!pageInfo.current.params?.id) throw redirect(302, '/tags');
 
 	const tag = await tActions.tag.getById(db, pageInfo.current.params?.id);

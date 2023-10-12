@@ -5,8 +5,15 @@
 	export let visibleIds: string[];
 	export let onlyVisibleAllowed = true;
 
-	$: checked = selectedIds.length > 0;
 	$: allSelected = visibleIds.filter((id) => !selectedIds.includes(id)).length === 0;
+	let checked = selectedIds.length > 0;
+
+	$: if (selectedIds.length > 0 && !checked) {
+		checked = true;
+	}
+	$: if (selectedIds.length === 0 && checked) {
+		checked = false;
+	}
 
 	const toggleAll = () => {
 		if (allSelected) {
@@ -26,4 +33,4 @@
 	$: filterSelected(visibleIds);
 </script>
 
-<Checkbox {checked} on:click={toggleAll} />
+<Checkbox bind:checked on:click={toggleAll} />
