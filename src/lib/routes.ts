@@ -7,6 +7,7 @@ import { categoryFilterSchema } from './schema/categorySchema';
 import { labelFilterSchema } from './schema/labelSchema';
 import { accountFilterSchema } from './schema/accountSchema';
 import { defaultJournalFilter, journalFilterSchema } from './schema/journalSchema';
+import { idSchema } from './schema/idSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -22,6 +23,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// ----------------------------------------
 		'/(loggedIn)/import': {},
 		'/(loggedIn)/import/create': {},
+		'/(loggedIn)/import/[id]': { paramsValidation: idSchema.parse },
 
 		// Journals
 		// ----------------------------------------

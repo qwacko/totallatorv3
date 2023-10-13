@@ -2,6 +2,7 @@ import { accountActions } from './accountActions';
 import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
+import { importActions } from './importActions';
 import { journalActions } from './journalActions';
 import { labelActions } from './labelActions';
 import { tagActions } from './tagActions';
@@ -13,5 +14,6 @@ export const tActions = {
 	budget: budgetActions,
 	label: labelActions,
 	account: accountActions,
-	journal: journalActions
+	journal: journalActions,
+	import: importActions
 };
