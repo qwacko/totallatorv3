@@ -65,10 +65,43 @@ export const createJournalSchema = createJournalSchemaCore
 export const createSimpleTransactionSchema = createJournalSchemaCore
 	.omit({ accountId: true, accountTitle: true })
 	.extend({
-		fromAccoutId: z.string().optional(),
+		fromAccountId: z.string().optional(),
 		fromAccountTitle: z.string().optional(),
 		toAccountId: z.string().optional(),
 		toAccountTitle: z.string().optional()
+	})
+	.refine((data) => data.tagId && data.tagTitle, {
+		path: ['tagId'],
+		message: 'tagId and tagTitle must be both present or both absent'
+	})
+	.refine((data) => data.billId && data.billTitle, {
+		path: ['billId'],
+		message: 'billId and billTitle must be both present or both absent'
+	})
+	.refine((data) => data.budgetId && data.budgetTitle, {
+		path: ['budgetId'],
+		message: 'budgetId and budgetTitle must be both present or both absent'
+	})
+	.refine((data) => data.categoryId && data.categoryTitle, {
+		path: ['categoryId'],
+		message: 'categoryId and categoryTitle must be both present or both absent'
+	})
+	.refine((data) => data.fromAccountId || data.fromAccountTitle, {
+		path: ['fromAccountId'],
+		message: 'From Account ID or Account Title is required'
+	})
+	.refine((data) => data.fromAccountId && data.fromAccountTitle, {
+		path: ['fromAccountId'],
+		message:
+			'Only one of either From Account ID or From Account Title is allowed. Both are present.'
+	})
+	.refine((data) => data.toAccountId || data.toAccountTitle, {
+		path: ['toAccountId'],
+		message: 'To Account ID or Account Title is required'
+	})
+	.refine((data) => data.toAccountId && data.toAccountTitle, {
+		path: ['toAccountId'],
+		message: 'Only one of either To Account ID or To Account Title is allowed. Both are present.'
 	});
 
 export const createCombinedTransactionSchema = z

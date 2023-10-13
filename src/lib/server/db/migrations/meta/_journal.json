@@ -113,6 +113,27 @@
       "when": 1697138154040,
       "tag": "0015_shocking_purifiers",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "5",
+      "when": 1697217695449,
+      "tag": "0016_jazzy_jazinda",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1697218607770,
+      "tag": "0017_strong_zarda",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1697220486642,
+      "tag": "0018_slimy_black_knight",
+      "breakpoints": true
     }
   ]
 }

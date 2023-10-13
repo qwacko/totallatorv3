@@ -15,6 +15,7 @@
 		"test:unit": "vitest",
 		"db:generate": "pnpm drizzle-kit generate:sqlite",
 		"db:studio": "pnpm drizzle-kit studio",
+		"db:undo": "pnpm drizzle-kit drop",
 		"generate-pwa-assets": "pwa-assets-generator"
 	},
 	"devDependencies": {
@@ -25,6 +26,7 @@
 		"@types/better-sqlite3": "^7.6.5",
 		"@types/lodash-es": "^4.17.9",
 		"@types/node-schedule": "^2.1.1",
+		"@types/papaparse": "^5.3.9",
 		"@typescript-eslint/eslint-plugin": "^6.7.4",
 		"@typescript-eslint/parser": "^6.7.4",
 		"@vite-pwa/assets-generator": "^0.0.10",
@@ -36,6 +38,7 @@
 		"eslint-config-prettier": "^9.0.0",
 		"eslint-plugin-svelte": "^2.34.0",
 		"flowbite-svelte": "^0.44.18",
+		"papaparse": "^5.4.1",
 		"postcss": "^8.4.31",
 		"postcss-load-config": "^4.0.1",
 		"prettier": "^3.0.3",

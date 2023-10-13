@@ -1,5 +1,6 @@
 import { urlGenerator } from '$lib/routes.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
+import { db } from '$lib/server/db/db';
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 
@@ -14,7 +15,7 @@ export const actions = {
 			if (!uploadedFile) {
 				return fail(400, { message: 'No File Uploaded' });
 			} else {
-				newId = await tActions.import.storeCSV({ newFile: uploadedFile });
+				newId = await tActions.import.storeCSV({ newFile: uploadedFile, db });
 			}
 		} catch (e) {
 			console.log('Error:', e);

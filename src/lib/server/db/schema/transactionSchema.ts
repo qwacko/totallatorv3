@@ -2,6 +2,7 @@ import { accountTypeEnum } from '../../../schema/accountTypeSchema';
 import { statusEnum } from '../../../schema/statusSchema';
 import { relations, sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, unique, index } from 'drizzle-orm/sqlite-core';
+import { importSourceEnum, importTypeEnum } from '../../../schema/importSchema';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -9,6 +10,13 @@ const timestampColumns = {
 		.default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
 };
+
+const importColumns = (identifier?: string) => ({
+	importId: text('import_id'),
+	importDetailId: text(
+		`${identifier ? identifier : ''}${identifier ? '_' : ''}import_detail_id`
+	).unique()
+});
 
 const statusColumns = {
 	status: text('status', { enum: statusEnum }).notNull().default('active'),
@@ -24,6 +32,7 @@ const idColumn = {
 
 export const account = sqliteTable('account', {
 	...idColumn,
+	...importColumns('account'),
 
 	title: text('title').notNull(),
 	type: text('type', { enum: accountTypeEnum }).notNull().default('expense'),
@@ -41,12 +50,21 @@ export const account = sqliteTable('account', {
 	...timestampColumns
 });
 
-export const accountRelations = relations(account, ({ many }) => ({
-	journals: many(journalEntry)
+export const accountRelations = relations(account, ({ many, one }) => ({
+	journals: many(journalEntry),
+	importDetail: one(importItemDetail, {
+		fields: [account.importDetailId],
+		references: [importItemDetail.id]
+	}),
+	import: one(importTable, {
+		fields: [account.importId],
+		references: [importTable.id]
+	})
 }));
 
 export const tag = sqliteTable('tag', {
 	...idColumn,
+	...importColumns('tag'),
 	title: text('title').notNull().unique(),
 	group: text('group').notNull(),
 	single: text('single').notNull(),
@@ -54,12 +72,21 @@ export const tag = sqliteTable('tag', {
 	...timestampColumns
 });
 
-export const tagRelations = relations(tag, ({ many }) => ({
-	journals: many(journalEntry)
+export const tagRelations = relations(tag, ({ many, one }) => ({
+	journals: many(journalEntry),
+	importDetail: one(importItemDetail, {
+		fields: [tag.importDetailId],
+		references: [importItemDetail.id]
+	}),
+	import: one(importTable, {
+		fields: [tag.importId],
+		references: [importTable.id]
+	})
 }));
 
 export const category = sqliteTable('category', {
 	...idColumn,
+	...importColumns('category'),
 	title: text('title').notNull().unique(),
 	group: text('group').notNull(),
 	single: text('single').notNull(),
@@ -67,42 +94,76 @@ export const category = sqliteTable('category', {
 	...timestampColumns
 });
 
-export const categoryRelations = relations(category, ({ many }) => ({
-	journals: many(journalEntry)
+export const categoryRelations = relations(category, ({ many, one }) => ({
+	journals: many(journalEntry),
+	importDetail: one(importItemDetail, {
+		fields: [category.importDetailId],
+		references: [importItemDetail.id]
+	}),
+	import: one(importTable, {
+		fields: [category.importId],
+		references: [importTable.id]
+	})
 }));
 
 export const bill = sqliteTable('bill', {
 	...idColumn,
+	...importColumns('bill'),
 	title: text('title').unique().notNull(),
-
 	...statusColumns,
 	...timestampColumns
 });
 
-export const billRelations = relations(bill, ({ many }) => ({
-	journals: many(journalEntry)
+export const billRelations = relations(bill, ({ many, one }) => ({
+	journals: many(journalEntry),
+	importDetail: one(importItemDetail, {
+		fields: [bill.importDetailId],
+		references: [importItemDetail.id]
+	}),
+	import: one(importTable, {
+		fields: [bill.importId],
+		references: [importTable.id]
+	})
 }));
 
 export const budget = sqliteTable('budget', {
 	...idColumn,
+	...importColumns('budget'),
 	title: text('title').unique().notNull(),
 	...statusColumns,
 	...timestampColumns
 });
 
-export const budgetRelations = relations(budget, ({ many }) => ({
-	journals: many(journalEntry)
+export const budgetRelations = relations(budget, ({ many, one }) => ({
+	journals: many(journalEntry),
+	importDetail: one(importItemDetail, {
+		fields: [budget.importDetailId],
+		references: [importItemDetail.id]
+	}),
+	import: one(importTable, {
+		fields: [budget.importId],
+		references: [importTable.id]
+	})
 }));
 
 export const label = sqliteTable('label', {
 	...idColumn,
+	...importColumns('label'),
 	title: text('title').unique().notNull(),
 	...statusColumns,
 	...timestampColumns
 });
 
-export const labelRelations = relations(label, ({ many }) => ({
-	journals: many(labelsToJournals)
+export const labelRelations = relations(label, ({ many, one }) => ({
+	journals: many(labelsToJournals),
+	importDetail: one(importItemDetail, {
+		fields: [label.importDetailId],
+		references: [importItemDetail.id]
+	}),
+	import: one(importTable, {
+		fields: [label.importId],
+		references: [importTable.id]
+	})
 }));
 
 export const labelsToJournals = sqliteTable(
@@ -162,10 +223,9 @@ export const transactionRelations = relations(transaction, ({ many }) => ({
 
 export const journalEntry = sqliteTable('journal_entry', {
 	...idColumn,
+	...importColumns(),
 	amount: integer('amount', { mode: 'number' }).notNull().default(0),
 	transactionId: text('transaction_id').notNull(),
-	importId: text('import_id').unique(),
-	importDetailId: text('import_detail_id').unique(),
 	...journalSharedColumns,
 	...timestampColumns
 });
@@ -212,11 +272,19 @@ export const importItemDetail = sqliteTable(
 		...idColumn,
 		importId: text('import_id').notNull(),
 		journalId: text('journal_id'),
+		journal2Id: text('journal_id'),
+		billId: text('bill_id'),
+		budgetId: text('budget_id'),
+		categoryId: text('category_id'),
+		accountId: text('account_id'),
+		tagId: text('tag_id'),
+		labelId: text('label_id'),
 		importInfo: text('import_info', { mode: 'json' }),
 		isDuplicate: integer('is_duplicate', { mode: 'boolean' }).notNull().default(false),
 		isError: integer('is_error', { mode: 'boolean' }).notNull().default(false),
 		isImported: integer('is_imported', { mode: 'boolean' }).notNull().default(false),
 		processedInfo: text('processed_info', { mode: 'json' }),
+		errorInfo: text('error_info', { mode: 'json' }),
 		...timestampColumns
 	},
 	(t) => ({
@@ -231,9 +299,37 @@ export const importItemDetailRelations = relations(importItemDetail, ({ one }) =
 		fields: [importItemDetail.importId],
 		references: [importTable.id]
 	}),
+	journal2: one(journalEntry, {
+		fields: [importItemDetail.journal2Id],
+		references: [journalEntry.id]
+	}),
 	journal: one(journalEntry, {
 		fields: [importItemDetail.journalId],
 		references: [journalEntry.id]
+	}),
+	bill: one(bill, {
+		fields: [importItemDetail.billId],
+		references: [bill.id]
+	}),
+	budget: one(budget, {
+		fields: [importItemDetail.budgetId],
+		references: [budget.id]
+	}),
+	category: one(category, {
+		fields: [importItemDetail.categoryId],
+		references: [category.id]
+	}),
+	account: one(account, {
+		fields: [importItemDetail.accountId],
+		references: [account.id]
+	}),
+	tag: one(tag, {
+		fields: [importItemDetail.tagId],
+		references: [tag.id]
+	}),
+	label: one(label, {
+		fields: [importItemDetail.labelId],
+		references: [label.id]
 	})
 }));
 
@@ -243,12 +339,19 @@ export const importTable = sqliteTable('import', {
 	title: text('title').notNull(),
 	filename: text('filename').notNull(),
 	complete: integer('complete', { mode: 'boolean' }).notNull().default(false),
-	source: text('source').notNull(),
+	source: text('source', { enum: importSourceEnum }).notNull().default('csv'),
 	processed: integer('processed', { mode: 'boolean' }).notNull().default(false),
-	error: integer('error', { mode: 'boolean' }).notNull().default(false)
+	error: integer('error', { mode: 'boolean' }).notNull().default(false),
+	errorInfo: text('error_info', { mode: 'json' }),
+	type: text('type', { enum: importTypeEnum }).notNull().default('transaction')
 });
 
 export const importTableRelations = relations(importTable, ({ many }) => ({
 	importDetails: many(importItemDetail),
-	journals: many(journalEntry)
+	journals: many(journalEntry),
+	bills: many(bill),
+	budgets: many(budget),
+	categories: many(category),
+	tags: many(tag),
+	labels: many(label)
 }));

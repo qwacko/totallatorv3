@@ -64,6 +64,9 @@ devDependencies:
   '@types/node-schedule':
     specifier: ^2.1.1
     version: 2.1.1
+  '@types/papaparse':
+    specifier: ^5.3.9
+    version: 5.3.9
   '@typescript-eslint/eslint-plugin':
     specifier: ^6.7.4
     version: 6.7.4(@typescript-eslint/parser@6.7.4)(eslint@8.51.0)(typescript@5.2.2)
@@ -97,6 +100,9 @@ devDependencies:
   flowbite-svelte:
     specifier: ^0.44.18
     version: 0.44.18(svelte@4.2.1)
+  papaparse:
+    specifier: ^5.4.1
+    version: 5.4.1
   postcss:
     specifier: ^8.4.31
     version: 8.4.31
@@ -2000,6 +2006,12 @@ packages:
 
   /@types/node@20.8.3:
     resolution: {integrity: sha512-jxiZQFpb+NlH5kjW49vXxvxTjeeqlbsnTAdBTKpzEdPs9itay7MscYXz3Fo9VYFEsfQ6LJFitHad3faerLAjCw==}
+
+  /@types/papaparse@5.3.9:
+    resolution: {integrity: sha512-sZcrKD63qA4/6GyBcVvX6AIp0AkpfyYk00CUQHMBvb4+OVXTZWyXUvidUZaai1wyKUVyJoxO7mgREam/pMRrDw==}
+    dependencies:
+      '@types/node': 20.8.3
+    dev: true
 
   /@types/pug@2.0.7:
     resolution: {integrity: sha512-I469DU0UXNC1aHepwirWhu9YKg5fkxohZD95Ey/5A7lovC+Siu+MCLffva87lnfThaOrw9Vb1DUN5t55oULAAw==}
@@ -4388,6 +4400,10 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       p-limit: 3.1.0
+    dev: true
+
+  /papaparse@5.4.1:
+    resolution: {integrity: sha512-HipMsgJkZu8br23pW15uvo6sib6wne/4woLZPlFf3rpDyMe9ywEXUsuD7+6K9PRkJlVT51j/sCOYDKGGS3ZJrw==}
     dev: true
 
   /parent-module@1.0.1:
