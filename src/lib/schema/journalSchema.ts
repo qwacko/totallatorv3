@@ -7,49 +7,54 @@ import { budgetFilterSchema } from './budgetSchema';
 import { categoryFilterSchema } from './categorySchema';
 import { labelFilterSchema } from './labelSchema';
 
+const zodStringBlanking = z
+	.string()
+	.optional()
+	.transform((val) => (val === '' ? undefined : val));
+
 export const createJournalDBCore = z.object({
 	date: dateStringSchema,
 	description: z.string(),
-	amount: z.number(),
-	tagId: z.string().optional(),
-	billId: z.string().optional(),
-	budgetId: z.string().optional(),
-	categoryId: z.string().optional(),
-	accountId: z.string().optional(),
+	amount: z.coerce.number(),
+	tagId: zodStringBlanking,
+	billId: zodStringBlanking,
+	budgetId: zodStringBlanking,
+	categoryId: zodStringBlanking,
+	accountId: zodStringBlanking,
 	labels: z.array(z.string()).optional(),
-	linked: z.boolean().default(true).optional(),
-	reconciled: z.boolean().default(false).optional(),
-	dataChecked: z.boolean().default(false).optional(),
-	complete: z.boolean().default(false).optional()
+	linked: z.coerce.boolean().default(true).optional(),
+	reconciled: z.coerce.boolean().default(false).optional(),
+	dataChecked: z.coerce.boolean().default(false).optional(),
+	complete: z.coerce.boolean().default(false).optional()
 });
 
 export type CreateJournalDBCoreType = z.infer<typeof createJournalDBCore>;
 
 export const createJournalSchemaCore = createJournalDBCore.merge(
 	z.object({
-		tagTitle: z.string().optional(),
-		billTitle: z.string().optional(),
-		budgetTitle: z.string().optional(),
-		categoryTitle: z.string().optional(),
-		accountTitle: z.string().optional(),
+		tagTitle: zodStringBlanking,
+		billTitle: zodStringBlanking,
+		budgetTitle: zodStringBlanking,
+		categoryTitle: zodStringBlanking,
+		accountTitle: zodStringBlanking,
 		labelTitles: z.array(z.string()).optional()
 	})
 );
 
 export const createJournalSchema = createJournalSchemaCore
-	.refine((data) => data.tagId && data.tagTitle, {
+	.refine((data) => !(data.tagId && data.tagTitle), {
 		path: ['tagId'],
 		message: 'tagId and tagTitle must be both present or both absent'
 	})
-	.refine((data) => data.billId && data.billTitle, {
+	.refine((data) => !(data.billId && data.billTitle), {
 		path: ['billId'],
 		message: 'billId and billTitle must be both present or both absent'
 	})
-	.refine((data) => data.budgetId && data.budgetTitle, {
+	.refine((data) => !(data.budgetId && data.budgetTitle), {
 		path: ['budgetId'],
 		message: 'budgetId and budgetTitle must be both present or both absent'
 	})
-	.refine((data) => data.categoryId && data.categoryTitle, {
+	.refine((data) => !(data.categoryId && data.categoryTitle), {
 		path: ['categoryId'],
 		message: 'categoryId and categoryTitle must be both present or both absent'
 	})
@@ -57,7 +62,7 @@ export const createJournalSchema = createJournalSchemaCore
 		path: ['accountId'],
 		message: 'Account ID or Account Title is required'
 	})
-	.refine((data) => data.accountId && data.accountTitle, {
+	.refine((data) => !(data.accountId && data.accountTitle), {
 		path: ['accountId'],
 		message: 'Only one of either Account ID or Account Title is allowed. Both are present.'
 	});
@@ -65,24 +70,24 @@ export const createJournalSchema = createJournalSchemaCore
 export const createSimpleTransactionSchema = createJournalSchemaCore
 	.omit({ accountId: true, accountTitle: true })
 	.extend({
-		fromAccountId: z.string().optional(),
-		fromAccountTitle: z.string().optional(),
-		toAccountId: z.string().optional(),
-		toAccountTitle: z.string().optional()
+		fromAccountId: zodStringBlanking,
+		fromAccountTitle: zodStringBlanking,
+		toAccountId: zodStringBlanking,
+		toAccountTitle: zodStringBlanking
 	})
-	.refine((data) => data.tagId && data.tagTitle, {
+	.refine((data) => !(data.tagId && data.tagTitle), {
 		path: ['tagId'],
 		message: 'tagId and tagTitle must be both present or both absent'
 	})
-	.refine((data) => data.billId && data.billTitle, {
+	.refine((data) => !(data.billId && data.billTitle), {
 		path: ['billId'],
 		message: 'billId and billTitle must be both present or both absent'
 	})
-	.refine((data) => data.budgetId && data.budgetTitle, {
+	.refine((data) => !(data.budgetId && data.budgetTitle), {
 		path: ['budgetId'],
 		message: 'budgetId and budgetTitle must be both present or both absent'
 	})
-	.refine((data) => data.categoryId && data.categoryTitle, {
+	.refine((data) => !(data.categoryId && data.categoryTitle), {
 		path: ['categoryId'],
 		message: 'categoryId and categoryTitle must be both present or both absent'
 	})
@@ -90,7 +95,7 @@ export const createSimpleTransactionSchema = createJournalSchemaCore
 		path: ['fromAccountId'],
 		message: 'From Account ID or Account Title is required'
 	})
-	.refine((data) => data.fromAccountId && data.fromAccountTitle, {
+	.refine((data) => !(data.fromAccountId && data.fromAccountTitle), {
 		path: ['fromAccountId'],
 		message:
 			'Only one of either From Account ID or From Account Title is allowed. Both are present.'
@@ -99,7 +104,7 @@ export const createSimpleTransactionSchema = createJournalSchemaCore
 		path: ['toAccountId'],
 		message: 'To Account ID or Account Title is required'
 	})
-	.refine((data) => data.toAccountId && data.toAccountTitle, {
+	.refine((data) => !(data.toAccountId && data.toAccountTitle), {
 		path: ['toAccountId'],
 		message: 'Only one of either To Account ID or To Account Title is allowed. Both are present.'
 	});
@@ -119,6 +124,7 @@ export const createCombinedTransactionSchema = z
 	);
 
 export type CreateCombinedTransactionType = z.infer<typeof createCombinedTransactionSchema>;
+export type CreateSimpleTransactionType = z.infer<typeof createSimpleTransactionSchema>;
 
 export type CreateJournalSchemaSuperType = typeof createJournalSchema;
 export type CreateJournalSchemaType = z.infer<typeof createJournalSchema>;

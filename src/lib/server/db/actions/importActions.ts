@@ -3,11 +3,17 @@ import { serverEnv } from '$lib/server/serverEnv';
 import { nanoid } from 'nanoid';
 import { writeFileSync, readFileSync } from 'fs';
 import type { DBType } from '../db';
-import { importItemDetail, importTable } from '../schema';
+import { importItemDetail, importTable, transaction } from '../schema';
 import { updatedTime } from './helpers/updatedTime';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import Papa from 'papaparse';
-import { createSimpleTransactionSchema } from '$lib/schema/journalSchema';
+import {
+	createCombinedTransactionSchema,
+	createSimpleTransactionSchema,
+	type CreateCombinedTransactionType,
+	type CreateSimpleTransactionType
+} from '$lib/schema/journalSchema';
+import { tActions } from './tActions';
 
 export const importActions = {
 	storeCSV: async ({ newFile, db }: { db: DBType; newFile: File }) => {
@@ -32,11 +38,9 @@ export const importActions = {
 				filename: combinedFilename,
 				title: originalFilename,
 				...updatedTime(),
-				complete: false,
+				status: 'created',
 				source: 'csv',
-				type: 'transaction',
-				error: undefined,
-				processed: false
+				type: 'transaction'
 			})
 			.execute();
 
@@ -56,18 +60,19 @@ export const importActions = {
 
 		const importData = data[0];
 
-		if (!importData.processed) {
-			const file = readFileSync(importData.filename);
-
+		if (importData.status === 'created') {
 			if (importData.source === 'csv') {
+				if (!importData.filename) {
+					throw new Error('Import File Not Found');
+				}
+				const file = readFileSync(importData.filename);
 				const processedData = Papa.parse(file.toString(), { header: true, skipEmptyLines: true });
 
-				if (processedData.errors && processedData.errors.lenght > 0) {
+				if (processedData.errors && processedData.errors.length > 0) {
 					await db
 						.update(importTable)
 						.set({
-							processed: true,
-							error: true,
+							status: 'error',
 							errorInfo: processedData.errors,
 							...updatedTime()
 						})
@@ -85,8 +90,7 @@ export const importActions = {
 										.values({
 											id: importDetailId,
 											...updatedTime(),
-											isDuplicate: false,
-											isError: false,
+											status: 'processed',
 											processedInfo: validatedData.data,
 											importId: id
 										})
@@ -97,8 +101,7 @@ export const importActions = {
 										.values({
 											id: importDetailId,
 											...updatedTime(),
-											isDuplicate: false,
-											isError: true,
+											status: 'error',
 											processedInfo: row,
 											errorInfo: validatedData.error,
 											importId: id
@@ -108,15 +111,14 @@ export const importActions = {
 							})
 						);
 					}
-					//Mark As Processed
-					await db
-						.update(importTable)
-						.set({ processed: true, ...updatedTime() })
-						.where(eq(importTable.id, id))
-						.execute();
 				}
 			}
 		}
+
+		await db
+			.update(importTable)
+			.set({ status: 'processed', ...updatedTime() })
+			.execute();
 
 		if (importData.type === 'transaction') {
 			return {
@@ -141,18 +143,129 @@ export const importActions = {
 
 		const importData = item[0];
 
-		if (importData.complete) {
+		if (importData.status === 'complete') {
 			throw new Error('Import Complete. Cannot Reprocess');
 		}
 
 		await db.transaction(async (trx) => {
 			await trx
 				.update(importTable)
-				.set({ processed: false, error: false, errorInfo: null, ...updatedTime() })
+				.set({ status: 'created', errorInfo: null, ...updatedTime() })
 				.where(eq(importTable.id, id))
 				.execute();
 
 			await trx.delete(importItemDetail).where(eq(importItemDetail.importId, id)).execute();
 		});
+	},
+	doImport: async ({ db, id }: { db: DBType; id: string }) => {
+		const importDetails = await db
+			.select()
+			.from(importItemDetail)
+			.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'processed')));
+
+		await db.transaction(async (trx) => {
+			await Promise.all(
+				importDetails.map(async (item) => {
+					const processedItem = createSimpleTransactionSchema.safeParse(item.processedInfo);
+					if (processedItem.success) {
+						const combinedTransaction = simpleSchemaToCombinedSchema(processedItem.data);
+						const processedCombinedTransaction =
+							createCombinedTransactionSchema.safeParse(combinedTransaction);
+						if (processedCombinedTransaction.success) {
+							try {
+								const importedData = await tActions.journal.createManyTransactionJournals({
+									db: trx,
+									journalEntries: [processedCombinedTransaction.data]
+								});
+
+								await Promise.all(
+									importedData.map(async (transactionId) => {
+										const journalData = await trx.query.transaction.findFirst({
+											where: eq(transaction.id, transactionId),
+											with: { journals: true }
+										});
+
+										if (journalData) {
+											await trx
+												.update(importItemDetail)
+												.set({
+													status: 'imported',
+													importInfo: journalData,
+													relationId: journalData.journals[0].id,
+													relation2Id: journalData.journals[1].id,
+													...updatedTime()
+												})
+												.where(eq(importItemDetail.id, item.id))
+												.execute();
+										} else {
+											await trx
+												.update(importItemDetail)
+												.set({
+													status: 'importError',
+													errorInfo: 'Journal Not Found',
+													...updatedTime()
+												})
+												.where(eq(importItemDetail.id, item.id))
+												.execute();
+										}
+									})
+								);
+							} catch (e) {
+								await trx
+									.update(importItemDetail)
+									.set({ status: 'importError', errorInfo: e, ...updatedTime() })
+									.where(eq(importItemDetail.id, item.id))
+									.execute();
+							}
+						} else {
+							await trx
+								.update(importItemDetail)
+								.set({
+									status: 'importError',
+									errorInfo: processedCombinedTransaction.error,
+									...updatedTime()
+								})
+								.where(eq(importItemDetail.id, item.id))
+								.execute();
+						}
+					} else {
+						await trx
+							.update(importItemDetail)
+							.set({ status: 'importError', errorInfo: processedItem.error, ...updatedTime() })
+							.where(eq(importItemDetail.id, item.id))
+							.execute();
+					}
+				})
+			);
+
+			await db
+				.update(importTable)
+				.set({ status: 'complete', ...updatedTime() })
+				.where(eq(importTable.id, id))
+				.execute();
+		});
 	}
+};
+
+const simpleSchemaToCombinedSchema = (
+	data: CreateSimpleTransactionType
+): CreateCombinedTransactionType => {
+	const {
+		toAccountId,
+		toAccountTitle,
+		fromAccountId,
+		fromAccountTitle,
+		amount,
+		...sharedProperties
+	} = data;
+
+	return [
+		{
+			...sharedProperties,
+			accountId: fromAccountId,
+			accountTitle: fromAccountTitle,
+			amount: -amount
+		},
+		{ ...sharedProperties, accountId: toAccountId, accountTitle: toAccountTitle, amount: amount }
+	];
 };

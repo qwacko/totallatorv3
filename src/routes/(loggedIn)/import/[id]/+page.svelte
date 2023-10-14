@@ -21,16 +21,21 @@
 				{importData.detail.updatedAt.toISOString().slice(0, 19)}
 			</div>
 			<div class="flex self-center flex-row gap-1">
-				{#if !importData.detail.complete}
+				{#if importData.detail.status !== 'complete'}
 					<form method="post" action="?/reprocess" use:enhance class="flex self-center">
 						<Button color="blue" type="submit">Reprocess</Button>
 					</form>
 				{/if}
+				{#if importData.detail.status === 'processed'}
+					<form method="post" action="?/doImport" use:enhance class="flex self-center">
+						<Button color="green" type="submit">Import</Button>
+					</form>
+				{/if}
 			</div>
-			{#if importData.detail.processed && !importData.detail.error}
+			{#if importData.detail.status === 'processed'}
 				<Badge color="green">Processed</Badge>
 			{/if}
-			{#if importData.detail.error}
+			{#if importData.detail.status === 'error'}
 				<Badge color="red">
 					<div class="flex flex-col gap-2 p-4">
 						File Import Error
@@ -38,16 +43,40 @@
 					</div>
 				</Badge>
 			{:else if importData.type === 'transaction'}
-				{@const errorCount = importData.detail.importDetails.filter((d) => d.isError).length}
-				{@const successCount = importData.detail.importDetails.filter((d) => !d.isError).length}
+				{@const errorCount = importData.detail.importDetails.filter(
+					(d) => d.status === 'error'
+				).length}
+				{@const processCount = importData.detail.importDetails.filter(
+					(d) => d.status === 'processed'
+				).length}
+				{@const importCount = importData.detail.importDetails.filter(
+					(d) => d.status === 'imported'
+				).length}
+				{@const duplicateCount = importData.detail.importDetails.filter(
+					(d) => d.status === 'duplicate'
+				).length}
 				<div class="self-center flex flex-row gap-2">
-					<Badge color="green">Success: {successCount}</Badge>
+					<Badge color="blue">Process: {processCount}</Badge>
 					<Badge color="red">Error: {errorCount}</Badge>
+					<Badge color="dark">Duplicate: {duplicateCount}</Badge>
+					<Badge color="green">Imported: {importCount}</Badge>
 					<RawDataModal data={importData.detail} dev={data.dev} buttonText="Import Data" outline />
 				</div>
-				<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2">
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-2">
 					{#each importData.detail.importDetails as currentImportDetail, i}
-						{#if currentImportDetail.isError}
+						{#if currentImportDetail.status === 'imported'}
+							<Card size="xl" padding="md" class="flex flex-col gap-2" color="green">
+								Row {i + 1}
+								<RawDataModal
+									color="green"
+									data={currentImportDetail.importInfo}
+									dev={true}
+									buttonText="Import Details"
+									title="Row {i + 1} Import Details"
+								/>
+							</Card>
+						{/if}
+						{#if currentImportDetail.status === 'error' || currentImportDetail.status === 'importError'}
 							<Card size="xl" padding="md" class="flex flex-col gap-2" color="red">
 								Row {i + 1}
 								<RawDataModal
@@ -56,6 +85,18 @@
 									dev={true}
 									buttonText="Error Details"
 									title="Row {i + 1} Error Details"
+								/>
+							</Card>
+						{/if}
+						{#if currentImportDetail.status === 'processed'}
+							<Card size="xl" padding="md" class="flex flex-col gap-2" color="blue">
+								Row {i + 1}
+								<RawDataModal
+									color="blue"
+									data={currentImportDetail.processedInfo}
+									dev={true}
+									buttonText="Processed Details"
+									title="Row {i + 1} Processed Details"
 								/>
 							</Card>
 						{/if}

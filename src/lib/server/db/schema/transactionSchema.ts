@@ -2,7 +2,12 @@ import { accountTypeEnum } from '../../../schema/accountTypeSchema';
 import { statusEnum } from '../../../schema/statusSchema';
 import { relations, sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, unique, index } from 'drizzle-orm/sqlite-core';
-import { importSourceEnum, importTypeEnum } from '../../../schema/importSchema';
+import {
+	importDetailStatusEnum,
+	importSourceEnum,
+	importStatusEnum,
+	importTypeEnum
+} from '../../../schema/importSchema';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -271,26 +276,21 @@ export const importItemDetail = sqliteTable(
 	{
 		...idColumn,
 		importId: text('import_id').notNull(),
-		journalId: text('journal_id'),
-		journal2Id: text('journal_id'),
-		billId: text('bill_id'),
-		budgetId: text('budget_id'),
-		categoryId: text('category_id'),
-		accountId: text('account_id'),
-		tagId: text('tag_id'),
-		labelId: text('label_id'),
+		duplicateId: text('duplicate_id'),
+		relationId: text('relation_id'),
+		relation2Id: text('relation_2_id'),
 		importInfo: text('import_info', { mode: 'json' }),
-		isDuplicate: integer('is_duplicate', { mode: 'boolean' }).notNull().default(false),
-		isError: integer('is_error', { mode: 'boolean' }).notNull().default(false),
-		isImported: integer('is_imported', { mode: 'boolean' }).notNull().default(false),
 		processedInfo: text('processed_info', { mode: 'json' }),
 		errorInfo: text('error_info', { mode: 'json' }),
+		status: text('status', { enum: importDetailStatusEnum }).notNull().default('error'),
 		...timestampColumns
 	},
 	(t) => ({
-		uniqueRelation: unique().on(t.journalId, t.importId),
-		importIdx: index('label_import_idx').on(t.importId),
-		journalIdx: index('label_journal_idx').on(t.journalId)
+		importIdx: index('importDetail_import_idx').on(t.importId),
+		duplicateIdx: index('importDetail_duplicate_idx').on(t.duplicateId),
+		relationIdx: index('importDetail_relation_idx').on(t.relationId),
+		relation2Idx: index('importDetail_relation_2_idx').on(t.relation2Id),
+		statusIdx: index('importDetail_status_idx').on(t.status)
 	})
 );
 
@@ -300,51 +300,57 @@ export const importItemDetailRelations = relations(importItemDetail, ({ one }) =
 		references: [importTable.id]
 	}),
 	journal2: one(journalEntry, {
-		fields: [importItemDetail.journal2Id],
+		fields: [importItemDetail.relation2Id],
 		references: [journalEntry.id]
 	}),
 	journal: one(journalEntry, {
-		fields: [importItemDetail.journalId],
+		fields: [importItemDetail.relationId],
 		references: [journalEntry.id]
 	}),
 	bill: one(bill, {
-		fields: [importItemDetail.billId],
+		fields: [importItemDetail.relationId],
 		references: [bill.id]
 	}),
 	budget: one(budget, {
-		fields: [importItemDetail.budgetId],
+		fields: [importItemDetail.relationId],
 		references: [budget.id]
 	}),
 	category: one(category, {
-		fields: [importItemDetail.categoryId],
+		fields: [importItemDetail.relationId],
 		references: [category.id]
 	}),
 	account: one(account, {
-		fields: [importItemDetail.accountId],
+		fields: [importItemDetail.relationId],
 		references: [account.id]
 	}),
 	tag: one(tag, {
-		fields: [importItemDetail.tagId],
+		fields: [importItemDetail.relationId],
 		references: [tag.id]
 	}),
 	label: one(label, {
-		fields: [importItemDetail.labelId],
+		fields: [importItemDetail.relationId],
 		references: [label.id]
 	})
 }));
 
-export const importTable = sqliteTable('import', {
-	...idColumn,
-	...timestampColumns,
-	title: text('title').notNull(),
-	filename: text('filename').notNull(),
-	complete: integer('complete', { mode: 'boolean' }).notNull().default(false),
-	source: text('source', { enum: importSourceEnum }).notNull().default('csv'),
-	processed: integer('processed', { mode: 'boolean' }).notNull().default(false),
-	error: integer('error', { mode: 'boolean' }).notNull().default(false),
-	errorInfo: text('error_info', { mode: 'json' }),
-	type: text('type', { enum: importTypeEnum }).notNull().default('transaction')
-});
+export const importTable = sqliteTable(
+	'import',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title').notNull(),
+		filename: text('filename'),
+		status: text('status', { enum: importStatusEnum }).notNull().default('error'),
+		source: text('source', { enum: importSourceEnum }).notNull().default('csv'),
+		type: text('type', { enum: importTypeEnum }).notNull().default('transaction'),
+		errorInfo: text('error_info', { mode: 'json' })
+	},
+	(t) => ({
+		statusIdx: index('label_status_idx').on(t.status),
+		sourceIdx: index('label_source_idx').on(t.source),
+		typeIdx: index('label_type_idx').on(t.type)
+	})
+);
 
 export const importTableRelations = relations(importTable, ({ many }) => ({
 	importDetails: many(importItemDetail),

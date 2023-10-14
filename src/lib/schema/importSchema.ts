@@ -8,3 +8,12 @@ export const importTypeEnum = [
 	'tag',
 	'label'
 ] as const;
+
+export const importDetailStatusEnum = [
+	'error',
+	'processed',
+	'duplicate',
+	'imported',
+	'importError'
+] as const;
+export const importStatusEnum = ['created', 'error', 'processed', 'imported', 'complete'] as const;
