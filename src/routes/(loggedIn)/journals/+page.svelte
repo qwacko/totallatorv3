@@ -46,6 +46,7 @@
 	import BudgetBadge from '$lib/components/BudgetBadge.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
@@ -66,6 +67,13 @@
 
 	$: visibleIds = data.journals.data.map((journal) => journal.id);
 </script>
+
+<CustomHeader
+	pageTitle="Journals"
+	filterText={data.filterText}
+	pageNumber={data.journals.page}
+	numPages={data.journals.pageCount}
+/>
 
 <PageLayout title="Journals" size="xl">
 	<svelte:fragment slot="right">

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
@@ -22,6 +23,8 @@
 		paramsValue: { id: data.tag.id }
 	}).url;
 </script>
+
+<CustomHeader pageTitle="Edit Tag" filterText={data.tag.title} />
 
 <PageLayout title={data.tag.title} size="sm">
 	<form method="POST" class="flex flex-col gap-2" use:enhance>

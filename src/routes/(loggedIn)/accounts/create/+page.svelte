@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CombinedAccountTitleDisplay from '$lib/components/CombinedAccountTitleDisplay.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
@@ -13,6 +14,8 @@
 		data.form
 	);
 </script>
+
+<CustomHeader pageTitle="New Account" />
 
 <PageLayout title="Create Account" size="xs">
 	<form method="POST" use:enhance class="flex flex-col gap-2">

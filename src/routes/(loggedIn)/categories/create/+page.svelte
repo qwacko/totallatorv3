@@ -8,6 +8,7 @@
 	import type { CreateCategorySchemaSuperType } from '$lib/schema/categorySchema.js';
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
@@ -15,6 +16,8 @@
 		data.form
 	);
 </script>
+
+<CustomHeader pageTitle="New Category" />
 
 <PageLayout title="Create Category" size="xs">
 	<form method="POST" use:enhance class="flex flex-col gap-2">

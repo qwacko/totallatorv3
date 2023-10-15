@@ -10,6 +10,7 @@
 	import UpdateJournalLinksForm from './UpdateJournalLinksForm.svelte';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import UpdateJournalLabelsForm from './UpdateJournalLabelsForm.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
@@ -20,6 +21,8 @@
 	$: enhance = form.enhance;
 	$: tainted = form.tainted;
 </script>
+
+<CustomHeader pageTitle="Clone {data.journals.count} Journal{data.journals.count > 1 ? "s" : ""}" filterText={data.filterText} />
 
 <PageLayout title="Clone {data.journals.count} Journals">
 	<Heading tag="h3">Modify Cloned Journals</Heading>

@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { urlGenerator } from '$lib/routes.js';
 	import { P, Button } from 'flowbite-svelte';
 
 	export let data;
 </script>
+
+<CustomHeader pageTitle="Forget Import" filterText={data.info.importInfo.title} />
 
 <PageLayout title="Forget Import" subtitle={data.info.importInfo.title}>
 	<P>

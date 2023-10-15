@@ -5,12 +5,15 @@
 	import { superForm } from 'sveltekit-superforms/client';
 	import type { loginSchemaType } from '$lib/schema/loginSchema';
 	import PageLayout from '$lib/components/PageLayout.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 	const { form, errors, constraints, message, enhance } = superForm<loginSchemaType>(data.form, {
 		taintedMessage: null
 	});
 </script>
+
+<CustomHeader pageTitle="Login" />
 
 <PageLayout title="Login" size="xs" class="pt-10">
 	<form method="POST" class="flex flex-col space-y-4" autocomplete="off" use:enhance>

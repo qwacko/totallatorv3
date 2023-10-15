@@ -7,11 +7,14 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import { enhance } from '$app/forms';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals/clone', $page);
 </script>
+
+<CustomHeader pageTitle="Delete {data.journals.count} Journals" filterText={data.filterText} />
 
 <PageLayout title="Delete {data.journals.count} Journals">
 	<RawDataModal {data} dev={data.dev} />

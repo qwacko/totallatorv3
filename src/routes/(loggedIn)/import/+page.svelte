@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { urlGenerator } from '$lib/routes';
 	import { importStatusToColour, importStatusToTest } from '$lib/schema/importSchema.js';
@@ -6,6 +7,8 @@
 
 	export let data;
 </script>
+
+<CustomHeader pageTitle="Imports" />
 
 <PageLayout title="Imports">
 	<svelte:fragment slot="right">

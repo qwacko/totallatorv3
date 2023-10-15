@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { Badge, Button, Fileupload } from 'flowbite-svelte';
 	import { z } from 'zod';
 
 	let errorMessage: string | undefined = '';
 </script>
+
+<CustomHeader pageTitle="New Import" />
 
 <PageLayout title="New Import">
 	{#if errorMessage && errorMessage.length > 0}

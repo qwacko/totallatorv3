@@ -5,7 +5,10 @@
 	import LinkButton from '$lib/components/LinkButton.svelte';
 	import { Button } from 'flowbite-svelte';
 	import { urlGenerator } from '$lib/routes';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 </script>
+
+<CustomHeader pageTitle="Delete User" filterText={$page.params.id} />
 
 <h1>Delete User?</h1>
 <form method="POST" use:enhance>

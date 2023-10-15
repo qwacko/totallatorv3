@@ -1,7 +1,7 @@
 TODO : Improve filtering for journals (dropdown?). Multiple Dropdowns where suitable?
 TODO : Add Text filtering to journal filtering page (Filter description).
 TODO : Make "/" page work correctly.
-TODO : Favicon + Page Titles. Make it based on the page and description of filter.
+TODO : Favicon.
 TODO : Add "Create Transaction" page (currently links to creating a new tag). Would be nice to have the ability to find similar items or something.
 TODO : User Management / User Page
 TODO : Confirm why backups are not working correctly.

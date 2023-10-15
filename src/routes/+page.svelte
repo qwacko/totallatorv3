@@ -1,10 +1,16 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 </script>
+
+<CustomHeader pageTitle="Home" />
 
 <div>
 	<h1>Welcome to SvelteKit</h1>
-	<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+	<p>
+		Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a>
+		to read the documentation
+	</p>
 
 	<form action="?/logout" method="post" use:enhance>
 		<button type="submit">Logout</button>

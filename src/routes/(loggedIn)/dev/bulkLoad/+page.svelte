@@ -3,9 +3,12 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { Button, Heading } from 'flowbite-svelte';
 	import BulkCreateDisplay from './BulkCreateDisplay.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 </script>
+
+<CustomHeader pageTitle="Bulk Load Actions" />
 
 <PageLayout title="Bulk Actions">
 	<BulkCreateDisplay

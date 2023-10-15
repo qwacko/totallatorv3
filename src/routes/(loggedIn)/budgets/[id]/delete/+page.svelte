@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import { Button } from 'flowbite-svelte';
 
 	export let data;
 </script>
+
+<CustomHeader pageTitle="Delete Budget" filterText={data.budget.title} />
 
 <PageLayout title={data.budget.title} size="sm">
 	<form method="POST" class="flex flex-col gap-2" use:enhance>

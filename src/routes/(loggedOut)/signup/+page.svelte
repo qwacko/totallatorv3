@@ -7,12 +7,15 @@
 	import type { signupSchemaType } from '$lib/schema/signupSchema.js';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { urlGenerator } from '$lib/routes.js';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 	const { form, errors, constraints, message, enhance } = superForm<signupSchemaType>(data.form, {
 		taintedMessage: null
 	});
 </script>
+
+<CustomHeader pageTitle="Sign Up" />
 
 <PageLayout title="Create Account" size="xs" class="pt-10">
 	<form method="POST" class="flex flex-col space-y-4" autocomplete="off" use:enhance>

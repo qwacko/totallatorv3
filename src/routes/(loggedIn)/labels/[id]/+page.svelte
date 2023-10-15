@@ -10,6 +10,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
@@ -22,6 +23,8 @@
 		paramsValue: { id: data.label.id }
 	}).url;
 </script>
+
+<CustomHeader pageTitle="Label" filterText={data.label.title} />
 
 <PageLayout title={data.label.title} size="sm">
 	<form method="POST" class="flex flex-col gap-2" use:enhance>

@@ -1,10 +1,13 @@
 <script lang="ts">
 	import CenterCard from '$lib/components/CenterCard.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import LinkButton from '$lib/components/LinkButton.svelte';
 	import { urlGenerator } from '$lib/routes.js';
 
 	export let data;
 </script>
+
+<CustomHeader pageTitle="Users" />
 
 <CenterCard title="Users">
 	{#each data.users as currentUser}

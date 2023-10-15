@@ -13,6 +13,7 @@
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import UpdateJournalLabelsForm from '../clone/UpdateJournalLabelsForm.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
@@ -25,6 +26,8 @@
 	$: titleText =
 		data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`;
 </script>
+
+<CustomHeader pageTitle={titleText} filterText={data.filterText} />
 
 <PageLayout title={titleText}>
 	<FilterTextDisplay text={data.filterText} />

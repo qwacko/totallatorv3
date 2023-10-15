@@ -10,6 +10,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
@@ -22,6 +23,8 @@
 		paramsValue: { id: data.budget.id }
 	}).url;
 </script>
+
+<CustomHeader pageTitle="Edit Budget" filterText={data.budget.title} />
 
 <PageLayout title={data.budget.title} size="sm">
 	<form method="POST" class="flex flex-col gap-2" use:enhance>

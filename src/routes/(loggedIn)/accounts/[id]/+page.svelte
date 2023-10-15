@@ -13,6 +13,7 @@
 	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
 	import { accountTypeEnumSelection } from '$lib/schema/accountTypeSchema.js';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
@@ -27,6 +28,8 @@
 
 	$: showExtended = $form.type === 'asset' || $form.type === 'liability';
 </script>
+
+<CustomHeader pageTitle="Edit Account" filterText={data.account.title} />
 
 <PageLayout title={data.account.title} size="sm">
 	<form method="POST" class="flex flex-col gap-2" use:enhance>

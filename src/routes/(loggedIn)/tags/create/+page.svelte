@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
@@ -15,6 +16,8 @@
 		data.form
 	);
 </script>
+
+<CustomHeader pageTitle="New Tag" />
 
 <PageLayout title="Create Tag" size="xs">
 	<form method="POST" use:enhance class="flex flex-col gap-2">

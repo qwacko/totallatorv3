@@ -28,6 +28,7 @@
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/budgets', $page);
@@ -43,6 +44,15 @@
 		updateDelay: 500
 	});
 </script>
+
+
+<CustomHeader
+	pageTitle="Journals"
+	filterText={data.filterText}
+	pageNumber={data.budgets.page}
+	numPages={data.budgets.pageCount}
+/>
+
 
 <PageLayout title="Budgets" size="lg">
 	<svelte:fragment slot="right">

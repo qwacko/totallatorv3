@@ -28,6 +28,7 @@
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/labels', $page);
@@ -43,6 +44,13 @@
 		updateDelay: 500
 	});
 </script>
+
+<CustomHeader
+	pageTitle="Journals"
+	filterText={data.filterText}
+	pageNumber={data.labels.page}
+	numPages={data.labels.pageCount}
+/>
 
 <PageLayout title="Labels" size="lg">
 	<svelte:fragment slot="right">

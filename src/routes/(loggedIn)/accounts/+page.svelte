@@ -33,6 +33,7 @@
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -48,6 +49,13 @@
 		updateDelay: 500
 	});
 </script>
+
+<CustomHeader
+	pageTitle="Accounts"
+	filterText={data.filterText}
+	pageNumber={data.accounts.page}
+	numPages={data.accounts.pageCount}
+/>
 
 <PageLayout title="Accounts" size="xl">
 	<svelte:fragment slot="right">

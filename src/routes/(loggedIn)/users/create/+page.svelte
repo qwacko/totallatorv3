@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import CenterCard from '$lib/components/CenterCard.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import LinkButton from '$lib/components/LinkButton.svelte';
 	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
@@ -21,6 +22,8 @@
 		}
 	});
 </script>
+
+<CustomHeader pageTitle="New User" />
 
 <CenterCard title="New User">
 	<form method="POST" autocomplete="off" use:enhance>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
@@ -12,6 +13,8 @@
 		data.form
 	);
 </script>
+
+<CustomHeader pageTitle="New Label" />
 
 <PageLayout title="Create Label" size="xs">
 	<form method="POST" use:enhance class="flex flex-col gap-2">

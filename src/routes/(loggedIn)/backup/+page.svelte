@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import CenterCard from '$lib/components/CenterCard.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
@@ -10,6 +11,8 @@
 	$: displayFiles = data.backupFiles.slice((pageNo - 1) * perPage, pageNo * perPage);
 	$: numberPages = Math.ceil(data.backupFiles.length / perPage);
 </script>
+
+<CustomHeader pageTitle="Backups" />
 
 <CenterCard title="Backups">
 	<div class="column-div">
@@ -53,8 +56,8 @@
 				</form>
 			</div>
 		</div>
-	</div></CenterCard
->
+	</div>
+</CenterCard>
 
 <style>
 	.row-div {

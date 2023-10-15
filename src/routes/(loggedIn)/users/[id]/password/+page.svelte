@@ -8,6 +8,7 @@
 	import { page } from '$app/stores';
 	import { Button } from 'flowbite-svelte';
 	import { urlGenerator } from '$lib/routes.js';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
 
@@ -15,6 +16,8 @@
 		taintedMessage: null
 	});
 </script>
+
+<CustomHeader pageTitle="Update Password" filterText={data.currentUser.username} />
 
 <h1>Change Password</h1>
 <form method="POST" use:enhance>

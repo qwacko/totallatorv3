@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
@@ -9,6 +10,8 @@
 
 	export let data;
 </script>
+
+<CustomHeader pageTitle="Import" filterText={data.info.importInfo.title} />
 
 <PageLayout subtitle={data.info.importInfo.title} title="Import Detail">
 	{#await data.streaming.data}
