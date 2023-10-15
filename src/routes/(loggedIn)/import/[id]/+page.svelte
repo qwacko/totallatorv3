@@ -34,6 +34,7 @@
 			{@const duplicateCount = importData.detail.importDetails.filter(
 				(d) => d.status === 'duplicate'
 			).length}
+
 			<div class="flex self-center flex-row gap-1">
 				<i>Last Modification :</i>
 				{importData.detail.updatedAt.toISOString().slice(0, 19)}
@@ -64,13 +65,38 @@
 					</form>
 				{/if}
 				{#if data.canDelete}
-					<form method="post" action="?/delete" use:enhance class="flex self-center">
-						<Button color="red" type="submit">Delete (With Created Items)</Button>
-					</form>
+					<Button
+						color="red"
+						type="submit"
+						href={urlGenerator({
+							address: '/(loggedIn)/import/[id]/delete',
+							paramsValue: { id: data.id }
+						}).url}
+					>
+						Delete (With Created Items)
+					</Button>
+
+					<Button
+						color="red"
+						type="submit"
+						href={urlGenerator({
+							address: '/(loggedIn)/import/[id]/deleteLinked',
+							paramsValue: { id: data.id }
+						}).url}
+					>
+						Delete Created Items (Leave Import)
+					</Button>
 				{/if}
-				<form method="post" action="?/forget" use:enhance class="flex self-center">
-					<Button color="red" type="submit">Delete (Leave Created Items)</Button>
-				</form>
+				<Button
+					color="red"
+					type="submit"
+					href={urlGenerator({
+						address: '/(loggedIn)/import/[id]/forget',
+						paramsValue: { id: data.id }
+					}).url}
+				>
+					Forget (Leave Created Items)
+				</Button>
 			</div>
 			{#if importData.detail.status === 'processed'}
 				<Badge color="green">Processed</Badge>

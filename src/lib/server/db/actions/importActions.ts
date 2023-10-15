@@ -25,6 +25,7 @@ import {
 	type CreateSimpleTransactionType
 } from '$lib/schema/journalSchema';
 import { tActions } from './tActions';
+import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 
 export const importActions = {
 	list: async ({ db }: { db: DBType }) => {
@@ -168,19 +169,48 @@ export const importActions = {
 			.set({ status: 'processed', ...updatedTime() })
 			.execute();
 
-		if (importData.type === 'transaction') {
-			return {
-				type: 'transaction',
-				detail: await db.query.importTable
-					.findFirst({
-						where: eq(importTable.id, id),
-						with: { importDetails: { with: { journal: true, journal2: true } } }
-					})
-					.execute()
-			};
-		}
+		const returnData = await db.query.importTable
+			.findFirst({
+				where: eq(importTable.id, id),
+				with: {
+					importDetails: {
+						with: {
+							journal: true,
+							journal2: true,
+							bill: true,
+							budget: true,
+							category: true,
+							tag: true,
+							label: true,
+							account: true
+						}
+					}
+				}
+			})
+			.execute();
 
-		throw new Error('Error Retrieving Import Information');
+		if (!returnData) {
+			throw new Error('Error Retrieving Import Details');
+		}
+		const linkedItemCount = returnData.importDetails.reduce(
+			(prev, current) =>
+				prev +
+				Number(current.journal) +
+				Number(current.journal2) +
+				Number(current.bill) +
+				Number(current.budget) +
+				Number(current.category) +
+				Number(current.tag) +
+				Number(current.label) +
+				Number(current.account),
+			0
+		);
+
+		return {
+			type: returnData.type,
+			detail: returnData,
+			linkedItemCount
+		};
 	},
 	reprocess: async ({ db, id }: { db: DBType; id: string }) => {
 		const item = await db.select().from(importTable).where(eq(importTable.id, id));
@@ -437,12 +467,64 @@ export const importActions = {
 			);
 		}
 	},
+	deleteLinked: async ({ db, id }: { db: DBType; id: string }) => {
+		const canDelete = await importActions.canDelete({ db, id });
+
+		if (canDelete) {
+			const importDetails = await db.query.importTable.findFirst({
+				where: eq(importTable.id, id),
+				with: {
+					bills: true,
+					budgets: true,
+					categories: true,
+					tags: true,
+					labels: true,
+					journals: true
+				}
+			});
+			await db.transaction(async (db) => {
+				if (importDetails) {
+					const transactionIds = filterNullUndefinedAndDuplicates(
+						importDetails.journals.map((item) => item.transactionId)
+					);
+					await tActions.journal.hardDeleteTransactions({ db, transactionIds });
+
+					await tActions.bill.deleteMany(
+						db,
+						importDetails.bills.map((item) => ({ id: item.id }))
+					);
+					await tActions.budget.deleteMany(
+						db,
+						importDetails.budgets.map((item) => ({ id: item.id }))
+					);
+					await tActions.category.deleteMany(
+						db,
+						importDetails.categories.map((item) => ({ id: item.id }))
+					);
+					await tActions.tag.deleteMany(
+						db,
+						importDetails.tags.map((item) => ({ id: item.id }))
+					);
+					await tActions.label.hardDeleteMany(
+						db,
+						importDetails.labels.map((item) => ({ id: item.id }))
+					);
+					await db.delete(importItemDetail).where(eq(importItemDetail.importId, id)).execute();
+					await db
+						.update(importTable)
+						.set({ status: 'created' })
+						.where(eq(importTable.id, id))
+						.execute();
+				}
+			});
+		}
+	},
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
 		const canDelete = await importActions.canDelete({ db, id });
 
 		if (canDelete) {
 			await db.transaction(async (db) => {
-				await db.delete(importItemDetail).where(eq(importItemDetail.importId, id)).execute();
+				await importActions.deleteLinked({ db, id });
 				await db.delete(importTable).where(eq(importTable.id, id)).execute();
 			});
 		}

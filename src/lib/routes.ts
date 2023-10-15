@@ -24,6 +24,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/import': {},
 		'/(loggedIn)/import/create': {},
 		'/(loggedIn)/import/[id]': { paramsValidation: idSchema.parse },
+		'/(loggedIn)/import/[id]/forget': { paramsValidation: idSchema.parse },
+		'/(loggedIn)/import/[id]/delete': { paramsValidation: idSchema.parse },
+		'/(loggedIn)/import/[id]/deleteLinked': { paramsValidation: idSchema.parse },
 
 		// Journals
 		// ----------------------------------------

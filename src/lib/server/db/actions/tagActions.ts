@@ -212,6 +212,7 @@ export const tagActions = {
 		return data.id;
 	},
 	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		if (data.length === 0) return;
 		const currentTags = await tagActions.listWithTransactionCount(db);
 		const itemsForDeletion = data.filter((item) => {
 			const currentTag = currentTags.find((current) => current.id === item.id);

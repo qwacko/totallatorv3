@@ -210,6 +210,7 @@ export const budgetActions = {
 		return data.id;
 	},
 	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		if (data.length === 0) return;
 		const currentBudgets = await budgetActions.listWithTransactionCount(db);
 		const itemsForDeletion = data.filter((item) => {
 			const currentBudget = currentBudgets.find((current) => current.id === item.id);

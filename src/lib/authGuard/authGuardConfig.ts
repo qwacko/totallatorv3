@@ -78,6 +78,24 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 				forget: POSTAllowAdminOnly
 			}
 		},
+		'/(loggedIn)/import/[id]/forget': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				default: POSTAllowAdminOnly
+			}
+		},
+		'/(loggedIn)/import/[id]/delete': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				default: POSTAllowAdminOnly
+			}
+		},
+		'/(loggedIn)/import/[id]/deleteLinked': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				default: POSTAllowAdminOnly
+			}
+		},
 
 		// Journals
 		// ----------------------------------------

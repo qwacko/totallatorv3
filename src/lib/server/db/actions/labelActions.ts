@@ -231,6 +231,7 @@ export const labelActions = {
 		});
 	},
 	hardDeleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		if (data.length === 0) return;
 		const idList = data.map((currentData) => currentData.id);
 
 		return await db.transaction(async (transDb) => {

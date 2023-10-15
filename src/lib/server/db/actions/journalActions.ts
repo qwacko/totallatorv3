@@ -345,6 +345,7 @@ export const journalActions = {
 		db: DBType;
 		transactionIds: string[];
 	}) => {
+		if (transactionIds.length === 0) return;
 		await db.transaction(async (db) => {
 			const journalsForDeletion = await db
 				.select()

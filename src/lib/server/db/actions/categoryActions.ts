@@ -221,6 +221,7 @@ export const categoryActions = {
 		return data.id;
 	},
 	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		if (data.length === 0) return;
 		const currentCategories = await categoryActions.listWithTransactionCount(db);
 		const itemsForDeletion = data.filter((item) => {
 			const currentCategory = currentCategories.find((current) => current.id === item.id);

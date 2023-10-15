@@ -207,6 +207,7 @@ export const billActions = {
 		return data.id;
 	},
 	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+		if (data.length === 0) return;
 		const currentBills = await billActions.listWithTransactionCount(db);
 		const itemsForDeletion = data.filter((item) => {
 			const currentBill = currentBills.find((current) => current.id === item.id);
