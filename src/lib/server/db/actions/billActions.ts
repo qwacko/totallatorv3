@@ -181,18 +181,27 @@ export const billActions = {
 
 		return id;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
+
+	canDeleteMany: async (db: DBType, ids: string[]) => {
+		const canDeleteList = await Promise.all(
+			ids.map(async (id) => billActions.canDelete(db, { id }))
+		);
+
+		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
+	},
+	canDelete: async (db: DBType, data: IdSchemaType) => {
 		const currentBill = await db.query.bill
 			.findFirst({ where: eq(bill.id, data.id), with: { journals: { limit: 1 } } })
 			.execute();
+		if (!currentBill) {
+			return true;
+		}
 
-		// If the bill has no journals, then mark as deleted, otherwise do nothing
-		if (currentBill && currentBill.journals.length === 0) {
-			await db
-				.update(bill)
-				.set({ ...statusUpdate('deleted'), ...updatedTime() })
-				.where(eq(bill.id, data.id))
-				.execute();
+		return currentBill && currentBill.journals.length === 0;
+	},
+	delete: async (db: DBType, data: IdSchemaType) => {
+		if (await billActions.canDelete(db, data)) {
+			await db.delete(bill).where(eq(bill.id, data.id)).execute();
 		}
 
 		return data.id;

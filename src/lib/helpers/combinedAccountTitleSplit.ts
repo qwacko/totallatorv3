@@ -10,7 +10,8 @@ export const combinedAccountTitleSplitRequired = <
 	const accountGroup2 = tempAccountGroup2 || '';
 	const accountGroup3 = tempAccountGroup3 || '';
 
-	const accountTitleCombined = `${accountGroupCombined}:${title}`;
+	const accountTitleCombined =
+		accountGroupCombined === '' ? title : `${accountGroupCombined}:${title}`;
 
 	return {
 		title,

@@ -1,10 +1,17 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import { account, journalEntry, label, labelsToJournals, transaction } from '../../schema';
+import {
+	account,
+	importTable,
+	journalEntry,
+	label,
+	labelsToJournals,
+	transaction
+} from '../../schema';
 import { SQL, and, eq, gt, inArray, like, not } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
 	accountFilterToText,
-	accountIdsToTitle
+	accountIdsToTitles
 } from './accountFilterToQuery';
 import { billFilterToQuery, billFilterToText } from './billFilterToQuery';
 import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
@@ -13,6 +20,7 @@ import { categoryFilterToQuery, categoryFilterToText } from './categoryFilterToQ
 import { labelFilterToQuery, labelFilterToText } from './labelFilterToQuery';
 import { db } from '../../db';
 import { alias } from 'drizzle-orm/sqlite-core';
+import { arrayToText } from './arrayToText';
 
 export const journalFilterToQuery = async (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -33,6 +41,10 @@ export const journalFilterToQuery = async (
 	if (filter.dataChecked !== undefined)
 		where.push(eq(journalEntry.dataChecked, filter.dataChecked));
 	if (filter.reconciled !== undefined) where.push(eq(journalEntry.reconciled, filter.reconciled));
+	if (filter.importIdArray && filter.importIdArray.length > 0)
+		where.push(inArray(journalEntry.importId, filter.importIdArray));
+	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
+		where.push(inArray(journalEntry.importDetailId, filter.importDetailIdArray));
 
 	if (filter.account) {
 		const accountFilter = accountFilterToQuery(filter.account);
@@ -125,6 +137,26 @@ export const journalFilterToQuery = async (
 	return where;
 };
 
+const importIdToTitle = async (id: string) => {
+	const foundImport = await db
+		.select({ title: importTable.title })
+		.from(importTable)
+		.where(eq(importTable.id, id))
+		.limit(1)
+		.execute();
+
+	if (foundImport?.length === 1) {
+		return foundImport[0].title;
+	}
+	return id;
+};
+
+export const importIdsToTitles = async (ids: string[]) => {
+	const titles = await Promise.all(ids.map(async (id) => importIdToTitle(id)));
+
+	return titles;
+};
+
 export const journalFilterToText = async (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
 	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
@@ -132,31 +164,15 @@ export const journalFilterToText = async (
 	const stringArray: string[] = [];
 	if (filter.id) stringArray.push(`ID is ${filter.id}`);
 	if (filter.idArray) {
-		if (filter.idArray.length === 1) {
-			stringArray.push(`ID is ${filter.idArray[0]}`);
-		} else if (filter.idArray.length > 4) {
-			stringArray.push(`ID is one of  ${filter.idArray.length} values`);
-		} else {
-			stringArray.push(`ID is one of ${filter.idArray.join(', ')}`);
-		}
+		stringArray.push(await arrayToText({ data: filter.idArray, singularName: 'ID' }));
 	}
 	if (filter.yearMonth && filter.yearMonth.length > 0) {
-		if (filter.yearMonth.length === 1) {
-			stringArray.push(`Year-Month is ${filter.yearMonth[0]}`);
-		} else if (filter.yearMonth.length > 4) {
-			stringArray.push(`Year-Month is one of  ${filter.yearMonth.length} values`);
-		} else {
-			stringArray.push(`Year-Month is one of ${filter.yearMonth.join(', ')}`);
-		}
+		stringArray.push(await arrayToText({ data: filter.yearMonth, singularName: 'Year-Month' }));
 	}
 	if (filter.transactionIdArray) {
-		if (filter.transactionIdArray.length === 1) {
-			stringArray.push(`Transaction ID is one of ${filter.transactionIdArray.join(', ')}`);
-		} else if (filter.transactionIdArray.length > 4) {
-			stringArray.push(`Transaction ID is one of ${filter.transactionIdArray.length} values`);
-		} else {
-			stringArray.push(`Transaction ID is one of ${filter.transactionIdArray.join(', ')} values`);
-		}
+		stringArray.push(
+			await arrayToText({ data: filter.transactionIdArray, singularName: 'Transaction ID' })
+		);
 	}
 	if (filter.description) stringArray.push(`Description contains ${filter.description}`);
 	if (filter.dateAfter !== undefined) stringArray.push(`Date is after ${filter.dateAfter}`);
@@ -169,6 +185,21 @@ export const journalFilterToText = async (
 		stringArray.push(filter.dataChecked ? 'Has had data checked' : "Hasn't had data checked");
 	if (filter.reconciled !== undefined)
 		stringArray.push(filter.reconciled ? 'Is Reconciled' : 'Is Not Reconciled');
+	if (filter.importIdArray && filter.importIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: filter.importIdArray,
+				singularName: 'Import',
+				inputToText: importIdsToTitles
+			})
+		);
+	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: filter.importDetailIdArray,
+				singularName: 'Import Detail ID'
+			})
+		);
 
 	const linkedArray: string[] = [];
 	if (filter.account) {
@@ -204,7 +235,7 @@ export const journalFilterToText = async (
 	}
 
 	if (filter.payee?.id) {
-		linkedArray.push(`Payee is ${await accountIdsToTitle([filter.payee.id])}`);
+		linkedArray.push(`Payee is ${await accountIdsToTitles([filter.payee.id])}`);
 	}
 
 	if (filter.payee?.title) {
@@ -212,7 +243,13 @@ export const journalFilterToText = async (
 	}
 
 	if (filter.payee?.idArray) {
-		linkedArray.push(`Payee is one of ${await accountIdsToTitle(filter.payee.idArray)}`);
+		linkedArray.push(
+			await arrayToText({
+				data: filter.payee.idArray,
+				singularName: 'Payee',
+				inputToText: accountIdsToTitles
+			})
+		);
 	}
 
 	const stringArrayWithPrefix = prefix

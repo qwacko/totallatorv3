@@ -197,24 +197,34 @@ export const labelActions = {
 
 		return id;
 	},
-	softDelete: async (db: DBType, data: IdSchemaType) => {
-		return await db.transaction(async (transDb) => {
-			const currentLabel = await transDb.query.label
-				.findFirst({ where: eq(label.id, data.id), with: { journals: { limit: 1 } } })
-				.execute();
+	canDeleteMany: async (db: DBType, ids: string[]) => {
+		const canDeleteList = await Promise.all(
+			ids.map(async (id) => labelActions.canDelete(db, { id }))
+		);
 
+		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
+	},
+	canDelete: async (db: DBType, data: IdSchemaType) => {
+		const currentLabel = await db.query.label
+			.findFirst({ where: eq(label.id, data.id), with: { journals: { limit: 1 } } })
+			.execute();
+		if (!currentLabel) {
+			return true;
+		}
+
+		//If the Label has no journals, then mark as deleted, otherwise do nothing
+		return currentLabel && currentLabel.journals.length === 0;
+	},
+	softDelete: async (db: DBType, data: IdSchemaType) => {
+		return db.transaction(async (transDb) => {
 			//If the Label has no journals, then mark as deleted, otherwise do nothing
-			if (currentLabel && currentLabel.journals.length === 0) {
+			if (await labelActions.canDelete(db, data)) {
 				await transDb
 					.delete(labelsToJournals)
 					.where(eq(labelsToJournals.labelId, data.id))
 					.execute();
 
-				await transDb
-					.update(label)
-					.set({ ...statusUpdate('deleted'), ...updatedTime() })
-					.where(eq(label.id, data.id))
-					.execute();
+				await transDb.delete(label).where(eq(label.id, data.id)).execute();
 			}
 
 			return data.id;

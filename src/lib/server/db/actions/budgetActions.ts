@@ -184,18 +184,27 @@ export const budgetActions = {
 
 		return id;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
+	canDeleteMany: async (db: DBType, ids: string[]) => {
+		const canDeleteList = await Promise.all(
+			ids.map(async (id) => budgetActions.canDelete(db, { id }))
+		);
+
+		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
+	},
+	canDelete: async (db: DBType, data: IdSchemaType) => {
 		const currentBudget = await db.query.budget
 			.findFirst({ where: eq(budget.id, data.id), with: { journals: { limit: 1 } } })
 			.execute();
+		if (!currentBudget) {
+			return true;
+		}
 
 		// If the budget has no journals, then mark as deleted, otherwise do nothing
-		if (currentBudget && currentBudget.journals.length === 0) {
-			await db
-				.update(budget)
-				.set({ ...statusUpdate('deleted'), ...updatedTime() })
-				.where(eq(budget.id, data.id))
-				.execute();
+		return currentBudget && currentBudget.journals.length === 0;
+	},
+	delete: async (db: DBType, data: IdSchemaType) => {
+		if (await budgetActions.canDelete(db, data)) {
+			await db.delete(budget).where(eq(budget.id, data.id)).execute();
 		}
 
 		return data.id;

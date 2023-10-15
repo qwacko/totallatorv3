@@ -195,18 +195,27 @@ export const categoryActions = {
 
 		return id;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
+	canDeleteMany: async (db: DBType, ids: string[]) => {
+		const canDeleteList = await Promise.all(
+			ids.map(async (id) => categoryActions.canDelete(db, { id }))
+		);
+
+		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
+	},
+	canDelete: async (db: DBType, data: IdSchemaType) => {
 		const currentCategory = await db.query.category
 			.findFirst({ where: eq(category.id, data.id), with: { journals: { limit: 1 } } })
 			.execute();
+		if (!currentCategory) {
+			return true;
+		}
 
 		// If the category has no journals, then mark as deleted, otherwise do nothing
-		if (currentCategory && currentCategory.journals.length === 0) {
-			await db
-				.update(category)
-				.set({ ...statusUpdate('deleted'), ...updatedTime() })
-				.where(eq(category.id, data.id))
-				.execute();
+		return currentCategory && currentCategory.journals.length === 0;
+	},
+	delete: async (db: DBType, data: IdSchemaType) => {
+		if (await categoryActions.canDelete(db, data)) {
+			await db.delete(category).where(eq(category.id, data.id)).execute();
 		}
 
 		return data.id;

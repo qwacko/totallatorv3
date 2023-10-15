@@ -21,6 +21,8 @@ export const createJournalDBCore = z.object({
 	budgetId: zodStringBlanking,
 	categoryId: zodStringBlanking,
 	accountId: zodStringBlanking,
+	importId: zodStringBlanking,
+	importDetailId: zodStringBlanking,
 	labels: z.array(z.string()).optional(),
 	linked: z.coerce.boolean().default(true).optional(),
 	reconciled: z.coerce.boolean().default(false).optional(),
@@ -190,6 +192,8 @@ export const journalFilterSchema = z.object({
 	reconciled: z.coerce.boolean().optional(),
 	dataChecked: z.coerce.boolean().optional(),
 	complete: z.coerce.boolean().optional(),
+	importIdArray: z.array(z.string()).optional(),
+	importDetailIdArray: z.array(z.string()).optional(),
 	payee: z
 		.object({
 			id: z.string().optional(),

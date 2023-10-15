@@ -18,9 +18,7 @@ const timestampColumns = {
 
 const importColumns = (identifier?: string) => ({
 	importId: text('import_id'),
-	importDetailId: text(
-		`${identifier ? identifier : ''}${identifier ? '_' : ''}import_detail_id`
-	).unique()
+	importDetailId: text(`${identifier ? identifier : ''}${identifier ? '_' : ''}import_detail_id`)
 });
 
 const statusColumns = {

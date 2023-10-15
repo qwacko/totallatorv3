@@ -24,6 +24,7 @@ export const load = async (data) => {
 	return {
 		id: pageInfo.params.id,
 		info,
+		canDelete: tActions.import.canDelete({ db, id: pageInfo.params.id }),
 		streaming: {
 			data: tActions.import.getDetail({ db, id: pageInfo.params.id })
 		}
@@ -48,5 +49,22 @@ export const actions = {
 				.set({ status: 'error', errorInfo: e })
 				.where(eq(importTable.id, params.id));
 		}
+	},
+	delete: async ({ params }) => {
+		try {
+			await tActions.import.delete({ db, id: params.id });
+		} catch (e) {
+			console.log(e);
+		}
+		throw redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
+	},
+	forget: async ({ params }) => {
+		try {
+			await tActions.import.forgetImport({ db, id: params.id });
+		} catch (e) {
+			console.log(e);
+		}
+
+		throw redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
 	}
 };

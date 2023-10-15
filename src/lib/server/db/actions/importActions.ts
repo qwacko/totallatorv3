@@ -3,9 +3,20 @@ import { serverEnv } from '$lib/server/serverEnv';
 import { nanoid } from 'nanoid';
 import { writeFileSync, readFileSync } from 'fs';
 import type { DBType } from '../db';
-import { importItemDetail, importTable, transaction } from '../schema';
+import {
+	account,
+	bill,
+	budget,
+	category,
+	importItemDetail,
+	importTable,
+	journalEntry,
+	label,
+	tag,
+	transaction
+} from '../schema';
 import { updatedTime } from './helpers/updatedTime';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
 import Papa from 'papaparse';
 import {
 	createCombinedTransactionSchema,
@@ -16,6 +27,43 @@ import {
 import { tActions } from './tActions';
 
 export const importActions = {
+	list: async ({ db }: { db: DBType }) => {
+		const imports = await db
+			.select({
+				...getTableColumns(importTable),
+				numErrors:
+					sql`count(CASE WHEN ${importItemDetail.status} = 'error' THEN 1 ELSE NULL END)`.mapWith(
+						Number
+					),
+				numImportErrors:
+					sql`count(CASE WHEN ${importItemDetail.status} = 'importError' THEN 1 ELSE NULL END)`.mapWith(
+						Number
+					),
+				numProcessed:
+					sql`count(CASE WHEN ${importItemDetail.status} = 'processed' THEN 1 ELSE NULL END)`.mapWith(
+						Number
+					),
+				numDuplicate:
+					sql`count(CASE WHEN ${importItemDetail.status} = 'duplicate' THEN 1 ELSE NULL END)`.mapWith(
+						Number
+					),
+				numImport:
+					sql`count(CASE WHEN ${importItemDetail.status} = 'imported' THEN 1 ELSE NULL END)`.mapWith(
+						Number
+					),
+				numImportError:
+					sql`count(CASE WHEN ${importItemDetail.status} = 'importError' THEN 1 ELSE NULL END)`.mapWith(
+						Number
+					)
+			})
+			.from(importTable)
+			.leftJoin(importItemDetail, eq(importItemDetail.importId, importTable.id))
+			.groupBy(importTable.id)
+			.orderBy(desc(importTable.createdAt))
+			.execute();
+
+		return imports;
+	},
 	storeCSV: async ({ newFile, db }: { db: DBType; newFile: File }) => {
 		if (newFile.type !== 'text/csv') {
 			throw new Error('Incorrect FileType');
@@ -141,10 +189,24 @@ export const importActions = {
 			throw new Error('Import Not Found');
 		}
 
+		const itemDetails = await db
+			.select()
+			.from(importItemDetail)
+			.where(eq(importItemDetail.importId, id))
+			.execute();
+
 		const importData = item[0];
 
 		if (importData.status === 'complete') {
 			throw new Error('Import Complete. Cannot Reprocess');
+		}
+
+		const numImported = itemDetails.filter((item) => item.status === 'imported').length;
+
+		if (numImported > 0) {
+			throw new Error(
+				'Items From This Import Already Imported, Cannot re-process without deleting.'
+			);
 		}
 
 		await db.transaction(async (trx) => {
@@ -158,6 +220,20 @@ export const importActions = {
 		});
 	},
 	doImport: async ({ db, id }: { db: DBType; id: string }) => {
+		const importInfoList = await db
+			.select()
+			.from(importTable)
+			.where(eq(importTable.id, id))
+			.execute();
+
+		const importInfo = importInfoList[0];
+		if (!importInfo) {
+			throw new Error('Import Not Found');
+		}
+		if (importInfo.status !== 'processed') {
+			throw new Error('Import is not in state Processed. Cannot import.');
+		}
+
 		const importDetails = await db
 			.select()
 			.from(importItemDetail)
@@ -168,7 +244,11 @@ export const importActions = {
 				importDetails.map(async (item) => {
 					const processedItem = createSimpleTransactionSchema.safeParse(item.processedInfo);
 					if (processedItem.success) {
-						const combinedTransaction = simpleSchemaToCombinedSchema(processedItem.data);
+						const combinedTransaction = simpleSchemaToCombinedSchema({
+							...processedItem.data,
+							importId: id,
+							importDetailId: item.id
+						});
 						const processedCombinedTransaction =
 							createCombinedTransactionSchema.safeParse(combinedTransaction);
 						if (processedCombinedTransaction.success) {
@@ -211,6 +291,8 @@ export const importActions = {
 									})
 								);
 							} catch (e) {
+								console.log(e);
+
 								await trx
 									.update(importItemDetail)
 									.set({ status: 'importError', errorInfo: e, ...updatedTime() })
@@ -244,6 +326,126 @@ export const importActions = {
 				.where(eq(importTable.id, id))
 				.execute();
 		});
+	},
+	forgetImport: async ({ db, id }: { db: DBType; id: string }) => {
+		await db.transaction(async (db) => {
+			await db.delete(importTable).where(eq(importTable.id, id)).execute();
+			await db.delete(importItemDetail).where(eq(importItemDetail.importId, id)).execute();
+			await db
+				.update(journalEntry)
+				.set({ importId: null })
+				.where(eq(journalEntry.importId, id))
+				.execute();
+
+			await db
+				.update(bill)
+				.set({ importId: null, importDetailId: null })
+				.where(eq(bill.importId, id))
+				.execute();
+			await db
+				.update(budget)
+				.set({ importId: null, importDetailId: null })
+				.where(eq(budget.importId, id))
+				.execute();
+			await db
+				.update(category)
+				.set({ importId: null, importDetailId: null })
+				.where(eq(category.importId, id))
+				.execute();
+			await db
+				.update(tag)
+				.set({ importId: null, importDetailId: null })
+				.where(eq(tag.importId, id))
+				.execute();
+			await db
+				.update(account)
+				.set({ importId: null, importDetailId: null })
+				.where(eq(account.importId, id))
+				.execute();
+			await db
+				.update(account)
+				.set({ importId: null, importDetailId: null })
+				.where(eq(account.importId, id))
+				.execute();
+			await db
+				.update(label)
+				.set({ importId: null, importDetailId: null })
+				.where(eq(label.importId, id))
+				.execute();
+		});
+	},
+	canDelete: async ({ db, id }: { db: DBType; id: string }) => {
+		const importDetails = await db
+			.select()
+			.from(importTable)
+			.where(eq(importTable.id, id))
+			.execute();
+
+		if (!importDetails || importDetails.length === 0) {
+			return false;
+		}
+
+		const importInfo = importDetails[0];
+
+		if (importInfo.status !== 'complete' && importInfo.status !== 'imported') {
+			return true;
+		}
+
+		if (importInfo.type === 'transaction') {
+			return true;
+		}
+		if (importInfo.type === 'account') {
+			const accounts = await db.select().from(account).where(eq(account.importId, id));
+			return tActions.account.canDeleteMany(
+				db,
+				accounts.map((item) => item.id)
+			);
+		}
+		if (importInfo.type === 'bill') {
+			const bills = await db.select().from(bill).where(eq(bill.importId, id));
+			return tActions.bill.canDeleteMany(
+				db,
+				bills.map((item) => item.id)
+			);
+		}
+		if (importInfo.type === 'budget') {
+			const budgets = await db.select().from(budget).where(eq(budget.importId, id));
+			return tActions.budget.canDeleteMany(
+				db,
+				budgets.map((item) => item.id)
+			);
+		}
+		if (importInfo.type === 'category') {
+			const categories = await db.select().from(category).where(eq(category.importId, id));
+			return tActions.category.canDeleteMany(
+				db,
+				categories.map((item) => item.id)
+			);
+		}
+		if (importInfo.type === 'label') {
+			const labels = await db.select().from(label).where(eq(label.importId, id));
+			return tActions.label.canDeleteMany(
+				db,
+				labels.map((item) => item.id)
+			);
+		}
+		if (importInfo.type === 'tag') {
+			const tags = await db.select().from(tag).where(eq(tag.importId, id));
+			return tActions.tag.canDeleteMany(
+				db,
+				tags.map((item) => item.id)
+			);
+		}
+	},
+	delete: async ({ db, id }: { db: DBType; id: string }) => {
+		const canDelete = await importActions.canDelete({ db, id });
+
+		if (canDelete) {
+			await db.transaction(async (db) => {
+				await db.delete(importItemDetail).where(eq(importItemDetail.importId, id)).execute();
+				await db.delete(importTable).where(eq(importTable.id, id)).execute();
+			});
+		}
 	}
 };
 

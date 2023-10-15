@@ -1,6 +1,6 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import { db } from '../../db';
-import { account } from '../../schema';
+import { account, importTable } from '../../schema';
 import { SQL, eq, gt, inArray, like, lt, not } from 'drizzle-orm';
 
 export const accountFilterToQuery = (
@@ -50,7 +50,7 @@ const accountIdToTitle = async (id: string) => {
 	return id;
 };
 
-export const accountIdsToTitle = async (ids: string[]) => {
+export const accountIdsToTitles = async (ids: string[]) => {
 	const titles = await Promise.all(ids.map(async (id) => accountIdToTitle(id)));
 
 	return titles;
@@ -68,7 +68,7 @@ export const accountFilterToText = async (
 		if (restFilter.idArray.length === 1) {
 			stringArray.push(`Is ${await accountIdToTitle(restFilter.idArray[0])}`);
 		} else {
-			stringArray.push(`Is One Of ${(await accountIdsToTitle(restFilter.idArray)).join(',')}`);
+			stringArray.push(`Is One Of ${(await accountIdsToTitles(restFilter.idArray)).join(',')}`);
 		}
 	}
 	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);

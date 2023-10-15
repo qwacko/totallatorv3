@@ -20,6 +20,7 @@ import {
 } from './helpers/seedAccountData';
 import { accountFilterToQuery } from './helpers/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/accountCreateInsertionData';
+import { accountTitleSplit } from './helpers/accountTitleSplit';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -135,20 +136,32 @@ export const accountActions = {
 			}
 			throw new Error(`Account ${id} not found`);
 		} else if (title) {
+			const accountTitleInfo = accountTitleSplit(title);
+
+			const isExpense = accountTitleInfo.accountGroupCombined === '';
+
 			const currentAccount = await db.query.account
 				.findFirst({ where: eq(account.accountTitleCombined, title) })
 				.execute();
+
+			logging.info('Checking Account Title', {
+				title,
+				accountTitleInfo,
+				isExpense,
+				currentAccount
+			});
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
 					throw new Error(`Account ${currentAccount.title} is not active`);
 				}
 				return currentAccount;
 			}
+
+			logging.info('Starting To Create Account : ', { title });
 			const newAccountId = await accountActions.create(db, {
-				type: 'expense',
-				title,
-				status: 'active',
-				accountGroupCombined: ''
+				...accountTitleInfo,
+				type: isExpense ? 'expense' : 'asset',
+				status: 'active'
 			});
 			const newAccount = await db.query.account
 				.findFirst({ where: eq(account.id, newAccountId) })
@@ -233,18 +246,26 @@ export const accountActions = {
 		}
 		return id;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
+	canDeleteMany: async (db: DBType, ids: string[]) => {
+		const canDeleteList = await Promise.all(
+			ids.map(async (id) => accountActions.canDelete(db, { id }))
+		);
+
+		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
+	},
+	canDelete: async (db: DBType, data: IdSchemaType) => {
 		const currentAccount = await db.query.account
 			.findFirst({ where: eq(account.id, data.id), with: { journals: { limit: 1 } } })
 			.execute();
-
+		if (!currentAccount) {
+			return true;
+		}
+		return currentAccount && currentAccount.journals.length === 0;
+	},
+	delete: async (db: DBType, data: IdSchemaType) => {
 		// If the account has no journals, then mark as deleted, otherwise do nothing
-		if (currentAccount && currentAccount.journals.length === 0) {
-			await db
-				.update(account)
-				.set({ ...statusUpdate('deleted'), ...updatedTime() })
-				.where(eq(account.id, data.id))
-				.execute();
+		if (await accountActions.canDelete(db, data)) {
+			await db.delete(account).where(eq(account.id, data.id)).execute();
 		}
 
 		return data.id;

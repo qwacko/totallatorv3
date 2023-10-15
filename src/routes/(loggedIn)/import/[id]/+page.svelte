@@ -2,6 +2,9 @@
 	import { enhance } from '$app/forms';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
+	import { urlGenerator } from '$lib/routes.js';
+	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import { Badge, Button, Card, Spinner } from 'flowbite-svelte';
 
 	export let data;
@@ -16,21 +19,58 @@
 		{#if !importData.detail}
 			<Badge color="red">Unknown Data Load Error</Badge>
 		{:else}
+			{@const errorCount = importData.detail.importDetails.filter(
+				(d) => d.status === 'error'
+			).length}
+			{@const importErrorCount = importData.detail.importDetails.filter(
+				(d) => d.status === 'importError'
+			).length}
+			{@const processCount = importData.detail.importDetails.filter(
+				(d) => d.status === 'processed'
+			).length}
+			{@const importCount = importData.detail.importDetails.filter(
+				(d) => d.status === 'imported'
+			).length}
+			{@const duplicateCount = importData.detail.importDetails.filter(
+				(d) => d.status === 'duplicate'
+			).length}
 			<div class="flex self-center flex-row gap-1">
 				<i>Last Modification :</i>
 				{importData.detail.updatedAt.toISOString().slice(0, 19)}
 			</div>
 			<div class="flex self-center flex-row gap-1">
-				{#if importData.detail.status !== 'complete'}
+				{#if importCount > 0}
+					<Button
+						href={urlGenerator({
+							address: '/(loggedIn)/journals',
+							searchParamsValue: {
+								...defaultJournalFilter,
+								importIdArray: [data.info.importInfo.id]
+							}
+						}).url}
+						outline
+						color="light"
+					>
+						<JournalEntryIcon />
+					</Button>{/if}
+				{#if importData.detail.status !== 'complete' && importData.detail.status !== 'imported' && importCount === 0}
 					<form method="post" action="?/reprocess" use:enhance class="flex self-center">
 						<Button color="blue" type="submit">Reprocess</Button>
 					</form>
 				{/if}
 				{#if importData.detail.status === 'processed'}
 					<form method="post" action="?/doImport" use:enhance class="flex self-center">
-						<Button color="green" type="submit">Import</Button>
+						<Button color="green" type="submit" disabled={processCount === 0}>Import</Button>
 					</form>
 				{/if}
+				{#if data.canDelete}
+					<form method="post" action="?/delete" use:enhance class="flex self-center">
+						<Button color="red" type="submit">Delete (With Created Items)</Button>
+					</form>
+				{/if}
+				<form method="post" action="?/forget" use:enhance class="flex self-center">
+					<Button color="red" type="submit">Delete (Leave Created Items)</Button>
+				</form>
 			</div>
 			{#if importData.detail.status === 'processed'}
 				<Badge color="green">Processed</Badge>
@@ -43,21 +83,10 @@
 					</div>
 				</Badge>
 			{:else if importData.type === 'transaction'}
-				{@const errorCount = importData.detail.importDetails.filter(
-					(d) => d.status === 'error'
-				).length}
-				{@const processCount = importData.detail.importDetails.filter(
-					(d) => d.status === 'processed'
-				).length}
-				{@const importCount = importData.detail.importDetails.filter(
-					(d) => d.status === 'imported'
-				).length}
-				{@const duplicateCount = importData.detail.importDetails.filter(
-					(d) => d.status === 'duplicate'
-				).length}
 				<div class="self-center flex flex-row gap-2">
-					<Badge color="blue">Process: {processCount}</Badge>
+					<Badge color="blue">Processed: {processCount}</Badge>
 					<Badge color="red">Error: {errorCount}</Badge>
+					<Badge color="red">Import Error: {importErrorCount}</Badge>
 					<Badge color="dark">Duplicate: {duplicateCount}</Badge>
 					<Badge color="green">Imported: {importCount}</Badge>
 					<RawDataModal data={importData.detail} dev={data.dev} buttonText="Import Data" outline />

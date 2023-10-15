@@ -185,18 +185,28 @@ export const tagActions = {
 
 		return id;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
+	canDeleteMany: async (db: DBType, ids: string[]) => {
+		const canDeleteList = await Promise.all(
+			ids.map(async (id) => tagActions.canDelete(db, { id }))
+		);
+
+		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
+	},
+	canDelete: async (db: DBType, data: IdSchemaType) => {
 		const currentTag = await db.query.tag
 			.findFirst({ where: eq(tag.id, data.id), with: { journals: { limit: 1 } } })
 			.execute();
+		if (!currentTag) {
+			return true;
+		}
 
 		// If the tag has no journals, then mark as deleted, otherwise do nothing
-		if (currentTag && currentTag.journals.length === 0) {
-			await db
-				.update(tag)
-				.set({ ...statusUpdate('deleted'), ...updatedTime() })
-				.where(eq(tag.id, data.id))
-				.execute();
+		return currentTag && currentTag.journals.length === 0;
+	},
+	delete: async (db: DBType, data: IdSchemaType) => {
+		// If the tag has no journals, then mark as deleted, otherwise do nothing
+		if (await tagActions.canDelete(db, data)) {
+			await db.delete(tag).where(eq(tag.id, data.id)).execute();
 		}
 
 		return data.id;
