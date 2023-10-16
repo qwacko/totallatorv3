@@ -4,7 +4,7 @@ TODO : Add "Create Transaction" page (currently links to creating a new tag). Wo
 TODO : User Management / User Page
 TODO : Confirm why backups are not working correctly.
 TODO : Add Pivot Table Report Functionality (Basic).
-TODO : Make other import formats work
+TODO : Make other import formats work (i.e. tags, bills etc...)
 TODO : Allow for download of simple import templates.
 TODO : Confirm / Make docker build process work, including different branches, auto-build / publish etc...
 OPTION : Make journal text filter be more broad (i.e. search Description, Account, Tag, Bill, Budget, Label, Category, Payee). This will be difficult as searching the payee and label require sub queries.
