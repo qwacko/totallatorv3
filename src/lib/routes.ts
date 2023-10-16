@@ -13,7 +13,12 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 	errorURL: '/',
 	config: {
 		'/': {},
-		'/(loggedIn)/backup': {},
+		'/(loggedIn)/backup': {
+			searchParamsValidation: z
+				.object({ page: z.coerce.number().optional().default(0) })
+				.optional()
+				.catch({ page: 0 }).parse
+		},
 
 		// Bulk Data Load
 		// ----------------------------------------

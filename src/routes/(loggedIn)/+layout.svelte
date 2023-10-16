@@ -3,6 +3,7 @@
 	import AccountIcon from '$lib/components/icons/AccountIcon.svelte';
 	import BillIcon from '$lib/components/icons/BillIcon.svelte';
 	import BudgetIcon from '$lib/components/icons/BudgetIcon.svelte';
+	import BackupIcon from '$lib/components/icons/BackupIcon.svelte';
 	import CategoryIcon from '$lib/components/icons/CategoryIcon.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import LabelIcon from '$lib/components/icons/LabelIcon.svelte';
@@ -24,6 +25,7 @@
 	$: pageIsAccounts = $page.route.id?.startsWith('/(loggedIn)/accounts');
 	$: pageIsDev = $page.route.id?.startsWith('/(loggedIn)/dev');
 	$: pageIsImport = $page.route.id?.startsWith('/(loggedIn)/import');
+	$: pageIsBackup = $page.route.id?.startsWith('/(loggedIn)/backup');
 
 	$: pageMap = [
 		{
@@ -76,6 +78,12 @@
 			active: pageIsImport,
 			icon: ImportIcon,
 			href: urlGenerator({ address: '/(loggedIn)/import' })
+		},
+		{
+			label: 'Backup',
+			active: pageIsBackup,
+			icon: BackupIcon,
+			href: urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: {page:0} })
 		},
 		...(data.dev
 			? [

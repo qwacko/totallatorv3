@@ -41,7 +41,14 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 
 		'/(open)/params': { ...openConfig, POSTCheck: { testAction: POSTAllowUsers } },
 
-		'/(loggedIn)/backup': adminOnlyConfig,
+		'/(loggedIn)/backup': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				backup: POSTAllowAdminOnly,
+				restore: POSTAllowAdminOnly,
+				delete: POSTAllowAdminOnly
+			}
+		},
 
 		// Dev Actions
 		// ----------------------------------------

@@ -1,114 +1,74 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import CenterCard from '$lib/components/CenterCard.svelte';
+	import PageLayout from '$lib/components/PageLayout.svelte';
+	import TablePagination from '$lib/components/TablePagination.svelte';
+	import { pageInfo } from '$lib/routes.js';
+	import {
+		Badge,
+		Button,
+		Input,
+		Table,
+		TableBody,
+		TableBodyCell,
+		TableBodyRow,
+		TableHead,
+		TableHeadCell
+	} from 'flowbite-svelte';
+	import { page } from '$app/stores';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
+
+	$: urlInfo = pageInfo('/(loggedIn)/backup', $page);
 
 	export let data;
 
-	let pageNo = 1;
-	let perPage = 10;
-
-	$: displayFiles = data.backupFiles.slice((pageNo - 1) * perPage, pageNo * perPage);
-	$: numberPages = Math.ceil(data.backupFiles.length / perPage);
+	$: displayFiles = data.backupFiles;
 </script>
 
-<CustomHeader pageTitle="Backups" />
+<CustomHeader pageTitle="Backups" numPages={data.numPages} pageNumber={data.page} />
 
-<CenterCard title="Backups">
-	<div class="column-div">
-		{#each displayFiles as backup}
-			<div class="row-div">
-				<form action="?/restore" method="post" use:enhance>
-					<input type="hidden" name="backupName" value={backup} />
-					<button type="submit">Restore</button>
-				</form>
-				<form action="?/delete" method="post" use:enhance>
-					<input type="hidden" name="backupName" value={backup} />
-					<button class="delete-button" type="submit">Delete</button>
-				</form>
-				<div class="flex-div">{backup}</div>
-			</div>
-		{/each}
-		<div class="row-div">
-			{#if pageNo > 1}
-				<button
-					on:click={() => {
-						if (pageNo > 1) pageNo--;
-					}}
-				>
-					Previous
-				</button>
-			{/if}
-			<div>Page {pageNo} of {numberPages}</div>
-			{#if pageNo < numberPages}
-				<button
-					on:click={() => {
-						if (pageNo < numberPages) pageNo++;
-					}}
-				>
-					Next
-				</button>
-			{/if}
-			<div class="input-wrap">
-				<form action="?/backup" method="post" use:enhance>
-					<input type="text" name="backupName" placeholder="Backup Name" />
-					<button type="submit">Create New Backup</button>
-				</form>
-			</div>
+<PageLayout title="Backups">
+	{#if data.numberOfBackups > 0}
+		<div class="flex flex-row justify-center">
+			<TablePagination
+				count={data.numberOfBackups}
+				page={data.page}
+				perPage={data.perPage}
+				buttonCount={5}
+				urlForPage={(newPage) => urlInfo.updateParams({ searchParams: { page: newPage } }).url}
+			/>
 		</div>
-	</div>
-</CenterCard>
-
-<style>
-	.row-div {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 0.2rem;
-		align-items: start;
-		height: 100%;
-	}
-	.column-div {
-		display: flex;
-		flex-direction: column;
-		justify-content: start;
-		align-items: start;
-		height: 100%;
-		width: 100%;
-	}
-
-	.flex-div {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100%;
-		width: 100%;
-	}
-
-	.delete-button {
-		background-color: #ff0000;
-		padding: 0.5rem;
-		border-radius: 0.375rem;
-	}
-
-	button {
-		background-color: #9dc0fd;
-		padding: 0.5rem;
-		border-radius: 0.375rem;
-	}
-
-	input {
-		padding: 0.5rem;
-		border-radius: 0.375rem;
-		border: 1px solid #9dc0fd;
-		margin-right: 0.5rem;
-	}
-
-	.input-wrap {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		padding-top: 0.8rem;
-	}
-</style>
+		<Table>
+			<TableHead>
+				<TableHeadCell>Actions</TableHeadCell>
+				<TableHeadCell>Backup Name</TableHeadCell>
+			</TableHead>
+			<TableBody>
+				{#each displayFiles as backup}
+					<TableBodyRow>
+						<TableBodyCell>
+							<div class="flex flex-row gap-2">
+								<form action="?/restore" method="post" use:enhance class="flex">
+									<input type="hidden" name="backupName" value={backup} />
+									<Button type="submit" outline color="green">Restore</Button>
+								</form>
+								<form action="?/delete" method="post" use:enhance class="flex">
+									<input type="hidden" name="backupName" value={backup} />
+									<Button class="delete-button" type="submit" outline color="red">Delete</Button>
+								</form>
+							</div>
+						</TableBodyCell>
+						<TableBodyCell>{backup}</TableBodyCell>
+					</TableBodyRow>
+				{/each}
+			</TableBody>
+		</Table>
+	{:else}
+		<Badge color="blue" class="p-4">No Backups Present</Badge>
+	{/if}
+	<form action="?/backup" method="post" use:enhance>
+		<div class="flex flex-row gap-2">
+			<Input name="backupName" placeholder="Backup Name" class="flex flex-grow" />
+			<Button type="submit" class="whitespace-nowrap">Create New Backup</Button>
+		</div>
+	</form>
+</PageLayout>

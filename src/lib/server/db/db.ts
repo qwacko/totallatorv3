@@ -23,8 +23,8 @@ export const backupDB = async (title = 'backup') => {
 	try {
 		await sqliteDatabase.backup(`${serverEnv.BACKUP_DIR}${date.toISOString()}-${title}.sqlite3`);
 		return;
-	} catch {
-		logging.error('Backup Failed');
+	} catch (e) {
+		logging.error('Backup Failed', e);
 		return;
 	}
 };
