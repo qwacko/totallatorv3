@@ -14,7 +14,7 @@
 	);
 </script>
 
-<CustomHeader title="Create Bill" />
+<CustomHeader pageTitle="Create Bill" />
 
 <PageLayout title="Create Bill" size="xs">
 	<form method="POST" use:enhance class="flex flex-col gap-2">
