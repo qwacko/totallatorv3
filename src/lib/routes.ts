@@ -33,6 +33,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/journals': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
 		},
+		'/(loggedIn)/journals/download': {
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
+		},
 		'/(loggedIn)/journals/delete': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
 		},

@@ -3,7 +3,6 @@ TODO : Favicon.
 TODO : Add "Create Transaction" page (currently links to creating a new tag). Would be nice to have the ability to find similar items or something.
 TODO : User Management / User Page
 TODO : Confirm why backups are not working correctly.
-TODO : Add Export Functionality (Should this have the abillity to do filtering etc..? I think so)
 TODO : Add Pivot Table Report Functionality (Basic).
 TODO : Make other import formats work
 TODO : Allow for download of simple import templates.

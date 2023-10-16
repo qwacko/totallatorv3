@@ -48,6 +48,7 @@
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
+	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
 
 	export let data;
 
@@ -192,13 +193,6 @@
 				<DeleteIcon />
 			</Button>
 		</ButtonGroup>
-		<!-- <JournalSummary
-			id=""
-			items={data.deferred.summary}
-			format={data.user?.currencyFormat || 'USD'}
-			summaryTitle="Journal Summary"
-			summaryFilter={$urlStore.searchParams || defaultJournalFilter}
-		/> -->
 		{#if $urlStore.searchParams}
 			<Input type="text" bind:value={$urlStore.searchParams.description} class="flex flex-grow" />
 			<OrderDropDown
@@ -207,6 +201,17 @@
 				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
 				optionToTitle={journalOrderByEnumToText}
 			/>
+			<Button
+				href={urlGenerator({
+					address: '/(loggedIn)/journals/download',
+					searchParamsValue: $urlStore.searchParams
+				}).url}
+				color="blue"
+				outline
+				size="sm"
+			>
+				<DownloadIcon />
+			</Button>
 		{:else}
 			<div class="flex flex-grow" />
 		{/if}
