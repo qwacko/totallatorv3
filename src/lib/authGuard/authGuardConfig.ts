@@ -7,13 +7,20 @@ type UserValidationOutput = {
 	user: boolean;
 };
 
-const adminOnlyConfig: RouteConfig<UserValidationOutput> = {
-	check: (data) => (data.admin ? undefined : data.user ? '/' : '/login')
+const authRedirectAddress = '/journals';
+const unauthRedirectAddress = '/login';
+
+const homepageRedirect: RouteConfig<UserValidationOutput> = {
+	check: (data) => (data.user ? authRedirectAddress : unauthRedirectAddress)
 };
-// const userOnlyConfig: RouteConfig = { nonUserRedirect: '/login' };
+
+const adminOnlyConfig: RouteConfig<UserValidationOutput> = {
+	check: (data) =>
+		data.admin ? undefined : data.user ? authRedirectAddress : unauthRedirectAddress
+};
 const openConfig: RouteConfig<UserValidationOutput> = { check: () => undefined };
 const loggedOutConfig: RouteConfig<UserValidationOutput> = {
-	check: (data) => (data.user ? '/' : undefined)
+	check: (data) => (data.user ? authRedirectAddress : undefined)
 };
 const devOnly: RouteConfig<UserValidationOutput> = {
 	check: (data) => (data.admin && dev ? undefined : '/')
@@ -30,13 +37,7 @@ const POSTAllowAdminOnly = (data: UserValidationOutput) =>
 
 export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 	routeConfig: {
-		'/': {
-			...openConfig,
-			POSTCheck: {
-				testFunction: POSTAllowAdminOnly,
-				logout: POSTAllowUsers
-			}
-		},
+		'/': homepageRedirect,
 
 		'/(open)/params': { ...openConfig, POSTCheck: { testAction: POSTAllowUsers } },
 
