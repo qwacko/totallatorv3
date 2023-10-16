@@ -21,6 +21,7 @@
 		href={urlForPage(paginationInfo.firstPage)}
 		disabled={!paginationInfo.enableFirst}
 		class="p-2"
+		data-sveltekit-noscroll
 	>
 		<ChevronDoubleLeft />
 	</Button>
@@ -29,6 +30,7 @@
 		href={urlForPage(paginationInfo.prevPage)}
 		disabled={!paginationInfo.enablePrev}
 		class="p-2"
+		data-sveltekit-noscroll
 	>
 		<ChevronLeft />
 	</Button>
@@ -37,6 +39,7 @@
 			href={urlForPage(currentButton.page)}
 			disabled={currentButton.current}
 			color={currentButton.current ? 'dark' : 'light'}
+			data-sveltekit-noscroll
 		>
 			{currentButton.title}
 		</Button>
@@ -47,6 +50,7 @@
 		href={urlForPage(paginationInfo.nextPage)}
 		disabled={!paginationInfo.enableNext}
 		class="p-2"
+		data-sveltekit-noscroll
 	>
 		<ChevronRight />
 	</Button>
@@ -55,6 +59,7 @@
 		href={urlForPage(paginationInfo.lastPage)}
 		disabled={!paginationInfo.enableLast}
 		class="p-2"
+		data-sveltekit-noscroll
 	>
 		<ChevronDoubleRight />
 	</Button>
