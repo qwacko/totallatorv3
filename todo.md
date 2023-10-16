@@ -3,6 +3,10 @@ TODO : Favicon.
 TODO : Add "Create Transaction" page (currently links to creating a new tag). Would be nice to have the ability to find similar items or something.
 TODO : User Management / User Page
 TODO : Confirm why backups are not working correctly.
+TODO : Add Export Functionality (Should this have the abillity to do filtering etc..? I think so)
+TODO : Add Pivot Table Report Functionality (Basic).
+TODO : Make other import formats work
+TODO : Allow for download of simple import templates.
 TODO : Confirm / Make docker build process work, including different branches, auto-build / publish etc...
 OPTION : Make journal text filter be more broad (i.e. search Description, Account, Tag, Bill, Budget, Label, Category, Payee). This will be difficult as searching the payee and label require sub queries.
 OPTION : Move the dropdowns to the Edit / Clone pages, they aren't needed all the time. Or possibly move them up to a higher level layout so they are only loaded on initial load or following data update.
