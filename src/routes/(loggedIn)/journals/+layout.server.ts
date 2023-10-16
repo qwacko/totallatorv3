@@ -1,5 +1,5 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
-import { serverPageInfo, urlGenerator } from '$lib/routes';
+import { serverPageInfo } from '$lib/routes';
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
@@ -8,7 +8,7 @@ import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
 	authGuard(data);
-	const { current: pageInfo } = serverPageInfo(data.route.id, data);
+	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 
 	const filter: JournalFilterSchemaType = pageInfo.searchParams || {
 		page: 0,
@@ -22,12 +22,9 @@ export const load = async (data) => {
 		filter
 	});
 
-	if (journalData.page + 1 > journalData.pageCount) {
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: { ...filter, page: 0 } })
-				.url
-		);
+	if (journalData.page >= journalData.pageCount) {
+		const targetPage = Math.max(0, journalData.pageCount - 1);
+		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
 	const summary = tActions.journal.summary({
