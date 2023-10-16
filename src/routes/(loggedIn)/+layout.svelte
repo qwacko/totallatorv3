@@ -7,6 +7,8 @@
 	import CategoryIcon from '$lib/components/icons/CategoryIcon.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import LabelIcon from '$lib/components/icons/LabelIcon.svelte';
+	import UsersIcon from '$lib/components/icons/UsersIcon.svelte';
+	import UserAccountIcon from '$lib/components/icons/UserAccountIcon.svelte';
 	import TagIcon from '$lib/components/icons/TagIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 	import { Button, Tooltip } from 'flowbite-svelte';
@@ -26,6 +28,10 @@
 	$: pageIsDev = $page.route.id?.startsWith('/(loggedIn)/dev');
 	$: pageIsImport = $page.route.id?.startsWith('/(loggedIn)/import');
 	$: pageIsBackup = $page.route.id?.startsWith('/(loggedIn)/backup');
+	$: pageIsCurrentUser = data.user?.userId
+		? $page.url.toString().includes(data.user.userId)
+		: false;
+	$: pageIsUsers = $page.route.id?.startsWith('/(loggedIn)/users') && !pageIsCurrentUser;
 
 	$: pageMap = [
 		{
@@ -83,8 +89,31 @@
 			label: 'Backup',
 			active: pageIsBackup,
 			icon: BackupIcon,
-			href: urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: {page:0} })
+			href: urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } })
 		},
+		...(data.user
+			? [
+					{
+						label: 'User',
+						active: pageIsCurrentUser,
+						icon: UserAccountIcon,
+						href: urlGenerator({
+							address: '/(loggedIn)/users/[id]',
+							paramsValue: { id: data.user?.userId }
+						})
+					}
+			  ]
+			: []),
+		...(data.user?.admin
+			? [
+					{
+						label: 'Users',
+						active: pageIsUsers,
+						icon: UsersIcon,
+						href: urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } })
+					}
+			  ]
+			: []),
 		...(data.dev
 			? [
 					{

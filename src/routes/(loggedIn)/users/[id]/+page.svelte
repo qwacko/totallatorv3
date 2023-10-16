@@ -2,83 +2,62 @@
 	import { enhance } from '$app/forms';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
-	import LinkButton from '$lib/components/LinkButton.svelte';
+	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { urlGenerator } from '$lib/routes';
-	import { Button } from 'flowbite-svelte';
+	import { Button, Input } from 'flowbite-svelte';
 
 	export let data;
 </script>
 
-<CustomHeader pageTitle="User {data ? data.currentUser.username : ''}" />
-
-{#if data.currentUser}
-	<div class="thisRow">
-		{data.currentUser.username}
-		{#if data.currentUser.admin}
-			(Admin)
-		{/if}
-		<div class="growGap" />
-		{#if data.user?.admin && data.user.userId !== data.currentUser.id}
-			{#if !data.currentUser.admin}
+<CustomHeader pageTitle="User {data ? data.currentUser.name : ''}" />
+<PageLayout title="User {data ? data.currentUser.name : ''}">
+	{#if data.currentUser}
+		<div class="flex flex-row gap-2 items-center">
+			{data.currentUser.username}
+			{#if data.currentUser.admin}
+				(Admin)
+			{/if}
+			<div class="flex flex-grow" />
+			{#if data.canSetAdmin}
 				<form action="?/setAdmin" method="POST" use:enhance>
-					<Button type="submit">Set Admin</Button>
-				</form>
-			{:else}
-				<form action="?/removeAdmin" method="POST" use:enhance>
-					<Button type="submit">Remove Admin</Button>
+					<Button outline type="submit">Set Admin</Button>
 				</form>
 			{/if}
-		{/if}
+			{#if data.canRemoveAdmin}
+				<form action="?/removeAdmin" method="POST" use:enhance>
+					<Button outline type="submit">Remove Admin</Button>
+				</form>
+			{/if}
 
-		{#if data.user}
-			{#if data.user.admin || data.user.userId === data.currentUser.id}
-				<LinkButton
+			{#if data.canUpdatePassword}
+				<Button
 					href={urlGenerator({
 						address: '/(loggedIn)/users/[id]/password',
 						paramsValue: { id: data.currentUser.id }
 					}).url}
+					outline
 				>
 					Edit Password
-				</LinkButton>
+				</Button>
 			{/if}
-		{/if}
-	</div>
-
-	{#if data.user?.admin && data.user.userId !== data.currentUser.id}
-		<div class="centerButton">
-			<LinkButton
-				href={urlGenerator({
-					address: '/(loggedIn)/users/[id]/delete',
-					paramsValue: { id: data.currentUser.id }
-				}).url}
-				style="secondary"
-			>
-				Delete User
-			</LinkButton>
+			{#if data.user?.admin && data.user.userId !== data.currentUser.id}
+				<Button
+					href={urlGenerator({
+						address: '/(loggedIn)/users/[id]/delete',
+						paramsValue: { id: data.currentUser.id }
+					}).url}
+					color="red"
+					outline
+				>
+					Delete
+				</Button>
+			{/if}
 		</div>
+		<form method="post" action="?/updateName" use:enhance class="flex flex-row gap-2">
+			<Input name="name" value={data.currentUser.name} />
+			<Button type="submit" class="whitespace-nowrap">Update Name</Button>
+		</form>
+	{:else}
+		<ErrorText message="User Not Found" />
 	{/if}
-{:else}
-	<ErrorText message="User Not Found" />
-{/if}
-
-<style>
-	.centerButton {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		padding: 10px;
-	}
-
-	.thisRow {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-		gap: 10px;
-		padding: 10px;
-	}
-
-	.growGap {
-		flex-grow: 1;
-	}
-</style>
+</PageLayout>

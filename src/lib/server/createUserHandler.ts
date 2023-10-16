@@ -32,7 +32,8 @@ export const createUserHandler = async ({
 				username: form.data.username,
 				admin: (admin ? 1 : 0) as unknown as boolean,
 				currencyFormat: 'USD',
-				dateFormat: 'YYYY-MM-DD'
+				dateFormat: 'YYYY-MM-DD',
+				name: form.data.name
 			}
 		});
 		if (setSession) {

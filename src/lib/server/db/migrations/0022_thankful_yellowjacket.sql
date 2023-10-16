@@ -1,0 +1,1 @@
+ALTER TABLE user ADD `name` text DEFAULT 'New User' NOT NULL;

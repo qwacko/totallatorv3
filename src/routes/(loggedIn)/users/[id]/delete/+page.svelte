@@ -1,35 +1,32 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
 	import { page } from '$app/stores';
-	import LinkButton from '$lib/components/LinkButton.svelte';
 	import { Button } from 'flowbite-svelte';
 	import { urlGenerator } from '$lib/routes';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
+	import PageLayout from '$lib/components/PageLayout.svelte';
+
+	export let data;
 </script>
 
 <CustomHeader pageTitle="Delete User" filterText={$page.params.id} />
-
-<h1>Delete User?</h1>
-<form method="POST" use:enhance>
-	<div>
-		<SpreadButtons>
-			<Button type="submit">Delete User</Button>
-			<LinkButton
+<PageLayout title="Delete User - {data.currentUser.name}?">
+	<div class="flex">Are you sure you want to delete this user?</div>
+	<form method="POST" use:enhance>
+		<div class="flex flex-row gap-2">
+			<div class="flex flex-grow" />
+			<Button type="submit" color="red">Delete User</Button>
+			<div class="flex flex-grow" />
+			<Button
 				href={urlGenerator({
 					address: '/(loggedIn)/users/[id]',
 					paramsValue: { id: $page.params.id }
 				}).url}
-				style="secondary"
+				outline
 			>
 				Cancel
-			</LinkButton>
-		</SpreadButtons>
-	</div>
-</form>
-
-<style>
-	div {
-		padding: 10px;
-	}
-</style>
+			</Button>
+			<div class="flex flex-grow" />
+		</div>
+	</form>
+</PageLayout>

@@ -25,7 +25,8 @@ export const auth = lucia({
 			username: data.username,
 			admin: Boolean(data.admin),
 			currencyFormat: data.currencyFormat || 'USD',
-			dateFormat: data.dateFormat || 'YYYY-MM-DD'
+			dateFormat: data.dateFormat || 'YYYY-MM-DD',
+			name: data.name
 		};
 	}
 });

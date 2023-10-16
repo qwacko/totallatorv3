@@ -1,4 +1,5 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
+import { urlGenerator } from '$lib/routes.js';
 import { auth } from '$lib/server/lucia.js';
 import { redirect } from '@sveltejs/kit';
 
@@ -18,6 +19,9 @@ export const actions = {
 
 		await auth.deleteUser(params.id);
 
-		throw redirect(302, '/users');
+		throw redirect(
+			302,
+			urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } }).url
+		);
 	}
 };

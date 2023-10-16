@@ -3,6 +3,7 @@ import { sqliteTable, text, blob, integer } from 'drizzle-orm/sqlite-core';
 
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey(),
+	name: text('name').notNull().default('New User'),
 	username: text('username').notNull().unique(),
 	admin: integer('admin', { mode: 'boolean' }).notNull().default(false),
 	currencyFormat: text('currencyFormat', { enum: currencyFormatEnum }).notNull().default('USD'),

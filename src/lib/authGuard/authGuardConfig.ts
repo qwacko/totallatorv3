@@ -18,6 +18,9 @@ const adminOnlyConfig: RouteConfig<UserValidationOutput> = {
 	check: (data) =>
 		data.admin ? undefined : data.user ? authRedirectAddress : unauthRedirectAddress
 };
+const userOnlyConfig: RouteConfig<UserValidationOutput> = {
+	check: (data) => (data.user ? undefined : unauthRedirectAddress)
+};
 const openConfig: RouteConfig<UserValidationOutput> = { check: () => undefined };
 const loggedOutConfig: RouteConfig<UserValidationOutput> = {
 	check: (data) => (data.user ? authRedirectAddress : undefined)
@@ -215,11 +218,36 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: { default: POSTAllowAdminOnly }
 		},
 
-		'/(loggedIn)/users': adminOnlyConfig,
-		'/(loggedIn)/users/create': adminOnlyConfig,
-		'/(loggedIn)/users/[id]': adminOnlyConfig,
-		'/(loggedIn)/users/[id]/delete': adminOnlyConfig,
-		'/(loggedIn)/users/[id]/password': adminOnlyConfig,
+		'/(loggedIn)/users': {
+			...userOnlyConfig,
+			POSTCheck: {
+				setAdmin: POSTAllowAdminOnly,
+				removeAdmin: POSTAllowAdminOnly,
+				updateName: POSTAllowUsers
+			}
+		},
+		'/(loggedIn)/users/create': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/users/[id]': {
+			...userOnlyConfig,
+			POSTCheck: {
+				setAdmin: POSTAllowAdminOnly,
+				removeAdmin: POSTAllowAdminOnly,
+				updateName: POSTAllowUsers
+			}
+		},
+		'/(loggedIn)/users/[id]/delete': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/users/[id]/password': {
+			...userOnlyConfig,
+			POSTCheck: {
+				default: POSTAllowUsers
+			}
+		},
 
 		'/(loggedOut)/login': {
 			...loggedOutConfig,

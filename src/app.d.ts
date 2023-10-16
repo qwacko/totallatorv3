@@ -16,6 +16,7 @@ declare global {
 		type DatabaseUserAttributes = {
 			username: string;
 			admin: boolean;
+			name: string;
 			dateFormat: import('$lib/schema/userSchema').dateFormatType;
 			currencyFormat: import('$lib/schema/userSchema').currencyFormatType;
 		};

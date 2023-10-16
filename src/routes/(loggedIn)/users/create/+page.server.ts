@@ -20,6 +20,7 @@ export const actions: Actions = {
 		if (!admin) {
 			return {};
 		}
+
 		return createUserHandler({ request, locals, admin: false, setSession: false });
 	}
 };

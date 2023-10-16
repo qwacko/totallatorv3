@@ -149,7 +149,12 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			paramsValidation: z.object({ id: z.string() }).parse
 		},
 
-		'/(loggedIn)/users': {},
+		'/(loggedIn)/users': {
+			searchParamsValidation: z
+				.object({ page: z.coerce.number().optional().default(0) })
+				.optional()
+				.catch({ page: 0 }).parse
+		},
 		'/(loggedIn)/users/create': {},
 		'/(loggedIn)/users/[id]': { paramsValidation: z.object({ id: z.string() }).parse },
 		'/(loggedIn)/users/[id]/delete': { paramsValidation: z.object({ id: z.string() }).parse },
