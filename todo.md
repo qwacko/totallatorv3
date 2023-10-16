@@ -2,7 +2,6 @@ TODO : Improve filtering for journals (dropdown?). Multiple Dropdowns where suit
 TODO : Favicon.
 TODO : Add "Create Transaction" page (currently links to creating a new tag). Would be nice to have the ability to find similar items or something.
 TODO : User Management / User Page
-TODO : Confirm why backups are not working correctly.
 TODO : Add Pivot Table Report Functionality (Basic).
 TODO : Make other import formats work (i.e. tags, bills etc...)
 TODO : Allow for download of simple import templates.
