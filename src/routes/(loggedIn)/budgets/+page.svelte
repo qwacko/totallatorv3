@@ -29,6 +29,7 @@
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
+	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/budgets', $page);
@@ -45,14 +46,12 @@
 	});
 </script>
 
-
 <CustomHeader
 	pageTitle="Journals"
 	filterText={data.filterText}
 	pageNumber={data.budgets.page}
 	numPages={data.budgets.pageCount}
 />
-
 
 <PageLayout title="Budgets" size="lg">
 	<svelte:fragment slot="right">
@@ -79,9 +78,20 @@
 			buttonCount={5}
 		/>
 	</center>
-	<div>
+	<div class="flex flex-row gap-2">
 		{#if $urlStore.searchParams}
-			<Input type="text" bind:value={$urlStore.searchParams.title} />
+			<Input type="text" bind:value={$urlStore.searchParams.title} class="flex flex-grow" />
+			<Button
+				href={urlGenerator({
+					address: '/(loggedIn)/budgets/download',
+					searchParamsValue: $urlStore.searchParams
+				}).url}
+				color="blue"
+				outline
+				size="sm"
+			>
+				<DownloadIcon />
+			</Button>
 		{/if}
 	</div>
 	<FilterTextDisplay text={data.filterText} />

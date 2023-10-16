@@ -123,6 +123,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// Accounts
 		// ----------------------------------------
 		'/(loggedIn)/accounts': adminOnlyConfig,
+		'/(loggedIn)/accounts/download': adminOnlyConfig,
 		'/(loggedIn)/accounts/[id]': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowAdminOnly } },
 		'/(loggedIn)/accounts/[id]/delete': {
 			...adminOnlyConfig,
@@ -136,6 +137,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// Labels
 		// ----------------------------------------
 		'/(loggedIn)/labels': adminOnlyConfig,
+		'/(loggedIn)/labels/download': adminOnlyConfig,
 		'/(loggedIn)/labels/[id]': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowAdminOnly } },
 		'/(loggedIn)/labels/[id]/delete': {
 			...adminOnlyConfig,
@@ -146,6 +148,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// Tags
 		// ----------------------------------------
 		'/(loggedIn)/tags': adminOnlyConfig,
+		'/(loggedIn)/tags/download': adminOnlyConfig,
 		'/(loggedIn)/tags/[id]': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowAdminOnly } },
 		'/(loggedIn)/tags/[id]/delete': {
 			...adminOnlyConfig,
@@ -156,6 +159,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// Categories
 		// ----------------------------------------
 		'/(loggedIn)/categories': adminOnlyConfig,
+		'/(loggedIn)/categories/download': adminOnlyConfig,
 		'/(loggedIn)/categories/[id]': {
 			...adminOnlyConfig,
 			POSTCheck: { default: POSTAllowAdminOnly }
@@ -172,6 +176,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// Bills
 		// ----------------------------------------
 		'/(loggedIn)/bills': adminOnlyConfig,
+		'/(loggedIn)/bills/download': adminOnlyConfig,
 		'/(loggedIn)/bills/[id]': {
 			...adminOnlyConfig,
 			POSTCheck: { default: POSTAllowAdminOnly }
@@ -188,7 +193,9 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// Budgets
 		// ----------------------------------------
 		'/(loggedIn)/budgets': adminOnlyConfig,
+		'/(loggedIn)/budgets/download': adminOnlyConfig,
 		'/(loggedIn)/budgets/[id]': {
+			'/(loggedIn)/budgets': adminOnlyConfig,
 			...adminOnlyConfig,
 			POSTCheck: { default: POSTAllowAdminOnly }
 		},

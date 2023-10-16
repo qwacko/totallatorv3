@@ -11,7 +11,7 @@ export const GET = async (data) => {
 		current: { searchParams }
 	} = serverPageInfo(data.route.id, data);
 
-	const journalData = await tActions.journal.list({
+	const journalData = await tActions.account.list({
 		db,
 		filter: { ...searchParams, page: 0, pageSize: 100000 }
 	});
@@ -19,17 +19,16 @@ export const GET = async (data) => {
 	const preppedData = journalData.data.map((item, row) => {
 		return {
 			row,
-			transactionId: item.transactionId,
-			date: item.date,
-			description: item.description,
-			amount: item.amount,
-			accountTitle: item.accountTitle,
-			payeeTitle: item.otherJournals[0].accountTitle,
-			billTitle: item.billTitle,
-			budgetTitle: item.budgetTitle,
-			categoryTitle: item.categoryTitle,
-			tagTitle: item.tagTitle,
-			importTitle: item.importTitle
+			status: item.status,
+			type: item.type,
+			title: item.title,
+			accountGroup: item.accountGroup,
+			accountGroup2: item.accountGroup2,
+			accountGroup3: item.accountGroup3,
+			isCash: item.isCash,
+			isNetWorth: item.isNetWorth,
+			startDate: item.startDate,
+			endDate: item.endDate
 		};
 	});
 
@@ -40,7 +39,7 @@ export const GET = async (data) => {
 	return new Response(csvData, {
 		headers: {
 			'Content-Type': 'text/csv',
-			'Content-Disposition': `attachement; filename=${dateText}-journalExport.csv`
+			'Content-Disposition': `attachement; filename=${dateText}-accountExport.csv`
 		}
 	});
 };

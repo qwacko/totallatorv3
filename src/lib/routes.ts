@@ -55,6 +55,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/accounts': {
 			searchParamsValidation: accountFilterSchema.optional().catch({}).parse
 		},
+		'/(loggedIn)/accounts/download': {
+			searchParamsValidation: accountFilterSchema.optional().catch({}).parse
+		},
 		'/(loggedIn)/accounts/create': {},
 		'/(loggedIn)/accounts/[id]': {
 			paramsValidation: z.object({ id: z.string() }).parse
@@ -67,6 +70,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/labels': {
 			searchParamsValidation: labelFilterSchema.optional().catch({}).parse
 		},
+		'/(loggedIn)/labels/download': {
+			searchParamsValidation: labelFilterSchema.optional().catch({}).parse
+		},
 		'/(loggedIn)/labels/create': {},
 		'/(loggedIn)/labels/[id]': {
 			paramsValidation: z.object({ id: z.string() }).parse
@@ -77,6 +83,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// Tags
 		// ----------------------------------------
 		'/(loggedIn)/tags': {
+			searchParamsValidation: tagFilterSchema.optional().catch({}).parse
+		},
+		'/(loggedIn)/tags/download': {
 			searchParamsValidation: tagFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/tags/create': {},
@@ -92,6 +101,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/categories': {
 			searchParamsValidation: categoryFilterSchema.optional().catch({}).parse
 		},
+		'/(loggedIn)/categories/download': {
+			searchParamsValidation: categoryFilterSchema.optional().catch({}).parse
+		},
 		'/(loggedIn)/categories/create': {},
 		'/(loggedIn)/categories/[id]': {
 			paramsValidation: z.object({ id: z.string() }).parse
@@ -105,6 +117,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/bills': {
 			searchParamsValidation: billFilterSchema.optional().catch({}).parse
 		},
+		'/(loggedIn)/bills/download': {
+			searchParamsValidation: billFilterSchema.optional().catch({}).parse
+		},
 		'/(loggedIn)/bills/create': {},
 		'/(loggedIn)/bills/[id]': {
 			paramsValidation: z.object({ id: z.string() }).parse
@@ -116,6 +131,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// Budgets
 		// ----------------------------------------
 		'/(loggedIn)/budgets': {
+			searchParamsValidation: budgetFilterSchema.optional().catch({}).parse
+		},
+		'/(loggedIn)/budgets/download': {
 			searchParamsValidation: budgetFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/budgets/create': {},
