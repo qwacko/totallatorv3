@@ -181,13 +181,13 @@ export const journalOrderByEnum = [
 ] as const;
 
 export const journalFilterSchema = z.object({
-	id: z.string().optional(),
+	id: z.coerce.string().optional(),
 	idArray: z.array(z.string()).optional(),
 	transactionIdArray: z.array(z.string()).optional(),
 	dateBefore: dateStringSchema.optional(),
 	dateAfter: dateStringSchema.optional(),
 	yearMonth: z.array(z.string()).optional(),
-	description: z.string().optional(),
+	description: z.coerce.string().optional(),
 	linked: z.coerce.boolean().optional(),
 	reconciled: z.coerce.boolean().optional(),
 	dataChecked: z.coerce.boolean().optional(),

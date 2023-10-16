@@ -1,11 +1,11 @@
 TODO : Improve filtering for journals (dropdown?). Multiple Dropdowns where suitable?
-TODO : Add Text filtering to journal filtering page (Filter description).
 TODO : Make "/" page work correctly.
 TODO : Favicon.
 TODO : Add "Create Transaction" page (currently links to creating a new tag). Would be nice to have the ability to find similar items or something.
 TODO : User Management / User Page
 TODO : Confirm why backups are not working correctly.
 TODO : Confirm / Make docker build process work, including different branches, auto-build / publish etc...
+OPTION : Make journal text filter be more broad (i.e. search Description, Account, Tag, Bill, Budget, Label, Category, Payee). This will be difficult as searching the payee and label require sub queries.
 OPTION : Move the dropdowns to the Edit / Clone pages, they aren't needed all the time. Or possibly move them up to a higher level layout so they are only loaded on initial load or following data update.
 OPTION : Update README
 OPTION : When editing (or adding) a journal, allow for the creation of new accounts (or linked items) by name if they cannot be found.

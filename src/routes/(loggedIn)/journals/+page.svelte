@@ -9,6 +9,7 @@
 		Alert,
 		Button,
 		ButtonGroup,
+		Input,
 		P,
 		Table,
 		TableBody,
@@ -97,7 +98,7 @@
 		/>
 	</center>
 	<div class="flex flex-row gap-2 items-center">
-		<P size="sm" weight="semibold">
+		<P size="sm" weight="semibold" class="w-max whitespace-nowrap">
 			Selected ({selectedIds.length})
 		</P>
 		<ButtonGroup>
@@ -156,7 +157,7 @@
 			</Button>
 		</ButtonGroup>
 
-		<P size="sm" weight="semibold">
+		<P size="sm" weight="semibold" class="w-max whitespace-nowrap">
 			All ({data.journals.count})
 		</P>
 		<ButtonGroup>
@@ -191,7 +192,6 @@
 				<DeleteIcon />
 			</Button>
 		</ButtonGroup>
-		<div class="flex flex-grow" />
 		<!-- <JournalSummary
 			id=""
 			items={data.deferred.summary}
@@ -200,12 +200,15 @@
 			summaryFilter={$urlStore.searchParams || defaultJournalFilter}
 		/> -->
 		{#if $urlStore.searchParams}
+			<Input type="text" bind:value={$urlStore.searchParams.description} class="flex flex-grow" />
 			<OrderDropDown
 				currentSort={$urlStore.searchParams.orderBy || []}
 				options={[...journalOrderByEnum]}
 				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
 				optionToTitle={journalOrderByEnumToText}
 			/>
+		{:else}
+			<div class="flex flex-grow" />
 		{/if}
 	</div>
 	<FilterTextDisplay text={data.filterText} />
