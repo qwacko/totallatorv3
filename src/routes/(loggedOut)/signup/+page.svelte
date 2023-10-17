@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Button } from 'flowbite-svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
-	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import type { signupSchemaType } from '$lib/schema/signupSchema.js';
@@ -60,9 +59,9 @@
 			{...$constraints.confirmPassword}
 		/>
 		<ErrorText message={$message} />
-		<SpreadButtons>
+		<div class="flex flex-row gap-2 justify-between">
 			<Button type="submit">Sign Up</Button>
 			<Button href={urlGenerator({ address: '/(loggedOut)/login' }).url}>Login</Button>
-		</SpreadButtons>
+		</div>
 	</form>
 </PageLayout>

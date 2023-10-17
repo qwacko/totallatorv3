@@ -1,6 +1,5 @@
 <script lang="ts">
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import LinkButton from '$lib/components/LinkButton.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { pageInfo, urlGenerator } from '$lib/routes.js';
 	import {

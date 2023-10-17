@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import CenterCard from '$lib/components/CenterCard.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
-	import LinkButton from '$lib/components/LinkButton.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { urlGenerator } from '$lib/routes.js';
 	import type { signupSchemaType } from '$lib/schema/signupSchema.js';
