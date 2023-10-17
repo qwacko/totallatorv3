@@ -1,0 +1,27 @@
+name: Tests and Checks
+
+on:
+  push:
+    branches: ['master', 'dev']
+  pull_request:
+    branches: ['master', 'dev']
+
+jobs:
+  test_and_check:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@0609f0983b7a228f052f81ef4c3d6510cae254ad
+        with:
+          version: 6.10.0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm check
+      - run: pnpm test:unit

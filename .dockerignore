@@ -4,6 +4,7 @@ node_modules
 
 /package
 /db
+/dockerTest
 .env
 .env.*
 !.env.example

@@ -1,20 +1,21 @@
-version: "3.8"
-name: "sveltekite-lucia-starter"
+version: '3.8'
+name: 'totallatorv3'
 
 services:
-  sveltekit-lucia-starter:
-    image: sveltekit-lucia-starter
-    build: 
-      context: ./
+  totallatorv3:
+    image: totallatorv3:latest
     environment:
       - DATABASE_FILE=/app/db/db.db
       - ORIGIN=https://www.example.com
       - PORT=3000
       - ALLOW_SIGNUP=false
+      - BACKUP_DIR=./backup/
+      - IMPORT_DIR=./import/
+      - BACKUP_SCHEDULE="0 0 * * *"
     volumes:
       - ./db/:/app/db
+      - ./backup:/app/backup
+      - ./import:/app/import
     ports:
       - 3000:3000
     restart: unless-stopped
-  
-  
