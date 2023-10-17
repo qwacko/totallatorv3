@@ -10,6 +10,9 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 db.db*
 /backup
+/import
 /dev
 /db
+/dockerTest
 *.sqlite3*
+docker-compose.yml

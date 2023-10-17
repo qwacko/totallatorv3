@@ -1,9 +1,6 @@
 
-
-
-
 ##### BUILDER
-FROM node:19-alpine AS builder
+FROM node:20-alpine AS builder
 
 
 RUN apk add --update --no-cache python3 make g++
@@ -26,7 +23,7 @@ RUN pnpm build
 
 ##### RUNNER
 
-FROM --platform=linux/amd64 node:19-alpine AS runner
+FROM --platform=linux/amd64 node:20-alpine AS runner
 WORKDIR /app
 
 RUN apk add --update --no-cache python3 make g++

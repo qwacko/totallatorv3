@@ -1,3 +1,4 @@
+import { dev } from '$app/environment';
 import { dbAdminCount, dbUserCount } from '$lib/server/db/actions/firstUser';
 import type { LayoutServerLoad } from './$types';
 
@@ -7,6 +8,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 	return {
 		user: locals.user,
 		userCount: userCountValue,
-		adminCount: adminCountValue
+		adminCount: adminCountValue,
+		dev
 	};
 };

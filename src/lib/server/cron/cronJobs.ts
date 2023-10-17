@@ -1,5 +1,4 @@
 import { backupDB } from '../db/db';
-import { logging } from '../logging';
 import { serverEnv } from '../serverEnv';
 import type { CronJob } from './cron';
 
@@ -10,5 +9,10 @@ export const cronJobs: CronJob[] = [
 		job: async () => {
 			await backupDB('Scheduled Backup');
 		}
+	},
+	{
+		name: 'Regular Journal Cleanup / Fix',
+		schedule: '* * * * *',
+		job: async () => {}
 	}
 ];

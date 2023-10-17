@@ -12,6 +12,8 @@ sqliteDatabase.pragma('journal_mode = WAL');
 
 export const db = drizzle(sqliteDatabase, { schema });
 
+export type DBType = typeof db;
+
 logging.info('Migrating DB!!');
 
 migrate(db, { migrationsFolder: './src/lib/server/db/migrations' });
@@ -19,10 +21,10 @@ migrate(db, { migrationsFolder: './src/lib/server/db/migrations' });
 export const backupDB = async (title = 'backup') => {
 	const date = new Date();
 	try {
-		await sqliteDatabase.backup(`${serverEnv.BACKUP_DIR}/${date.toISOString()}-${title}.sqlite3`);
+		await sqliteDatabase.backup(`${serverEnv.BACKUP_DIR}${date.toISOString()}-${title}.sqlite3`);
 		return;
-	} catch {
-		logging.error('Backup Failed');
+	} catch (e) {
+		logging.error('Backup Failed', e);
 		return;
 	}
 };

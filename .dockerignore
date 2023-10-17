@@ -4,6 +4,7 @@ node_modules
 
 /package
 /db
+/dockerTest
 .env
 .env.*
 !.env.example
@@ -23,4 +24,5 @@ node_modules
 README.md 
 Dockerfile
 backup
+import
 tests

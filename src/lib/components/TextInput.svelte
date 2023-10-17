@@ -1,37 +1,38 @@
 <script lang="ts">
+	import { Input, Label } from 'flowbite-svelte';
 	import ErrorText from './ErrorText.svelte';
 
 	export let errorMessage: string | string[] | null | undefined;
 	export let title: string | null;
 	export let name: string;
+	export let required: boolean | undefined | null = undefined;
+	export let value: string | undefined;
+	export let wrapperClass: string | undefined = undefined;
+	export let tainted: boolean | undefined = undefined;
+	export let highlightTainted: boolean | undefined = undefined;
 </script>
 
-<div>
+<div class="flex flex-col gap-2 {wrapperClass}">
 	{#if title}
-		<label for={name}>{title}</label>
+		<Label for={name} class="w-full space-y-2">
+			<span class="flex flex-row gap-1">
+				<div>
+					{title}
+				</div>
+				<div>
+					{#if required}*{/if}
+				</div>
+			</span>
+		</Label>
 	{/if}
-	<input {...$$restProps} {name} />
+	<Input
+		bind:value
+		{...$$restProps}
+		{name}
+		{required}
+		class="{$$props.class} {highlightTainted && tainted ? 'ring-2' : ''} "
+		on:blur
+		on:keypress
+	/>
 	<ErrorText message={errorMessage} />
 </div>
-
-<style>
-	div {
-		margin-bottom: 0.75rem;
-	}
-
-	label {
-		display: block;
-		font-size: 1rem;
-		font-weight: 600;
-		margin-bottom: 0.2rem;
-		color: rgb(51, 51, 51);
-	}
-
-	input {
-		border-width: 1px;
-		border-color: #d1d5db;
-		padding: 0.5rem;
-		width: 100%;
-		border-radius: 0.5rem;
-	}
-</style>

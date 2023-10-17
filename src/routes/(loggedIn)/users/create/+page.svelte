@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import Button from '$lib/components/Button.svelte';
-	import CenterCard from '$lib/components/CenterCard.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
-	import LinkButton from '$lib/components/LinkButton.svelte';
-	import SpreadButtons from '$lib/components/SpreadButtons.svelte';
+	import PageLayout from '$lib/components/PageLayout.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
+	import { urlGenerator } from '$lib/routes.js';
 	import type { signupSchemaType } from '$lib/schema/signupSchema.js';
+	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 
 	export let data;
@@ -21,8 +21,20 @@
 	});
 </script>
 
-<CenterCard title="New User">
-	<form method="POST" autocomplete="off" use:enhance>
+<CustomHeader pageTitle="New User" />
+
+<PageLayout title="New User">
+	<form method="POST" autocomplete="off" use:enhance class="flex flex-col gap-4">
+		<TextInput
+			title="Name"
+			errorMessage={$errors.name}
+			id="name"
+			name="name"
+			type="text"
+			data-invalid={$errors.name}
+			bind:value={$form.name}
+			{...$constraints.name}
+		/>
 		<TextInput
 			title="Username"
 			errorMessage={$errors.username}
@@ -54,9 +66,15 @@
 			{...$constraints.confirmPassword}
 		/>
 		<ErrorText message={$message} />
-		<SpreadButtons>
-			<Button type="submit" style="primary">Create</Button>
-			<LinkButton href="/users" style="secondary">Cancel</LinkButton>
-		</SpreadButtons>
+		<div class="flex flex-row gap-2">
+			<Button type="submit" color="blue">Create</Button>
+			<div class="flex flex-grow" />
+			<Button
+				href={urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } }).url}
+				outline
+			>
+				Cancel
+			</Button>
+		</div>
 	</form>
-</CenterCard>
+</PageLayout>

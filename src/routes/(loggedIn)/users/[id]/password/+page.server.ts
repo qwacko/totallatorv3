@@ -1,4 +1,4 @@
-import { updatePasswordSchema } from '$lib/schema/signupSchema.js';
+import { updatePasswordSchema } from '$lib/schema/updatePasswordSchema.js';
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { db } from '$lib/server/db/db.js';
 import { user } from '$lib/server/db/schema';
@@ -21,7 +21,13 @@ export const load = async (requestData) => {
 
 export const actions = {
 	default: async ({ locals, params, request }) => {
-		const form = await superValidate(request, passwordSchema);
+		const form = await superValidate(
+			request,
+			passwordSchema.refine((data) => data.password === data.confirmPassword, {
+				message: 'Passwords do not match',
+				path: ['confirmPassword']
+			})
+		);
 		const currentUser = locals.user;
 		const targetUserId = params.id;
 
@@ -43,8 +49,6 @@ export const actions = {
 		if (!targetUser) {
 			return message(form, 'User Not Found');
 		}
-
-		console.log('Target User: ', targetUser);
 
 		try {
 			await auth.updateKeyPassword(

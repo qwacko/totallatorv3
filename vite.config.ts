@@ -13,8 +13,8 @@ export default defineConfig(({ mode }) => {
 			SvelteKitPWA({
 				mode: mode === 'development' ? 'development' : 'production',
 				manifest: {
-					short_name: 'SK PWA',
-					name: 'sveltekit-lucia-starter PWA',
+					short_name: 'Totallator',
+					name: 'Totallator v3',
 					start_url: '/',
 					scope: '/',
 					display: 'standalone',
