@@ -3,10 +3,12 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { urlGenerator } from '$lib/routes.js';
+	import { importTypeToTitle } from '$lib/schema/importSchema';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
-	import { Badge, Button, Card, Spinner } from 'flowbite-svelte';
+	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
 
 	export let data;
 </script>
@@ -39,6 +41,14 @@
 			).length}
 
 			<div class="flex self-center flex-row gap-1">
+				<i>Type :</i>
+				{importTypeToTitle(importData.detail.type)}
+			</div>
+			<div class="flex self-center flex-row gap-1">
+				<i>Created :</i>
+				{importData.detail.createdAt.toISOString().slice(0, 19)}
+			</div>
+			<div class="flex self-center flex-row gap-1">
 				<i>Last Modification :</i>
 				{importData.detail.updatedAt.toISOString().slice(0, 19)}
 			</div>
@@ -67,39 +77,42 @@
 						<Button color="green" type="submit" disabled={processCount === 0}>Import</Button>
 					</form>
 				{/if}
-				{#if data.canDelete}
-					<Button
-						color="red"
-						type="submit"
-						href={urlGenerator({
-							address: '/(loggedIn)/import/[id]/delete',
-							paramsValue: { id: data.id }
-						}).url}
-					>
-						Delete (With Created Items)
-					</Button>
+				<Button color="red" outline><DeleteIcon /></Button>
+				<Dropdown>
+					{#if data.canDelete}
+						<DropdownItem
+							color="red"
+							type="submit"
+							href={urlGenerator({
+								address: '/(loggedIn)/import/[id]/delete',
+								paramsValue: { id: data.id }
+							}).url}
+						>
+							Delete (With Created Items)
+						</DropdownItem>
 
-					<Button
+						<DropdownItem
+							color="red"
+							type="submit"
+							href={urlGenerator({
+								address: '/(loggedIn)/import/[id]/deleteLinked',
+								paramsValue: { id: data.id }
+							}).url}
+						>
+							Delete Created Items (Leave Import)
+						</DropdownItem>
+					{/if}
+					<DropdownItem
 						color="red"
 						type="submit"
 						href={urlGenerator({
-							address: '/(loggedIn)/import/[id]/deleteLinked',
+							address: '/(loggedIn)/import/[id]/forget',
 							paramsValue: { id: data.id }
 						}).url}
 					>
-						Delete Created Items (Leave Import)
-					</Button>
-				{/if}
-				<Button
-					color="red"
-					type="submit"
-					href={urlGenerator({
-						address: '/(loggedIn)/import/[id]/forget',
-						paramsValue: { id: data.id }
-					}).url}
-				>
-					Forget (Leave Created Items)
-				</Button>
+						Forget (Leave Created Items)
+					</DropdownItem>
+				</Dropdown>
 			</div>
 			{#if importData.detail.status === 'processed'}
 				<Badge color="green">Processed</Badge>
