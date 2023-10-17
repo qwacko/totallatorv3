@@ -30,3 +30,4 @@ OPTION : May be useful to have the summary information include the latest 5 jour
 OPTION : May be useful to allow bulkEdit / bulkDelete from the summary popup.
 OPTION : Consider how to better support more journals per transaction.
 OPTION : Allow display of more rows (make it adjustable) This will need to somehow affect the "defaultJournalFilter" parameter, so not sure how to do it.
+OPTION : Confirm that view user works correctly.
