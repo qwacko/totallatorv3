@@ -6,6 +6,8 @@ import { updatedTime } from './updatedTime';
 export const categoryCreateInsertionData = (data: CreateCategorySchemaType, id: string) => {
 	return {
 		id,
+		importId: data.importId,
+		importDetailId: data.importDetailId,
 		...statusUpdate(data.status),
 		...updatedTime(),
 		...combinedTitleSplitRequired(data)

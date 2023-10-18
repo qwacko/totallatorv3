@@ -1,5 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
+import type { CreateTagSchemaType } from '$lib/schema/tagSchema';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
 
@@ -17,11 +18,21 @@ export const GET = async (data) => {
 	});
 
 	const preppedData = journalData.data.map((item, row) => {
+		if (searchParams?.downloadType === 'import') {
+			return {
+				title: item.title,
+				status: item.status
+			} satisfies CreateTagSchemaType;
+		}
 		return {
 			row,
-			status: item.status,
+			id: item.id,
+			title: item.title,
 			group: item.group,
-			single: item.single
+			single: item.single,
+			status: item.status,
+			sum: item.sum,
+			count: item.count
 		};
 	});
 

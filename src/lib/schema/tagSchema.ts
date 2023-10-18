@@ -3,7 +3,9 @@ import { statusEnum } from './statusSchema';
 
 export const createTagSchema = z.object({
 	title: z.string(),
-	status: z.enum(statusEnum).default('active')
+	status: z.enum(statusEnum).default('active'),
+	importId: z.coerce.string().optional(),
+	importDetailId: z.coerce.string().optional()
 });
 
 export type CreateTagSchemaSuperType = typeof createTagSchema;
@@ -62,6 +64,8 @@ export const tagFilterSchema = z.object({
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),
+	importIdArray: z.array(z.string()).optional(),
+	importDetailIdArray: z.array(z.string()).optional(),
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z

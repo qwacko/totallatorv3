@@ -1,5 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
+import type { CreateBillSchemaType } from '$lib/schema/billSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
 
@@ -17,10 +18,19 @@ export const GET = async (data) => {
 	});
 
 	const preppedData = journalData.data.map((item, row) => {
+		if (searchParams?.downloadType === 'import') {
+			return {
+				title: item.title,
+				status: item.status
+			} satisfies CreateBillSchemaType;
+		}
 		return {
 			row,
+			id: item.id,
+			title: item.title,
 			status: item.status,
-			title: item.title
+			sum: item.sum,
+			count: item.count
 		};
 	});
 

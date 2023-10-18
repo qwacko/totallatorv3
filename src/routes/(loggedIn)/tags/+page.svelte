@@ -29,7 +29,7 @@
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
+	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -77,17 +77,13 @@
 	<div class="flex flex-row gap-2">
 		{#if $urlStore.searchParams}
 			<Input type="text" bind:value={$urlStore.searchParams.title} class="flex flex-grow" />
-			<Button
-				href={urlGenerator({
-					address: '/(loggedIn)/tags/download',
-					searchParamsValue: $urlStore.searchParams
-				}).url}
-				color="blue"
-				outline
-				size="sm"
-			>
-				<DownloadIcon />
-			</Button>
+			<DownloadDropdown
+				urlGenerator={(downloadType) =>
+					urlGenerator({
+						address: '/(loggedIn)/tags/download',
+						searchParamsValue: { ...$urlStore.searchParams, downloadType }
+					}).url}
+			/>
 		{/if}
 	</div>
 

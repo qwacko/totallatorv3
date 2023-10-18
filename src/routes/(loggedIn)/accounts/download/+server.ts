@@ -1,5 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
+import type { CreateAccountSchemaType } from '$lib/schema/accountSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
 
@@ -17,18 +18,35 @@ export const GET = async (data) => {
 	});
 
 	const preppedData = journalData.data.map((item, row) => {
+		if (searchParams?.downloadType === 'import') {
+			return {
+				title: item.title,
+				accountGroupCombined: item.accountGroupCombined,
+				type: item.type,
+				startDate: item.startDate || undefined,
+				endDate: item.endDate || undefined,
+				isCash: item.isCash,
+				isNetWorth: item.isNetWorth,
+				status: item.status
+			} satisfies CreateAccountSchemaType;
+		}
 		return {
 			row,
+			id: item.id,
 			status: item.status,
 			type: item.type,
 			title: item.title,
 			accountGroup: item.accountGroup,
 			accountGroup2: item.accountGroup2,
 			accountGroup3: item.accountGroup3,
+			accountGroupCombined: item.accountGroupCombined,
+			accountTitleCombined: item.accountTitleCombined,
 			isCash: item.isCash,
 			isNetWorth: item.isNetWorth,
 			startDate: item.startDate,
-			endDate: item.endDate
+			endDate: item.endDate,
+			sum: item.sum,
+			count: item.count
 		};
 	});
 

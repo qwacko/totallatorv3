@@ -1,12 +1,5 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import {
-	account,
-	importTable,
-	journalEntry,
-	label,
-	labelsToJournals,
-	transaction
-} from '../../schema';
+import { account, journalEntry, label, labelsToJournals, transaction } from '../../schema';
 import { SQL, and, eq, gt, inArray, like, not } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
@@ -21,6 +14,7 @@ import { labelFilterToQuery, labelFilterToText } from './labelFilterToQuery';
 import { db } from '../../db';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { arrayToText } from './arrayToText';
+import { importIdsToTitles } from './importIdsToTitles';
 
 export const journalFilterToQuery = async (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -135,26 +129,6 @@ export const journalFilterToQuery = async (
 	}
 
 	return where;
-};
-
-const importIdToTitle = async (id: string) => {
-	const foundImport = await db
-		.select({ title: importTable.title })
-		.from(importTable)
-		.where(eq(importTable.id, id))
-		.limit(1)
-		.execute();
-
-	if (foundImport?.length === 1) {
-		return foundImport[0].title;
-	}
-	return id;
-};
-
-export const importIdsToTitles = async (ids: string[]) => {
-	const titles = await Promise.all(ids.map(async (id) => importIdToTitle(id)));
-
-	return titles;
 };
 
 export const journalFilterToText = async (
