@@ -26,6 +26,13 @@ import {
 } from '$lib/schema/journalSchema';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { createAccountSchema } from '$lib/schema/accountSchema';
+import type { ZodSchema, ZodType } from 'zod';
+import { createBillSchema } from '$lib/schema/billSchema';
+import { createBudgetSchema } from '$lib/schema/budgetSchema';
+import { createCategorySchema } from '$lib/schema/categorySchema';
+import { createTagSchema } from '$lib/schema/tagSchema';
+import { createLabelSchema } from '$lib/schema/labelSchema';
 
 export const importActions = {
 	list: async ({ db }: { db: DBType }) => {
@@ -95,6 +102,48 @@ export const importActions = {
 
 		return id;
 	},
+	processItems: async <S extends Record<string, unknown>>({
+		db,
+		id,
+		data,
+		schema
+	}: {
+		db: DBType;
+		id: string;
+		data: Papa.ParseResult<unknown>;
+		schema: ZodSchema<S>;
+	}) => {
+		await Promise.all(
+			data.data.map(async (row) => {
+				const validatedData = schema.safeParse(row);
+				const importDetailId = nanoid();
+				if (validatedData.success) {
+					await db
+						.insert(importItemDetail)
+						.values({
+							id: importDetailId,
+							...updatedTime(),
+							status: 'processed',
+							processedInfo: validatedData.data,
+							importId: id
+						})
+						.execute();
+				} else {
+					await db
+						.insert(importItemDetail)
+						.values({
+							id: importDetailId,
+							...updatedTime(),
+							status: 'error',
+							processedInfo: row,
+							errorInfo: validatedData.error,
+							importId: id
+						})
+						.execute();
+				}
+			})
+		);
+	},
 	get: async ({ id, db }: { db: DBType; id: string }) => {
 		const data = await db.select().from(importTable).where(eq(importTable.id, id));
 
@@ -129,36 +178,54 @@ export const importActions = {
 						.execute();
 				} else {
 					if (importData.type === 'transaction') {
-						await Promise.all(
-							processedData.data.map(async (row) => {
-								const validatedData = createSimpleTransactionSchema.safeParse(row);
-								const importDetailId = nanoid();
-								if (validatedData.success) {
-									await db
-										.insert(importItemDetail)
-										.values({
-											id: importDetailId,
-											...updatedTime(),
-											status: 'processed',
-											processedInfo: validatedData.data,
-											importId: id
-										})
-										.execute();
-								} else {
-									await db
-										.insert(importItemDetail)
-										.values({
-											id: importDetailId,
-											...updatedTime(),
-											status: 'error',
-											processedInfo: row,
-											errorInfo: validatedData.error,
-											importId: id
-										})
-										.execute();
-								}
-							})
-						);
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createSimpleTransactionSchema
+						});
+					} else if (importData.type === 'account') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createAccountSchema
+						});
+					} else if (importData.type === 'bill') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createBillSchema
+						});
+					} else if (importData.type === 'budget') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createBudgetSchema
+						});
+					} else if (importData.type === 'category') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createCategorySchema
+						});
+					} else if (importData.type === 'tag') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createTagSchema
+						});
+					} else if (importData.type === 'label') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createLabelSchema
+						});
 					}
 				}
 			}
@@ -272,80 +339,20 @@ export const importActions = {
 		await db.transaction(async (trx) => {
 			await Promise.all(
 				importDetails.map(async (item) => {
-					const processedItem = createSimpleTransactionSchema.safeParse(item.processedInfo);
-					if (processedItem.success) {
-						const combinedTransaction = simpleSchemaToCombinedSchema({
-							...processedItem.data,
-							importId: id,
-							importDetailId: item.id
-						});
-						const processedCombinedTransaction =
-							createCombinedTransactionSchema.safeParse(combinedTransaction);
-						if (processedCombinedTransaction.success) {
-							try {
-								const importedData = await tActions.journal.createManyTransactionJournals({
-									db: trx,
-									journalEntries: [processedCombinedTransaction.data]
-								});
-
-								await Promise.all(
-									importedData.map(async (transactionId) => {
-										const journalData = await trx.query.transaction.findFirst({
-											where: eq(transaction.id, transactionId),
-											with: { journals: true }
-										});
-
-										if (journalData) {
-											await trx
-												.update(importItemDetail)
-												.set({
-													status: 'imported',
-													importInfo: journalData,
-													relationId: journalData.journals[0].id,
-													relation2Id: journalData.journals[1].id,
-													...updatedTime()
-												})
-												.where(eq(importItemDetail.id, item.id))
-												.execute();
-										} else {
-											await trx
-												.update(importItemDetail)
-												.set({
-													status: 'importError',
-													errorInfo: 'Journal Not Found',
-													...updatedTime()
-												})
-												.where(eq(importItemDetail.id, item.id))
-												.execute();
-										}
-									})
-								);
-							} catch (e) {
-								console.log(e);
-
-								await trx
-									.update(importItemDetail)
-									.set({ status: 'importError', errorInfo: e, ...updatedTime() })
-									.where(eq(importItemDetail.id, item.id))
-									.execute();
-							}
-						} else {
-							await trx
-								.update(importItemDetail)
-								.set({
-									status: 'importError',
-									errorInfo: processedCombinedTransaction.error,
-									...updatedTime()
-								})
-								.where(eq(importItemDetail.id, item.id))
-								.execute();
-						}
-					} else {
-						await trx
-							.update(importItemDetail)
-							.set({ status: 'importError', errorInfo: processedItem.error, ...updatedTime() })
-							.where(eq(importItemDetail.id, item.id))
-							.execute();
+					if (importInfo.type === 'transaction') {
+						await importTransaction({ item, trx });
+					} else if (importInfo.type === 'account') {
+						await importAccount({ item, trx });
+					} else if (importInfo.type === 'bill') {
+						await importBill({ item, trx });
+					} else if (importInfo.type === 'budget') {
+						await importBudget({ item, trx });
+					} else if (importInfo.type === 'category') {
+						await importCategory({ item, trx });
+					} else if (importInfo.type === 'tag') {
+						await importTag({ item, trx });
+					} else if (importInfo.type === 'label') {
+						await importLabel({ item, trx });
 					}
 				})
 			);
@@ -553,3 +560,305 @@ const simpleSchemaToCombinedSchema = (
 		{ ...sharedProperties, accountId: toAccountId, accountTitle: toAccountTitle, amount: amount }
 	];
 };
+
+const importItem = async <T extends Record<string, unknown>, DBT extends { id: string }>({
+	db,
+	item,
+	schema,
+	createItem
+}: {
+	db: DBType;
+	item: typeof importItemDetail.$inferSelect;
+	schema: ZodType<T>;
+	createItem: (data: { item: T; db: DBType }) => Promise<DBT | undefined>;
+}) => {
+	const processedItem = schema.safeParse(item.processedInfo);
+	if (processedItem.success) {
+		try {
+			const createdItem = await createItem({ item: processedItem.data, db });
+
+			if (createdItem) {
+				await db
+					.update(importItemDetail)
+					.set({
+						status: 'imported',
+						importInfo: createdItem,
+						relationId: createdItem.id,
+						...updatedTime()
+					})
+					.where(eq(importItemDetail.id, item.id))
+					.execute();
+			} else {
+				await db
+					.update(importItemDetail)
+					.set({
+						status: 'importError',
+						errorInfo: 'Account Not Found',
+						...updatedTime()
+					})
+					.where(eq(importItemDetail.id, item.id))
+					.execute();
+			}
+		} catch (e) {
+			console.log(e);
+
+			await db
+				.update(importItemDetail)
+				.set({ status: 'importError', errorInfo: e, ...updatedTime() })
+				.where(eq(importItemDetail.id, item.id))
+				.execute();
+		}
+	} else {
+		await db
+			.update(importItemDetail)
+			.set({ status: 'importError', errorInfo: processedItem.error, ...updatedTime() })
+			.where(eq(importItemDetail.id, item.id))
+			.execute();
+	}
+};
+
+async function importTransaction({
+	item,
+	trx
+}: {
+	item: typeof importItemDetail.$inferSelect;
+	trx: DBType;
+}) {
+	const processedItem = createSimpleTransactionSchema.safeParse(item.processedInfo);
+	if (processedItem.success) {
+		const combinedTransaction = simpleSchemaToCombinedSchema({
+			...processedItem.data,
+			importId: item.importId,
+			importDetailId: item.id
+		});
+		const processedCombinedTransaction =
+			createCombinedTransactionSchema.safeParse(combinedTransaction);
+		if (processedCombinedTransaction.success) {
+			try {
+				const importedData = await tActions.journal.createManyTransactionJournals({
+					db: trx,
+					journalEntries: [processedCombinedTransaction.data]
+				});
+
+				await Promise.all(
+					importedData.map(async (transactionId) => {
+						const journalData = await trx.query.transaction.findFirst({
+							where: eq(transaction.id, transactionId),
+							with: { journals: true }
+						});
+
+						if (journalData) {
+							await trx
+								.update(importItemDetail)
+								.set({
+									status: 'imported',
+									importInfo: journalData,
+									relationId: journalData.journals[0].id,
+									relation2Id: journalData.journals[1].id,
+									...updatedTime()
+								})
+								.where(eq(importItemDetail.id, item.id))
+								.execute();
+						} else {
+							await trx
+								.update(importItemDetail)
+								.set({
+									status: 'importError',
+									errorInfo: 'Journal Not Found',
+									...updatedTime()
+								})
+								.where(eq(importItemDetail.id, item.id))
+								.execute();
+						}
+					})
+				);
+			} catch (e) {
+				console.log(e);
+
+				await trx
+					.update(importItemDetail)
+					.set({ status: 'importError', errorInfo: e, ...updatedTime() })
+					.where(eq(importItemDetail.id, item.id))
+					.execute();
+			}
+		} else {
+			await trx
+				.update(importItemDetail)
+				.set({
+					status: 'importError',
+					errorInfo: processedCombinedTransaction.error,
+					...updatedTime()
+				})
+				.where(eq(importItemDetail.id, item.id))
+				.execute();
+		}
+	} else {
+		await trx
+			.update(importItemDetail)
+			.set({ status: 'importError', errorInfo: processedItem.error, ...updatedTime() })
+			.where(eq(importItemDetail.id, item.id))
+			.execute();
+	}
+}
+
+const importAccount = async ({
+	item,
+	trx
+}: {
+	item: typeof importItemDetail.$inferSelect;
+	trx: DBType;
+}) =>
+	importItem({
+		db: trx,
+		item,
+		schema: createAccountSchema,
+		createItem: async (data) => {
+			const importedData = await tActions.account.create(data.db, {
+				...data.item,
+				type: data.item.type || 'expense',
+				status: data.item.status || 'active',
+				importId: item.importId,
+				importDetailId: item.id
+			});
+
+			const createdItem = await trx.query.account.findFirst({
+				where: eq(account.id, importedData)
+			});
+
+			return createdItem;
+		}
+	});
+
+const importBill = async ({
+	item,
+	trx
+}: {
+	item: typeof importItemDetail.$inferSelect;
+	trx: DBType;
+}) =>
+	importItem({
+		db: trx,
+		item,
+		schema: createBillSchema,
+		createItem: async (data) => {
+			const importedData = await tActions.bill.create(data.db, {
+				...data.item,
+				status: data.item.status || 'active',
+				importId: item.importId,
+				importDetailId: item.id
+			});
+
+			const createdItem = await trx.query.bill.findFirst({
+				where: eq(bill.id, importedData)
+			});
+
+			return createdItem;
+		}
+	});
+
+const importBudget = async ({
+	item,
+	trx
+}: {
+	item: typeof importItemDetail.$inferSelect;
+	trx: DBType;
+}) =>
+	importItem({
+		db: trx,
+		item,
+		schema: createBudgetSchema,
+		createItem: async (data) => {
+			const importedData = await tActions.budget.create(data.db, {
+				...data.item,
+				status: data.item.status || 'active',
+				importId: item.importId,
+				importDetailId: item.id
+			});
+
+			const createdItem = await trx.query.budget.findFirst({
+				where: eq(budget.id, importedData)
+			});
+
+			return createdItem;
+		}
+	});
+
+const importCategory = async ({
+	item,
+	trx
+}: {
+	item: typeof importItemDetail.$inferSelect;
+	trx: DBType;
+}) =>
+	importItem({
+		db: trx,
+		item,
+		schema: createCategorySchema,
+		createItem: async (data) => {
+			const importedData = await tActions.category.create(data.db, {
+				...data.item,
+				status: data.item.status || 'active',
+				importId: item.importId,
+				importDetailId: item.id
+			});
+
+			const createdItem = await trx.query.category.findFirst({
+				where: eq(category.id, importedData)
+			});
+
+			return createdItem;
+		}
+	});
+
+const importTag = async ({
+	item,
+	trx
+}: {
+	item: typeof importItemDetail.$inferSelect;
+	trx: DBType;
+}) =>
+	importItem({
+		db: trx,
+		item,
+		schema: createTagSchema,
+		createItem: async (data) => {
+			const importedData = await tActions.tag.create(data.db, {
+				...data.item,
+				status: data.item.status || 'active',
+				importId: item.importId,
+				importDetailId: item.id
+			});
+
+			const createdItem = await trx.query.tag.findFirst({
+				where: eq(tag.id, importedData)
+			});
+
+			return createdItem;
+		}
+	});
+const importLabel = async ({
+	item,
+	trx
+}: {
+	item: typeof importItemDetail.$inferSelect;
+	trx: DBType;
+}) =>
+	importItem({
+		db: trx,
+		item,
+		schema: createLabelSchema,
+		createItem: async (data) => {
+			const importedData = await tActions.label.create(data.db, {
+				...data.item,
+				status: data.item.status || 'active',
+				importId: item.importId,
+				importDetailId: item.id
+			});
+
+			const createdItem = await trx.query.label.findFirst({
+				where: eq(label.id, importedData)
+			});
+
+			return createdItem;
+		}
+	});

@@ -3,7 +3,9 @@ import { statusEnum } from './statusSchema';
 
 export const createLabelSchema = z.object({
 	title: z.string(),
-	status: z.enum(statusEnum).default('active')
+	status: z.enum(statusEnum).default('active'),
+	importId: z.coerce.string().optional(),
+	importDetailId: z.coerce.string().optional()
 });
 
 export type CreateLabelSchemaSuperType = typeof createLabelSchema;

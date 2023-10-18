@@ -3,7 +3,9 @@ import { statusEnum } from './statusSchema';
 
 export const createTagSchema = z.object({
 	title: z.string(),
-	status: z.enum(statusEnum).default('active')
+	status: z.enum(statusEnum).default('active'),
+	importId: z.coerce.string().optional(),
+	importDetailId: z.coerce.string().optional()
 });
 
 export type CreateTagSchemaSuperType = typeof createTagSchema;

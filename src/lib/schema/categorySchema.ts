@@ -3,7 +3,9 @@ import { statusEnum } from './statusSchema';
 
 export const createCategorySchema = z.object({
 	title: z.string(),
-	status: z.enum(statusEnum).default('active')
+	status: z.enum(statusEnum).default('active'),
+	importId: z.coerce.string().optional(),
+	importDetailId: z.coerce.string().optional()
 });
 
 export type CreateCategorySchemaSuperType = typeof createCategorySchema;

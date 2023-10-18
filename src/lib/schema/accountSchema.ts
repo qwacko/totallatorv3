@@ -11,7 +11,9 @@ export const createAccountSchema = z.object({
 	endDate: dateStringSchema.optional(),
 	isCash: z.boolean().optional(),
 	isNetWorth: z.boolean().optional(),
-	status: z.enum(statusEnum).default('active')
+	status: z.enum(statusEnum).default('active'),
+	importId: z.coerce.string().optional(),
+	importDetailId: z.coerce.string().optional()
 });
 
 export type CreateAccountSchemaSuperType = typeof createAccountSchema;
