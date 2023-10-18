@@ -9,7 +9,9 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Alert
+		Alert,
+		Dropdown,
+		DropdownItem
 	} from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
@@ -35,6 +37,7 @@
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
+	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -104,17 +107,13 @@
 				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
 				optionToTitle={accountOrderByEnumToText}
 			/>
-			<Button
-				href={urlGenerator({
-					address: '/(loggedIn)/accounts/download',
-					searchParamsValue: $urlStore.searchParams
-				}).url}
-				color="blue"
-				outline
-				size="sm"
-			>
-				<DownloadIcon />
-			</Button>
+			<DownloadDropdown
+				urlGenerator={(downloadType) =>
+					urlGenerator({
+						address: '/(loggedIn)/accounts/download',
+						searchParamsValue: { ...$urlStore.searchParams, downloadType }
+					}).url}
+			/>
 		{/if}
 	</div>
 	{#if data.accounts.count === 0}

@@ -48,7 +48,7 @@
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
+	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 
 	export let data;
 
@@ -201,17 +201,20 @@
 				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
 				optionToTitle={journalOrderByEnumToText}
 			/>
-			<Button
-				href={urlGenerator({
-					address: '/(loggedIn)/journals/download',
-					searchParamsValue: $urlStore.searchParams
-				}).url}
-				color="blue"
-				outline
-				size="sm"
-			>
-				<DownloadIcon />
-			</Button>
+			<DownloadDropdown
+				urlGenerator={(downloadType) => {
+					if ($urlStore.searchParams) {
+						return urlGenerator({
+							address: '/(loggedIn)/journals/download',
+							searchParamsValue: {
+								...$urlStore.searchParams,
+								downloadType
+							}
+						}).url;
+					}
+					return '';
+				}}
+			/>
 		{:else}
 			<div class="flex flex-grow" />
 		{/if}
