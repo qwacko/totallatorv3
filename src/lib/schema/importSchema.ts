@@ -9,6 +9,8 @@ export const importTypeEnum = [
 	'label'
 ] as const;
 
+export type importTypeType = (typeof importTypeEnum)[number];
+
 export const importTypeToTitle = (type: (typeof importTypeEnum)[number]) => {
 	if (type === 'transaction') {
 		return 'Transactions';

@@ -2,6 +2,8 @@ import type { BillFilterSchemaType } from '$lib/schema/billSchema';
 import { db } from '../../db';
 import { bill } from '../../schema';
 import { SQL, eq, inArray, like, not } from 'drizzle-orm';
+import { arrayToText } from './arrayToText';
+import { importIdsToTitles } from './importIdsToTitles';
 
 export const billFilterToQuery = (
 	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -18,6 +20,11 @@ export const billFilterToQuery = (
 	if (restFilter.disabled) where.push(eq(bill.disabled, restFilter.disabled));
 	if (restFilter.allowUpdate) where.push(eq(bill.allowUpdate, restFilter.allowUpdate));
 	if (restFilter.active) where.push(eq(bill.active, restFilter.active));
+	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
+		where.push(inArray(bill.importId, restFilter.importIdArray));
+
+	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
+		where.push(inArray(bill.importDetailId, restFilter.importDetailIdArray));
 
 	return where;
 };
@@ -66,6 +73,22 @@ export const billFilterToText = async (
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
 	if (restFilter.active) stringArray.push(`Is Active`);
+	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importIdArray,
+				singularName: 'Import',
+				inputToText: importIdsToTitles
+			})
+		);
+
+	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importDetailIdArray,
+				singularName: 'Import Detail ID'
+			})
+		);
 
 	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');

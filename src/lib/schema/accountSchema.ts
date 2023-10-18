@@ -105,8 +105,11 @@ export const accountFilterSchema = z.object({
 	startDateAfter: dateStringSchema.optional(),
 	endDateBefore: dateStringSchema.optional(),
 	endDateAfter: dateStringSchema.optional(),
+	importIdArray: z.array(z.string()).optional(),
+	importDetailIdArray: z.array(z.string()).optional(),
 	page: z.coerce.number().default(0).optional(),
 	pageSize: z.coerce.number().default(10).optional(),
+
 	orderBy: z
 		.array(z.object({ field: z.enum(accountOrderByEnum), direction: z.enum(['asc', 'desc']) }))
 		.default([{ direction: 'asc', field: 'title' }])

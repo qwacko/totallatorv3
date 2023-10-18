@@ -1,4 +1,5 @@
 import { urlGenerator } from '$lib/routes.js';
+import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
 import { fail, redirect } from '@sveltejs/kit';
@@ -8,14 +9,17 @@ export const actions = {
 	create: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
 
+		console.log('Create Import Form Data : ', formData);
+
 		let newId: undefined | string = undefined;
 
 		try {
+			const uploadType = formData.importType as importTypeType | undefined;
 			const uploadedFile = formData.csvFile as File | undefined;
-			if (!uploadedFile) {
+			if (!uploadedFile || !uploadType || !importTypeEnum.includes(uploadType)) {
 				return fail(400, { message: 'No File Uploaded' });
 			} else {
-				newId = await tActions.import.storeCSV({ newFile: uploadedFile, db });
+				newId = await tActions.import.storeCSV({ newFile: uploadedFile, db, type: uploadType });
 			}
 		} catch (e) {
 			console.log('Error:', e);

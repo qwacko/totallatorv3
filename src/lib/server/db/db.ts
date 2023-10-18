@@ -5,12 +5,21 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { logging } from '../logging';
 import { serverEnv } from '../serverEnv';
 import fs from 'fs/promises';
+import type { Logger } from 'drizzle-orm';
 
 export const sqliteDatabase = sqlite(serverEnv.DATABASE_FILE);
 
 sqliteDatabase.pragma('journal_mode = WAL');
 
-export const db = drizzle(sqliteDatabase, { schema });
+class MyLogger implements Logger {
+	logQuery(query: string, params: unknown[]): void {
+		if (query.startsWith('update') || false) {
+			console.log({ query, params });
+		}
+	}
+}
+
+export const db = drizzle(sqliteDatabase, { schema, logger: new MyLogger() });
 
 export type DBType = typeof db;
 

@@ -33,6 +33,7 @@ import { createBudgetSchema } from '$lib/schema/budgetSchema';
 import { createCategorySchema } from '$lib/schema/categorySchema';
 import { createTagSchema } from '$lib/schema/tagSchema';
 import { createLabelSchema } from '$lib/schema/labelSchema';
+import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema';
 
 export const importActions = {
 	list: async ({ db }: { db: DBType }) => {
@@ -72,7 +73,7 @@ export const importActions = {
 
 		return imports;
 	},
-	storeCSV: async ({ newFile, db }: { db: DBType; newFile: File }) => {
+	storeCSV: async ({ newFile, db, type }: { db: DBType; newFile: File; type: importTypeType }) => {
 		if (newFile.type !== 'text/csv') {
 			throw new Error('Incorrect FileType');
 		}
@@ -96,7 +97,7 @@ export const importActions = {
 				...updatedTime(),
 				status: 'created',
 				source: 'csv',
-				type: 'transaction'
+				type
 			})
 			.execute();
 
@@ -185,6 +186,7 @@ export const importActions = {
 							schema: createSimpleTransactionSchema
 						});
 					} else if (importData.type === 'account') {
+						console.log('Processing Import - Account Type');
 						importActions.processItems({
 							db,
 							id,
@@ -229,12 +231,13 @@ export const importActions = {
 					}
 				}
 			}
-		}
 
-		await db
-			.update(importTable)
-			.set({ status: 'processed', ...updatedTime() })
-			.execute();
+			await db
+				.update(importTable)
+				.set({ status: 'processed', ...updatedTime() })
+				.where(eq(importTable.id, id))
+				.execute();
+		}
 
 		const returnData = await db.query.importTable
 			.findFirst({
@@ -278,6 +281,28 @@ export const importActions = {
 			detail: returnData,
 			linkedItemCount
 		};
+	},
+	changeType: async ({ db, id, newType }: { db: DBType; id: string; newType: importTypeType }) => {
+		const targetItems = await db.select().from(importTable).where(eq(importTable.id, id)).execute();
+
+		if (!targetItems || targetItems.length === 0) {
+			throw new Error('Import Not Found');
+		}
+		if (!importTypeEnum.includes(newType)) {
+			throw new Error('Target Import Type Incorrect');
+		}
+		if (targetItems[0].status !== 'processed' && targetItems[0].status !== 'created') {
+			throw new Error('Target Import Must Be Processed or Created only to change type');
+		}
+
+		await db.transaction(async (db) => {
+			await db
+				.update(importTable)
+				.set({ type: newType, ...updatedTime() })
+				.where(eq(importTable.id, id))
+				.execute();
+			await importActions.reprocess({ db, id });
+		});
 	},
 	reprocess: async ({ db, id }: { db: DBType; id: string }) => {
 		const item = await db.select().from(importTable).where(eq(importTable.id, id));

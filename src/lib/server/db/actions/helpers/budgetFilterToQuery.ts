@@ -2,6 +2,8 @@ import type { BudgetFilterSchemaType } from '$lib/schema/budgetSchema';
 import { db } from '../../db';
 import { budget } from '../../schema';
 import { SQL, eq, inArray, like, not } from 'drizzle-orm';
+import { arrayToText } from './arrayToText';
+import { importIdsToTitles } from './importIdsToTitles';
 
 export const budgetFilterToQuery = (
 	filter: Omit<BudgetFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -18,6 +20,10 @@ export const budgetFilterToQuery = (
 	if (restFilter.disabled) where.push(eq(budget.disabled, restFilter.disabled));
 	if (restFilter.allowUpdate) where.push(eq(budget.allowUpdate, restFilter.allowUpdate));
 	if (restFilter.active) where.push(eq(budget.active, restFilter.active));
+	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
+		where.push(inArray(budget.importId, restFilter.importIdArray));
+	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
+		where.push(inArray(budget.importDetailId, restFilter.importDetailIdArray));
 
 	return where;
 };
@@ -66,6 +72,21 @@ export const budgetFilterToText = async (
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
 	if (restFilter.active) stringArray.push(`Is Active`);
+	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importIdArray,
+				singularName: 'Import',
+				inputToText: importIdsToTitles
+			})
+		);
+	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importDetailIdArray,
+				singularName: 'Import Detail ID'
+			})
+		);
 
 	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');

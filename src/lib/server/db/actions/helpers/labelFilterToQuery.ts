@@ -1,7 +1,9 @@
 import type { LabelFilterSchemaType } from '$lib/schema/labelSchema';
 import { db } from '../../db';
 import { label } from '../../schema';
-import { SQL, eq, like, not } from 'drizzle-orm';
+import { SQL, eq, inArray, like, not } from 'drizzle-orm';
+import { arrayToText } from './arrayToText';
+import { importIdsToTitles } from './importIdsToTitles';
 
 export const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
 	const where: SQL<unknown>[] = [];
@@ -13,6 +15,10 @@ export const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
 	if (filter.disabled) where.push(eq(label.disabled, filter.disabled));
 	if (filter.allowUpdate) where.push(eq(label.allowUpdate, filter.allowUpdate));
 	if (filter.active) where.push(eq(label.active, filter.active));
+	if (filter.importIdArray && filter.importIdArray.length > 0)
+		where.push(inArray(label.importId, filter.importIdArray));
+	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
+		where.push(inArray(label.importDetailId, filter.importDetailIdArray));
 
 	return where;
 };
@@ -60,6 +66,21 @@ export const labelFilterToText = async (
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
 	if (restFilter.active) stringArray.push(`Is Active`);
+	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importIdArray,
+				singularName: 'Import',
+				inputToText: importIdsToTitles
+			})
+		);
+	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importDetailIdArray,
+				singularName: 'Import Detail ID'
+			})
+		);
 
 	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');
