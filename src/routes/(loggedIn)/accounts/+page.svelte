@@ -9,9 +9,7 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Alert,
-		Dropdown,
-		DropdownItem
+		Alert
 	} from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
@@ -36,7 +34,6 @@
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 
 	export let data;
