@@ -106,6 +106,10 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			}
 		},
 
+		// Pivot
+		// ----------------------------------------
+		'/(loggedIn)/pivot': { ...adminOnlyConfig, POSTCheck: { update: POSTAllowAdminOnly } },
+
 		// Journals
 		// ----------------------------------------
 		'/(loggedIn)/journals': { ...adminOnlyConfig, POSTCheck: { update: POSTAllowAdminOnly } },

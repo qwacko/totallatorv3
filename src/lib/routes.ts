@@ -6,7 +6,12 @@ import { budgetFilterSchema as budgetFilterSchema } from './schema/budgetSchema'
 import { categoryFilterSchema } from './schema/categorySchema';
 import { labelFilterSchema } from './schema/labelSchema';
 import { accountFilterSchema } from './schema/accountSchema';
-import { defaultJournalFilter, journalFilterSchema } from './schema/journalSchema';
+import {
+	defaultJournalFilter,
+	defaultPivotConfig,
+	journalFilterSchema,
+	journalPivotTableSchema
+} from './schema/journalSchema';
 import { idSchema } from './schema/idSchema';
 import { downloadTypeSchema } from './schema/downloadTypeSchema';
 
@@ -36,6 +41,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 
 		// Journals
 		// ----------------------------------------
+		'/(loggedIn)/pivot': {
+			searchParamsValidation: journalPivotTableSchema.optional().catch(defaultPivotConfig).parse
+		},
 		'/(loggedIn)/journals': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
 		},

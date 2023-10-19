@@ -5,7 +5,9 @@ import {
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType,
 	type UpdateJournalSchemaInputType,
-	updateJournalSchema
+	updateJournalSchema,
+	type JournalPivotTableSchemaType,
+	journalPivotTableSchema
 } from '$lib/schema/journalSchema';
 import { eq, and, sql, inArray, not, SQL, or } from 'drizzle-orm';
 import type { DBType } from '../db';
@@ -36,6 +38,12 @@ import { journalList } from './helpers/journalList';
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { nanoid } from 'nanoid';
+import {
+	pivotConfigToGroupBy,
+	pivotConfigToSelection,
+	createPivotTableHeaders
+} from './helpers/pivotHelpers';
+import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -243,6 +251,63 @@ export const journalActions = {
 		});
 
 		return parsedData;
+	},
+	pivot: async ({ db, config }: { db: DBType; config: JournalPivotTableSchemaType }) => {
+		const checkedConfig = journalPivotTableSchema.safeParse(config);
+		if (!checkedConfig.success) {
+			throw new Error('Error Processing Config');
+		}
+
+		const data = await db
+			.select({
+				amount: sql`sum(${journalEntry.amount})`.mapWith(Number),
+				...pivotConfigToSelection(checkedConfig.data)
+			})
+			.from(journalEntry)
+			.leftJoin(account, eq(journalEntry.accountId, account.id))
+			.leftJoin(bill, eq(journalEntry.billId, bill.id))
+			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+			.leftJoin(category, eq(journalEntry.categoryId, category.id))
+			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+			.where(
+				and(
+					...(checkedConfig.data.filter
+						? await journalFilterToQuery(checkedConfig.data.filter)
+						: [])
+				)
+			)
+			.groupBy(...pivotConfigToGroupBy(checkedConfig.data))
+			.execute();
+
+		const row1Options = filterNullUndefinedAndDuplicates(data.map((item) => item.row1)).sort(
+			(a, b) => a.toString().localeCompare(b.toString())
+		);
+		const row2Options = filterNullUndefinedAndDuplicates(data.map((item) => item.row2)).sort(
+			(a, b) => a.toString().localeCompare(b.toString())
+		);
+		const row3Options = filterNullUndefinedAndDuplicates(data.map((item) => item.row3)).sort(
+			(a, b) => a.toString().localeCompare(b.toString())
+		);
+		const col1Options = filterNullUndefinedAndDuplicates(data.map((item) => item.col1)).sort(
+			(a, b) => a.toString().localeCompare(b.toString())
+		);
+		const col2Options = filterNullUndefinedAndDuplicates(data.map((item) => item.col2)).sort(
+			(a, b) => a.toString().localeCompare(b.toString())
+		);
+		const col3Options = filterNullUndefinedAndDuplicates(data.map((item) => item.col3)).sort(
+			(a, b) => a.toString().localeCompare(b.toString())
+		);
+
+		return {
+			data,
+			headers: createPivotTableHeaders(data),
+			row1Options,
+			row2Options,
+			row3Options,
+			col1Options,
+			col2Options,
+			col3Options
+		};
 	},
 	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
 		return journalList({ db, filter });

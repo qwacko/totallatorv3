@@ -260,3 +260,44 @@ const enumTitles: OrderByEnumTitles = {
 export const journalOrderByEnumToText = (input: OrderByEnumType) => {
 	return enumTitles[input];
 };
+
+export const journalPivotTableColumns = [
+	'account',
+	'accountGroup',
+	'accountGroup2',
+	'accountGroup3',
+	'accountType',
+	'accountIsCash',
+	'accountIsNetWorth',
+	'bill',
+	'budget',
+	'category',
+	'categoryGroup',
+	'categorySingle',
+	'tag',
+	'tagGroup',
+	'tagSingle',
+	'year',
+	'yearMonth',
+	'yearQuarter',
+	'yearWeek'
+] as const;
+
+export type PivotTableColumnEnum = (typeof journalPivotTableColumns)[number];
+
+export const journalPivotTableSchema = z.object({
+	row1: z.enum(journalPivotTableColumns),
+	row2: z.enum(journalPivotTableColumns).optional(),
+	row3: z.enum(journalPivotTableColumns).optional(),
+	col1: z.enum(journalPivotTableColumns).optional(),
+	col2: z.enum(journalPivotTableColumns).optional(),
+	col3: z.enum(journalPivotTableColumns).optional(),
+	filter: journalFilterSchema.optional()
+});
+
+export const defaultPivotConfig = {
+	row1: 'account',
+	filter: defaultJournalFilter
+} satisfies JournalPivotTableSchemaType;
+
+export type JournalPivotTableSchemaType = z.infer<typeof journalPivotTableSchema>;
