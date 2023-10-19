@@ -191,7 +191,7 @@ export const journalFilterSchema = z.object({
 	linked: z.coerce.boolean().optional(),
 	reconciled: z.coerce.boolean().optional(),
 	dataChecked: z.coerce.boolean().optional(),
-	complete: z.coerce.boolean().optional(),
+	complete: z.boolean().optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
 	payee: z

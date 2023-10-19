@@ -49,6 +49,7 @@
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
+	import FilterModal from '$lib/components/FilterModal.svelte';
 
 	export let data;
 
@@ -215,6 +216,7 @@
 					return '';
 				}}
 			/>
+			<FilterModal currentFilter={$urlStore.searchParams} />
 		{:else}
 			<div class="flex flex-grow" />
 		{/if}

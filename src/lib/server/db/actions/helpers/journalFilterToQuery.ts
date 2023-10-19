@@ -1,6 +1,6 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { account, journalEntry, label, labelsToJournals, transaction } from '../../schema';
-import { SQL, and, eq, gt, inArray, like, not } from 'drizzle-orm';
+import { SQL, and, eq, gte, lte, inArray, like, not } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
 	accountFilterToText,
@@ -28,8 +28,8 @@ export const journalFilterToQuery = async (
 	if (filter.transactionIdArray)
 		where.push(inArray(journalEntry.transactionId, filter.transactionIdArray));
 	if (filter.description) where.push(like(journalEntry.description, `%${filter.description}%`));
-	if (filter.dateAfter !== undefined) where.push(gt(journalEntry.dateText, filter.dateAfter));
-	if (filter.dateBefore !== undefined) where.push(gt(journalEntry.dateText, filter.dateBefore));
+	if (filter.dateAfter !== undefined) where.push(gte(journalEntry.dateText, filter.dateAfter));
+	if (filter.dateBefore !== undefined) where.push(lte(journalEntry.dateText, filter.dateBefore));
 	if (filter.complete !== undefined) where.push(eq(journalEntry.complete, filter.complete));
 	if (filter.linked !== undefined) where.push(eq(journalEntry.linked, filter.linked));
 	if (filter.dataChecked !== undefined)
