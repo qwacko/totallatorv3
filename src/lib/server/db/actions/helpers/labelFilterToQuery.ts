@@ -8,6 +8,7 @@ import { importIdsToTitles } from './importIdsToTitles';
 export const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
 	const where: SQL<unknown>[] = [];
 	if (filter.id) where.push(eq(label.id, filter.id));
+	if (filter.idArray && filter.idArray.length > 0) where.push(inArray(label.id, filter.idArray));
 	if (filter.title) where.push(like(label.title, `%${filter.title}%`));
 	if (filter.status) where.push(eq(label.status, filter.status));
 	else where.push(not(eq(label.status, 'deleted')));
@@ -51,7 +52,7 @@ export const labelFilterToText = async (
 
 	const stringArray: string[] = [];
 	if (restFilter.id) stringArray.push(`Is ${await labelIdToTitle(restFilter.id)}`);
-	if (restFilter.idArray) {
+	if (restFilter.idArray && restFilter.idArray.length > 0) {
 		if (restFilter.idArray.length === 1) {
 			stringArray.push(`Is ${await labelIdToTitle(restFilter.idArray[0])}`);
 		} else {

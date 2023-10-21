@@ -12,6 +12,7 @@
 	export let clearable = true;
 	export let tainted: boolean | undefined = undefined;
 	export let highlightTainted: boolean | undefined = undefined;
+	export let flexGrow: boolean = false;
 
 	$: usedValue = value ? value : '';
 	$: clearableVisible = clearable && value;
@@ -24,7 +25,7 @@
 	};
 </script>
 
-<Label class="space-y-2">
+<Label class="space-y-2 {flexGrow && 'flex flex-grow basis-0 flex-col gap-0.5'}">
 	{#if title}
 		<span class="flex flex-row gap-1">
 			<div>

@@ -10,7 +10,7 @@ export const accountFilterToQuery = (
 ) => {
 	const where: SQL<unknown>[] = [];
 	if (filter.id) where.push(eq(account.id, filter.id));
-	if (filter.idArray) where.push(inArray(account.id, filter.idArray));
+	if (filter.idArray && filter.idArray.length > 0) where.push(inArray(account.id, filter.idArray));
 	if (filter.title) where.push(like(account.title, `%${filter.title}%`));
 	if (filter.accountGroup) where.push(like(account.accountGroup, `%${filter.accountGroup}%`));
 	if (filter.accountGroup2) where.push(like(account.accountGroup2, `%${filter.accountGroup2}%`));
@@ -70,7 +70,7 @@ export const accountFilterToText = async (
 
 	const stringArray: string[] = [];
 	if (restFilter.id) stringArray.push(`Is ${await accountIdToTitle(restFilter.id)}`);
-	if (restFilter.idArray) {
+	if (restFilter.idArray && restFilter.idArray.length > 0) {
 		if (restFilter.idArray.length === 1) {
 			stringArray.push(`Is ${await accountIdToTitle(restFilter.idArray[0])}`);
 		} else {

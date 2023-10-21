@@ -6,8 +6,8 @@
 	import BooleanFilterButtons from './BooleanFilterButtons.svelte';
 	import FilterIdArray from './FilterIdArray.svelte';
 	import IdFilter from './IDFilter.svelte';
-	export let activeFilter: JournalFilterSchemaType;
 
+	export let activeFilter: JournalFilterSchemaType;
 	let yearMonth: string = '';
 </script>
 

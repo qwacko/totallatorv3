@@ -12,7 +12,8 @@ export const billFilterToQuery = (
 
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(bill.id, restFilter.id));
-	if (restFilter.idArray) where.push(inArray(bill.id, restFilter.idArray));
+	if (restFilter.idArray && restFilter.idArray.length > 0)
+		where.push(inArray(bill.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(bill.title, `%${restFilter.title}%`));
 	if (restFilter.status) where.push(eq(bill.status, restFilter.status));
 	else where.push(not(eq(bill.status, 'deleted')));

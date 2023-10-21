@@ -216,7 +216,27 @@
 					return '';
 				}}
 			/>
-			<FilterModal currentFilter={$urlStore.searchParams} />
+			{#await data.dropdownInfo.accounts then accountDropdown}
+				{#await data.dropdownInfo.bills then billDropdown}
+					{#await data.dropdownInfo.budgets then budgetDropdown}
+						{#await data.dropdownInfo.categories then categoryDropdown}
+							{#await data.dropdownInfo.tags then tagDropdown}
+								{#await data.dropdownInfo.labels then labelDropdown}
+									<FilterModal
+										currentFilter={$urlStore.searchParams}
+										{accountDropdown}
+										{billDropdown}
+										{budgetDropdown}
+										{categoryDropdown}
+										{tagDropdown}
+										{labelDropdown}
+									/>
+								{/await}
+							{/await}
+						{/await}
+					{/await}
+				{/await}
+			{/await}
 		{:else}
 			<div class="flex flex-grow" />
 		{/if}
