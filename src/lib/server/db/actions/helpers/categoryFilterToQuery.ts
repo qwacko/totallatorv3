@@ -12,7 +12,8 @@ export const categoryFilterToQuery = (
 
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(category.id, restFilter.id));
-	if (restFilter.idArray) where.push(inArray(category.id, restFilter.idArray));
+	if (restFilter.idArray && restFilter.idArray.length > 0)
+		where.push(inArray(category.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(category.title, `%${restFilter.title}%`));
 	if (restFilter.group) where.push(ilike(category.title, `%${restFilter.group}%`));
 	if (restFilter.single) where.push(ilike(category.title, `%${restFilter.single}%`));
@@ -59,7 +60,7 @@ export const categoryFilterToText = async (
 
 	const stringArray: string[] = [];
 	if (restFilter.id) stringArray.push(`Is ${await categoryIdToTitle(restFilter.id)}`);
-	if (restFilter.idArray) {
+	if (restFilter.idArray && restFilter.idArray.length > 0) {
 		if (restFilter.idArray.length === 1) {
 			stringArray.push(`Is ${await categoryIdToTitle(restFilter.idArray[0])}`);
 		} else {

@@ -121,7 +121,7 @@
 </div>
 {#if $open}
 	<ul
-		class="z-10 flex max-h-[300px] flex-col overflow-hidden rounded-md border bg-gray-50 dark:bg-gray-700"
+		class="z-[100] flex max-h-[300px] flex-col overflow-hidden rounded-md border bg-gray-50 dark:bg-gray-700"
 		{...$menu}
 		use:menu
 		transition:fly={{ duration: 150, y: -5 }}

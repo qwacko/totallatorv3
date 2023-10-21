@@ -12,7 +12,8 @@ export const tagFilterToQuery = (
 
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(tag.id, restFilter.id));
-	if (restFilter.idArray) where.push(inArray(tag.id, restFilter.idArray));
+	if (restFilter.idArray && restFilter.idArray.length > 0)
+		where.push(inArray(tag.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(tag.title, `%${restFilter.title}%`));
 	if (restFilter.group) where.push(ilike(tag.title, `%${restFilter.group}%`));
 	if (restFilter.single) where.push(ilike(tag.title, `%${restFilter.single}%`));
@@ -59,7 +60,7 @@ export const tagFilterToText = async (
 
 	const stringArray: string[] = [];
 	if (restFilter.id) stringArray.push(`Is ${await tagIdToTitle(restFilter.id)}`);
-	if (restFilter.idArray) {
+	if (restFilter.idArray && restFilter.idArray.length > 0) {
 		if (restFilter.idArray.length === 1) {
 			stringArray.push(`Is ${await tagIdToTitle(restFilter.idArray[0])}`);
 		} else {
