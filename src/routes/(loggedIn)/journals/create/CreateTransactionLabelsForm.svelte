@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ComboSelect from '$lib/components/ComboSelect.svelte';
 	import type { CreateSimpleTransactionSuperType } from '$lib/schema/journalSchema';
-	import { Badge, Button, Checkbox, Heading, P, TabItem, Tabs } from 'flowbite-svelte';
+	import { Button, P } from 'flowbite-svelte';
 
 	import type { SuperForm } from 'sveltekit-superforms/client';
 
