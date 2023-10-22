@@ -69,14 +69,18 @@ export const createJournalSchema = createJournalSchemaCore
 		message: 'Only one of either Account ID or Account Title is allowed. Both are present.'
 	});
 
-export const createSimpleTransactionSchema = createJournalSchemaCore
+export const createSimpleTransactionSchemaCore = createJournalSchemaCore
 	.omit({ accountId: true, accountTitle: true })
 	.extend({
 		fromAccountId: zodStringBlanking,
 		fromAccountTitle: zodStringBlanking,
 		toAccountId: zodStringBlanking,
 		toAccountTitle: zodStringBlanking
-	})
+	});
+
+export type CreateSimpleTransactionSuperType = typeof createSimpleTransactionSchemaCore;
+
+export const createSimpleTransactionSchema = createSimpleTransactionSchemaCore
 	.refine((data) => !(data.tagId && data.tagTitle), {
 		path: ['tagId'],
 		message: 'tagId and tagTitle must be both present or both absent'
@@ -191,7 +195,7 @@ export const journalFilterSchema = z.object({
 	linked: z.coerce.boolean().optional(),
 	reconciled: z.coerce.boolean().optional(),
 	dataChecked: z.coerce.boolean().optional(),
-	complete: z.coerce.boolean().optional(),
+	complete: z.boolean().optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
 	payee: z

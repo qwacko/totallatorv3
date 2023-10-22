@@ -2,7 +2,11 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { urlGenerator } from '$lib/routes';
-	import { importStatusToColour, importStatusToTest } from '$lib/schema/importSchema.js';
+	import {
+		importStatusToColour,
+		importStatusToTest,
+		importTypeToTitle
+	} from '$lib/schema/importSchema.js';
 	import { Badge, Button, Card } from 'flowbite-svelte';
 
 	export let data;
@@ -27,7 +31,15 @@
 				padding="md"
 				class="flex flex-col gap-2"
 			>
-				<div class="flex">{currentImport.title}</div>
+				<div class="flex font-bold">{currentImport.title}</div>
+				<div class="flex flex-row gap-2">
+					<div class="flex font-semibold">Date</div>
+					<div class="flex">{currentImport.createdAt.toISOString().slice(0, 10)}</div>
+				</div>
+				<div class="flex flex-row gap-2">
+					<div class="flex font-semibold">Type</div>
+					<div class="flex">{importTypeToTitle(currentImport.type)}</div>
+				</div>
 				<Badge color={importStatusToColour(currentImport.status)}>
 					{importStatusToTest(currentImport.status)}
 				</Badge>

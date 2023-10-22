@@ -8,6 +8,7 @@ import { labelFilterSchema } from './schema/labelSchema';
 import { accountFilterSchema } from './schema/accountSchema';
 import { defaultJournalFilter, journalFilterSchema } from './schema/journalSchema';
 import { idSchema } from './schema/idSchema';
+import { downloadTypeSchema } from './schema/downloadTypeSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -39,12 +40,18 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
 		},
 		'/(loggedIn)/journals/download': {
-			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
+			searchParamsValidation: journalFilterSchema
+				.merge(downloadTypeSchema)
+				.optional()
+				.catch(defaultJournalFilter).parse
 		},
 		'/(loggedIn)/journals/delete': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
 		},
 		'/(loggedIn)/journals/bulkEdit': {
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
+		},
+		'/(loggedIn)/journals/create': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
 		},
 		'/(loggedIn)/journals/clone': {
@@ -61,7 +68,8 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: accountFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/accounts/download': {
-			searchParamsValidation: accountFilterSchema.optional().catch({}).parse
+			searchParamsValidation: accountFilterSchema.merge(downloadTypeSchema).optional().catch({})
+				.parse
 		},
 		'/(loggedIn)/accounts/create': {},
 		'/(loggedIn)/accounts/[id]': {
@@ -76,7 +84,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: labelFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/labels/download': {
-			searchParamsValidation: labelFilterSchema.optional().catch({}).parse
+			searchParamsValidation: labelFilterSchema.merge(downloadTypeSchema).optional().catch({}).parse
 		},
 		'/(loggedIn)/labels/create': {},
 		'/(loggedIn)/labels/[id]': {
@@ -91,7 +99,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: tagFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/tags/download': {
-			searchParamsValidation: tagFilterSchema.optional().catch({}).parse
+			searchParamsValidation: tagFilterSchema.merge(downloadTypeSchema).optional().catch({}).parse
 		},
 		'/(loggedIn)/tags/create': {},
 		'/(loggedIn)/tags/[id]': {
@@ -107,7 +115,8 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: categoryFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/categories/download': {
-			searchParamsValidation: categoryFilterSchema.optional().catch({}).parse
+			searchParamsValidation: categoryFilterSchema.merge(downloadTypeSchema).optional().catch({})
+				.parse
 		},
 		'/(loggedIn)/categories/create': {},
 		'/(loggedIn)/categories/[id]': {
@@ -123,7 +132,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: billFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/bills/download': {
-			searchParamsValidation: billFilterSchema.optional().catch({}).parse
+			searchParamsValidation: billFilterSchema.merge(downloadTypeSchema).optional().catch({}).parse
 		},
 		'/(loggedIn)/bills/create': {},
 		'/(loggedIn)/bills/[id]': {
@@ -139,7 +148,8 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: budgetFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/budgets/download': {
-			searchParamsValidation: budgetFilterSchema.optional().catch({}).parse
+			searchParamsValidation: budgetFilterSchema.merge(downloadTypeSchema).optional().catch({})
+				.parse
 		},
 		'/(loggedIn)/budgets/create': {},
 		'/(loggedIn)/budgets/[id]': {

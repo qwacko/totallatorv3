@@ -3,7 +3,7 @@ name: 'totallatorv3'
 
 services:
   totallatorv3:
-    image: totallatorv3:latest
+    image: ghcr.io/qwacko/totallatorv3:latest
     environment:
       - DATABASE_FILE=/app/db/db.db
       - ORIGIN=https://www.example.com

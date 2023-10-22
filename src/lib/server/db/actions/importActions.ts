@@ -12,20 +12,31 @@ import {
 	importTable,
 	journalEntry,
 	label,
-	tag,
-	transaction
+	tag
 } from '../schema';
 import { updatedTime } from './helpers/updatedTime';
 import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
 import Papa from 'papaparse';
-import {
-	createCombinedTransactionSchema,
-	createSimpleTransactionSchema,
-	type CreateCombinedTransactionType,
-	type CreateSimpleTransactionType
-} from '$lib/schema/journalSchema';
+import { createSimpleTransactionSchema } from '$lib/schema/journalSchema';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { createAccountSchema } from '$lib/schema/accountSchema';
+import type { ZodSchema } from 'zod';
+import { createBillSchema } from '$lib/schema/billSchema';
+import { createBudgetSchema } from '$lib/schema/budgetSchema';
+import { createCategorySchema } from '$lib/schema/categorySchema';
+import { createTagSchema } from '$lib/schema/tagSchema';
+import { createLabelSchema } from '$lib/schema/labelSchema';
+import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema';
+import {
+	importTransaction,
+	importAccount,
+	importBill,
+	importBudget,
+	importCategory,
+	importTag,
+	importLabel
+} from './helpers/importHelpers';
 
 export const importActions = {
 	list: async ({ db }: { db: DBType }) => {
@@ -65,7 +76,7 @@ export const importActions = {
 
 		return imports;
 	},
-	storeCSV: async ({ newFile, db }: { db: DBType; newFile: File }) => {
+	storeCSV: async ({ newFile, db, type }: { db: DBType; newFile: File; type: importTypeType }) => {
 		if (newFile.type !== 'text/csv') {
 			throw new Error('Incorrect FileType');
 		}
@@ -89,11 +100,53 @@ export const importActions = {
 				...updatedTime(),
 				status: 'created',
 				source: 'csv',
-				type: 'transaction'
+				type
 			})
 			.execute();
 
 		return id;
+	},
+	processItems: async <S extends Record<string, unknown>>({
+		db,
+		id,
+		data,
+		schema
+	}: {
+		db: DBType;
+		id: string;
+		data: Papa.ParseResult<unknown>;
+		schema: ZodSchema<S>;
+	}) => {
+		await Promise.all(
+			data.data.map(async (row) => {
+				const validatedData = schema.safeParse(row);
+				const importDetailId = nanoid();
+				if (validatedData.success) {
+					await db
+						.insert(importItemDetail)
+						.values({
+							id: importDetailId,
+							...updatedTime(),
+							status: 'processed',
+							processedInfo: validatedData.data,
+							importId: id
+						})
+						.execute();
+				} else {
+					await db
+						.insert(importItemDetail)
+						.values({
+							id: importDetailId,
+							...updatedTime(),
+							status: 'error',
+							processedInfo: row,
+							errorInfo: validatedData.error,
+							importId: id
+						})
+						.execute();
+				}
+			})
+		);
 	},
 	get: async ({ id, db }: { db: DBType; id: string }) => {
 		const data = await db.select().from(importTable).where(eq(importTable.id, id));
@@ -129,45 +182,65 @@ export const importActions = {
 						.execute();
 				} else {
 					if (importData.type === 'transaction') {
-						await Promise.all(
-							processedData.data.map(async (row) => {
-								const validatedData = createSimpleTransactionSchema.safeParse(row);
-								const importDetailId = nanoid();
-								if (validatedData.success) {
-									await db
-										.insert(importItemDetail)
-										.values({
-											id: importDetailId,
-											...updatedTime(),
-											status: 'processed',
-											processedInfo: validatedData.data,
-											importId: id
-										})
-										.execute();
-								} else {
-									await db
-										.insert(importItemDetail)
-										.values({
-											id: importDetailId,
-											...updatedTime(),
-											status: 'error',
-											processedInfo: row,
-											errorInfo: validatedData.error,
-											importId: id
-										})
-										.execute();
-								}
-							})
-						);
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createSimpleTransactionSchema
+						});
+					} else if (importData.type === 'account') {
+						console.log('Processing Import - Account Type');
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createAccountSchema
+						});
+					} else if (importData.type === 'bill') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createBillSchema
+						});
+					} else if (importData.type === 'budget') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createBudgetSchema
+						});
+					} else if (importData.type === 'category') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createCategorySchema
+						});
+					} else if (importData.type === 'tag') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createTagSchema
+						});
+					} else if (importData.type === 'label') {
+						importActions.processItems({
+							db,
+							id,
+							data: processedData,
+							schema: createLabelSchema
+						});
 					}
 				}
 			}
-		}
 
-		await db
-			.update(importTable)
-			.set({ status: 'processed', ...updatedTime() })
-			.execute();
+			await db
+				.update(importTable)
+				.set({ status: 'processed', ...updatedTime() })
+				.where(eq(importTable.id, id))
+				.execute();
+		}
 
 		const returnData = await db.query.importTable
 			.findFirst({
@@ -211,6 +284,28 @@ export const importActions = {
 			detail: returnData,
 			linkedItemCount
 		};
+	},
+	changeType: async ({ db, id, newType }: { db: DBType; id: string; newType: importTypeType }) => {
+		const targetItems = await db.select().from(importTable).where(eq(importTable.id, id)).execute();
+
+		if (!targetItems || targetItems.length === 0) {
+			throw new Error('Import Not Found');
+		}
+		if (!importTypeEnum.includes(newType)) {
+			throw new Error('Target Import Type Incorrect');
+		}
+		if (targetItems[0].status !== 'processed' && targetItems[0].status !== 'created') {
+			throw new Error('Target Import Must Be Processed or Created only to change type');
+		}
+
+		await db.transaction(async (db) => {
+			await db
+				.update(importTable)
+				.set({ type: newType, ...updatedTime() })
+				.where(eq(importTable.id, id))
+				.execute();
+			await importActions.reprocess({ db, id });
+		});
 	},
 	reprocess: async ({ db, id }: { db: DBType; id: string }) => {
 		const item = await db.select().from(importTable).where(eq(importTable.id, id));
@@ -272,80 +367,20 @@ export const importActions = {
 		await db.transaction(async (trx) => {
 			await Promise.all(
 				importDetails.map(async (item) => {
-					const processedItem = createSimpleTransactionSchema.safeParse(item.processedInfo);
-					if (processedItem.success) {
-						const combinedTransaction = simpleSchemaToCombinedSchema({
-							...processedItem.data,
-							importId: id,
-							importDetailId: item.id
-						});
-						const processedCombinedTransaction =
-							createCombinedTransactionSchema.safeParse(combinedTransaction);
-						if (processedCombinedTransaction.success) {
-							try {
-								const importedData = await tActions.journal.createManyTransactionJournals({
-									db: trx,
-									journalEntries: [processedCombinedTransaction.data]
-								});
-
-								await Promise.all(
-									importedData.map(async (transactionId) => {
-										const journalData = await trx.query.transaction.findFirst({
-											where: eq(transaction.id, transactionId),
-											with: { journals: true }
-										});
-
-										if (journalData) {
-											await trx
-												.update(importItemDetail)
-												.set({
-													status: 'imported',
-													importInfo: journalData,
-													relationId: journalData.journals[0].id,
-													relation2Id: journalData.journals[1].id,
-													...updatedTime()
-												})
-												.where(eq(importItemDetail.id, item.id))
-												.execute();
-										} else {
-											await trx
-												.update(importItemDetail)
-												.set({
-													status: 'importError',
-													errorInfo: 'Journal Not Found',
-													...updatedTime()
-												})
-												.where(eq(importItemDetail.id, item.id))
-												.execute();
-										}
-									})
-								);
-							} catch (e) {
-								console.log(e);
-
-								await trx
-									.update(importItemDetail)
-									.set({ status: 'importError', errorInfo: e, ...updatedTime() })
-									.where(eq(importItemDetail.id, item.id))
-									.execute();
-							}
-						} else {
-							await trx
-								.update(importItemDetail)
-								.set({
-									status: 'importError',
-									errorInfo: processedCombinedTransaction.error,
-									...updatedTime()
-								})
-								.where(eq(importItemDetail.id, item.id))
-								.execute();
-						}
-					} else {
-						await trx
-							.update(importItemDetail)
-							.set({ status: 'importError', errorInfo: processedItem.error, ...updatedTime() })
-							.where(eq(importItemDetail.id, item.id))
-							.execute();
+					if (importInfo.type === 'transaction') {
+						await importTransaction({ item, trx });
+					} else if (importInfo.type === 'account') {
+						await importAccount({ item, trx });
+					} else if (importInfo.type === 'bill') {
+						await importBill({ item, trx });
+					} else if (importInfo.type === 'budget') {
+						await importBudget({ item, trx });
+					} else if (importInfo.type === 'category') {
+						await importCategory({ item, trx });
+					} else if (importInfo.type === 'tag') {
+						await importTag({ item, trx });
+					} else if (importInfo.type === 'label') {
+						await importLabel({ item, trx });
 					}
 				})
 			);
@@ -529,27 +564,4 @@ export const importActions = {
 			});
 		}
 	}
-};
-
-const simpleSchemaToCombinedSchema = (
-	data: CreateSimpleTransactionType
-): CreateCombinedTransactionType => {
-	const {
-		toAccountId,
-		toAccountTitle,
-		fromAccountId,
-		fromAccountTitle,
-		amount,
-		...sharedProperties
-	} = data;
-
-	return [
-		{
-			...sharedProperties,
-			accountId: fromAccountId,
-			accountTitle: fromAccountTitle,
-			amount: -amount
-		},
-		{ ...sharedProperties, accountId: toAccountId, accountTitle: toAccountTitle, amount: amount }
-	];
 };

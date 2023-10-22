@@ -9,6 +9,34 @@ export const importTypeEnum = [
 	'label'
 ] as const;
 
+export type importTypeType = (typeof importTypeEnum)[number];
+
+export const importTypeToTitle = (type: (typeof importTypeEnum)[number]) => {
+	if (type === 'transaction') {
+		return 'Transactions';
+	}
+	if (type === 'account') {
+		return 'Accounts';
+	}
+	if (type === 'bill') {
+		return 'Bills';
+	}
+	if (type === 'budget') {
+		return 'Budgets';
+	}
+	if (type === 'category') {
+		return 'Categories';
+	}
+	if (type === 'tag') {
+		return 'Tags';
+	}
+	if (type === 'label') {
+		return 'Labels';
+	}
+
+	return 'Unknown';
+};
+
 export const importDetailStatusEnum = [
 	'error',
 	'processed',

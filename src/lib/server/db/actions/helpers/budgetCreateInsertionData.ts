@@ -5,6 +5,8 @@ import { updatedTime } from './updatedTime';
 export const budgetCreateInsertionData = (data: CreateBudgetSchemaType, id: string) => {
 	return {
 		id,
+		importId: data.importId,
+		importDetailId: data.importDetailId,
 		...statusUpdate(data.status),
 		...updatedTime(),
 		title: data.title

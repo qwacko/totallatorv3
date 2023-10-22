@@ -6,6 +6,8 @@ export const billCreateInsertionData = (data: CreateBillSchemaType, id: string) 
 	return {
 		id,
 		title: data.title,
+		importId: data.importId,
+		importDetailId: data.importDetailId,
 		...statusUpdate(data.status),
 		...updatedTime()
 	};

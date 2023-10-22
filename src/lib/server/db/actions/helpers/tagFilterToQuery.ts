@@ -2,6 +2,8 @@ import type { TagFilterSchemaType } from '$lib/schema/tagSchema';
 import { db } from '../../db';
 import { tag } from '../../schema';
 import { SQL, eq, ilike, inArray, like, not } from 'drizzle-orm';
+import { arrayToText } from './arrayToText';
+import { importIdsToTitles } from './importIdsToTitles';
 
 export const tagFilterToQuery = (
 	filter: Omit<TagFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -10,7 +12,8 @@ export const tagFilterToQuery = (
 
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(tag.id, restFilter.id));
-	if (restFilter.idArray) where.push(inArray(tag.id, restFilter.idArray));
+	if (restFilter.idArray && restFilter.idArray.length > 0)
+		where.push(inArray(tag.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(tag.title, `%${restFilter.title}%`));
 	if (restFilter.group) where.push(ilike(tag.title, `%${restFilter.group}%`));
 	if (restFilter.single) where.push(ilike(tag.title, `%${restFilter.single}%`));
@@ -20,6 +23,10 @@ export const tagFilterToQuery = (
 	if (restFilter.disabled) where.push(eq(tag.disabled, restFilter.disabled));
 	if (restFilter.allowUpdate) where.push(eq(tag.allowUpdate, restFilter.allowUpdate));
 	if (restFilter.active) where.push(eq(tag.active, restFilter.active));
+	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
+		where.push(inArray(tag.importId, restFilter.importIdArray));
+	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
+		where.push(inArray(tag.importDetailId, restFilter.importDetailIdArray));
 
 	return where;
 };
@@ -53,7 +60,7 @@ export const tagFilterToText = async (
 
 	const stringArray: string[] = [];
 	if (restFilter.id) stringArray.push(`Is ${await tagIdToTitle(restFilter.id)}`);
-	if (restFilter.idArray) {
+	if (restFilter.idArray && restFilter.idArray.length > 0) {
 		if (restFilter.idArray.length === 1) {
 			stringArray.push(`Is ${await tagIdToTitle(restFilter.idArray[0])}`);
 		} else {
@@ -70,6 +77,21 @@ export const tagFilterToText = async (
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
 	if (restFilter.active) stringArray.push(`Is Active`);
+	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importIdArray,
+				singularName: 'Import',
+				inputToText: importIdsToTitles
+			})
+		);
+	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importDetailIdArray,
+				singularName: 'Import Detail ID'
+			})
+		);
 
 	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');

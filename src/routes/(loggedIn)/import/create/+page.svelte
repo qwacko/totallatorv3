@@ -3,7 +3,8 @@
 	import { goto } from '$app/navigation';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import { Badge, Button, Fileupload } from 'flowbite-svelte';
+	import { importTypeEnum } from '$lib/schema/importSchema';
+	import { Badge, Button, Fileupload, Select } from 'flowbite-svelte';
 	import { z } from 'zod';
 
 	let errorMessage: string | undefined = '';
@@ -38,9 +39,16 @@
 		action="?/create"
 		method="post"
 		enctype="multipart/form-data"
+		class="flex flex-col gap-2"
 	>
-		<input name="test" type="hidden" value="test" />
-		<Fileupload name="csvFile" accept=".csv" />
+		<input class="flex" name="test" type="hidden" value="test" />
+		<Select
+			name="importType"
+			items={importTypeEnum.map((t) => ({ name: t, value: t }))}
+			placeholder="Select Import Type..."
+			required
+		/>
+		<Fileupload name="csvFile" accept=".csv" required />
 		<Button type="submit">Upload</Button>
 	</form>
 </PageLayout>

@@ -48,7 +48,8 @@
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
+	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
+	import FilterModal from '$lib/components/FilterModal.svelte';
 
 	export let data;
 
@@ -79,7 +80,14 @@
 
 <PageLayout title="Journals" size="xl">
 	<svelte:fragment slot="right">
-		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>
+		<Button
+			color="light"
+			outline
+			href={urlGenerator({
+				address: '/(loggedIn)/journals/create',
+				searchParamsValue: $urlStore.searchParams || defaultJournalFilter
+			}).url}
+		>
 			Create Transaction
 		</Button>
 	</svelte:fragment>
@@ -201,17 +209,41 @@
 				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
 				optionToTitle={journalOrderByEnumToText}
 			/>
-			<Button
-				href={urlGenerator({
-					address: '/(loggedIn)/journals/download',
-					searchParamsValue: $urlStore.searchParams
-				}).url}
-				color="blue"
-				outline
-				size="sm"
-			>
-				<DownloadIcon />
-			</Button>
+			<DownloadDropdown
+				urlGenerator={(downloadType) => {
+					if ($urlStore.searchParams) {
+						return urlGenerator({
+							address: '/(loggedIn)/journals/download',
+							searchParamsValue: {
+								...$urlStore.searchParams,
+								downloadType
+							}
+						}).url;
+					}
+					return '';
+				}}
+			/>
+			{#await data.dropdownInfo.accounts then accountDropdown}
+				{#await data.dropdownInfo.bills then billDropdown}
+					{#await data.dropdownInfo.budgets then budgetDropdown}
+						{#await data.dropdownInfo.categories then categoryDropdown}
+							{#await data.dropdownInfo.tags then tagDropdown}
+								{#await data.dropdownInfo.labels then labelDropdown}
+									<FilterModal
+										currentFilter={$urlStore.searchParams}
+										{accountDropdown}
+										{billDropdown}
+										{budgetDropdown}
+										{categoryDropdown}
+										{tagDropdown}
+										{labelDropdown}
+									/>
+								{/await}
+							{/await}
+						{/await}
+					{/await}
+				{/await}
+			{/await}
 		{:else}
 			<div class="flex flex-grow" />
 		{/if}

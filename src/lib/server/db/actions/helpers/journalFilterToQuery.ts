@@ -1,13 +1,6 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import {
-	account,
-	importTable,
-	journalEntry,
-	label,
-	labelsToJournals,
-	transaction
-} from '../../schema';
-import { SQL, and, eq, gt, inArray, like, not } from 'drizzle-orm';
+import { account, journalEntry, label, labelsToJournals, transaction } from '../../schema';
+import { SQL, and, eq, gte, lte, inArray, like, not } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
 	accountFilterToText,
@@ -21,6 +14,7 @@ import { labelFilterToQuery, labelFilterToText } from './labelFilterToQuery';
 import { db } from '../../db';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { arrayToText } from './arrayToText';
+import { importIdsToTitles } from './importIdsToTitles';
 
 export const journalFilterToQuery = async (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
@@ -34,8 +28,8 @@ export const journalFilterToQuery = async (
 	if (filter.transactionIdArray)
 		where.push(inArray(journalEntry.transactionId, filter.transactionIdArray));
 	if (filter.description) where.push(like(journalEntry.description, `%${filter.description}%`));
-	if (filter.dateAfter !== undefined) where.push(gt(journalEntry.dateText, filter.dateAfter));
-	if (filter.dateBefore !== undefined) where.push(gt(journalEntry.dateText, filter.dateBefore));
+	if (filter.dateAfter !== undefined) where.push(gte(journalEntry.dateText, filter.dateAfter));
+	if (filter.dateBefore !== undefined) where.push(lte(journalEntry.dateText, filter.dateBefore));
 	if (filter.complete !== undefined) where.push(eq(journalEntry.complete, filter.complete));
 	if (filter.linked !== undefined) where.push(eq(journalEntry.linked, filter.linked));
 	if (filter.dataChecked !== undefined)
@@ -135,26 +129,6 @@ export const journalFilterToQuery = async (
 	}
 
 	return where;
-};
-
-const importIdToTitle = async (id: string) => {
-	const foundImport = await db
-		.select({ title: importTable.title })
-		.from(importTable)
-		.where(eq(importTable.id, id))
-		.limit(1)
-		.execute();
-
-	if (foundImport?.length === 1) {
-		return foundImport[0].title;
-	}
-	return id;
-};
-
-export const importIdsToTitles = async (ids: string[]) => {
-	const titles = await Promise.all(ids.map(async (id) => importIdToTitle(id)));
-
-	return titles;
 };
 
 export const journalFilterToText = async (

@@ -2,13 +2,15 @@ import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import { db } from '../../db';
 import { account } from '../../schema';
 import { SQL, eq, gt, inArray, like, lt, not } from 'drizzle-orm';
+import { arrayToText } from './arrayToText';
+import { importIdsToTitles } from './importIdsToTitles';
 
 export const accountFilterToQuery = (
 	filter: Omit<AccountFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>
 ) => {
 	const where: SQL<unknown>[] = [];
 	if (filter.id) where.push(eq(account.id, filter.id));
-	if (filter.idArray) where.push(inArray(account.id, filter.idArray));
+	if (filter.idArray && filter.idArray.length > 0) where.push(inArray(account.id, filter.idArray));
 	if (filter.title) where.push(like(account.title, `%${filter.title}%`));
 	if (filter.accountGroup) where.push(like(account.accountGroup, `%${filter.accountGroup}%`));
 	if (filter.accountGroup2) where.push(like(account.accountGroup2, `%${filter.accountGroup2}%`));
@@ -30,6 +32,10 @@ export const accountFilterToQuery = (
 		where.push(lt(account.startDate, filter.startDateBefore));
 	if (filter.endDateAfter !== undefined) where.push(gt(account.endDate, filter.endDateAfter));
 	if (filter.endDateBefore !== undefined) where.push(lt(account.endDate, filter.endDateBefore));
+	if (filter.importIdArray && filter.importIdArray.length > 0)
+		where.push(inArray(account.importId, filter.importIdArray));
+	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
+		where.push(inArray(account.importDetailId, filter.importDetailIdArray));
 	if (filter.type !== undefined && filter.type.length > 0)
 		where.push(inArray(account.type, filter.type));
 
@@ -64,7 +70,7 @@ export const accountFilterToText = async (
 
 	const stringArray: string[] = [];
 	if (restFilter.id) stringArray.push(`Is ${await accountIdToTitle(restFilter.id)}`);
-	if (restFilter.idArray) {
+	if (restFilter.idArray && restFilter.idArray.length > 0) {
 		if (restFilter.idArray.length === 1) {
 			stringArray.push(`Is ${await accountIdToTitle(restFilter.idArray[0])}`);
 		} else {
@@ -104,6 +110,21 @@ export const accountFilterToText = async (
 			stringArray.push(`Type is one of ${restFilter.type.join(', ')}`);
 		}
 	}
+	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importIdArray,
+				singularName: 'Import',
+				inputToText: importIdsToTitles
+			})
+		);
+	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.importDetailIdArray,
+				singularName: 'Import Detail ID'
+			})
+		);
 
 	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');
