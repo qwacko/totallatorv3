@@ -80,7 +80,14 @@
 
 <PageLayout title="Journals" size="xl">
 	<svelte:fragment slot="right">
-		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>
+		<Button
+			color="light"
+			outline
+			href={urlGenerator({
+				address: '/(loggedIn)/journals/create',
+				searchParamsValue: $urlStore.searchParams || defaultJournalFilter
+			}).url}
+		>
 			Create Transaction
 		</Button>
 	</svelte:fragment>

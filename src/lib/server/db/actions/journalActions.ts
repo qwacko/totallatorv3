@@ -5,7 +5,9 @@ import {
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType,
 	type UpdateJournalSchemaInputType,
-	updateJournalSchema
+	updateJournalSchema,
+	type CreateSimpleTransactionType,
+	createSimpleTransactionSchema
 } from '$lib/schema/journalSchema';
 import { eq, and, sql, inArray, not, SQL, or } from 'drizzle-orm';
 import type { DBType } from '../db';
@@ -36,6 +38,7 @@ import { journalList } from './helpers/journalList';
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { nanoid } from 'nanoid';
+import { simpleSchemaToCombinedSchema } from './helpers/simpleSchemaToCombinedSchema';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -290,6 +293,28 @@ export const journalActions = {
 				...labelData
 			}
 		};
+	},
+	createFromSimpleTransaction: async ({
+		db,
+		transaction
+	}: {
+		db: DBType;
+		transaction: CreateSimpleTransactionType;
+	}) => {
+		const processedTransaction = createSimpleTransactionSchema.safeParse(transaction);
+
+		if (!processedTransaction.success) {
+			throw new Error('Invalid Transaction Data');
+		}
+
+		const combinedTransaction = simpleSchemaToCombinedSchema(processedTransaction.data);
+
+		const createdTransaction = await journalActions.createManyTransactionJournals({
+			db,
+			journalEntries: [combinedTransaction]
+		});
+
+		return createdTransaction;
 	},
 	createManyTransactionJournals: async ({
 		db,

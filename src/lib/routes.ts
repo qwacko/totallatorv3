@@ -51,6 +51,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/journals/bulkEdit': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
 		},
+		'/(loggedIn)/journals/create': {
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
+		},
 		'/(loggedIn)/journals/clone': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
 		},
