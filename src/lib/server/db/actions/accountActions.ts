@@ -144,12 +144,6 @@ export const accountActions = {
 				.findFirst({ where: eq(account.accountTitleCombined, title) })
 				.execute();
 
-			logging.info('Checking Account Title', {
-				title,
-				accountTitleInfo,
-				isExpense,
-				currentAccount
-			});
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
 					throw new Error(`Account ${currentAccount.title} is not active`);

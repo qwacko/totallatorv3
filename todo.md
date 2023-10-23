@@ -28,3 +28,5 @@ OPTION : Allow display of more rows (make it adjustable) This will need to someh
 OPTION : Confirm that view user works correctly.
 OPTION : Fix Auto-Login from First User Signup...
 OPTION : Make Imports have the functionality to ignore existing matching items (duplicate identification)
+OPTION : Make there be better information when processing massive imports (currently just looks like it is frozen, but it does actually work).
+OPTION : Make journal imports more efficient - bulk import rather than lots of single, also have lookups of accounts etc... be bundled rather than repeated for each journal

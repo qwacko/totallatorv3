@@ -12,6 +12,16 @@ const zodStringBlanking = z
 	.optional()
 	.transform((val) => (val === '' ? undefined : val));
 
+const zodCoercedBoolean = z.boolean().or(
+	z
+		.string()
+		.refine(
+			(val) =>
+				val === '0' || val === '1' || val.toLowerCase() === 'true' || val.toLowerCase() === 'false'
+		)
+		.transform((val) => val === '1' || val.toLowerCase() === 'true')
+);
+
 export const createJournalDBCore = z.object({
 	date: dateStringSchema,
 	description: z.string(),
@@ -24,10 +34,10 @@ export const createJournalDBCore = z.object({
 	importId: zodStringBlanking,
 	importDetailId: zodStringBlanking,
 	labels: z.array(z.string()).optional(),
-	linked: z.coerce.boolean().default(true).optional(),
-	reconciled: z.coerce.boolean().default(false).optional(),
-	dataChecked: z.coerce.boolean().default(false).optional(),
-	complete: z.coerce.boolean().default(false).optional()
+	linked: zodCoercedBoolean.default(true).optional(),
+	reconciled: zodCoercedBoolean.default(false).optional(),
+	dataChecked: zodCoercedBoolean.default(false).optional(),
+	complete: zodCoercedBoolean.default(false).optional()
 });
 
 export type CreateJournalDBCoreType = z.infer<typeof createJournalDBCore>;
@@ -46,19 +56,19 @@ export const createJournalSchemaCore = createJournalDBCore.merge(
 export const createJournalSchema = createJournalSchemaCore
 	.refine((data) => !(data.tagId && data.tagTitle), {
 		path: ['tagId'],
-		message: 'tagId and tagTitle must be both present or both absent'
+		message: 'tagId and tagTitle cannot both be present'
 	})
 	.refine((data) => !(data.billId && data.billTitle), {
 		path: ['billId'],
-		message: 'billId and billTitle must be both present or both absent'
+		message: 'billId and billTitle cannot both be present'
 	})
 	.refine((data) => !(data.budgetId && data.budgetTitle), {
 		path: ['budgetId'],
-		message: 'budgetId and budgetTitle must be both present or both absent'
+		message: 'budgetId and budgetTitle cannot both be present'
 	})
 	.refine((data) => !(data.categoryId && data.categoryTitle), {
 		path: ['categoryId'],
-		message: 'categoryId and categoryTitle must be both present or both absent'
+		message: 'categoryId and categoryTitle cannot both be present'
 	})
 	.refine((data) => data.accountId || data.accountTitle, {
 		path: ['accountId'],
@@ -83,19 +93,19 @@ export type CreateSimpleTransactionSuperType = typeof createSimpleTransactionSch
 export const createSimpleTransactionSchema = createSimpleTransactionSchemaCore
 	.refine((data) => !(data.tagId && data.tagTitle), {
 		path: ['tagId'],
-		message: 'tagId and tagTitle must be both present or both absent'
+		message: 'tagId and tagTitle cannot both be present'
 	})
 	.refine((data) => !(data.billId && data.billTitle), {
 		path: ['billId'],
-		message: 'billId and billTitle must be both present or both absent'
+		message: 'billId and billTitle cannot both be present'
 	})
 	.refine((data) => !(data.budgetId && data.budgetTitle), {
 		path: ['budgetId'],
-		message: 'budgetId and budgetTitle must be both present or both absent'
+		message: 'budgetId and budgetTitle cannot both be present'
 	})
 	.refine((data) => !(data.categoryId && data.categoryTitle), {
 		path: ['categoryId'],
-		message: 'categoryId and categoryTitle must be both present or both absent'
+		message: 'categoryId and categoryTitle cannot both be present'
 	})
 	.refine((data) => data.fromAccountId || data.fromAccountTitle, {
 		path: ['fromAccountId'],
