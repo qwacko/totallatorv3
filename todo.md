@@ -2,6 +2,8 @@ OPTION : Favicon.
 OPTION : Add Pivot Table Report Functionality (Basic).
 OPTION : Make journal text filter be more broad (i.e. search Description, Account, Tag, Bill, Budget, Label, Category, Payee). This will be difficult as searching the payee and label require sub queries.
 OPTION : Move the dropdowns to the Edit / Clone pages, they aren't needed all the time. Or possibly move them up to a higher level layout so they are only loaded on initial load or following data update.
+OPTION : Make Account Table show useful information (Type, etc...)
+OPTION : Make Accounts / Tags / etc... have bulk delete and bulk update options.
 OPTION : Update README
 OPTION : When editing (or adding) a journal, allow for the creation of new accounts (or linked items) by name if they cannot be found.
 OPTION : Make column visibility controlled by a dropdown and matching wrapper component (possibly just make a cell and header wrapper?). Use a local storage store for this rather than the URL. Probably store this information in a localstorage store.
