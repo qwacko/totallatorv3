@@ -11,9 +11,11 @@ export const sqliteDatabase = sqlite(serverEnv.DATABASE_FILE);
 
 sqliteDatabase.pragma('journal_mode = WAL');
 
+const enableLogger = true;
+
 class MyLogger implements Logger {
 	logQuery(query: string, params: unknown[]): void {
-		if (query.startsWith('update') || false) {
+		if (query.startsWith('update') && enableLogger && serverEnv.DEV) {
 			console.log({ query, params });
 		}
 	}
