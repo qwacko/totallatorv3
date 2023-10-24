@@ -40,7 +40,7 @@
 			icon: JournalEntryIcon,
 			href: urlGenerator({
 				address: '/(loggedIn)/journals',
-				searchParamsValue: defaultJournalFilter
+				searchParamsValue: defaultJournalFilter()
 			})
 		},
 		{

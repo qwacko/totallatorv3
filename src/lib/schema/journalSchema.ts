@@ -6,6 +6,7 @@ import { billFilterSchema } from './billSchema';
 import { budgetFilterSchema } from './budgetSchema';
 import { categoryFilterSchema } from './categorySchema';
 import { labelFilterSchema } from './labelSchema';
+import { cloneDeep } from 'lodash-es';
 
 const zodStringBlanking = z
 	.string()
@@ -240,19 +241,21 @@ export type JournalFilterSchemaInputType = z.input<typeof journalFilterSchema>;
 
 export type JournalFilterSchemaType = z.infer<typeof journalFilterSchema>;
 
-export const defaultAllJournalFilter: JournalFilterSchemaType = {
-	account: { type: ['asset', 'liability', 'expense', 'income'] },
-	page: 0,
-	pageSize: 100000000,
-	orderBy: [{ field: 'date', direction: 'desc' }]
-};
+export const defaultAllJournalFilter: () => JournalFilterSchemaType = () =>
+	cloneDeep({
+		account: { type: ['asset', 'liability', 'expense', 'income'] },
+		page: 0,
+		pageSize: 100000000,
+		orderBy: [{ field: 'date', direction: 'desc' }]
+	});
 
-export const defaultJournalFilter: JournalFilterSchemaType = {
-	account: { type: ['asset', 'liability'] },
-	page: 0,
-	pageSize: 10,
-	orderBy: [{ field: 'date', direction: 'desc' }]
-};
+export const defaultJournalFilter: () => JournalFilterSchemaType = () =>
+	cloneDeep({
+		account: { type: ['asset', 'liability'] },
+		page: 0,
+		pageSize: 10,
+		orderBy: [{ field: 'date', direction: 'desc' }]
+	});
 
 type OrderByEnumType = (typeof journalOrderByEnum)[number];
 

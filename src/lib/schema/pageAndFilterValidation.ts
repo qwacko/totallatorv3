@@ -8,12 +8,14 @@ export const pageAndFilterValidation = z.object({
 		.string()
 		.optional()
 		.default(
-			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter }).url
+			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter() })
+				.url
 		),
 	currentPage: z
 		.string()
 		.optional()
 		.default(
-			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter }).url
+			urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter() })
+				.url
 		)
 });

@@ -27,7 +27,7 @@ export const load = async (data) => {
 	}
 
 	const filteredItems = {
-		...defaultAllJournalFilter,
+		...defaultAllJournalFilter(),
 		account: {
 			type:
 				searchParams.id || (searchParams.title && searchParams.title !== '')

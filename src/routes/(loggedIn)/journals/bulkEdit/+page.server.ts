@@ -19,7 +19,7 @@ export const load = async (data) => {
 
 	const journalData = await tActions.journal.listWithCommonData({
 		db: db,
-		filter: pageInfo.current.searchParams || defaultJournalFilter
+		filter: pageInfo.current.searchParams || defaultJournalFilter()
 	});
 
 	const { allLabelIds, commonLabelIds, ...journalDataForForm } = journalData.common;
@@ -107,8 +107,10 @@ export const actions = {
 			throw redirect(
 				302,
 				form.data.prevPage ||
-					urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter })
-						.url
+					urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: defaultJournalFilter()
+					}).url
 			);
 		}
 

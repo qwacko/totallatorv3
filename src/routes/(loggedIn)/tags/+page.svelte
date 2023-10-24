@@ -62,7 +62,7 @@
 	<JournalSummaryPopoverContent
 		item={data.tagSummary}
 		format={data.user?.currencyFormat || 'USD'}
-		summaryFilter={{ tag: $urlStore.searchParams } || defaultJournalFilter}
+		summaryFilter={{ tag: $urlStore.searchParams } || defaultJournalFilter()}
 		showJournalLink
 	/>
 	<center>
@@ -159,7 +159,7 @@
 					{@const journalsURL = urlGenerator({
 						address: '/(loggedIn)/journals',
 						searchParamsValue: {
-							...defaultJournalFilter,
+							...defaultJournalFilter(),
 							tag: {
 								id: currentTag.id
 							}

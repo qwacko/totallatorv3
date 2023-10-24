@@ -37,28 +37,28 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// Journals
 		// ----------------------------------------
 		'/(loggedIn)/journals': {
-			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse
 		},
 		'/(loggedIn)/journals/download': {
 			searchParamsValidation: journalFilterSchema
 				.merge(downloadTypeSchema)
 				.optional()
-				.catch(defaultJournalFilter).parse
+				.catch(defaultJournalFilter()).parse
 		},
 		'/(loggedIn)/journals/delete': {
-			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse
 		},
 		'/(loggedIn)/journals/bulkEdit': {
-			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse
 		},
 		'/(loggedIn)/journals/create': {
-			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse
 		},
 		'/(loggedIn)/journals/clone': {
-			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse
 		},
 		'/(loggedIn)/journals/[id]/edit': {
-			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter).parse,
+			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse,
 			paramsValidation: z.object({ id: z.string() }).parse
 		},
 

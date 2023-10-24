@@ -40,7 +40,7 @@
 	$: viewURL = urlGenerator({
 		address: '/(loggedIn)/journals',
 		searchParamsValue: {
-			...defaultJournalFilter,
+			...defaultJournalFilter(),
 			...(payeeFilter
 				? { payee: { id: accountInfo.id || undefined } }
 				: {

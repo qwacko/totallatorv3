@@ -42,7 +42,7 @@
 		const newURL = urlGenerator({
 			address: '/(loggedIn)/journals',
 			searchParamsValue: {
-				...defaultJournalFilter,
+				...defaultJournalFilter(),
 				...combinedFilter
 			}
 		}).url;
@@ -55,7 +55,7 @@
 	$: href = urlGenerator({
 		address: '/(loggedIn)/journals',
 		searchParamsValue: {
-			...defaultJournalFilter,
+			...defaultJournalFilter(),
 			...summaryFilter
 		}
 	}).url;

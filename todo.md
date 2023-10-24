@@ -9,7 +9,7 @@ OPTION : When editing (or adding) a journal, allow for the creation of new accou
 OPTION : Make column visibility controlled by a dropdown and matching wrapper component (possibly just make a cell and header wrapper?). Use a local storage store for this rather than the URL. Probably store this information in a localstorage store.
 OPTION : More columns in linked item views, including journal count.
 OPTION : Make Clone and Edit Journals pages so that they don't waste as much space.
-OPTION : Consider whether direct editing from a table view is beneficial for journals, or if the current approach is OK. Maybe have a special edit journals mode or something? Could have that clicking an item opens a dropdown to edit it.
+OPTION : Consider whether direct editing from a table view is beneficial for journals, or if the current approach is OK. Maybe have a special edit journals mode or something? Could have that clicking an item opens a dropdown to edit it (similar to how currently accounts / etc.. have popups which can filter the view).
 OPTION : Consider pre-loading page data (i.e. from pagination, links from other linked item lists).
 OPTION : Consider adding "otherAccountId" / "payee" to the bulk update form.
 OPTION : Consider colour coding tags / bills / budgets / categories / tags etc...
@@ -32,3 +32,6 @@ OPTION : Make there be better information when processing massive imports (curre
 OPTION : Make journal imports more efficient - bulk import rather than lots of single, also have lookups of accounts etc... be bundled rather than repeated for each journal
 OPTION : Make "Disabled" of linked items actually useful (i.e. remove from dropdown options).
 OPTION : Add disable / enable button to linked items list. Make disabled items greyed out.
+OPTION : Make cloning journals allow for account modification.
+TODO : Fix when cloning journals with negative amounts (seems to make them positive).
+OPTION : Create saved "filters" to make it easy to recall these.
