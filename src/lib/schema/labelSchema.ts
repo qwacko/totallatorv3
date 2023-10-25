@@ -20,7 +20,7 @@ export const updateLabelSchema = z.object({
 export type UpdateLabelSchemaSuperType = typeof updateLabelSchema;
 export type UpdateLabelSchemaType = z.infer<typeof updateLabelSchema>;
 
-const orderByEnum = ['title', 'status', 'deleted', 'disabled', 'allowUpdate', 'active'] as const;
+const orderByEnum = ['title', 'status', 'disabled', 'allowUpdate', 'active'] as const;
 
 type OrderByEnumType = (typeof orderByEnum)[number];
 
@@ -34,7 +34,6 @@ const enumTitles: OrderByEnumTitles = {
 	active: 'Active',
 	allowUpdate: 'Allow Update',
 	status: 'Status',
-	deleted: 'Deleted',
 	disabled: 'Disabled'
 };
 
@@ -47,7 +46,6 @@ export const labelFilterSchema = z.object({
 	idArray: z.array(z.string()).optional(),
 	title: z.coerce.string().optional(),
 	status: z.enum(statusEnum).optional(),
-	deleted: z.boolean().default(false).optional(),
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),

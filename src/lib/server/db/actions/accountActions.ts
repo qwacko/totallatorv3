@@ -174,13 +174,8 @@ export const accountActions = {
 			.findFirst({ where: eq(account.id, id) })
 			.execute();
 
-		if (!currentAccount || currentAccount.status === 'deleted') {
-			logging.info('Update Account: Account not found or deleted');
-			return id;
-		}
-
-		if (data.status && data.status === 'deleted') {
-			logging.info('Update Account: Cannot Use Update To Set To Deleted');
+		if (!currentAccount) {
+			logging.info('Update Account: Account not found');
 			return id;
 		}
 
@@ -283,18 +278,6 @@ export const accountActions = {
 			return true;
 		}
 		return false;
-	},
-	undelete: async (db: DBType, data: IdSchemaType) => {
-		const currentAccount = await db.query.account
-			.findFirst({ where: eq(account.id, data.id) })
-			.execute();
-		if (currentAccount && currentAccount.deleted) {
-			await db
-				.update(account)
-				.set({ ...statusUpdate('active'), ...updatedTime() })
-				.where(eq(account.id, data.id))
-				.execute();
-		}
 	},
 	createMany: async (db: DBType, data: CreateAccountSchemaType[]) => {
 		const dataForInsertion = data.map((currentAccount) => {

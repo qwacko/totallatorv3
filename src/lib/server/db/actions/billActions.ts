@@ -159,13 +159,8 @@ export const billActions = {
 		const currentBill = await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
 		logging.info('Update Bill: ', data, currentBill);
 
-		if (!currentBill || currentBill.status === 'deleted') {
-			logging.info('Update Bill: Bill not found or deleted');
-			return id;
-		}
-
-		if (data.status && data.status === 'deleted') {
-			logging.info('Update Bill: Cannot Use Update To Set To Deleted');
+		if (!currentBill) {
+			logging.info('Update Bill: Bill not found');
 			return id;
 		}
 
@@ -226,16 +221,6 @@ export const billActions = {
 			return true;
 		}
 		return false;
-	},
-	undelete: async (db: DBType, data: IdSchemaType) => {
-		const currentBill = await db.query.bill.findFirst({ where: eq(bill.id, data.id) }).execute();
-		if (currentBill && currentBill.deleted) {
-			await db
-				.update(bill)
-				.set({ ...statusUpdate('active'), ...updatedTime() })
-				.where(eq(bill.id, data.id))
-				.execute();
-		}
 	},
 	seed: async (db: DBType, count: number) => {
 		logging.info('Seeding Bills : ', count);

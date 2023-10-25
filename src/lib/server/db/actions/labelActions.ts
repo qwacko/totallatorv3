@@ -175,13 +175,8 @@ export const labelActions = {
 		const currentLabel = await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
 		logging.info('Update Label: ', data, currentLabel);
 
-		if (!currentLabel || currentLabel.status === 'deleted') {
-			logging.info('Update Label: Label not found or deleted');
-			return id;
-		}
-
-		if (data.status && data.status === 'deleted') {
-			logging.info('Update Label: Cannot Use Update To Set To Deleted');
+		if (!currentLabel) {
+			logging.info('Update Label: Label not found');
 			return id;
 		}
 
@@ -242,16 +237,6 @@ export const labelActions = {
 
 			await transDb.delete(label).where(inArray(label.id, idList)).execute();
 		});
-	},
-	undelete: async (db: DBType, data: IdSchemaType) => {
-		const currentLabel = await db.query.label.findFirst({ where: eq(label.id, data.id) }).execute();
-		if (currentLabel && currentLabel.deleted) {
-			await db
-				.update(label)
-				.set({ ...statusUpdate('active'), ...updatedTime() })
-				.where(eq(label.id, data.id))
-				.execute();
-		}
 	},
 	seed: async (db: DBType, count: number) => {
 		logging.info('Seeding Labels : ', count);

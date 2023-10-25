@@ -1,12 +1,11 @@
-export const statusEnum = ['active', 'disabled', 'deleted'] as const;
+export const statusEnum = ['active', 'disabled'] as const;
 export const statusEnumWithoutDeleted = ['active', 'disabled'] as const;
 export type StatusEnumType = (typeof statusEnum)[number];
 export type StatusEnumWithoutDeletedType = (typeof statusEnumWithoutDeleted)[number];
 
 export const statusEnumSelection = [
 	{ value: 'active', name: 'Active' },
-	{ value: 'disabled', name: 'Disabled' },
-	{ value: 'deleted', name: 'Deleted' }
+	{ value: 'disabled', name: 'Disabled' }
 ];
 
 export const statusEnumSelectionWithoutDeleted = [
