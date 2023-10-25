@@ -1,9 +1,9 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
 import {
+	cloneJournalUpdateSchema,
 	defaultJournalFilter,
-	journalFilterSchema,
-	updateJournalSchema
+	journalFilterSchema
 } from '$lib/schema/journalSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db.js';
@@ -24,7 +24,7 @@ export const load = async (data) => {
 
 	const { allLabelIds, commonLabelIds, ...journalDataForForm } = journalData.common;
 
-	const form = await superValidate(journalDataForForm, updateJournalSchema);
+	const form = await superValidate(journalDataForForm, cloneJournalUpdateSchema);
 
 	return {
 		selectedJournals: {
@@ -40,7 +40,7 @@ export const load = async (data) => {
 	};
 };
 
-const cloneValidation = updateJournalSchema.merge(pageAndFilterValidation);
+const cloneValidation = cloneJournalUpdateSchema.merge(pageAndFilterValidation);
 
 export const actions = {
 	clone: async ({ request }) => {

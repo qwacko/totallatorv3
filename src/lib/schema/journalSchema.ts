@@ -183,9 +183,28 @@ export const updateJournalSchema = z.object({
 	complete: z.boolean().optional()
 });
 
+export const cloneJournalUpdateSchema = updateJournalSchema
+	.omit({
+		accountId: true,
+		accountTitle: true,
+		otherAccountId: true,
+		otherAccountTitle: true,
+		amount: true
+	})
+	.extend({
+		fromAccountId: zodStringBlanking,
+		fromAccountTitle: zodStringBlanking,
+		toAccountId: zodStringBlanking,
+		toAccountTitle: zodStringBlanking,
+		fromAmount: z.number().optional(),
+		toAmount: z.number().optional()
+	});
+
 export type UpdateJournalSchemaSuperType = typeof updateJournalSchema;
 export type UpdateJournalSchemaType = z.infer<typeof updateJournalSchema>;
 export type UpdateJournalSchemaInputType = z.input<typeof updateJournalSchema>;
+export type CloneJournalUpdateSchemaType = z.input<typeof cloneJournalUpdateSchema>;
+export type CloneJournalUpdateSchemaSuperType = typeof cloneJournalUpdateSchema;
 
 export const journalOrderByEnum = [
 	'date',
@@ -204,6 +223,8 @@ export const journalFilterSchema = z.object({
 	transactionIdArray: z.array(z.string()).optional(),
 	dateBefore: dateStringSchema.optional(),
 	dateAfter: dateStringSchema.optional(),
+	maxAmount: z.number().optional(),
+	minAmount: z.number().optional(),
 	yearMonth: z.array(z.string()).optional(),
 	description: z.coerce.string().optional(),
 	linked: z.coerce.boolean().optional(),
