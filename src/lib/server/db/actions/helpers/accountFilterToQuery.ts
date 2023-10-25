@@ -1,7 +1,7 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import { db } from '../../db';
 import { account } from '../../schema';
-import { SQL, eq, gt, inArray, like, lt, not } from 'drizzle-orm';
+import { SQL, eq, gt, inArray, like, lt } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from './importIdsToTitles';
 
@@ -20,7 +20,6 @@ export const accountFilterToQuery = (
 	if (filter.accountTitleCombined)
 		where.push(like(account.accountTitleCombined, `%${filter.accountTitleCombined}%`));
 	if (filter.status) where.push(eq(account.status, filter.status));
-	else where.push(not(eq(account.status, 'deleted')));
 	if (filter.deleted !== undefined) where.push(eq(account.deleted, filter.deleted));
 	if (filter.disabled !== undefined) where.push(eq(account.disabled, filter.disabled));
 	if (filter.allowUpdate !== undefined) where.push(eq(account.allowUpdate, filter.allowUpdate));
@@ -86,8 +85,6 @@ export const accountFilterToText = async (
 	if (restFilter.accountTitleCombined)
 		stringArray.push(`Group Combined With Title contains ${restFilter.accountTitleCombined}`);
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
-	//Not including text for not deleted as this doesn't really add much value.
-	//else where.push(not(eq(budget.status, 'deleted')));
 	if (restFilter.deleted) stringArray.push(`Is Deleted`);
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
