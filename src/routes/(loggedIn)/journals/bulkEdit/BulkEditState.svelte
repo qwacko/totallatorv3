@@ -16,17 +16,17 @@
 </script>
 
 {#if filter}
-	<form method="post" class="flex flex-col gap-2" action="?/updateState" use:enhance>
+	<form method="post" action="?/updateState" use:enhance>
 		<input type="hidden" name="filter" value={JSON.stringify(filter)} />
 		<input type="hidden" name="prevPage" value={$pageStore.prevURL} />
 		<input type="hidden" name="currentPage" value={currentPage} />
-		<div class="flex flex-row gap-2 flex-wrap">
-			<ButtonGroup>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+			<ButtonGroup class="flex flex-row">
 				<Button
 					type="submit"
 					name="action"
 					value="incomplete"
-					class="flex-row gap-2  w-36"
+					class="flex-row gap-2 flex-grow basis-0"
 					disabled={complete === false}
 				>
 					<CompleteIcon />Incomplete
@@ -35,18 +35,18 @@
 					type="submit"
 					name="action"
 					value="complete"
-					class="flex-row gap-2 w-36"
+					class="flex-row gap-2 flex-grow basis-0"
 					disabled={complete === true}
 				>
 					<CompleteIcon />Complete
 				</Button>
 			</ButtonGroup>
-			<ButtonGroup>
+			<ButtonGroup class="flex flex-row">
 				<Button
 					type="submit"
 					name="action"
 					value="unreconciled"
-					class="flex-row gap-2  w-36"
+					class="flex-row gap-2 flex-grow basis-0"
 					disabled={reconciled === false || !canEdit}
 				>
 					<ReconciledIcon />Unreconciled
@@ -55,18 +55,18 @@
 					type="submit"
 					name="action"
 					value="reconciled"
-					class="flex-row gap-2  w-36"
+					class="flex-row gap-2 flex-grow basis-0"
 					disabled={reconciled === true || !canEdit}
 				>
 					<ReconciledIcon />Reconciled
 				</Button>
 			</ButtonGroup>
-			<ButtonGroup>
+			<ButtonGroup class="flex flex-row">
 				<Button
 					type="submit"
 					name="action"
 					value="dataNotChecked"
-					class="flex-row gap-2  w-48"
+					class="flex-row gap-2 flex-grow basis-0"
 					disabled={dataChecked === false || !canEdit}
 				>
 					<DataCheckedIcon />Data Not Checked
@@ -75,7 +75,7 @@
 					type="submit"
 					name="action"
 					value="dataChecked"
-					class="flex-row gap-2  w-48"
+					class="flex-row gap-2 flex-grow basis-0"
 					disabled={dataChecked === true || !canEdit}
 				>
 					<DataCheckedIcon />Data Checked

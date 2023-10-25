@@ -128,7 +128,7 @@
 </script>
 
 <div class="flex flex-col justify-stretch p-2">
-	<div class="flex flex-row justify-center gap-2 pb-8 pt-4">
+	<div class="flex flex-row justify-center gap-2 pb-8 pt-4 flex-wrap">
 		{#each pageMap as currentPage}
 			<Button
 				id={currentPage.label}

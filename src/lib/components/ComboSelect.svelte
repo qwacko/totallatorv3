@@ -118,21 +118,21 @@
 	$: updateTargetCreate($inputValue);
 </script>
 
-{#if name && selectedVal}
-	<input type="hidden" {name} value={selectedVal} />
-{/if}
-{#if clearable && clearName}
-	<input type="hidden" name={clearName} value={clearValue === true ? 'true' : 'false'} />
-{/if}
-{#if creatable && createName}
-	<input type="hidden" name={createName} value={createValue} />
-{/if}
-<div class="flex flex-col gap-2 {$$props.class}">
+<div class="flex flex-col gap-2 {$$props.class} @container">
+	{#if name && selectedVal}
+		<input type="hidden" {name} value={selectedVal} />
+	{/if}
+	{#if clearable && clearName}
+		<input type="hidden" name={clearName} value={clearValue === true ? 'true' : 'false'} />
+	{/if}
+	{#if creatable && createName}
+		<input type="hidden" name={createName} value={createValue} />
+	{/if}
 	{#if title}
 		<Label {...$label}>{title}</Label>
 	{/if}
 
-	<div class="flex flex-row w-full gap-2">
+	<div class="flex @md:flex-row flex-col w-full gap-2">
 		{#if createValue !== undefined}
 			<P size="sm" class="self-center whitespace-nowrap">{createDesc}</P>
 			<Input bind:value={createValue} />
@@ -159,12 +159,27 @@
 					{/if}
 				</div>
 			</div>
-			{#if creatable && createValue === undefined}
-				<Button on:click={setCreate} color="light">{createDesc}</Button>
-			{/if}
-			{#if clearable}
-				<Button on:click={clearSelection} color="light" disabled={clearValue}>Clear</Button>
-			{/if}
+			<div class="flex flex-row gap-2 self-stretch">
+				{#if creatable && createValue === undefined}
+					<Button
+						on:click={setCreate}
+						class="flex @md:flex-grow-0 flex-grow basis-0 @md:whitespace-nowrap"
+						color="light"
+					>
+						{createDesc}
+					</Button>
+				{/if}
+				{#if clearable}
+					<Button
+						on:click={clearSelection}
+						class="flex flex-grow basis-0 @md:flex-grow-0 @md:whitespace-nowrap"
+						color="light"
+						disabled={clearValue}
+					>
+						Clear
+					</Button>
+				{/if}
+			</div>
 		{/if}
 	</div>
 </div>
