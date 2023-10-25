@@ -23,6 +23,8 @@ export const journalFilterToQuery = async (
 	if (filter.id) where.push(eq(journalEntry.id, filter.id));
 	if (filter.idArray && filter.idArray.length > 0)
 		where.push(inArray(journalEntry.id, filter.idArray));
+	if (filter.maxAmount !== undefined) where.push(lte(journalEntry.amount, filter.maxAmount));
+	if (filter.minAmount !== undefined) where.push(gte(journalEntry.amount, filter.minAmount));
 	if (filter.yearMonth && filter.yearMonth.length > 0)
 		where.push(inArray(journalEntry.yearMonth, filter.yearMonth));
 	if (filter.transactionIdArray)
@@ -140,6 +142,9 @@ export const journalFilterToText = async (
 	if (filter.idArray) {
 		stringArray.push(await arrayToText({ data: filter.idArray, singularName: 'ID' }));
 	}
+	if (filter.maxAmount !== undefined) stringArray.push(`Amount < ${filter.maxAmount}`);
+	if (filter.minAmount !== undefined) stringArray.push(`Amount > ${filter.minAmount}`);
+
 	if (filter.yearMonth && filter.yearMonth.length > 0) {
 		stringArray.push(await arrayToText({ data: filter.yearMonth, singularName: 'Year-Month' }));
 	}
