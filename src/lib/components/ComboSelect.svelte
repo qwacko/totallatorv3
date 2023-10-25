@@ -9,7 +9,7 @@
 	import Check from '~icons/mdi/check';
 	import { fly } from 'svelte/transition';
 	import HighlightText from './HighlightText.svelte';
-	import { Button, Label } from 'flowbite-svelte';
+	import { Button, Input, Label, P } from 'flowbite-svelte';
 
 	export let items: T[];
 	export let filterItems: (data: T[], target: string) => T[] = (items, search) => {
@@ -32,6 +32,12 @@
 	export let clearValue: boolean | undefined = undefined;
 	export let clearable = false;
 	export let clearName: string | undefined = undefined;
+
+	export let creatable = false;
+	export let createValue: string | undefined | null = undefined;
+	export let createName: string | undefined = undefined;
+	export let createDesc = 'Create';
+
 	export let tainted: boolean | undefined = undefined;
 	export let highlightTainted: boolean = true;
 
@@ -47,6 +53,7 @@
 			onChange && onChange(newValue);
 			if (newValue !== undefined) {
 				clearValue = undefined;
+				createValue = undefined;
 			}
 			return newSelection.next;
 		}
@@ -55,6 +62,21 @@
 	const clearSelection = () => {
 		clearValue = true;
 		value = undefined;
+		createValue = undefined;
+		targetCreate = '';
+	};
+
+	const setCreate = () => {
+		clearValue = false;
+		value = undefined;
+		createValue = targetCreate;
+	};
+
+	const cancelCreate = () => {
+		clearValue = false;
+		value = undefined;
+		createValue = undefined;
+		targetCreate = '';
 	};
 
 	const updateSelection = (id: string | undefined | null) => {
@@ -74,11 +96,20 @@
 		}
 	};
 
+	let targetCreate: string = '';
+
+	const updateTargetCreate = (newTarget: string | undefined) => {
+		if (newTarget && newTarget.length > 0) {
+			targetCreate = newTarget;
+		}
+	};
+
 	//Updates selection when the external value changes.
 	$: updateSelection(value);
 
 	$: filteredItems = $touchedInput ? filterItems(items, $inputValue.toLowerCase()) : items;
 	$: selectedVal = $selected ? $selected.value : undefined;
+	$: updateTargetCreate($inputValue);
 </script>
 
 {#if name && selectedVal}
@@ -87,35 +118,47 @@
 {#if clearable && clearName}
 	<input type="hidden" name={clearName} value={clearValue === true ? 'true' : 'false'} />
 {/if}
+{#if creatable && createName}
+	<input type="hidden" name={createName} value={createValue} />
+{/if}
 <div class="flex flex-col gap-2 {$$props.class}">
 	{#if title}
 		<Label {...$label}>{title}</Label>
 	{/if}
 
 	<div class="flex flex-row w-full gap-2">
-		<div class="relative flex flex-grow">
-			<input
-				{...$input}
-				use:input
-				class="block w-full disabled:cursor-not-allowed disabled:opacity-50 p-2.5 focus:border-primary-500
+		{#if createValue !== undefined}
+			<P size="sm" class="self-center whitespace-nowrap">{createDesc}</P>
+			<Input bind:value={createValue} />
+			<Button outline on:click={cancelCreate}>Cancel</Button>
+		{:else}
+			<div class="relative flex flex-grow">
+				<input
+					{...$input}
+					use:input
+					class="block w-full disabled:cursor-not-allowed disabled:opacity-50 p-2.5 focus:border-primary-500
             focus:ring-primary-500 dark:focus:border-primary-500 dark:focus:ring-primary-500
             bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400
             border-gray-300 dark:border-gray-600 text-sm rounded-lg border {tainted &&
-				highlightTainted
-					? 'ring-2'
-					: ''}"
-				{placeholder}
-			/>
-			<div class="absolute right-2 top-1/2 z-10 -translate-y-1/2 text-magnum-900">
-				{#if $open}
-					<ChevronUp class="square-4" />
-				{:else}
-					<ChevronDown class="square-4" />
-				{/if}
+					highlightTainted
+						? 'ring-2'
+						: ''}"
+					{placeholder}
+				/>
+				<div class="absolute right-2 top-1/2 z-10 -translate-y-1/2 text-magnum-900">
+					{#if $open}
+						<ChevronUp class="square-4" />
+					{:else}
+						<ChevronDown class="square-4" />
+					{/if}
+				</div>
 			</div>
-		</div>
-		{#if clearable}
-			<Button on:click={clearSelection} color="light" disabled={clearValue}>Clear</Button>
+			{#if creatable && createValue === undefined}
+				<Button on:click={setCreate} color="light">{createDesc}</Button>
+			{/if}
+			{#if clearable}
+				<Button on:click={clearSelection} color="light" disabled={clearValue}>Clear</Button>
+			{/if}
 		{/if}
 	</div>
 </div>
@@ -170,7 +213,14 @@
 					class="relative cursor-pointer rounded-md py-1 pl-8 pr-4
         data-[highlighted]:bg-magnum-100 data-[highlighted]:text-magnum-700"
 				>
-					No results found
+					{#if creatable}
+						<div class="flex flex-row gap-1 items-center">
+							<div class="flex">No results found</div>
+							<Button outline size="sm" on:click={setCreate}>{createDesc} - {$inputValue}</Button>
+						</div>
+					{:else}
+						No results found
+					{/if}
 				</li>
 			{/each}
 		</div>
