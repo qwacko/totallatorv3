@@ -22,7 +22,10 @@
 	$: tainted = form.tainted;
 </script>
 
-<CustomHeader pageTitle="Clone {data.journals.count} Journal{data.journals.count > 1 ? "s" : ""}" filterText={data.filterText} />
+<CustomHeader
+	pageTitle="Clone {data.journals.count} Journal{data.journals.count > 1 ? 's' : ''}"
+	filterText={data.filterText}
+/>
 
 <PageLayout title="Clone {data.journals.count} Journals">
 	<Heading tag="h3">Modify Cloned Journals</Heading>
@@ -31,7 +34,7 @@
 		<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<UpdateJournalForm {form} />
-		<UpdateJournalLinksForm {form} dropdownInfo={data.dropdownInfo} hideAccount />
+		<UpdateJournalLinksForm {form} dropdownInfo={data.dropdownInfo} />
 		<UpdateJournalLabelsForm
 			{form}
 			dropdownInfo={data.dropdownInfo}

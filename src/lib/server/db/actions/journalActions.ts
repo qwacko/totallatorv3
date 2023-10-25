@@ -30,7 +30,11 @@ import { tActions } from './tActions';
 import { seedTransactionData } from './helpers/seedTransactionData';
 import { logging } from '$lib/server/logging';
 import { getMonthlySummary } from './helpers/getMonthlySummary';
-import { getCommonData, getCommonLabelData } from './helpers/getCommonData';
+import {
+	getCommonData,
+	getCommonLabelData,
+	getCommonOtherAccountData
+} from './helpers/getCommonData';
 import { handleLinkedItem } from './helpers/handleLinkedItem';
 import { generateItemsForTransactionCreation } from './helpers/generateItemsForTransactionCreation';
 import { splitArrayIntoChunks } from './helpers/splitArrayIntoChunks';
@@ -274,11 +278,13 @@ export const journalActions = {
 		const complete = getCommonData('complete', journalInformation.data);
 		const dataChecked = getCommonData('dataChecked', journalInformation.data);
 		const labelData = getCommonLabelData(journalInformation.data);
+		const otherAccountId = getCommonOtherAccountData(journalInformation.data);
 
 		return {
 			journals: journalInformation,
 			common: {
 				accountId,
+				otherAccountId,
 				amount,
 				tagId,
 				categoryId,

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import type { UpdateJournalSchemaSuperType } from '$lib/schema/journalSchema';
 
 	import type { SuperForm } from 'sveltekit-superforms/client';
@@ -31,6 +32,18 @@
 		itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
 		createField="accountTitle"
 		bind:createValue={$formData.accountTitle}
+		createDesc="New Expense"
+	/>
+	<ComboSelectForm
+		{form}
+		title="Payee"
+		items={dropdownInfo.accounts}
+		field="otherAccountId"
+		placeholder="Select Payee..."
+		itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+		itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+		createField="otherAccountTitle"
+		bind:createValue={$formData.otherAccountTitle}
 		createDesc="New Expense"
 	/>
 {/if}

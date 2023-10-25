@@ -11,7 +11,10 @@ import { cloneDeep } from 'lodash-es';
 const zodStringBlanking = z
 	.string()
 	.optional()
-	.transform((val) => (val === '' ? undefined : val));
+	.nullable()
+	.transform((val) =>
+		val === '' ? undefined : val === 'undefined' ? undefined : val ? val : undefined
+	);
 
 const zodCoercedBoolean = z.boolean().or(
 	z
@@ -151,22 +154,22 @@ export const updateJournalSchema = z.object({
 	date: dateStringSchema.optional(),
 	description: z.string().optional(),
 	amount: z.number().optional(),
-	tagId: z.string().nullable().optional(),
-	tagTitle: z.string().nullable().optional(),
+	tagId: zodStringBlanking,
+	tagTitle: zodStringBlanking,
 	tagClear: z.boolean().optional().default(false),
-	billId: z.string().nullable().optional(),
-	billTitle: z.string().nullable().optional(),
+	billId: zodStringBlanking,
+	billTitle: zodStringBlanking,
 	billClear: z.boolean().optional().default(false),
-	budgetId: z.string().nullable().optional(),
-	budgetTitle: z.string().nullable().optional(),
+	budgetId: zodStringBlanking,
+	budgetTitle: zodStringBlanking,
 	budgetClear: z.boolean().optional().default(false),
-	categoryId: z.string().nullable().optional(),
-	categoryTitle: z.string().nullable().optional(),
+	categoryId: zodStringBlanking,
+	categoryTitle: zodStringBlanking,
 	categoryClear: z.boolean().optional().default(false),
-	accountId: z.string().optional(),
-	accountTitle: z.string().nullable().optional(),
-	otherAccountId: z.string().optional(),
-	otherAccountTitle: z.string().optional(),
+	accountId: zodStringBlanking,
+	accountTitle: zodStringBlanking,
+	otherAccountId: zodStringBlanking,
+	otherAccountTitle: zodStringBlanking,
 	addLabels: z.array(z.string()).optional(),
 	addLabelTitles: z.array(z.string()).optional(),
 	removeLabels: z.array(z.string()).optional(),

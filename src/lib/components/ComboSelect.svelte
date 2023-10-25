@@ -11,15 +11,19 @@
 	import HighlightText from './HighlightText.svelte';
 	import { Button, Input, Label, P } from 'flowbite-svelte';
 
+	const maxItemsDisplay = 20;
+
 	export let items: T[];
 	export let filterItems: (data: T[], target: string) => T[] = (items, search) => {
-		return items.filter((item) => {
-			const display = itemToDisplay(item);
-			const titleFound = display.title.toLowerCase().includes(search);
-			const groupFound = display.group ? display.group.toLowerCase().includes(search) : false;
+		return items
+			.filter((item) => {
+				const display = itemToDisplay(item);
+				const titleFound = display.title.toLowerCase().includes(search);
+				const groupFound = display.group ? display.group.toLowerCase().includes(search) : false;
 
-			return titleFound || groupFound;
-		});
+				return titleFound || groupFound;
+			})
+			.slice(0, maxItemsDisplay);
 	};
 	export let placeholder = 'Select Item...';
 	export let title: string | undefined | null;
@@ -107,7 +111,9 @@
 	//Updates selection when the external value changes.
 	$: updateSelection(value);
 
-	$: filteredItems = $touchedInput ? filterItems(items, $inputValue.toLowerCase()) : items;
+	$: filteredItems = $touchedInput
+		? filterItems(items, $inputValue.toLowerCase())
+		: items.slice(0, maxItemsDisplay);
 	$: selectedVal = $selected ? $selected.value : undefined;
 	$: updateTargetCreate($inputValue);
 </script>
