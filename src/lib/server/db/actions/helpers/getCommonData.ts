@@ -20,6 +20,111 @@ export const getCommonData = <
 	return undefined;
 };
 
+type journalsWithOtherJournalTypeAndAmount = {
+	amount: number;
+	accountId: string;
+	otherJournals: { accountId: string; amount: number }[];
+}[];
+
+type getToFromAccountAmountDataReturn = {
+	toAccountId: string | undefined;
+	fromAccountId: string | undefined;
+	toAmount: number | undefined;
+	fromAmount: number | undefined;
+	direction: boolean | undefined;
+};
+
+export const getToFromAccountAmountData = <T extends journalsWithOtherJournalTypeAndAmount>(
+	data: T
+): getToFromAccountAmountDataReturn => {
+	if (data.length === 0) {
+		return {
+			toAccountId: undefined,
+			fromAccountId: undefined,
+			toAmount: undefined,
+			fromAmount: undefined,
+			direction: undefined
+		};
+	}
+
+	const numberWithMoreThan1 = data.reduce(
+		(prev, current) => (current.otherJournals.length > 1 ? prev + 1 : prev),
+		0
+	);
+
+	if (numberWithMoreThan1 > 0) {
+		return {
+			toAccountId: undefined,
+			fromAccountId: undefined,
+			toAmount: undefined,
+			fromAmount: undefined,
+			direction: undefined
+		};
+	}
+
+	const firstItem: getToFromAccountAmountDataReturn =
+		data[0].amount > 0
+			? {
+					toAccountId: data[0].accountId,
+					fromAccountId: data[0].otherJournals[0].accountId,
+					toAmount: data[0].amount,
+					fromAmount: data[0].otherJournals[0].amount,
+					direction: true
+			  }
+			: {
+					fromAccountId: data[0].accountId,
+					toAccountId: data[0].otherJournals[0].accountId,
+					fromAmount: data[0].amount,
+					toAmount: data[0].otherJournals[0].amount,
+					direction: false
+			  };
+
+	const returnData = data.reduce((prev, current) => {
+		if (current.amount > 0) {
+			return {
+				toAccountId:
+					prev.toAccountId && current.accountId === prev.toAccountId ? prev.toAccountId : undefined,
+				fromAccountId:
+					prev.fromAccountId && current.otherJournals[0].accountId === prev.fromAccountId
+						? prev.fromAccountId
+						: undefined,
+				toAmount:
+					prev.toAmount !== undefined && current.amount === prev.toAmount
+						? prev.toAmount
+						: undefined,
+				fromAmount:
+					prev.fromAmount !== undefined && current.otherJournals[0].amount === prev.fromAmount
+						? prev.fromAmount
+						: undefined,
+				direction:
+					prev.direction !== undefined && prev.direction === true ? prev.direction : undefined
+			} as getToFromAccountAmountDataReturn;
+		}
+		return {
+			fromAccountId:
+				prev.fromAccountId && data[0].accountId === prev.fromAccountId
+					? prev.fromAccountId
+					: undefined,
+			toAccountId:
+				prev.toAccountId && current.otherJournals[0].accountId === prev.toAccountId
+					? prev.toAccountId
+					: undefined,
+			fromAmount:
+				prev.fromAmount !== undefined && current.amount === prev.fromAmount
+					? prev.fromAmount
+					: undefined,
+			toAmount:
+				prev.toAmount !== undefined && current.otherJournals[0].amount === prev.toAmount
+					? prev.toAmount
+					: undefined,
+			direction:
+				prev.direction !== undefined && prev.direction === false ? prev.direction : undefined
+		} as getToFromAccountAmountDataReturn;
+	}, firstItem);
+
+	return returnData;
+};
+
 type journalsWithOtherJournalType = {
 	otherJournals: { accountId: string }[];
 }[];

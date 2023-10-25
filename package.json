@@ -22,7 +22,7 @@
 		"@iconify/json": "^2.2.125",
 		"@playwright/test": "^1.38.1",
 		"@sveltejs/adapter-auto": "^2.1.0",
-		"@sveltejs/kit": "^1.25.1",
+		"@sveltejs/kit": "^1.27.0",
 		"@types/better-sqlite3": "^7.6.5",
 		"@types/lodash-es": "^4.17.9",
 		"@types/node-schedule": "^2.1.1",

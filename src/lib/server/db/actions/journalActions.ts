@@ -7,7 +7,9 @@ import {
 	type UpdateJournalSchemaInputType,
 	updateJournalSchema,
 	type CreateSimpleTransactionType,
-	createSimpleTransactionSchema
+	createSimpleTransactionSchema,
+	type CloneJournalUpdateSchemaType,
+	cloneJournalUpdateSchema
 } from '$lib/schema/journalSchema';
 import { eq, and, sql, inArray, not, SQL, or } from 'drizzle-orm';
 import type { DBType } from '../db';
@@ -33,7 +35,8 @@ import { getMonthlySummary } from './helpers/getMonthlySummary';
 import {
 	getCommonData,
 	getCommonLabelData,
-	getCommonOtherAccountData
+	getCommonOtherAccountData,
+	getToFromAccountAmountData
 } from './helpers/getCommonData';
 import { handleLinkedItem } from './helpers/handleLinkedItem';
 import { generateItemsForTransactionCreation } from './helpers/generateItemsForTransactionCreation';
@@ -280,6 +283,8 @@ export const journalActions = {
 		const labelData = getCommonLabelData(journalInformation.data);
 		const otherAccountId = getCommonOtherAccountData(journalInformation.data);
 
+		const cloneData = getToFromAccountAmountData(journalInformation.data);
+
 		return {
 			journals: journalInformation,
 			common: {
@@ -296,6 +301,7 @@ export const journalActions = {
 				reconciled,
 				complete,
 				dataChecked,
+				...cloneData,
 				...labelData
 			}
 		};
@@ -659,37 +665,18 @@ export const journalActions = {
 					.execute();
 			}
 			if (otherAccountId) {
-				const transactions = journals.data.map((journal) => journal.transactionId);
-
-				const otherJournals = await db.query.journalEntry.findMany({
-					where: and(
-						inArray(journalEntry.transactionId, transactions),
-						not(
-							inArray(
-								journalEntry.id,
-								journals.data.map((journal) => journal.id)
-							)
-						)
-					),
-					columns: {
-						id: true,
-						accountId: true,
-						transactionId: true
-					}
-				});
-
-				//Make sure there isn't any journals that will have more than one journal after the update.
-				const transactionIds = otherJournals.map((journal) => journal.transactionId);
-				const transactionJournalCount = transactionIds.map((transactionId) => {
-					return otherJournals.filter((journal) => journal.transactionId === transactionId).length;
-				});
-				const numberWithMoreTHan1 = transactionJournalCount.filter((count) => count > 1).length;
-				if (numberWithMoreTHan1 > 1)
+				const numberWithMoreThan1 = journals.data.reduce(
+					(prev, current) => (current.otherJournals.length > 1 ? prev + 1 : prev),
+					0
+				);
+				if (numberWithMoreThan1 > 0)
 					throw new Error(
 						'Cannot update other account if there is a transaction with more than 2 journals'
 					);
 
-				const updatingJournalIds = otherJournals.map((journal) => journal.id);
+				const updatingJournalIds = journals.data.reduce((prev, current) => {
+					return [...prev, ...current.otherJournals.map((item) => item.id)];
+				}, [] as string[]);
 
 				await db
 					.update(journalEntry)
@@ -841,9 +828,9 @@ export const journalActions = {
 	}: {
 		db: DBType;
 		filter: JournalFilterSchemaInputType;
-		journalData: UpdateJournalSchemaInputType;
+		journalData: CloneJournalUpdateSchemaType;
 	}) => {
-		const processedData = updateJournalSchema.safeParse(journalData);
+		const processedData = cloneJournalUpdateSchema.safeParse(journalData);
 
 		if (!processedData.success) {
 			console.log(JSON.stringify(processedData.error));
@@ -892,6 +879,16 @@ export const journalActions = {
 				journalEntries: transactionsForCreation
 			});
 
+			const {
+				fromAccountId,
+				fromAccountTitle,
+				toAccountId,
+				toAccountTitle,
+				fromAmount,
+				toAmount,
+				...restProcessedData
+			} = processedData.data;
+
 			await journalActions.updateJournals({
 				db,
 				filter: {
@@ -899,8 +896,45 @@ export const journalActions = {
 					page: 0,
 					pageSize: 1000000
 				},
-				journalData: processedData.data
+				journalData: restProcessedData
 			});
+
+			if (
+				fromAccountId !== undefined ||
+				fromAccountTitle !== undefined ||
+				fromAmount !== undefined
+			) {
+				await journalActions.updateJournals({
+					db,
+					filter: {
+						transactionIdArray: transactionIds,
+						maxAmount: 0,
+						page: 0,
+						pageSize: 1000000
+					},
+					journalData: {
+						accountId: fromAccountId,
+						accountTitle: fromAccountTitle,
+						amount: fromAmount
+					}
+				});
+			}
+			if (toAccountId !== undefined || toAccountTitle !== undefined || toAmount !== undefined) {
+				await journalActions.updateJournals({
+					db,
+					filter: {
+						transactionIdArray: transactionIds,
+						minAmount: 0,
+						page: 0,
+						pageSize: 1000000
+					},
+					journalData: {
+						accountId: toAccountId,
+						accountTitle: toAccountTitle,
+						amount: toAmount
+					}
+				});
+			}
 		});
 
 		return transactionIds;

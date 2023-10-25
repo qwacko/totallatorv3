@@ -1,11 +1,16 @@
 <script lang="ts">
 	import ComboSelect from '$lib/components/ComboSelect.svelte';
-	import type { UpdateJournalSchemaSuperType } from '$lib/schema/journalSchema';
+	import type {
+		CloneJournalUpdateSchemaSuperType,
+		UpdateJournalSchemaSuperType
+	} from '$lib/schema/journalSchema';
 	import { Badge, Button, Checkbox, Heading, P, TabItem, Tabs } from 'flowbite-svelte';
 
 	import type { SuperForm } from 'sveltekit-superforms/client';
 
-	export let form: SuperForm<UpdateJournalSchemaSuperType>;
+	export let form:
+		| SuperForm<UpdateJournalSchemaSuperType>
+		| SuperForm<CloneJournalUpdateSchemaSuperType>;
 
 	type DDINoGroup = { id: string; title: string; enabled: boolean };
 	export let dropdownInfo: {
