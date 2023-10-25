@@ -13,7 +13,7 @@ const zodStringBlanking = z
 	.optional()
 	.nullable()
 	.transform((val) =>
-		val === '' ? undefined : val === 'undefined' ? undefined : val ? val : undefined
+		val === '' || val === 'undefined' || val === 'null' ? undefined : val ? val : undefined
 	);
 
 const zodCoercedBoolean = z.boolean().or(
