@@ -223,7 +223,7 @@
 					{@const journalsURL = urlGenerator({
 						address: '/(loggedIn)/journals',
 						searchParamsValue: {
-							...defaultJournalFilter,
+							...defaultJournalFilter(),
 							account: {
 								id: currentAccount.id,
 								type: [...accountTypeEnum]

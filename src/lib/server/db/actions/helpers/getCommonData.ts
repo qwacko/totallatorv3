@@ -20,6 +20,37 @@ export const getCommonData = <
 	return undefined;
 };
 
+type journalsWithOtherJournalType = {
+	otherJournals: { accountId: string }[];
+}[];
+
+export const getCommonOtherAccountData = <T extends journalsWithOtherJournalType>(data: T) => {
+	if (data.length === 0) {
+		return undefined;
+	}
+	const allHaveOnly1OtherJournal = data.reduce(
+		(prev, current) => (current.otherJournals.length === 1 ? prev : false),
+		true
+	);
+
+	if (!allHaveOnly1OtherJournal) {
+		return undefined;
+	}
+
+	let returnAccount: string | undefined = data[0].otherJournals[0].accountId;
+
+	// Iterate over the rest of the items
+	for (let i = 1; i < data.length; i++) {
+		for (const otherJournal of data[i].otherJournals) {
+			if (returnAccount && otherJournal.accountId !== returnAccount) {
+				returnAccount = undefined;
+			}
+		}
+	}
+
+	return returnAccount;
+};
+
 type journalsWithLabelsType = {
 	labels: {
 		id: string | null;

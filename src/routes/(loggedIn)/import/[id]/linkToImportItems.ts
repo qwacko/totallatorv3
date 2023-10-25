@@ -13,7 +13,7 @@ export const linkToImportItems = ({
 		return urlGenerator({
 			address: '/(loggedIn)/journals',
 			searchParamsValue: {
-				...defaultJournalFilter,
+				...defaultJournalFilter(),
 				importIdArray: [importId]
 			}
 		}).url;

@@ -15,7 +15,7 @@ export const load = async (data) => {
 
 	const journalData = await tActions.journal.list({
 		db: db,
-		filter: pageInfo.current.searchParams || defaultJournalFilter
+		filter: pageInfo.current.searchParams || defaultJournalFilter()
 	});
 
 	return { count: journalData.count };
@@ -46,8 +46,10 @@ export const actions = {
 			throw redirect(
 				302,
 				form.data.prevPage ||
-					urlGenerator({ address: '/(loggedIn)/journals', searchParamsValue: defaultJournalFilter })
-						.url
+					urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: defaultJournalFilter()
+					}).url
 			);
 		}
 

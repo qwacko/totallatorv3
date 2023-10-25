@@ -148,7 +148,7 @@
 					{@const journalsURL = urlGenerator({
 						address: '/(loggedIn)/journals',
 						searchParamsValue: {
-							...defaultJournalFilter,
+							...defaultJournalFilter(),
 							budget: {
 								id: currentBudget.id
 							}

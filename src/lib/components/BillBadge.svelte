@@ -25,7 +25,7 @@
 	$: viewURL = urlGenerator({
 		address: '/(loggedIn)/journals',
 		searchParamsValue: {
-			...defaultJournalFilter,
+			...defaultJournalFilter(),
 			bill: {
 				id: data.billId || undefined
 			}

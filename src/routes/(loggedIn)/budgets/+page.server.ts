@@ -23,7 +23,7 @@ export const load = async (data) => {
 
 	const budgetSummary = tActions.journal.summary({
 		db,
-		filter: { ...defaultJournalFilter, budget: pageInfo.searchParams }
+		filter: { ...defaultJournalFilter(), budget: pageInfo.searchParams }
 	});
 
 	return {

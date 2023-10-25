@@ -20,6 +20,9 @@
 	export let title: string | null | undefined;
 	export let highlightTainted: boolean | undefined = true;
 	export let clearValue: boolean | undefined = undefined;
+	export let createField: FormPathLeaves<z.infer<T>> | undefined = undefined;
+	export let createValue: string | undefined | null = undefined;
+	export let createDesc = 'Create';
 
 	export let items: Promise<U[]>;
 	export let itemToOption: OptionFunction<U>;
@@ -29,6 +32,7 @@
 
 	$: stringValue = value as Writable<string | undefined>;
 	$: clearable = clearField !== undefined;
+	$: creatable = createField !== undefined;
 </script>
 
 {#await items then resolvedItems}
@@ -36,14 +40,18 @@
 		bind:value={$stringValue}
 		{title}
 		{clearable}
+		{creatable}
 		{placeholder}
+		{createDesc}
 		items={resolvedItems}
 		{itemToOption}
 		{itemToDisplay}
 		tainted={$tainted}
 		name={field}
 		clearName={clearField}
+		createName={createField}
 		bind:clearValue
+		bind:createValue
 		{highlightTainted}
 		{highlightSearch}
 	/>

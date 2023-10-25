@@ -19,7 +19,7 @@ export const load = async (data) => {
 
 	const journalData = await tActions.journal.listWithCommonData({
 		db: db,
-		filter: pageInfo.current.searchParams || defaultJournalFilter
+		filter: pageInfo.current.searchParams || defaultJournalFilter()
 	});
 
 	const { allLabelIds, commonLabelIds, ...journalDataForForm } = journalData.common;

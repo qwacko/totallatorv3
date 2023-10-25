@@ -25,7 +25,6 @@ const orderByEnum = [
 	'group',
 	'single',
 	'status',
-	'deleted',
 	'disabled',
 	'allowUpdate',
 	'active'
@@ -42,7 +41,6 @@ const enumTitles: OrderByEnumTitles = {
 	title: 'Title',
 	active: 'Active',
 	allowUpdate: 'Allow Update',
-	deleted: 'Deleted',
 	disabled: 'Disabled',
 	group: 'Group',
 	single: 'Single',
@@ -60,7 +58,6 @@ export const categoryFilterSchema = z.object({
 	group: z.coerce.string().optional(),
 	single: z.coerce.string().optional(),
 	status: z.enum(statusEnum).optional(),
-	deleted: z.boolean().default(false).optional(),
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),

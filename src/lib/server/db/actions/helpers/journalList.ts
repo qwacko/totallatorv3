@@ -26,7 +26,7 @@ export const journalList = async ({
 	db: DBType;
 	filter: JournalFilterSchemaInputType;
 }) => {
-	const processedFilter = journalFilterSchema.catch(defaultJournalFilter).parse(filter);
+	const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
 
 	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
 

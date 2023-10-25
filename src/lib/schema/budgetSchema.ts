@@ -20,7 +20,7 @@ export const updateBudgetSchema = z.object({
 export type UpdateBudgetSchemaSuperType = typeof updateBudgetSchema;
 export type UpdateBudgetSchemaType = z.infer<typeof updateBudgetSchema>;
 
-const orderByEnum = ['title', 'status', 'deleted', 'disabled', 'allowUpdate', 'active'] as const;
+const orderByEnum = ['title', 'status', 'disabled', 'allowUpdate', 'active'] as const;
 
 type OrderByEnumType = (typeof orderByEnum)[number];
 
@@ -33,7 +33,6 @@ const enumTitles: OrderByEnumTitles = {
 	title: 'Title',
 	active: 'Active',
 	allowUpdate: 'Allow Update',
-	deleted: 'Deleted',
 	disabled: 'Disabled',
 	status: 'Status'
 };
@@ -47,7 +46,6 @@ export const budgetFilterSchema = z.object({
 	idArray: z.array(z.string()).optional(),
 	title: z.coerce.string().optional(),
 	status: z.enum(statusEnum).optional(),
-	deleted: z.boolean().default(false).optional(),
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),

@@ -24,7 +24,6 @@ const importColumns = (identifier?: string) => ({
 const statusColumns = {
 	status: text('status', { enum: statusEnum }).notNull().default('active'),
 	active: integer('active', { mode: 'boolean' }).notNull().default(true),
-	deleted: integer('deleted', { mode: 'boolean' }).notNull().default(true),
 	disabled: integer('disabled', { mode: 'boolean' }).notNull().default(true),
 	allowUpdate: integer('allow_update', { mode: 'boolean' }).notNull().default(true)
 };

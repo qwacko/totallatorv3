@@ -85,7 +85,7 @@
 			outline
 			href={urlGenerator({
 				address: '/(loggedIn)/journals/create',
-				searchParamsValue: $urlStore.searchParams || defaultJournalFilter
+				searchParamsValue: $urlStore.searchParams || defaultJournalFilter()
 			}).url}
 		>
 			Create Transaction
@@ -94,7 +94,7 @@
 	<JournalSummaryPopoverContent
 		item={data.summary}
 		format={data.user?.currencyFormat || 'USD'}
-		summaryFilter={$urlStore.searchParams || defaultJournalFilter}
+		summaryFilter={$urlStore.searchParams || defaultJournalFilter()}
 	/>
 
 	<center>
@@ -117,7 +117,7 @@
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: {
 						idArray: selectedIds,
-						...defaultAllJournalFilter
+						...defaultAllJournalFilter()
 					}
 				}).url}
 				disabled={selectedIds.length === 0}
@@ -130,7 +130,7 @@
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: {
 						idArray: selectedIds,
-						...defaultAllJournalFilter
+						...defaultAllJournalFilter()
 					}
 				}).url}
 				disabled={selectedIds.length === 0}
@@ -143,7 +143,7 @@
 					address: '/(loggedIn)/journals/delete',
 					searchParamsValue: {
 						idArray: selectedIds,
-						...defaultAllJournalFilter
+						...defaultAllJournalFilter()
 					}
 				}).url}
 				disabled={selectedIds.length === 0}
@@ -155,8 +155,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals',
 					searchParamsValue: {
-						...defaultJournalFilter,
 						idArray: selectedIds,
+						...defaultAllJournalFilter(),
 						account: {}
 					}
 				}).url}
@@ -175,6 +175,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: $urlStore.searchParams
+						? { ...$urlStore.searchParams, pageSize: 100000, page: 0 }
+						: $urlStore.searchParams
 				}).url}
 				disabled={data.journals.count === 0}
 			>
@@ -185,6 +187,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: $urlStore.searchParams
+						? { ...$urlStore.searchParams, pageSize: 100000, page: 0 }
+						: $urlStore.searchParams
 				}).url}
 				disabled={data.journals.count === 0}
 			>
@@ -195,6 +199,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/delete',
 					searchParamsValue: $urlStore.searchParams
+						? { ...$urlStore.searchParams, pageSize: 100000, page: 0 }
+						: $urlStore.searchParams
 				}).url}
 				disabled={data.journals.count === 0}
 			>
@@ -283,7 +289,7 @@
 											address: '/(loggedIn)/journals/bulkEdit',
 											searchParamsValue: {
 												idArray: [currentJournal.id],
-												...defaultAllJournalFilter
+												...defaultAllJournalFilter()
 											}
 										}).url}
 										class="p-2"
@@ -296,7 +302,7 @@
 											address: '/(loggedIn)/journals/clone',
 											searchParamsValue: {
 												idArray: [currentJournal.id],
-												...defaultAllJournalFilter
+												...defaultAllJournalFilter()
 											}
 										}).url}
 										class="p-2"
@@ -309,7 +315,7 @@
 											address: '/(loggedIn)/journals/delete',
 											searchParamsValue: {
 												idArray: [currentJournal.id],
-												...defaultAllJournalFilter
+												...defaultAllJournalFilter()
 											}
 										}).url}
 										class="p-2"
@@ -389,7 +395,7 @@
 									id: currentJournal.accountId,
 									accountGroupCombinedTitle: currentJournal.accountGroup
 								}}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 							/>
 						</TableBodyCell>
 						<TableBodyCell>
@@ -409,7 +415,7 @@
 										id: currentOtherJournal.accountId,
 										accountGroupCombinedTitle: currentOtherJournal.accountGroup
 									}}
-									currentFilter={$urlStore.searchParams || defaultJournalFilter}
+									currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 									payeeFilter
 								/>
 							{:else}
@@ -422,7 +428,7 @@
 												id: currentOtherJournal.accountId,
 												accountGroupCombinedTitle: currentOtherJournal.accountGroup
 											}}
-											currentFilter={$urlStore.searchParams || defaultJournalFilter}
+											currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 											payeeFilter
 										/>
 									{/each}
@@ -449,24 +455,24 @@
 						<TableBodyCell class="flex flex-row flex-wrap gap-2">
 							<CategoryBadge
 								data={currentJournal}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 							/>
 							<TagBadge
 								data={currentJournal}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 							/>
 							<BillBadge
 								data={currentJournal}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 							/>
 							<BudgetBadge
 								data={currentJournal}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 							/>
 							{#each currentJournal.labels as currentLabel}
 								<LabelBadge
 									data={currentLabel}
-									currentFilter={$urlStore.searchParams || defaultJournalFilter}
+									currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 								/>
 							{/each}
 						</TableBodyCell>

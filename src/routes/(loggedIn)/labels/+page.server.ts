@@ -24,7 +24,7 @@ export const load = async (data) => {
 
 	const labelSummary = tActions.journal.summary({
 		db,
-		filter: { ...defaultJournalFilter, label: pageInfo.searchParams }
+		filter: { ...defaultJournalFilter(), label: pageInfo.searchParams }
 	});
 
 	return {
