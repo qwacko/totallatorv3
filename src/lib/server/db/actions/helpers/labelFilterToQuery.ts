@@ -1,7 +1,7 @@
 import type { LabelFilterSchemaType } from '$lib/schema/labelSchema';
 import { db } from '../../db';
 import { label } from '../../schema';
-import { SQL, eq, inArray, like, not } from 'drizzle-orm';
+import { SQL, eq, inArray, like } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from './importIdsToTitles';
 
@@ -11,7 +11,6 @@ export const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
 	if (filter.idArray && filter.idArray.length > 0) where.push(inArray(label.id, filter.idArray));
 	if (filter.title) where.push(like(label.title, `%${filter.title}%`));
 	if (filter.status) where.push(eq(label.status, filter.status));
-	else where.push(not(eq(label.status, 'deleted')));
 	if (filter.deleted) where.push(eq(label.deleted, filter.deleted));
 	if (filter.disabled) where.push(eq(label.disabled, filter.disabled));
 	if (filter.allowUpdate) where.push(eq(label.allowUpdate, filter.allowUpdate));
@@ -61,8 +60,6 @@ export const labelFilterToText = async (
 	}
 	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
-	//Not including text for not deleted as this doesn't really add much value.
-	//else where.push(not(eq(budget.status, 'deleted')));
 	if (restFilter.deleted) stringArray.push(`Is Deleted`);
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);

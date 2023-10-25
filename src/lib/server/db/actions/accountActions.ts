@@ -174,13 +174,8 @@ export const accountActions = {
 			.findFirst({ where: eq(account.id, id) })
 			.execute();
 
-		if (!currentAccount || currentAccount.status === 'deleted') {
+		if (!currentAccount) {
 			logging.info('Update Account: Account not found or deleted');
-			return id;
-		}
-
-		if (data.status && data.status === 'deleted') {
-			logging.info('Update Account: Cannot Use Update To Set To Deleted');
 			return id;
 		}
 

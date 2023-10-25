@@ -1,7 +1,7 @@
 import type { BillFilterSchemaType } from '$lib/schema/billSchema';
 import { db } from '../../db';
 import { bill } from '../../schema';
-import { SQL, eq, inArray, like, not } from 'drizzle-orm';
+import { SQL, eq, inArray, like } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from './importIdsToTitles';
 
@@ -16,7 +16,6 @@ export const billFilterToQuery = (
 		where.push(inArray(bill.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(bill.title, `%${restFilter.title}%`));
 	if (restFilter.status) where.push(eq(bill.status, restFilter.status));
-	else where.push(not(eq(bill.status, 'deleted')));
 	if (restFilter.deleted) where.push(eq(bill.deleted, restFilter.deleted));
 	if (restFilter.disabled) where.push(eq(bill.disabled, restFilter.disabled));
 	if (restFilter.allowUpdate) where.push(eq(bill.allowUpdate, restFilter.allowUpdate));
@@ -68,8 +67,6 @@ export const billFilterToText = async (
 	}
 	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
-	//Not including text for not deleted as this doesn't really add much value.
-	//else where.push(not(eq(budget.status, 'deleted')));
 	if (restFilter.deleted) stringArray.push(`Is Deleted`);
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);

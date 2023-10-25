@@ -162,13 +162,8 @@ export const budgetActions = {
 		const currentBudget = await db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
 		logging.info('Update Budget: ', data, currentBudget);
 
-		if (!currentBudget || currentBudget.status === 'deleted') {
+		if (!currentBudget) {
 			logging.info('Update Budget: Budget not found or deleted');
-			return id;
-		}
-
-		if (data.status && data.status === 'deleted') {
-			logging.info('Update Budget: Cannot Use Update To Set To Deleted');
 			return id;
 		}
 

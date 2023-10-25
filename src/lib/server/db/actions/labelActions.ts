@@ -175,13 +175,8 @@ export const labelActions = {
 		const currentLabel = await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
 		logging.info('Update Label: ', data, currentLabel);
 
-		if (!currentLabel || currentLabel.status === 'deleted') {
+		if (!currentLabel) {
 			logging.info('Update Label: Label not found or deleted');
-			return id;
-		}
-
-		if (data.status && data.status === 'deleted') {
-			logging.info('Update Label: Cannot Use Update To Set To Deleted');
 			return id;
 		}
 

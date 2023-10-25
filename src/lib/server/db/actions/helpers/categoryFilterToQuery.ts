@@ -1,7 +1,7 @@
 import type { CategoryFilterSchemaType } from '$lib/schema/categorySchema';
 import { db } from '../../db';
 import { category } from '../../schema';
-import { SQL, eq, ilike, inArray, like, not } from 'drizzle-orm';
+import { SQL, eq, ilike, inArray, like } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from './importIdsToTitles';
 
@@ -18,7 +18,6 @@ export const categoryFilterToQuery = (
 	if (restFilter.group) where.push(ilike(category.title, `%${restFilter.group}%`));
 	if (restFilter.single) where.push(ilike(category.title, `%${restFilter.single}%`));
 	if (restFilter.status) where.push(eq(category.status, restFilter.status));
-	else where.push(not(eq(category.status, 'deleted')));
 	if (restFilter.deleted) where.push(eq(category.deleted, restFilter.deleted));
 	if (restFilter.disabled) where.push(eq(category.disabled, restFilter.disabled));
 	if (restFilter.allowUpdate) where.push(eq(category.allowUpdate, restFilter.allowUpdate));
@@ -71,8 +70,6 @@ export const categoryFilterToText = async (
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
 	if (restFilter.group) stringArray.push(`Group contains ${restFilter.group}`);
 	if (restFilter.single) stringArray.push(`Single contains ${restFilter.single}`);
-	//Not including text for not deleted as this doesn't really add much value.
-	//else where.push(not(eq(budget.status, 'deleted')));
 	if (restFilter.deleted) stringArray.push(`Is Deleted`);
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);

@@ -173,13 +173,8 @@ export const categoryActions = {
 			.execute();
 		logging.info('Update Category: ', data, currentCategory);
 
-		if (!currentCategory || currentCategory.status === 'deleted') {
+		if (!currentCategory) {
 			logging.info('Update Category: Category not found or deleted');
-			return id;
-		}
-
-		if (data.status && data.status === 'deleted') {
-			logging.info('Update Category: Cannot Use Update To Set To Deleted');
 			return id;
 		}
 

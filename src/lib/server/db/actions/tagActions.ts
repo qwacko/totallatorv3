@@ -163,13 +163,8 @@ export const tagActions = {
 		const currentTag = await db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
 		logging.info('Update Tag: ', data, currentTag);
 
-		if (!currentTag || currentTag.status === 'deleted') {
+		if (!currentTag) {
 			logging.info('Update Tag: Tag not found or deleted');
-			return id;
-		}
-
-		if (data.status && data.status === 'deleted') {
-			logging.info('Update Tag: Cannot Use Update To Set To Deleted');
 			return id;
 		}
 

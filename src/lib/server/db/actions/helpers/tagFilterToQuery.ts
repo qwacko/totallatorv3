@@ -1,7 +1,7 @@
 import type { TagFilterSchemaType } from '$lib/schema/tagSchema';
 import { db } from '../../db';
 import { tag } from '../../schema';
-import { SQL, eq, ilike, inArray, like, not } from 'drizzle-orm';
+import { SQL, eq, ilike, inArray, like } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from './importIdsToTitles';
 
@@ -18,7 +18,6 @@ export const tagFilterToQuery = (
 	if (restFilter.group) where.push(ilike(tag.title, `%${restFilter.group}%`));
 	if (restFilter.single) where.push(ilike(tag.title, `%${restFilter.single}%`));
 	if (restFilter.status) where.push(eq(tag.status, restFilter.status));
-	else where.push(not(eq(tag.status, 'deleted')));
 	if (restFilter.deleted) where.push(eq(tag.deleted, restFilter.deleted));
 	if (restFilter.disabled) where.push(eq(tag.disabled, restFilter.disabled));
 	if (restFilter.allowUpdate) where.push(eq(tag.allowUpdate, restFilter.allowUpdate));
@@ -71,8 +70,6 @@ export const tagFilterToText = async (
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
 	if (restFilter.group) stringArray.push(`Group contains ${restFilter.group}`);
 	if (restFilter.single) stringArray.push(`Single contains ${restFilter.single}`);
-	//Not including text for not deleted as this doesn't really add much value.
-	//else where.push(not(eq(budget.status, 'deleted')));
 	if (restFilter.deleted) stringArray.push(`Is Deleted`);
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
