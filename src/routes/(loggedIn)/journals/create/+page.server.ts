@@ -13,7 +13,33 @@ import { message, superValidate } from 'sveltekit-superforms/client';
 export const load = async (data) => {
 	authGuard(data);
 
-	const form = await superValidate(createSimpleTransactionSchemaCore);
+	const form = await superValidate(
+		{
+			//@ts-expect-error There Is An Unknown Error Here
+			date: new Date().toISOString().slice(0, 10),
+			description: '',
+			amount: 0,
+			importId: null,
+			importDetailId: null,
+			linked: true,
+			reconciled: false,
+			dataChecked: false,
+			complete: false,
+			tagTitle: null,
+			tagId: undefined,
+			billTitle: null,
+			billId: undefined,
+			budgetTitle: null,
+			budgetId: undefined,
+			categoryTitle: null,
+			categoryId: undefined,
+			fromAccountTitle: null,
+			fromAccountId: undefined,
+			toAccountTitle: null,
+			toAccountId: undefined
+		},
+		createSimpleTransactionSchemaCore
+	);
 
 	return { form };
 };

@@ -9,11 +9,13 @@ export const generateItemsForTransactionCreation = async (
 	data: CreateCombinedTransactionType
 ) => {
 	const transactionId = nanoid();
-	const itemsForCreation = await Promise.all(
-		data.map(async (journalData) => {
-			return await generateItemsForJournalCreation(db, transactionId, journalData);
-		})
-	);
+	const itemsForCreation = [];
+
+	//This is a for loop rather than map to avoid race conditions when creating linked items.
+	for (const journalData of data) {
+		const result = await generateItemsForJournalCreation(db, transactionId, journalData);
+		itemsForCreation.push(result);
+	}
 
 	return {
 		transactions: [{ id: transactionId, ...updatedTime() }],

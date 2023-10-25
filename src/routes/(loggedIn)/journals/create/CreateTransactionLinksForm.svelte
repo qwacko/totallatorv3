@@ -15,6 +15,8 @@
 		categories: Promise<DDI[]>;
 		accounts: Promise<DDI[]>;
 	};
+
+	$: formData = form.form;
 </script>
 
 <ComboSelectForm
@@ -25,15 +27,19 @@
 	placeholder="Select Account..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 	itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+	createField="fromAccountTitle"
+	bind:createValue={$formData.fromAccountTitle}
 />
 <ComboSelectForm
 	{form}
-	title="to Account"
+	title="To Account"
 	items={dropdownInfo.accounts}
 	field="toAccountId"
 	placeholder="Select Account..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 	itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+	createField="toAccountTitle"
+	bind:createValue={$formData.toAccountTitle}
 />
 
 <ComboSelectForm
@@ -44,6 +50,8 @@
 	placeholder="Select Tag..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 	itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+	createField="tagTitle"
+	bind:createValue={$formData.tagTitle}
 />
 <ComboSelectForm
 	{form}
@@ -53,6 +61,8 @@
 	placeholder="Select Category..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 	itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+	createField="categoryTitle"
+	bind:createValue={$formData.categoryTitle}
 />
 <ComboSelectForm
 	{form}
@@ -62,6 +72,8 @@
 	placeholder="Select Bill..."
 	itemToDisplay={(item) => ({ title: item.title })}
 	itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+	createField="billTitle"
+	bind:createValue={$formData.billTitle}
 />
 <ComboSelectForm
 	{form}
@@ -71,4 +83,6 @@
 	placeholder="Select Budget..."
 	itemToDisplay={(item) => ({ title: item.title })}
 	itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+	createField="budgetTitle"
+	bind:createValue={$formData.budgetTitle}
 />
