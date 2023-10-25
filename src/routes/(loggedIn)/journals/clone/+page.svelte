@@ -29,7 +29,7 @@
 
 <PageLayout title="Clone {data.journals.count} Journals">
 	<Heading tag="h3">Modify Cloned Journals</Heading>
-	<form method="post" action="?/clone" use:enhance class="flex flex-col gap-4">
+	<form method="post" action="?/clone" use:enhance class="grid grid-cols-1 md:grid-cols-2 gap-2">
 		<PreviousUrlInput name="prevPage" />
 		<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
