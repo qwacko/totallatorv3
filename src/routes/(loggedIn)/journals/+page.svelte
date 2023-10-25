@@ -155,8 +155,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals',
 					searchParamsValue: {
-						...defaultJournalFilter(),
 						idArray: selectedIds,
+						...defaultAllJournalFilter(),
 						account: {}
 					}
 				}).url}
@@ -175,6 +175,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: $urlStore.searchParams
+						? { ...$urlStore.searchParams, pageSize: 100000, page: 0 }
+						: $urlStore.searchParams
 				}).url}
 				disabled={data.journals.count === 0}
 			>
@@ -185,6 +187,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: $urlStore.searchParams
+						? { ...$urlStore.searchParams, pageSize: 100000, page: 0 }
+						: $urlStore.searchParams
 				}).url}
 				disabled={data.journals.count === 0}
 			>
@@ -195,6 +199,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals/delete',
 					searchParamsValue: $urlStore.searchParams
+						? { ...$urlStore.searchParams, pageSize: 100000, page: 0 }
+						: $urlStore.searchParams
 				}).url}
 				disabled={data.journals.count === 0}
 			>
