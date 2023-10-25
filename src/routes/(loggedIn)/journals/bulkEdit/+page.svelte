@@ -46,7 +46,7 @@
 			title="Complete Journals Present"
 		/>
 	{:else}
-		<form method="post" class="flex flex-col gap-2" action="?/update" use:enhance>
+		<form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-2" action="?/update" use:enhance>
 			<PreviousUrlInput name="prevPage" />
 			<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
 			<input type="hidden" name="currentPage" value={urlInfo.current.url} />
