@@ -46,7 +46,6 @@ export const accountOrderByEnum = [
 	'startDate',
 	'endDate',
 	'status',
-	'deleted',
 	'disabled',
 	'allowUpdate',
 	'active'
@@ -71,7 +70,6 @@ const enumTitles: OrderByEnumTitles = {
 	startDate: 'Start Date',
 	endDate: 'End Date',
 	status: 'Status',
-	deleted: 'Deleted',
 	disabled: 'Disabled',
 	allowUpdate: 'Allow Update',
 	active: 'Active'
@@ -95,7 +93,6 @@ export const accountFilterSchema = z.object({
 	accountGroupCombined: z.coerce.string().optional(),
 	accountTitleCombined: z.coerce.string().optional(),
 	status: z.enum(statusEnum).optional(),
-	deleted: z.boolean().default(false).optional(),
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),

@@ -164,7 +164,7 @@ export const tagActions = {
 		logging.info('Update Tag: ', data, currentTag);
 
 		if (!currentTag) {
-			logging.info('Update Tag: Tag not found or deleted');
+			logging.info('Update Tag: Tag not found');
 			return id;
 		}
 
@@ -226,16 +226,6 @@ export const tagActions = {
 			return true;
 		}
 		return false;
-	},
-	undelete: async (db: DBType, data: IdSchemaType) => {
-		const currentTag = await db.query.tag.findFirst({ where: eq(tag.id, data.id) }).execute();
-		if (currentTag && currentTag.deleted) {
-			await db
-				.update(tag)
-				.set({ ...statusUpdate('active'), ...updatedTime() })
-				.where(eq(tag.id, data.id))
-				.execute();
-		}
 	},
 	seed: async (db: DBType, count: number) => {
 		logging.info('Seeding Tags : ', count);

@@ -20,7 +20,6 @@ export const accountFilterToQuery = (
 	if (filter.accountTitleCombined)
 		where.push(like(account.accountTitleCombined, `%${filter.accountTitleCombined}%`));
 	if (filter.status) where.push(eq(account.status, filter.status));
-	if (filter.deleted !== undefined) where.push(eq(account.deleted, filter.deleted));
 	if (filter.disabled !== undefined) where.push(eq(account.disabled, filter.disabled));
 	if (filter.allowUpdate !== undefined) where.push(eq(account.allowUpdate, filter.allowUpdate));
 	if (filter.active !== undefined) where.push(eq(account.active, filter.active));
@@ -85,7 +84,6 @@ export const accountFilterToText = async (
 	if (restFilter.accountTitleCombined)
 		stringArray.push(`Group Combined With Title contains ${restFilter.accountTitleCombined}`);
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
-	if (restFilter.deleted) stringArray.push(`Is Deleted`);
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
 	if (restFilter.active) stringArray.push(`Is Active`);

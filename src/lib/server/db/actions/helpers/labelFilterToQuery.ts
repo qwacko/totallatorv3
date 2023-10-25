@@ -11,7 +11,6 @@ export const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
 	if (filter.idArray && filter.idArray.length > 0) where.push(inArray(label.id, filter.idArray));
 	if (filter.title) where.push(like(label.title, `%${filter.title}%`));
 	if (filter.status) where.push(eq(label.status, filter.status));
-	if (filter.deleted) where.push(eq(label.deleted, filter.deleted));
 	if (filter.disabled) where.push(eq(label.disabled, filter.disabled));
 	if (filter.allowUpdate) where.push(eq(label.allowUpdate, filter.allowUpdate));
 	if (filter.active) where.push(eq(label.active, filter.active));
@@ -60,7 +59,6 @@ export const labelFilterToText = async (
 	}
 	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
-	if (restFilter.deleted) stringArray.push(`Is Deleted`);
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
 	if (restFilter.active) stringArray.push(`Is Active`);

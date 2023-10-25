@@ -174,7 +174,7 @@ export const categoryActions = {
 		logging.info('Update Category: ', data, currentCategory);
 
 		if (!currentCategory) {
-			logging.info('Update Category: Category not found or deleted');
+			logging.info('Update Category: Category not found');
 			return id;
 		}
 
@@ -235,18 +235,6 @@ export const categoryActions = {
 			return true;
 		}
 		return false;
-	},
-	undelete: async (db: DBType, data: IdSchemaType) => {
-		const currentCategory = await db.query.category
-			.findFirst({ where: eq(category.id, data.id) })
-			.execute();
-		if (currentCategory && currentCategory.deleted) {
-			await db
-				.update(category)
-				.set({ ...statusUpdate('active'), ...updatedTime() })
-				.where(eq(category.id, data.id))
-				.execute();
-		}
 	},
 	seed: async (db: DBType, count: number) => {
 		logging.info('Seeding Categories : ', count);

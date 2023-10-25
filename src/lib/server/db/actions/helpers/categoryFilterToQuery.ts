@@ -18,7 +18,6 @@ export const categoryFilterToQuery = (
 	if (restFilter.group) where.push(ilike(category.title, `%${restFilter.group}%`));
 	if (restFilter.single) where.push(ilike(category.title, `%${restFilter.single}%`));
 	if (restFilter.status) where.push(eq(category.status, restFilter.status));
-	if (restFilter.deleted) where.push(eq(category.deleted, restFilter.deleted));
 	if (restFilter.disabled) where.push(eq(category.disabled, restFilter.disabled));
 	if (restFilter.allowUpdate) where.push(eq(category.allowUpdate, restFilter.allowUpdate));
 	if (restFilter.active) where.push(eq(category.active, restFilter.active));
@@ -70,7 +69,6 @@ export const categoryFilterToText = async (
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
 	if (restFilter.group) stringArray.push(`Group contains ${restFilter.group}`);
 	if (restFilter.single) stringArray.push(`Single contains ${restFilter.single}`);
-	if (restFilter.deleted) stringArray.push(`Is Deleted`);
 	if (restFilter.disabled) stringArray.push(`Is Disabled`);
 	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
 	if (restFilter.active) stringArray.push(`Is Active`);

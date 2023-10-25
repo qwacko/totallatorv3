@@ -163,7 +163,7 @@ export const budgetActions = {
 		logging.info('Update Budget: ', data, currentBudget);
 
 		if (!currentBudget) {
-			logging.info('Update Budget: Budget not found or deleted');
+			logging.info('Update Budget: Budget not found');
 			return id;
 		}
 
@@ -221,18 +221,6 @@ export const budgetActions = {
 						itemsForDeletion.map((item) => item.id)
 					)
 				)
-				.execute();
-		}
-	},
-	undelete: async (db: DBType, data: IdSchemaType) => {
-		const currentBudget = await db.query.budget
-			.findFirst({ where: eq(budget.id, data.id) })
-			.execute();
-		if (currentBudget && currentBudget.deleted) {
-			await db
-				.update(budget)
-				.set({ ...statusUpdate('active'), ...updatedTime() })
-				.where(eq(budget.id, data.id))
 				.execute();
 		}
 	},
