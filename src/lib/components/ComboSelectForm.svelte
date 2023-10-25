@@ -11,7 +11,6 @@
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms/client';
 
 	import ComboSelect from './ComboSelect.svelte';
-	import RawDataModal from './RawDataModal.svelte';
 
 	export let form: SuperForm<ZodValidation<T>, unknown>;
 	export let field: FormPathLeaves<z.infer<T>>;

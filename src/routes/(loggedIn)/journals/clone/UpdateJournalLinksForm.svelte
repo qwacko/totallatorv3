@@ -1,6 +1,5 @@
 <script lang="ts">
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
-	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import type { UpdateJournalSchemaSuperType } from '$lib/schema/journalSchema';
 
 	import type { SuperForm } from 'sveltekit-superforms/client';
