@@ -2,6 +2,7 @@
 	import DisplayCurrency from '../DisplayCurrency.svelte';
 
 	import {
+		Alert,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -21,6 +22,7 @@
 	type IDs = $$Generic<string>;
 	type RowData = $$Generic<Record<DataTitles, unknown>>;
 
+	export let noneFoundText = 'No Items Found';
 	export let data: RowData[];
 	export let columns: TableColumnsConfig<OrderKeys, RowData, IDs>;
 	export let currentOrder: OrderByType<OrderKeys> | undefined = undefined;
@@ -41,37 +43,41 @@
 <RawDataModal data={currentFilter} buttonText="Current Filter" dev={true} />
 <RawDataModal data={shownColumns} buttonText="Shown Columns" dev={true} />
 
-<Table>
-	<TableHead>
-		{#each shownColumns as column}
-			{@const currentColumn = columns.find((item) => item.id === column)}
-			{#if currentColumn}
-				<TableHeadCell>{currentColumn.title}</TableHeadCell>
-			{/if}
-		{/each}
-	</TableHead>
-	<TableBody>
-		{#each data as row}
-			<TableBodyRow>
-				{#each shownColumns as column}
-					{@const currentColumn = columns.find((item) => item.id === column)}
-					{#if currentColumn}
-						{#if currentColumn.rowToDisplay}
-							<TableBodyCell>
-								{currentColumn.rowToDisplay(row) || ''}
-							</TableBodyCell>
-						{:else if currentColumn.rowToCurrency}
-							<TableBodyCell>
-								<DisplayCurrency {...currentColumn.rowToCurrency(row)} />
-							</TableBodyCell>
-						{:else}
-							<TableBodyCell>
-								<slot name="customBodyCell" {currentColumn} {row}>No Content</slot>
-							</TableBodyCell>
+{#if data.length === 0}
+	<Alert color="dark">{noneFoundText}</Alert>
+{:else}
+	<Table>
+		<TableHead>
+			{#each shownColumns as column}
+				{@const currentColumn = columns.find((item) => item.id === column)}
+				{#if currentColumn}
+					<TableHeadCell>{currentColumn.title}</TableHeadCell>
+				{/if}
+			{/each}
+		</TableHead>
+		<TableBody>
+			{#each data as row}
+				<TableBodyRow>
+					{#each shownColumns as column}
+						{@const currentColumn = columns.find((item) => item.id === column)}
+						{#if currentColumn}
+							{#if currentColumn.rowToDisplay}
+								<TableBodyCell>
+									{currentColumn.rowToDisplay(row) || ''}
+								</TableBodyCell>
+							{:else if currentColumn.rowToCurrency}
+								<TableBodyCell>
+									<DisplayCurrency {...currentColumn.rowToCurrency(row)} />
+								</TableBodyCell>
+							{:else}
+								<TableBodyCell>
+									<slot name="customBodyCell" {currentColumn} {row}>No Content</slot>
+								</TableBodyCell>
+							{/if}
 						{/if}
-					{/if}
-				{/each}
-			</TableBodyRow>
-		{/each}
-	</TableBody>
-</Table>
+					{/each}
+				</TableBodyRow>
+			{/each}
+		</TableBody>
+	</Table>
+{/if}

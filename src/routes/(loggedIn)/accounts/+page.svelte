@@ -114,6 +114,7 @@
 		{/if}
 	</div>
 	<CustomTable
+		noneFoundText="No Matching Accounts Found"
 		data={data.accounts.data}
 		currentOrder={data.searchParams?.orderBy}
 		currentFilter={data.searchParams}
