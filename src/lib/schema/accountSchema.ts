@@ -41,6 +41,7 @@ export const accountOrderByEnum = [
 	'accountGroup3',
 	'accountGroupCombined',
 	'accountTitleCombined',
+	'type',
 	'isCash',
 	'isNetWorth',
 	'startDate',
@@ -60,6 +61,7 @@ type OrderByEnumTitles = {
 // This will be valid for demonstration purposes
 const enumTitles: OrderByEnumTitles = {
 	title: 'Title',
+	type: 'Account Type',
 	accountGroup: 'Account Group',
 	accountGroup2: 'Account Group 2',
 	accountGroup3: 'Account Group 3',

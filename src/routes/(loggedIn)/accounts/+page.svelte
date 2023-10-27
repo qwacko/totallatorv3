@@ -17,8 +17,6 @@
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
-	import { getOrderBy, modifyOrderBy } from '$lib/helpers/orderByHelper.js';
-	import SortIcon from '$lib/components/SortIcon.svelte';
 	import TablePagination from '$lib/components/TablePagination.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
@@ -29,12 +27,14 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
-	import { accountTypeEnum } from '$lib/schema/accountTypeSchema';
+	import { accountTypeEnum, accountTypeToDisplay } from '$lib/schema/accountTypeSchema';
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
+	import TableCustomHeadCell from '$lib/components/TableCustomHeadCell.svelte';
+	import CustomTable from '$lib/components/table/CustomTable.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -113,99 +113,110 @@
 			/>
 		{/if}
 	</div>
+
+	<CustomTable
+		data={data.accounts.data}
+		currentOrder={data.searchParams?.orderBy}
+		currentFilter={data.searchParams}
+		columns={[{ id: 'actions', title: '' }]}
+		shownColumns={['actions']}
+	/>
 	{#if data.accounts.count === 0}
-		<Alert color="dark">No Matching Accoounts Found</Alert>
+		<Alert color="dark">No Matching Accounts Found</Alert>
 	{:else}
 		<Table>
 			<TableHead>
 				<TableHeadCell></TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Account Group</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: {
-										orderBy: modifyOrderBy(data.searchParams?.orderBy, 'accountGroup')
-									}
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'accountGroup')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Account Group 2</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: {
-										orderBy: modifyOrderBy(data.searchParams?.orderBy, 'accountGroup2')
-									}
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'accountGroup2')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Account Group 3</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: {
-										orderBy: modifyOrderBy(data.searchParams?.orderBy, 'accountGroup3')
-									}
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'accountGroup3')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Title</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'title') }
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'title')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Status</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'status') }
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'status')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
+				<TableCustomHeadCell
+					title="Account Group"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="accountGroup"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
+				<TableCustomHeadCell
+					title="Account Group 2"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="accountGroup2"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
+				<TableCustomHeadCell
+					title="Account Group 3"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="accountGroup3"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
+				<TableCustomHeadCell
+					title="Title"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="title"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
+				<TableCustomHeadCell
+					title="Type"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="type"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
+				<TableCustomHeadCell
+					title="Status"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="status"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
+				<TableCustomHeadCell
+					title="Is Cash"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="isCash"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
+				<TableCustomHeadCell
+					title="Is Net Worth"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="isNetWorth"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
+				<TableCustomHeadCell
+					title="Start Date"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="startDate"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
+				<TableCustomHeadCell
+					title="End Date"
+					currentOrder={data.searchParams?.orderBy}
+					orderKey="endDate"
+					updateOrderByToURL={(newOrder) =>
+						urlInfo.updateParams({
+							searchParams: { orderBy: newOrder }
+						}).url}
+				/>
 				<TableHeadCell>Total</TableHeadCell>
 				<TableHeadCell>Count</TableHeadCell>
 			</TableHead>
@@ -251,7 +262,12 @@
 						<TableBodyCell>{currentAccount.accountGroup2}</TableBodyCell>
 						<TableBodyCell>{currentAccount.accountGroup3}</TableBodyCell>
 						<TableBodyCell>{currentAccount.title}</TableBodyCell>
+						<TableBodyCell>{accountTypeToDisplay(currentAccount.type)}</TableBodyCell>
 						<TableBodyCell>{statusToDisplay(currentAccount.status)}</TableBodyCell>
+						<TableBodyCell>{currentAccount.isCash ? 'Y' : ''}</TableBodyCell>
+						<TableBodyCell>{currentAccount.isNetWorth ? 'Y' : ''}</TableBodyCell>
+						<TableBodyCell>{currentAccount.startDate || ''}</TableBodyCell>
+						<TableBodyCell>{currentAccount.endDate || ''}</TableBodyCell>
 						<TableBodyCell>
 							<DisplayCurrency
 								amount={currentAccount.sum}
