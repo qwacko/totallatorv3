@@ -1,10 +1,13 @@
 import { writable } from 'svelte/store';
 
-export const popoverViewStore = writable<popoverViewOptions>('All');
+export const popoverViewStore = writable<popoverViewSetting>({
+	type: 'Line',
+	dateRange: 'toNow',
+	includeTransfers: false
+});
 
 export type popoverViewOptions =
-	| 'Recent'
-	| 'All'
+	| 'Line'
 	| 'Flow'
 	| 'Tag'
 	| 'Account'
@@ -12,9 +15,16 @@ export type popoverViewOptions =
 	| 'Bill'
 	| 'Budget';
 
+export type popoverViewDates = 'all' | 'last12' | 'toNow';
+
+export type popoverViewSetting = {
+	dateRange: popoverViewDates;
+	includeTransfers: boolean;
+	type: popoverViewOptions;
+};
+
 export const popoverViewEnum: popoverViewOptions[] = [
-	'Recent',
-	'All',
+	'Line',
 	'Flow',
 	'Tag',
 	'Account',

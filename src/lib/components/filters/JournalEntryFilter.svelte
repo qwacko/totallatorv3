@@ -69,10 +69,28 @@
 		errorMessage=""
 	/>
 
+	<div class="flex font-semibold text-black text-sm">Trasnfer</div>
+	<BooleanFilterButtons
+		onTitle="Transfer"
+		offTitle="Not Transfer"
+		bind:value={activeFilter.transfer}
+	/>
 	<div class="flex font-semibold text-black text-sm">Status</div>
-	<BooleanFilterButtons bind:value={activeFilter.complete} />
+	<BooleanFilterButtons
+		onTitle="Complete"
+		offTitle="Incomplete"
+		bind:value={activeFilter.complete}
+	/>
 	<div class="flex font-semibold text-black text-sm">Data Checked</div>
-	<BooleanFilterButtons bind:value={activeFilter.dataChecked} />
+	<BooleanFilterButtons
+		onTitle="Checked"
+		offTitle="Unchecked"
+		bind:value={activeFilter.dataChecked}
+	/>
 	<div class="flex font-semibold text-black text-sm">Reconciled</div>
-	<BooleanFilterButtons bind:value={activeFilter.reconciled} />
+	<BooleanFilterButtons
+		onTitle="Reconciled"
+		offTitle="Unreconciled"
+		bind:value={activeFilter.reconciled}
+	/>
 </div>

@@ -32,6 +32,7 @@ export const journalFilterToQuery = async (
 	if (filter.description) where.push(like(journalEntry.description, `%${filter.description}%`));
 	if (filter.dateAfter !== undefined) where.push(gte(journalEntry.dateText, filter.dateAfter));
 	if (filter.dateBefore !== undefined) where.push(lte(journalEntry.dateText, filter.dateBefore));
+	if (filter.transfer !== undefined) where.push(eq(journalEntry.transfer, filter.transfer));
 	if (filter.complete !== undefined) where.push(eq(journalEntry.complete, filter.complete));
 	if (filter.linked !== undefined) where.push(eq(journalEntry.linked, filter.linked));
 	if (filter.dataChecked !== undefined)
@@ -156,6 +157,8 @@ export const journalFilterToText = async (
 	if (filter.description) stringArray.push(`Description contains ${filter.description}`);
 	if (filter.dateAfter !== undefined) stringArray.push(`Date is after ${filter.dateAfter}`);
 	if (filter.dateBefore !== undefined) stringArray.push(`Date is before ${filter.dateBefore}`);
+	if (filter.transfer !== undefined)
+		stringArray.push(`Is ${filter.transfer ? 'Transfer' : 'Not A Transfer'}`);
 	if (filter.complete !== undefined)
 		stringArray.push(`Is ${filter.complete ? 'Complete' : 'Incomplete'}`);
 	if (filter.linked !== undefined)
