@@ -93,9 +93,26 @@ export const journalActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
+		const startDate12Months = new Date();
+		startDate12Months.setMonth(startDate12Months.getMonth() - 12 + 1);
+		const startLast12YearMonth = startDate12Months.toISOString().slice(0, 7);
+		const endLast12YearMonth = new Date().toISOString().slice(0, 7);
+
 		const commonSummary = {
 			count: sql`count(${journalEntry.id})`.mapWith(Number),
 			sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+			sum12Months:
+				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} then ${journalEntry.amount} else 0 END)`.mapWith(
+					Number
+				),
+			sum12MonthsWithoutTransfer:
+				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} AND ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
+					Number
+				),
+			sumWithoutTransfer:
+				sql`sum(CASE WHEN ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
+					Number
+				),
 			average: sql`avg(${journalEntry.amount})`.mapWith(Number),
 			earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
 			latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),

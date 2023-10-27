@@ -246,7 +246,8 @@ export const generatePIChartConfig = ({
 	height,
 	title,
 	removeNull = true,
-	onClick
+	onClick,
+	config
 }: {
 	data: SummaryItemDetailsType[];
 	formatter: ReturnType<typeof getCurrencyFormatter>;
@@ -254,8 +255,18 @@ export const generatePIChartConfig = ({
 	title: string;
 	removeNull?: boolean;
 	onClick?: (id: string | null | undefined) => Promise<unknown>;
+	config: popoverViewSetting;
 }): ChartProps => {
-	const sortedData = data
+	const usedData =
+		config.dateRange === 'all' || config.dateRange === 'toNow'
+			? config.includeTransfers
+				? data.map((item) => ({ ...item, sum: item.sum }))
+				: data.map((item) => ({ ...item, sum: item.sumWithoutTransfer }))
+			: config.includeTransfers
+			? data.map((item) => ({ ...item, sum: item.sum12Months }))
+			: data.map((item) => ({ ...item, sum: item.sum12MonthsWithoutTransfer }));
+
+	const sortedData = usedData
 		.sort((a, b) => b.sum - a.sum)
 		.filter((item) => item.sum !== 0)
 		.filter((item) => !removeNull || !(item.id === null || item.id === undefined));

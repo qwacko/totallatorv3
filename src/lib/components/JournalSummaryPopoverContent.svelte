@@ -105,6 +105,7 @@
 			{/each}
 		</Tabs>
 		<div class="min-h-[280px]">
+			<TimeAndTransferButtons bind:config={$popoverViewStore} />
 			{#if $popoverViewStore.type === 'Line'}
 				{@const chartConfig = generateTotalTrendConfig({
 					data: item.monthlySummary,
@@ -113,7 +114,6 @@
 					onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] }),
 					config: $popoverViewStore
 				})}
-				<TimeAndTransferButtons bind:config={$popoverViewStore} />
 				<Chart {...chartConfig} />
 			{/if}
 
@@ -125,7 +125,6 @@
 					onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] }),
 					config: $popoverViewStore
 				})}
-				<TimeAndTransferButtons bind:config={$popoverViewStore} />
 				<Chart {...recentFlowChartConfig} />
 			{/if}
 
@@ -140,7 +139,8 @@
 							? gotoUpdatedFilter({
 									account: { id, type: ['asset', 'liability', 'income', 'expense'] }
 							  })
-							: null
+							: null,
+					config: $popoverViewStore
 				})}
 				<Chart {...accountsChartConfig} />
 			{/if}
@@ -151,7 +151,8 @@
 					formatter,
 					height: chartHeight,
 					title: 'Tag',
-					onClick: async (id) => (id ? gotoUpdatedFilter({ tag: { id } }) : null)
+					onClick: async (id) => (id ? gotoUpdatedFilter({ tag: { id } }) : null),
+					config: $popoverViewStore
 				})}
 				<Chart {...tagsChartConfig} />
 			{/if}
@@ -162,7 +163,8 @@
 					formatter,
 					height: chartHeight,
 					title: 'Category',
-					onClick: async (id) => (id ? gotoUpdatedFilter({ category: { id } }) : null)
+					onClick: async (id) => (id ? gotoUpdatedFilter({ category: { id } }) : null),
+					config: $popoverViewStore
 				})}
 				<Chart {...categoriesChartConfig} />
 			{/if}
@@ -173,7 +175,8 @@
 					formatter,
 					height: chartHeight,
 					title: 'Bills',
-					onClick: async (id) => (id ? gotoUpdatedFilter({ bill: { id } }) : null)
+					onClick: async (id) => (id ? gotoUpdatedFilter({ bill: { id } }) : null),
+					config: $popoverViewStore
 				})}
 				<Chart {...billsChartConfig} />
 			{/if}
@@ -184,7 +187,8 @@
 					formatter,
 					height: chartHeight,
 					title: 'Budget',
-					onClick: async (id) => (id ? gotoUpdatedFilter({ budget: { id } }) : null)
+					onClick: async (id) => (id ? gotoUpdatedFilter({ budget: { id } }) : null),
+					config: $popoverViewStore
 				})}
 				<Chart {...budgetsChartConfig} />
 			{/if}
