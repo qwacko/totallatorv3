@@ -113,14 +113,83 @@
 			/>
 		{/if}
 	</div>
-
 	<CustomTable
 		data={data.accounts.data}
 		currentOrder={data.searchParams?.orderBy}
 		currentFilter={data.searchParams}
-		columns={[{ id: 'actions', title: '' }]}
-		shownColumns={['actions']}
-	/>
+		columns={[
+			{ id: 'actions', title: '' },
+			{ id: 'accountGroup', title: 'Account Group', rowToDisplay: (row) => row.accountGroup },
+			{ id: 'accountGroup2', title: 'Account Group 2', rowToDisplay: (row) => row.accountGroup2 },
+			{ id: 'accountGroup3', title: 'Account Group 3', rowToDisplay: (row) => row.accountGroup3 },
+			{ id: 'type', title: 'Type', rowToDisplay: (row) => accountTypeToDisplay(row.type) },
+			{ id: 'status', title: 'Status', rowToDisplay: (row) => statusToDisplay(row.status) },
+			{ id: 'title', title: 'Title', rowToDisplay: (row) => row.title },
+			{ id: 'isCash', title: 'Cash', rowToDisplay: (row) => (row.isCash ? 'Y' : '') },
+			{ id: 'isNetWorth', title: 'Net Worth', rowToDisplay: (row) => (row.isNetWorth ? 'Y' : '') },
+			{ id: 'startDate', title: 'Start Date', rowToDisplay: (row) => row.startDate },
+			{ id: 'endDate', title: 'End Date', rowToDisplay: (row) => row.endDate },
+			{
+				id: 'total',
+				title: 'Total',
+				rowToCurrency: (row) => ({ amount: row.sum, format: data.user?.currencyFormat || 'USD' })
+			},
+			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() }
+		]}
+		shownColumns={[
+			'actions',
+			'accountGroup',
+			'accountGroup2',
+			'accountGroup3',
+			'title',
+			'type',
+			'status',
+			'isCash',
+			'isNetWorth',
+			'startDate',
+			'endDate',
+			'total',
+			'count'
+		]}
+	>
+		<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#if currentColumn.id === 'actions'}
+				{@const detailURL = urlGenerator({
+					address: '/(loggedIn)/accounts/[id]',
+					paramsValue: { id: currentRow.id }
+				}).url}
+
+				{@const deleteURL = urlGenerator({
+					address: '/(loggedIn)/accounts/[id]/delete',
+					paramsValue: { id: currentRow.id }
+				}).url}
+				{@const journalsURL = urlGenerator({
+					address: '/(loggedIn)/journals',
+					searchParamsValue: {
+						...defaultJournalFilter(),
+						account: {
+							id: currentRow.id,
+							type: [...accountTypeEnum]
+						}
+					}
+				}).url}
+				<div class="flex flex-row justify-center">
+					<ButtonGroup>
+						<Button href={journalsURL} class="p-2" outline color="blue">
+							<JournalEntryIcon height={15} width={15} />
+						</Button>
+						<Button href={detailURL} class="p-2" outline>
+							<EditIcon height={15} width={15} />
+						</Button>
+						<Button href={deleteURL} class="p-2" outline color="red">
+							<DeleteIcon height={15} width={15} />
+						</Button>
+						<RawDataModal data={currentRow} title="Raw Account Data" dev={data.dev} />
+					</ButtonGroup>
+				</div>
+			{/if}
+		</svelte:fragment>
+	</CustomTable>
 	{#if data.accounts.count === 0}
 		<Alert color="dark">No Matching Accounts Found</Alert>
 	{:else}
