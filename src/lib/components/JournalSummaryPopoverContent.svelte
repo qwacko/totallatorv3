@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getCurrencyFormatter, type currencyFormatType } from '$lib/schema/userSchema';
 
-	import { Chart, Tabs, TabItem, Button } from 'flowbite-svelte';
+	import { Chart, Tabs, TabItem, Button, ButtonGroup } from 'flowbite-svelte';
 	import {
 		generateFlowTrendConfig,
 		generatePIChartConfig,
@@ -22,6 +22,7 @@
 	import { popoverViewEnum, popoverViewStore, showSummaryStore } from '$lib/stores/popoverView';
 	import EyeIcon from './icons/EyeIcon.svelte';
 	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
+	import TimeAndTransferButtons from './journalSummary/TimeAndTransferButtons.svelte';
 
 	export let item: SummaryCacheSchemaDataType;
 	export let format: currencyFormatType = 'USD';
@@ -64,71 +65,7 @@
 	$: last12Months = filterTrendData({ data: item.monthlySummary, dates: latestYearMonth });
 
 	$: formatter = getCurrencyFormatter(format);
-	$: chartConfig = generateTotalTrendConfig({
-		data: item.monthlySummary,
-		formatter,
-		height: chartHeight,
-		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] })
-	});
-	$: recentChartConfig = generateTotalTrendConfig({
-		data: last12Months,
-		formatter,
-		height: chartHeight,
-		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] })
-	});
-	$: recentFlowChartConfig = generateFlowTrendConfig({
-		data: last12Months,
-		formatter,
-		height: chartHeight,
-		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] }),
-		includeTransfers: true
-	});
 
-	$: recentFlowNoTransfersChartConfig = generateFlowTrendConfig({
-		data: last12Months,
-		formatter,
-		height: chartHeight,
-		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] }),
-		includeTransfers: false
-	});
-	$: accountsChartConfig = generatePIChartConfig({
-		data: item.accounts,
-		formatter,
-		height: chartHeight,
-		title: 'Account',
-		onClick: async (id) =>
-			id
-				? gotoUpdatedFilter({ account: { id, type: ['asset', 'liability', 'income', 'expense'] } })
-				: null
-	});
-	$: tagsChartConfig = generatePIChartConfig({
-		data: item.tags,
-		formatter,
-		height: chartHeight,
-		title: 'Tag',
-		onClick: async (id) => (id ? gotoUpdatedFilter({ tag: { id } }) : null)
-	});
-	$: billsChartConfig = generatePIChartConfig({
-		data: item.bills,
-		formatter,
-		height: chartHeight,
-		title: 'Bills',
-		onClick: async (id) => (id ? gotoUpdatedFilter({ bill: { id } }) : null)
-	});
-	$: budgetsChartConfig = generatePIChartConfig({
-		data: item.budgets,
-		formatter,
-		height: chartHeight,
-		title: 'Budget',
-		onClick: async (id) => (id ? gotoUpdatedFilter({ budget: { id } }) : null)
-	});
-	$: categoriesChartConfig = generatePIChartConfig({
-		data: item.categories,
-		formatter,
-		height: chartHeight,
-		title: 'Category',
-		onClick: async (id) => (id ? gotoUpdatedFilter({ category: { id } }) : null)
-	});
 	$: yearChange = last12Months.reduce((prev, current) => prev + current.sum, 0);
 </script>
 
@@ -161,46 +98,94 @@
 		<Tabs contentClass="" style="underline">
 			{#each popoverViewEnum as currentItem}
 				<TabItem
-					open={$popoverViewStore === currentItem}
+					open={$popoverViewStore.type === currentItem}
 					title={currentItem}
-					on:click={() => ($popoverViewStore = currentItem)}
+					on:click={() => ($popoverViewStore.type = currentItem)}
 				/>
 			{/each}
 		</Tabs>
 		<div class="min-h-[280px]">
-			{#if $popoverViewStore === 'Recent'}
-				<Chart {...recentChartConfig} />
-			{/if}
-
-			{#if $popoverViewStore === 'All'}
+			{#if $popoverViewStore.type === 'Line'}
+				{@const chartConfig = generateTotalTrendConfig({
+					data: item.monthlySummary,
+					formatter,
+					height: chartHeight,
+					onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] }),
+					config: $popoverViewStore
+				})}
+				<TimeAndTransferButtons bind:config={$popoverViewStore} />
 				<Chart {...chartConfig} />
 			{/if}
 
-			{#if $popoverViewStore === 'Flow'}
+			{#if $popoverViewStore.type === 'Flow'}
+				{@const recentFlowChartConfig = generateFlowTrendConfig({
+					data: item.monthlySummary,
+					formatter,
+					height: chartHeight,
+					onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] }),
+					config: $popoverViewStore
+				})}
+				<TimeAndTransferButtons bind:config={$popoverViewStore} />
 				<Chart {...recentFlowChartConfig} />
 			{/if}
 
-			{#if $popoverViewStore === 'Flow (No Transfer)'}
-				<Chart {...recentFlowNoTransfersChartConfig} />
-			{/if}
-
-			{#if $popoverViewStore === 'Account'}
+			{#if $popoverViewStore.type === 'Account'}
+				{@const accountsChartConfig = generatePIChartConfig({
+					data: item.accounts,
+					formatter,
+					height: chartHeight,
+					title: 'Account',
+					onClick: async (id) =>
+						id
+							? gotoUpdatedFilter({
+									account: { id, type: ['asset', 'liability', 'income', 'expense'] }
+							  })
+							: null
+				})}
 				<Chart {...accountsChartConfig} />
 			{/if}
 
-			{#if $popoverViewStore === 'Tag'}
+			{#if $popoverViewStore.type === 'Tag'}
+				{@const tagsChartConfig = generatePIChartConfig({
+					data: item.tags,
+					formatter,
+					height: chartHeight,
+					title: 'Tag',
+					onClick: async (id) => (id ? gotoUpdatedFilter({ tag: { id } }) : null)
+				})}
 				<Chart {...tagsChartConfig} />
 			{/if}
 
-			{#if $popoverViewStore === 'Category'}
+			{#if $popoverViewStore.type === 'Category'}
+				{@const categoriesChartConfig = generatePIChartConfig({
+					data: item.categories,
+					formatter,
+					height: chartHeight,
+					title: 'Category',
+					onClick: async (id) => (id ? gotoUpdatedFilter({ category: { id } }) : null)
+				})}
 				<Chart {...categoriesChartConfig} />
 			{/if}
 
-			{#if $popoverViewStore === 'Bill'}
+			{#if $popoverViewStore.type === 'Bill'}
+				{@const billsChartConfig = generatePIChartConfig({
+					data: item.bills,
+					formatter,
+					height: chartHeight,
+					title: 'Bills',
+					onClick: async (id) => (id ? gotoUpdatedFilter({ bill: { id } }) : null)
+				})}
 				<Chart {...billsChartConfig} />
 			{/if}
 
-			{#if $popoverViewStore === 'Budget'}
+			{#if $popoverViewStore.type === 'Budget'}
+				{@const budgetsChartConfig = generatePIChartConfig({
+					data: item.budgets,
+					formatter,
+					height: chartHeight,
+					title: 'Budget',
+					onClick: async (id) => (id ? gotoUpdatedFilter({ budget: { id } }) : null)
+				})}
 				<Chart {...budgetsChartConfig} />
 			{/if}
 		</div>
