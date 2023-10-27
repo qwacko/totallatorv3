@@ -14,8 +14,6 @@ export function generateYearMonthsBetween(start: string, end: string): string[] 
 		startDate.setMonth(startDate.getMonth() + 1);
 	}
 
-	console.log('Year Months Between', result, { startDate, endDate });
-
 	return result;
 }
 
