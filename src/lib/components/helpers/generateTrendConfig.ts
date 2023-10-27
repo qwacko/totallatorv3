@@ -25,8 +25,6 @@ const filterData = ({
 		'0000-00'
 	);
 
-	console.log('Dates : ', { earliestDataDate, latestDataDate });
-
 	return config.dateRange === 'all'
 		? filterTrendData({ data, dates: generateYearMonthsBetween(earliestDataDate, latestDataDate) })
 		: config.dateRange === 'last12'
