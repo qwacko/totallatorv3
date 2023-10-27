@@ -21,6 +21,8 @@ const monthlySummarySchema = z.object({
 	positiveCount: z.coerce.number(),
 	negativeSum: z.coerce.number(),
 	positiveSum: z.coerce.number(),
+	positiveSumNonTransfer: z.coerce.number(),
+	negativeSumNonTransfer: z.coerce.number(),
 	yearMonth: z.coerce.string(),
 	runningTotal: z.coerce.number(),
 	runningCount: z.coerce.number()

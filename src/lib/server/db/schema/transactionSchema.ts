@@ -211,7 +211,9 @@ const journalSharedColumns = {
 	linked: integer('linked', { mode: 'boolean' }).notNull().default(true),
 	reconciled: integer('reconciled', { mode: 'boolean' }).notNull().default(false),
 	dataChecked: integer('data_checked', { mode: 'boolean' }).notNull().default(false),
-	complete: integer('complete', { mode: 'boolean' }).notNull().default(false)
+	complete: integer('complete', { mode: 'boolean' }).notNull().default(false),
+
+	transfer: integer('transfer', { mode: 'boolean' }).notNull().default(true)
 };
 
 export const transaction = sqliteTable('transaction', {

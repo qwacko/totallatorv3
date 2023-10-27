@@ -80,7 +80,16 @@
 		data: last12Months,
 		formatter,
 		height: chartHeight,
-		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] })
+		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] }),
+		includeTransfers: true
+	});
+
+	$: recentFlowNoTransfersChartConfig = generateFlowTrendConfig({
+		data: last12Months,
+		formatter,
+		height: chartHeight,
+		onYearMonthClick: (yearMonth) => gotoUpdatedFilter({ yearMonth: [yearMonth] }),
+		includeTransfers: false
 	});
 	$: accountsChartConfig = generatePIChartConfig({
 		data: item.accounts,
@@ -169,6 +178,10 @@
 
 			{#if $popoverViewStore === 'Flow'}
 				<Chart {...recentFlowChartConfig} />
+			{/if}
+
+			{#if $popoverViewStore === 'Flow (No Transfer)'}
+				<Chart {...recentFlowNoTransfersChartConfig} />
 			{/if}
 
 			{#if $popoverViewStore === 'Account'}

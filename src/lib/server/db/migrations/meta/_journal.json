@@ -169,6 +169,13 @@
       "when": 1698196537412,
       "tag": "0023_volatile_frog_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1698341821843,
+      "tag": "0024_tearful_warlock",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,6 @@
-import { backupDB } from '../db/db';
+import { updateManyTransferInfo } from '../db/actions/helpers/updateTransactionTransfer';
+import { backupDB, db } from '../db/db';
+import { logging } from '../logging';
 import { serverEnv } from '../serverEnv';
 import type { CronJob } from './cron';
 
@@ -12,7 +14,10 @@ export const cronJobs: CronJob[] = [
 	},
 	{
 		name: 'Regular Journal Cleanup / Fix',
-		schedule: '* * * * *',
-		job: async () => {}
+		schedule: '0 * * * *',
+		job: async () => {
+			logging.info('CRON: Updating Journal Transfer Settings');
+			updateManyTransferInfo({ db: db });
+		}
 	}
 ];

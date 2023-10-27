@@ -13,10 +13,10 @@ export const processCronJobs = (cronJobs: CronJob[]) => {
 	});
 };
 
-let cronJobsRunning: unknown | undefined;
+let cronJobsRunning: unknown | undefined | schedule.Job[];
 
 export const initateCronJobs = () => {
-	if (cronJobsRunning) {
+	if (cronJobsRunning || schedule.scheduledJobs) {
 		//Cancels all the jobs before starting them again
 		schedule.gracefulShutdown();
 	}

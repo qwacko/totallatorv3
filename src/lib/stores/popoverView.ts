@@ -6,6 +6,7 @@ export type popoverViewOptions =
 	| 'Recent'
 	| 'All'
 	| 'Flow'
+	| 'Flow (No Transfer)'
 	| 'Tag'
 	| 'Account'
 	| 'Category'
@@ -16,6 +17,7 @@ export const popoverViewEnum: popoverViewOptions[] = [
 	'Recent',
 	'All',
 	'Flow',
+	'Flow (No Transfer)',
 	'Tag',
 	'Account',
 	'Category',

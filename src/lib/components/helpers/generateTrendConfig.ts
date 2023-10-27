@@ -99,30 +99,38 @@ export const generateFlowTrendConfig = ({
 	data,
 	formatter,
 	height,
-	onYearMonthClick
+	onYearMonthClick,
+	includeTransfers = false
 }: {
 	data: JournalSummaryType['monthlySummary'];
 	formatter: ReturnType<typeof getCurrencyFormatter>;
 	height: string;
 	onYearMonthClick?: (yearMonth: string) => void;
+	includeTransfers?: boolean;
 }): ChartProps => ({
 	options: {
 		series: [
 			{
 				name: 'Inflow',
 				color: '#31C48D',
-				data: data.map((item) => item.positiveSum),
+				data: data.map((item) =>
+					includeTransfers ? item.positiveSum : item.positiveSumNonTransfer
+				),
 				type: 'column'
 			},
 			{
 				name: 'Outflow',
-				data: data.map((item) => item.negativeSum),
+				data: data.map((item) =>
+					includeTransfers ? item.negativeSum : item.negativeSumNonTransfer
+				),
 				color: '#F05252',
 				type: 'column'
 			},
 			{
 				name: 'Sum',
-				data: data.map((item) => item.sum),
+				data: data.map((item) =>
+					includeTransfers ? item.sum : item.positiveSumNonTransfer + item.negativeSumNonTransfer
+				),
 				color: 'black',
 				type: 'line'
 			}
