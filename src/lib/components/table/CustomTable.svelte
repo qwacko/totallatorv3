@@ -64,6 +64,7 @@
 	export let hideBottomPagination: boolean = false;
 	export let highlightText: string = '';
 	export let highlightTextColumns: IDs[] = [];
+	export let rowColour: (row: RowData) => undefined | 'grey' = () => undefined;
 
 	$: sortOptions = filterNullUndefinedAndDuplicates(
 		columns.filter((item) => item.sortKey).map((item) => item.sortKey)
@@ -133,7 +134,9 @@
 		</TableHead>
 		<TableBody>
 			{#each data as row}
-				<TableBodyRow>
+				{@const thisRowColour = rowColour(row)}
+				{@const isGrey = thisRowColour === 'grey'}
+				<TableBodyRow class={isGrey ? 'bg-primary-50' : ''}>
 					{#each shownColumns as column}
 						{@const currentColumn = columns.find((item) => item.id === column)}
 						{#if currentColumn}

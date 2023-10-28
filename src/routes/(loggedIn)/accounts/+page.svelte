@@ -138,6 +138,7 @@
 			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() }
 		]}
 		bind:shownColumns={$accountColumnsStore}
+		rowColour={(row) => (row.disabled ? 'grey' : undefined)}
 	>
 		<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
 			{#if currentColumn.id === 'actions'}

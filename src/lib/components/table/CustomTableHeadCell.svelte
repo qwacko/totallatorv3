@@ -87,6 +87,7 @@
 				<div class="flex flex-grow pr-4">Sorting</div>
 				<Button
 					data-sveltekit-noscroll
+					data-sveltekit-keepfocus
 					href={setAscendingURL()}
 					size="sm"
 					outline={!isAscending}
@@ -97,6 +98,7 @@
 				</Button>
 				<Button
 					data-sveltekit-noscroll
+					data-sveltekit-keepfocus
 					href={setDescendingURL()}
 					size="sm"
 					outline={!isDescending}
@@ -107,6 +109,7 @@
 				</Button>
 				<Button
 					data-sveltekit-noscroll
+					data-sveltekit-keepfocus
 					href={setNoneURL()}
 					size="sm"
 					outline={!isNone}
