@@ -1,5 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { createBillSchema } from '$lib/schema/billSchema.js';
+import { billPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db.js';
 import { logging } from '$lib/server/logging';
@@ -16,7 +17,7 @@ export const load = async (data) => {
 
 export const actions = {
 	default: async ({ request }) => {
-		const form = await superValidate(request, createBillSchema);
+		const form = await superValidate(request, createBillSchema.merge(billPageAndFilterValidation));
 
 		if (!form.valid) {
 			return { form };
@@ -28,6 +29,6 @@ export const actions = {
 			logging.info('Create Bill Error', e);
 			return message(form, 'Error Creating Bill, Possibly Already Exists');
 		}
-		throw redirect(302, '/bills');
+		throw redirect(302, form.data.prevPage);
 	}
 };

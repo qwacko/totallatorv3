@@ -19,7 +19,7 @@
 	const { form, errors, constraints, message, enhance } = superForm<UpdateBudgetSchemaSuperType>(
 		data.form
 	);
-	$: urlInfo = pageInfo('/(loggedIn)/tags/[id]', $page);
+	$: urlInfo = pageInfo('/(loggedIn)/budgets/[id]', $page);
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/budgets/[id]/delete',
 		paramsValue: { id: data.budget.id }

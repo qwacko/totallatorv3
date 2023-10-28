@@ -20,7 +20,7 @@
 		data.form
 	);
 
-	$: urlInfo = pageInfo('/(loggedIn)/tags/[id]', $page);
+	$: urlInfo = pageInfo('/(loggedIn)/bills/[id]', $page);
 
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/bills/[id]/delete',

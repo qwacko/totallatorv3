@@ -9,18 +9,25 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
+	import { page } from '$app/stores';
+	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
+	import { pageInfo } from '$lib/routes';
 
 	export let data;
 
 	const { form, errors, constraints, message, enhance } = superForm<CreateCategorySchemaSuperType>(
 		data.form
 	);
+
+	$: urlInfo = pageInfo('/(loggedIn)/categories/create', $page);
 </script>
 
 <CustomHeader pageTitle="New Category" />
 
 <PageLayout title="Create Category" size="xs">
 	<form method="POST" use:enhance class="flex flex-col gap-2">
+		<PreviousUrlInput name="prevPage" />
+		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<TextInput
 			title="Title"
 			errorMessage={$errors.title}

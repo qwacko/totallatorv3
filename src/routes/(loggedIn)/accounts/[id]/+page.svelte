@@ -22,7 +22,7 @@
 	const { form, errors, constraints, message, enhance } = superForm<UpdateAccountSchemaSuperType>(
 		data.form
 	);
-	$: urlInfo = pageInfo('/(loggedIn)/tags/[id]', $page);
+	$: urlInfo = pageInfo('/(loggedIn)/accounts/[id]', $page);
 
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/accounts/[id]/delete',

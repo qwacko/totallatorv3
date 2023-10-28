@@ -20,7 +20,7 @@
 		data.form
 	);
 
-	$: urlInfo = pageInfo('/(loggedIn)/tags/[id]', $page);
+	$: urlInfo = pageInfo('/(loggedIn)/categories/[id]', $page);
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/categories/[id]/delete',
 		paramsValue: { id: data.category.id }
