@@ -72,13 +72,17 @@
 </script>
 
 <TableHeadCell class="{showDropdown ? 'hover:cursor-pointer hover:bg-primary-200' : ''} p-0">
-	{#if showDropdown}
-		<button class="w-full h-full p-4">
-			<P size="xs" weight="bold" class="text-primary-600" space="tight">{title.toUpperCase()}</P>
-		</button>
-	{:else}
-		<P size="xs" weight="bold" class="text-primary-600 p-4" space="tight">{title.toUpperCase()}</P>
-	{/if}
+	<button class="flex w-full h-full p-4 items-center gap-2">
+		<P size="xs" weight="bold" class="text-primary-600  " space="tight">
+			{title.toUpperCase()}
+		</P>
+		{#if isAscending}
+			<SortIcon direction="asc" />
+		{/if}
+		{#if isDescending}
+			<SortIcon direction="desc" />
+		{/if}
+	</button>
 	{#if showDropdown}
 		<Dropdown bind:open={opened}>
 			<DropdownItem class="flex flex-row gap-2 items-center">
