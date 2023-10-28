@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { is } from 'drizzle-orm';
-
 	import { Button, Dropdown, DropdownItem, P, TableHeadCell } from 'flowbite-svelte';
 	import SortIcon from '../SortIcon.svelte';
 	import DeleteIcon from '../icons/DeleteIcon.svelte';
