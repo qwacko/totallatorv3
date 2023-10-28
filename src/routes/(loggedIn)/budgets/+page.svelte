@@ -40,7 +40,7 @@
 	numPages={data.budgets.pageCount}
 />
 
-<PageLayout title="Budgets" size="lg">
+<PageLayout title="Budgets" size="xl">
 	<svelte:fragment slot="right">
 		<Button
 			href={urlGenerator({ address: '/(loggedIn)/budgets/create' }).url}
@@ -93,7 +93,17 @@
 				title: 'Total',
 				rowToCurrency: (row) => ({ amount: row.sum, format: data.user?.currencyFormat || 'USD' })
 			},
-			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() }
+			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() },
+			{
+				id: 'firstDate',
+				title: 'First',
+				rowToDisplay: (row) => (row.firstDate ? row.firstDate.toISOString().slice(0, 10) : '')
+			},
+			{
+				id: 'lastDate',
+				title: 'Last',
+				rowToDisplay: (row) => (row.lastDate ? row.lastDate.toISOString().slice(0, 10) : '')
+			}
 		]}
 		bind:shownColumns={$budgetColumnsStore}
 		rowColour={(row) => (row.disabled ? 'grey' : undefined)}

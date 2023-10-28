@@ -40,7 +40,7 @@
 	numPages={data.bills.pageCount}
 />
 
-<PageLayout title="Bills" size="lg">
+<PageLayout title="Bills" size="xl">
 	<svelte:fragment slot="right">
 		<Button href={urlGenerator({ address: '/(loggedIn)/bills/create' }).url} color="light" outline>
 			Create
@@ -88,7 +88,17 @@
 				title: 'Total',
 				rowToCurrency: (row) => ({ amount: row.sum, format: data.user?.currencyFormat || 'USD' })
 			},
-			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() }
+			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() },
+			{
+				id: 'firstDate',
+				title: 'First',
+				rowToDisplay: (row) => (row.firstDate ? row.firstDate.toISOString().slice(0, 10) : '')
+			},
+			{
+				id: 'lastDate',
+				title: 'Last',
+				rowToDisplay: (row) => (row.lastDate ? row.lastDate.toISOString().slice(0, 10) : '')
+			}
 		]}
 		bind:shownColumns={$billColumnsStore}
 		rowColour={(row) => (row.disabled ? 'grey' : undefined)}

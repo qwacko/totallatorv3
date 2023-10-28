@@ -40,7 +40,7 @@
 	numPages={data.labels.pageCount}
 />
 
-<PageLayout title="Labels" size="lg">
+<PageLayout title="Labels" size="xl">
 	<svelte:fragment slot="right">
 		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/labels/create' }).url}>
 			Create
@@ -88,7 +88,17 @@
 				title: 'Total',
 				rowToCurrency: (row) => ({ amount: row.sum, format: data.user?.currencyFormat || 'USD' })
 			},
-			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() }
+			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() },
+			{
+				id: 'firstDate',
+				title: 'First',
+				rowToDisplay: (row) => (row.firstDate ? row.firstDate.toISOString().slice(0, 10) : '')
+			},
+			{
+				id: 'lastDate',
+				title: 'Last',
+				rowToDisplay: (row) => (row.lastDate ? row.lastDate.toISOString().slice(0, 10) : '')
+			}
 		]}
 		bind:shownColumns={$labelColumnsStore}
 		rowColour={(row) => (row.disabled ? 'grey' : undefined)}

@@ -66,7 +66,9 @@ export const budgetActions = {
 				count:
 					sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
 						Number
-					)
+					),
+				firstDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date),
+				lastDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date)
 			})
 			.from(budget)
 			.where(and(...where))

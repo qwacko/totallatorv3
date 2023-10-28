@@ -70,7 +70,9 @@ export const accountActions = {
 			.select({
 				...getTableColumns(account),
 				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
-				count: sql`count(${journalEntry.id})`.mapWith(Number)
+				count: sql`count(${journalEntry.id})`.mapWith(Number),
+				firstDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date),
+				lastDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date)
 			})
 			.from(account)
 			.where(and(...where))

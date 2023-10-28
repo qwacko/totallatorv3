@@ -40,7 +40,7 @@
 	numPages={data.tags.pageCount}
 />
 
-<PageLayout title="Tags" size="lg">
+<PageLayout title="Tags" size="xl">
 	<svelte:fragment slot="right">
 		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>
 			Create
@@ -100,7 +100,17 @@
 				title: 'Total',
 				rowToCurrency: (row) => ({ amount: row.sum, format: data.user?.currencyFormat || 'USD' })
 			},
-			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() }
+			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() },
+			{
+				id: 'firstDate',
+				title: 'First',
+				rowToDisplay: (row) => (row.firstDate ? row.firstDate.toISOString().slice(0, 10) : '')
+			},
+			{
+				id: 'lastDate',
+				title: 'Last',
+				rowToDisplay: (row) => (row.lastDate ? row.lastDate.toISOString().slice(0, 10) : '')
+			}
 		]}
 		bind:shownColumns={$tagColumnsStore}
 		rowColour={(row) => (row.disabled ? 'grey' : undefined)}
