@@ -19,6 +19,7 @@
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
 	import AccountFilter from '$lib/components/filters/AccountFilter.svelte';
+	import { accountColumnsStore } from '$lib/stores/columnDisplayStores.js';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -33,22 +34,6 @@
 		},
 		updateDelay: 500
 	});
-
-	let shownColumns = [
-		'actions',
-		'accountGroup',
-		'accountGroup2',
-		'accountGroup3',
-		'title',
-		'type',
-		'status',
-		'isCash',
-		'isNetWorth',
-		'startDate',
-		'endDate',
-		'total',
-		'count'
-	];
 </script>
 
 <CustomHeader
@@ -152,7 +137,7 @@
 			},
 			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() }
 		]}
-		bind:shownColumns
+		bind:shownColumns={$accountColumnsStore}
 	>
 		<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
 			{#if currentColumn.id === 'actions'}
