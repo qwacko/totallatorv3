@@ -15,8 +15,7 @@
 		TableBody,
 		TableBodyCell,
 		TableBodyRow,
-		TableHead,
-		TableHeadCell
+		TableHead
 	} from 'flowbite-svelte';
 
 	import type { OrderByType } from '$lib/helpers/orderByHelper';
@@ -26,6 +25,7 @@
 	import { filterNullUndefinedAndDuplicates } from '../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 	import FilterIcon from '../icons/FilterIcon.svelte';
 	import HighlightText from '../HighlightText.svelte';
+	import CustomTableHeadCell from './CustomTableHeadCell.svelte';
 
 	type OrderKeys = $$Generic<string>;
 	type DataTitles = $$Generic<string>;
@@ -122,7 +122,12 @@
 			{#each shownColumns as column}
 				{@const currentColumn = columns.find((item) => item.id === column)}
 				{#if currentColumn}
-					<TableHeadCell>{currentColumn.title}</TableHeadCell>
+					<CustomTableHeadCell
+						title={currentColumn.title}
+						sortKey={currentColumn.sortKey}
+						currentSort={currentOrder}
+						{onSortURL}
+					/>
 				{/if}
 			{/each}
 		</TableHead>
