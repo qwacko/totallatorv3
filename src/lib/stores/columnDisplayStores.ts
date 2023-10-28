@@ -17,3 +17,5 @@ export const accountColumnsStore = writable([
 	'total',
 	'count'
 ]);
+
+export const tagColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);

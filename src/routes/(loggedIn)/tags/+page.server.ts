@@ -29,6 +29,7 @@ export const load = async (data) => {
 		tags,
 		searchParams: pageInfo.searchParams,
 		filterText: tagFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
-		tagSummary
+		tagSummary,
+		tagDropdowns: tActions.tag.listForDropdown({ db })
 	};
 };

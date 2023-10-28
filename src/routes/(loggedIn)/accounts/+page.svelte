@@ -42,7 +42,6 @@
 	pageNumber={data.accounts.page}
 	numPages={data.accounts.pageCount}
 />
-
 <PageLayout title="Accounts" size="xl">
 	<svelte:fragment slot="right">
 		<Button
@@ -60,7 +59,6 @@
 		summaryFilter={{ account: $urlStore.searchParams } || defaultJournalFilter}
 		showJournalLink
 	/>
-
 	<CustomTable
 		highlightText={$urlStore.searchParams?.accountTitleCombined}
 		highlightTextColumns={['title', 'accountGroup', 'accountGroup2', 'accountGroup3']}
