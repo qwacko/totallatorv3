@@ -29,6 +29,7 @@ export const load = async (data) => {
 		bills,
 		searchParams: pageInfo.searchParams,
 		filterText: billFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
-		billSummary
+		billSummary,
+		billDropdowns: tActions.bill.listForDropdown({ db })
 	};
 };

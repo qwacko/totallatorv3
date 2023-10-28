@@ -95,7 +95,11 @@
 				rowToDisplay: (row) => statusToDisplay(row.status),
 				sortKey: 'status'
 			},
-			{ id: 'total', title: 'Total', rowToCurrency: (row) => row.sum },
+			{
+				id: 'total',
+				title: 'Total',
+				rowToCurrency: (row) => ({ amount: row.sum, format: data.user?.currencyFormat || 'USD' })
+			},
 			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() }
 		]}
 		bind:shownColumns={$tagColumnsStore}
@@ -130,7 +134,7 @@
 						<Button href={deleteURL} class="p-2" outline color="red">
 							<DeleteIcon height={15} width={15} />
 						</Button>
-						<RawDataModal data={currentRow} title="Raw Account Data" dev={data.dev} />
+						<RawDataModal data={currentRow} title="Raw Tag Data" dev={data.dev} />
 					</ButtonGroup>
 				</div>
 			{/if}

@@ -19,3 +19,7 @@ export const accountColumnsStore = writable([
 ]);
 
 export const tagColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);
+export const billColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);
+export const budgetColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);
+export const categoryColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);
+export const labelColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);

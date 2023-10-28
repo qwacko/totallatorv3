@@ -31,6 +31,7 @@ export const load = async (data) => {
 		labels,
 		searchParams: pageInfo.searchParams,
 		filterText: labelFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
-		labelSummary
+		labelSummary,
+		labelDropdowns: tActions.label.listForDropdown({ db })
 	};
 };

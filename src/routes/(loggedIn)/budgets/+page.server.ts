@@ -30,6 +30,7 @@ export const load = async (data) => {
 		budgets,
 		searchParams: pageInfo.searchParams,
 		filterText: budgetFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
-		budgetSummary
+		budgetSummary,
+		budgetDropdowns: tActions.budget.listForDropdown({ db })
 	};
 };
