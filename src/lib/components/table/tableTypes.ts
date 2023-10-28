@@ -12,7 +12,6 @@ export type tableColumnConfig<
 	rowToDisplay?: (row: RowData) => string | null | undefined;
 	rowToCurrency?: (row: RowData) => { amount: number | undefined; format: currencyFormatType };
 	sortKey?: OrderKeys;
-	sortable?: boolean;
 	customHeader?: boolean;
 	customCell?: boolean;
 };
