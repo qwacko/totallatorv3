@@ -4,19 +4,23 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { urlGenerator } from '$lib/routes.js';
+	import { pageInfo, urlGenerator } from '$lib/routes.js';
 	import { statusEnumSelectionWithoutDeleted } from '$lib/schema/statusSchema.js';
 	import type { UpdateBillSchemaSuperType } from '$lib/schema/billSchema.js';
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
+	import { page } from '$app/stores';
+	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
 	export let data;
 
 	const { form, errors, constraints, message, enhance } = superForm<UpdateBillSchemaSuperType>(
 		data.form
 	);
+
+	$: urlInfo = pageInfo('/(loggedIn)/tags/[id]', $page);
 
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/bills/[id]/delete',
@@ -29,6 +33,8 @@
 <PageLayout title={data.bill.title} size="sm">
 	<form method="POST" class="flex flex-col gap-2" use:enhance>
 		<input type="hidden" name="id" value={data.bill.id} />
+		<PreviousUrlInput name="prevPage" />
+		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<TextInput
 			title="Title"
 			errorMessage={$errors.title}

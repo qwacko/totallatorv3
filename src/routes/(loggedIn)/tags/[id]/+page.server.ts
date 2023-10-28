@@ -1,5 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
+import { tagPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 import { updateTagSchema } from '$lib/schema/tagSchema';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
@@ -28,7 +29,7 @@ export const load = async (data) => {
 
 export const actions = {
 	default: async ({ request }) => {
-		const form = await superValidate(request, updateTagSchema);
+		const form = await superValidate(request, updateTagSchema.merge(tagPageAndFilterValidation));
 
 		if (!form.valid) {
 			return { form };
@@ -40,6 +41,6 @@ export const actions = {
 			logging.info('Update Tag Error', e);
 			return message(form, 'Error Updating Tag');
 		}
-		throw redirect(302, '/tags');
+		throw redirect(302, form.data.prevPage);
 	}
 };

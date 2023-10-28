@@ -69,7 +69,6 @@
 	$: sortOptions = filterNullUndefinedAndDuplicates(
 		columns.filter((item) => item.sortKey).map((item) => item.sortKey)
 	);
-	$: console.log('Sort Options : ', sortOptions);
 
 	let filterOpened = false;
 
