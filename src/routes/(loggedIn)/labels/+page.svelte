@@ -129,7 +129,13 @@
 						<Button href={detailURL} class="p-2" outline>
 							<EditIcon height={15} width={15} />
 						</Button>
-						<Button href={deleteURL} class="p-2" outline color="red">
+						<Button
+							href={deleteURL}
+							class="p-2"
+							outline
+							color="red"
+							disabled={currentRow.count > 0}
+						>
 							<DeleteIcon height={15} width={15} />
 						</Button>
 						<RawDataModal data={currentRow} title="Raw Label Data" dev={data.dev} />
