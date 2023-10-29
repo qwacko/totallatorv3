@@ -146,7 +146,10 @@ export const billActions = {
 	},
 	create: async (db: DBType, data: CreateBillSchemaType) => {
 		const id = nanoid();
-		await db.insert(bill).values(billCreateInsertionData(data, id)).execute();
+		await db.transaction(async (db) => {
+			await db.insert(bill).values(billCreateInsertionData(data, id)).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return id;
 	},
@@ -155,7 +158,10 @@ export const billActions = {
 		const insertData = data.map((currentData, index) =>
 			billCreateInsertionData(currentData, ids[index])
 		);
-		await db.insert(bill).values(insertData).execute();
+		await db.transaction(async (db) => {
+			await db.insert(bill).values(insertData).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return ids;
 	},

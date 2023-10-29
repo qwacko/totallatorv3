@@ -118,7 +118,10 @@ export const accountActions = {
 
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
-		await db.insert(account).values(accountCreateInsertionData(data, id));
+		await db.transaction(async (db) => {
+			await db.insert(account).values(accountCreateInsertionData(data, id));
+			await summaryActions.createMissing({ db });
+		});
 
 		return id;
 	},
@@ -296,7 +299,10 @@ export const accountActions = {
 			return accountCreateInsertionData(currentAccount, id);
 		});
 
-		await db.insert(account).values(dataForInsertion);
+		await db.transaction(async (db) => {
+			await db.insert(account).values(dataForInsertion);
+			await summaryActions.createMissing({ db });
+		});
 
 		return dataForInsertion.map((item) => item.id);
 	},

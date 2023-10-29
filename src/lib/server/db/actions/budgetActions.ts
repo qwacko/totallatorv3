@@ -150,7 +150,10 @@ export const budgetActions = {
 	},
 	create: async (db: DBType, data: CreateBudgetSchemaType) => {
 		const id = nanoid();
-		await db.insert(budget).values(budgetCreateInsertionData(data, id)).execute();
+		await db.transaction(async (db) => {
+			await db.insert(budget).values(budgetCreateInsertionData(data, id)).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return id;
 	},
@@ -159,8 +162,10 @@ export const budgetActions = {
 			const id = nanoid();
 			return budgetCreateInsertionData(item, id);
 		});
-
-		await db.insert(budget).values(items).execute();
+		await db.transaction(async (db) => {
+			await db.insert(budget).values(items).execute();
+			await summaryActions.createMissing({ db });
+		});
 	},
 	update: async (db: DBType, data: UpdateBudgetSchemaType) => {
 		const { id } = data;

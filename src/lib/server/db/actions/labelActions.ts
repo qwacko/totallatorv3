@@ -151,7 +151,10 @@ export const labelActions = {
 	},
 	create: async (db: DBType, data: CreateLabelSchemaType) => {
 		const id = nanoid();
-		await db.insert(label).values(labelCreateInsertionData(data, id)).execute();
+		await db.transaction(async (db) => {
+			await db.insert(label).values(labelCreateInsertionData(data, id)).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return id;
 	},
@@ -160,10 +163,18 @@ export const labelActions = {
 		{ journalId, labelId }: { journalId: string; labelId: string }
 	) => {
 		const id = nanoid();
-		await db
-			.insert(labelsToJournals)
-			.values({ id, journalId, labelId, ...updatedTime() })
-			.execute();
+		await db.transaction(async (db) => {
+			await db
+				.insert(labelsToJournals)
+				.values({ id, journalId, labelId, ...updatedTime() })
+				.execute();
+			await summaryActions.updateAndCreateMany({
+				db,
+				ids: [labelId],
+				needsUpdateOnly: false,
+				allowCreation: true
+			});
+		});
 	},
 	createMany: async (db: DBType, data: CreateLabelSchemaType[]) => {
 		const ids = data.map(() => nanoid());
@@ -171,7 +182,10 @@ export const labelActions = {
 			labelCreateInsertionData(currentData, ids[index])
 		);
 
-		await db.insert(label).values(insertData).execute();
+		await db.transaction(async (db) => {
+			await db.insert(label).values(insertData).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return ids;
 	},

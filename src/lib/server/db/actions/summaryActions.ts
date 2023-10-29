@@ -13,6 +13,7 @@ import {
 import type { DBType } from '../db';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/updatedTime';
+import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 
 export const summaryTableColumnsToSelect = {
 	count: summaryTable.count,
@@ -37,6 +38,13 @@ const aggregationColumns = (isAccount: boolean = false) => ({
 });
 
 export const summaryActions = {
+	markAsNeedingProcessing: async ({ db, ids }: { db: DBType; ids: string[] }) => {
+		await db
+			.update(summaryTable)
+			.set({ needsUpdate: true })
+			.where(inArray(summaryTable.id, ids))
+			.execute();
+	},
 	updateAndCreateMany: async ({
 		db,
 		ids,
@@ -143,7 +151,13 @@ export const summaryActions = {
 							if (summaryId) {
 								await db
 									.update(summaryTable)
-									.set({ ...restFoundItem, needsUpdate: false, ...updatedTime() })
+									.set({
+										...restFoundItem,
+										sum: restFoundItem.sum || 0,
+										count: restFoundItem.count || 0,
+										needsUpdate: false,
+										...updatedTime()
+									})
 									.where(eq(summaryTable.id, summaryId))
 									.execute();
 							} else if (allowCreation && itemId) {
@@ -155,6 +169,8 @@ export const summaryActions = {
 										relationId: itemId,
 										type: item,
 										...restFoundItem,
+										sum: restFoundItem.sum || 0,
+										count: restFoundItem.count || 0,
 										needsUpdate: false,
 										...updatedTime()
 									})
@@ -233,5 +249,53 @@ export const summaryActions = {
 			);
 			await summaryActions.updateAndCreateMany({ db, needsUpdateOnly: true });
 		});
+	},
+	getUniqueTransactionInfo: async ({ db, ids }: { db: DBType; ids: string[] }) => {
+		const bills = await db
+			.select({ id: journalEntry.billId })
+			.from(journalEntry)
+			.where(inArray(journalEntry.transactionId, ids))
+			.groupBy(journalEntry.billId)
+			.execute();
+		const budgets = await db
+			.select({ id: journalEntry.budgetId })
+			.from(journalEntry)
+			.where(inArray(journalEntry.transactionId, ids))
+			.groupBy(journalEntry.budgetId)
+			.execute();
+		const categories = await db
+			.select({ id: journalEntry.categoryId })
+			.from(journalEntry)
+			.where(inArray(journalEntry.transactionId, ids))
+			.groupBy(journalEntry.categoryId)
+			.execute();
+		const tags = await db
+			.select({ id: journalEntry.tagId })
+			.from(journalEntry)
+			.where(inArray(journalEntry.transactionId, ids))
+			.groupBy(journalEntry.tagId)
+			.execute();
+		const accounts = await db
+			.select({ id: journalEntry.accountId })
+			.from(journalEntry)
+			.where(inArray(journalEntry.transactionId, ids))
+			.groupBy(journalEntry.accountId)
+			.execute();
+		const labels = await db
+			.select({ id: labelsToJournals.labelId })
+			.from(labelsToJournals)
+			.leftJoin(journalEntry, eq(labelsToJournals.journalId, journalEntry.id))
+			.where(inArray(journalEntry.transactionId, ids))
+			.groupBy(labelsToJournals.labelId)
+			.execute();
+
+		return filterNullUndefinedAndDuplicates([
+			...budgets.map((item) => item.id),
+			...bills.map((item) => item.id),
+			...categories.map((item) => item.id),
+			...tags.map((item) => item.id),
+			...accounts.map((item) => item.id),
+			...labels.map((item) => item.id)
+		]);
 	}
 };

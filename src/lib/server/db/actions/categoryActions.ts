@@ -158,7 +158,10 @@ export const categoryActions = {
 	},
 	create: async (db: DBType, data: CreateCategorySchemaType) => {
 		const id = nanoid();
-		await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();
+		await db.transaction(async (db) => {
+			await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return id;
 	},
@@ -167,7 +170,10 @@ export const categoryActions = {
 		const insertData = data.map((currentData, index) =>
 			categoryCreateInsertionData(currentData, ids[index])
 		);
-		await db.insert(category).values(insertData).execute();
+		await db.transaction(async (db) => {
+			await db.insert(category).values(insertData).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return ids;
 	},
