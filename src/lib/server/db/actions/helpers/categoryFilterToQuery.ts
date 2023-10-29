@@ -4,9 +4,11 @@ import { category } from '../../schema';
 import { SQL, eq, ilike, inArray, like } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from './importIdsToTitles';
+import { summaryFilterToQuery, summaryFilterToText } from './summaryFilterToQuery';
 
 export const categoryFilterToQuery = (
-	filter: Omit<CategoryFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
+	filter: Omit<CategoryFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	includeSummary: boolean = false
 ) => {
 	const restFilter = filter;
 
@@ -25,6 +27,10 @@ export const categoryFilterToQuery = (
 		where.push(inArray(category.importId, restFilter.importIdArray));
 	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
 		where.push(inArray(category.importDetailId, restFilter.importDetailIdArray));
+
+	if (includeSummary) {
+		summaryFilterToQuery({ where, filter: restFilter });
+	}
 
 	return where;
 };
@@ -87,7 +93,7 @@ export const categoryFilterToText = async (
 				singularName: 'Import Detail ID'
 			})
 		);
-
+	summaryFilterToText({ stringArray, filter: restFilter });
 	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');
 	}

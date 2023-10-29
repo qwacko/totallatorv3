@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/budgetSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, budget, journalEntry } from '../schema';
+import { account, budget, journalEntry, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
@@ -15,6 +15,8 @@ import { budgetCreateInsertionData } from './helpers/budgetCreateInsertionData';
 import { budgetFilterToQuery } from './helpers/budgetFilterToQuery';
 import { createBudget } from './helpers/seedBudgetData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
+import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryOrderBy } from './helpers/summaryOrderBy';
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
@@ -40,18 +42,26 @@ export const budgetActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: BudgetFilterSchemaType }) => {
+		await summaryActions.updateAndCreateMany({
+			db,
+			ids: undefined,
+			needsUpdateOnly: true,
+			allowCreation: true
+		});
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = budgetFilterToQuery(restFilter);
+		const where = budgetFilterToQuery(restFilter, true);
 
 		const defaultOrderBy = [asc(budget.title), desc(budget.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						currentOrder.direction === 'asc'
-							? asc(budget[currentOrder.field])
-							: desc(budget[currentOrder.field])
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(budget[remainingOrder.field])
+								: desc(budget[remainingOrder.field]);
+						})
 					),
 					...defaultOrderBy
 			  ]
@@ -60,15 +70,7 @@ export const budgetActions = {
 		const results = await db
 			.select({
 				...getTableColumns(budget),
-				sum: sql`sum(CASE WHEN ${account.type} IN ('asset', 'liability') THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-					Number
-				),
-				count:
-					sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				firstDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date),
-				lastDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date)
+				...summaryTableColumnsToSelect
 			})
 			.from(budget)
 			.where(and(...where))
@@ -77,6 +79,7 @@ export const budgetActions = {
 			.orderBy(...orderByResult)
 			.leftJoin(journalEntry, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
+			.leftJoin(summaryTable, eq(summaryTable.relationId, budget.id))
 			.groupBy(budget.id)
 			.execute();
 

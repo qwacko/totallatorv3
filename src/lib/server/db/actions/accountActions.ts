@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry } from '../schema';
+import { account, journalEntry, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
@@ -21,6 +21,8 @@ import {
 import { accountFilterToQuery } from './helpers/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/accountCreateInsertionData';
 import { accountTitleSplit } from './helpers/accountTitleSplit';
+import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryOrderBy } from './helpers/summaryOrderBy';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -46,6 +48,12 @@ export const accountActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter?: AccountFilterSchemaType }) => {
+		await summaryActions.updateAndCreateMany({
+			db,
+			ids: undefined,
+			needsUpdateOnly: true,
+			allowCreation: true
+		});
 		const {
 			page = 0,
 			pageSize = 10,
@@ -53,14 +61,16 @@ export const accountActions = {
 			...restFilter
 		} = filter || { page: 10, pageSize: 10 };
 
-		const where = accountFilterToQuery(restFilter);
+		const where = accountFilterToQuery(restFilter, true);
 		const defaultOrderBy = [asc(account.title), desc(account.createdAt)];
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						currentOrder.direction === 'asc'
-							? asc(account[currentOrder.field])
-							: desc(account[currentOrder.field])
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(account[remainingOrder.field])
+								: desc(account[remainingOrder.field]);
+						})
 					),
 					...defaultOrderBy
 			  ]
@@ -69,10 +79,7 @@ export const accountActions = {
 		const results = await db
 			.select({
 				...getTableColumns(account),
-				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
-				count: sql`count(${journalEntry.id})`.mapWith(Number),
-				firstDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date),
-				lastDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date)
+				...summaryTableColumnsToSelect
 			})
 			.from(account)
 			.where(and(...where))
@@ -80,6 +87,7 @@ export const accountActions = {
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
 			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
+			.leftJoin(summaryTable, eq(summaryTable.relationId, account.id))
 			.groupBy(account.id)
 			.execute();
 

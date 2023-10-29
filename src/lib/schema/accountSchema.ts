@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { statusEnum } from './statusSchema';
 import { accountTypeEnum } from './accountTypeSchema';
 import { dateStringSchema } from './dateStringSchema';
+import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
 
 export const createAccountSchema = z.object({
 	title: z.string(),
@@ -49,7 +50,8 @@ export const accountOrderByEnum = [
 	'status',
 	'disabled',
 	'allowUpdate',
-	'active'
+	'active',
+	...summaryOrderByEnum
 ] as const;
 
 type OrderByEnumType = (typeof accountOrderByEnum)[number];
@@ -74,7 +76,8 @@ const enumTitles: OrderByEnumTitles = {
 	status: 'Status',
 	disabled: 'Disabled',
 	allowUpdate: 'Allow Update',
-	active: 'Active'
+	active: 'Active',
+	...summaryEnumTitles
 };
 
 export const accountOrderByEnumToText = (input: OrderByEnumType) => {
@@ -106,6 +109,10 @@ export const accountFilterSchema = z.object({
 	endDateAfter: dateStringSchema.optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
+
+	//Summary Info Filters
+	...summaryFilterProperties,
+
 	page: z.coerce.number().default(0).optional(),
 	pageSize: z.coerce.number().default(10).optional(),
 

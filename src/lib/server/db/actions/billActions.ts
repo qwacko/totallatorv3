@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/billSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, bill, journalEntry } from '../schema';
+import { account, bill, journalEntry, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
@@ -15,6 +15,8 @@ import { billCreateInsertionData } from './helpers/billCreateInsertionData';
 import { billFilterToQuery } from './helpers/billFilterToQuery';
 import { createBill } from './helpers/seedBillData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
+import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryOrderBy } from './helpers/summaryOrderBy';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
@@ -40,18 +42,26 @@ export const billActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: BillFilterSchemaType }) => {
+		await summaryActions.updateAndCreateMany({
+			db,
+			ids: undefined,
+			needsUpdateOnly: true,
+			allowCreation: true
+		});
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = billFilterToQuery(restFilter);
+		const where = billFilterToQuery(restFilter, true);
 
 		const defaultOrderBy = [asc(bill.title), desc(bill.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						currentOrder.direction === 'asc'
-							? asc(bill[currentOrder.field])
-							: desc(bill[currentOrder.field])
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(bill[remainingOrder.field])
+								: desc(bill[remainingOrder.field]);
+						})
 					),
 					...defaultOrderBy
 			  ]
@@ -60,15 +70,7 @@ export const billActions = {
 		const results = await db
 			.select({
 				...getTableColumns(bill),
-				sum: sql`sum(CASE WHEN ${account.type} IN ('asset', 'liability') THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-					Number
-				),
-				count:
-					sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				firstDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date),
-				lastDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date)
+				...summaryTableColumnsToSelect
 			})
 			.from(bill)
 			.where(and(...where))
@@ -77,6 +79,7 @@ export const billActions = {
 			.orderBy(...orderByResult)
 			.leftJoin(journalEntry, eq(journalEntry.billId, bill.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
+			.leftJoin(summaryTable, eq(summaryTable.relationId, bill.id))
 			.groupBy(bill.id)
 			.execute();
 

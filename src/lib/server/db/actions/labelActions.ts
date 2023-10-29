@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/labelSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, label, labelsToJournals } from '../schema';
+import { account, journalEntry, label, labelsToJournals, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
@@ -15,6 +15,8 @@ import { createLabel } from './helpers/seedLabelData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 import { labelFilterToQuery } from './helpers/labelFilterToQuery';
 import { labelCreateInsertionData } from './helpers/labelCreateInsertionData';
+import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryOrderBy } from './helpers/summaryOrderBy';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
@@ -40,18 +42,26 @@ export const labelActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: LabelFilterSchemaType }) => {
+		await summaryActions.updateAndCreateMany({
+			db,
+			ids: undefined,
+			needsUpdateOnly: true,
+			allowCreation: true
+		});
 		const { page = 0, pageSize = 10, orderBy } = filter;
 
-		const where = labelFilterToQuery(filter);
+		const where = labelFilterToQuery(filter, true);
 
 		const defaultOrderBy = [asc(label.title), desc(label.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						currentOrder.direction === 'asc'
-							? asc(label[currentOrder.field])
-							: desc(label[currentOrder.field])
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(label[remainingOrder.field])
+								: desc(label[remainingOrder.field]);
+						})
 					),
 					...defaultOrderBy
 			  ]
@@ -60,15 +70,7 @@ export const labelActions = {
 		const results = await db
 			.select({
 				...getTableColumns(label),
-				sum: sql`sum(CASE WHEN ${account.type} IN ('asset', 'liability') THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-					Number
-				),
-				count:
-					sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				firstDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date),
-				lastDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date)
+				...summaryTableColumnsToSelect
 			})
 			.from(label)
 			.where(and(...where))
@@ -78,6 +80,7 @@ export const labelActions = {
 			.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, label.id))
 			.leftJoin(journalEntry, eq(journalEntry.id, labelsToJournals.journalId))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
+			.leftJoin(summaryTable, eq(summaryTable.relationId, label.id))
 			.groupBy(label.id)
 			.execute();
 

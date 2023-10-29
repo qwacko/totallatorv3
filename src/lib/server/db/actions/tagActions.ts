@@ -17,6 +17,7 @@ import { tagFilterToQuery } from './helpers/tagFilterToQuery';
 import { createTag } from './helpers/seedTagData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryOrderBy } from './helpers/summaryOrderBy';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
@@ -53,27 +54,19 @@ export const tagActions = {
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = tagFilterToQuery(restFilter);
+		const where = tagFilterToQuery(restFilter, true);
 
 		const defaultOrderBy = [asc(tag.group), asc(tag.single), desc(tag.createdAt)];
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) => {
-						if (
-							currentOrder.field === 'count' ||
-							currentOrder.field === 'sum' ||
-							currentOrder.field === 'firstDate' ||
-							currentOrder.field === 'lastDate'
-						) {
-							return currentOrder.direction === 'asc'
-								? asc(summaryTable[currentOrder.field])
-								: desc(summaryTable[currentOrder.field]);
-						}
-						return currentOrder.direction === 'asc'
-							? asc(tag[currentOrder.field])
-							: desc(tag[currentOrder.field]);
-					}),
+					...orderBy.map((currentOrder) =>
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(tag[remainingOrder.field])
+								: desc(tag[remainingOrder.field]);
+						})
+					),
 					...defaultOrderBy
 			  ]
 			: defaultOrderBy;

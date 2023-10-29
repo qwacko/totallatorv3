@@ -22,6 +22,7 @@
 	import { accountColumnsStore } from '$lib/stores/columnDisplayStores.js';
 	import { enhance } from '$app/forms';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
+	import { summaryColumns } from '$lib/schema/summarySchema.js';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -130,22 +131,7 @@
 				sortKey: 'startDate'
 			},
 			{ id: 'endDate', title: 'End Date', rowToDisplay: (row) => row.endDate, sortKey: 'endDate' },
-			{
-				id: 'total',
-				title: 'Total',
-				rowToCurrency: (row) => ({ amount: row.sum, format: data.user?.currencyFormat || 'USD' })
-			},
-			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() },
-			{
-				id: 'firstDate',
-				title: 'First',
-				rowToDisplay: (row) => (row.firstDate ? row.firstDate.toISOString().slice(0, 10) : '')
-			},
-			{
-				id: 'lastDate',
-				title: 'Last',
-				rowToDisplay: (row) => (row.lastDate ? row.lastDate.toISOString().slice(0, 10) : '')
-			}
+			...summaryColumns({ currencyFormat: data.user?.currencyFormat || 'USD' })
 		]}
 		bind:shownColumns={$accountColumnsStore}
 		rowColour={(row) => (row.disabled ? 'grey' : undefined)}
@@ -195,7 +181,7 @@
 								class="p-2"
 								outline
 								color="red"
-								disabled={currentRow.count > 0}
+								disabled={(currentRow.count || 0) > 0}
 							>
 								<DeleteIcon height={15} width={15} />
 							</Button>

@@ -18,8 +18,8 @@
 	import { tagColumnsStore } from '$lib/stores/columnDisplayStores.js';
 	import TagFilter from '$lib/components/filters/TagFilter.svelte';
 	import { enhance } from '$app/forms';
-	import EnabledIcon from '$lib/components/icons/EnabledIcon.svelte';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
+	import { summaryColumns } from '$lib/schema/summarySchema.js';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -98,33 +98,7 @@
 				rowToDisplay: (row) => statusToDisplay(row.status),
 				sortKey: 'status'
 			},
-			{
-				id: 'total',
-				title: 'Total',
-				rowToCurrency: (row) => ({
-					amount: row.sum || 0,
-					format: data.user?.currencyFormat || 'USD'
-				}),
-				sortKey: 'sum'
-			},
-			{
-				id: 'count',
-				title: 'Count',
-				rowToDisplay: (row) => (row.count || 0).toString(),
-				sortKey: 'count'
-			},
-			{
-				id: 'firstDate',
-				title: 'First',
-				rowToDisplay: (row) => (row.firstDate ? row.firstDate.toISOString().slice(0, 10) : ''),
-				sortKey: 'firstDate'
-			},
-			{
-				id: 'lastDate',
-				title: 'Last',
-				rowToDisplay: (row) => (row.lastDate ? row.lastDate.toISOString().slice(0, 10) : ''),
-				sortKey: 'lastDate'
-			}
+			...summaryColumns({ currencyFormat: data.user?.currencyFormat })
 		]}
 		bind:shownColumns={$tagColumnsStore}
 		rowColour={(row) => (row.disabled ? 'grey' : undefined)}
@@ -172,7 +146,7 @@
 								class="p-2"
 								outline
 								color="red"
-								disabled={currentRow.count > 0}
+								disabled={(currentRow.count || 0) > 0}
 							>
 								<DeleteIcon height={15} width={15} />
 							</Button>

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { statusEnum } from './statusSchema';
+import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
 
 export const createCategorySchema = z.object({
 	title: z.string(),
@@ -27,7 +28,8 @@ const orderByEnum = [
 	'status',
 	'disabled',
 	'allowUpdate',
-	'active'
+	'active',
+	...summaryOrderByEnum
 ] as const;
 
 type OrderByEnumType = (typeof orderByEnum)[number];
@@ -44,7 +46,8 @@ const enumTitles: OrderByEnumTitles = {
 	disabled: 'Disabled',
 	group: 'Group',
 	single: 'Single',
-	status: 'Status'
+	status: 'Status',
+	...summaryEnumTitles
 };
 
 export const categoryOrderByEnumToText = (input: OrderByEnumType) => {
@@ -63,6 +66,10 @@ export const categoryFilterSchema = z.object({
 	active: z.boolean().optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
+
+	//Summary Info Filters
+	...summaryFilterProperties,
+
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z

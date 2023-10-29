@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { statusEnum } from './statusSchema';
+import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
 
 export const createLabelSchema = z.object({
 	title: z.string(),
@@ -20,7 +21,14 @@ export const updateLabelSchema = z.object({
 export type UpdateLabelSchemaSuperType = typeof updateLabelSchema;
 export type UpdateLabelSchemaType = z.infer<typeof updateLabelSchema>;
 
-const orderByEnum = ['title', 'status', 'disabled', 'allowUpdate', 'active'] as const;
+const orderByEnum = [
+	'title',
+	'status',
+	'disabled',
+	'allowUpdate',
+	'active',
+	...summaryOrderByEnum
+] as const;
 
 type OrderByEnumType = (typeof orderByEnum)[number];
 
@@ -34,7 +42,8 @@ const enumTitles: OrderByEnumTitles = {
 	active: 'Active',
 	allowUpdate: 'Allow Update',
 	status: 'Status',
-	disabled: 'Disabled'
+	disabled: 'Disabled',
+	...summaryEnumTitles
 };
 
 export const labelOrderByEnumToText = (input: OrderByEnumType) => {
@@ -51,6 +60,10 @@ export const labelFilterSchema = z.object({
 	active: z.boolean().optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
+
+	//Summary Info Filters
+	...summaryFilterProperties,
+
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
