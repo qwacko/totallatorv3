@@ -4,7 +4,9 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { tagFilterToText } from '$lib/server/db/actions/helpers/tagFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms/client';
+import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -32,4 +34,32 @@ export const load = async (data) => {
 		tagSummary,
 		tagDropdowns: tActions.tag.listForDropdown({ db })
 	};
+};
+
+const submitValidation = z.object({
+	id: z.string(),
+	status: z.enum(['active', 'disabled'])
+});
+
+export const actions = {
+	update: async ({ request }) => {
+		const form = await superValidate(request, submitValidation);
+
+		if (!form.valid) {
+			return error(400, 'Invalid form data');
+		}
+
+		try {
+			await tActions.tag.update(db, form.data);
+			return {
+				status: 200,
+				body: {
+					message: 'Tag Updated'
+				}
+			};
+		} catch (e) {
+			console.log('Tag Update Error', e);
+			return error(500, 'Error updating tag');
+		}
+	}
 };

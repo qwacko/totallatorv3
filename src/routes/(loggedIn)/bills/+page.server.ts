@@ -4,7 +4,9 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { billFilterToText } from '$lib/server/db/actions/helpers/billFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms/server';
+import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -32,4 +34,32 @@ export const load = async (data) => {
 		billSummary,
 		billDropdowns: tActions.bill.listForDropdown({ db })
 	};
+};
+
+const submitValidation = z.object({
+	id: z.string(),
+	status: z.enum(['active', 'disabled'])
+});
+
+export const actions = {
+	update: async ({ request }) => {
+		const form = await superValidate(request, submitValidation);
+
+		if (!form.valid) {
+			return error(400, 'Invalid form data');
+		}
+
+		try {
+			await tActions.bill.update(db, form.data);
+			return {
+				status: 200,
+				body: {
+					message: 'Bill Updated'
+				}
+			};
+		} catch (e) {
+			console.log('Bill Update Error', e);
+			return error(500, 'Error updating bll');
+		}
+	}
 };

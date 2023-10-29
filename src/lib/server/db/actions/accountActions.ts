@@ -212,6 +212,7 @@ export const accountActions = {
 				.update(account)
 				.set({
 					type: data.type || currentAccount.type,
+					...statusUpdate(data.status),
 					...combinedAccountTitleSplitRequired({
 						title: data.title || currentAccount.title,
 						accountGroupCombined: ''

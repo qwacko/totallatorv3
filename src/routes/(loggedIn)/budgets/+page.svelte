@@ -17,6 +17,8 @@
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
 	import { budgetColumnsStore } from '$lib/stores/columnDisplayStores.js';
 	import BudgetFilter from '$lib/components/filters/BudgetFilter.svelte';
+	import { enhance } from '$app/forms';
+	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/budgets', $page);
@@ -127,24 +129,36 @@
 					}
 				}).url}
 				<div class="flex flex-row justify-center">
-					<ButtonGroup>
-						<Button href={journalsURL} class="p-2" outline color="blue">
-							<JournalEntryIcon height={15} width={15} />
-						</Button>
-						<Button href={detailURL} class="p-2" outline>
-							<EditIcon height={15} width={15} />
-						</Button>
-						<Button
-							href={deleteURL}
-							class="p-2"
-							outline
-							color="red"
-							disabled={currentRow.count > 0}
-						>
-							<DeleteIcon height={15} width={15} />
-						</Button>
-						<RawDataModal data={currentRow} title="Raw Budget Data" dev={data.dev} />
-					</ButtonGroup>
+					<form method="POST" action="?/update" use:enhance>
+						<input type="hidden" name="id" value={currentRow.id} />
+						<ButtonGroup>
+							<Button href={journalsURL} class="p-2" outline color="blue">
+								<JournalEntryIcon height={15} width={15} />
+							</Button>
+							<Button href={detailURL} class="p-2" outline>
+								<EditIcon height={15} width={15} />
+							</Button>
+							{#if currentRow.disabled}
+								<Button type="submit" name="status" value="active" class="p-2" color="primary">
+									<DisabledIcon />
+								</Button>
+							{:else}
+								<Button type="submit" name="status" value="disabled" class="p-2" outline>
+									<DisabledIcon />
+								</Button>
+							{/if}
+							<Button
+								href={deleteURL}
+								class="p-2"
+								outline
+								color="red"
+								disabled={currentRow.count > 0}
+							>
+								<DeleteIcon height={15} width={15} />
+							</Button>
+							<RawDataModal data={currentRow} title="Raw Budget Data" dev={data.dev} />
+						</ButtonGroup>
+					</form>
 				</div>
 			{/if}
 		</svelte:fragment>

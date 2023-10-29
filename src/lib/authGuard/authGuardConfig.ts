@@ -134,7 +134,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 
 		// Accounts
 		// ----------------------------------------
-		'/(loggedIn)/accounts': adminOnlyConfig,
+		'/(loggedIn)/accounts': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				update: POSTAllowAdminOnly
+			}
+		},
 		'/(loggedIn)/accounts/download': adminOnlyConfig,
 		'/(loggedIn)/accounts/[id]': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowAdminOnly } },
 		'/(loggedIn)/accounts/[id]/delete': {
@@ -148,7 +153,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 
 		// Labels
 		// ----------------------------------------
-		'/(loggedIn)/labels': adminOnlyConfig,
+		'/(loggedIn)/labels': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				update: POSTAllowAdminOnly
+			}
+		},
 		'/(loggedIn)/labels/download': adminOnlyConfig,
 		'/(loggedIn)/labels/[id]': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowAdminOnly } },
 		'/(loggedIn)/labels/[id]/delete': {
@@ -159,7 +169,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 
 		// Tags
 		// ----------------------------------------
-		'/(loggedIn)/tags': adminOnlyConfig,
+		'/(loggedIn)/tags': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				update: POSTAllowAdminOnly
+			}
+		},
 		'/(loggedIn)/tags/download': adminOnlyConfig,
 		'/(loggedIn)/tags/[id]': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowAdminOnly } },
 		'/(loggedIn)/tags/[id]/delete': {
@@ -170,7 +185,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 
 		// Categories
 		// ----------------------------------------
-		'/(loggedIn)/categories': adminOnlyConfig,
+		'/(loggedIn)/categories': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				update: POSTAllowAdminOnly
+			}
+		},
 		'/(loggedIn)/categories/download': adminOnlyConfig,
 		'/(loggedIn)/categories/[id]': {
 			...adminOnlyConfig,
@@ -187,7 +207,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 
 		// Bills
 		// ----------------------------------------
-		'/(loggedIn)/bills': adminOnlyConfig,
+		'/(loggedIn)/bills': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				update: POSTAllowAdminOnly
+			}
+		},
 		'/(loggedIn)/bills/download': adminOnlyConfig,
 		'/(loggedIn)/bills/[id]': {
 			...adminOnlyConfig,
@@ -204,7 +229,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 
 		// Budgets
 		// ----------------------------------------
-		'/(loggedIn)/budgets': adminOnlyConfig,
+		'/(loggedIn)/budgets': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				update: POSTAllowAdminOnly
+			}
+		},
 		'/(loggedIn)/budgets/download': adminOnlyConfig,
 		'/(loggedIn)/budgets/[id]': {
 			'/(loggedIn)/budgets': adminOnlyConfig,
