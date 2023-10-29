@@ -28,12 +28,12 @@ const aggregationColumns = (isAccount: boolean = false) => ({
 				Number
 		  ),
 	count: isAccount
-		? sql`count(${account.id})`.mapWith(Number)
+		? sql`count(${journalEntry.id})`.mapWith(Number)
 		: sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
 				Number
 		  ),
 	firstDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date),
-	lastDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date)
+	lastDate: sql`max(${journalEntry.date})`.mapWith(journalEntry.date)
 });
 
 export const summaryActions = {
