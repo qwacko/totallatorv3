@@ -176,6 +176,20 @@
       "when": 1698341821843,
       "tag": "0024_tearful_warlock",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1698580840560,
+      "tag": "0025_thin_steve_rogers",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1698581925682,
+      "tag": "0026_salty_lord_hawal",
+      "breakpoints": true
     }
   ]
 }

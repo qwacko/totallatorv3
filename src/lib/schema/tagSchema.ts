@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { statusEnum } from './statusSchema';
+import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
 
 export const createTagSchema = z.object({
 	title: z.string(),
@@ -27,7 +28,8 @@ const orderByEnum = [
 	'status',
 	'disabled',
 	'allowUpdate',
-	'active'
+	'active',
+	...summaryOrderByEnum
 ] as const;
 
 type OrderByEnumType = (typeof orderByEnum)[number];
@@ -37,15 +39,16 @@ type OrderByEnumTitles = {
 };
 
 // This will be valid for demonstration purposes
-const enumTitles: OrderByEnumTitles = {
+const enumTitles = {
 	title: 'Title',
 	active: 'Active',
 	allowUpdate: 'Allow Update',
 	disabled: 'Disabled',
 	group: 'Group',
 	single: 'Single',
-	status: 'Status'
-};
+	status: 'Status',
+	...summaryEnumTitles
+} satisfies OrderByEnumTitles;
 
 export const tagOrderByEnumToText = (input: OrderByEnumType) => {
 	return enumTitles[input];
@@ -63,6 +66,11 @@ export const tagFilterSchema = z.object({
 	active: z.boolean().optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
+
+	//Summary Info Filters
+	...summaryFilterProperties,
+
+	//Page Information
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z

@@ -48,6 +48,7 @@ export const account = sqliteTable('account', {
 	accountTitleCombined: text('account_title_combined').notNull().unique(),
 	startDate: text('start_date', { length: 10 }),
 	endDate: text('end_date', { length: 10 }),
+	summaryId: text('summary_id'),
 	...statusColumns,
 	...timestampColumns
 });
@@ -61,6 +62,10 @@ export const accountRelations = relations(account, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [account.importId],
 		references: [importTable.id]
+	}),
+	summary: one(summaryTable, {
+		fields: [account.summaryId],
+		references: [summaryTable.id]
 	})
 }));
 
@@ -70,6 +75,7 @@ export const tag = sqliteTable('tag', {
 	title: text('title').notNull().unique(),
 	group: text('group').notNull(),
 	single: text('single').notNull(),
+	summaryId: text('summary_id'),
 	...statusColumns,
 	...timestampColumns
 });
@@ -83,6 +89,10 @@ export const tagRelations = relations(tag, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [tag.importId],
 		references: [importTable.id]
+	}),
+	summary: one(summaryTable, {
+		fields: [tag.summaryId],
+		references: [summaryTable.id]
 	})
 }));
 
@@ -92,6 +102,7 @@ export const category = sqliteTable('category', {
 	title: text('title').notNull().unique(),
 	group: text('group').notNull(),
 	single: text('single').notNull(),
+	summaryId: text('summary_id'),
 	...statusColumns,
 	...timestampColumns
 });
@@ -105,6 +116,10 @@ export const categoryRelations = relations(category, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [category.importId],
 		references: [importTable.id]
+	}),
+	summary: one(summaryTable, {
+		fields: [category.summaryId],
+		references: [summaryTable.id]
 	})
 }));
 
@@ -112,6 +127,7 @@ export const bill = sqliteTable('bill', {
 	...idColumn,
 	...importColumns('bill'),
 	title: text('title').unique().notNull(),
+	summaryId: text('summary_id'),
 	...statusColumns,
 	...timestampColumns
 });
@@ -125,6 +141,10 @@ export const billRelations = relations(bill, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [bill.importId],
 		references: [importTable.id]
+	}),
+	summary: one(summaryTable, {
+		fields: [bill.summaryId],
+		references: [summaryTable.id]
 	})
 }));
 
@@ -132,6 +152,7 @@ export const budget = sqliteTable('budget', {
 	...idColumn,
 	...importColumns('budget'),
 	title: text('title').unique().notNull(),
+	summaryId: text('summary_id'),
 	...statusColumns,
 	...timestampColumns
 });
@@ -145,6 +166,10 @@ export const budgetRelations = relations(budget, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [budget.importId],
 		references: [importTable.id]
+	}),
+	summary: one(summaryTable, {
+		fields: [budget.summaryId],
+		references: [summaryTable.id]
 	})
 }));
 
@@ -152,6 +177,7 @@ export const label = sqliteTable('label', {
 	...idColumn,
 	...importColumns('label'),
 	title: text('title').unique().notNull(),
+	summaryId: text('summary_id'),
 	...statusColumns,
 	...timestampColumns
 });
@@ -165,6 +191,10 @@ export const labelRelations = relations(label, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [label.importId],
 		references: [importTable.id]
+	}),
+	summary: one(summaryTable, {
+		fields: [label.summaryId],
+		references: [summaryTable.id]
 	})
 }));
 
@@ -359,4 +389,43 @@ export const importTableRelations = relations(importTable, ({ many }) => ({
 	categories: many(category),
 	tags: many(tag),
 	labels: many(label)
+}));
+
+export const summaryTable = sqliteTable('summary', {
+	...idColumn,
+	...timestampColumns,
+	type: text('type', { enum: ['account', 'bill', 'budget', 'category', 'tag', 'label'] }).notNull(),
+	needsUpdate: integer('needs_update', { mode: 'boolean' }).notNull().default(true),
+	relationId: text('relation_id').notNull(),
+	sum: integer('sum', { mode: 'number' }).default(0),
+	count: integer('count').default(0),
+	firstDate: integer('first_date', { mode: 'timestamp' }),
+	lastDate: integer('last_date', { mode: 'timestamp' })
+});
+
+export const summaryTableRelations = relations(summaryTable, ({ one }) => ({
+	account: one(account, {
+		fields: [summaryTable.relationId],
+		references: [account.id]
+	}),
+	bill: one(bill, {
+		fields: [summaryTable.relationId],
+		references: [bill.id]
+	}),
+	budget: one(budget, {
+		fields: [summaryTable.relationId],
+		references: [budget.id]
+	}),
+	category: one(category, {
+		fields: [summaryTable.relationId],
+		references: [category.id]
+	}),
+	tag: one(tag, {
+		fields: [summaryTable.relationId],
+		references: [tag.id]
+	}),
+	label: one(label, {
+		fields: [summaryTable.relationId],
+		references: [label.id]
+	})
 }));

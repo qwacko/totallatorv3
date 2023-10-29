@@ -101,18 +101,29 @@
 			{
 				id: 'total',
 				title: 'Total',
-				rowToCurrency: (row) => ({ amount: row.sum, format: data.user?.currencyFormat || 'USD' })
+				rowToCurrency: (row) => ({
+					amount: row.sum || 0,
+					format: data.user?.currencyFormat || 'USD'
+				}),
+				sortKey: 'sum'
 			},
-			{ id: 'count', title: 'Count', rowToDisplay: (row) => row.count.toString() },
+			{
+				id: 'count',
+				title: 'Count',
+				rowToDisplay: (row) => (row.count || 0).toString(),
+				sortKey: 'count'
+			},
 			{
 				id: 'firstDate',
 				title: 'First',
-				rowToDisplay: (row) => (row.firstDate ? row.firstDate.toISOString().slice(0, 10) : '')
+				rowToDisplay: (row) => (row.firstDate ? row.firstDate.toISOString().slice(0, 10) : ''),
+				sortKey: 'firstDate'
 			},
 			{
 				id: 'lastDate',
 				title: 'Last',
-				rowToDisplay: (row) => (row.lastDate ? row.lastDate.toISOString().slice(0, 10) : '')
+				rowToDisplay: (row) => (row.lastDate ? row.lastDate.toISOString().slice(0, 10) : ''),
+				sortKey: 'lastDate'
 			}
 		]}
 		bind:shownColumns={$tagColumnsStore}
