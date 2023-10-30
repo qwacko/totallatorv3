@@ -216,7 +216,7 @@
 							<EditIcon height="15" width="15" />
 						</Button>
 						<Button
-							disabled={currentJournal.complete}
+							disabled={false}
 							href={urlGenerator({
 								address: '/(loggedIn)/journals/clone',
 								searchParamsValue: {
