@@ -1,7 +1,9 @@
-import type {
-	CreateAccountSchemaType,
-	AccountFilterSchemaType,
-	UpdateAccountSchemaType
+import {
+	type CreateAccountSchemaType,
+	type AccountFilterSchemaType,
+	type UpdateAccountSchemaType,
+	updateManyAccountSchema,
+	type UpdateManyAccountSchemaType
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
@@ -181,8 +183,35 @@ export const accountActions = {
 			return undefined;
 		}
 	},
+	updateMany: async ({ db, data }: { db: DBType; data: UpdateManyAccountSchemaType }) => {
+		const processedData = updateManyAccountSchema.safeParse(data);
+
+		if (!processedData.success) {
+			throw new Error('Invalid Data');
+		}
+
+		const { idArray, ...restData } = processedData.data;
+
+		await db.transaction(async (db) => {
+			await Promise.all(
+				idArray.map(async (id) => {
+					await accountActions.update(db, { id, ...restData });
+				})
+			);
+		});
+	},
 	update: async (db: DBType, data: UpdateAccountSchemaType) => {
-		const { id } = data;
+		const {
+			accountGroup2,
+			accountGroup3,
+			accountGroup,
+			accountGroupCombined,
+			id,
+			title,
+			status,
+			type,
+			...restData
+		} = data;
 		const currentAccount = await db.query.account
 			.findFirst({ where: eq(account.id, id) })
 			.execute();
@@ -193,9 +222,7 @@ export const accountActions = {
 		}
 
 		const changingToExpenseOrIncome =
-			data.type &&
-			(data.type === 'expense' || data.type === 'income') &&
-			data.type !== currentAccount.type;
+			type && (type === 'expense' || type === 'income') && type !== currentAccount.type;
 
 		//If an account is changed to an expense, then make sure that all the other aspects
 		//of the account are correctly updated to how an expense would be created.
@@ -203,10 +230,10 @@ export const accountActions = {
 			await db
 				.update(account)
 				.set({
-					type: data.type,
-					...statusUpdate(data.status),
+					type: type,
+					...statusUpdate(status),
 					...combinedAccountTitleSplitRequired({
-						title: data.title || currentAccount.title,
+						title: title || currentAccount.title,
 						accountGroupCombined: ''
 					}),
 					...updatedTime(),
@@ -222,10 +249,10 @@ export const accountActions = {
 			await db
 				.update(account)
 				.set({
-					type: data.type || currentAccount.type,
-					...statusUpdate(data.status),
+					type: type || currentAccount.type,
+					...statusUpdate(status),
 					...combinedAccountTitleSplitRequired({
-						title: data.title || currentAccount.title,
+						title: title || currentAccount.title,
 						accountGroupCombined: ''
 					}),
 					...updatedTime()
@@ -233,19 +260,37 @@ export const accountActions = {
 				.where(eq(account.id, id))
 				.execute();
 		} else {
+			const newAccountGroupCombined = accountGroupCombined
+				? accountGroupCombined
+				: [
+						accountGroup || currentAccount.accountGroup,
+						accountGroup2 || currentAccount.accountGroup2,
+						accountGroup3 || currentAccount.accountGroup3
+				  ]
+						.filter((item) => item)
+						.join(' : ');
+
+			const { startDate, endDate, isCash, isNetWorth } = restData;
+
 			await db
 				.update(account)
 				.set({
-					...data,
-					...statusUpdate(data.status),
-					...updatedTime(),
+					startDate,
+					endDate,
+					isCash,
+					isNetWorth,
+					type: type || currentAccount.type,
+					...statusUpdate(status),
 					...combinedAccountTitleSplitRequired({
-						title: data.title || currentAccount.title,
-						accountGroupCombined: data.accountGroupCombined || currentAccount.accountGroupCombined
-					})
+						title: title || currentAccount.title,
+						accountGroupCombined: newAccountGroupCombined
+					}),
+					...updatedTime()
 				})
 				.where(eq(account.id, id))
 				.execute();
+
+			console.log('Made It here');
 		}
 		return id;
 	},

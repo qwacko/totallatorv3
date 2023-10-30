@@ -145,9 +145,7 @@ export const summaryActions = {
 					await Promise.all(
 						foundData.map(async (currentFoundItem) => {
 							const { summaryId, itemId, ...restFoundItem } = currentFoundItem;
-							if (restFoundItem.sum === null) {
-								console.log('Sum Is Null', currentFoundItem, item);
-							}
+
 							if (summaryId) {
 								await db
 									.update(summaryTable)
