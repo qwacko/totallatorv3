@@ -6,7 +6,7 @@ import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from '
 
 export const createAccountSchema = z.object({
 	title: z.string(),
-	accountGroupCombined: z.string(),
+	accountGroupCombined: z.string().trim(),
 	type: z.enum(accountTypeEnum).optional().default('expense'),
 	startDate: dateStringSchema.or(z.string().trim().length(0)).optional(),
 	endDate: dateStringSchema.or(z.string().trim().length(0)).optional(),
@@ -21,15 +21,15 @@ export type CreateAccountSchemaSuperType = typeof createAccountSchema;
 export type CreateAccountSchemaType = z.infer<typeof createAccountSchema>;
 
 export const updateAccountSchema = z.object({
-	title: z.string().optional(),
+	title: z.string().trim().optional(),
 	type: z.enum(accountTypeEnum).optional(),
-	accountGroupCombined: z.string().optional(),
+	accountGroupCombined: z.string().trim().optional(),
 	accountGroupCombinedClear: z.boolean().optional(),
-	accountGroup: z.string().optional(),
+	accountGroup: z.string().trim().optional(),
 	accountGroupClear: z.boolean().optional(),
-	accountGroup2: z.string().optional(),
+	accountGroup2: z.string().trim().optional(),
 	accountGroup2Clear: z.boolean().optional(),
-	accountGroup3: z.string().optional(),
+	accountGroup3: z.string().trim().optional(),
 	accountGroup3Clear: z.boolean().optional(),
 	startDate: dateStringSchema.optional().nullable(),
 	endDate: dateStringSchema.optional().nullable(),

@@ -252,6 +252,10 @@ export const accountActions = {
 			accountGroup3,
 			accountGroup,
 			accountGroupCombined,
+			accountGroupClear,
+			accountGroup2Clear,
+			accountGroup3Clear,
+			accountGroupCombinedClear,
 			title,
 			status,
 			type,
@@ -269,27 +273,17 @@ export const accountActions = {
 		const changingToExpenseOrIncome =
 			type && (type === 'expense' || type === 'income') && type !== currentAccount.type;
 
+		const changingToAssetOrLiability =
+			type && (type === 'asset' || type === 'liability') && type !== currentAccount.type;
+
 		//If an account is changed to an expense, then make sure that all the other aspects
 		//of the account are correctly updated to how an expense would be created.
-		if (changingToExpenseOrIncome) {
-			await db
-				.update(account)
-				.set({
-					type: type,
-					...statusUpdate(status),
-					...combinedAccountTitleSplitRequired({
-						title: title || currentAccount.title,
-						accountGroupCombined: ''
-					}),
-					...updatedTime(),
-					startDate: null,
-					endDate: null,
-					isCash: false,
-					isNetWorth: false
-				})
-				.where(eq(account.id, id))
-				.execute();
-		} else if (currentAccount.type === 'expense' || currentAccount.type === 'income') {
+		if (
+			(currentAccount.type === 'expense' ||
+				currentAccount.type === 'income' ||
+				changingToExpenseOrIncome) &&
+			!changingToAssetOrLiability
+		) {
 			//Limit what can be updated for an income or expense account
 			await db
 				.update(account)
@@ -305,15 +299,30 @@ export const accountActions = {
 				.where(eq(account.id, id))
 				.execute();
 		} else {
-			const newAccountGroupCombined = accountGroupCombined
+			console.log('Updating Asset / Liability Account : ', {
+				accountGroupCombined,
+				accountGroupCombinedClear,
+				accountGroupClear,
+				accountGroup2Clear,
+				accountGroup3Clear,
+				accountGroup,
+				accountGroup2,
+				accountGroup3
+			});
+
+			const newAccountGroupCombined = accountGroupCombinedClear
+				? ''
+				: accountGroupCombined && accountGroupCombined !== ''
 				? accountGroupCombined
 				: [
-						accountGroup || currentAccount.accountGroup,
-						accountGroup2 || currentAccount.accountGroup2,
-						accountGroup3 || currentAccount.accountGroup3
+						accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
+						accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
+						accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
 				  ]
 						.filter((item) => item)
-						.join(' : ');
+						.join(':');
+
+			console.log('Updated Account Group Combined ', newAccountGroupCombined);
 
 			const { startDate, endDate, isCash, isNetWorth } = restData;
 
@@ -334,8 +343,6 @@ export const accountActions = {
 				})
 				.where(eq(account.id, id))
 				.execute();
-
-			console.log('Made It here');
 		}
 		return id;
 	},

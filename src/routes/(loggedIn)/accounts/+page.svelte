@@ -139,18 +139,32 @@
 		bulkSelection
 	>
 		<svelte:fragment slot="bulkActions" let:selectedIds>
-			<Button
-				size="xs"
-				class="p-2"
-				outline
-				disabled={selectedIds.length === 0}
-				href={urlGenerator({
-					address: '/(loggedIn)/accounts/bulkEdit',
-					searchParamsValue: { idArray: selectedIds }
-				}).url}
-			>
-				<EditIcon />
-			</Button>
+			<ButtonGroup>
+				<Button
+					size="xs"
+					class="p-2"
+					outline
+					disabled={selectedIds.length === 0}
+					href={urlGenerator({
+						address: '/(loggedIn)/accounts/bulkEdit',
+						searchParamsValue: { idArray: selectedIds }
+					}).url}
+				>
+					<EditIcon /> Selected
+				</Button>
+				<Button
+					size="xs"
+					class="p-2"
+					outline
+					disabled={data.accounts.count === 0}
+					href={urlGenerator({
+						address: '/(loggedIn)/accounts/bulkEdit',
+						searchParamsValue: { ...$urlStore.searchParams, page: 0, pageSize: 1000000 }
+					}).url}
+				>
+					<EditIcon /> All Matching
+				</Button>
+			</ButtonGroup>
 		</svelte:fragment>
 		<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
 			{#if currentColumn.id === 'actions'}

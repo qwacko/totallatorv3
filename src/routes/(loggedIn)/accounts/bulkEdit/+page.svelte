@@ -16,6 +16,7 @@
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import { accountTypeEnumSelection } from '$lib/schema/accountTypeSchema.js';
 	import { statusEnumSelection } from '$lib/schema/statusSchema.js';
+	import CancelIcon from '$lib/components/icons/CancelIcon.svelte';
 
 	export let data;
 
@@ -51,21 +52,35 @@
 				class="col-span-1 md:col-span-2"
 				checked={updateAccountGrouping === true}
 				on:change={(e) => {
+					const currentType = $formData.type;
 					updateAccountGrouping = !updateAccountGrouping;
 					form.reset();
+					$formData.type = currentType;
 				}}
 			>
 				Update Account Grouping
 			</Toggle>
 		{/if}
 		<TextInputForm {form} field="title" title="Title" />
-		<SelectInput
-			items={accountTypeEnumSelection}
-			bind:value={$formData.type}
-			errorMessage={$formErrors.type}
-			name="type"
-			title="Type"
-		/>
+		<div class="flex flex-row gap-2">
+			<SelectInput
+				items={accountTypeEnumSelection}
+				bind:value={$formData.type}
+				errorMessage={$formErrors.type}
+				name="type"
+				title="Type"
+				wrapperClass="flex-grow"
+			/>
+			<Button
+				type="button"
+				class="self-end py-3"
+				outline
+				disabled={$formData.type === undefined}
+				on:click={() => ($formData.type = undefined)}
+			>
+				<CancelIcon />
+			</Button>
+		</div>
 		<SelectInput
 			items={statusEnumSelection}
 			bind:value={$formData.status}
@@ -73,7 +88,7 @@
 			name="status"
 			title="Status"
 		/>
-		{#if $formData.type === 'asset' || $formData.type === 'liability'}
+		{#if $formData.type === 'asset' || $formData.type === 'liability' || $formData.type === undefined}
 			{#if updateAccountGrouping}
 				<TextInputForm
 					{form}

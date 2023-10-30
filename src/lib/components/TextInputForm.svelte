@@ -60,8 +60,11 @@
 		{...$$restProps}
 	/>
 	{#if clearable}
-		<Button class="flex self-end" outline={$clearValue === false} on:click={updateClearValue}>
+		<Button class="flex self-end py-3" outline={$clearValue === false} on:click={updateClearValue}>
 			<CancelIcon />
 		</Button>
+		{#if $clearValue}
+			<input type="hidden" name={clearField} value="true" />
+		{/if}
 	{/if}
 </div>
