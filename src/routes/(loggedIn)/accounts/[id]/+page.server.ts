@@ -1,6 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
-import { updateAccountSchema } from '$lib/schema/accountSchema';
+import { updateAccountSchema, updateAccountSchemaWithId } from '$lib/schema/accountSchema';
 import { accountPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
@@ -18,7 +18,6 @@ export const load = async (data) => {
 	if (!account) throw redirect(302, '/accounts');
 	const form = await superValidate(
 		{
-			id: account.id,
 			title: account.title,
 			status: account.status,
 			accountGroupCombined: account.accountGroupCombined,
@@ -41,7 +40,7 @@ export const actions = {
 	default: async ({ request }) => {
 		const form = await superValidate(
 			request,
-			updateAccountSchema.merge(accountPageAndFilterValidation)
+			updateAccountSchemaWithId.merge(accountPageAndFilterValidation)
 		);
 
 		if (!form.valid) {
@@ -49,7 +48,8 @@ export const actions = {
 		}
 
 		try {
-			await tActions.account.update(db, form.data);
+			const { id, ...restData } = form.data;
+			await tActions.account.update({ db, id, data: restData });
 		} catch (e) {
 			logging.info('Update Account Error', e);
 			return message(form, 'Error Updating Account');

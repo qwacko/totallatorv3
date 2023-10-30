@@ -1,4 +1,8 @@
 <script lang="ts">
+	import ToggleFromArray from '../ToggleFromArray.svelte';
+
+	import ToggleHeader from '../ToggleHeader.svelte';
+
 	import TableColumnDropdown from './TableColumnDropdown.svelte';
 
 	import OrderDropDown from '../OrderDropDown.svelte';
@@ -15,7 +19,8 @@
 		TableBody,
 		TableBodyCell,
 		TableBodyRow,
-		TableHead
+		TableHead,
+		TableHeadCell
 	} from 'flowbite-svelte';
 
 	import type { OrderByType } from '$lib/helpers/orderByHelper';
@@ -65,12 +70,20 @@
 	export let highlightText: string = '';
 	export let highlightTextColumns: IDs[] = [];
 	export let rowColour: (row: RowData) => undefined | 'grey' = () => undefined;
+	export let bulkSelection: boolean = false;
+	export let selectedIds: string[] = [];
+	export let rowToId: ((row: RowData) => string) | undefined = undefined;
+	const updateSelectedIds = (newValue: string[]) => (selectedIds = newValue);
 
 	$: sortOptions = filterNullUndefinedAndDuplicates(
 		columns.filter((item) => item.sortKey).map((item) => item.sortKey)
 	);
 
 	let filterOpened = false;
+
+	$: visibleIds = filterNullUndefinedAndDuplicates(
+		data.map((item) => (rowToId ? rowToId(item) : undefined))
+	);
 
 	const updateFilterOpened = (newValue: boolean) => (filterOpened = newValue);
 	const columnIdToTitle = (id: string) => columns.find((item) => item.id === id)?.title || id;
@@ -88,7 +101,10 @@
 	</div>
 {/if}
 <slot name="filter" />
-<div class="flex flex-row gap-2">
+<div class="flex flex-row gap-2 items-center">
+	{#if $$slots.bulkActions}
+		<slot name="bulkActions" {selectedIds} {updateSelectedIds} />
+	{/if}
 	{#if filterText}
 		<FilterTextDisplay text={filterText} />
 	{/if}
@@ -119,6 +135,11 @@
 {:else}
 	<Table>
 		<TableHead>
+			{#if bulkSelection}
+				<TableHeadCell class="flex flex-row gap-1 justify-center">
+					<ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} />
+				</TableHeadCell>
+			{/if}
 			{#each shownColumns as column}
 				{@const currentColumn = columns.find((item) => item.id === column)}
 				{#if currentColumn}
@@ -136,6 +157,11 @@
 				{@const thisRowColour = rowColour(row)}
 				{@const isGrey = thisRowColour === 'grey'}
 				<TableBodyRow class={isGrey ? 'bg-primary-50' : ''}>
+					{#if bulkSelection}
+						<TableBodyCell>
+							<ToggleFromArray id={rowToId ? rowToId(row) : undefined} bind:selectedIds />
+						</TableBodyCell>
+					{/if}
 					{#each shownColumns as column}
 						{@const currentColumn = columns.find((item) => item.id === column)}
 						{#if currentColumn}

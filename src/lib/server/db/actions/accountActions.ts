@@ -2,8 +2,7 @@ import {
 	type CreateAccountSchemaType,
 	type AccountFilterSchemaType,
 	type UpdateAccountSchemaType,
-	updateManyAccountSchema,
-	type UpdateManyAccountSchemaType
+	updateAccountSchema
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
@@ -25,6 +24,7 @@ import { accountCreateInsertionData } from './helpers/accountCreateInsertionData
 import { accountTitleSplit } from './helpers/accountTitleSplit';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { getCommonData } from './helpers/getCommonData';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -117,7 +117,42 @@ export const accountActions = {
 
 		return items;
 	},
+	listCommonProperties: async ({ db, filter }: { db: DBType; filter: AccountFilterSchemaType }) => {
+		const { data: accounts } = await accountActions.list({
+			db,
+			filter: { ...filter, page: 0, pageSize: 1000000 }
+		});
 
+		const title = getCommonData('title', accounts);
+		const accountGroup = getCommonData('accountGroup', accounts);
+		const accountGroup2 = getCommonData('accountGroup2', accounts);
+		const accountGroup3 = getCommonData('accountGroup3', accounts);
+		const accountGroupCombined = getCommonData('accountGroupCombined', accounts);
+		const type = getCommonData('type', accounts);
+		const isNetWorth = getCommonData('isNetWorth', accounts);
+		const isCash = getCommonData('isCash', accounts);
+		const startDate = getCommonData('startDate', accounts);
+		const endDate = getCommonData('endDate', accounts);
+		const status = getCommonData('status', accounts);
+
+		return {
+			title,
+			status,
+			accountGroup,
+			accountGroup2,
+			accountGroup3,
+			accountGroupCombined,
+			accountGroupClear: false,
+			accountGroup2Clear: false,
+			accountGroup3Clear: false,
+			accountGroupCombinedClear: false,
+			type,
+			isNetWorth,
+			isCash,
+			startDate,
+			endDate
+		};
+	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
 		await db.transaction(async (db) => {
@@ -183,30 +218,40 @@ export const accountActions = {
 			return undefined;
 		}
 	},
-	updateMany: async ({ db, data }: { db: DBType; data: UpdateManyAccountSchemaType }) => {
-		const processedData = updateManyAccountSchema.safeParse(data);
+	updateMany: async ({
+		db,
+		data,
+		filter
+	}: {
+		db: DBType;
+		data: UpdateAccountSchemaType;
+		filter: AccountFilterSchemaType;
+	}) => {
+		const processedData = updateAccountSchema.safeParse(data);
 
 		if (!processedData.success) {
 			throw new Error('Invalid Data');
 		}
 
-		const { idArray, ...restData } = processedData.data;
+		const items = await accountActions.list({
+			db,
+			filter: { ...filter, pageSize: 100000, page: 0 }
+		});
 
 		await db.transaction(async (db) => {
 			await Promise.all(
-				idArray.map(async (id) => {
-					await accountActions.update(db, { id, ...restData });
+				items.data.map(async (item) => {
+					await accountActions.update({ db, data, id: item.id });
 				})
 			);
 		});
 	},
-	update: async (db: DBType, data: UpdateAccountSchemaType) => {
+	update: async ({ db, data, id }: { db: DBType; data: UpdateAccountSchemaType; id: string }) => {
 		const {
 			accountGroup2,
 			accountGroup3,
 			accountGroup,
 			accountGroupCombined,
-			id,
 			title,
 			status,
 			type,

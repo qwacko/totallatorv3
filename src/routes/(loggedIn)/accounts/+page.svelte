@@ -135,12 +135,28 @@
 		]}
 		bind:shownColumns={$accountColumnsStore}
 		rowColour={(row) => (row.disabled ? 'grey' : undefined)}
+		rowToId={(row) => row.id}
+		bulkSelection
 	>
+		<svelte:fragment slot="bulkActions" let:selectedIds>
+			<Button
+				size="xs"
+				class="p-2"
+				outline
+				disabled={selectedIds.length === 0}
+				href={urlGenerator({
+					address: '/(loggedIn)/accounts/bulkEdit',
+					searchParamsValue: { idArray: selectedIds }
+				}).url}
+			>
+				<EditIcon />
+			</Button>
+		</svelte:fragment>
 		<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
 			{#if currentColumn.id === 'actions'}
 				{@const detailURL = urlGenerator({
-					address: '/(loggedIn)/accounts/[id]',
-					paramsValue: { id: currentRow.id }
+					address: '/(loggedIn)/accounts/bulkEdit',
+					searchParamsValue: { id: currentRow.id }
 				}).url}
 
 				{@const deleteURL = urlGenerator({

@@ -67,7 +67,8 @@ export const actions = {
 		}
 
 		try {
-			await tActions.account.update(db, form.data);
+			const { id, ...restData } = form.data;
+			await tActions.account.update({ db, id, data: restData });
 			return {
 				status: 200,
 				body: {

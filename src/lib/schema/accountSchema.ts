@@ -21,13 +21,16 @@ export type CreateAccountSchemaSuperType = typeof createAccountSchema;
 export type CreateAccountSchemaType = z.infer<typeof createAccountSchema>;
 
 export const updateAccountSchema = z.object({
-	id: z.string(),
 	title: z.string().optional(),
 	type: z.enum(accountTypeEnum).optional(),
 	accountGroupCombined: z.string().optional(),
+	accountGroupCombinedClear: z.boolean().optional(),
 	accountGroup: z.string().optional(),
+	accountGroupClear: z.boolean().optional(),
 	accountGroup2: z.string().optional(),
+	accountGroup2Clear: z.boolean().optional(),
 	accountGroup3: z.string().optional(),
+	accountGroup3Clear: z.boolean().optional(),
 	startDate: dateStringSchema.optional().nullable(),
 	endDate: dateStringSchema.optional().nullable(),
 	isCash: z.boolean().optional(),
@@ -35,46 +38,38 @@ export const updateAccountSchema = z.object({
 	status: z.enum(statusEnum).optional()
 });
 
-export const updateManyAccountSchema = updateAccountSchema
-	.omit({
-		id: true
-	})
-	.merge(z.object({ idArray: z.array(z.string()) }));
+export const updateAccountSchemaWithId = updateAccountSchema.merge(z.object({ id: z.string() }));
 
-export const updateManyAccountSchemaRefined = updateManyAccountSchema.refine(
-	(data) => {
-		return (
-			(data.accountGroupCombined && !data.accountGroup) ||
-			(data.accountGroupCombined && !data.accountGroup2) ||
-			(data.accountGroupCombined && !data.accountGroup3)
+const refineAccountUpdate = (data: {
+	accountGroupCombined?: string;
+	accountGroup?: string;
+	accountGroup2?: string;
+	accountGroup3?: string;
+	accountGroupClear?: boolean;
+	accountGroup2Clear?: boolean;
+	accountGroup3Clear?: boolean;
+}): boolean => {
+	if (data.accountGroupCombined) {
+		return !(
+			data.accountGroup ||
+			data.accountGroup2 ||
+			data.accountGroup3 ||
+			data.accountGroupClear === true ||
+			data.accountGroup2Clear === true ||
+			data.accountGroup3Clear === true
 		);
-	},
-	{
-		message:
-			'Account Group Combined must not be accompanied by Account Group, Account Group 2, or Account Group 3',
-		path: ['accountGroupCombined']
 	}
-);
+	return true;
+};
 
-export const updateAccountSchemaRefined = updateAccountSchema.refine(
-	(data) => {
-		return (
-			(data.accountGroupCombined && !data.accountGroup) ||
-			(data.accountGroupCombined && !data.accountGroup2) ||
-			(data.accountGroupCombined && !data.accountGroup3)
-		);
-	},
-	{
-		message:
-			'Account Group Combined must not be accompanied by Account Group, Account Group 2, or Account Group 3',
-		path: ['accountGroupCombined']
-	}
-);
+export const updateAccountSchemaRefined = updateAccountSchema.refine(refineAccountUpdate, {
+	message:
+		'Account Group Combined must not be accompanied by Account Group, Account Group 2, or Account Group 3',
+	path: ['accountGroupCombined']
+});
 
-export type UpdateAccountSchemaSuperType = typeof updateAccountSchema;
-export type UpdateManyAccountSchemaType = z.infer<typeof updateManyAccountSchema>;
-export type UpdateManyAccountSchemaSuperType = typeof updateManyAccountSchema;
 export type UpdateAccountSchemaType = z.infer<typeof updateAccountSchema>;
+export type UpdateAccountSchemaSuperType = typeof updateAccountSchema;
 
 export const accountOrderByEnum = [
 	'title',

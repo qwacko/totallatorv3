@@ -13,10 +13,14 @@ export const summaryFilterToQuery = ({
 	if (restFilter.countMin !== undefined) where.push(gte(summaryTable.count, restFilter.countMin));
 	if (restFilter.totalMax !== undefined) where.push(lte(summaryTable.sum, restFilter.totalMax));
 	if (restFilter.totalMin !== undefined) where.push(gte(summaryTable.sum, restFilter.totalMin));
-	if (restFilter.firstDateMax) where.push(lte(summaryTable.firstDate, restFilter.firstDateMax));
-	if (restFilter.firstDateMin) where.push(gte(summaryTable.firstDate, restFilter.firstDateMin));
-	if (restFilter.lastDateMax) where.push(lte(summaryTable.lastDate, restFilter.lastDateMax));
-	if (restFilter.lastDateMin) where.push(gte(summaryTable.lastDate, restFilter.lastDateMin));
+	if (restFilter.firstDateMax)
+		where.push(lte(summaryTable.firstDate, new Date(restFilter.firstDateMax)));
+	if (restFilter.firstDateMin)
+		where.push(gte(summaryTable.firstDate, new Date(restFilter.firstDateMin)));
+	if (restFilter.lastDateMax)
+		where.push(lte(summaryTable.lastDate, new Date(restFilter.lastDateMax)));
+	if (restFilter.lastDateMin)
+		where.push(gte(summaryTable.lastDate, new Date(restFilter.lastDateMin)));
 };
 
 export const summaryFilterToText = ({
