@@ -4,8 +4,12 @@ import { label } from '../../schema';
 import { SQL, eq, inArray, like } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from './importIdsToTitles';
+import { summaryFilterToQuery, summaryFilterToText } from './summaryFilterToQuery';
 
-export const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
+export const labelFilterToQuery = (
+	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,
+	includeSummary: boolean = false
+) => {
 	const where: SQL<unknown>[] = [];
 	if (filter.id) where.push(eq(label.id, filter.id));
 	if (filter.idArray && filter.idArray.length > 0) where.push(inArray(label.id, filter.idArray));
@@ -18,6 +22,10 @@ export const labelFilterToQuery = (filter: LabelFilterSchemaType) => {
 		where.push(inArray(label.importId, filter.importIdArray));
 	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
 		where.push(inArray(label.importDetailId, filter.importDetailIdArray));
+
+	if (includeSummary) {
+		summaryFilterToQuery({ where, filter });
+	}
 
 	return where;
 };
@@ -78,6 +86,7 @@ export const labelFilterToText = async (
 			})
 		);
 
+	summaryFilterToText({ stringArray, filter: restFilter });
 	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');
 	}

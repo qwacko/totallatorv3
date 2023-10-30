@@ -1,40 +1,28 @@
 <script lang="ts">
-	import {
-		Button,
-		ButtonGroup,
-		Input,
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell,
-		Alert
-	} from 'flowbite-svelte';
+	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
-	import { getOrderBy, modifyOrderBy } from '$lib/helpers/orderByHelper.js';
-	import SortIcon from '$lib/components/SortIcon.svelte';
-	import TablePagination from '$lib/components/TablePagination.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import OrderDropDown from '../../../lib/components/OrderDropDown.svelte';
-	import { accountOrderByEnum, accountOrderByEnumToText } from '$lib/schema/accountSchema';
 
 	import AccountTypeFilterLinks from '$lib/components/AccountTypeFilterLinks.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
-	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
-	import { accountTypeEnum } from '$lib/schema/accountTypeSchema';
-	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
+	import { accountTypeEnum, accountTypeToDisplay } from '$lib/schema/accountTypeSchema';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
+	import CustomTable from '$lib/components/table/CustomTable.svelte';
+	import AccountFilter from '$lib/components/filters/AccountFilter.svelte';
+	import { accountColumnsStore } from '$lib/stores/columnDisplayStores.js';
+	import { enhance } from '$app/forms';
+	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
+	import { summaryColumns } from '$lib/schema/summarySchema.js';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -57,7 +45,6 @@
 	pageNumber={data.accounts.page}
 	numPages={data.accounts.pageCount}
 />
-
 <PageLayout title="Accounts" size="xl">
 	<svelte:fragment slot="right">
 		<Button
@@ -75,35 +62,166 @@
 		summaryFilter={{ account: $urlStore.searchParams } || defaultJournalFilter}
 		showJournalLink
 	/>
-	<center>
-		<TablePagination
-			count={data.accounts.count}
-			page={data.accounts.page}
-			perPage={data.accounts.pageSize}
-			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
-			buttonCount={5}
-		/>
-	</center>
-	<div class="flex flex-col gap-2">
-		{#if $urlStore.searchParams}
-			<Input type="text" bind:value={$urlStore.searchParams.title} class="flex flex-grow" />
-			<AccountTypeFilterLinks
-				type={$urlStore.searchParams.type}
-				generateURL={(newType) => urlInfo.updateParams({ searchParams: { type: newType } }).url}
-			/>
-		{/if}
-	</div>
-	<div class="flex flex-row gap-2">
-		<FilterTextDisplay text={data.filterText} />
-		<div class="flex flex-grow items-center" />
+	<CustomTable
+		highlightText={$urlStore.searchParams?.accountTitleCombined}
+		highlightTextColumns={['title', 'accountGroup', 'accountGroup2', 'accountGroup3']}
+		filterText={data.filterText}
+		onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+		paginationInfo={{
+			page: data.accounts.page,
+			count: data.accounts.count,
+			perPage: data.accounts.pageSize,
+			buttonCount: 5,
+			urlForPage: (value) => urlInfo.updateParams({ searchParams: { page: value } }).url
+		}}
+		noneFoundText="No Matching Accounts Found"
+		data={data.accounts.data}
+		currentOrder={data.searchParams?.orderBy}
+		currentFilter={data.searchParams}
+		filterModalTitle="Filter Accounts"
+		columns={[
+			{ id: 'actions', title: '' },
+			{
+				id: 'accountGroup',
+				title: 'Account Group',
+				rowToDisplay: (row) => row.accountGroup,
+				sortKey: 'accountGroup'
+			},
+			{
+				id: 'accountGroup2',
+				title: 'Account Group 2',
+				rowToDisplay: (row) => row.accountGroup2,
+				sortKey: 'accountGroup2'
+			},
+			{
+				id: 'accountGroup3',
+				title: 'Account Group 3',
+				rowToDisplay: (row) => row.accountGroup3,
+				sortKey: 'accountGroup3'
+			},
+			{
+				id: 'type',
+				title: 'Type',
+				rowToDisplay: (row) => accountTypeToDisplay(row.type),
+				sortKey: 'type'
+			},
+			{
+				id: 'status',
+				title: 'Status',
+				rowToDisplay: (row) => statusToDisplay(row.status),
+				sortKey: 'status'
+			},
+			{ id: 'title', title: 'Title', rowToDisplay: (row) => row.title, sortKey: 'title' },
+			{
+				id: 'isCash',
+				title: 'Cash',
+				rowToDisplay: (row) => (row.isCash ? 'Y' : ''),
+				sortKey: 'isCash'
+			},
+			{
+				id: 'isNetWorth',
+				title: 'Net Worth',
+				rowToDisplay: (row) => (row.isNetWorth ? 'Y' : ''),
+				sortKey: 'isNetWorth'
+			},
+			{
+				id: 'startDate',
+				title: 'Start Date',
+				rowToDisplay: (row) => row.startDate,
+				sortKey: 'startDate'
+			},
+			{ id: 'endDate', title: 'End Date', rowToDisplay: (row) => row.endDate, sortKey: 'endDate' },
+			...summaryColumns({ currencyFormat: data.user?.currencyFormat || 'USD' })
+		]}
+		bind:shownColumns={$accountColumnsStore}
+		rowColour={(row) => (row.disabled ? 'grey' : undefined)}
+		rowToId={(row) => row.id}
+		bulkSelection
+	>
+		<svelte:fragment slot="bulkActions" let:selectedIds>
+			<ButtonGroup>
+				<Button
+					size="xs"
+					class="p-2"
+					outline
+					disabled={selectedIds.length === 0}
+					href={urlGenerator({
+						address: '/(loggedIn)/accounts/bulkEdit',
+						searchParamsValue: { idArray: selectedIds }
+					}).url}
+				>
+					<EditIcon /> Selected
+				</Button>
+				<Button
+					size="xs"
+					class="p-2"
+					outline
+					disabled={data.accounts.count === 0}
+					href={urlGenerator({
+						address: '/(loggedIn)/accounts/bulkEdit',
+						searchParamsValue: { ...$urlStore.searchParams, page: 0, pageSize: 1000000 }
+					}).url}
+				>
+					<EditIcon /> All Matching
+				</Button>
+			</ButtonGroup>
+		</svelte:fragment>
+		<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#if currentColumn.id === 'actions'}
+				{@const detailURL = urlGenerator({
+					address: '/(loggedIn)/accounts/bulkEdit',
+					searchParamsValue: { id: currentRow.id }
+				}).url}
 
-		{#if $urlStore.searchParams}
-			<OrderDropDown
-				currentSort={$urlStore.searchParams.orderBy}
-				options={[...accountOrderByEnum]}
-				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
-				optionToTitle={accountOrderByEnumToText}
-			/>
+				{@const deleteURL = urlGenerator({
+					address: '/(loggedIn)/accounts/[id]/delete',
+					paramsValue: { id: currentRow.id }
+				}).url}
+				{@const journalsURL = urlGenerator({
+					address: '/(loggedIn)/journals',
+					searchParamsValue: {
+						...defaultJournalFilter(),
+						account: {
+							id: currentRow.id,
+							type: [...accountTypeEnum]
+						}
+					}
+				}).url}
+				<div class="flex flex-row justify-center">
+					<form method="POST" action="?/update" use:enhance>
+						<input type="hidden" name="id" value={currentRow.id} />
+						<ButtonGroup>
+							<Button href={journalsURL} class="p-2" outline color="blue">
+								<JournalEntryIcon height={15} width={15} />
+							</Button>
+							<Button href={detailURL} class="p-2" outline>
+								<EditIcon height={15} width={15} />
+							</Button>
+							{#if currentRow.disabled}
+								<Button type="submit" name="status" value="active" class="p-2" color="primary">
+									<DisabledIcon />
+								</Button>
+							{:else}
+								<Button type="submit" name="status" value="disabled" class="p-2" outline>
+									<DisabledIcon />
+								</Button>
+							{/if}
+							<Button
+								href={deleteURL}
+								class="p-2"
+								outline
+								color="red"
+								disabled={(currentRow.count || 0) > 0}
+							>
+								<DeleteIcon height={15} width={15} />
+							</Button>
+							<RawDataModal data={currentRow} title="Raw Account Data" dev={data.dev} />
+						</ButtonGroup>
+					</form>
+				</div>
+			{/if}
+		</svelte:fragment>
+		<svelte:fragment slot="filterButtons">
 			<DownloadDropdown
 				urlGenerator={(downloadType) =>
 					urlGenerator({
@@ -111,166 +229,28 @@
 						searchParamsValue: { ...$urlStore.searchParams, downloadType }
 					}).url}
 			/>
-		{/if}
-	</div>
-	{#if data.accounts.count === 0}
-		<Alert color="dark">No Matching Accoounts Found</Alert>
-	{:else}
-		<Table>
-			<TableHead>
-				<TableHeadCell></TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Account Group</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: {
-										orderBy: modifyOrderBy(data.searchParams?.orderBy, 'accountGroup')
-									}
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'accountGroup')} />
-							</Button>
-						</div>
+		</svelte:fragment>
+		<svelte:fragment slot="filter">
+			<div class="flex flex-row gap-2">
+				{#if $urlStore.searchParams}
+					<Input
+						type="text"
+						bind:value={$urlStore.searchParams.accountTitleCombined}
+						placeholder="Filter by Title"
+						class="flex flex-grow"
+					/>
+					<div class="flex self-center">
+						<AccountTypeFilterLinks
+							type={$urlStore.searchParams.type}
+							generateURL={(newType) =>
+								urlInfo.updateParams({ searchParams: { type: newType } }).url}
+						/>
 					</div>
-				</TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Account Group 2</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: {
-										orderBy: modifyOrderBy(data.searchParams?.orderBy, 'accountGroup2')
-									}
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'accountGroup2')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Account Group 3</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: {
-										orderBy: modifyOrderBy(data.searchParams?.orderBy, 'accountGroup3')
-									}
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'accountGroup3')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Title</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'title') }
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'title')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Status</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'status') }
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'status')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-				<TableHeadCell>Total</TableHeadCell>
-				<TableHeadCell>Count</TableHeadCell>
-			</TableHead>
-			<TableBody>
-				{#each data.accounts.data as currentAccount}
-					{@const detailURL = urlGenerator({
-						address: '/(loggedIn)/accounts/[id]',
-						paramsValue: { id: currentAccount.id }
-					}).url}
-
-					{@const deleteURL = urlGenerator({
-						address: '/(loggedIn)/accounts/[id]/delete',
-						paramsValue: { id: currentAccount.id }
-					}).url}
-					{@const journalsURL = urlGenerator({
-						address: '/(loggedIn)/journals',
-						searchParamsValue: {
-							...defaultJournalFilter(),
-							account: {
-								id: currentAccount.id,
-								type: [...accountTypeEnum]
-							}
-						}
-					}).url}
-					<TableBodyRow>
-						<TableBodyCell>
-							<div class="flex flex-row justify-center">
-								<ButtonGroup>
-									<Button href={journalsURL} class="p-2" outline color="blue">
-										<JournalEntryIcon height={15} width={15} />
-									</Button>
-									<Button href={detailURL} class="p-2" outline>
-										<EditIcon height={15} width={15} />
-									</Button>
-									<Button href={deleteURL} class="p-2" outline color="red">
-										<DeleteIcon height={15} width={15} />
-									</Button>
-									<RawDataModal data={currentAccount} title="Raw Account Data" dev={data.dev} />
-								</ButtonGroup>
-							</div>
-						</TableBodyCell>
-						<TableBodyCell>{currentAccount.accountGroup}</TableBodyCell>
-						<TableBodyCell>{currentAccount.accountGroup2}</TableBodyCell>
-						<TableBodyCell>{currentAccount.accountGroup3}</TableBodyCell>
-						<TableBodyCell>{currentAccount.title}</TableBodyCell>
-						<TableBodyCell>{statusToDisplay(currentAccount.status)}</TableBodyCell>
-						<TableBodyCell>
-							<DisplayCurrency
-								amount={currentAccount.sum}
-								format={data.user?.currencyFormat || 'USD'}
-							/>
-						</TableBodyCell>
-						<TableBodyCell>{currentAccount.count}</TableBodyCell>
-					</TableBodyRow>
-				{/each}
-			</TableBody>
-		</Table>
-	{/if}
-	<center>
-		<TablePagination
-			count={data.accounts.count}
-			page={data.accounts.page}
-			perPage={data.accounts.pageSize}
-			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
-			buttonCount={5}
-		/>
-	</center>
+				{/if}
+			</div>
+		</svelte:fragment>
+		<svelte:fragment slot="filterModal">
+			<AccountFilter bind:filter={$urlStore.searchParams} accountDetails={data.accountDropdown} />
+		</svelte:fragment>
+	</CustomTable>
 </PageLayout>

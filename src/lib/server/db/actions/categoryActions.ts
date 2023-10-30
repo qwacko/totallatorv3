@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/categorySchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, category, journalEntry } from '../schema';
+import { account, category, journalEntry, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
@@ -16,6 +16,8 @@ import { categoryFilterToQuery } from './helpers/categoryFilterToQuery';
 import { categoryCreateInsertionData } from './helpers/categoryCreateInsertionData';
 import { createCategory } from './helpers/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
+import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryOrderBy } from './helpers/summaryOrderBy';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
@@ -41,18 +43,26 @@ export const categoryActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: CategoryFilterSchemaType }) => {
+		await summaryActions.updateAndCreateMany({
+			db,
+			ids: undefined,
+			needsUpdateOnly: true,
+			allowCreation: true
+		});
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = categoryFilterToQuery(restFilter);
+		const where = categoryFilterToQuery(restFilter, true);
 
 		const defaultOrderBy = [asc(category.group), asc(category.single), desc(category.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						currentOrder.direction === 'asc'
-							? asc(category[currentOrder.field])
-							: desc(category[currentOrder.field])
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(category[remainingOrder.field])
+								: desc(category[remainingOrder.field]);
+						})
 					),
 					...defaultOrderBy
 			  ]
@@ -61,13 +71,7 @@ export const categoryActions = {
 		const results = await db
 			.select({
 				...getTableColumns(category),
-				sum: sql`sum(CASE WHEN ${account.type} IN ('asset', 'liability') THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-					Number
-				),
-				count:
-					sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					)
+				...summaryTableColumnsToSelect
 			})
 			.from(category)
 			.where(and(...where))
@@ -76,6 +80,7 @@ export const categoryActions = {
 			.orderBy(...orderByResult)
 			.leftJoin(journalEntry, eq(journalEntry.categoryId, category.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
+			.leftJoin(summaryTable, eq(summaryTable.relationId, category.id))
 			.groupBy(category.id)
 			.execute();
 
@@ -153,7 +158,10 @@ export const categoryActions = {
 	},
 	create: async (db: DBType, data: CreateCategorySchemaType) => {
 		const id = nanoid();
-		await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();
+		await db.transaction(async (db) => {
+			await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return id;
 	},
@@ -162,7 +170,10 @@ export const categoryActions = {
 		const insertData = data.map((currentData, index) =>
 			categoryCreateInsertionData(currentData, ids[index])
 		);
-		await db.insert(category).values(insertData).execute();
+		await db.transaction(async (db) => {
+			await db.insert(category).values(insertData).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return ids;
 	},

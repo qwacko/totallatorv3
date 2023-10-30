@@ -4,7 +4,9 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { labelFilterToText } from '$lib/server/db/actions/helpers/labelFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms/client';
+import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -31,6 +33,35 @@ export const load = async (data) => {
 		labels,
 		searchParams: pageInfo.searchParams,
 		filterText: labelFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
-		labelSummary
+		labelSummary,
+		labelDropdowns: tActions.label.listForDropdown({ db })
 	};
+};
+
+const submitValidation = z.object({
+	id: z.string(),
+	status: z.enum(['active', 'disabled'])
+});
+
+export const actions = {
+	update: async ({ request }) => {
+		const form = await superValidate(request, submitValidation);
+
+		if (!form.valid) {
+			return error(400, 'Invalid form data');
+		}
+
+		try {
+			await tActions.label.update(db, form.data);
+			return {
+				status: 200,
+				body: {
+					message: 'Label Updated'
+				}
+			};
+		} catch (e) {
+			console.log('Label Update Error', e);
+			return error(500, 'Error updating label');
+		}
+	}
 };

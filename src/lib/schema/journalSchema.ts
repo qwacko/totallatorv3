@@ -227,6 +227,7 @@ export const journalFilterSchema = z.object({
 	minAmount: z.number().optional(),
 	yearMonth: z.array(z.string()).optional(),
 	description: z.coerce.string().optional(),
+	transfer: z.coerce.boolean().optional(),
 	linked: z.coerce.boolean().optional(),
 	reconciled: z.coerce.boolean().optional(),
 	dataChecked: z.coerce.boolean().optional(),

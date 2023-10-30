@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/tagSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, tag } from '../schema';
+import { account, journalEntry, summaryTable, tag } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
@@ -16,6 +16,8 @@ import { tagCreateInsertionData } from './helpers/tagCreateInsertionData';
 import { tagFilterToQuery } from './helpers/tagFilterToQuery';
 import { createTag } from './helpers/seedTagData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
+import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryOrderBy } from './helpers/summaryOrderBy';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
@@ -43,18 +45,27 @@ export const tagActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: TagFilterSchemaType }) => {
+		await summaryActions.updateAndCreateMany({
+			db,
+			ids: undefined,
+			needsUpdateOnly: true,
+			allowCreation: true
+		});
+
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = tagFilterToQuery(restFilter);
+		const where = tagFilterToQuery(restFilter, true);
 
 		const defaultOrderBy = [asc(tag.group), asc(tag.single), desc(tag.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						currentOrder.direction === 'asc'
-							? asc(tag[currentOrder.field])
-							: desc(tag[currentOrder.field])
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(tag[remainingOrder.field])
+								: desc(tag[remainingOrder.field]);
+						})
 					),
 					...defaultOrderBy
 			  ]
@@ -63,13 +74,7 @@ export const tagActions = {
 		const results = await db
 			.select({
 				...getTableColumns(tag),
-				sum: sql`sum(CASE WHEN ${account.type} IN ('asset', 'liability') THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-					Number
-				),
-				count:
-					sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					)
+				...summaryTableColumnsToSelect
 			})
 			.from(tag)
 			.where(and(...where))
@@ -78,6 +83,7 @@ export const tagActions = {
 			.orderBy(...orderByResult)
 			.leftJoin(journalEntry, eq(journalEntry.tagId, tag.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
+			.leftJoin(summaryTable, eq(summaryTable.relationId, tag.id))
 			.groupBy(tag.id)
 			.execute();
 
@@ -133,6 +139,7 @@ export const tagActions = {
 				title,
 				status: 'active'
 			});
+
 			const newTag = await db.query.tag.findFirst({ where: eq(tag.id, newTagId) }).execute();
 			if (!newTag) {
 				throw new Error('Error Creating Tag');
@@ -144,7 +151,10 @@ export const tagActions = {
 	},
 	create: async (db: DBType, data: CreateTagSchemaType) => {
 		const id = nanoid();
-		await db.insert(tag).values(tagCreateInsertionData(data, id)).execute();
+		await db.transaction(async (db) => {
+			await db.insert(tag).values(tagCreateInsertionData(data, id)).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return id;
 	},
@@ -153,8 +163,10 @@ export const tagActions = {
 		const insertData = data.map((currentData, index) =>
 			tagCreateInsertionData(currentData, ids[index])
 		);
-
-		await db.insert(tag).values(insertData).execute();
+		await db.transaction(async (db) => {
+			await db.insert(tag).values(insertData).execute();
+			await summaryActions.createMissing({ db });
+		});
 
 		return ids;
 	},

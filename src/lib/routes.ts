@@ -72,8 +72,8 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 				.parse
 		},
 		'/(loggedIn)/accounts/create': {},
-		'/(loggedIn)/accounts/[id]': {
-			paramsValidation: z.object({ id: z.string() }).parse
+		'/(loggedIn)/accounts/bulkEdit': {
+			searchParamsValidation: accountFilterSchema.catch({}).parse
 		},
 		'/(loggedIn)/accounts/[id]/delete': {
 			paramsValidation: z.object({ id: z.string() }).parse

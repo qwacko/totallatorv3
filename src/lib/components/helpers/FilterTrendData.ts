@@ -3,6 +3,8 @@ import type { JournalSummaryType } from '$lib/server/db/actions/journalActions';
 const defaultMonthlySummary: JournalSummaryType['monthlySummary'][number] = {
 	average: 0,
 	sum: 0,
+	negativeSumNonTransfer: 0,
+	positiveSumNonTransfer: 0,
 	count: 0,
 	negativeCount: 0,
 	negativeSum: 0,

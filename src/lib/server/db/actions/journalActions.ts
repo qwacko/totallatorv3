@@ -46,6 +46,8 @@ import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { nanoid } from 'nanoid';
 import { simpleSchemaToCombinedSchema } from './helpers/simpleSchemaToCombinedSchema';
+import { updateManyTransferInfo } from './helpers/updateTransactionTransfer';
+import { summaryActions } from './summaryActions';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -92,9 +94,26 @@ export const journalActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
+		const startDate12Months = new Date();
+		startDate12Months.setMonth(startDate12Months.getMonth() - 12 + 1);
+		const startLast12YearMonth = startDate12Months.toISOString().slice(0, 7);
+		const endLast12YearMonth = new Date().toISOString().slice(0, 7);
+
 		const commonSummary = {
 			count: sql`count(${journalEntry.id})`.mapWith(Number),
 			sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+			sum12Months:
+				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} then ${journalEntry.amount} else 0 END)`.mapWith(
+					Number
+				),
+			sum12MonthsWithoutTransfer:
+				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} AND ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
+					Number
+				),
+			sumWithoutTransfer:
+				sql`sum(CASE WHEN ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
+					Number
+				),
 			average: sql`avg(${journalEntry.amount})`.mapWith(Number),
 			earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
 			latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
@@ -210,7 +229,15 @@ export const journalActions = {
 					),
 				negativeCount: sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN 1 ELSE 0 END)`.mapWith(
 					Number
-				)
+				),
+				positiveSumNonTransfer:
+					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 AND ${journalEntry.transfer} = 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+						Number
+					),
+				negativeSumNonTransfer:
+					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 AND ${journalEntry.transfer} = 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+						Number
+					)
 			})
 			.from(journalEntry)
 			.leftJoin(account, eq(journalEntry.accountId, account.id))
@@ -238,7 +265,9 @@ export const journalActions = {
 				negativeSum: 0,
 				positiveSum: 0,
 				runningTotal: 0,
-				runningCount: 0
+				runningCount: 0,
+				negativeSumNonTransfer: 0,
+				positiveSumNonTransfer: 0
 			}
 		});
 
@@ -371,6 +400,13 @@ export const journalActions = {
 			for (const chunk of labelChunks) {
 				await db.insert(labelsToJournals).values(chunk).execute();
 			}
+
+			await summaryActions.markAsNeedingProcessing({
+				db,
+				ids: await summaryActions.getUniqueTransactionInfo({ db, ids: transactionIds })
+			});
+
+			await updateManyTransferInfo({ db, transactionIds });
 		});
 
 		return transactionIds;
@@ -383,6 +419,7 @@ export const journalActions = {
 		transactionIds: string[];
 	}) => {
 		if (transactionIds.length === 0) return;
+		const originalIds = await summaryActions.getUniqueTransactionInfo({ db, ids: transactionIds });
 		await db.transaction(async (db) => {
 			const journalsForDeletion = await db
 				.select()
@@ -400,6 +437,10 @@ export const journalActions = {
 					journalsForDeletion.map((item) => item.id)
 				)
 			);
+			await summaryActions.markAsNeedingProcessing({
+				db,
+				ids: originalIds
+			});
 		});
 	},
 	seed: async (db: DBType, count: number) => {
@@ -547,8 +588,15 @@ export const journalActions = {
 
 		const linkedJournals = journals.data.filter((journal) => journal.linked);
 		const unlinkedJournals = journals.data.filter((journal) => !journal.linked);
-		const transactionIds = linkedJournals.map((item) => item.transactionId);
-		const journalIds = unlinkedJournals.map((item) => item.id);
+		const linkedTransactionIds = [...new Set(linkedJournals.map((item) => item.transactionId))];
+		const allTransactionIds = [...new Set(journals.data.map((item) => item.transactionId))];
+
+		const originalLinkedIds = await summaryActions.getUniqueTransactionInfo({
+			db,
+			ids: allTransactionIds
+		});
+
+		const journalIds = [...new Set(unlinkedJournals.map((item) => item.id))];
 		const targetJournals = (
 			await db
 				.select({ id: journalEntry.id })
@@ -558,8 +606,8 @@ export const journalActions = {
 						journalIds.length > 0
 							? inArray(journalEntry.id, journalIds)
 							: eq(journalEntry.id, 'empty'),
-						transactionIds.length > 0
-							? inArray(journalEntry.transactionId, transactionIds)
+						linkedTransactionIds.length > 0
+							? inArray(journalEntry.transactionId, linkedTransactionIds)
 							: eq(journalEntry.id, 'empty')
 					)
 				)
@@ -621,7 +669,6 @@ export const journalActions = {
 			const targetDate = journalData.date ? expandDate(journalData.date) : {};
 
 			if (linkedJournals.length > 0) {
-				const transactionIds = linkedJournals.map((journal) => journal.transactionId);
 				await db
 					.update(journalEntry)
 					.set({
@@ -635,7 +682,7 @@ export const journalActions = {
 						...targetDate,
 						...updatedTime()
 					})
-					.where(inArray(journalEntry.transactionId, transactionIds))
+					.where(inArray(journalEntry.transactionId, linkedTransactionIds))
 					.execute();
 			}
 
@@ -819,6 +866,18 @@ export const journalActions = {
 					)
 					.execute();
 			}
+
+			const completedIds = await summaryActions.getUniqueTransactionInfo({
+				db,
+				ids: allTransactionIds
+			});
+
+			await summaryActions.markAsNeedingProcessing({
+				db,
+				ids: [...completedIds, ...originalLinkedIds]
+			});
+
+			await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
 		});
 	},
 	cloneJournals: async ({

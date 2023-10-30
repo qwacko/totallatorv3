@@ -1,6 +1,7 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
 import { updateCategorySchema } from '$lib/schema/categorySchema';
+import { categoryPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
@@ -28,7 +29,10 @@ export const load = async (data) => {
 
 export const actions = {
 	default: async ({ request }) => {
-		const form = await superValidate(request, updateCategorySchema);
+		const form = await superValidate(
+			request,
+			updateCategorySchema.merge(categoryPageAndFilterValidation)
+		);
 
 		if (!form.valid) {
 			return { form };
@@ -40,6 +44,6 @@ export const actions = {
 			logging.info('Update Category Error', e);
 			return message(form, 'Error Updating Category');
 		}
-		throw redirect(302, '/categories');
+		throw redirect(302, form.data.prevPage);
 	}
 };

@@ -5,6 +5,9 @@ const summaryItemDetails = z.object({
 	title: z.string().nullable().optional(),
 	count: z.coerce.number(),
 	sum: z.coerce.number(),
+	sum12Months: z.coerce.number(),
+	sum12MonthsWithoutTransfer: z.coerce.number(),
+	sumWithoutTransfer: z.coerce.number(),
 	earliest: z.coerce.string(),
 	latest: z.coerce.string(),
 	average: z.coerce.number(),
@@ -21,6 +24,8 @@ const monthlySummarySchema = z.object({
 	positiveCount: z.coerce.number(),
 	negativeSum: z.coerce.number(),
 	positiveSum: z.coerce.number(),
+	positiveSumNonTransfer: z.coerce.number(),
+	negativeSumNonTransfer: z.coerce.number(),
 	yearMonth: z.coerce.string(),
 	runningTotal: z.coerce.number(),
 	runningCount: z.coerce.number()

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { statusEnum } from './statusSchema';
+import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
 
 export const createBudgetSchema = z.object({
 	title: z.string(),
@@ -20,7 +21,14 @@ export const updateBudgetSchema = z.object({
 export type UpdateBudgetSchemaSuperType = typeof updateBudgetSchema;
 export type UpdateBudgetSchemaType = z.infer<typeof updateBudgetSchema>;
 
-const orderByEnum = ['title', 'status', 'disabled', 'allowUpdate', 'active'] as const;
+const orderByEnum = [
+	'title',
+	'status',
+	'disabled',
+	'allowUpdate',
+	'active',
+	...summaryOrderByEnum
+] as const;
 
 type OrderByEnumType = (typeof orderByEnum)[number];
 
@@ -34,7 +42,8 @@ const enumTitles: OrderByEnumTitles = {
 	active: 'Active',
 	allowUpdate: 'Allow Update',
 	disabled: 'Disabled',
-	status: 'Status'
+	status: 'Status',
+	...summaryEnumTitles
 };
 
 export const budgetOrderByEnumToText = (input: OrderByEnumType) => {
@@ -53,6 +62,10 @@ export const budgetFilterSchema = z.object({
 	importDetailIdArray: z.array(z.string()).optional(),
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
+
+	//Summary Info Filters
+	...summaryFilterProperties,
+
 	orderBy: z
 		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
 		.default([{ direction: 'asc', field: 'title' }])

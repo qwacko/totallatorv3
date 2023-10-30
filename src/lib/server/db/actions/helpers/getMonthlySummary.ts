@@ -19,6 +19,7 @@ export function getMonthlySummary({
 	const endDateUse = endDate
 		? endDate
 		: yearMonths.reduce((prev, current) => (current > prev ? current : prev), '0000-00');
+
 	const monthList = generateYearMonthsBetween(startDateUse, endDateUse);
 
 	const monthlySummary = monthList.map((currentMonth) => {

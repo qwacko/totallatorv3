@@ -10,7 +10,7 @@
 	export let urlGenerator: (dType: DownloadTypeEnumType) => string;
 </script>
 
-<Button color="blue" outline size="sm">
+<Button size="sm" class="flex p-2" color="blue" outline>
 	<DownloadIcon />
 </Button>
 <Dropdown data-sveltekit-preload-data="off">

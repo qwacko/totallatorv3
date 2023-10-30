@@ -2,10 +2,11 @@ import { z } from 'zod';
 import { statusEnum } from './statusSchema';
 import { accountTypeEnum } from './accountTypeSchema';
 import { dateStringSchema } from './dateStringSchema';
+import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
 
 export const createAccountSchema = z.object({
 	title: z.string(),
-	accountGroupCombined: z.string(),
+	accountGroupCombined: z.string().trim(),
 	type: z.enum(accountTypeEnum).optional().default('expense'),
 	startDate: dateStringSchema.or(z.string().trim().length(0)).optional(),
 	endDate: dateStringSchema.or(z.string().trim().length(0)).optional(),
@@ -20,10 +21,16 @@ export type CreateAccountSchemaSuperType = typeof createAccountSchema;
 export type CreateAccountSchemaType = z.infer<typeof createAccountSchema>;
 
 export const updateAccountSchema = z.object({
-	id: z.string(),
-	title: z.string().optional(),
+	title: z.string().trim().optional(),
 	type: z.enum(accountTypeEnum).optional(),
-	accountGroupCombined: z.string().optional(),
+	accountGroupCombined: z.string().trim().optional(),
+	accountGroupCombinedClear: z.boolean().optional(),
+	accountGroup: z.string().trim().optional(),
+	accountGroupClear: z.boolean().optional(),
+	accountGroup2: z.string().trim().optional(),
+	accountGroup2Clear: z.boolean().optional(),
+	accountGroup3: z.string().trim().optional(),
+	accountGroup3Clear: z.boolean().optional(),
 	startDate: dateStringSchema.optional().nullable(),
 	endDate: dateStringSchema.optional().nullable(),
 	isCash: z.boolean().optional(),
@@ -31,8 +38,38 @@ export const updateAccountSchema = z.object({
 	status: z.enum(statusEnum).optional()
 });
 
-export type UpdateAccountSchemaSuperType = typeof updateAccountSchema;
+export const updateAccountSchemaWithId = updateAccountSchema.merge(z.object({ id: z.string() }));
+
+const refineAccountUpdate = (data: {
+	accountGroupCombined?: string;
+	accountGroup?: string;
+	accountGroup2?: string;
+	accountGroup3?: string;
+	accountGroupClear?: boolean;
+	accountGroup2Clear?: boolean;
+	accountGroup3Clear?: boolean;
+}): boolean => {
+	if (data.accountGroupCombined) {
+		return !(
+			data.accountGroup ||
+			data.accountGroup2 ||
+			data.accountGroup3 ||
+			data.accountGroupClear === true ||
+			data.accountGroup2Clear === true ||
+			data.accountGroup3Clear === true
+		);
+	}
+	return true;
+};
+
+export const updateAccountSchemaRefined = updateAccountSchema.refine(refineAccountUpdate, {
+	message:
+		'Account Group Combined must not be accompanied by Account Group, Account Group 2, or Account Group 3',
+	path: ['accountGroupCombined']
+});
+
 export type UpdateAccountSchemaType = z.infer<typeof updateAccountSchema>;
+export type UpdateAccountSchemaSuperType = typeof updateAccountSchema;
 
 export const accountOrderByEnum = [
 	'title',
@@ -41,6 +78,7 @@ export const accountOrderByEnum = [
 	'accountGroup3',
 	'accountGroupCombined',
 	'accountTitleCombined',
+	'type',
 	'isCash',
 	'isNetWorth',
 	'startDate',
@@ -48,7 +86,8 @@ export const accountOrderByEnum = [
 	'status',
 	'disabled',
 	'allowUpdate',
-	'active'
+	'active',
+	...summaryOrderByEnum
 ] as const;
 
 type OrderByEnumType = (typeof accountOrderByEnum)[number];
@@ -60,6 +99,7 @@ type OrderByEnumTitles = {
 // This will be valid for demonstration purposes
 const enumTitles: OrderByEnumTitles = {
 	title: 'Title',
+	type: 'Account Type',
 	accountGroup: 'Account Group',
 	accountGroup2: 'Account Group 2',
 	accountGroup3: 'Account Group 3',
@@ -72,7 +112,8 @@ const enumTitles: OrderByEnumTitles = {
 	status: 'Status',
 	disabled: 'Disabled',
 	allowUpdate: 'Allow Update',
-	active: 'Active'
+	active: 'Active',
+	...summaryEnumTitles
 };
 
 export const accountOrderByEnumToText = (input: OrderByEnumType) => {
@@ -104,6 +145,10 @@ export const accountFilterSchema = z.object({
 	endDateAfter: dateStringSchema.optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
+
+	//Summary Info Filters
+	...summaryFilterProperties,
+
 	page: z.coerce.number().default(0).optional(),
 	pageSize: z.coerce.number().default(10).optional(),
 

@@ -4,9 +4,11 @@ import { tag } from '../../schema';
 import { SQL, eq, ilike, inArray, like } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from './importIdsToTitles';
+import { summaryFilterToQuery, summaryFilterToText } from './summaryFilterToQuery';
 
 export const tagFilterToQuery = (
-	filter: Omit<TagFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
+	filter: Omit<TagFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	includeSummary: boolean = false
 ) => {
 	const restFilter = filter;
 
@@ -25,6 +27,10 @@ export const tagFilterToQuery = (
 		where.push(inArray(tag.importId, restFilter.importIdArray));
 	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
 		where.push(inArray(tag.importDetailId, restFilter.importDetailIdArray));
+
+	if (includeSummary) {
+		summaryFilterToQuery({ where, filter: restFilter });
+	}
 
 	return where;
 };
@@ -87,6 +93,8 @@ export const tagFilterToText = async (
 				singularName: 'Import Detail ID'
 			})
 		);
+
+	summaryFilterToText({ stringArray, filter: restFilter });
 
 	if (stringArray.length === 0 && allText) {
 		stringArray.push('Showing All');

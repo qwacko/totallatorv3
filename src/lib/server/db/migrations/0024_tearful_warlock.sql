@@ -1,0 +1,1 @@
+ALTER TABLE journal_entry ADD `transfer` integer DEFAULT true NOT NULL;
