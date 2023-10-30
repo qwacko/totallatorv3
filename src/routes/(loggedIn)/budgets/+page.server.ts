@@ -4,7 +4,9 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { budgetFilterToText } from '$lib/server/db/actions/helpers/budgetFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms/client';
+import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -30,6 +32,35 @@ export const load = async (data) => {
 		budgets,
 		searchParams: pageInfo.searchParams,
 		filterText: budgetFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
-		budgetSummary
+		budgetSummary,
+		budgetDropdowns: tActions.budget.listForDropdown({ db })
 	};
+};
+
+const submitValidation = z.object({
+	id: z.string(),
+	status: z.enum(['active', 'disabled'])
+});
+
+export const actions = {
+	update: async ({ request }) => {
+		const form = await superValidate(request, submitValidation);
+
+		if (!form.valid) {
+			return error(400, 'Invalid form data');
+		}
+
+		try {
+			await tActions.budget.update(db, form.data);
+			return {
+				status: 200,
+				body: {
+					message: 'Budget Updated'
+				}
+			};
+		} catch (e) {
+			console.log('Budget Update Error', e);
+			return error(500, 'Error updating budget');
+		}
+	}
 };

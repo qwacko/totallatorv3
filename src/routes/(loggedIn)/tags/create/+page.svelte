@@ -1,10 +1,13 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
+	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
+	import { pageInfo } from '$lib/routes';
 	import { statusEnumSelectionWithoutDeleted } from '$lib/schema/statusSchema.js';
 	import type { CreateTagSchemaSuperType } from '$lib/schema/tagSchema.js';
 	import { Button } from 'flowbite-svelte';
@@ -15,12 +18,16 @@
 	const { form, errors, constraints, message, enhance } = superForm<CreateTagSchemaSuperType>(
 		data.form
 	);
+
+	$: urlInfo = pageInfo('/(loggedIn)/tags/create', $page);
 </script>
 
 <CustomHeader pageTitle="New Tag" />
 
 <PageLayout title="Create Tag" size="xs">
 	<form method="POST" use:enhance class="flex flex-col gap-2">
+		<PreviousUrlInput name="prevPage" />
+		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<TextInput
 			title="Title"
 			errorMessage={$errors.title}

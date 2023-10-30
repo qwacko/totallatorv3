@@ -1,4 +1,5 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
+import { tagPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { createTagSchema } from '$lib/schema/tagSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db.js';
@@ -16,7 +17,7 @@ export const load = async (data) => {
 
 export const actions = {
 	default: async ({ request }) => {
-		const form = await superValidate(request, createTagSchema);
+		const form = await superValidate(request, createTagSchema.merge(tagPageAndFilterValidation));
 
 		if (!form.valid) {
 			return { form };
@@ -28,6 +29,6 @@ export const actions = {
 			logging.info('Create Tag Error', e);
 			return message(form, 'Error Creating Tag, Possibly Already Exists');
 		}
-		throw redirect(302, '/tags');
+		throw redirect(302, form.data.prevPage);
 	}
 };

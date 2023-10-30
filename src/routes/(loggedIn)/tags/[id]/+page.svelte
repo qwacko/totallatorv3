@@ -1,12 +1,14 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
+	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { urlGenerator } from '$lib/routes.js';
+	import { pageInfo, urlGenerator } from '$lib/routes.js';
 	import { statusEnumSelectionWithoutDeleted } from '$lib/schema/statusSchema.js';
 	import type { UpdateTagSchemaSuperType } from '$lib/schema/tagSchema.js';
 	import { Button } from 'flowbite-svelte';
@@ -17,6 +19,8 @@
 	const { form, errors, constraints, message, enhance } = superForm<UpdateTagSchemaSuperType>(
 		data.form
 	);
+
+	$: urlInfo = pageInfo('/(loggedIn)/tags/[id]', $page);
 
 	$: deleteURL = urlGenerator({
 		address: '/(loggedIn)/tags/[id]/delete',
@@ -29,6 +33,8 @@
 <PageLayout title={data.tag.title} size="sm">
 	<form method="POST" class="flex flex-col gap-2" use:enhance>
 		<input type="hidden" name="id" value={data.tag.id} />
+		<PreviousUrlInput name="prevPage" />
+		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<TextInput
 			title="Title"
 			errorMessage={$errors.title}

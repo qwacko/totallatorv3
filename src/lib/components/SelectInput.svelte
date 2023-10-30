@@ -7,20 +7,21 @@
 	export let name: string;
 	export let required: boolean | undefined | null = undefined;
 	export let value: string | undefined;
+	export let wrapperClass: string | undefined = undefined;
 </script>
 
-<Label class="space-y-2">
+<Label class="space-y-2 {wrapperClass}">
 	{#if title}
-		<span class="flex flex-row gap-1"
-			><div>
+		<span class="flex flex-row gap-1">
+			<div>
 				{title}
 			</div>
 			<div>
 				{#if required}
 					*{/if}
-			</div></span
-		>
+			</div>
+		</span>
 	{/if}
-	<Select bind:value {...$$restProps} {name} {required} />
+	<Select bind:value {...$$restProps} {name} {required} class={$$props.class} />
 	<ErrorText message={errorMessage} />
 </Label>

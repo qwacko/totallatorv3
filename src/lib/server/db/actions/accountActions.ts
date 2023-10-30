@@ -1,11 +1,12 @@
-import type {
-	CreateAccountSchemaType,
-	AccountFilterSchemaType,
-	UpdateAccountSchemaType
+import {
+	type CreateAccountSchemaType,
+	type AccountFilterSchemaType,
+	type UpdateAccountSchemaType,
+	updateAccountSchema
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry } from '../schema';
+import { account, journalEntry, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
@@ -21,6 +22,9 @@ import {
 import { accountFilterToQuery } from './helpers/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/accountCreateInsertionData';
 import { accountTitleSplit } from './helpers/accountTitleSplit';
+import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { getCommonData } from './helpers/getCommonData';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -46,6 +50,12 @@ export const accountActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter?: AccountFilterSchemaType }) => {
+		await summaryActions.updateAndCreateMany({
+			db,
+			ids: undefined,
+			needsUpdateOnly: true,
+			allowCreation: true
+		});
 		const {
 			page = 0,
 			pageSize = 10,
@@ -53,14 +63,16 @@ export const accountActions = {
 			...restFilter
 		} = filter || { page: 10, pageSize: 10 };
 
-		const where = accountFilterToQuery(restFilter);
+		const where = accountFilterToQuery(restFilter, true);
 		const defaultOrderBy = [asc(account.title), desc(account.createdAt)];
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						currentOrder.direction === 'asc'
-							? asc(account[currentOrder.field])
-							: desc(account[currentOrder.field])
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(account[remainingOrder.field])
+								: desc(account[remainingOrder.field]);
+						})
 					),
 					...defaultOrderBy
 			  ]
@@ -69,8 +81,7 @@ export const accountActions = {
 		const results = await db
 			.select({
 				...getTableColumns(account),
-				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
-				count: sql`count(${journalEntry.id})`.mapWith(Number)
+				...summaryTableColumnsToSelect
 			})
 			.from(account)
 			.where(and(...where))
@@ -78,6 +89,7 @@ export const accountActions = {
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
 			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
+			.leftJoin(summaryTable, eq(summaryTable.relationId, account.id))
 			.groupBy(account.id)
 			.execute();
 
@@ -105,10 +117,48 @@ export const accountActions = {
 
 		return items;
 	},
+	listCommonProperties: async ({ db, filter }: { db: DBType; filter: AccountFilterSchemaType }) => {
+		const { data: accounts } = await accountActions.list({
+			db,
+			filter: { ...filter, page: 0, pageSize: 1000000 }
+		});
 
+		const title = getCommonData('title', accounts);
+		const accountGroup = getCommonData('accountGroup', accounts);
+		const accountGroup2 = getCommonData('accountGroup2', accounts);
+		const accountGroup3 = getCommonData('accountGroup3', accounts);
+		const accountGroupCombined = getCommonData('accountGroupCombined', accounts);
+		const type = getCommonData('type', accounts);
+		const isNetWorth = getCommonData('isNetWorth', accounts);
+		const isCash = getCommonData('isCash', accounts);
+		const startDate = getCommonData('startDate', accounts);
+		const endDate = getCommonData('endDate', accounts);
+		const status = getCommonData('status', accounts);
+
+		return {
+			title,
+			status,
+			accountGroup,
+			accountGroup2,
+			accountGroup3,
+			accountGroupCombined,
+			accountGroupClear: false,
+			accountGroup2Clear: false,
+			accountGroup3Clear: false,
+			accountGroupCombinedClear: false,
+			type,
+			isNetWorth,
+			isCash,
+			startDate,
+			endDate
+		};
+	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
-		await db.insert(account).values(accountCreateInsertionData(data, id));
+		await db.transaction(async (db) => {
+			await db.insert(account).values(accountCreateInsertionData(data, id));
+			await summaryActions.createMissing({ db });
+		});
 
 		return id;
 	},
@@ -168,8 +218,49 @@ export const accountActions = {
 			return undefined;
 		}
 	},
-	update: async (db: DBType, data: UpdateAccountSchemaType) => {
-		const { id } = data;
+	updateMany: async ({
+		db,
+		data,
+		filter
+	}: {
+		db: DBType;
+		data: UpdateAccountSchemaType;
+		filter: AccountFilterSchemaType;
+	}) => {
+		const processedData = updateAccountSchema.safeParse(data);
+
+		if (!processedData.success) {
+			throw new Error('Invalid Data');
+		}
+
+		const items = await accountActions.list({
+			db,
+			filter: { ...filter, pageSize: 100000, page: 0 }
+		});
+
+		await db.transaction(async (db) => {
+			await Promise.all(
+				items.data.map(async (item) => {
+					await accountActions.update({ db, data, id: item.id });
+				})
+			);
+		});
+	},
+	update: async ({ db, data, id }: { db: DBType; data: UpdateAccountSchemaType; id: string }) => {
+		const {
+			accountGroup2,
+			accountGroup3,
+			accountGroup,
+			accountGroupCombined,
+			accountGroupClear,
+			accountGroup2Clear,
+			accountGroup3Clear,
+			accountGroupCombinedClear,
+			title,
+			status,
+			type,
+			...restData
+		} = data;
 		const currentAccount = await db.query.account
 			.findFirst({ where: eq(account.id, id) })
 			.execute();
@@ -180,38 +271,27 @@ export const accountActions = {
 		}
 
 		const changingToExpenseOrIncome =
-			data.type &&
-			(data.type === 'expense' || data.type === 'income') &&
-			data.type !== currentAccount.type;
+			type && (type === 'expense' || type === 'income') && type !== currentAccount.type;
+
+		const changingToAssetOrLiability =
+			type && (type === 'asset' || type === 'liability') && type !== currentAccount.type;
 
 		//If an account is changed to an expense, then make sure that all the other aspects
 		//of the account are correctly updated to how an expense would be created.
-		if (changingToExpenseOrIncome) {
-			await db
-				.update(account)
-				.set({
-					type: data.type,
-					...statusUpdate(data.status),
-					...combinedAccountTitleSplitRequired({
-						title: data.title || currentAccount.title,
-						accountGroupCombined: ''
-					}),
-					...updatedTime(),
-					startDate: null,
-					endDate: null,
-					isCash: false,
-					isNetWorth: false
-				})
-				.where(eq(account.id, id))
-				.execute();
-		} else if (currentAccount.type === 'expense' || currentAccount.type === 'income') {
+		if (
+			(currentAccount.type === 'expense' ||
+				currentAccount.type === 'income' ||
+				changingToExpenseOrIncome) &&
+			!changingToAssetOrLiability
+		) {
 			//Limit what can be updated for an income or expense account
 			await db
 				.update(account)
 				.set({
-					type: data.type || currentAccount.type,
+					type: type || currentAccount.type,
+					...statusUpdate(status),
 					...combinedAccountTitleSplitRequired({
-						title: data.title || currentAccount.title,
+						title: title || currentAccount.title,
 						accountGroupCombined: ''
 					}),
 					...updatedTime()
@@ -219,16 +299,47 @@ export const accountActions = {
 				.where(eq(account.id, id))
 				.execute();
 		} else {
+			console.log('Updating Asset / Liability Account : ', {
+				accountGroupCombined,
+				accountGroupCombinedClear,
+				accountGroupClear,
+				accountGroup2Clear,
+				accountGroup3Clear,
+				accountGroup,
+				accountGroup2,
+				accountGroup3
+			});
+
+			const newAccountGroupCombined = accountGroupCombinedClear
+				? ''
+				: accountGroupCombined && accountGroupCombined !== ''
+				? accountGroupCombined
+				: [
+						accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
+						accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
+						accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
+				  ]
+						.filter((item) => item)
+						.join(':');
+
+			console.log('Updated Account Group Combined ', newAccountGroupCombined);
+
+			const { startDate, endDate, isCash, isNetWorth } = restData;
+
 			await db
 				.update(account)
 				.set({
-					...data,
-					...statusUpdate(data.status),
-					...updatedTime(),
+					startDate,
+					endDate,
+					isCash,
+					isNetWorth,
+					type: type || currentAccount.type,
+					...statusUpdate(status),
 					...combinedAccountTitleSplitRequired({
-						title: data.title || currentAccount.title,
-						accountGroupCombined: data.accountGroupCombined || currentAccount.accountGroupCombined
-					})
+						title: title || currentAccount.title,
+						accountGroupCombined: newAccountGroupCombined
+					}),
+					...updatedTime()
 				})
 				.where(eq(account.id, id))
 				.execute();
@@ -285,7 +396,10 @@ export const accountActions = {
 			return accountCreateInsertionData(currentAccount, id);
 		});
 
-		await db.insert(account).values(dataForInsertion);
+		await db.transaction(async (db) => {
+			await db.insert(account).values(dataForInsertion);
+			await summaryActions.createMissing({ db });
+		});
 
 		return dataForInsertion.map((item) => item.id);
 	},

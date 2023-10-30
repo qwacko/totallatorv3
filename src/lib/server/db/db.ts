@@ -11,7 +11,7 @@ export const sqliteDatabase = sqlite(serverEnv.DATABASE_FILE);
 
 sqliteDatabase.pragma('journal_mode = WAL');
 
-const enableLogger = true;
+const enableLogger = serverEnv.DB_QUERY_LOG;
 
 class MyLogger implements Logger {
 	logQuery(query: string, params: unknown[]): void {

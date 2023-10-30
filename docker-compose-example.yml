@@ -12,6 +12,7 @@ services:
       - BACKUP_DIR=./backup/
       - IMPORT_DIR=./import/
       - BACKUP_SCHEDULE="0 0 * * *"
+      - DB_QUERY_LOG=false
     volumes:
       - ./db/:/app/db
       - ./backup:/app/backup

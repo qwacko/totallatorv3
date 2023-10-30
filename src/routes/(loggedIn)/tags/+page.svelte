@@ -1,35 +1,25 @@
 <script lang="ts">
-	import {
-		Button,
-		ButtonGroup,
-		Input,
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell,
-		Alert
-	} from 'flowbite-svelte';
+	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
-	import { getOrderBy, modifyOrderBy } from '$lib/helpers/orderByHelper.js';
-	import SortIcon from '$lib/components/SortIcon.svelte';
-	import TablePagination from '$lib/components/TablePagination.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
-	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
-	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
+	import CustomTable from '$lib/components/table/CustomTable.svelte';
+	import { tagColumnsStore } from '$lib/stores/columnDisplayStores.js';
+	import TagFilter from '$lib/components/filters/TagFilter.svelte';
+	import { enhance } from '$app/forms';
+	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
+	import { summaryColumns } from '$lib/schema/summarySchema.js';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -53,7 +43,7 @@
 	numPages={data.tags.pageCount}
 />
 
-<PageLayout title="Tags" size="lg">
+<PageLayout title="Tags" size="xl">
 	<svelte:fragment slot="right">
 		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>
 			Create
@@ -65,18 +55,108 @@
 		summaryFilter={{ tag: $urlStore.searchParams } || defaultJournalFilter()}
 		showJournalLink
 	/>
-	<center>
-		<TablePagination
-			count={data.tags.count}
-			page={data.tags.page}
-			perPage={data.tags.pageSize}
-			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
-			buttonCount={5}
-		/>
-	</center>
-	<div class="flex flex-row gap-2">
-		{#if $urlStore.searchParams}
-			<Input type="text" bind:value={$urlStore.searchParams.title} class="flex flex-grow" />
+	<CustomTable
+		highlightText={$urlStore.searchParams?.title}
+		highlightTextColumns={['title', 'group', 'single']}
+		filterText={data.filterText}
+		onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+		paginationInfo={{
+			page: data.tags.page,
+			count: data.tags.count,
+			perPage: data.tags.pageSize,
+			buttonCount: 5,
+			urlForPage: (value) => urlInfo.updateParams({ searchParams: { page: value } }).url
+		}}
+		noneFoundText="No Matching Tags Found"
+		data={data.tags.data}
+		currentOrder={data.searchParams?.orderBy}
+		currentFilter={data.searchParams}
+		filterModalTitle="Filter Tags"
+		columns={[
+			{ id: 'actions', title: '' },
+			{
+				id: 'group',
+				title: 'Group',
+				rowToDisplay: (row) => row.group,
+				sortKey: 'group'
+			},
+			{
+				id: 'single',
+				title: 'Single',
+				rowToDisplay: (row) => row.single,
+				sortKey: 'single'
+			},
+			{
+				id: 'title',
+				title: 'Title',
+				rowToDisplay: (row) => row.title,
+				sortKey: 'title'
+			},
+			{
+				id: 'status',
+				title: 'Status',
+				rowToDisplay: (row) => statusToDisplay(row.status),
+				sortKey: 'status'
+			},
+			...summaryColumns({ currencyFormat: data.user?.currencyFormat })
+		]}
+		bind:shownColumns={$tagColumnsStore}
+		rowColour={(row) => (row.disabled ? 'grey' : undefined)}
+	>
+		<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#if currentColumn.id === 'actions'}
+				{@const detailURL = urlGenerator({
+					address: '/(loggedIn)/tags/[id]',
+					paramsValue: { id: currentRow.id }
+				}).url}
+
+				{@const deleteURL = urlGenerator({
+					address: '/(loggedIn)/tags/[id]/delete',
+					paramsValue: { id: currentRow.id }
+				}).url}
+				{@const journalsURL = urlGenerator({
+					address: '/(loggedIn)/journals',
+					searchParamsValue: {
+						...defaultJournalFilter(),
+						tag: { id: currentRow.id }
+					}
+				}).url}
+				<div class="flex flex-row justify-center">
+					<form method="POST" action="?/update" use:enhance>
+						<input type="hidden" name="id" value={currentRow.id} />
+						<ButtonGroup>
+							<Button href={journalsURL} class="p-2" outline color="blue">
+								<JournalEntryIcon height={15} width={15} />
+							</Button>
+							<Button href={detailURL} class="p-2" outline>
+								<EditIcon height={15} width={15} />
+							</Button>
+							{#if currentRow.disabled}
+								<Button type="submit" name="status" value="active" class="p-2" color="primary">
+									<DisabledIcon />
+								</Button>
+							{:else}
+								<Button type="submit" name="status" value="disabled" class="p-2" outline>
+									<DisabledIcon />
+								</Button>
+							{/if}
+
+							<Button
+								href={deleteURL}
+								class="p-2"
+								outline
+								color="red"
+								disabled={(currentRow.count || 0) > 0}
+							>
+								<DeleteIcon height={15} width={15} />
+							</Button>
+							<RawDataModal data={currentRow} title="Raw Tag Data" dev={data.dev} />
+						</ButtonGroup>
+					</form>
+				</div>
+			{/if}
+		</svelte:fragment>
+		<svelte:fragment slot="filterButtons">
 			<DownloadDropdown
 				urlGenerator={(downloadType) =>
 					urlGenerator({
@@ -84,126 +164,21 @@
 						searchParamsValue: { ...$urlStore.searchParams, downloadType }
 					}).url}
 			/>
-		{/if}
-	</div>
-
-	<FilterTextDisplay text={data.filterText} />
-	{#if data.tags.count === 0}
-		<Alert color="dark">No Matching Tags Found</Alert>
-	{:else}
-		<Table>
-			<TableHead>
-				<TableHeadCell></TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Group</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'group') }
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'group')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Single</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'single') }
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'single')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-				<TableHeadCell>
-					<div class="flex flex-row gap-2 items-center">
-						<div class="flex">Status</div>
-						<div class="flex">
-							<Button
-								href={urlInfo.updateParams({
-									searchParams: { orderBy: modifyOrderBy(data.searchParams?.orderBy, 'status') }
-								}).url}
-								class="p-1 border-0"
-								outline
-							>
-								<SortIcon direction={getOrderBy(data.searchParams?.orderBy, 'status')} />
-							</Button>
-						</div>
-					</div>
-				</TableHeadCell>
-				<TableHeadCell>Total</TableHeadCell>
-				<TableHeadCell>Count</TableHeadCell>
-			</TableHead>
-			<TableBody>
-				{#each data.tags.data as currentTag}
-					{@const detailURL = urlGenerator({
-						address: '/(loggedIn)/tags/[id]',
-						paramsValue: { id: currentTag.id }
-					}).url}
-
-					{@const deleteURL = urlGenerator({
-						address: '/(loggedIn)/tags/[id]/delete',
-						paramsValue: { id: currentTag.id }
-					}).url}
-					{@const journalsURL = urlGenerator({
-						address: '/(loggedIn)/journals',
-						searchParamsValue: {
-							...defaultJournalFilter(),
-							tag: {
-								id: currentTag.id
-							}
-						}
-					}).url}
-					<TableBodyRow>
-						<TableBodyCell>
-							<div class="flex flex-row justify-center">
-								<ButtonGroup class="w-full justify-center">
-									<Button href={journalsURL} class="p-2" outline color="blue">
-										<JournalEntryIcon height={15} width={15} />
-									</Button>
-									<Button href={detailURL} class="p-2" outline>
-										<EditIcon height={15} width={15} />
-									</Button>
-									<Button href={deleteURL} class="p-2" outline color="red">
-										<DeleteIcon height={15} width={15} />
-									</Button>
-									<RawDataModal data={currentTag} title="Raw Tag Data" dev={data.dev} />
-								</ButtonGroup>
-							</div>
-						</TableBodyCell>
-						<TableBodyCell>{currentTag.group}</TableBodyCell>
-						<TableBodyCell>{currentTag.single}</TableBodyCell>
-						<TableBodyCell>{statusToDisplay(currentTag.status)}</TableBodyCell>
-						<TableBodyCell>
-							<DisplayCurrency
-								amount={currentTag.sum}
-								format={data.user?.currencyFormat || 'USD'}
-							/>
-						</TableBodyCell>
-						<TableBodyCell>{currentTag.count}</TableBodyCell>
-					</TableBodyRow>
-				{/each}
-			</TableBody>
-		</Table>
-	{/if}
-	<center>
-		<TablePagination
-			count={data.tags.count}
-			page={data.tags.page}
-			perPage={data.tags.pageSize}
-			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
-			buttonCount={5}
-		/>
-	</center>
+		</svelte:fragment>
+		<svelte:fragment slot="filter">
+			<div class="flex flex-row gap-2">
+				{#if $urlStore.searchParams}
+					<Input
+						type="text"
+						bind:value={$urlStore.searchParams.title}
+						placeholder="Filter by Title"
+						class="flex flex-grow"
+					/>
+				{/if}
+			</div>
+		</svelte:fragment>
+		<svelte:fragment slot="filterModal">
+			<TagFilter bind:filter={$urlStore.searchParams} tagDetails={data.tagDropdowns} />
+		</svelte:fragment>
+	</CustomTable>
 </PageLayout>

@@ -32,7 +32,8 @@ const serverEnvValidation = z.object({
 	ALLOW_SIGNUP: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
 	DEV_OVERRIDE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	CSRF_CHECK_ORIGIN: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
-	DATABASE_FILE: z.string().optional().default('./database.sqlite3')
+	DATABASE_FILE: z.string().optional().default('./database.sqlite3'),
+	DB_QUERY_LOG: parseEnvStringToBoolean({ defaultBoolean: false, optional: true })
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -45,5 +46,6 @@ export const serverEnv = serverEnvValidation.parse({
 	ALLOW_SIGNUP: env.ALLOW_SIGNUP,
 	DEV_OVERRIDE: env.DEV_OVERRIDE,
 	CSRF_CHECK_ORIGIN: env.CSRF_CHECK_ORIGIN,
-	DATABASE_FILE: env.DATABASE_FILE
+	DATABASE_FILE: env.DATABASE_FILE,
+	DB_QUERY_LOG: env.DB_QUERY_LOG
 });
