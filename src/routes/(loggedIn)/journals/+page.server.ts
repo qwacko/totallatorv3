@@ -1,6 +1,15 @@
+import { authGuard } from '$lib/authGuard/authGuardConfig';
+import { serverPageInfo } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
+
+export const load = async (data) => {
+	authGuard(data);
+	const { current: pageInfo } = serverPageInfo(data.route.id, data);
+
+	return { searchParams: pageInfo.searchParams };
+};
 
 export const actions = {
 	update: async (data) => {
