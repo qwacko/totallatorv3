@@ -60,7 +60,14 @@
 		| Partial<
 				Record<
 					FilterKeys,
-					string | boolean | number | string[] | undefined | null | OrderByType<OrderKeys>
+					| string
+					| boolean
+					| number
+					| string[]
+					| undefined
+					| null
+					| OrderByType<OrderKeys>
+					| Partial<Record<string, any>>
 				>
 		  >
 		| undefined = undefined;

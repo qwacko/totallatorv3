@@ -4,28 +4,8 @@
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import TablePagination from '$lib/components/TablePagination.svelte';
-	import {
-		Alert,
-		Button,
-		ButtonGroup,
-		Input,
-		P,
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell
-	} from 'flowbite-svelte';
-	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
-	import OrderDropDown from '$lib/components/OrderDropDown.svelte';
-	import {
-		defaultAllJournalFilter,
-		defaultJournalFilter,
-		journalOrderByEnum,
-		journalOrderByEnumToText
-	} from '$lib/schema/journalSchema';
+	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
+	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { enhance } from '$app/forms';
 	import CompleteIcon from '$lib/components/icons/CompleteIcon.svelte';
@@ -35,12 +15,8 @@
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import ToggleFromArray from '$lib/components/ToggleFromArray.svelte';
-	import ToggleHeader from '$lib/components/ToggleHeader.svelte';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
-	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
-	import EyeIcon from '$lib/components/icons/EyeIcon.svelte';
 	import CategoryBadge from '$lib/components/CategoryBadge.svelte';
 	import TagBadge from '$lib/components/TagBadge.svelte';
 	import BillBadge from '$lib/components/BillBadge.svelte';
@@ -49,14 +25,11 @@
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
-	import FilterModal from '$lib/components/FilterModal.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
 	import { journalColumnsStore } from '$lib/stores/columnDisplayStores.js';
 	import FilterModalContent from '$lib/components/FilterModalContent.svelte';
 
 	export let data;
-
-	let selectedIds: string[] = [];
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals', $page);
 
@@ -70,8 +43,6 @@
 		},
 		updateDelay: 500
 	});
-
-	$: visibleIds = data.journals.data.map((journal) => journal.id);
 </script>
 
 <CustomHeader
