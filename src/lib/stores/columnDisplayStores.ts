@@ -35,3 +35,5 @@ export const journalColumnsStore = writable([
 	'total',
 	'relations'
 ]);
+
+export const numberRows = writable(10);

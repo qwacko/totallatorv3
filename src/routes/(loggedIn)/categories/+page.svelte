@@ -59,132 +59,134 @@
 		summaryFilter={{ category: $urlStore.searchParams } || defaultJournalFilter()}
 		showJournalLink
 	/>
-	<CustomTable
-		highlightText={$urlStore.searchParams?.title}
-		highlightTextColumns={['title', 'group', 'single']}
-		filterText={data.filterText}
-		onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
-		paginationInfo={{
-			page: data.categories.page,
-			count: data.categories.count,
-			perPage: data.categories.pageSize,
-			buttonCount: 5,
-			urlForPage: (value) => urlInfo.updateParams({ searchParams: { page: value } }).url
-		}}
-		noneFoundText="No Matching Categories Found"
-		data={data.categories.data}
-		currentOrder={data.searchParams?.orderBy}
-		currentFilter={data.searchParams}
-		filterModalTitle="Filter Categories"
-		columns={[
-			{ id: 'actions', title: '' },
-			{
-				id: 'group',
-				title: 'Group',
-				rowToDisplay: (row) => row.group,
-				sortKey: 'group'
-			},
-			{
-				id: 'single',
-				title: 'Single',
-				rowToDisplay: (row) => row.single,
-				sortKey: 'single'
-			},
-			{
-				id: 'title',
-				title: 'Title',
-				rowToDisplay: (row) => row.title,
-				sortKey: 'title'
-			},
-			{
-				id: 'status',
-				title: 'Status',
-				rowToDisplay: (row) => statusToDisplay(row.status),
-				sortKey: 'status'
-			},
-			...summaryColumns({ currencyFormat: data.user?.currencyFormat })
-		]}
-		bind:shownColumns={$categoryColumnsStore}
-		rowColour={(row) => (row.disabled ? 'grey' : undefined)}
-	>
-		<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
-			{#if currentColumn.id === 'actions'}
-				{@const detailURL = urlGenerator({
-					address: '/(loggedIn)/categories/[id]',
-					paramsValue: { id: currentRow.id }
-				}).url}
-
-				{@const deleteURL = urlGenerator({
-					address: '/(loggedIn)/categories/[id]/delete',
-					paramsValue: { id: currentRow.id }
-				}).url}
-				{@const journalsURL = urlGenerator({
-					address: '/(loggedIn)/journals',
-					searchParamsValue: {
-						...defaultJournalFilter(),
-						category: { id: currentRow.id }
-					}
-				}).url}
-				<div class="flex flex-row justify-center">
-					<form method="POST" action="?/update" use:enhance>
-						<input type="hidden" name="id" value={currentRow.id} />
-						<ButtonGroup>
-							<Button href={journalsURL} class="p-2" outline color="blue">
-								<JournalEntryIcon height={15} width={15} />
-							</Button>
-							<Button href={detailURL} class="p-2" outline>
-								<EditIcon height={15} width={15} />
-							</Button>
-							{#if currentRow.disabled}
-								<Button type="submit" name="status" value="active" class="p-2" color="primary">
-									<DisabledIcon />
-								</Button>
-							{:else}
-								<Button type="submit" name="status" value="disabled" class="p-2" outline>
-									<DisabledIcon />
-								</Button>
-							{/if}
-							<Button
-								href={deleteURL}
-								class="p-2"
-								outline
-								color="red"
-								disabled={(currentRow.count || 0) > 0}
-							>
-								<DeleteIcon height={15} width={15} />
-							</Button>
-							<RawDataModal data={currentRow} title="Raw Category Data" dev={data.dev} />
-						</ButtonGroup>
-					</form>
-				</div>
-			{/if}
-		</svelte:fragment>
-		<svelte:fragment slot="filterButtons">
-			<DownloadDropdown
-				urlGenerator={(downloadType) =>
-					urlGenerator({
-						address: '/(loggedIn)/categories/download',
-						searchParamsValue: { ...$urlStore.searchParams, downloadType }
+	{#if $urlStore.searchParams && data.searchParams}
+		<CustomTable
+			highlightText={$urlStore.searchParams?.title}
+			highlightTextColumns={['title', 'group', 'single']}
+			filterText={data.filterText}
+			onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+			paginationInfo={{
+				page: data.categories.page,
+				count: data.categories.count,
+				perPage: data.categories.pageSize,
+				buttonCount: 5,
+				urlForPage: (value) => urlInfo.updateParams({ searchParams: { page: value } }).url
+			}}
+			noneFoundText="No Matching Categories Found"
+			data={data.categories.data}
+			currentOrder={data.searchParams?.orderBy}
+			currentFilter={data.searchParams}
+			bind:numberRows={$urlStore.searchParams.pageSize}
+			filterModalTitle="Filter Categories"
+			columns={[
+				{ id: 'actions', title: '' },
+				{
+					id: 'group',
+					title: 'Group',
+					rowToDisplay: (row) => row.group,
+					sortKey: 'group'
+				},
+				{
+					id: 'single',
+					title: 'Single',
+					rowToDisplay: (row) => row.single,
+					sortKey: 'single'
+				},
+				{
+					id: 'title',
+					title: 'Title',
+					rowToDisplay: (row) => row.title,
+					sortKey: 'title'
+				},
+				{
+					id: 'status',
+					title: 'Status',
+					rowToDisplay: (row) => statusToDisplay(row.status),
+					sortKey: 'status'
+				},
+				...summaryColumns({ currencyFormat: data.user?.currencyFormat })
+			]}
+			bind:shownColumns={$categoryColumnsStore}
+			rowColour={(row) => (row.disabled ? 'grey' : undefined)}
+		>
+			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+				{#if currentColumn.id === 'actions'}
+					{@const detailURL = urlGenerator({
+						address: '/(loggedIn)/categories/[id]',
+						paramsValue: { id: currentRow.id }
 					}).url}
-			/>
-		</svelte:fragment>
-		<svelte:fragment slot="filter">
-			<div class="flex flex-row gap-2">
-				{#if $urlStore.searchParams}
-					<Input
-						type="text"
-						bind:value={$urlStore.searchParams.title}
-						placeholder="Filter by Title"
-						class="flex flex-grow"
-					/>
+
+					{@const deleteURL = urlGenerator({
+						address: '/(loggedIn)/categories/[id]/delete',
+						paramsValue: { id: currentRow.id }
+					}).url}
+					{@const journalsURL = urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: {
+							...defaultJournalFilter(),
+							category: { id: currentRow.id }
+						}
+					}).url}
+					<div class="flex flex-row justify-center">
+						<form method="POST" action="?/update" use:enhance>
+							<input type="hidden" name="id" value={currentRow.id} />
+							<ButtonGroup>
+								<Button href={journalsURL} class="p-2" outline color="blue">
+									<JournalEntryIcon height={15} width={15} />
+								</Button>
+								<Button href={detailURL} class="p-2" outline>
+									<EditIcon height={15} width={15} />
+								</Button>
+								{#if currentRow.disabled}
+									<Button type="submit" name="status" value="active" class="p-2" color="primary">
+										<DisabledIcon />
+									</Button>
+								{:else}
+									<Button type="submit" name="status" value="disabled" class="p-2" outline>
+										<DisabledIcon />
+									</Button>
+								{/if}
+								<Button
+									href={deleteURL}
+									class="p-2"
+									outline
+									color="red"
+									disabled={(currentRow.count || 0) > 0}
+								>
+									<DeleteIcon height={15} width={15} />
+								</Button>
+								<RawDataModal data={currentRow} title="Raw Category Data" dev={data.dev} />
+							</ButtonGroup>
+						</form>
+					</div>
 				{/if}
-			</div>
-		</svelte:fragment>
-		<svelte:fragment slot="filterModal">
-			<CategoryFilter
-				bind:filter={$urlStore.searchParams}
-				categoryDetails={data.categoryDropdowns}
-			/>
-		</svelte:fragment>
-	</CustomTable>
+			</svelte:fragment>
+			<svelte:fragment slot="filterButtons">
+				<DownloadDropdown
+					urlGenerator={(downloadType) =>
+						urlGenerator({
+							address: '/(loggedIn)/categories/download',
+							searchParamsValue: { ...$urlStore.searchParams, downloadType }
+						}).url}
+				/>
+			</svelte:fragment>
+			<svelte:fragment slot="filter">
+				<div class="flex flex-row gap-2">
+					{#if $urlStore.searchParams}
+						<Input
+							type="text"
+							bind:value={$urlStore.searchParams.title}
+							placeholder="Filter by Title"
+							class="flex flex-grow"
+						/>
+					{/if}
+				</div>
+			</svelte:fragment>
+			<svelte:fragment slot="filterModal">
+				<CategoryFilter
+					bind:filter={$urlStore.searchParams}
+					categoryDetails={data.categoryDropdowns}
+				/>
+			</svelte:fragment>
+		</CustomTable>{/if}
 </PageLayout>

@@ -14,6 +14,8 @@
 	import {
 		Alert,
 		Button,
+		Dropdown,
+		DropdownItem,
 		Modal,
 		Table,
 		TableBody,
@@ -31,6 +33,7 @@
 	import FilterIcon from '../icons/FilterIcon.svelte';
 	import HighlightText from '../HighlightText.svelte';
 	import CustomTableHeadCell from './CustomTableHeadCell.svelte';
+	import ArrowDownIcon from '../icons/ArrowDownIcon.svelte';
 
 	type OrderKeys = $$Generic<string>;
 	type DataTitles = $$Generic<string>;
@@ -82,6 +85,10 @@
 	export let rowToId: ((row: RowData) => string) | undefined = undefined;
 	const updateSelectedIds = (newValue: string[]) => (selectedIds = newValue);
 
+	export let numberRows: number = 10;
+	export let numberRowsOptions: number[] = [10, 25, 50, 100];
+	export let onNumberRowsUpdate: (newNumberRows: number) => void = () => {};
+
 	$: sortOptions = filterNullUndefinedAndDuplicates(
 		columns.filter((item) => item.sortKey).map((item) => item.sortKey)
 	);
@@ -103,8 +110,24 @@
 <RawDataModal data={currentFilter} buttonText="Current Filter" dev={true} />
 <RawDataModal data={shownColumns} buttonText="Shown Columns" dev={true} /> -->
 {#if paginationInfo && data.length > 0 && !hideTopPagination}
-	<div class="flex flex-row justify-center">
+	<div class="flex flex-row justify-center gap-2">
 		<TablePagination {...paginationInfo} />
+		<Button outline class="flex flex-row items-center gap-2" color="light">
+			{numberRows} Rows <ArrowDownIcon />
+		</Button>
+		<Dropdown>
+			{#each numberRowsOptions as option}
+				<DropdownItem
+					on:click={() => {
+						console.log('Updating Number Of Rows', option);
+						numberRows = option;
+						onNumberRowsUpdate(option);
+					}}
+				>
+					{option} Rows
+				</DropdownItem>
+			{/each}
+		</Dropdown>
 	</div>
 {/if}
 <slot name="filter" />
