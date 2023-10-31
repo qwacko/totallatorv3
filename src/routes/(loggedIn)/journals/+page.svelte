@@ -4,28 +4,8 @@
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import TablePagination from '$lib/components/TablePagination.svelte';
-	import {
-		Alert,
-		Button,
-		ButtonGroup,
-		Input,
-		P,
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell
-	} from 'flowbite-svelte';
-	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
-	import OrderDropDown from '$lib/components/OrderDropDown.svelte';
-	import {
-		defaultAllJournalFilter,
-		defaultJournalFilter,
-		journalOrderByEnum,
-		journalOrderByEnumToText
-	} from '$lib/schema/journalSchema';
+	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
+	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { enhance } from '$app/forms';
 	import CompleteIcon from '$lib/components/icons/CompleteIcon.svelte';
@@ -35,12 +15,8 @@
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import ToggleFromArray from '$lib/components/ToggleFromArray.svelte';
-	import ToggleHeader from '$lib/components/ToggleHeader.svelte';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
-	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
-	import EyeIcon from '$lib/components/icons/EyeIcon.svelte';
 	import CategoryBadge from '$lib/components/CategoryBadge.svelte';
 	import TagBadge from '$lib/components/TagBadge.svelte';
 	import BillBadge from '$lib/components/BillBadge.svelte';
@@ -49,11 +25,13 @@
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
-	import FilterModal from '$lib/components/FilterModal.svelte';
+	import CustomTable from '$lib/components/table/CustomTable.svelte';
+	import { journalColumnsStore } from '$lib/stores/columnDisplayStores.js';
+	import FilterModalContent from '$lib/components/FilterModalContent.svelte';
+	import DropdownFilterNestedText from '$lib/components/table/DropdownFilterNestedText.svelte';
+	import DateInput from '$lib/components/DateInput.svelte';
 
 	export let data;
-
-	let selectedIds: string[] = [];
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals', $page);
 
@@ -61,14 +39,13 @@
 		routeId: '/(loggedIn)/journals',
 		pageInfo: page,
 		onUpdate: (newURL) => {
+			console.log('Updating URL');
 			if (browser && newURL !== urlInfo.current.url) {
 				goto(newURL, { keepFocus: true, noScroll: true });
 			}
 		},
 		updateDelay: 500
 	});
-
-	$: visibleIds = data.journals.data.map((journal) => journal.id);
 </script>
 
 <CustomHeader
@@ -96,318 +73,267 @@
 		format={data.user?.currencyFormat || 'USD'}
 		summaryFilter={$urlStore.searchParams || defaultJournalFilter()}
 	/>
-
-	<center>
-		<TablePagination
-			count={data.journals.count}
-			page={data.journals.page}
-			perPage={data.journals.pageSize}
-			urlForPage={(value) => urlInfo.updateParams({ searchParams: { page: value } }).url}
-			buttonCount={5}
-		/>
-	</center>
-	<div class="flex flex-row gap-2 items-center">
-		<P size="sm" weight="semibold" class="w-max whitespace-nowrap">
-			Selected ({selectedIds.length})
-		</P>
-		<ButtonGroup>
-			<Button
-				color="light"
-				href={urlGenerator({
-					address: '/(loggedIn)/journals/bulkEdit',
-					searchParamsValue: {
-						idArray: selectedIds,
-						...defaultAllJournalFilter()
-					}
-				}).url}
-				disabled={selectedIds.length === 0}
-			>
-				<EditIcon />
-			</Button>
-			<Button
-				color="light"
-				href={urlGenerator({
-					address: '/(loggedIn)/journals/clone',
-					searchParamsValue: {
-						idArray: selectedIds,
-						...defaultAllJournalFilter()
-					}
-				}).url}
-				disabled={selectedIds.length === 0}
-			>
-				<CloneIcon />
-			</Button>
-			<Button
-				color="light"
-				href={urlGenerator({
-					address: '/(loggedIn)/journals/delete',
-					searchParamsValue: {
-						idArray: selectedIds,
-						...defaultAllJournalFilter()
-					}
-				}).url}
-				disabled={selectedIds.length === 0}
-			>
-				<DeleteIcon />
-			</Button>
-			<Button
-				color="light"
-				href={urlGenerator({
-					address: '/(loggedIn)/journals',
-					searchParamsValue: {
-						idArray: selectedIds,
-						...defaultAllJournalFilter(),
-						account: {}
-					}
-				}).url}
-				disabled={selectedIds.length === 0}
-			>
-				<EyeIcon />
-			</Button>
-		</ButtonGroup>
-
-		<P size="sm" weight="semibold" class="w-max whitespace-nowrap">
-			All ({data.journals.count})
-		</P>
-		<ButtonGroup>
-			<Button
-				color="light"
-				href={urlGenerator({
-					address: '/(loggedIn)/journals/bulkEdit',
-					searchParamsValue: $urlStore.searchParams
-						? { ...$urlStore.searchParams, pageSize: 100000, page: 0 }
-						: $urlStore.searchParams
-				}).url}
-				disabled={data.journals.count === 0}
-			>
-				<EditIcon />
-			</Button>
-			<Button
-				color="light"
-				href={urlGenerator({
-					address: '/(loggedIn)/journals/clone',
-					searchParamsValue: $urlStore.searchParams
-						? { ...$urlStore.searchParams, pageSize: 100000, page: 0 }
-						: $urlStore.searchParams
-				}).url}
-				disabled={data.journals.count === 0}
-			>
-				<CloneIcon />
-			</Button>
-			<Button
-				color="light"
-				href={urlGenerator({
-					address: '/(loggedIn)/journals/delete',
-					searchParamsValue: $urlStore.searchParams
-						? { ...$urlStore.searchParams, pageSize: 100000, page: 0 }
-						: $urlStore.searchParams
-				}).url}
-				disabled={data.journals.count === 0}
-			>
-				<DeleteIcon />
-			</Button>
-		</ButtonGroup>
-		{#if $urlStore.searchParams}
-			<Input type="text" bind:value={$urlStore.searchParams.description} class="flex flex-grow" />
-			<OrderDropDown
-				currentSort={$urlStore.searchParams.orderBy || []}
-				options={[...journalOrderByEnum]}
-				onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
-				optionToTitle={journalOrderByEnumToText}
-			/>
-			<DownloadDropdown
-				urlGenerator={(downloadType) => {
-					if ($urlStore.searchParams) {
-						return urlGenerator({
-							address: '/(loggedIn)/journals/download',
-							searchParamsValue: {
-								...$urlStore.searchParams,
-								downloadType
-							}
-						}).url;
-					}
-					return '';
-				}}
-			/>
-			{#await data.dropdownInfo.accounts then accountDropdown}
-				{#await data.dropdownInfo.bills then billDropdown}
-					{#await data.dropdownInfo.budgets then budgetDropdown}
-						{#await data.dropdownInfo.categories then categoryDropdown}
-							{#await data.dropdownInfo.tags then tagDropdown}
-								{#await data.dropdownInfo.labels then labelDropdown}
-									<FilterModal
-										currentFilter={$urlStore.searchParams}
-										{accountDropdown}
-										{billDropdown}
-										{budgetDropdown}
-										{categoryDropdown}
-										{tagDropdown}
-										{labelDropdown}
-									/>
+	{#if $urlStore.searchParams && data.searchParams}
+		<CustomTable
+			highlightText={$urlStore.searchParams.description}
+			highlightTextColumns={['description']}
+			filterText={data.filterText}
+			onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+			paginationInfo={{
+				page: data.journals.page,
+				perPage: data.journals.pageSize,
+				count: data.journals.count,
+				buttonCount: 5,
+				urlForPage: (value) => urlInfo.updateParams({ searchParams: { page: value } }).url
+			}}
+			noneFoundText="No Matching Journals Found"
+			data={data.journals.data}
+			currentOrder={data.searchParams.orderBy}
+			currentFilter={data.searchParams}
+			filterModalTitle="Filter Journals"
+			bind:numberRows={$urlStore.searchParams.pageSize}
+			columns={[
+				{ id: 'actions', title: '' },
+				{
+					id: 'dateText',
+					title: 'Date',
+					rowToDisplay: (row) => row.dateText,
+					sortKey: 'date',
+					filterActive:
+						Boolean($urlStore.searchParams.dateAfter) || Boolean($urlStore.searchParams.dateBefore)
+				},
+				{
+					id: 'account',
+					title: 'Account',
+					enableDropdown: true,
+					customCell: true,
+					filterActive: Boolean($urlStore.searchParams.account?.title ? true : false)
+				},
+				{ id: 'direction', title: '', customCell: true },
+				{
+					id: 'payee',
+					title: 'Payee(s)',
+					enableDropdown: true,
+					customCell: true,
+					filterActive: Boolean($urlStore.searchParams.payee?.title ? true : false)
+				},
+				{
+					id: 'description',
+					title: 'Description',
+					sortKey: 'description',
+					rowToDisplay: (row) => row.description,
+					filterActive: Boolean(
+						$urlStore.searchParams.description && $urlStore.searchParams.description.length > 0
+					)
+				},
+				{
+					id: 'amount',
+					title: 'Amount',
+					sortKey: 'amount',
+					customCell: true,
+					rowToCurrency: (row) => ({
+						amount: row.amount,
+						format: data.user?.currencyFormat || 'USD'
+					})
+				},
+				{
+					id: 'total',
+					title: 'Total',
+					rowToCurrency: (row) => ({
+						amount: row.total,
+						format: data.user?.currencyFormat || 'USD'
+					})
+				},
+				{ id: 'relations', title: 'Relations', customCell: true }
+			]}
+			bind:shownColumns={$journalColumnsStore}
+		>
+			<svelte:fragment slot="filterButtons">
+				<DownloadDropdown
+					urlGenerator={(downloadType) => {
+						if ($urlStore.searchParams) {
+							return urlGenerator({
+								address: '/(loggedIn)/journals/download',
+								searchParamsValue: {
+									...$urlStore.searchParams,
+									downloadType
+								}
+							}).url;
+						}
+						return '';
+					}}
+				/>
+			</svelte:fragment>
+			<svelte:fragment slot="filter">
+				<div class="flex flex-row gap-2">
+					{#if $urlStore.searchParams}
+						<Input
+							type="text"
+							bind:value={$urlStore.searchParams.description}
+							placeholder="Filter by Description"
+							class="flex flex-grow"
+						/>
+					{/if}
+				</div>
+			</svelte:fragment>
+			<svelte:fragment slot="filterModal">
+				{#if $urlStore.searchParams}
+					{#await data.dropdownInfo.accounts then accountDropdown}
+						{#await data.dropdownInfo.bills then billDropdown}
+							{#await data.dropdownInfo.budgets then budgetDropdown}
+								{#await data.dropdownInfo.categories then categoryDropdown}
+									{#await data.dropdownInfo.tags then tagDropdown}
+										{#await data.dropdownInfo.labels then labelDropdown}
+											<FilterModalContent
+												currentFilter={$urlStore.searchParams}
+												{accountDropdown}
+												{billDropdown}
+												{budgetDropdown}
+												{categoryDropdown}
+												{tagDropdown}
+												{labelDropdown}
+											/>
+										{/await}
+									{/await}
 								{/await}
 							{/await}
 						{/await}
 					{/await}
-				{/await}
-			{/await}
-		{:else}
-			<div class="flex flex-grow" />
-		{/if}
-	</div>
-	<FilterTextDisplay text={data.filterText} />
-	{#if data.journals.count === 0}
-		<Alert color="dark">No Matching Journals Found</Alert>
-	{:else}
-		<Table>
-			<TableHead>
-				<TableHeadCell class="flex flex-row gap-1 justify-center">
-					<ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} />
-				</TableHeadCell>
-				<TableHeadCell>Actions</TableHeadCell>
-				<TableHeadCell>Date</TableHeadCell>
-				<TableHeadCell>Account</TableHeadCell>
-				<TableHeadCell></TableHeadCell>
-				<TableHeadCell>Payee(s)</TableHeadCell>
-				<TableHeadCell>Description</TableHeadCell>
-				<TableHeadCell>Amount</TableHeadCell>
-				<TableHeadCell>Total</TableHeadCell>
-				<TableHeadCell>Relations</TableHeadCell>
-			</TableHead>
-			<TableBody>
-				{#each data.journals.data as currentJournal}
-					<TableBodyRow class={currentJournal.complete && 'bg-gray-100'}>
-						<TableBodyCell>
-							<ToggleFromArray id={currentJournal.id} bind:selectedIds />
-						</TableBodyCell>
-						<TableBodyCell>
-							<form action="?/update" method="post" use:enhance>
-								<input type="hidden" value={currentJournal.id} name="journalId" />
-								<ButtonGroup size="xs">
-									<Button
-										disabled={currentJournal.complete}
-										href={urlGenerator({
-											address: '/(loggedIn)/journals/bulkEdit',
-											searchParamsValue: {
-												idArray: [currentJournal.id],
-												...defaultAllJournalFilter()
-											}
-										}).url}
-										class="p-2"
-									>
-										<EditIcon height="15" width="15" />
-									</Button>
-									<Button
-										disabled={currentJournal.complete}
-										href={urlGenerator({
-											address: '/(loggedIn)/journals/clone',
-											searchParamsValue: {
-												idArray: [currentJournal.id],
-												...defaultAllJournalFilter()
-											}
-										}).url}
-										class="p-2"
-									>
-										<CloneIcon height="15" width="15" />
-									</Button>
-									<Button
-										disabled={currentJournal.complete}
-										href={urlGenerator({
-											address: '/(loggedIn)/journals/delete',
-											searchParamsValue: {
-												idArray: [currentJournal.id],
-												...defaultAllJournalFilter()
-											}
-										}).url}
-										class="p-2"
-									>
-										<DeleteIcon height="15" width="15" />
-									</Button>
-									{#if currentJournal.complete}
-										<Button
-											class="p-2"
-											type="submit"
-											name="action"
-											color="primary"
-											value="uncomplete"
-										>
-											<CompleteIcon height="15" width="15" />
-										</Button>
-									{:else}
-										<Button class="p-2" type="submit" name="action" value="complete">
-											<CompleteIcon height="15" width="15" />
-										</Button>
-									{/if}
-									{#if currentJournal.reconciled}
-										<Button
-											class="p-2"
-											type="submit"
-											name="action"
-											color="primary"
-											value="unreconcile"
-											disabled={currentJournal.complete}
-										>
-											<ReconciledIcon height="15" width="15" />
-										</Button>
-									{:else}
-										<Button
-											class="p-2"
-											type="submit"
-											name="action"
-											value="reconcile"
-											disabled={currentJournal.complete}
-										>
-											<ReconciledIcon height="15" width="15" />
-										</Button>
-									{/if}
-
-									{#if currentJournal.dataChecked}
-										<Button
-											class="p-2"
-											type="submit"
-											name="action"
-											color="primary"
-											value="uncheck"
-											disabled={currentJournal.complete}
-										>
-											<DataCheckedIcon height="15" width="15" />
-										</Button>
-									{:else}
-										<Button
-											class="p-2"
-											type="submit"
-											name="action"
-											value="check"
-											disabled={currentJournal.complete}
-										>
-											<DataCheckedIcon height="15" width="15" />
-										</Button>
-									{/if}
-									<RawDataModal data={currentJournal} dev={data.dev} title="Raw Journal Data" />
-								</ButtonGroup>
-							</form>
-						</TableBodyCell>
-						<TableBodyCell>{currentJournal.dateText}</TableBodyCell>
-						<TableBodyCell>
-							<AccountBadge
-								accountInfo={{
-									type: currentJournal.accountType,
-									title: currentJournal.accountTitle,
-									id: currentJournal.accountId,
-									accountGroupCombinedTitle: currentJournal.accountGroup
-								}}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-							/>
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if currentJournal.amount > 0}
-								<ArrowLeftIcon />
+				{/if}
+			</svelte:fragment>
+			<svelte:fragment slot="customBodyCell" let:row={currentJournal} let:currentColumn>
+				{#if currentColumn.id === 'actions'}
+					<form action="?/update" method="post" use:enhance>
+						<input type="hidden" value={currentJournal.id} name="journalId" />
+						<ButtonGroup size="xs">
+							<Button
+								disabled={currentJournal.complete}
+								href={urlGenerator({
+									address: '/(loggedIn)/journals/bulkEdit',
+									searchParamsValue: {
+										idArray: [currentJournal.id],
+										...defaultAllJournalFilter()
+									}
+								}).url}
+								class="p-2"
+							>
+								<EditIcon height="15" width="15" />
+							</Button>
+							<Button
+								disabled={false}
+								href={urlGenerator({
+									address: '/(loggedIn)/journals/clone',
+									searchParamsValue: {
+										idArray: [currentJournal.id],
+										...defaultAllJournalFilter()
+									}
+								}).url}
+								class="p-2"
+							>
+								<CloneIcon height="15" width="15" />
+							</Button>
+							<Button
+								disabled={currentJournal.complete}
+								href={urlGenerator({
+									address: '/(loggedIn)/journals/delete',
+									searchParamsValue: {
+										idArray: [currentJournal.id],
+										...defaultAllJournalFilter()
+									}
+								}).url}
+								class="p-2"
+							>
+								<DeleteIcon height="15" width="15" />
+							</Button>
+							{#if currentJournal.complete}
+								<Button class="p-2" type="submit" name="action" color="primary" value="uncomplete">
+									<CompleteIcon height="15" width="15" />
+								</Button>
 							{:else}
-								<ArrowRightIcon />
+								<Button class="p-2" type="submit" name="action" value="complete">
+									<CompleteIcon height="15" width="15" />
+								</Button>
 							{/if}
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if currentJournal.otherJournals.length === 1}
-								{@const currentOtherJournal = currentJournal.otherJournals[0]}
+							{#if currentJournal.reconciled}
+								<Button
+									class="p-2"
+									type="submit"
+									name="action"
+									color="primary"
+									value="unreconcile"
+									disabled={currentJournal.complete}
+								>
+									<ReconciledIcon height="15" width="15" />
+								</Button>
+							{:else}
+								<Button
+									class="p-2"
+									type="submit"
+									name="action"
+									value="reconcile"
+									disabled={currentJournal.complete}
+								>
+									<ReconciledIcon height="15" width="15" />
+								</Button>
+							{/if}
+
+							{#if currentJournal.dataChecked}
+								<Button
+									class="p-2"
+									type="submit"
+									name="action"
+									color="primary"
+									value="uncheck"
+									disabled={currentJournal.complete}
+								>
+									<DataCheckedIcon height="15" width="15" />
+								</Button>
+							{:else}
+								<Button
+									class="p-2"
+									type="submit"
+									name="action"
+									value="check"
+									disabled={currentJournal.complete}
+								>
+									<DataCheckedIcon height="15" width="15" />
+								</Button>
+							{/if}
+							<RawDataModal data={currentJournal} dev={data.dev} title="Raw Journal Data" />
+						</ButtonGroup>
+					</form>
+				{:else if currentColumn.id === 'account'}
+					<AccountBadge
+						accountInfo={{
+							type: currentJournal.accountType,
+							title: currentJournal.accountTitle,
+							id: currentJournal.accountId,
+							accountGroupCombinedTitle: currentJournal.accountGroup
+						}}
+						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+					/>
+				{:else if currentColumn.id === 'direction'}
+					{#if currentJournal.amount > 0}
+						<ArrowLeftIcon />
+					{:else}
+						<ArrowRightIcon />
+					{/if}
+				{:else if currentColumn.id === 'payee'}
+					{#if currentJournal.otherJournals.length === 1}
+						{@const currentOtherJournal = currentJournal.otherJournals[0]}
+						<AccountBadge
+							accountInfo={{
+								type: currentOtherJournal.accountType,
+								title: currentOtherJournal.accountTitle,
+								id: currentOtherJournal.accountId,
+								accountGroupCombinedTitle: currentOtherJournal.accountGroup
+							}}
+							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+							payeeFilter
+						/>
+					{:else}
+						<div class="flex flex-col">
+							{#each currentJournal.otherJournals as currentOtherJournal}
 								<AccountBadge
 									accountInfo={{
 										type: currentOtherJournal.accountType,
@@ -418,67 +344,68 @@
 									currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 									payeeFilter
 								/>
-							{:else}
-								<div class="flex flex-col">
-									{#each currentJournal.otherJournals as currentOtherJournal}
-										<AccountBadge
-											accountInfo={{
-												type: currentOtherJournal.accountType,
-												title: currentOtherJournal.accountTitle,
-												id: currentOtherJournal.accountId,
-												accountGroupCombinedTitle: currentOtherJournal.accountGroup
-											}}
-											currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-											payeeFilter
-										/>
-									{/each}
-								</div>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell>{currentJournal.description}</TableBodyCell>
-						<TableBodyCell>
-							<div class="text-right">
-								<DisplayCurrency
-									format={data.user?.currencyFormat || 'USD'}
-									amount={currentJournal.amount}
-								/>
-							</div>
-						</TableBodyCell>
-						<TableBodyCell>
-							<div class="text-right">
-								<DisplayCurrency
-									format={data.user?.currencyFormat || 'USD'}
-									amount={currentJournal.total}
-								/>
-							</div>
-						</TableBodyCell>
-						<TableBodyCell class="flex flex-row flex-wrap gap-2">
-							<CategoryBadge
-								data={currentJournal}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-							/>
-							<TagBadge
-								data={currentJournal}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-							/>
-							<BillBadge
-								data={currentJournal}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-							/>
-							<BudgetBadge
-								data={currentJournal}
-								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-							/>
-							{#each currentJournal.labels as currentLabel}
-								<LabelBadge
-									data={currentLabel}
-									currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-								/>
 							{/each}
-						</TableBodyCell>
-					</TableBodyRow>
-				{/each}
-			</TableBody>
-		</Table>
+						</div>
+					{/if}
+				{:else if currentColumn.id === 'relations'}
+					<CategoryBadge
+						data={currentJournal}
+						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+					/>
+					<TagBadge
+						data={currentJournal}
+						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+					/>
+					<BillBadge
+						data={currentJournal}
+						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+					/>
+					<BudgetBadge
+						data={currentJournal}
+						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+					/>
+					{#each currentJournal.labels as currentLabel}
+						<LabelBadge
+							data={currentLabel}
+							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+						/>
+					{/each}
+				{/if}
+			</svelte:fragment>
+			<svelte:fragment slot="headerItem" let:currentColumn>
+				{#if $urlStore.searchParams}
+					{#if currentColumn.id === 'description'}
+						<DropdownItem>
+							<Input
+								type="text"
+								bind:value={$urlStore.searchParams.description}
+								placeholder="Filter By Description"
+							/>
+						</DropdownItem>
+					{:else if currentColumn.id === 'account'}
+						<DropdownFilterNestedText bind:params={$urlStore.searchParams.account} key="title" />
+					{:else if currentColumn.id === 'payee'}
+						<DropdownFilterNestedText bind:params={$urlStore.searchParams.payee} key="title" />
+					{:else if currentColumn.id === 'dateText'}
+						<DropdownItem>
+							<DateInput
+								title="Date After"
+								bind:value={$urlStore.searchParams.dateAfter}
+								name=""
+								errorMessage=""
+							/>
+						</DropdownItem>
+						<DropdownItem>
+							<DateInput
+								title="Date Before"
+								bind:value={$urlStore.searchParams.dateBefore}
+								name=""
+								errorMessage=""
+							/>
+						</DropdownItem>
+					{/if}
+				{/if}
+			</svelte:fragment>
+		</CustomTable>
 	{/if}
 </PageLayout>
