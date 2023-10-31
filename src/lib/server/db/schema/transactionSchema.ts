@@ -8,6 +8,7 @@ import {
 	importStatusEnum,
 	importTypeEnum
 } from '../../../schema/importSchema';
+import type { JournalFilterSchemaType, UpdateJournalSchemaType } from '$lib/schema/journalSchema';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -429,3 +430,20 @@ export const summaryTableRelations = relations(summaryTable, ({ one }) => ({
 		references: [label.id]
 	})
 }));
+
+export const filterTable = sqliteTable('filter', {
+	...idColumn,
+	...timestampColumns,
+	title: text('title').notNull(),
+	applyAutomatically: integer('apply_automatically', { mode: 'boolean' }).notNull().default(false),
+	applyFollowingImport: integer('apply_following_import', { mode: 'boolean' })
+		.notNull()
+		.default(false),
+	automaticFrequency: text('automatic_frequency', { enum: ['5min', 'hourly', 'daily'] }),
+	listed: integer('listed', { mode: 'boolean' }).notNull().default(true),
+	modifyType: integer('modifier', { mode: 'boolean' }).notNull().default(false),
+	filter: text('filter', { mode: 'json' }).notNull().$type<JournalFilterSchemaType>(),
+	filterText: text('filter_text').notNull(),
+	change: text('change', { mode: 'json' }).$type<UpdateJournalSchemaType>(),
+	changeText: text('change_text')
+});
