@@ -4,7 +4,7 @@
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
+	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
 	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { enhance } from '$app/forms';
@@ -26,8 +26,10 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
-	import { journalColumnsStore, numberRows } from '$lib/stores/columnDisplayStores.js';
+	import { journalColumnsStore } from '$lib/stores/columnDisplayStores.js';
 	import FilterModalContent from '$lib/components/FilterModalContent.svelte';
+	import DropdownFilterNestedText from '$lib/components/table/DropdownFilterNestedText.svelte';
+	import DateInput from '$lib/components/DateInput.svelte';
 
 	export let data;
 
@@ -92,15 +94,37 @@
 			bind:numberRows={$urlStore.searchParams.pageSize}
 			columns={[
 				{ id: 'actions', title: '' },
-				{ id: 'dateText', title: 'Date', rowToDisplay: (row) => row.dateText, sortKey: 'date' },
-				{ id: 'account', title: 'Account', customCell: true },
+				{
+					id: 'dateText',
+					title: 'Date',
+					rowToDisplay: (row) => row.dateText,
+					sortKey: 'date',
+					filterActive:
+						Boolean($urlStore.searchParams.dateAfter) || Boolean($urlStore.searchParams.dateBefore)
+				},
+				{
+					id: 'account',
+					title: 'Account',
+					enableDropdown: true,
+					customCell: true,
+					filterActive: Boolean($urlStore.searchParams.account?.title ? true : false)
+				},
 				{ id: 'direction', title: '', customCell: true },
-				{ id: 'payee', title: 'Payee(s)', customCell: true },
+				{
+					id: 'payee',
+					title: 'Payee(s)',
+					enableDropdown: true,
+					customCell: true,
+					filterActive: Boolean($urlStore.searchParams.payee?.title ? true : false)
+				},
 				{
 					id: 'description',
 					title: 'Description',
 					sortKey: 'description',
-					rowToDisplay: (row) => row.description
+					rowToDisplay: (row) => row.description,
+					filterActive: Boolean(
+						$urlStore.searchParams.description && $urlStore.searchParams.description.length > 0
+					)
 				},
 				{
 					id: 'amount',
@@ -346,6 +370,40 @@
 							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 						/>
 					{/each}
+				{/if}
+			</svelte:fragment>
+			<svelte:fragment slot="headerItem" let:currentColumn>
+				{#if $urlStore.searchParams}
+					{#if currentColumn.id === 'description'}
+						<DropdownItem>
+							<Input
+								type="text"
+								bind:value={$urlStore.searchParams.description}
+								placeholder="Filter By Description"
+							/>
+						</DropdownItem>
+					{:else if currentColumn.id === 'account'}
+						<DropdownFilterNestedText bind:params={$urlStore.searchParams.account} key="title" />
+					{:else if currentColumn.id === 'payee'}
+						<DropdownFilterNestedText bind:params={$urlStore.searchParams.payee} key="title" />
+					{:else if currentColumn.id === 'dateText'}
+						<DropdownItem>
+							<DateInput
+								title="Date After"
+								bind:value={$urlStore.searchParams.dateAfter}
+								name=""
+								errorMessage=""
+							/>
+						</DropdownItem>
+						<DropdownItem>
+							<DateInput
+								title="Date Before"
+								bind:value={$urlStore.searchParams.dateBefore}
+								name=""
+								errorMessage=""
+							/>
+						</DropdownItem>
+					{/if}
 				{/if}
 			</svelte:fragment>
 		</CustomTable>

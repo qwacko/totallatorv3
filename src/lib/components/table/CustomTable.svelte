@@ -177,8 +177,14 @@
 						title={currentColumn.title}
 						sortKey={currentColumn.sortKey}
 						currentSort={currentOrder}
+						showDropdown={currentColumn.enableDropdown}
+						filterActive={currentColumn.filterActive}
 						{onSortURL}
-					/>
+					>
+						<svelte:fragment slot="dropdown">
+							<slot name="headerItem" {currentColumn} />
+						</svelte:fragment>
+					</CustomTableHeadCell>
 				{/if}
 			{/each}
 		</TableHead>
