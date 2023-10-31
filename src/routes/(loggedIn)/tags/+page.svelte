@@ -55,6 +55,7 @@
 		summaryFilter={{ tag: $urlStore.searchParams } || defaultJournalFilter()}
 		showJournalLink
 	/>
+	{#if $urlStore.searchParams && data.searchParams}
 	<CustomTable
 		highlightText={$urlStore.searchParams?.title}
 		highlightTextColumns={['title', 'group', 'single']}
@@ -72,6 +73,7 @@
 		currentOrder={data.searchParams?.orderBy}
 		currentFilter={data.searchParams}
 		filterModalTitle="Filter Tags"
+			bind:numberRows={$urlStore.searchParams.pageSize}
 		columns={[
 			{ id: 'actions', title: '' },
 			{
@@ -180,5 +182,5 @@
 		<svelte:fragment slot="filterModal">
 			<TagFilter bind:filter={$urlStore.searchParams} tagDetails={data.tagDropdowns} />
 		</svelte:fragment>
-	</CustomTable>
+	</CustomTable>{/if}
 </PageLayout>
