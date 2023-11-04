@@ -44,9 +44,8 @@ export const reusableFilterToText = (filter: ReusableFilterFilterSchemaType) => 
 	if (restFilter.id) text.push(`id = ${restFilter.id}`);
 	if (restFilter.idArray && restFilter.idArray.length > 0)
 		text.push(`id in (${restFilter.idArray.join(',')})`);
-	if (restFilter.title) text.push(`title like '%${restFilter.title}%'`);
-	if (restFilter.multipleText)
-		text.push(`Title / Filter / Change like '%${restFilter.multipleText}%'`);
+	if (restFilter.title) text.push(`title like ${restFilter.title}`);
+	if (restFilter.multipleText) text.push(`Title / Filter / Change like ${restFilter.multipleText}`);
 	if (restFilter.applyAutomatically)
 		text.push(`applyAutomatically = ${restFilter.applyAutomatically}`);
 	if (restFilter.applyFollowingImport)
@@ -55,8 +54,12 @@ export const reusableFilterToText = (filter: ReusableFilterFilterSchemaType) => 
 		text.push(`automaticFrequency = ${restFilter.automaticFrequency}`);
 	if (restFilter.listed) text.push(`listed = ${restFilter.listed}`);
 	if (restFilter.modificationType) text.push(`modificationType = ${restFilter.modificationType}`);
-	if (restFilter.filterText) text.push(`filterText like '%${restFilter.filterText}%'`);
-	if (restFilter.changeText) text.push(`changeText like '%${restFilter.changeText}%'`);
+	if (restFilter.filterText) text.push(`filterText like ${restFilter.filterText}`);
+	if (restFilter.changeText) text.push(`changeText like ${restFilter.changeText}`);
+
+	if (text.length === 0) {
+		text.push('No Filters Applied');
+	}
 
 	return text;
 };
