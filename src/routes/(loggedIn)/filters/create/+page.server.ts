@@ -7,7 +7,8 @@ import {
 } from '$lib/schema/journalSchema.js';
 import {
 	createReusableFilterFormSchema,
-	createReusableFilterSchema
+	createReusableFilterSchema,
+	reusableFilterCreationURLParams
 } from '$lib/schema/reusableFilterSchema.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
@@ -17,6 +18,19 @@ import { journalUpdateToText } from '$lib/server/db/actions/helpers/journalUpdat
 import { reusableFilterPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { redirect } from '@sveltejs/kit';
 
+const getUrlParams = (query: string): Record<string, unknown> =>
+	Array.from(new URLSearchParams(query)).reduce(
+		(p, [k, v]) => {
+			try {
+				const newValue: unknown = JSON.parse(v);
+				return { ...p, [k]: newValue };
+			} catch {
+				return { ...p, [k]: v };
+			}
+		},
+		{} as Record<string, unknown>
+	);
+
 export const load = async (data) => {
 	authGuard(data);
 	const { current } = serverPageInfo(data.route.id, data);
@@ -25,10 +39,21 @@ export const load = async (data) => {
 		current.searchParams?.filter || defaultJournalFilter()
 	);
 
+	const processedParams = reusableFilterCreationURLParams.safeParse(
+		getUrlParams(data.url.searchParams.toString())
+	);
+
+	console.log('Processed params', JSON.stringify(processedParams, null, 2));
+
 	const form = await superValidate(
 		{
 			filter: JSON.stringify(current.searchParams?.filter || defaultJournalFilter()),
-			title: filterText.join(', ')
+			title: filterText.join(', '),
+			applyAutomatically: current.searchParams?.applyAutomatically,
+			applyFollowingImport: current.searchParams?.applyFollowingImport,
+			automaticFrequency: current.searchParams?.automaticFrequency,
+			listed: current.searchParams?.listed,
+			modificationType: current.searchParams?.modificationType
 		},
 		createReusableFilterFormSchema
 	);

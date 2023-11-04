@@ -13,7 +13,12 @@ import {
 } from './schema/journalSchema';
 import { idSchema } from './schema/idSchema';
 import { downloadTypeSchema } from './schema/downloadTypeSchema';
-import { reusableFilterFilterSchema } from './schema/reusableFilterSchema';
+import {
+	reusableFilterFilterSchema,
+	reusableFilterFrequencyEnum,
+	reusableFilterModifcationType,
+	reusableFilterCreationURLParams
+} from './schema/reusableFilterSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -73,12 +78,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: reusableFilterFilterSchema.optional().catch({}).parse
 		},
 		'/(loggedIn)/filters/create': {
-			searchParamsValidation: z
-				.object({
-					filter: journalFilterSchema.optional(),
-					change: updateJournalSchema.optional()
-				})
-				.optional().parse
+			searchParamsValidation: reusableFilterCreationURLParams.optional().parse
 		},
 		'/(loggedIn)/filters/[id]': {
 			paramsValidation: z.object({ id: z.string() }).parse

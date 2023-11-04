@@ -24,10 +24,12 @@
 	export let categoryDropdown: Promise<dropdownItemsType[]>;
 	export let tagDropdown: Promise<dropdownItemsType[]>;
 	export let labelDropdown: Promise<dropdownItemsType[]>;
-	export let urlFromFilter: (filter: JournalFilterSchemaType) => string | undefined;
+	export let urlFromFilter: (filter: JournalFilterSchemaType) => string;
 	export let hideSubmit = false;
+	export let url = '';
 
 	$: activeFilter = currentFilter;
+	$: url = urlFromFilter(activeFilter);
 </script>
 
 <div class="flex flex-col gap-6">
@@ -86,7 +88,6 @@
 		</AccordionItem>
 		<AccordionItem>
 			<svelte:fragment slot="header">Current Filter Raw</svelte:fragment>
-
 			<pre>{JSON.stringify(activeFilter, null, 2)}</pre>
 		</AccordionItem>
 	</Accordion>

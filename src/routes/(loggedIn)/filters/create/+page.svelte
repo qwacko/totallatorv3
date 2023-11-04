@@ -23,6 +23,7 @@
 	import TextInputForm from '$lib/components/TextInputForm.svelte';
 	import BooleanFilterButtons from '$lib/components/filters/BooleanFilterButtons.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	export let data;
 
@@ -50,6 +51,7 @@
 <CustomHeader pageTitle="Create Reusable Filter" />
 
 <PageLayout title="Create Reusable Filter" size="lg">
+	<RawDataModal {data} dev={data.dev} />
 	<form use:enhance method="POST" class="flex flex-col gap-4">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 			{#if data.searchParams}
@@ -122,7 +124,30 @@
 							budgetDropdown={data.dropdowns.budgets}
 							tagDropdown={data.dropdowns.tags}
 							labelDropdown={data.dropdowns.labels}
-							urlFromFilter={(filter) => urlInfo.updateParams({ searchParams: { filter } }).url}
+							urlFromFilter={(filter) =>
+								urlGenerator({
+									address: '/(loggedIn)/filters/create',
+									searchParamsValue: {
+										filter,
+										...($formData.applyAutomatically !== undefined
+											? { applyAutomatically: $formData.applyAutomatically }
+											: {}),
+										...($formData.applyFollowingImport !== undefined
+											? { applyFollowingImport: $formData.applyFollowingImport }
+											: {}),
+										...($formData.automaticFrequency
+											? { automaticFrequency: $formData.automaticFrequency }
+											: {}),
+										...($formData.modificationType
+											? { modificationType: $formData.modificationType }
+											: {}),
+										...($formData.listed !== undefined ? { listed: $formData.listed } : {}),
+										...($formData.title ? { title: $formData.title } : {}),
+										...(urlInfo.current.searchParams?.change
+											? { change: urlInfo.current.searchParams.change }
+											: {})
+									}
+								}).url}
 							bind:opened={filterModal}
 						/>
 						<Button

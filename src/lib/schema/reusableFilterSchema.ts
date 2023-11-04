@@ -31,6 +31,17 @@ export const createReusableFilterCoreSchema = z.object({
 	modificationType: z.enum(reusableFilterModifcationType).default('replace').optional()
 });
 
+export const reusableFilterCreationURLParams = z.object({
+	filter: journalFilterSchema.optional(),
+	change: updateJournalSchema.optional(),
+	title: z.string().optional(),
+	applyAutomatically: z.boolean().optional(),
+	applyFollowingImport: z.boolean().optional(),
+	automaticFrequency: z.enum(reusableFilterFrequencyEnum).optional(),
+	listed: z.boolean().optional(),
+	modificationType: z.enum(reusableFilterModifcationType).default('replace').optional()
+});
+
 export const createReusableFilterFormSchema = createReusableFilterCoreSchema.merge(
 	z.object({
 		filter: z.string(),
