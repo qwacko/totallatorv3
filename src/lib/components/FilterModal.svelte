@@ -19,8 +19,7 @@
 	export let tagDropdown: Promise<dropdownItemsType[]>;
 	export let labelDropdown: Promise<dropdownItemsType[]>;
 	export let urlFromFilter: (filter: JournalFilterSchemaType) => string;
-
-	let opened = false;
+	export let opened = false;
 </script>
 
 <Button color="light" on:click={() => (opened = true)}>
@@ -37,4 +36,9 @@
 		{labelDropdown}
 		{urlFromFilter}
 	/>
+	<svelte:fragment slot="footer">
+		<Button on:click={() => (opened = false)} outline>Cancel</Button>
+		<div class="flex-grow"></div>
+		<Button href={urlFromFilter(currentFilter)}>Apply</Button>
+	</svelte:fragment>
 </Modal>

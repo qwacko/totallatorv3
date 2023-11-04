@@ -91,3 +91,14 @@ export const tagPageAndFilterValidation = z.object({
 		.optional()
 		.default(urlGenerator({ address: '/(loggedIn)/tags', searchParamsValue: {} }).url)
 });
+
+export const reusableFilterPageAndFilterValidation = z.object({
+	prevPage: z
+		.string()
+		.optional()
+		.default(urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url),
+	currentPage: z
+		.string()
+		.optional()
+		.default(urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url)
+});

@@ -25,6 +25,7 @@
 	export let tagDropdown: Promise<dropdownItemsType[]>;
 	export let labelDropdown: Promise<dropdownItemsType[]>;
 	export let urlFromFilter: (filter: JournalFilterSchemaType) => string | undefined;
+	export let hideSubmit = false;
 
 	$: activeFilter = currentFilter;
 </script>
@@ -89,5 +90,7 @@
 			<pre>{JSON.stringify(activeFilter, null, 2)}</pre>
 		</AccordionItem>
 	</Accordion>
-	<Button href={urlFromFilter(activeFilter)}>Apply</Button>
+	{#if !hideSubmit}
+		<Button href={urlFromFilter(activeFilter)}>Apply</Button>
+	{/if}
 </div>

@@ -68,5 +68,5 @@ export const journalUpdateToText = async (change: UpdateJournalSchemaType | unde
 		messages.push(`Remove Labels: ${(await labelIdsToTitle(change.removeLabels)).join(', ')}`);
 	}
 
-	return messages.join(', ');
+	return messages;
 };

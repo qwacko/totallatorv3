@@ -56,6 +56,8 @@ export const reusableFilterActions = {
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
+		console.log('Listing Filters');
+
 		return { count, data: await reusableFilterDBUnpackedMany(results), pageCount, page, pageSize };
 	},
 	create: async ({ db, data }: { db: DBType; data: CreateReusableFilterSchemaType }) => {
@@ -72,13 +74,15 @@ export const reusableFilterActions = {
 		const filterText = await journalFilterToText(filter);
 		const titleUse = title || filterText.join(' and ');
 
+		const changeText = await journalUpdateToText(change);
+
 		await db
 			.insert(reusableFilter)
 			.values({
 				filter: JSON.stringify(filter),
 				filterText: filterText.join(' and '),
 				change: change ? JSON.stringify(change) : undefined,
-				changeText: await journalUpdateToText(change),
+				changeText: changeText ? changeText.join(', ') : undefined,
 				id: idUse,
 				title: titleUse,
 				...updatedTime(),
@@ -115,6 +119,7 @@ export const reusableFilterActions = {
 		const filterText = filter ? await journalFilterToText(filter) : undefined;
 		const filterTextUse = filterText ? filterText.join(' and ') : undefined;
 		const titleUse = title ? title : useFilterTextForTitle ? filterTextUse : undefined;
+		const changeText = await journalUpdateToText(change);
 
 		await db
 			.update(reusableFilter)
@@ -122,7 +127,7 @@ export const reusableFilterActions = {
 				filter: filter ? JSON.stringify(filter) : undefined,
 				filterText: filterTextUse,
 				change: change ? JSON.stringify(change) : undefined,
-				changeText: await journalUpdateToText(change),
+				changeText: changeText ? changeText.join(', ') : undefined,
 				title: titleUse,
 				...updatedTime(),
 				...reusableFilterData
@@ -146,8 +151,9 @@ const reusableFilterDBUnpacked = async (item: ReusableFilterTableType | undefine
 	if (!item) throw new Error('Item Not Found');
 	const { change, filter, ...unmodifiedColumns } = item;
 
-	const changeUse = change ? updateJournalSchema.parse(JSON.stringify(change)) : undefined;
-	const filterUse = journalFilterSchema.parse(JSON.stringify(filter));
+	const changeUse = change ? updateJournalSchema.parse(JSON.parse(change)) : undefined;
+
+	const filterUse = journalFilterSchema.parse(JSON.parse(filter));
 
 	return {
 		filter: filterUse,

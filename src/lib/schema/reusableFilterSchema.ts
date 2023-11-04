@@ -2,18 +2,51 @@ import { z } from 'zod';
 import { journalFilterSchema, updateJournalSchema } from './journalSchema';
 
 export const reusableFilterFrequencyEnum = ['5min', 'hourly', 'daily'] as const;
-export const reusableFilterModifcationType = ['replace', 'modify'] as const;
+type reusableFilterFrequencyEnumType = (typeof reusableFilterFrequencyEnum)[number];
+export const reusableFilterFrequencyEnumItems: {
+	value: reusableFilterFrequencyEnumType;
+	name: string;
+}[] = [
+	{ value: '5min', name: '5 Minutes' },
+	{ value: 'hourly', name: 'Hourly' },
+	{ value: 'daily', name: 'Daily' }
+];
 
-export const createReusableFilterSchema = z.object({
+export const reusableFilterModifcationType = ['replace', 'modify'] as const;
+type reusableFilterModifcationType = (typeof reusableFilterModifcationType)[number];
+export const reusableFilterModifcationTypeItems: {
+	value: reusableFilterModifcationType;
+	name: string;
+}[] = [
+	{ value: 'replace', name: 'Replace' },
+	{ value: 'modify', name: 'Modify' }
+];
+
+export const createReusableFilterCoreSchema = z.object({
 	title: z.string().optional(),
 	applyAutomatically: z.boolean().optional(),
 	applyFollowingImport: z.boolean().optional(),
 	automaticFrequency: z.enum(reusableFilterFrequencyEnum).optional(),
 	listed: z.boolean().optional(),
-	modificationType: z.enum(reusableFilterModifcationType).default('replace').optional(),
-	filter: journalFilterSchema,
-	change: updateJournalSchema.optional()
+	modificationType: z.enum(reusableFilterModifcationType).default('replace').optional()
 });
+
+export const createReusableFilterFormSchema = createReusableFilterCoreSchema.merge(
+	z.object({
+		filter: z.string(),
+		change: z.string().optional()
+	})
+);
+
+export type CreateReusableFilterFormSuperSchema = typeof createReusableFilterFormSchema;
+export type CreateReusableFilterFormSchemaType = z.infer<typeof createReusableFilterFormSchema>;
+
+export const createReusableFilterSchema = createReusableFilterCoreSchema.merge(
+	z.object({
+		filter: journalFilterSchema,
+		change: updateJournalSchema.optional()
+	})
+);
 
 export type CreateReusableFilterSchemaCoreType = typeof createReusableFilterSchema;
 export type CreateReusableFilterSchemaType = z.infer<CreateReusableFilterSchemaCoreType>;
