@@ -35,7 +35,7 @@ export const tagFilterToQuery = (
 	return where;
 };
 
-const tagIdToTitle = async (id: string) => {
+export const tagIdToTitle = async (id: string) => {
 	const foundTag = await db
 		.select({ title: tag.title })
 		.from(tag)

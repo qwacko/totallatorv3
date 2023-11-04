@@ -178,27 +178,16 @@
 			</svelte:fragment>
 			<svelte:fragment slot="filterModal">
 				{#if $urlStore.searchParams}
-					{#await data.dropdownInfo.accounts then accountDropdown}
-						{#await data.dropdownInfo.bills then billDropdown}
-							{#await data.dropdownInfo.budgets then budgetDropdown}
-								{#await data.dropdownInfo.categories then categoryDropdown}
-									{#await data.dropdownInfo.tags then tagDropdown}
-										{#await data.dropdownInfo.labels then labelDropdown}
-											<FilterModalContent
-												currentFilter={$urlStore.searchParams}
-												{accountDropdown}
-												{billDropdown}
-												{budgetDropdown}
-												{categoryDropdown}
-												{tagDropdown}
-												{labelDropdown}
-											/>
-										{/await}
-									{/await}
-								{/await}
-							{/await}
-						{/await}
-					{/await}
+					<FilterModalContent
+						currentFilter={$urlStore.searchParams}
+						accountDropdown={data.dropdownInfo.accounts}
+						billDropdown={data.dropdownInfo.bills}
+						budgetDropdown={data.dropdownInfo.budgets}
+						categoryDropdown={data.dropdownInfo.categories}
+						tagDropdown={data.dropdownInfo.tags}
+						labelDropdown={data.dropdownInfo.labels}
+						urlFromFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
+					/>
 				{/if}
 			</svelte:fragment>
 			<svelte:fragment slot="customBodyCell" let:row={currentJournal} let:currentColumn>

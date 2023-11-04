@@ -23,6 +23,12 @@ export const billColumnsStore = writable(['actions', 'title', 'status', 'total',
 export const budgetColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);
 export const categoryColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);
 export const labelColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);
+export const reusableFilterColumnsStore = writable([
+	'actions',
+	'title',
+	'filterText',
+	'createText'
+]);
 
 export const journalColumnsStore = writable([
 	'actions',

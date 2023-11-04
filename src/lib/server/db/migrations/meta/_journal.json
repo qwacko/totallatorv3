@@ -197,6 +197,13 @@
       "when": 1698749274031,
       "tag": "0027_white_aaron_stack",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1698772953543,
+      "tag": "0028_lethal_nekra",
+      "breakpoints": true
     }
   ]
 }

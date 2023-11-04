@@ -8,7 +8,10 @@ import {
 	importStatusEnum,
 	importTypeEnum
 } from '../../../schema/importSchema';
-import type { JournalFilterSchemaType, UpdateJournalSchemaType } from '$lib/schema/journalSchema';
+import {
+	reusableFilterFrequencyEnum,
+	reusableFilterModifcationType
+} from '../../../schema/reusableFilterSchema';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -431,7 +434,7 @@ export const summaryTableRelations = relations(summaryTable, ({ one }) => ({
 	})
 }));
 
-export const filterTable = sqliteTable('filter', {
+export const reusableFilter = sqliteTable('filter', {
 	...idColumn,
 	...timestampColumns,
 	title: text('title').notNull(),
@@ -439,11 +442,13 @@ export const filterTable = sqliteTable('filter', {
 	applyFollowingImport: integer('apply_following_import', { mode: 'boolean' })
 		.notNull()
 		.default(false),
-	automaticFrequency: text('automatic_frequency', { enum: ['5min', 'hourly', 'daily'] }),
+	automaticFrequency: text('automatic_frequency', { enum: reusableFilterFrequencyEnum }),
 	listed: integer('listed', { mode: 'boolean' }).notNull().default(true),
-	modifyType: integer('modifier', { mode: 'boolean' }).notNull().default(false),
-	filter: text('filter', { mode: 'json' }).notNull().$type<JournalFilterSchemaType>(),
+	modificationType: text('modification_type', { enum: reusableFilterModifcationType })
+		.notNull()
+		.default('replace'),
+	filter: text('filter').notNull(),
 	filterText: text('filter_text').notNull(),
-	change: text('change', { mode: 'json' }).$type<UpdateJournalSchemaType>(),
+	change: text('change'),
 	changeText: text('change_text')
 });

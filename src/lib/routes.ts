@@ -6,9 +6,14 @@ import { budgetFilterSchema as budgetFilterSchema } from './schema/budgetSchema'
 import { categoryFilterSchema } from './schema/categorySchema';
 import { labelFilterSchema } from './schema/labelSchema';
 import { accountFilterSchema } from './schema/accountSchema';
-import { defaultJournalFilter, journalFilterSchema } from './schema/journalSchema';
+import {
+	defaultJournalFilter,
+	journalFilterSchema,
+	updateJournalSchema
+} from './schema/journalSchema';
 import { idSchema } from './schema/idSchema';
 import { downloadTypeSchema } from './schema/downloadTypeSchema';
+import { reusableFilterFilterSchema } from './schema/reusableFilterSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -59,6 +64,26 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		},
 		'/(loggedIn)/journals/[id]/edit': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse,
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
+
+		// Filters
+		// ----------------------------------------
+		'/(loggedIn)/filters': {
+			searchParamsValidation: reusableFilterFilterSchema.optional().catch({}).parse
+		},
+		'/(loggedIn)/filters/create': {
+			searchParamsValidation: z
+				.object({
+					filter: journalFilterSchema.optional(),
+					change: updateJournalSchema.optional()
+				})
+				.optional().parse
+		},
+		'/(loggedIn)/filters/[id]': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
+		'/(loggedIn)/filters/[id]/delete': {
 			paramsValidation: z.object({ id: z.string() }).parse
 		},
 

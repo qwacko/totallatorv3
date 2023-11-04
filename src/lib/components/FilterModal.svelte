@@ -12,12 +12,13 @@
 	};
 
 	export let currentFilter: JournalFilterSchemaType;
-	export let accountDropdown: dropdownItemsType[];
-	export let billDropdown: dropdownItemsType[];
-	export let budgetDropdown: dropdownItemsType[];
-	export let categoryDropdown: dropdownItemsType[];
-	export let tagDropdown: dropdownItemsType[];
-	export let labelDropdown: dropdownItemsType[];
+	export let accountDropdown: Promise<dropdownItemsType[]>;
+	export let billDropdown: Promise<dropdownItemsType[]>;
+	export let budgetDropdown: Promise<dropdownItemsType[]>;
+	export let categoryDropdown: Promise<dropdownItemsType[]>;
+	export let tagDropdown: Promise<dropdownItemsType[]>;
+	export let labelDropdown: Promise<dropdownItemsType[]>;
+	export let urlFromFilter: (filter: JournalFilterSchemaType) => string;
 
 	let opened = false;
 </script>
@@ -34,5 +35,6 @@
 		{categoryDropdown}
 		{tagDropdown}
 		{labelDropdown}
+		{urlFromFilter}
 	/>
 </Modal>
