@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Input } from 'flowbite-svelte';
+	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
@@ -8,6 +8,11 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
 	import { reusableFilterColumnsStore } from '$lib/stores/columnDisplayStores.js';
+	import { defaultJournalFilter } from '$lib/schema/journalSchema';
+	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
+	import EditIcon from '$lib/components/icons/EditIcon.svelte';
+	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/filters', $page);
@@ -68,10 +73,62 @@
 					title: 'Title',
 					rowToDisplay: (row) => row.title,
 					sortKey: 'title'
+				},
+				{
+					id: 'filterText',
+					title: 'Filter',
+					rowToDisplay: (row) => row.filterText,
+					sortKey: 'filterText'
+				},
+				{
+					id: 'changeText',
+					title: 'Change',
+					rowToDisplay: (row) => row.changeText || '',
+					sortKey: 'changeText'
 				}
 			]}
 			bind:shownColumns={$reusableFilterColumnsStore}
 		>
+			<svelte:fragment slot="customBodyCell" let:currentColumn let:row>
+				{#if currentColumn.id === 'actions'}
+					<ButtonGroup>
+						<Button
+							href={urlGenerator({
+								address: '/(loggedIn)/journals',
+								searchParamsValue: { ...defaultJournalFilter(), ...row.filter }
+							}).url}
+							class="p-2"
+							color="blue"
+							outline
+							size="sm"
+						>
+							<JournalEntryIcon />
+						</Button>
+						<Button
+							href={urlGenerator({
+								address: '/(loggedIn)/filters/[id]',
+								paramsValue: { id: row.id }
+							}).url}
+							class="p-2"
+							outline
+						>
+							<EditIcon />
+						</Button>
+						<Button
+							href={urlGenerator({
+								address: '/(loggedIn)/filters/[id]/delete',
+								paramsValue: { id: row.id }
+							}).url}
+							class="p-2"
+							outline
+							color="red"
+						>
+							<DeleteIcon />
+						</Button>
+						<RawDataModal data={row} title="Reusable Filter Data" dev={data.dev} />
+					</ButtonGroup>
+				{/if}
+			</svelte:fragment>
 			<svelte:fragment slot="filter">
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}

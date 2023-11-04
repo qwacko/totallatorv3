@@ -27,7 +27,7 @@ export const reusableFilterColumnsStore = writable([
 	'actions',
 	'title',
 	'filterText',
-	'createText'
+	'changeText'
 ]);
 
 export const journalColumnsStore = writable([
