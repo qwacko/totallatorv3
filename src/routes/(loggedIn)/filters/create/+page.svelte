@@ -46,6 +46,10 @@
 	$: modificationFormValue = modificationForm.form;
 	$: enhance = form.enhance;
 	$: formData = form.form;
+	$: updateTitle = (newTitle: string) => {
+		$formData.title = undefined;
+		$formData.title = newTitle;
+	};
 </script>
 
 <CustomHeader pageTitle="Create Reusable Filter" />
@@ -60,12 +64,20 @@
 					<input type="hidden" name="change" value={JSON.stringify(data.searchParams.change)} />
 				{/if}
 			{/if}
-			<TextInputForm
-				{form}
-				field="title"
-				title="Title"
-				outerWrapperClass="col-span-1 md:col-span-2"
-			/>
+			<div class="flex col-span-1 md:col-span-2 flex-row gap-2">
+				<TextInputForm {form} field="title" title="Title" outerWrapperClass="flex-grow" />
+				<Button
+					on:click={() => {
+						const newTitle = data.filterText.join(' and ');
+						updateTitle(newTitle);
+					}}
+					class="whitespace-nowrap self-end"
+					disabled={$formData.title === data.filterText.join(' and ')}
+					outline
+				>
+					Reset
+				</Button>
+			</div>
 			<BooleanFilterButtons
 				bind:value={$formData.listed}
 				title="In Journal Filter Dropdown"
