@@ -120,16 +120,14 @@
 				name="applyAutomatically"
 				hideClear
 			/>
-			{#if $formData.applyAutomatically}
-				<BooleanFilterButtons
-					bind:value={$formData.applyFollowingImport}
-					title="Apply Change Following Import"
-					onTitle="Yes"
-					offTitle="No"
-					name="applyFollowingImport"
-					hideClear
-				/>
-			{/if}
+			<BooleanFilterButtons
+				bind:value={$formData.applyFollowingImport}
+				title="Apply Change Following Import"
+				onTitle="Yes"
+				offTitle="No"
+				name="applyFollowingImport"
+				hideClear
+			/>
 		</div>
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 			<div class="flex flex-col gap-2">
