@@ -71,6 +71,7 @@
 						required={true}
 					/>
 				</div>
+
 				<Button
 					on:click={() => {
 						const newTitle = data.filterText.join(' and ');
@@ -82,6 +83,16 @@
 				>
 					Reset
 				</Button>
+			</div>
+			<div class="flex col-span-1 md:col-span-2 flex-row gap-2">
+				<div class="flex-grow">
+					<TextInput
+						name="group"
+						bind:value={$formData.group}
+						errorMessage={$formErrors.group}
+						title="Group"
+					/>
+				</div>
 			</div>
 			<BooleanFilterButtons
 				bind:value={$formData.listed}

@@ -28,6 +28,7 @@ export const reusableFilterColumnsStore = writable([
 	'applyAutomatically',
 	'applyFollowingImport',
 	'listed',
+	'group',
 	'title',
 	'filterText',
 	'changeText'

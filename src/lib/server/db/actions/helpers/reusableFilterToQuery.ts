@@ -10,11 +10,13 @@ export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) =>
 	if (restFilter.idArray && restFilter.idArray.length > 0)
 		where.push(inArray(reusableFilter.id, restFilter.idArray));
 	if (restFilter.title) where.push(like(reusableFilter.title, `%${restFilter.title}%`));
+	if (restFilter.group) where.push(like(reusableFilter.group, `%${restFilter.group}%`));
 	if (restFilter.multipleText) {
 		const orValue = or(
 			like(reusableFilter.title, `%${restFilter.multipleText}%`),
 			like(reusableFilter.filterText, `%${restFilter.multipleText}%`),
-			like(reusableFilter.changeText, `%${restFilter.multipleText}%`)
+			like(reusableFilter.changeText, `%${restFilter.multipleText}%`),
+			like(reusableFilter.group, `%${restFilter.multipleText}%`)
 		);
 		if (orValue) {
 			where.push(orValue);
@@ -42,8 +44,11 @@ export const reusableFilterToText = (filter: ReusableFilterFilterSchemaType) => 
 	if (restFilter.id) text.push(`id = ${restFilter.id}`);
 	if (restFilter.idArray && restFilter.idArray.length > 0)
 		text.push(`id in (${restFilter.idArray.join(',')})`);
+	if (restFilter.multipleText) {
+		text.push(`Group / Title / Filter / Change like ${restFilter.multipleText}`);
+	}
 	if (restFilter.title) text.push(`title like ${restFilter.title}`);
-	if (restFilter.multipleText) text.push(`Title / Filter / Change like ${restFilter.multipleText}`);
+	if (restFilter.group) text.push(`group like ${restFilter.group}`);
 	if (restFilter.applyAutomatically)
 		text.push(`applyAutomatically = ${restFilter.applyAutomatically}`);
 	if (restFilter.applyFollowingImport)

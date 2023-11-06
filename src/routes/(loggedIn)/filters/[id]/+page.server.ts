@@ -44,6 +44,7 @@ export const load = async (data) => {
 			filter: JSON.stringify(filter),
 			change: change ? JSON.stringify(change) : undefined,
 			title: current.searchParams?.title || reusableFilter.title,
+			group: current.searchParams?.group || reusableFilter.group,
 			applyAutomatically:
 				current.searchParams?.applyAutomatically || reusableFilter.applyAutomatically,
 			applyFollowingImport:

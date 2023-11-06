@@ -32,6 +32,7 @@ export const load = async (data) => {
 			filter: JSON.stringify(filter),
 			change: change ? JSON.stringify(change) : undefined,
 			title: current.searchParams?.title || filterText.join(', '),
+			group: current.searchParams?.group,
 			applyAutomatically: current.searchParams?.applyAutomatically,
 			applyFollowingImport: current.searchParams?.applyFollowingImport,
 			listed: current.searchParams?.listed,

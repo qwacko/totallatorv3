@@ -49,8 +49,8 @@
 
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
-			highlightText={$urlStore.searchParams?.title}
-			highlightTextColumns={['title']}
+			highlightText={$urlStore.searchParams?.multipleText}
+			highlightTextColumns={['title', 'group', 'filterText', 'changeText']}
 			filterText={data.filterText}
 			onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
 			paginationInfo={{
@@ -67,7 +67,7 @@
 			filterModalTitle="Filter Reusable Filters"
 			bind:numberRows={$urlStore.searchParams.pageSize}
 			columns={[
-				{ id: 'actions', title: '' },
+				{ id: 'actions', title: 'Actions' },
 				{
 					id: 'applyAutomatically',
 					title: 'Automatic',
@@ -90,11 +90,22 @@
 					filterActive: Boolean(data.searchParams.listed !== undefined)
 				},
 				{
+					id: 'group',
+					title: 'Group',
+					rowToDisplay: (row) => row.group || '',
+					sortKey: 'group',
+					filterActive: Boolean(
+						data.searchParams.group !== undefined && data.searchParams.group !== ''
+					)
+				},
+				{
 					id: 'title',
 					title: 'Title',
 					rowToDisplay: (row) => row.title,
 					sortKey: 'title',
-					filterActive: Boolean(data.searchParams.title !== undefined)
+					filterActive: Boolean(
+						data.searchParams.title !== undefined && data.searchParams.title !== ''
+					)
 				},
 				{
 					id: 'filterText',
@@ -159,7 +170,7 @@
 					{#if $urlStore.searchParams}
 						<Input
 							type="text"
-							bind:value={$urlStore.searchParams.title}
+							bind:value={$urlStore.searchParams.multipleText}
 							placeholder="Filter by Title"
 							class="flex flex-grow"
 						/>

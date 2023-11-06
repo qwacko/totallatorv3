@@ -13,6 +13,7 @@ export const reusableFilterModifcationTypeItems: {
 
 export const createReusableFilterCoreSchema = z.object({
 	title: z.string().optional(),
+	group: z.string().optional(),
 	applyAutomatically: z.boolean().optional(),
 	applyFollowingImport: z.boolean().optional(),
 	listed: z.boolean().optional(),
@@ -23,6 +24,7 @@ export const reusableFilterCreationURLParams = z.object({
 	filter: journalFilterSchema.optional(),
 	change: updateJournalSchema.optional(),
 	title: z.string().optional(),
+	group: z.string().optional(),
 	applyAutomatically: z.boolean().optional(),
 	applyFollowingImport: z.boolean().optional(),
 	listed: z.boolean().optional(),
@@ -62,6 +64,7 @@ export type updateReusableFilterSchemaType = z.infer<UpdateReuableFilterSchemaCo
 
 const orderByEnum = [
 	'title',
+	'group',
 	'applyAutomatically',
 	'applyFollowingImport',
 	'listed',
@@ -79,6 +82,7 @@ type OrderByEnumTitles = {
 // This will be valid for demonstration purposes
 const enumTitles = {
 	title: 'Title',
+	group: 'Group',
 	applyAutomatically: 'Apply Automatically',
 	applyFollowingImport: 'Apply Following Import',
 	listed: 'Listed',
@@ -95,6 +99,7 @@ export const reusableFilterFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
 	title: z.coerce.string().optional(),
+	group: z.coerce.string().optional(),
 	multipleText: z.coerce.string().optional(),
 	applyAutomatically: z.boolean().optional(),
 	applyFollowingImport: z.boolean().optional(),

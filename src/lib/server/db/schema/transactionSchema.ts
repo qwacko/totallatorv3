@@ -435,6 +435,7 @@ export const reusableFilter = sqliteTable('filter', {
 	...idColumn,
 	...timestampColumns,
 	title: text('title').notNull(),
+	group: text('group'),
 	applyAutomatically: integer('apply_automatically', { mode: 'boolean' }).notNull().default(false),
 	applyFollowingImport: integer('apply_following_import', { mode: 'boolean' })
 		.notNull()
