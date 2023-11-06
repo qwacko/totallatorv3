@@ -44,13 +44,14 @@ export const load = async (data) => {
 			filter: JSON.stringify(filter),
 			change: change ? JSON.stringify(change) : undefined,
 			title: current.searchParams?.title || reusableFilter.title,
-			group: current.searchParams?.group || reusableFilter.group,
+			group: current.searchParams?.group || reusableFilter.group || undefined,
 			applyAutomatically:
 				current.searchParams?.applyAutomatically || reusableFilter.applyAutomatically,
 			applyFollowingImport:
 				current.searchParams?.applyFollowingImport || reusableFilter.applyFollowingImport,
 			listed: current.searchParams?.listed || reusableFilter.listed,
-			modificationType: current.searchParams?.modificationType || reusableFilter.modificationType
+			modificationType:
+				current.searchParams?.modificationType || reusableFilter.modificationType || undefined
 		},
 		updateReusableFilterFormSchema
 	);

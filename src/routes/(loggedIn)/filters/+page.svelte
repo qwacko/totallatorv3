@@ -75,11 +75,6 @@
 			columns={[
 				{ id: 'actions', title: 'Actions' },
 				{
-					id: 'journalCount',
-					title: 'Journal Count',
-					rowToDisplay: (row) => row.journalCount.toString()
-				},
-				{
 					id: 'applyAutomatically',
 					title: 'Automatic',
 					rowToDisplay: (row) => (row.applyAutomatically ? 'Y' : ''),
@@ -137,6 +132,11 @@
 					rowToDisplay: (row) => row.changeText || '',
 					sortKey: 'changeText',
 					filterActive: Boolean(data.searchParams.filterText !== undefined)
+				},
+				{
+					id: 'journalCount',
+					title: 'Journal Count',
+					rowToDisplay: (row) => row.journalCount.toString()
 				}
 			]}
 		>
@@ -170,7 +170,7 @@
 							class="p-2"
 							href={urlGenerator({
 								address: '/(loggedIn)/filters/create',
-								searchParamsValue: row
+								searchParamsValue: { ...row, modificationType: row.modificationType || undefined }
 							}).url}
 							outline
 						>

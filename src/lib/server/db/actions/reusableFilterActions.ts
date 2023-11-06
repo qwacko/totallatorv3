@@ -182,7 +182,8 @@ export const reusableFilterActions = {
 			throw new Error('Invalid Data');
 		}
 
-		const { filter, title, change, ...reusableFilterData } = processedData.data;
+		const { filter, title, change, group, modificationType, listed, ...reusableFilterData } =
+			processedData.data;
 
 		const idUse = nanoid();
 
@@ -200,6 +201,9 @@ export const reusableFilterActions = {
 				changeText: changeText ? changeText.join(', ') : undefined,
 				id: idUse,
 				title: titleUse,
+				group: group && group.length > 0 ? group : undefined,
+				listed,
+				modificationType: listed ? modificationType : undefined,
 				...updatedTime(),
 				...reusableFilterData
 			})
@@ -228,7 +232,8 @@ export const reusableFilterActions = {
 			throw new Error('Item Not Found');
 		}
 
-		const { filter, change, ...reusableFilterData } = processedData.data;
+		const { filter, change, group, modificationType, listed, ...reusableFilterData } =
+			processedData.data;
 
 		const filterText = filter ? await journalFilterToText(filter) : undefined;
 		const filterTextUse = filterText ? filterText.join(' and ') : undefined;
@@ -241,6 +246,9 @@ export const reusableFilterActions = {
 				filterText: filterTextUse,
 				change: change ? JSON.stringify(change) : undefined,
 				changeText: changeText ? changeText.join(', ') : undefined,
+				group: group && group.length > 0 ? group : null,
+				listed,
+				modificationType: listed ? modificationType : null,
 				...updatedTime(),
 				...reusableFilterData
 			})

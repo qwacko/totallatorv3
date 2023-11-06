@@ -1,0 +1,1 @@
+ALTER TABLE `filter` RENAME COLUMN `modification_type2` TO `modification_type`;

@@ -441,9 +441,9 @@ export const reusableFilter = sqliteTable('filter', {
 		.notNull()
 		.default(false),
 	listed: integer('listed', { mode: 'boolean' }).notNull().default(true),
-	modificationType: text('modification_type', { enum: reusableFilterModifcationType })
-		.notNull()
-		.default('replace'),
+	modificationType: text('modification_type', { enum: reusableFilterModifcationType }).default(
+		'replace'
+	),
 	filter: text('filter').notNull(),
 	filterText: text('filter_text').notNull(),
 	change: text('change'),

@@ -31,6 +31,7 @@
 	import DropdownFilterNestedText from '$lib/components/table/DropdownFilterNestedText.svelte';
 	import DateInput from '$lib/components/DateInput.svelte';
 	import FilterDropdown from './FilterDropdown.svelte';
+	import FilterCreateIcon from '$lib/components/icons/FilterCreateIcon.svelte';
 
 	export let data;
 
@@ -150,6 +151,18 @@
 			bind:shownColumns={$journalColumnsStore}
 		>
 			<svelte:fragment slot="filterButtons">
+				<Button
+					href={urlGenerator({
+						address: '/(loggedIn)/filters/create',
+						searchParamsValue: {
+							filter: $urlStore.searchParams
+						}
+					}).url}
+					class="p-2"
+					outline
+				>
+					<FilterCreateIcon />
+				</Button>
 				<FilterDropdown
 					filters={data.filterDropdown}
 					newFilter={(newFilter) =>
