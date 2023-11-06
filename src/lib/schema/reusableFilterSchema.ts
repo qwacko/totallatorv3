@@ -24,7 +24,7 @@ export const reusableFilterCreationURLParams = z.object({
 	filter: journalFilterSchema.optional(),
 	change: updateJournalSchema.optional(),
 	title: z.string().optional(),
-	group: z.string().optional(),
+	group: z.string().optional().nullable(),
 	applyAutomatically: z.boolean().optional(),
 	applyFollowingImport: z.boolean().optional(),
 	listed: z.boolean().optional(),

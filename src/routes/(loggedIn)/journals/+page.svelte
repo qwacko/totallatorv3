@@ -30,6 +30,7 @@
 	import FilterModalContent from '$lib/components/FilterModalContent.svelte';
 	import DropdownFilterNestedText from '$lib/components/table/DropdownFilterNestedText.svelte';
 	import DateInput from '$lib/components/DateInput.svelte';
+	import FilterDropdown from './FilterDropdown.svelte';
 
 	export let data;
 
@@ -162,6 +163,19 @@
 						}
 						return '';
 					}}
+				/>
+				<FilterDropdown
+					filters={data.filterDropdown}
+					newFilter={(newFilter) =>
+						urlGenerator({
+							address: '/(loggedIn)/journals',
+							searchParamsValue: {
+								...newFilter,
+								page: $urlStore.searchParams?.page || 0,
+								pageSize: $urlStore.searchParams?.pageSize || 10
+							}
+						}).url}
+					updateFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
 				/>
 			</svelte:fragment>
 			<svelte:fragment slot="filter">

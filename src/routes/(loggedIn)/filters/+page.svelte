@@ -15,6 +15,7 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import BooleanFilterButtons from '$lib/components/filters/BooleanFilterButtons.svelte';
 	import ReusableFilterFilter from '$lib/components/filters/ReusableFilterFilter.svelte';
+	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/filters', $page);
@@ -153,6 +154,25 @@
 							<EditIcon />
 						</Button>
 						<Button
+							class="p-2"
+							href={urlGenerator({
+								address: '/(loggedIn)/filters/create',
+								searchParamsValue: {
+									title: row.title,
+									group: row.group,
+									filter: row.filter,
+									change: row.change,
+									applyAutomatically: row.applyAutomatically,
+									applyFollowingImport: row.applyFollowingImport,
+									listed: row.listed,
+									modificationType: row.modificationType
+								}
+							}).url}
+							outline
+						>
+							<CloneIcon />
+						</Button>
+						<Button
 							href={urlGenerator({
 								address: '/(loggedIn)/filters/[id]/delete',
 								paramsValue: { id: row.id }
@@ -239,9 +259,9 @@
 					</DropdownItem>
 				{/if}
 			</svelte:fragment>
-		<svelte:fragment slot="filterModal">
-			<ReusableFilterFilter bind:filter={$urlStore.searchParams} />
-		</svelte:fragment>
+			<svelte:fragment slot="filterModal">
+				<ReusableFilterFilter bind:filter={$urlStore.searchParams} />
+			</svelte:fragment>
 		</CustomTable>
 	{/if}
 </PageLayout>

@@ -14,6 +14,7 @@ import { journalFilterToText } from './helpers/journalFilterToQuery';
 import { updatedTime } from './helpers/updatedTime';
 import { journalUpdateToText } from './helpers/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSchema';
+import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 
 export const reusableFilterActions = {
 	getById: async ({ db, id }: { db: DBType; id: string }) => {
@@ -60,6 +61,52 @@ export const reusableFilterActions = {
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: await reusableFilterDBUnpackedMany(results), pageCount, page, pageSize };
+	},
+	listForDropdown: async ({ db }: { db: DBType }) => {
+		const allResults = await db
+			.select()
+			.from(reusableFilter)
+			.orderBy(asc(reusableFilter.title), desc(reusableFilter.createdAt))
+			.where(eq(reusableFilter.listed, true))
+			.execute();
+
+		const results = (await reusableFilterDBUnpackedMany(allResults)).map((item) => ({
+			title: item.title,
+			group: item.group,
+			filter: item.filter,
+			change: item.change,
+			modificationType: item.modificationType
+		}));
+
+		const groups = [
+			...new Set(filterNullUndefinedAndDuplicates(results.map((item) => item.group)))
+		];
+
+		const groupedResults = groups.reduce<Record<string, (typeof results)[number][]>>(
+			(acc, group) => {
+				return {
+					...acc,
+					[group]: results
+						.filter((item) => item.group === group)
+						.sort((a, b) => a.title.localeCompare(b.title))
+				};
+			},
+			{}
+		);
+
+		const resultsWithoutGroup = results
+			.filter((item) => !item.group)
+			.reduce<Record<string, (typeof results)[number][]>>((acc, curr) => {
+				return {
+					...acc,
+					[curr.title]: [curr]
+				};
+			}, {});
+
+		return {
+			...groupedResults,
+			...resultsWithoutGroup
+		};
 	},
 	create: async ({ db, data }: { db: DBType; data: CreateReusableFilterSchemaType }) => {
 		const processedData = createReusableFilterSchema.safeParse(data);
@@ -162,3 +209,7 @@ const reusableFilterDBUnpacked = async (item: ReusableFilterTableType | undefine
 const reusableFilterDBUnpackedMany = async (items: ReusableFilterTableType[]) => {
 	return Promise.all(items.map(async (item) => reusableFilterDBUnpacked(item)));
 };
+
+export type ReusableFilterDropdownListType = Awaited<
+	ReturnType<(typeof reusableFilterActions)['listForDropdown']>
+>;
