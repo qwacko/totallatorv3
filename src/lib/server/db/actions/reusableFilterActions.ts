@@ -15,6 +15,7 @@ import { updatedTime } from './helpers/updatedTime';
 import { journalUpdateToText } from './helpers/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSchema';
 import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { tActions } from './tActions';
 
 export const reusableFilterActions = {
 	getById: async ({ db, id }: { db: DBType; id: string }) => {
@@ -29,7 +30,11 @@ export const reusableFilterActions = {
 
 		const where = reusableFilterToQuery(restFilter);
 
-		const defaultOrderBy = [asc(reusableFilter.title), desc(reusableFilter.createdAt)];
+		const defaultOrderBy = [
+			asc(reusableFilter.group),
+			asc(reusableFilter.title),
+			desc(reusableFilter.createdAt)
+		];
 
 		const orderByResult = orderBy
 			? [
@@ -51,6 +56,18 @@ export const reusableFilterActions = {
 			.offset(page * pageSize)
 			.execute();
 
+		const resultsProcessed = await reusableFilterDBUnpackedMany(results);
+		const resultsWithRelated = await Promise.all(
+			resultsProcessed.map(async (item) => {
+				const count = await tActions.journal.count(db, item.filter);
+
+				return {
+					...item,
+					journalCount: count
+				};
+			})
+		);
+
 		const resultCount = await db
 			.select({ count: sql<number>`count(${reusableFilter.id})`.mapWith(Number) })
 			.from(reusableFilter)
@@ -60,7 +77,7 @@ export const reusableFilterActions = {
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
-		return { count, data: await reusableFilterDBUnpackedMany(results), pageCount, page, pageSize };
+		return { count, data: resultsWithRelated, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		const allResults = await db

@@ -24,6 +24,10 @@ export const load = async (data) => {
 	const filter = current.searchParams?.filter || defaultJournalFilter();
 	const change = current.searchParams?.change;
 
+	console.log('Filter : ', filter);
+	console.log('Search Params: ', current.searchParams);
+	console.log('Data From URL', data.url.searchParams);
+
 	const filterText = await journalFilterToText(filter);
 	const changeText = change ? await journalUpdateToText(change) : undefined;
 
@@ -32,7 +36,7 @@ export const load = async (data) => {
 			filter: JSON.stringify(filter),
 			change: change ? JSON.stringify(change) : undefined,
 			title: current.searchParams?.title || filterText.join(', '),
-			group: current.searchParams?.group,
+			group: current.searchParams?.group || undefined,
 			applyAutomatically: current.searchParams?.applyAutomatically,
 			applyFollowingImport: current.searchParams?.applyFollowingImport,
 			listed: current.searchParams?.listed,

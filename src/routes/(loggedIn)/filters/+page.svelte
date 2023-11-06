@@ -16,6 +16,8 @@
 	import BooleanFilterButtons from '$lib/components/filters/BooleanFilterButtons.svelte';
 	import ReusableFilterFilter from '$lib/components/filters/ReusableFilterFilter.svelte';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
+	import FilterModifyIcon from '$lib/components/icons/FilterModifyIcon.svelte';
+	import FilterReplaceIcon from '$lib/components/icons/FilterReplaceIcon.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/filters', $page);
@@ -69,8 +71,14 @@
 			currentFilter={data.searchParams}
 			filterModalTitle="Filter Reusable Filters"
 			bind:numberRows={$urlStore.searchParams.pageSize}
+			bind:shownColumns={$reusableFilterColumnsStore}
 			columns={[
 				{ id: 'actions', title: 'Actions' },
+				{
+					id: 'journalCount',
+					title: 'Journal Count',
+					rowToDisplay: (row) => row.journalCount.toString()
+				},
 				{
 					id: 'applyAutomatically',
 					title: 'Automatic',
@@ -91,6 +99,12 @@
 					sortKey: 'listed',
 					rowToDisplay: (row) => (row.listed ? 'Y' : ''),
 					filterActive: Boolean(data.searchParams.listed !== undefined)
+				},
+				{
+					id: 'modificationType',
+					title: 'Modifiation',
+					sortKey: 'modificationType',
+					filterActive: Boolean(data.searchParams.modificationType !== undefined)
 				},
 				{
 					id: 'group',
@@ -125,7 +139,6 @@
 					filterActive: Boolean(data.searchParams.filterText !== undefined)
 				}
 			]}
-			bind:shownColumns={$reusableFilterColumnsStore}
 		>
 			<svelte:fragment slot="customBodyCell" let:currentColumn let:row>
 				{#if currentColumn.id === 'actions'}
@@ -157,16 +170,7 @@
 							class="p-2"
 							href={urlGenerator({
 								address: '/(loggedIn)/filters/create',
-								searchParamsValue: {
-									title: row.title,
-									group: row.group,
-									filter: row.filter,
-									change: row.change,
-									applyAutomatically: row.applyAutomatically,
-									applyFollowingImport: row.applyFollowingImport,
-									listed: row.listed,
-									modificationType: row.modificationType
-								}
+								searchParamsValue: row
 							}).url}
 							outline
 						>
@@ -185,6 +189,23 @@
 						</Button>
 						<RawDataModal data={row} title="Reusable Filter Data" dev={data.dev} />
 					</ButtonGroup>
+				{:else if currentColumn.id === 'modificationType'}
+					{#if row.listed}
+						<div class="flex flex-row gap-4">
+							{#if row.modificationType === 'modify'}
+								<FilterModifyIcon />
+							{:else if row.modificationType === 'replace'}
+								<FilterReplaceIcon />
+							{/if}
+							<div class="flex">
+								{row.modificationType === 'modify'
+									? 'Modify'
+									: row.modificationType === 'replace'
+									? 'Replace'
+									: "'"}
+							</div>
+						</div>
+					{/if}
 				{/if}
 			</svelte:fragment>
 			<svelte:fragment slot="filter">

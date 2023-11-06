@@ -25,9 +25,11 @@ export const categoryColumnsStore = writable(['actions', 'title', 'status', 'tot
 export const labelColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);
 export const reusableFilterColumnsStore = writable([
 	'actions',
+	'journalCount',
 	'applyAutomatically',
 	'applyFollowingImport',
 	'listed',
+	'modificationType',
 	'group',
 	'title',
 	'filterText',
