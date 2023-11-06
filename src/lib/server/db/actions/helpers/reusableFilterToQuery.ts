@@ -24,8 +24,6 @@ export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) =>
 		where.push(eq(reusableFilter.applyAutomatically, restFilter.applyAutomatically));
 	if (restFilter.applyFollowingImport)
 		where.push(eq(reusableFilter.applyFollowingImport, restFilter.applyFollowingImport));
-	if (restFilter.automaticFrequency)
-		where.push(eq(reusableFilter.automaticFrequency, restFilter.automaticFrequency));
 	if (restFilter.listed) where.push(eq(reusableFilter.listed, restFilter.listed));
 	if (restFilter.modificationType)
 		where.push(eq(reusableFilter.modificationType, restFilter.modificationType));
@@ -50,8 +48,6 @@ export const reusableFilterToText = (filter: ReusableFilterFilterSchemaType) => 
 		text.push(`applyAutomatically = ${restFilter.applyAutomatically}`);
 	if (restFilter.applyFollowingImport)
 		text.push(`applyFollowingImport = ${restFilter.applyFollowingImport}`);
-	if (restFilter.automaticFrequency)
-		text.push(`automaticFrequency = ${restFilter.automaticFrequency}`);
 	if (restFilter.listed) text.push(`listed = ${restFilter.listed}`);
 	if (restFilter.modificationType) text.push(`modificationType = ${restFilter.modificationType}`);
 	if (restFilter.filterText) text.push(`filterText like ${restFilter.filterText}`);

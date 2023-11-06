@@ -7,8 +7,7 @@ import {
 } from '$lib/schema/journalSchema.js';
 import {
 	createReusableFilterFormSchema,
-	createReusableFilterSchema,
-	reusableFilterCreationURLParams
+	createReusableFilterSchema
 } from '$lib/schema/reusableFilterSchema.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
@@ -18,64 +17,39 @@ import { journalUpdateToText } from '$lib/server/db/actions/helpers/journalUpdat
 import { reusableFilterPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { redirect } from '@sveltejs/kit';
 
-// const getUrlParams = (query: string): Record<string, unknown> =>
-// 	Array.from(new URLSearchParams(query)).reduce(
-// 		(p, [k, v]) => {
-// 			try {
-// 				const newValue: unknown = JSON.parse(v);
-// 				return { ...p, [k]: newValue };
-// 			} catch {
-// 				return { ...p, [k]: v };
-// 			}
-// 		},
-// 		{} as Record<string, unknown>
-// 	);
-
 export const load = async (data) => {
 	authGuard(data);
 	const { current } = serverPageInfo(data.route.id, data);
 
-	const filterText = await journalFilterToText(
-		current.searchParams?.filter || defaultJournalFilter()
-	);
+	const filter = current.searchParams?.filter || defaultJournalFilter();
+	const change = current.searchParams?.change;
 
-	// const processedParams = reusableFilterCreationURLParams.safeParse(
-	// 	getUrlParams(data.url.searchParams.toString())
-	// );
-
-	// console.log('Processed params', JSON.stringify(processedParams, null, 2));
+	const filterText = await journalFilterToText(filter);
+	const changeText = change ? await journalUpdateToText(change) : undefined;
 
 	const form = await superValidate(
 		{
-			filter: JSON.stringify(current.searchParams?.filter || defaultJournalFilter()),
+			filter: JSON.stringify(filter),
+			change: change ? JSON.stringify(change) : undefined,
 			title: current.searchParams?.title || filterText.join(', '),
 			applyAutomatically: current.searchParams?.applyAutomatically,
 			applyFollowingImport: current.searchParams?.applyFollowingImport,
-			automaticFrequency: current.searchParams?.automaticFrequency,
 			listed: current.searchParams?.listed,
 			modificationType: current.searchParams?.modificationType
 		},
 		createReusableFilterFormSchema
 	);
 
-	const modificationForm = await superValidate(
-		current.searchParams?.change || {},
-		updateJournalSchema
-	);
+	const modificationForm = await superValidate(change || {}, updateJournalSchema);
 
-	const numberResults = await tActions.journal.count(
-		db,
-		current.searchParams?.filter || defaultJournalFilter()
-	);
+	const numberResults = await tActions.journal.count(db, filter);
 
 	return {
 		searchParams: current.searchParams,
 		form,
 		modificationForm,
 		filterText,
-		changeText: current.searchParams?.change
-			? await journalUpdateToText(current.searchParams.change)
-			: undefined,
+		changeText,
 		dropdowns: {
 			accounts: tActions.account.listForDropdown({ db }),
 			categories: tActions.category.listForDropdown({ db }),
@@ -104,6 +78,10 @@ export const actions = {
 			...restForm
 		} = form.data;
 
+		if (!filterText) {
+			return setError(form, 'Filter Is Required');
+		}
+
 		const filter = journalFilterSchema.safeParse(JSON.parse(filterText));
 
 		if (!filter.success) {
@@ -118,8 +96,8 @@ export const actions = {
 
 		const processedCreation = createReusableFilterSchema.safeParse({
 			...restForm,
-			change,
-			filter
+			change: change ? change.data : undefined,
+			filter: filter.data
 		});
 
 		if (!processedCreation.success) {

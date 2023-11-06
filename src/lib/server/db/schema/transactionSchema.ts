@@ -8,10 +8,7 @@ import {
 	importStatusEnum,
 	importTypeEnum
 } from '../../../schema/importSchema';
-import {
-	reusableFilterFrequencyEnum,
-	reusableFilterModifcationType
-} from '../../../schema/reusableFilterSchema';
+import { reusableFilterModifcationType } from '../../../schema/reusableFilterSchema';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -442,7 +439,6 @@ export const reusableFilter = sqliteTable('filter', {
 	applyFollowingImport: integer('apply_following_import', { mode: 'boolean' })
 		.notNull()
 		.default(false),
-	automaticFrequency: text('automatic_frequency', { enum: reusableFilterFrequencyEnum }),
 	listed: integer('listed', { mode: 'boolean' }).notNull().default(true),
 	modificationType: text('modification_type', { enum: reusableFilterModifcationType })
 		.notNull()

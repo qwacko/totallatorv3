@@ -107,7 +107,8 @@
 						<Button
 							href={urlGenerator({
 								address: '/(loggedIn)/filters/[id]',
-								paramsValue: { id: row.id }
+								paramsValue: { id: row.id },
+								searchParamsValue: {}
 							}).url}
 							class="p-2"
 							outline

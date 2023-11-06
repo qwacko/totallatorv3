@@ -26,7 +26,7 @@
 
 	export let data;
 
-	$: urlInfo = pageInfo('/(loggedIn)/filters/create', $page);
+	$: urlInfo = pageInfo('/(loggedIn)/filters/[id]', $page);
 
 	onNavigate(() => {
 		changeModal = false;
@@ -51,14 +51,18 @@
 	};
 </script>
 
-<CustomHeader pageTitle="Create Reusable Filter" />
+<CustomHeader pageTitle="Update Reusable Filter" />
 
-<PageLayout title="Create Reusable Filter" size="lg" routeBasedBack>
+<PageLayout title="Update Reusable Filter" size="lg" routeBasedBack>
 	<RawDataModal {data} dev={data.dev} />
 	<form use:enhance method="POST" class="flex flex-col gap-4">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-			<input type="hidden" name="filter" value={$formData.filter} />
-			<input type="hidden" name="change" value={$formData.change} />
+			{#if data.searchParams}
+				<input type="hidden" name="filter" value={JSON.stringify(data.searchParams.filter)} />
+				{#if data.searchParams.change}
+					<input type="hidden" name="change" value={JSON.stringify(data.searchParams.change)} />
+				{/if}
+			{/if}
 			<div class="flex col-span-1 md:col-span-2 flex-row gap-2">
 				<div class="flex-grow">
 					<TextInput
@@ -132,14 +136,25 @@
 							tagDropdown={data.dropdowns.tags}
 							labelDropdown={data.dropdowns.labels}
 							urlFromFilter={(filter) =>
-								urlInfo.updateParams({
-									searchParams: {
+								urlGenerator({
+									address: '/(loggedIn)/filters/[id]',
+									paramsValue: { id: data.id },
+									searchParamsValue: {
 										filter,
-										applyAutomatically: $formData.applyAutomatically,
-										applyFollowingImport: $formData.applyFollowingImport,
-										modificationType: $formData.modificationType,
-										listed: $formData.listed,
-										title: $formData.title
+										...($formData.applyAutomatically !== undefined
+											? { applyAutomatically: $formData.applyAutomatically }
+											: {}),
+										...($formData.applyFollowingImport !== undefined
+											? { applyFollowingImport: $formData.applyFollowingImport }
+											: {}),
+										...($formData.modificationType
+											? { modificationType: $formData.modificationType }
+											: {}),
+										...($formData.listed !== undefined ? { listed: $formData.listed } : {}),
+										...($formData.title ? { title: $formData.title } : {}),
+										...(urlInfo.current.searchParams?.change
+											? { change: urlInfo.current.searchParams.change }
+											: {})
 									}
 								}).url}
 							bind:opened={filterModal}
@@ -169,9 +184,7 @@
 				<P class="self-center" weight="semibold">Related Change</P>
 				<div class="flex flex-row gap-6 items-center self-center">
 					<div class="flex flex-col gap-1">
-						<Button color="light" outline size="xs" on:click={() => (changeModal = true)}>
-							Changes
-						</Button>
+						<Button color="light" outline on:click={() => (changeModal = true)}>Changes</Button>
 						{#if changeModal}
 							<Modal bind:open={changeModal} autoclose>
 								<UpdateJournalForm form={modificationForm} />
@@ -192,11 +205,17 @@
 										href={urlInfo.updateParams({
 											searchParams: {
 												change: $modificationFormValue,
-												applyAutomatically: $formData.applyAutomatically,
-												applyFollowingImport: $formData.applyFollowingImport,
-												modificationType: $formData.modificationType,
-												listed: $formData.listed,
-												title: $formData.title
+												...($formData.applyAutomatically !== undefined
+													? { applyAutomatically: $formData.applyAutomatically }
+													: {}),
+												...($formData.applyFollowingImport !== undefined
+													? { applyFollowingImport: $formData.applyFollowingImport }
+													: {}),
+												...($formData.modificationType
+													? { modificationType: $formData.modificationType }
+													: {}),
+												...($formData.listed !== undefined ? { listed: $formData.listed } : {}),
+												...($formData.title ? { title: $formData.title } : {})
 											}
 										}).url}
 									>
@@ -204,15 +223,6 @@
 									</Button>
 								</svelte:fragment>
 							</Modal>
-						{/if}
-						{#if $formData.change !== undefined}
-							<Button
-								href={urlInfo.updateParams({ searchParams: { change: undefined } }).url}
-								outline
-								size="xs"
-							>
-								Clear
-							</Button>
 						{/if}
 					</div>
 					<div class="flex flex-col gap-1">

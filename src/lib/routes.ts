@@ -6,17 +6,11 @@ import { budgetFilterSchema as budgetFilterSchema } from './schema/budgetSchema'
 import { categoryFilterSchema } from './schema/categorySchema';
 import { labelFilterSchema } from './schema/labelSchema';
 import { accountFilterSchema } from './schema/accountSchema';
-import {
-	defaultJournalFilter,
-	journalFilterSchema,
-	updateJournalSchema
-} from './schema/journalSchema';
+import { defaultJournalFilter, journalFilterSchema } from './schema/journalSchema';
 import { idSchema } from './schema/idSchema';
 import { downloadTypeSchema } from './schema/downloadTypeSchema';
 import {
 	reusableFilterFilterSchema,
-	reusableFilterFrequencyEnum,
-	reusableFilterModifcationType,
 	reusableFilterCreationURLParams
 } from './schema/reusableFilterSchema';
 
@@ -81,7 +75,8 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: reusableFilterCreationURLParams.optional().parse
 		},
 		'/(loggedIn)/filters/[id]': {
-			paramsValidation: z.object({ id: z.string() }).parse
+			paramsValidation: z.object({ id: z.string() }).parse,
+			searchParamsValidation: reusableFilterCreationURLParams.optional().parse
 		},
 		'/(loggedIn)/filters/[id]/delete': {
 			paramsValidation: z.object({ id: z.string() }).parse

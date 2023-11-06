@@ -1,17 +1,6 @@
 import { z } from 'zod';
 import { journalFilterSchema, updateJournalSchema } from './journalSchema';
 
-export const reusableFilterFrequencyEnum = ['5min', 'hourly', 'daily'] as const;
-type reusableFilterFrequencyEnumType = (typeof reusableFilterFrequencyEnum)[number];
-export const reusableFilterFrequencyEnumItems: {
-	value: reusableFilterFrequencyEnumType;
-	name: string;
-}[] = [
-	{ value: '5min', name: '5 Minutes' },
-	{ value: 'hourly', name: 'Hourly' },
-	{ value: 'daily', name: 'Daily' }
-];
-
 export const reusableFilterModifcationType = ['replace', 'modify'] as const;
 type reusableFilterModifcationType = (typeof reusableFilterModifcationType)[number];
 export const reusableFilterModifcationTypeItems: {
@@ -26,7 +15,6 @@ export const createReusableFilterCoreSchema = z.object({
 	title: z.string().optional(),
 	applyAutomatically: z.boolean().optional(),
 	applyFollowingImport: z.boolean().optional(),
-	automaticFrequency: z.enum(reusableFilterFrequencyEnum).optional(),
 	listed: z.boolean().optional(),
 	modificationType: z.enum(reusableFilterModifcationType).default('replace').optional()
 });
@@ -37,7 +25,6 @@ export const reusableFilterCreationURLParams = z.object({
 	title: z.string().optional(),
 	applyAutomatically: z.boolean().optional(),
 	applyFollowingImport: z.boolean().optional(),
-	automaticFrequency: z.enum(reusableFilterFrequencyEnum).optional(),
 	listed: z.boolean().optional(),
 	modificationType: z.enum(reusableFilterModifcationType).default('replace').optional()
 });
@@ -73,7 +60,6 @@ const orderByEnum = [
 	'title',
 	'applyAutomatically',
 	'applyFollowingImport',
-	'automaticFrequency',
 	'listed',
 	'filterText',
 	'changeText',
@@ -91,7 +77,6 @@ const enumTitles = {
 	title: 'Title',
 	applyAutomatically: 'Apply Automatically',
 	applyFollowingImport: 'Apply Following Import',
-	automaticFrequency: 'Automatic Frequency',
 	listed: 'Listed',
 	filterText: 'Filter',
 	changeText: 'Change',
@@ -109,7 +94,6 @@ export const reusableFilterFilterSchema = z.object({
 	multipleText: z.coerce.string().optional(),
 	applyAutomatically: z.boolean().optional(),
 	applyFollowingImport: z.boolean().optional(),
-	automaticFrequency: z.enum(reusableFilterFrequencyEnum).optional(),
 	listed: z.boolean().optional(),
 	modificationType: z.enum(reusableFilterModifcationType).optional(),
 	filterText: z.coerce.string().optional(),

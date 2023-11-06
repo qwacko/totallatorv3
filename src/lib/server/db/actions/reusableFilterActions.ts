@@ -18,6 +18,9 @@ import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSch
 export const reusableFilterActions = {
 	getById: async ({ db, id }: { db: DBType; id: string }) => {
 		const item = await db.select().from(reusableFilter).where(eq(reusableFilter.id, id)).execute();
+		if (!item || item.length === 0) {
+			return undefined;
+		}
 		return reusableFilterDBUnpacked(item[0]);
 	},
 	list: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
@@ -55,8 +58,6 @@ export const reusableFilterActions = {
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
-
-		console.log('Listing Filters');
 
 		return { count, data: await reusableFilterDBUnpackedMany(results), pageCount, page, pageSize };
 	},
