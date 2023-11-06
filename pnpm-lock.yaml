@@ -39,8 +39,8 @@ dependencies:
     specifier: ^0.0.13
     version: 0.0.13(svelte@4.2.1)
   skroutes:
-    specifier: ^0.0.12
-    version: 0.0.12(svelte@4.2.1)
+    specifier: ^0.0.13
+    version: 0.0.13(svelte@4.2.1)
   zod:
     specifier: ^3.22.4
     version: 3.22.4
@@ -5005,8 +5005,8 @@ packages:
       svelte: 4.2.1
     dev: false
 
-  /skroutes@0.0.12(svelte@4.2.1):
-    resolution: {integrity: sha512-8rK4ZO7+EGlZmqPbbxW9JqVExQawamYaMaj5eUXzq0oYHDE7Jh0IFVcQRpolgeqHN62RikV4o6aOxWz2Iv748w==}
+  /skroutes@0.0.13(svelte@4.2.1):
+    resolution: {integrity: sha512-ke/hGDa7oSuQ2eKCmnW8TZt/TFkQP5TgUGLRYNHk4qhoA9UZ/AqT+u1TuHiqNDZ0lMu3GmCdqU8FqQuaPaUbDQ==}
     peerDependencies:
       svelte: ^4.0.0
     dependencies:

@@ -69,7 +69,7 @@
 		"nanoid": "^5.0.1",
 		"node-schedule": "^2.1.1",
 		"skguard": "^0.0.13",
-		"skroutes": "^0.0.12",
+		"skroutes": "^0.0.13",
 		"zod": "^3.22.4"
 	}
 }

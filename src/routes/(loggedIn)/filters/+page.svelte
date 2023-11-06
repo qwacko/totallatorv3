@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
+	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
@@ -13,6 +13,8 @@
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import BooleanFilterButtons from '$lib/components/filters/BooleanFilterButtons.svelte';
+	import ReusableFilterFilter from '$lib/components/filters/ReusableFilterFilter.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/filters', $page);
@@ -171,12 +173,75 @@
 						<Input
 							type="text"
 							bind:value={$urlStore.searchParams.multipleText}
-							placeholder="Filter by Title"
+							placeholder="Filter by Group / Title / Filter / Change"
 							class="flex flex-grow"
 						/>
 					{/if}
 				</div>
 			</svelte:fragment>
+
+			<svelte:fragment slot="headerItem" let:currentColumn>
+				{#if currentColumn.id === 'group'}
+					<DropdownItem>
+						<Input
+							type="text"
+							bind:value={$urlStore.searchParams.group}
+							placeholder="Group Filter"
+						/>
+					</DropdownItem>
+				{:else if currentColumn.id === 'title'}
+					<DropdownItem>
+						<Input
+							type="text"
+							bind:value={$urlStore.searchParams.title}
+							placeholder="Title Filter"
+						/>
+					</DropdownItem>
+				{:else if currentColumn.id === 'filterText'}
+					<DropdownItem>
+						<Input
+							type="text"
+							bind:value={$urlStore.searchParams.filterText}
+							placeholder="Filter Filter"
+						/>
+					</DropdownItem>
+				{:else if currentColumn.id === 'changeText'}
+					<DropdownItem>
+						<Input
+							type="text"
+							bind:value={$urlStore.searchParams.changeText}
+							placeholder="Change Filter"
+						/>
+					</DropdownItem>
+				{:else if currentColumn.id === 'applyAutomatically'}
+					<DropdownItem>
+						<BooleanFilterButtons
+							bind:value={$urlStore.searchParams.applyAutomatically}
+							onTitle="Y"
+							offTitle="N"
+						/>
+					</DropdownItem>
+				{:else if currentColumn.id === 'applyFollowingImport'}
+					<DropdownItem>
+						<BooleanFilterButtons
+							bind:value={$urlStore.searchParams.applyFollowingImport}
+							onTitle="Y"
+							offTitle="N"
+						/>
+					</DropdownItem>
+				{:else if currentColumn.id === 'listed'}
+					<DropdownItem>
+						<BooleanFilterButtons
+							bind:value={$urlStore.searchParams.listed}
+							onTitle="Y"
+							offTitle="N"
+						/>
+					</DropdownItem>
+				{/if}
+			</svelte:fragment>
+		<svelte:fragment slot="filterModal">
+			<ReusableFilterFilter bind:filter={$urlStore.searchParams} />
+		</svelte:fragment>
 		</CustomTable>
 	{/if}
 </PageLayout>

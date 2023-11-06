@@ -22,11 +22,11 @@ export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) =>
 			where.push(orValue);
 		}
 	}
-	if (restFilter.applyAutomatically)
+	if (restFilter.applyAutomatically !== undefined)
 		where.push(eq(reusableFilter.applyAutomatically, restFilter.applyAutomatically));
-	if (restFilter.applyFollowingImport)
+	if (restFilter.applyFollowingImport !== undefined)
 		where.push(eq(reusableFilter.applyFollowingImport, restFilter.applyFollowingImport));
-	if (restFilter.listed) where.push(eq(reusableFilter.listed, restFilter.listed));
+	if (restFilter.listed !== undefined) where.push(eq(reusableFilter.listed, restFilter.listed));
 	if (restFilter.modificationType)
 		where.push(eq(reusableFilter.modificationType, restFilter.modificationType));
 	if (restFilter.filterText)
@@ -49,11 +49,11 @@ export const reusableFilterToText = (filter: ReusableFilterFilterSchemaType) => 
 	}
 	if (restFilter.title) text.push(`title like ${restFilter.title}`);
 	if (restFilter.group) text.push(`group like ${restFilter.group}`);
-	if (restFilter.applyAutomatically)
-		text.push(`applyAutomatically = ${restFilter.applyAutomatically}`);
-	if (restFilter.applyFollowingImport)
-		text.push(`applyFollowingImport = ${restFilter.applyFollowingImport}`);
-	if (restFilter.listed) text.push(`listed = ${restFilter.listed}`);
+	if (restFilter.applyAutomatically !== undefined)
+		text.push(`Automatic = ${restFilter.applyAutomatically}`);
+	if (restFilter.applyFollowingImport !== undefined)
+		text.push(`Import = ${restFilter.applyFollowingImport}`);
+	if (restFilter.listed !== undefined) text.push(`In Dropdown = ${restFilter.listed}`);
 	if (restFilter.modificationType) text.push(`modificationType = ${restFilter.modificationType}`);
 	if (restFilter.filterText) text.push(`filterText like ${restFilter.filterText}`);
 	if (restFilter.changeText) text.push(`changeText like ${restFilter.changeText}`);
