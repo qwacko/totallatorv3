@@ -125,6 +125,56 @@ export const reusableFilterActions = {
 			...resultsWithoutGroup
 		};
 	},
+	applyById: async ({ db, id, importId }: { db: DBType; id: string; importId?: string }) => {
+		const item = await reusableFilterActions.getById({ db, id });
+
+		if (!item) {
+			return;
+		}
+
+		if (item.change && (item.applyAutomatically || item.applyFollowingImport)) {
+			await tActions.journal.updateJournals({
+				db,
+				filter: {
+					...item.filter,
+					importIdArray: importId
+						? item.filter.importIdArray
+							? [...item.filter.importIdArray, importId]
+							: [importId]
+						: undefined
+				},
+				journalData: item.change
+			});
+		}
+
+		return;
+	},
+	applyFollowingImport: async ({ db, importId }: { db: DBType; importId: string }) => {
+		const items = await db
+			.select({ id: reusableFilter.id })
+			.from(reusableFilter)
+			.where(eq(reusableFilter.applyFollowingImport, true))
+			.execute();
+
+		await Promise.all(
+			items.map(async (currentItem) => {
+				await reusableFilterActions.applyById({ db, id: currentItem.id, importId });
+			})
+		);
+	},
+	applyAllAutomatic: async ({ db }: { db: DBType }) => {
+		const items = await db
+			.select({ id: reusableFilter.id })
+			.from(reusableFilter)
+			.where(eq(reusableFilter.applyAutomatically, true))
+			.execute();
+
+		await Promise.all(
+			items.map(async (currentItem) => {
+				await reusableFilterActions.applyById({ db, id: currentItem.id });
+			})
+		);
+	},
 	create: async ({ db, data }: { db: DBType; data: CreateReusableFilterSchemaType }) => {
 		const processedData = createReusableFilterSchema.safeParse(data);
 
