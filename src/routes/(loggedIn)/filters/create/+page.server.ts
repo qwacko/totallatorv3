@@ -70,6 +70,10 @@ export const actions = {
 	default: async (data) => {
 		const form = await superValidate(data.request, filterFormSchemaWithPage);
 
+		if (!form.valid) {
+			return form;
+		}
+
 		const {
 			filter: filterText,
 			change: changeText,

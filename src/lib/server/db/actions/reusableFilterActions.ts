@@ -114,12 +114,10 @@ export const reusableFilterActions = {
 			throw new Error('Item Not Found');
 		}
 
-		const { filter, title, change, useFilterTextForTitle, ...reusableFilterData } =
-			processedData.data;
+		const { filter, change, ...reusableFilterData } = processedData.data;
 
 		const filterText = filter ? await journalFilterToText(filter) : undefined;
 		const filterTextUse = filterText ? filterText.join(' and ') : undefined;
-		const titleUse = title ? title : useFilterTextForTitle ? filterTextUse : undefined;
 		const changeText = await journalUpdateToText(change);
 
 		await db
@@ -129,7 +127,6 @@ export const reusableFilterActions = {
 				filterText: filterTextUse,
 				change: change ? JSON.stringify(change) : undefined,
 				changeText: changeText ? changeText.join(', ') : undefined,
-				title: titleUse,
 				...updatedTime(),
 				...reusableFilterData
 			})

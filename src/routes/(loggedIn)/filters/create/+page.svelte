@@ -58,7 +58,7 @@
 	<form use:enhance method="POST" class="flex flex-col gap-4">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 			<input type="hidden" name="filter" value={$formData.filter} />
-			<input type="hidden" name="change" value={$formData.change} />
+			{#if $formData.change}<input type="hidden" name="change" value={$formData.change} />{/if}
 			<div class="flex col-span-1 md:col-span-2 flex-row gap-2">
 				<div class="flex-grow">
 					<TextInput

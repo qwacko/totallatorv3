@@ -49,10 +49,14 @@ export const createReusableFilterSchema = createReusableFilterCoreSchema.merge(
 export type CreateReusableFilterSchemaCoreType = typeof createReusableFilterSchema;
 export type CreateReusableFilterSchemaType = z.infer<CreateReusableFilterSchemaCoreType>;
 
-export const updateReusableFilterSchema = createReusableFilterSchema.partial().extend({
-	useFilterTextForTitle: z.boolean().optional()
+export const updateReusableFilterFormSchema = createReusableFilterFormSchema.partial().extend({
+	id: z.string()
 });
 
+export const updateReusableFilterSchema = createReusableFilterSchema.partial();
+
+export type UpdateReusableFilterFormSuperSchema = typeof updateReusableFilterFormSchema;
+export type UpdateReusableFilterFormSchemaType = z.infer<typeof updateReusableFilterFormSchema>;
 export type UpdateReuableFilterSchemaCoreType = typeof updateReusableFilterSchema;
 export type updateReusableFilterSchemaType = z.infer<UpdateReuableFilterSchemaCoreType>;
 

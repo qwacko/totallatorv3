@@ -25,6 +25,9 @@ export const categoryColumnsStore = writable(['actions', 'title', 'status', 'tot
 export const labelColumnsStore = writable(['actions', 'title', 'status', 'total', 'count']);
 export const reusableFilterColumnsStore = writable([
 	'actions',
+	'applyAutomatically',
+	'applyFollowingImport',
+	'listed',
 	'title',
 	'filterText',
 	'changeText'

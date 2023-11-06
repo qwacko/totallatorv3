@@ -16,8 +16,8 @@
 	import UpdateJournalLinksForm from '../../journals/clone/UpdateJournalLinksForm.svelte';
 	import UpdateJournalLabelsForm from '../../journals/clone/UpdateJournalLabelsForm.svelte';
 	import {
-		type CreateReusableFilterFormSuperSchema,
-		reusableFilterModifcationTypeItems
+		reusableFilterModifcationTypeItems,
+		type UpdateReusableFilterFormSuperSchema
 	} from '$lib/schema/reusableFilterSchema';
 	import BooleanFilterButtons from '$lib/components/filters/BooleanFilterButtons.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
@@ -33,7 +33,7 @@
 		filterModal = false;
 	});
 
-	$: form = superForm<CreateReusableFilterFormSuperSchema>(data.form, { taintedMessage: null });
+	$: form = superForm<UpdateReusableFilterFormSuperSchema>(data.form, { taintedMessage: null });
 
 	$: modificationForm = superForm<UpdateJournalSchemaSuperType>(data.modificationForm, {
 		taintedMessage: null
@@ -57,12 +57,10 @@
 	<RawDataModal {data} dev={data.dev} />
 	<form use:enhance method="POST" class="flex flex-col gap-4">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-			{#if data.searchParams}
-				<input type="hidden" name="filter" value={JSON.stringify(data.searchParams.filter)} />
-				{#if data.searchParams.change}
-					<input type="hidden" name="change" value={JSON.stringify(data.searchParams.change)} />
-				{/if}
-			{/if}
+			<input type="hidden" name="filter" value={$formData.filter} />
+			{#if $formData.change}<input type="hidden" name="change" value={$formData.change} />{/if}
+			<input type="hidden" name="id" value={$formData.id} />
+
 			<div class="flex col-span-1 md:col-span-2 flex-row gap-2">
 				<div class="flex-grow">
 					<TextInput
@@ -128,7 +126,7 @@
 				<div class="flex flex-row gap-6 items-center self-center">
 					<div class="flex flex-col gap-1">
 						<FilterModal
-							currentFilter={data.searchParams?.filter || defaultJournalFilter()}
+							currentFilter={data.filter.filter || defaultJournalFilter()}
 							accountDropdown={data.dropdowns.accounts}
 							billDropdown={data.dropdowns.bills}
 							categoryDropdown={data.dropdowns.categories}

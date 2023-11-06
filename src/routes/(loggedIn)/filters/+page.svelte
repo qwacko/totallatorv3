@@ -69,22 +69,46 @@
 			columns={[
 				{ id: 'actions', title: '' },
 				{
+					id: 'applyAutomatically',
+					title: 'Automatic',
+					rowToDisplay: (row) => (row.applyAutomatically ? 'Y' : ''),
+					sortKey: 'applyAutomatically',
+					filterActive: Boolean(data.searchParams.applyAutomatically !== undefined)
+				},
+				{
+					id: 'applyFollowingImport',
+					title: 'Import',
+					rowToDisplay: (row) => (row.applyFollowingImport ? 'Y' : ''),
+					sortKey: 'applyFollowingImport',
+					filterActive: Boolean(data.searchParams.applyFollowingImport !== undefined)
+				},
+				{
+					id: 'listed',
+					title: 'Dropdown',
+					sortKey: 'listed',
+					rowToDisplay: (row) => (row.listed ? 'Y' : ''),
+					filterActive: Boolean(data.searchParams.listed !== undefined)
+				},
+				{
 					id: 'title',
 					title: 'Title',
 					rowToDisplay: (row) => row.title,
-					sortKey: 'title'
+					sortKey: 'title',
+					filterActive: Boolean(data.searchParams.title !== undefined)
 				},
 				{
 					id: 'filterText',
 					title: 'Filter',
 					rowToDisplay: (row) => row.filterText,
-					sortKey: 'filterText'
+					sortKey: 'filterText',
+					filterActive: Boolean(data.searchParams.filterText !== undefined)
 				},
 				{
 					id: 'changeText',
 					title: 'Change',
 					rowToDisplay: (row) => row.changeText || '',
-					sortKey: 'changeText'
+					sortKey: 'changeText',
+					filterActive: Boolean(data.searchParams.filterText !== undefined)
 				}
 			]}
 			bind:shownColumns={$reusableFilterColumnsStore}
