@@ -3,13 +3,15 @@
 	import FilterMenuIcon from '$lib/components/icons/FilterMenuIcon.svelte';
 	import FilterModifyIcon from '$lib/components/icons/FilterModifyIcon.svelte';
 	import FilterReplaceIcon from '$lib/components/icons/FilterReplaceIcon.svelte';
+	import { urlGenerator } from '$lib/routes';
 	import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 	import type { ReusableFilterDropdownListType } from '$lib/server/db/actions/reusableFilterActions';
-	import { Button, Dropdown, DropdownItem } from 'flowbite-svelte';
+	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 
 	export let filters: ReusableFilterDropdownListType;
 	export let updateFilter: (filter: JournalFilterSchemaType) => string;
 	export let newFilter: (filter: JournalFilterSchemaType) => string;
+	export let currentFilter: JournalFilterSchemaType;
 
 	$: filterKeys = Object.keys(filters);
 
@@ -45,4 +47,15 @@
 			</Dropdown>
 		{/if}
 	{/each}
+	{#if filterKeys.length > 0}
+		<DropdownDivider />
+	{/if}
+	<DropdownItem
+		href={urlGenerator({
+			address: '/(loggedIn)/filters/create',
+			searchParamsValue: { filter: currentFilter }
+		}).url}
+	>
+		Create New Reusable Filter
+	</DropdownItem>
 </Dropdown>

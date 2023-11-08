@@ -151,18 +151,6 @@
 			bind:shownColumns={$journalColumnsStore}
 		>
 			<svelte:fragment slot="filterButtons">
-				<Button
-					href={urlGenerator({
-						address: '/(loggedIn)/filters/create',
-						searchParamsValue: {
-							filter: $urlStore.searchParams
-						}
-					}).url}
-					class="p-2"
-					outline
-				>
-					<FilterCreateIcon />
-				</Button>
 				<FilterDropdown
 					filters={data.filterDropdown}
 					newFilter={(newFilter) =>
@@ -175,6 +163,7 @@
 							}
 						}).url}
 					updateFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
+					currentFilter={$urlStore.searchParams}
 				/>
 				<DownloadDropdown
 					urlGenerator={(downloadType) => {

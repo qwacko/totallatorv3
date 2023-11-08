@@ -390,6 +390,8 @@ export const importActions = {
 				.set({ status: 'complete', ...updatedTime() })
 				.where(eq(importTable.id, id))
 				.execute();
+
+			await tActions.reusableFitler.applyFollowingImport({ db: trx, importId: id });
 		});
 	},
 	forgetImport: async ({ db, id }: { db: DBType; id: string }) => {
