@@ -46,7 +46,6 @@
 		routeId: '/(loggedIn)/journals',
 		pageInfo: page,
 		onUpdate: (newURL) => {
-			console.log('Updating URL');
 			if (browser && newURL !== urlInfo.current.url) {
 				goto(newURL, { keepFocus: true, noScroll: true });
 			}

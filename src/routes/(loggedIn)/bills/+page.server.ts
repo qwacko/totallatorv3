@@ -4,6 +4,7 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { billFilterToText } from '$lib/server/db/actions/helpers/billFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
+import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/server';
 import { z } from 'zod';
@@ -58,7 +59,7 @@ export const actions = {
 				}
 			};
 		} catch (e) {
-			console.log('Bill Update Error', e);
+			logging.error('Bill Update Error', e);
 			return error(500, 'Error updating bll');
 		}
 	}

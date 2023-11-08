@@ -571,7 +571,7 @@ export const journalActions = {
 		const processedData = updateJournalSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			console.log(JSON.stringify(processedData.error));
+			logging.error('Invalid Journal Update Data', JSON.stringify(processedData.error));
 			throw new Error('Invalid Journal Update Data');
 		}
 
@@ -894,7 +894,7 @@ export const journalActions = {
 		const processedData = cloneJournalUpdateSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			console.log(JSON.stringify(processedData.error));
+			logging.error('Invalid Journal Update Data', JSON.stringify(processedData.error));
 			throw new Error('Inavalid Journal Update Data');
 		}
 

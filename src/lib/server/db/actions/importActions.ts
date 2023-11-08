@@ -189,7 +189,6 @@ export const importActions = {
 							schema: createSimpleTransactionSchema
 						});
 					} else if (importData.type === 'account') {
-						console.log('Processing Import - Account Type');
 						importActions.processItems({
 							db,
 							id,

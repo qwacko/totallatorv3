@@ -4,6 +4,7 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { labelFilterToText } from '$lib/server/db/actions/helpers/labelFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
+import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/client';
 import { z } from 'zod';
@@ -60,7 +61,7 @@ export const actions = {
 				}
 			};
 		} catch (e) {
-			console.log('Label Update Error', e);
+			logging.error('Label Update Error', JSON.stringify(e, null, 2));
 			return error(500, 'Error updating label');
 		}
 	}

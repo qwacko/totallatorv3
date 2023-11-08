@@ -119,7 +119,6 @@
 			{#each numberRowsOptions as option}
 				<DropdownItem
 					on:click={() => {
-						console.log('Updating Number Of Rows', option);
 						numberRows = option;
 						onNumberRowsUpdate(option);
 					}}

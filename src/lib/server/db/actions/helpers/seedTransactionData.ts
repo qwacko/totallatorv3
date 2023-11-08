@@ -1,4 +1,5 @@
 import type { CreateCombinedTransactionType } from '$lib/schema/journalSchema';
+import { logging } from '$lib/server/logging';
 
 import {
 	getRandomArrayElement,
@@ -37,7 +38,7 @@ export const seedTransactionData = ({
 	);
 
 	if (fromAccountId === undefined || toAccountId === undefined) {
-		console.log('Pre Throw : ', {
+		logging.error('Seed Transaction Data Pre Throw : ', {
 			fromAccountId,
 			toAccountId,
 			numberAssetLiabilities: assetLiabilityIds.length,

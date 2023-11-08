@@ -10,6 +10,7 @@ import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilte
 import { journalUpdateToText } from '$lib/server/db/actions/helpers/journalUpdateToText';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
+import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 import { setError, superValidate } from 'sveltekit-superforms/server';
 
@@ -124,7 +125,7 @@ export const actions = {
 		});
 
 		if (!processedUpdate.success) {
-			console.log(JSON.stringify(processedUpdate.error, null, 2));
+			logging.error('Update Filter Error', JSON.stringify(processedUpdate.error, null, 2));
 			return setError(form, 'Form Submission Error');
 		}
 
