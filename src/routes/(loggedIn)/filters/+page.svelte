@@ -3,7 +3,7 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
-	import { goto } from '$app/navigation';
+	import { goto, onNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
@@ -32,6 +32,12 @@
 			}
 		},
 		updateDelay: 500
+	});
+
+	let filterOpened = false;
+
+	onNavigate(() => {
+		filterOpened = false;
 	});
 </script>
 
@@ -73,6 +79,7 @@
 			filterModalTitle="Filter Reusable Filters"
 			bind:numberRows={$urlStore.searchParams.pageSize}
 			bind:shownColumns={$reusableFilterColumnsStore}
+			bind:filterOpened
 			columns={[
 				{ id: 'actions', title: 'Actions' },
 				{

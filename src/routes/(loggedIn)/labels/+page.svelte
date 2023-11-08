@@ -6,7 +6,7 @@
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
-	import { goto } from '$app/navigation';
+	import { goto, onNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
@@ -33,6 +33,12 @@
 			}
 		},
 		updateDelay: 500
+	});
+
+	let filterOpened = false;
+
+	onNavigate(() => {
+		filterOpened = false;
 	});
 </script>
 
@@ -74,6 +80,7 @@
 			currentFilter={data.searchParams}
 			filterModalTitle="Filter Tags"
 			bind:numberRows={$urlStore.searchParams.pageSize}
+			bind:filterOpened
 			columns={[
 				{ id: 'actions', title: '' },
 				{

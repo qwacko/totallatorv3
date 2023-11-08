@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
+	import { goto, onNavigate } from '$app/navigation';
 	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
 	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
@@ -31,11 +31,16 @@
 	import DropdownFilterNestedText from '$lib/components/table/DropdownFilterNestedText.svelte';
 	import DateInput from '$lib/components/DateInput.svelte';
 	import FilterDropdown from './FilterDropdown.svelte';
-	import FilterCreateIcon from '$lib/components/icons/FilterCreateIcon.svelte';
 
 	export let data;
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals', $page);
+
+	let filterOpened = false;
+
+	onNavigate(() => {
+		filterOpened = false;
+	});
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/journals',
@@ -94,6 +99,7 @@
 			currentFilter={data.searchParams}
 			filterModalTitle="Filter Journals"
 			bind:numberRows={$urlStore.searchParams.pageSize}
+			bind:filterOpened
 			columns={[
 				{ id: 'actions', title: '' },
 				{
