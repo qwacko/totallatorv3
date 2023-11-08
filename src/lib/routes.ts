@@ -78,6 +78,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			paramsValidation: z.object({ id: z.string() }).parse,
 			searchParamsValidation: reusableFilterCreationURLParams.optional().parse
 		},
+		'/(loggedIn)/filters/[id]/apply': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
 		'/(loggedIn)/filters/[id]/delete': {
 			paramsValidation: z.object({ id: z.string() }).parse
 		},

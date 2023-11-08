@@ -20,18 +20,16 @@ export const createReusableFilterCoreSchema = z.object({
 	modificationType: z.enum(reusableFilterModifcationType).default('replace').optional()
 });
 
-export const reusableFilterCreationURLParams = z
-	.object({
-		filter: journalFilterSchema.optional(),
-		change: updateJournalSchema.optional(),
-		title: z.coerce.string().optional(),
-		group: z.coerce.string().optional().nullable(),
-		applyAutomatically: z.boolean().optional(),
-		applyFollowingImport: z.boolean().optional(),
-		listed: z.boolean().optional(),
-		modificationType: z.enum(reusableFilterModifcationType).default('replace').optional()
-	})
-	.superRefine((data) => console.log('Filter Data', data));
+export const reusableFilterCreationURLParams = z.object({
+	filter: journalFilterSchema.optional(),
+	change: updateJournalSchema.optional(),
+	title: z.coerce.string().optional(),
+	group: z.coerce.string().optional().nullable(),
+	applyAutomatically: z.boolean().optional(),
+	applyFollowingImport: z.boolean().optional(),
+	listed: z.boolean().optional(),
+	modificationType: z.enum(reusableFilterModifcationType).default('replace').optional()
+});
 
 export const createReusableFilterFormSchema = createReusableFilterCoreSchema.merge(
 	z.object({

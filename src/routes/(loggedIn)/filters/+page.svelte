@@ -18,6 +18,7 @@
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import FilterModifyIcon from '$lib/components/icons/FilterModifyIcon.svelte';
 	import FilterReplaceIcon from '$lib/components/icons/FilterReplaceIcon.svelte';
+	import ApplyFilterIcon from '$lib/components/icons/ApplyFilterIcon.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/filters', $page);
@@ -175,6 +176,18 @@
 							outline
 						>
 							<CloneIcon />
+						</Button>
+						<Button
+							class="p-2"
+							href={urlGenerator({
+								address: '/(loggedIn)/filters/[id]/apply',
+								paramsValue: { id: row.id }
+							}).url}
+							color="blue"
+							outline
+							disabled={!row.canApply}
+						>
+							<ApplyFilterIcon />
 						</Button>
 						<Button
 							href={urlGenerator({

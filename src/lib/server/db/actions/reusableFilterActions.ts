@@ -23,7 +23,20 @@ export const reusableFilterActions = {
 		if (!item || item.length === 0) {
 			return undefined;
 		}
-		return reusableFilterDBUnpacked(item[0]);
+
+		const itemUnpacked = await reusableFilterDBUnpacked(item[0]);
+
+		const count = await tActions.journal.count(db, itemUnpacked.filter);
+
+		return {
+			...itemUnpacked,
+			canApply:
+				count > 0 &&
+				itemUnpacked.change &&
+				itemUnpacked.changeText &&
+				itemUnpacked.changeText.length > 0,
+			journalCount: count
+		};
 	},
 	list: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
@@ -63,6 +76,7 @@ export const reusableFilterActions = {
 
 				return {
 					...item,
+					canApply: count > 0 && item.change && item.changeText && item.changeText.length > 0,
 					journalCount: count
 				};
 			})
@@ -132,7 +146,7 @@ export const reusableFilterActions = {
 			return;
 		}
 
-		if (item.change && (item.applyAutomatically || item.applyFollowingImport)) {
+		if (item.change) {
 			await tActions.journal.updateJournals({
 				db,
 				filter: {

@@ -24,10 +24,6 @@ export const load = async (data) => {
 	const filter = current.searchParams?.filter || defaultJournalFilter();
 	const change = current.searchParams?.change;
 
-	console.log('Filter : ', filter);
-	console.log('Search Params: ', current.searchParams);
-	console.log('Data From URL', data.url.searchParams);
-
 	const filterText = await journalFilterToText(filter);
 	const changeText = change ? await journalUpdateToText(change) : undefined;
 

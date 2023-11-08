@@ -676,8 +676,9 @@ export const journalActions = {
 						categoryId: await categoryId,
 						billId: await billId,
 						budgetId: await budgetId,
-						dataChecked: journalData.dataChecked,
-						reconciled: journalData.reconciled,
+						complete: journalData.complete,
+						dataChecked: journalData.dataChecked || journalData.complete,
+						reconciled: journalData.reconciled || journalData.complete,
 						description: journalData.description,
 						...targetDate,
 						...updatedTime()
@@ -695,8 +696,9 @@ export const journalActions = {
 						categoryId: await categoryId,
 						billId: await billId,
 						budgetId: await budgetId,
-						dataChecked: journalData.dataChecked,
-						reconciled: journalData.reconciled,
+						complete: journalData.complete,
+						dataChecked: journalData.dataChecked || journalData.complete,
+						reconciled: journalData.reconciled || journalData.complete,
 						...targetDate,
 						...updatedTime()
 					})

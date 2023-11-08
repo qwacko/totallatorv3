@@ -193,7 +193,7 @@
 					<div class="flex flex-col gap-1">
 						<Button color="light" outline on:click={() => (changeModal = true)}>Changes</Button>
 						{#if changeModal}
-							<Modal bind:open={changeModal} autoclose>
+							<Modal bind:open={changeModal}>
 								<UpdateJournalForm form={modificationForm} />
 								<UpdateJournalLinksForm form={modificationForm} dropdownInfo={data.dropdowns} />
 								<UpdateJournalLabelsForm

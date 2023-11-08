@@ -182,7 +182,7 @@
 							Changes
 						</Button>
 						{#if changeModal}
-							<Modal bind:open={changeModal} autoclose>
+							<Modal bind:open={changeModal}>
 								<UpdateJournalForm form={modificationForm} />
 								<UpdateJournalLinksForm form={modificationForm} dropdownInfo={data.dropdowns} />
 								<UpdateJournalLabelsForm
