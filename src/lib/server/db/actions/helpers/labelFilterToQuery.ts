@@ -30,7 +30,7 @@ export const labelFilterToQuery = (
 	return where;
 };
 
-const labelIdToTitle = async (id: string) => {
+export const labelIdToTitle = async (id: string) => {
 	const foundLabel = await db
 		.select({ title: label.title })
 		.from(label)
@@ -44,7 +44,7 @@ const labelIdToTitle = async (id: string) => {
 	return id;
 };
 
-const labelIdsToTitle = async (ids: string[]) => {
+export const labelIdsToTitle = async (ids: string[]) => {
 	const titles = await Promise.all(ids.map(async (id) => labelIdToTitle(id)));
 
 	return titles;

@@ -1,5 +1,6 @@
 import { updateManyTransferInfo } from '../db/actions/helpers/updateTransactionTransfer';
 import { summaryActions } from '../db/actions/summaryActions';
+import { tActions } from '../db/actions/tActions';
 import { backupDB, db } from '../db/db';
 import { logging } from '../logging';
 import { serverEnv } from '../serverEnv';
@@ -43,6 +44,17 @@ export const cronJobs: CronJob[] = [
 				'CRON: Creating and Updating Summaries that Need Update - Took ' +
 					(new Date().getTime() - startTime) +
 					'ms'
+			);
+		}
+	},
+	{
+		name: 'Recurring Running Of Automatic Filters',
+		schedule: serverEnv.AUTOMATIC_FILTER_SCHEDULE,
+		job: async () => {
+			const startTime = new Date().getTime();
+			await tActions.reusableFitler.applyAllAutomatic({ db });
+			logging.info(
+				'CRON: Running Automatic Filters - Took ' + (new Date().getTime() - startTime) + 'ms'
 			);
 		}
 	}

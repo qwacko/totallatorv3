@@ -24,6 +24,7 @@ import { createCategorySchema } from '$lib/schema/categorySchema';
 import { createTagSchema } from '$lib/schema/tagSchema';
 import { createLabelSchema } from '$lib/schema/labelSchema';
 import { simpleSchemaToCombinedSchema } from './simpleSchemaToCombinedSchema';
+import { logging } from '$lib/server/logging';
 
 const importItem = async <T extends Record<string, unknown>, DBT extends { id: string }>({
 	db,
@@ -64,7 +65,7 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 					.execute();
 			}
 		} catch (e) {
-			console.log(e);
+			logging.error('Import Item Error', JSON.stringify(e, null, 2));
 
 			await db
 				.update(importItemDetail)
@@ -136,7 +137,7 @@ export async function importTransaction({
 					})
 				);
 			} catch (e) {
-				console.log(e);
+				logging.error('Import Transaction Error', JSON.stringify(e, null, 2));
 
 				await trx
 					.update(importItemDetail)

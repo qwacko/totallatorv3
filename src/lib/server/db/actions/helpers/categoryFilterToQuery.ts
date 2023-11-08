@@ -35,7 +35,7 @@ export const categoryFilterToQuery = (
 	return where;
 };
 
-const categoryIdToTitle = async (id: string) => {
+export const categoryIdToTitle = async (id: string) => {
 	const foundCategory = await db
 		.select({ title: category.title })
 		.from(category)

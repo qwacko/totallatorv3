@@ -69,7 +69,7 @@
 		errorMessage=""
 	/>
 
-	<div class="flex font-semibold text-black text-sm">Trasnfer</div>
+	<div class="flex font-semibold text-black text-sm">Transfer</div>
 	<BooleanFilterButtons
 		onTitle="Transfer"
 		offTitle="Not Transfer"

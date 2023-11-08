@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
+	import { goto, onNavigate } from '$app/navigation';
 	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
 	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
@@ -30,16 +30,22 @@
 	import FilterModalContent from '$lib/components/FilterModalContent.svelte';
 	import DropdownFilterNestedText from '$lib/components/table/DropdownFilterNestedText.svelte';
 	import DateInput from '$lib/components/DateInput.svelte';
+	import FilterDropdown from './FilterDropdown.svelte';
 
 	export let data;
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals', $page);
 
+	let filterOpened = false;
+
+	onNavigate(() => {
+		filterOpened = false;
+	});
+
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/journals',
 		pageInfo: page,
 		onUpdate: (newURL) => {
-			console.log('Updating URL');
 			if (browser && newURL !== urlInfo.current.url) {
 				goto(newURL, { keepFocus: true, noScroll: true });
 			}
@@ -92,6 +98,7 @@
 			currentFilter={data.searchParams}
 			filterModalTitle="Filter Journals"
 			bind:numberRows={$urlStore.searchParams.pageSize}
+			bind:filterOpened
 			columns={[
 				{ id: 'actions', title: '' },
 				{
@@ -149,6 +156,20 @@
 			bind:shownColumns={$journalColumnsStore}
 		>
 			<svelte:fragment slot="filterButtons">
+				<FilterDropdown
+					filters={data.filterDropdown}
+					newFilter={(newFilter) =>
+						urlGenerator({
+							address: '/(loggedIn)/journals',
+							searchParamsValue: {
+								...newFilter,
+								page: $urlStore.searchParams?.page || 0,
+								pageSize: $urlStore.searchParams?.pageSize || 10
+							}
+						}).url}
+					updateFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
+					currentFilter={$urlStore.searchParams}
+				/>
 				<DownloadDropdown
 					urlGenerator={(downloadType) => {
 						if ($urlStore.searchParams) {
@@ -178,27 +199,16 @@
 			</svelte:fragment>
 			<svelte:fragment slot="filterModal">
 				{#if $urlStore.searchParams}
-					{#await data.dropdownInfo.accounts then accountDropdown}
-						{#await data.dropdownInfo.bills then billDropdown}
-							{#await data.dropdownInfo.budgets then budgetDropdown}
-								{#await data.dropdownInfo.categories then categoryDropdown}
-									{#await data.dropdownInfo.tags then tagDropdown}
-										{#await data.dropdownInfo.labels then labelDropdown}
-											<FilterModalContent
-												currentFilter={$urlStore.searchParams}
-												{accountDropdown}
-												{billDropdown}
-												{budgetDropdown}
-												{categoryDropdown}
-												{tagDropdown}
-												{labelDropdown}
-											/>
-										{/await}
-									{/await}
-								{/await}
-							{/await}
-						{/await}
-					{/await}
+					<FilterModalContent
+						currentFilter={$urlStore.searchParams}
+						accountDropdown={data.dropdownInfo.accounts}
+						billDropdown={data.dropdownInfo.bills}
+						budgetDropdown={data.dropdownInfo.budgets}
+						categoryDropdown={data.dropdownInfo.categories}
+						tagDropdown={data.dropdownInfo.tags}
+						labelDropdown={data.dropdownInfo.labels}
+						urlFromFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
+					/>
 				{/if}
 			</svelte:fragment>
 			<svelte:fragment slot="customBodyCell" let:row={currentJournal} let:currentColumn>

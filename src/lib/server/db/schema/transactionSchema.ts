@@ -8,6 +8,7 @@ import {
 	importStatusEnum,
 	importTypeEnum
 } from '../../../schema/importSchema';
+import { reusableFilterModifcationType } from '../../../schema/reusableFilterSchema';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -429,3 +430,22 @@ export const summaryTableRelations = relations(summaryTable, ({ one }) => ({
 		references: [label.id]
 	})
 }));
+
+export const reusableFilter = sqliteTable('filter', {
+	...idColumn,
+	...timestampColumns,
+	title: text('title').notNull(),
+	group: text('group'),
+	applyAutomatically: integer('apply_automatically', { mode: 'boolean' }).notNull().default(false),
+	applyFollowingImport: integer('apply_following_import', { mode: 'boolean' })
+		.notNull()
+		.default(false),
+	listed: integer('listed', { mode: 'boolean' }).notNull().default(true),
+	modificationType: text('modification_type', { enum: reusableFilterModifcationType }).default(
+		'replace'
+	),
+	filter: text('filter').notNull(),
+	filterText: text('filter_text').notNull(),
+	change: text('change'),
+	changeText: text('change_text')
+});

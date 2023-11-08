@@ -153,7 +153,7 @@ export const updateJournalSchema = z.object({
 	previousURL: z.string().optional(),
 	date: dateStringSchema.optional(),
 	description: z.string().optional(),
-	amount: z.number().optional(),
+	amount: z.coerce.number().optional(),
 	tagId: zodStringBlanking,
 	tagTitle: zodStringBlanking,
 	tagClear: z.boolean().optional().default(false),

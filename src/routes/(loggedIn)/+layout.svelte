@@ -7,6 +7,7 @@
 	import CategoryIcon from '$lib/components/icons/CategoryIcon.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import LabelIcon from '$lib/components/icons/LabelIcon.svelte';
+	import ReusableFilterIcon from '$lib/components/icons/ReusableFilterIcon.svelte';
 	import UsersIcon from '$lib/components/icons/UsersIcon.svelte';
 	import UserAccountIcon from '$lib/components/icons/UserAccountIcon.svelte';
 	import TagIcon from '$lib/components/icons/TagIcon.svelte';
@@ -32,6 +33,7 @@
 		? $page.url.toString().includes(data.user.userId)
 		: false;
 	$: pageIsUsers = $page.route.id?.startsWith('/(loggedIn)/users') && !pageIsCurrentUser;
+	$: pageIsFilters = $page.route.id?.startsWith('/(loggedIn)/filters');
 
 	$: pageMap = [
 		{
@@ -78,6 +80,12 @@
 			active: pageIsAccounts,
 			icon: AccountIcon,
 			href: urlGenerator({ address: '/(loggedIn)/accounts', searchParamsValue: {} })
+		},
+		{
+			label: 'Reusable Filters',
+			active: pageIsFilters,
+			icon: ReusableFilterIcon,
+			href: urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} })
 		},
 		{
 			label: 'Import',

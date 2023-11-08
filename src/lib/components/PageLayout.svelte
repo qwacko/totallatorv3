@@ -6,6 +6,7 @@
 	export let subtitle: string | undefined = undefined;
 	export let size: 'sm' | 'lg' | 'xs' | 'xl' = 'lg';
 	export let hideBackButton = false;
+	export let routeBasedBack = false;
 </script>
 
 <div class="mb-10 flex w-full justify-center px-4 {$$props.class}">
@@ -18,7 +19,9 @@
 		<div class="flex flex-row gap-2">
 			<div class="flex flex-grow basis-0">
 				{#if !hideBackButton}
-					<PrevPageButton color="light" outline><ArrowLeftIcon /></PrevPageButton>
+					<PrevPageButton color="light" outline routeBased={routeBasedBack}>
+						<ArrowLeftIcon />
+					</PrevPageButton>
 				{/if}
 			</div>
 			{#if title}

@@ -4,6 +4,7 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { tagFilterToText } from '$lib/server/db/actions/helpers/tagFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
+import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/client';
 import { z } from 'zod';
@@ -58,7 +59,7 @@ export const actions = {
 				}
 			};
 		} catch (e) {
-			console.log('Tag Update Error', e);
+			logging.error('Tag Update Error', JSON.stringify(e, null, 2));
 			return error(500, 'Error updating tag');
 		}
 	}

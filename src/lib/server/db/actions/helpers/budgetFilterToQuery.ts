@@ -33,7 +33,7 @@ export const budgetFilterToQuery = (
 	return where;
 };
 
-const budgetIdToTitle = async (id: string) => {
+export const budgetIdToTitle = async (id: string) => {
 	const foundBudget = await db
 		.select({ title: budget.title })
 		.from(budget)

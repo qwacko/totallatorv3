@@ -43,6 +43,7 @@ export const load = async (data) => {
 		journals: journalData,
 		summary,
 		dropdownInfo: { tags, bills, budgets, categories, labels, accounts },
-		filterText: journalFilterToText(filter, { prefix: 'Journal' })
+		filterText: journalFilterToText(filter, { prefix: 'Journal' }),
+		filterDropdown: tActions.reusableFitler.listForDropdown({ db })
 	};
 };

@@ -46,7 +46,7 @@ export const accountFilterToQuery = (
 	return where;
 };
 
-const accountIdToTitle = async (id: string) => {
+export const accountIdToTitle = async (id: string) => {
 	const foundAccount = await db
 		.select({ title: account.title })
 		.from(account)

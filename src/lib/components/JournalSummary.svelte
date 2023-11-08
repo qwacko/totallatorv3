@@ -34,7 +34,6 @@
 		size="xs"
 		class="text-xs w-24"
 		on:click={() => {
-			console.log('Clicked Badge');
 			showModal = true;
 		}}
 		{...$$restProps}

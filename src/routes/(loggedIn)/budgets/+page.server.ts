@@ -4,6 +4,7 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { budgetFilterToText } from '$lib/server/db/actions/helpers/budgetFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
+import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/client';
 import { z } from 'zod';
@@ -59,7 +60,7 @@ export const actions = {
 				}
 			};
 		} catch (e) {
-			console.log('Budget Update Error', e);
+			logging.error('Budget Update Error', e);
 			return error(500, 'Error updating budget');
 		}
 	}
