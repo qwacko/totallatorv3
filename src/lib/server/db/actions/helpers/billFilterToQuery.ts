@@ -34,7 +34,7 @@ export const billFilterToQuery = (
 	return where;
 };
 
-const billIdToTitle = async (id: string) => {
+export const billIdToTitle = async (id: string) => {
 	const foundBill = await db
 		.select({ title: bill.title })
 		.from(bill)

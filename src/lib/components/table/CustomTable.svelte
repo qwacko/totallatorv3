@@ -93,7 +93,7 @@
 		columns.filter((item) => item.sortKey).map((item) => item.sortKey)
 	);
 
-	let filterOpened = false;
+	export let filterOpened = false;
 
 	$: visibleIds = filterNullUndefinedAndDuplicates(
 		data.map((item) => (rowToId ? rowToId(item) : undefined))
@@ -119,7 +119,6 @@
 			{#each numberRowsOptions as option}
 				<DropdownItem
 					on:click={() => {
-						console.log('Updating Number Of Rows', option);
 						numberRows = option;
 						onNumberRowsUpdate(option);
 					}}

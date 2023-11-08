@@ -8,6 +8,7 @@ import {
 import { accountFilterToText } from '$lib/server/db/actions/helpers/accountFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
+import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/client';
 import { z } from 'zod';
@@ -76,7 +77,7 @@ export const actions = {
 				}
 			};
 		} catch (e) {
-			console.log('Account Update Error', e);
+			logging.error('Account Update Error', e);
 			return error(500, 'Error updating account');
 		}
 	}

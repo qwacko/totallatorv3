@@ -17,6 +17,7 @@
 	export let form: SuperForm<ZodValidation<T>, unknown>;
 	export let field: FormPathLeaves<z.infer<T>>;
 	export let wrapperClass: string | undefined = undefined;
+	export let outerWrapperClass: string | undefined = undefined;
 	export let title: string | null;
 	export let highlightTainted: boolean | undefined = true;
 	export let clearable: boolean = false;
@@ -43,7 +44,7 @@
 	$: clearable && updateStringValue($stringValue);
 </script>
 
-<div class="flex flex-row gap-2 w-full">
+<div class="flex flex-row gap-2 w-full {outerWrapperClass ? outerWrapperClass : ''}">
 	<TextInput
 		{title}
 		name={field}

@@ -6,7 +6,7 @@
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
-	import { goto } from '$app/navigation';
+	import { goto, onNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 
 	import AccountTypeFilterLinks from '$lib/components/AccountTypeFilterLinks.svelte';
@@ -36,6 +36,12 @@
 			}
 		},
 		updateDelay: 500
+	});
+
+	let filterOpened = false;
+
+	onNavigate(() => {
+		filterOpened = false;
 	});
 </script>
 
@@ -79,6 +85,7 @@
 		currentOrder={data.searchParams?.orderBy}
 		currentFilter={data.searchParams}
 		filterModalTitle="Filter Accounts"
+		bind:filterOpened
 		columns={[
 			{ id: 'actions', title: '' },
 			{

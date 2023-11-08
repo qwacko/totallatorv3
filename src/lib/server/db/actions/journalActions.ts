@@ -571,7 +571,7 @@ export const journalActions = {
 		const processedData = updateJournalSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			console.log(JSON.stringify(processedData.error));
+			logging.error('Invalid Journal Update Data', JSON.stringify(processedData.error));
 			throw new Error('Invalid Journal Update Data');
 		}
 
@@ -676,8 +676,9 @@ export const journalActions = {
 						categoryId: await categoryId,
 						billId: await billId,
 						budgetId: await budgetId,
-						dataChecked: journalData.dataChecked,
-						reconciled: journalData.reconciled,
+						complete: journalData.complete,
+						dataChecked: journalData.dataChecked || journalData.complete,
+						reconciled: journalData.reconciled || journalData.complete,
 						description: journalData.description,
 						...targetDate,
 						...updatedTime()
@@ -695,8 +696,9 @@ export const journalActions = {
 						categoryId: await categoryId,
 						billId: await billId,
 						budgetId: await budgetId,
-						dataChecked: journalData.dataChecked,
-						reconciled: journalData.reconciled,
+						complete: journalData.complete,
+						dataChecked: journalData.dataChecked || journalData.complete,
+						reconciled: journalData.reconciled || journalData.complete,
 						...targetDate,
 						...updatedTime()
 					})
@@ -892,7 +894,7 @@ export const journalActions = {
 		const processedData = cloneJournalUpdateSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			console.log(JSON.stringify(processedData.error));
+			logging.error('Invalid Journal Update Data', JSON.stringify(processedData.error));
 			throw new Error('Inavalid Journal Update Data');
 		}
 

@@ -5,6 +5,7 @@ import { categoryActions } from './categoryActions';
 import { importActions } from './importActions';
 import { journalActions } from './journalActions';
 import { labelActions } from './labelActions';
+import { reusableFilterActions } from './reusableFilterActions';
 import { tagActions } from './tagActions';
 
 export const tActions = {
@@ -15,5 +16,6 @@ export const tActions = {
 	label: labelActions,
 	account: accountActions,
 	journal: journalActions,
-	import: importActions
+	import: importActions,
+	reusableFitler: reusableFilterActions
 };

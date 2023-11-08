@@ -12,14 +12,16 @@
 	};
 
 	export let currentFilter: JournalFilterSchemaType;
-	export let accountDropdown: dropdownItemsType[];
-	export let billDropdown: dropdownItemsType[];
-	export let budgetDropdown: dropdownItemsType[];
-	export let categoryDropdown: dropdownItemsType[];
-	export let tagDropdown: dropdownItemsType[];
-	export let labelDropdown: dropdownItemsType[];
+	export let accountDropdown: Promise<dropdownItemsType[]>;
+	export let billDropdown: Promise<dropdownItemsType[]>;
+	export let budgetDropdown: Promise<dropdownItemsType[]>;
+	export let categoryDropdown: Promise<dropdownItemsType[]>;
+	export let tagDropdown: Promise<dropdownItemsType[]>;
+	export let labelDropdown: Promise<dropdownItemsType[]>;
+	export let urlFromFilter: (filter: JournalFilterSchemaType) => string;
+	export let opened = false;
 
-	let opened = false;
+	let url = '';
 </script>
 
 <Button color="light" on:click={() => (opened = true)}>
@@ -34,5 +36,12 @@
 		{categoryDropdown}
 		{tagDropdown}
 		{labelDropdown}
+		{urlFromFilter}
+		bind:url
 	/>
+	<svelte:fragment slot="footer">
+		<Button on:click={() => (opened = false)} outline>Cancel</Button>
+		<div class="flex-grow"></div>
+		<Button href={url}>Apply</Button>
+	</svelte:fragment>
 </Modal>

@@ -299,17 +299,6 @@ export const accountActions = {
 				.where(eq(account.id, id))
 				.execute();
 		} else {
-			console.log('Updating Asset / Liability Account : ', {
-				accountGroupCombined,
-				accountGroupCombinedClear,
-				accountGroupClear,
-				accountGroup2Clear,
-				accountGroup3Clear,
-				accountGroup,
-				accountGroup2,
-				accountGroup3
-			});
-
 			const newAccountGroupCombined = accountGroupCombinedClear
 				? ''
 				: accountGroupCombined && accountGroupCombined !== ''
@@ -321,8 +310,6 @@ export const accountActions = {
 				  ]
 						.filter((item) => item)
 						.join(':');
-
-			console.log('Updated Account Group Combined ', newAccountGroupCombined);
 
 			const { startDate, endDate, isCash, isNetWorth } = restData;
 

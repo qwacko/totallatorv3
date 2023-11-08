@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getCurrencyFormatter, type currencyFormatType } from '$lib/schema/userSchema';
 
-	import { Chart, Tabs, TabItem, Button,} from 'flowbite-svelte';
+	import { Chart, Tabs, TabItem, Button } from 'flowbite-svelte';
 	import {
 		generateFlowTrendConfig,
 		generatePIChartConfig,
@@ -47,8 +47,6 @@
 				...combinedFilter
 			}
 		}).url;
-
-		console.log('New URL : ', newURL);
 
 		await goto(newURL);
 	};

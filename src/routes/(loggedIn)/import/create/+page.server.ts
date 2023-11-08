@@ -2,14 +2,13 @@ import { urlGenerator } from '$lib/routes.js';
 import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
+import { logging } from '$lib/server/logging';
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 
 export const actions = {
 	create: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
-
-		console.log('Create Import Form Data : ', formData);
 
 		let newId: undefined | string = undefined;
 
@@ -22,7 +21,7 @@ export const actions = {
 				newId = await tActions.import.storeCSV({ newFile: uploadedFile, db, type: uploadType });
 			}
 		} catch (e) {
-			console.log('Error:', e);
+			logging.error('Import Create Error', JSON.stringify(e, null, 2));
 			const parsedError = z.object({ message: z.string() }).safeParse(e);
 			if (parsedError.success) {
 				return fail(400, { message: parsedError.data.message });
