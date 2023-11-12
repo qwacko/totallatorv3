@@ -13,6 +13,7 @@ import {
 	reusableFilterFilterSchema,
 	reusableFilterCreationURLParams
 } from './schema/reusableFilterSchema';
+import { importMappingFilterSchema } from './schema/importMappingSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -40,8 +41,12 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 
 		// Import Mappings
 		// ----------------------------------------
-		'/(loggedIn)/importMapping': {},
+		'/(loggedIn)/importMapping': {
+			searchParamsValidation: importMappingFilterSchema.catch({}).parse
+		},
 		'/(loggedIn)/importMapping/create': {},
+		'/(loggedIn)/importMapping/[id]': { paramsValidation: idSchema.parse },
+		'/(loggedIn)/importMapping/[id]/delete': { paramsValidation: idSchema.parse },
 
 		// Journals
 		// ----------------------------------------

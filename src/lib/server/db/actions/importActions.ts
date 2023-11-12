@@ -264,6 +264,7 @@ export const importActions = {
 		if (!returnData) {
 			throw new Error('Error Retrieving Import Details');
 		}
+
 		const linkedItemCount = returnData.importDetails.reduce(
 			(prev, current) =>
 				prev +

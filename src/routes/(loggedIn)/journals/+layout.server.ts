@@ -4,6 +4,7 @@ import type { JournalFilterSchemaType } from '$lib/schema/journalSchema.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
+import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
@@ -32,17 +33,10 @@ export const load = async (data) => {
 		filter: { ...filter, page: 0, pageSize: 1000000 }
 	});
 
-	const tags = tActions.tag.listForDropdown({ db });
-	const bills = tActions.bill.listForDropdown({ db });
-	const budgets = tActions.budget.listForDropdown({ db });
-	const categories = tActions.category.listForDropdown({ db });
-	const labels = tActions.label.listForDropdown({ db });
-	const accounts = tActions.account.listForDropdown({ db });
-
 	return {
 		journals: journalData,
 		summary,
-		dropdownInfo: { tags, bills, budgets, categories, labels, accounts },
+		dropdownInfo: dropdownItems({ db }),
 		filterText: journalFilterToText(filter, { prefix: 'Journal' }),
 		filterDropdown: tActions.reusableFitler.listForDropdown({ db })
 	};

@@ -23,6 +23,7 @@
 	export let createField: FormPathLeaves<z.infer<T>> | undefined = undefined;
 	export let createValue: string | undefined | null = undefined;
 	export let createDesc = 'Create';
+	export let clearable = false;
 
 	export let items: Promise<U[]>;
 	export let itemToOption: OptionFunction<U>;
@@ -31,7 +32,7 @@
 	const { value, tainted } = formFieldProxy(form, field);
 
 	$: stringValue = value as Writable<string | undefined>;
-	$: clearable = clearField !== undefined;
+	$: inClearable = clearField !== undefined || clearable;
 	$: creatable = createField !== undefined;
 </script>
 
@@ -39,7 +40,7 @@
 	<ComboSelect
 		bind:value={$stringValue}
 		{title}
-		{clearable}
+		clearable={inClearable}
 		{creatable}
 		{placeholder}
 		{createDesc}

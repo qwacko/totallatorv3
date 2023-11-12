@@ -11,6 +11,7 @@
 	import { superForm } from 'sveltekit-superforms/client';
 	import DisplaySampleMappedData from './DisplaySampleMappedData.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
+	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
 
 	export let data;
 
@@ -73,11 +74,20 @@
 			</TabItem>
 			<TabItem title="Account Info">
 				<div class="flex flex-col gap-4 items-stretch">
-					<TextInputForm
+					<ComboSelectForm
 						form={detailForm}
-						title="From Account ID"
+						title="From Account"
 						field="fromAccountId"
-						placeholder="From Account ID Mapping"
+						placeholder="From Account"
+						items={data.dropdowns.account}
+						itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+						itemToOption={(item) => ({
+							label: item.title,
+							value: item.id,
+							group: item.group,
+							disabled: !item.enabled
+						})}
+						clearable
 					/>
 					<TextInputForm
 						form={detailForm}
@@ -85,11 +95,20 @@
 						field="fromAccountTitle"
 						placeholder="From Account Title Mapping"
 					/>
-					<TextInputForm
+					<ComboSelectForm
 						form={detailForm}
-						title="To Account ID"
+						title="To Account"
 						field="toAccountId"
-						placeholder="To Account ID Mapping"
+						placeholder="To Account"
+						items={data.dropdowns.account}
+						itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+						itemToOption={(item) => ({
+							label: item.title,
+							value: item.id,
+							group: item.group,
+							disabled: !item.enabled
+						})}
+						clearable
 					/>
 					<TextInputForm
 						form={detailForm}
@@ -101,11 +120,20 @@
 			</TabItem>
 			<TabItem title="Category">
 				<div class="flex flex-col gap-4 items-stretch">
-					<TextInputForm
+					<ComboSelectForm
 						form={detailForm}
-						title="Category ID"
+						title="Category"
 						field="categoryId"
-						placeholder="Category ID Mapping"
+						placeholder="Category"
+						items={data.dropdowns.category}
+						itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+						itemToOption={(item) => ({
+							label: item.title,
+							value: item.id,
+							group: item.group,
+							disabled: !item.enabled
+						})}
+						clearable
 					/>
 					<TextInputForm
 						form={detailForm}
@@ -117,11 +145,20 @@
 			</TabItem>
 			<TabItem title="Tag">
 				<div class="flex flex-col gap-4 items-stretch">
-					<TextInputForm
+					<ComboSelectForm
 						form={detailForm}
-						title="Tag ID"
+						title="Tag"
 						field="tagId"
-						placeholder="Tag ID Mapping"
+						placeholder="Tag"
+						items={data.dropdowns.tag}
+						itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+						itemToOption={(item) => ({
+							label: item.title,
+							value: item.id,
+							group: item.group,
+							disabled: !item.enabled
+						})}
+						clearable
 					/>
 					<TextInputForm
 						form={detailForm}
@@ -133,11 +170,19 @@
 			</TabItem>
 			<TabItem title="Bill">
 				<div class="flex flex-col gap-4 items-stretch">
-					<TextInputForm
+					<ComboSelectForm
 						form={detailForm}
-						title="Bill ID"
+						title="Bill"
 						field="billId"
-						placeholder="Bill ID Mapping"
+						placeholder="Bill"
+						items={data.dropdowns.bill}
+						itemToDisplay={(item) => ({ title: item.title })}
+						itemToOption={(item) => ({
+							label: item.title,
+							value: item.id,
+							disabled: !item.enabled
+						})}
+						clearable
 					/>
 					<TextInputForm
 						form={detailForm}
@@ -149,11 +194,19 @@
 			</TabItem>
 			<TabItem title="Budget">
 				<div class="flex flex-col gap-4 items-stretch">
-					<TextInputForm
+					<ComboSelectForm
 						form={detailForm}
-						title="Budget ID"
+						title="Budget"
 						field="budgetId"
-						placeholder="Budget ID Mapping"
+						placeholder="Budget"
+						items={data.dropdowns.budget}
+						itemToDisplay={(item) => ({ title: item.title })}
+						itemToOption={(item) => ({
+							label: item.title,
+							value: item.id,
+							disabled: !item.enabled
+						})}
+						clearable
 					/>
 					<TextInputForm
 						form={detailForm}

@@ -7,6 +7,7 @@ import {
 } from '$lib/schema/importMappingSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
+import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { logging } from '$lib/server/logging';
 import { fail, redirect } from '@sveltejs/kit';
 import { setError, superValidate } from 'sveltekit-superforms/client';
@@ -19,7 +20,7 @@ export const load = (data) => {
 	const form = superValidate({ title: '', configuration: '' }, importMappingCreateFormSchema);
 	const detailForm = superValidate({}, importMappingDetailSchema);
 
-	return { form, detailForm, title: 'Hello' };
+	return { form, detailForm, dropdowns: dropdownItems({ db }) };
 };
 
 export const actions = {
@@ -62,6 +63,9 @@ export const actions = {
 		if (form.data.prevPage) {
 			throw redirect(302, form.data.prevPage);
 		}
-		throw redirect(302, urlGenerator({ address: '/(loggedIn)/importMapping' }).url);
+		throw redirect(
+			302,
+			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
+		);
 	}
 };

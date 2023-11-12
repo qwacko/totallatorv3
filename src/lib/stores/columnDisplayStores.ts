@@ -36,6 +36,8 @@ export const reusableFilterColumnsStore = writable([
 	'journalCount'
 ]);
 
+export const importMappingColumnStore = writable(['actions', 'title', 'configuration']);
+
 export const journalColumnsStore = writable([
 	'actions',
 	'dateText',
