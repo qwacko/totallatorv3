@@ -10,7 +10,6 @@
 	import { Alert, Button, Heading, TabItem, Tabs } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import DisplaySampleMappedData from './DisplaySampleMappedData.svelte';
-	import ObjectTable from '$lib/components/ObjectTable.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
 	export let data;
@@ -25,7 +24,6 @@
 	let formElement: HTMLFormElement;
 
 	$: formEnhance = form.enhance;
-	$: formData = form.form;
 	$: formMessage = form.message;
 	$: formErrors = form.errors;
 
