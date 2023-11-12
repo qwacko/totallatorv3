@@ -38,6 +38,11 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/import/[id]/delete': { paramsValidation: idSchema.parse },
 		'/(loggedIn)/import/[id]/deleteLinked': { paramsValidation: idSchema.parse },
 
+		// Import Mappings
+		// ----------------------------------------
+		'/(loggedIn)/importMapping': {},
+		'/(loggedIn)/importMapping/create': {},
+
 		// Journals
 		// ----------------------------------------
 		'/(loggedIn)/journals': {

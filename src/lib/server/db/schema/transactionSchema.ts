@@ -373,23 +373,29 @@ export const importTable = sqliteTable(
 		status: text('status', { enum: importStatusEnum }).notNull().default('error'),
 		source: text('source', { enum: importSourceEnum }).notNull().default('csv'),
 		type: text('type', { enum: importTypeEnum }).notNull().default('transaction'),
+		importMappingId: text('mapped_import_id'),
 		errorInfo: text('error_info', { mode: 'json' })
 	},
 	(t) => ({
 		statusIdx: index('label_status_idx').on(t.status),
 		sourceIdx: index('label_source_idx').on(t.source),
-		typeIdx: index('label_type_idx').on(t.type)
+		typeIdx: index('label_type_idx').on(t.type),
+		mappedImportIdx: index('label_mapped_import_idx').on(t.importMappingId)
 	})
 );
 
-export const importTableRelations = relations(importTable, ({ many }) => ({
+export const importTableRelations = relations(importTable, ({ many, one }) => ({
 	importDetails: many(importItemDetail),
 	journals: many(journalEntry),
 	bills: many(bill),
 	budgets: many(budget),
 	categories: many(category),
 	tags: many(tag),
-	labels: many(label)
+	labels: many(label),
+	importMapping: one(importMapping, {
+		fields: [importTable.importMappingId],
+		references: [importMapping.id]
+	})
 }));
 
 export const summaryTable = sqliteTable('summary', {
@@ -449,3 +455,14 @@ export const reusableFilter = sqliteTable('filter', {
 	change: text('change'),
 	changeText: text('change_text')
 });
+
+export const importMapping = sqliteTable('import_mapping', {
+	...idColumn,
+	...timestampColumns,
+	title: text('title').notNull(),
+	configuration: text('configuration').notNull()
+});
+
+export const importMappingRelations = relations(importMapping, ({ many }) => ({
+	imports: many(importTable)
+}));

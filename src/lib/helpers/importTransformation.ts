@@ -1,7 +1,35 @@
 type InputObject = Record<string, string>;
 
-export function processConfigString(configString: string, inputObject: InputObject): string {
+export const processObject = <ConfigObject extends Record<string, string>>(
+	input: Record<string, unknown>,
+	config: ConfigObject
+) => {
+	return Object.keys(config).reduce(
+		(acc, val) => {
+			const key = val as keyof ConfigObject;
+
+			if (config[key] === undefined) return acc;
+
+			try {
+				acc[key] = { text: processConfigString(config[key], input as InputObject) };
+				return acc;
+			} catch (error) {
+				const errorMessage = error as { message: string };
+				console.error(error);
+				acc[key] = { error: errorMessage.message };
+				return acc;
+			}
+		},
+		{} as Record<keyof ConfigObject, { text?: string; error?: string }>
+	);
+};
+
+export function processConfigString(
+	configString: string | undefined,
+	inputObject: InputObject
+): string | undefined {
 	const pattern = /\{([^}]+)\}/g;
+	if (!configString) return undefined;
 	return configString.replace(pattern, (match, content) => {
 		const [key, operation, ...params] = content.split(':');
 

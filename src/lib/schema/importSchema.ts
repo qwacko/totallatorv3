@@ -6,7 +6,8 @@ export const importTypeEnum = [
 	'budget',
 	'category',
 	'tag',
-	'label'
+	'label',
+	'mappedImport'
 ] as const;
 
 export type importTypeType = (typeof importTypeEnum)[number];
@@ -32,6 +33,9 @@ export const importTypeToTitle = (type: (typeof importTypeEnum)[number]) => {
 	}
 	if (type === 'label') {
 		return 'Labels';
+	}
+	if (type === 'mappedImport') {
+		return 'Mapped Imports';
 	}
 
 	return 'Unknown';
