@@ -70,3 +70,37 @@ export const importMappingUpdateFormSchema = z.object({
 
 export type ImportMappingUpdateFormSuperSchema = typeof importMappingUpdateFormSchema;
 export type ImportMappingUpdateFormSchema = z.infer<ImportMappingUpdateFormSuperSchema>;
+
+const orderByEnum = ['title', 'configuration'] as const;
+
+type OrderByEnumType = (typeof orderByEnum)[number];
+
+type OrderByEnumTitles = {
+	[K in OrderByEnumType]: string;
+};
+
+// This will be valid for demonstration purposes
+const enumTitles: OrderByEnumTitles = {
+	title: 'Title',
+	configuration: 'Configuration'
+};
+
+export const importMappingOrderByEnumToText = (input: OrderByEnumType) => {
+	return enumTitles[input];
+};
+
+export const importMappingFilterSchema = z.object({
+	id: z.string().optional(),
+	idArray: z.array(z.string()).optional(),
+	title: z.string().optional(),
+	configuration: z.string().optional(),
+	combinedText: z.string().optional(),
+	page: z.number().default(0).optional(),
+	pageSize: z.number().default(10).optional(),
+	orderBy: z
+		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.default([{ direction: 'asc', field: 'title' }])
+		.optional()
+});
+
+export type ImportMappingFilterSchema = z.infer<typeof importMappingFilterSchema>;

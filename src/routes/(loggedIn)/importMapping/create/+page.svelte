@@ -7,9 +7,11 @@
 		type ImportMappingCreateFormSuperSchema,
 		importMappingDetailWithRefinementSchema
 	} from '$lib/schema/importMappingSchema.js';
-	import { Heading, TabItem, Tabs } from 'flowbite-svelte';
+	import { Alert, Button, Heading, TabItem, Tabs } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import DisplaySampleMappedData from './DisplaySampleMappedData.svelte';
+	import ObjectTable from '$lib/components/ObjectTable.svelte';
+	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
 	export let data;
 
@@ -20,15 +22,29 @@
 		validationMethod: 'oninput'
 	});
 
+	let formElement: HTMLFormElement;
+
 	$: formEnhance = form.enhance;
-    $: detailFormData = detailForm.form
+	$: formData = form.form;
+	$: formMessage = form.message;
+	$: formErrors = form.errors;
+
+	$: detailFormData = detailForm.form;
 </script>
 
 <PageLayout title="Create Import Mapping">
 	<RawDataModal {data} dev={data.dev} />
-	<form use:formEnhance method="post">
+	<form bind:this={formElement} use:formEnhance method="post" class="flex flex-col gap-4">
 		<TextInputForm {form} title="Title" field="title" />
+		<input type="hidden" name="configuration" value={JSON.stringify($detailFormData)} />
+		<PreviousUrlInput name="prevPage" />
 	</form>
+	{#if $formMessage}}
+		<Alert color="red">{$formMessage}</Alert>
+	{/if}
+	{#if $formErrors.configuration}
+		<Alert color="red">{$formErrors.configuration}</Alert>
+	{/if}
 	<Heading tag="h3">Detail</Heading>
 	<div>
 		<Tabs>
@@ -151,5 +167,7 @@
 			</TabItem>
 		</Tabs>
 	</div>
-    <DisplaySampleMappedData mappingConfig={$detailFormData} />
+	<Button on:click={() => formElement.requestSubmit()}>Create Mapping</Button>
+	<Heading tag="h3">Test Import Mapping</Heading>
+	<DisplaySampleMappedData mappingConfig={$detailFormData} />
 </PageLayout>

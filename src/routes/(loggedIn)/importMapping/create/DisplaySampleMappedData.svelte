@@ -1,18 +1,9 @@
 <script lang="ts">
+	import ObjectTable from '$lib/components/ObjectTable.svelte';
 	import { processObject } from '$lib/helpers/importTransformation';
 	import type { ImportMappingDetailSchema } from '$lib/schema/importMappingSchema';
 
-	import {
-		Alert,
-		Button,
-		Fileupload,
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell
-	} from 'flowbite-svelte';
+	import { Button, Fileupload } from 'flowbite-svelte';
 	import Papa from 'papaparse';
 
 	export let mappingConfig: ImportMappingDetailSchema;
@@ -77,27 +68,5 @@
     </pre>
 	{@const processedData = processObject(csvData[rowNumber - 1], mappingConfig)}
 
-	<Table>
-		<TableHead>
-			<TableHeadCell>Key</TableHeadCell>
-			<TableHeadCell>Data</TableHeadCell>
-		</TableHead>
-		<TableBody>
-			{#each Object.entries(processedData) as [key, value]}
-				<TableBodyRow>
-					<TableBodyCell>{key}</TableBodyCell>
-					<TableBodyCell>
-						{#if value.error}
-							<Alert color="red">
-								<span class="font-medium">Error</span>
-								<span class="font-thin">{value.error}</span>
-							</Alert>
-						{:else}
-							{value.text}
-						{/if}
-					</TableBodyCell>
-				</TableBodyRow>
-			{/each}
-		</TableBody>
-	</Table>
+	<ObjectTable data={processedData} />
 {/if}

@@ -463,6 +463,8 @@ export const importMapping = sqliteTable('import_mapping', {
 	configuration: text('configuration').notNull()
 });
 
+export type ImportMappingType = typeof importMapping.$inferSelect;
+
 export const importMappingRelations = relations(importMapping, ({ many }) => ({
 	imports: many(importTable)
 }));
