@@ -1,0 +1,1 @@
+ALTER TABLE import_mapping ADD `sample_data` text;

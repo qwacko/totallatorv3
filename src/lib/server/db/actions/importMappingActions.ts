@@ -90,7 +90,11 @@ export const importMappingActions = {
 		data
 	}: {
 		db: DBType;
-		data: { title: string; configuration: ImportMappingDetailSchema };
+		data: {
+			title: string;
+			configuration: ImportMappingDetailSchema;
+			sampleData?: string | undefined;
+		};
 	}) => {
 		const processedConfig = importMappingDetailWithRefinementSchema.safeParse(data.configuration);
 		if (!processedConfig.success) {
@@ -103,10 +107,36 @@ export const importMappingActions = {
 			id,
 			title: data.title,
 			configuration: JSON.stringify(data.configuration),
+			sampleData: data.sampleData,
 			...updatedTime()
 		});
 
 		return id;
+	},
+	clone: async ({ db, id }: { db: DBType; id: string }) => {
+		const data = await db
+			.select(getTableColumns(importMapping))
+			.from(importMapping)
+			.where(eq(importMapping.id, id))
+			.execute();
+
+		if (data.length === 1) {
+			const targetItem = data[0];
+
+			const newId = nanoid();
+
+			await db.insert(importMapping).values({
+				id: newId,
+				title: `${targetItem.title} (Clone)`,
+				configuration: targetItem.configuration,
+				sampleData: targetItem.sampleData,
+				...updatedTime()
+			});
+
+			return newId;
+		}
+
+		return undefined;
 	},
 	update: async ({
 		db,
@@ -115,7 +145,11 @@ export const importMappingActions = {
 	}: {
 		db: DBType;
 		id: string;
-		data: { title?: string; configuration?: ImportMappingDetailSchema };
+		data: {
+			title?: string;
+			configuration?: ImportMappingDetailSchema;
+			sampleData?: string | undefined;
+		};
 	}) => {
 		const processedConfig = data.configuration
 			? importMappingDetailWithRefinementSchema.safeParse(data.configuration)
@@ -130,9 +164,13 @@ export const importMappingActions = {
 				title: data.title,
 				configuration:
 					data.configuration && processedConfig ? JSON.stringify(processedConfig.data) : undefined,
+				sampleData: data.sampleData,
 				...updatedTime()
 			})
 			.where(eq(importMapping.id, id))
 			.execute();
+	},
+	delete: async ({ db, id }: { db: DBType; id: string }) => {
+		await db.delete(importMapping).where(eq(importMapping.id, id)).execute();
 	}
 };

@@ -58,14 +58,16 @@ export type ImportMappingDetailSchema = z.infer<ImportMappingDetailSuperSchema>;
 
 export const importMappingCreateFormSchema = z.object({
 	title: z.string(),
-	configuration: z.string()
+	configuration: z.string(),
+	sampleData: z.string().optional()
 });
 export type ImportMappingCreateFormSuperSchema = typeof importMappingCreateFormSchema;
 export type ImportMappingCreateFormSchema = z.infer<ImportMappingCreateFormSuperSchema>;
 
 export const importMappingUpdateFormSchema = z.object({
-	title: z.string().optional(),
-	configuration: z.string().optional()
+	title: z.string(),
+	configuration: z.string(),
+	sampleData: z.string().optional()
 });
 
 export type ImportMappingUpdateFormSuperSchema = typeof importMappingUpdateFormSchema;

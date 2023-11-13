@@ -1,17 +1,17 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import {
 		type ImportMappingDetailSuperSchema,
-		type ImportMappingCreateFormSuperSchema,
+		type ImportMappingUpdateFormSuperSchema,
 		importMappingDetailWithRefinementSchema
 	} from '$lib/schema/importMappingSchema.js';
 	import { superForm } from 'sveltekit-superforms/client';
-	import ImportMappingForm from './ImportMappingForm.svelte';
+	import ImportMappingForm from '../create/ImportMappingForm.svelte';
 
 	export let data;
 
-	const form = superForm<ImportMappingCreateFormSuperSchema>(data.form);
+	const form = superForm<ImportMappingUpdateFormSuperSchema>(data.form);
 	const detailForm = superForm<ImportMappingDetailSuperSchema>(data.detailForm, {
 		//@ts-expect-error Doesn't work with refinement
 		validators: importMappingDetailWithRefinementSchema,
@@ -19,12 +19,14 @@
 	});
 </script>
 
-<PageLayout title="Create Import Mapping">
-	<RawDataModal {data} dev={data.dev} />
+<CustomHeader pageTitle="Edit Import Mapping - {data.importMapping.title}" />
+
+<PageLayout title="Edit Import Mapping" subtitle={data.importMapping.title}>
 	<ImportMappingForm
 		{form}
 		{detailForm}
 		dropdowns={data.dropdowns}
-		submitButtonText="Create Import Mapping"
+		submitButtonText="Update Import Mapping"
+		csvData={data.importMapping.sampleData ? JSON.parse(data.importMapping.sampleData) : undefined}
 	/>
 </PageLayout>

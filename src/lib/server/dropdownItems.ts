@@ -12,3 +12,5 @@ export const dropdownItems = ({ db }: { db: DBType }) => {
 		importMapping: tActions.importMapping.listForDropdown({ db })
 	};
 };
+
+export type DropdownItems = ReturnType<typeof dropdownItems>;

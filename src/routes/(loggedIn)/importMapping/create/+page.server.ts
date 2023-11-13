@@ -51,7 +51,8 @@ export const actions = {
 				db: db,
 				data: {
 					title: form.data.title,
-					configuration: detailFormData.data
+					configuration: detailFormData.data,
+					sampleData: form.data.sampleData
 				}
 			});
 		} catch (e) {

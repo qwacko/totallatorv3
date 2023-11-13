@@ -460,7 +460,8 @@ export const importMapping = sqliteTable('import_mapping', {
 	...idColumn,
 	...timestampColumns,
 	title: text('title').notNull(),
-	configuration: text('configuration').notNull()
+	configuration: text('configuration').notNull(),
+	sampleData: text('sample_data')
 });
 
 export type ImportMappingType = typeof importMapping.$inferSelect;

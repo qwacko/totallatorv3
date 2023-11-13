@@ -12,6 +12,8 @@
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import ObjectTable from '$lib/components/ObjectTable.svelte';
+	import { enhance } from '$app/forms';
+	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 
 	export let data;
 
@@ -96,30 +98,37 @@
 		>
 			<svelte:fragment slot="customBodyCell" let:currentColumn let:row>
 				{#if currentColumn.id === 'actions'}
-					<ButtonGroup>
-						<Button
-							href={urlGenerator({
-								address: '/(loggedIn)/importMapping/[id]',
-								paramsValue: { id: row.id }
-							}).url}
-							class="p-2"
-							outline
-						>
-							<EditIcon />
-						</Button>
-						<Button
-							href={urlGenerator({
-								address: '/(loggedIn)/importMapping/[id]/delete',
-								paramsValue: { id: row.id }
-							}).url}
-							class="p-2"
-							outline
-							color="red"
-						>
-							<DeleteIcon />
-						</Button>
-						<RawDataModal data={row} title="Reusable Filter Data" dev={data.dev} />
-					</ButtonGroup>
+					<form use:enhance method="post">
+						<input type="hidden" name="importMappingId" value={row.id} />
+						<ButtonGroup>
+							<Button
+								href={urlGenerator({
+									address: '/(loggedIn)/importMapping/[id]',
+									paramsValue: { id: row.id }
+								}).url}
+								class="p-2"
+								outline
+							>
+								<EditIcon />
+							</Button>
+							<Button
+								href={urlGenerator({
+									address: '/(loggedIn)/importMapping/[id]/delete',
+									paramsValue: { id: row.id }
+								}).url}
+								class="p-2"
+								outline
+								color="red"
+							>
+								<DeleteIcon />
+							</Button>
+
+							<Button type="submit" class="p-2" outline name="action" value="clone" color="blue">
+								<CloneIcon />
+							</Button>
+							<RawDataModal data={row} title="Reusable Filter Data" dev={data.dev} />
+						</ButtonGroup>
+					</form>
 				{:else if currentColumn.id === 'configuration'}
 					{#if row.configuration}
 						<ObjectTable

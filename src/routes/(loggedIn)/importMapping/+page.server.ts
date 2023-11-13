@@ -4,6 +4,7 @@ import { importMappingFilterToText } from '$lib/server/db/actions/helpers/import
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db/db';
+import { logging } from '$lib/server/logging';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -25,4 +26,24 @@ export const load = async (data) => {
 		filterText: importMappingFilterToText(current.searchParams || {}),
 		searchParams: current.searchParams
 	};
+};
+
+export const actions = {
+	default: async (data) => {
+		const form = await data.request.formData();
+		const importMappingId = form.get('importMappingId')?.toString();
+		const action = form.get('action')?.toString();
+		console.log('Import Mapping Default Action : ', { importMappingId, action });
+		if (!importMappingId || !action) return;
+		try {
+			if (action === 'clone') {
+				await tActions.importMapping.clone({ db, id: importMappingId });
+			}
+
+			return;
+		} catch (error) {
+			logging.error(error);
+			return;
+		}
+	}
 };
