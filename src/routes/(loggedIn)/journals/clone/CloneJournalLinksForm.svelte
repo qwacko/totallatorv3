@@ -10,11 +10,11 @@
 	type DDI = { id: string; title: string; group: string; enabled: boolean };
 	type DDINoGroup = { id: string; title: string; enabled: boolean };
 	export let dropdownInfo: {
-		tags: Promise<DDI[]>;
-		bills: Promise<DDINoGroup[]>;
-		budgets: Promise<DDINoGroup[]>;
-		categories: Promise<DDI[]>;
-		accounts: Promise<DDI[]>;
+		tag: Promise<DDI[]>;
+		bill: Promise<DDINoGroup[]>;
+		budget: Promise<DDINoGroup[]>;
+		category: Promise<DDI[]>;
+		account: Promise<DDI[]>;
 	};
 
 	$: formData = form.form;
@@ -24,7 +24,7 @@
 	<ComboSelectForm
 		{form}
 		title="From Account"
-		items={dropdownInfo.accounts}
+		items={dropdownInfo.account}
 		field="fromAccountId"
 		placeholder="Select From Account..."
 		itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -36,7 +36,7 @@
 	<ComboSelectForm
 		{form}
 		title="To Account"
-		items={dropdownInfo.accounts}
+		items={dropdownInfo.account}
 		field="toAccountId"
 		placeholder="Select To Account..."
 		itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -49,7 +49,7 @@
 <ComboSelectForm
 	{form}
 	title="Tag"
-	items={dropdownInfo.tags}
+	items={dropdownInfo.tag}
 	field="tagId"
 	clearField="tagClear"
 	bind:clearValue={$formData.tagClear}
@@ -63,7 +63,7 @@
 <ComboSelectForm
 	{form}
 	title="Category"
-	items={dropdownInfo.categories}
+	items={dropdownInfo.category}
 	field="categoryId"
 	clearField="categoryClear"
 	bind:clearValue={$formData.categoryClear}
@@ -77,7 +77,7 @@
 <ComboSelectForm
 	{form}
 	title="Bill"
-	items={dropdownInfo.bills}
+	items={dropdownInfo.bill}
 	field="billId"
 	clearField="billClear"
 	bind:clearValue={$formData.billClear}
@@ -91,7 +91,7 @@
 <ComboSelectForm
 	{form}
 	title="Budget"
-	items={dropdownInfo.budgets}
+	items={dropdownInfo.budget}
 	field="budgetId"
 	clearField="budgetClear"
 	bind:clearValue={$formData.budgetClear}

@@ -9,7 +9,7 @@
 	export let mappingConfig: ImportMappingDetailSchema;
 
 	export let csvData: Record<string, any>[] | undefined = undefined;
-	let csvErrors: Papa.ParseError[] | Error | undefined = undefined;
+
 	let rowNumber = 1;
 
 	$: numberRows = csvData?.length ?? 1;
@@ -24,14 +24,11 @@
 				Papa.parse(file, {
 					header: true,
 					complete: function (results) {
-						console.log('New CSV Data');
-						csvErrors = results.errors;
 						csvData = results.data as Record<string, unknown>[];
 						rowNumber = 1;
 					},
 					error: function (error) {
-						console.log('CSV Data Error');
-						csvErrors = error;
+						console.log('CSV Data Error', error);
 						csvData = undefined;
 						rowNumber = 1;
 						numberRows = 1;

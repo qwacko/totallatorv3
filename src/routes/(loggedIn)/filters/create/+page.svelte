@@ -133,12 +133,12 @@
 					<div class="flex flex-col gap-1">
 						<FilterModal
 							currentFilter={data.searchParams?.filter || defaultJournalFilter()}
-							accountDropdown={data.dropdowns.accounts}
-							billDropdown={data.dropdowns.bills}
-							categoryDropdown={data.dropdowns.categories}
-							budgetDropdown={data.dropdowns.budgets}
-							tagDropdown={data.dropdowns.tags}
-							labelDropdown={data.dropdowns.labels}
+							accountDropdown={data.dropdowns.account}
+							billDropdown={data.dropdowns.bill}
+							categoryDropdown={data.dropdowns.category}
+							budgetDropdown={data.dropdowns.budget}
+							tagDropdown={data.dropdowns.tag}
+							labelDropdown={data.dropdowns.label}
 							urlFromFilter={(filter) =>
 								urlInfo.updateParams({
 									searchParams: {

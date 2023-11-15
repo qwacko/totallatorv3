@@ -33,7 +33,6 @@ export const actions = {
 		const form = await data.request.formData();
 		const importMappingId = form.get('importMappingId')?.toString();
 		const action = form.get('action')?.toString();
-		console.log('Import Mapping Default Action : ', { importMappingId, action });
 		if (!importMappingId || !action) return;
 		try {
 			if (action === 'clone') {
