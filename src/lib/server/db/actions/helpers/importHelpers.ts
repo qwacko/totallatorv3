@@ -37,7 +37,7 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 	schema: ZodType<T>;
 	createItem: (data: { item: T; db: DBType }) => Promise<DBT | undefined>;
 }) => {
-	const processedItem = schema.safeParse(item.processedInfo);
+	const processedItem = schema.safeParse(item.processedInfo?.dataToUse);
 	if (processedItem.success) {
 		try {
 			const createdItem = await createItem({ item: processedItem.data, db });
@@ -58,7 +58,7 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 					.update(importItemDetail)
 					.set({
 						status: 'importError',
-						errorInfo: 'Account Not Found',
+						errorInfo: { errors: ['Account Not Found'] },
 						...updatedTime()
 					})
 					.where(eq(importItemDetail.id, item.id))
@@ -69,14 +69,22 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 
 			await db
 				.update(importItemDetail)
-				.set({ status: 'importError', errorInfo: e, ...updatedTime() })
+				.set({
+					status: 'importError',
+					errorInfo: { error: e as Record<string, unknown> },
+					...updatedTime()
+				})
 				.where(eq(importItemDetail.id, item.id))
 				.execute();
 		}
 	} else {
 		await db
 			.update(importItemDetail)
-			.set({ status: 'importError', errorInfo: processedItem.error, ...updatedTime() })
+			.set({
+				status: 'importError',
+				errorInfo: { error: processedItem.error },
+				...updatedTime()
+			})
 			.where(eq(importItemDetail.id, item.id))
 			.execute();
 	}
@@ -88,7 +96,10 @@ export async function importTransaction({
 	item: typeof importItemDetail.$inferSelect;
 	trx: DBType;
 }) {
-	const processedItem = createSimpleTransactionSchema.safeParse(item.processedInfo);
+	const processedInfo = item.processedInfo;
+	const processedItem = createSimpleTransactionSchema.safeParse(
+		processedInfo ? processedInfo.dataToUse : undefined
+	);
 	if (processedItem.success) {
 		const combinedTransaction = simpleSchemaToCombinedSchema({
 			...processedItem.data,
@@ -128,7 +139,7 @@ export async function importTransaction({
 								.update(importItemDetail)
 								.set({
 									status: 'importError',
-									errorInfo: 'Journal Not Found',
+									errorInfo: { errors: ['Journal Not Found'] },
 									...updatedTime()
 								})
 								.where(eq(importItemDetail.id, item.id))
@@ -141,7 +152,11 @@ export async function importTransaction({
 
 				await trx
 					.update(importItemDetail)
-					.set({ status: 'importError', errorInfo: e, ...updatedTime() })
+					.set({
+						status: 'importError',
+						errorInfo: { error: e as Record<string, unknown> },
+						...updatedTime()
+					})
 					.where(eq(importItemDetail.id, item.id))
 					.execute();
 			}
@@ -150,7 +165,7 @@ export async function importTransaction({
 				.update(importItemDetail)
 				.set({
 					status: 'importError',
-					errorInfo: processedCombinedTransaction.error,
+					errorInfo: { error: processedCombinedTransaction.error },
 					...updatedTime()
 				})
 				.where(eq(importItemDetail.id, item.id))
@@ -159,7 +174,7 @@ export async function importTransaction({
 	} else {
 		await trx
 			.update(importItemDetail)
-			.set({ status: 'importError', errorInfo: processedItem.error, ...updatedTime() })
+			.set({ status: 'importError', errorInfo: { error: processedItem.error }, ...updatedTime() })
 			.where(eq(importItemDetail.id, item.id))
 			.execute();
 	}

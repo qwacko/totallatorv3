@@ -16,6 +16,7 @@ import { db } from '$lib/server/db/db.js';
 import { journalUpdateToText } from '$lib/server/db/actions/helpers/journalUpdateToText.js';
 import { reusableFilterPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { redirect } from '@sveltejs/kit';
+import { dropdownItems } from '$lib/server/dropdownItems.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -51,14 +52,7 @@ export const load = async (data) => {
 		modificationForm,
 		filterText,
 		changeText,
-		dropdowns: {
-			accounts: tActions.account.listForDropdown({ db }),
-			categories: tActions.category.listForDropdown({ db }),
-			budgets: tActions.budget.listForDropdown({ db }),
-			bills: tActions.bill.listForDropdown({ db }),
-			tags: tActions.tag.listForDropdown({ db }),
-			labels: tActions.label.listForDropdown({ db })
-		},
+		dropdowns: dropdownItems({ db }),
 		numberResults
 	};
 };

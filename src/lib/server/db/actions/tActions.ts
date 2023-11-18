@@ -3,6 +3,7 @@ import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
 import { importActions } from './importActions';
+import { importMappingActions } from './importMappingActions';
 import { journalActions } from './journalActions';
 import { labelActions } from './labelActions';
 import { reusableFilterActions } from './reusableFilterActions';
@@ -17,5 +18,6 @@ export const tActions = {
 	account: accountActions,
 	journal: journalActions,
 	import: importActions,
-	reusableFitler: reusableFilterActions
+	reusableFitler: reusableFilterActions,
+	importMapping: importMappingActions
 };

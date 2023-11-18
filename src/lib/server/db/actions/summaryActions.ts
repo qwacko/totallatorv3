@@ -57,8 +57,11 @@ export const summaryActions = {
 		allowCreation?: boolean;
 	}) => {
 		if (ids && ids.length === 0) {
-			return;
+			return 0;
 		}
+
+		let updateCount = 0;
+
 		await db.transaction(async (db) => {
 			const items = ['bill', 'budget', 'category', 'tag', 'account', 'label'] as const;
 
@@ -142,6 +145,8 @@ export const summaryActions = {
 									.groupBy(targetTable.id)
 									.execute();
 
+					updateCount += foundData.length;
+
 					await Promise.all(
 						foundData.map(async (currentFoundItem) => {
 							const { summaryId, itemId, ...restFoundItem } = currentFoundItem;
@@ -185,6 +190,7 @@ export const summaryActions = {
 				})
 			);
 		});
+		return updateCount;
 	},
 	createMissing: async ({ db }: { db: DBType }) => {
 		const items = ['bill', 'budget', 'category', 'tag', 'account', 'label'] as const;

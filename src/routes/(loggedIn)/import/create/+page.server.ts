@@ -14,11 +14,26 @@ export const actions = {
 
 		try {
 			const uploadType = formData.importType as importTypeType | undefined;
+			const uploadedMapping = formData.importMappingId as string | undefined;
+			if (uploadType === 'mappedImport' && !uploadedMapping) {
+				return fail(400, { message: 'No Mapping Selected' });
+			}
+			if (uploadedMapping) {
+				const result = await tActions.importMapping.getById({ db, id: uploadedMapping });
+				if (!result) {
+					return fail(400, { message: `Mapping ${uploadedMapping} Not Found` });
+				}
+			}
 			const uploadedFile = formData.csvFile as File | undefined;
 			if (!uploadedFile || !uploadType || !importTypeEnum.includes(uploadType)) {
 				return fail(400, { message: 'No File Uploaded' });
 			} else {
-				newId = await tActions.import.storeCSV({ newFile: uploadedFile, db, type: uploadType });
+				newId = await tActions.import.storeCSV({
+					newFile: uploadedFile,
+					db,
+					type: uploadType,
+					importMapping: uploadedMapping
+				});
 			}
 		} catch (e) {
 			logging.error('Import Create Error', JSON.stringify(e, null, 2));

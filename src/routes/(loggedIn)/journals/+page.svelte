@@ -30,7 +30,7 @@
 	import FilterModalContent from '$lib/components/FilterModalContent.svelte';
 	import DropdownFilterNestedText from '$lib/components/table/DropdownFilterNestedText.svelte';
 	import DateInput from '$lib/components/DateInput.svelte';
-	import FilterDropdown from './FilterDropdown.svelte';
+	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 
 	export let data;
 
@@ -201,12 +201,12 @@
 				{#if $urlStore.searchParams}
 					<FilterModalContent
 						currentFilter={$urlStore.searchParams}
-						accountDropdown={data.dropdownInfo.accounts}
-						billDropdown={data.dropdownInfo.bills}
-						budgetDropdown={data.dropdownInfo.budgets}
-						categoryDropdown={data.dropdownInfo.categories}
-						tagDropdown={data.dropdownInfo.tags}
-						labelDropdown={data.dropdownInfo.labels}
+						accountDropdown={data.dropdownInfo.account}
+						billDropdown={data.dropdownInfo.bill}
+						budgetDropdown={data.dropdownInfo.budget}
+						categoryDropdown={data.dropdownInfo.category}
+						tagDropdown={data.dropdownInfo.tag}
+						labelDropdown={data.dropdownInfo.label}
 						urlFromFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
 					/>
 				{/if}

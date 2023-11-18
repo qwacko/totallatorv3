@@ -39,11 +39,17 @@ export const cronJobs: CronJob[] = [
 		job: async () => {
 			const startTime = new Date().getTime();
 			await summaryActions.createMissing({ db });
-			await summaryActions.updateAndCreateMany({ db, needsUpdateOnly: true, allowCreation: true });
+			const numberUpdated = await summaryActions.updateAndCreateMany({
+				db,
+				needsUpdateOnly: true,
+				allowCreation: true
+			});
 			logging.info(
 				'CRON: Creating and Updating Summaries that Need Update - Took ' +
 					(new Date().getTime() - startTime) +
-					'ms'
+					'ms - Updated ' +
+					numberUpdated +
+					' summaries'
 			);
 		}
 	},

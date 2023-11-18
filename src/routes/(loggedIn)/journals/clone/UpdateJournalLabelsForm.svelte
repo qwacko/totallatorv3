@@ -14,7 +14,7 @@
 
 	type DDINoGroup = { id: string; title: string; enabled: boolean };
 	export let dropdownInfo: {
-		labels: Promise<DDINoGroup[]>;
+		label: Promise<DDINoGroup[]>;
 	};
 	export let allLabelIds: string[];
 	export let commonLabelIds: string[];
@@ -99,7 +99,7 @@
 				? `(${$formData.addLabels.length})`
 				: ''}"
 		>
-			{#await dropdownInfo.labels then labelDropdown}
+			{#await dropdownInfo.label then labelDropdown}
 				<div class="flex flex-col gap-6">
 					<div class="flex flex-row gap-2">
 						<ComboSelect
@@ -155,7 +155,7 @@
 					? `(${$formData.removeLabels.length})`
 					: ''}"
 			>
-				{#await dropdownInfo.labels then labelDropdown}
+				{#await dropdownInfo.label then labelDropdown}
 					<div class="flex flex-col gap-6">
 						{#if allLabelIds.length > 0}
 							{@const useAllLabelIds = allLabelIds.filter((item) =>
@@ -240,7 +240,7 @@
 				? `(${$formData.labels.length})`
 				: ''}"
 		>
-			{#await dropdownInfo.labels then labelDropdown}
+			{#await dropdownInfo.label then labelDropdown}
 				<div class="flex flex-col gap-6">
 					<div class="flex flex-row gap-2">
 						<ComboSelect

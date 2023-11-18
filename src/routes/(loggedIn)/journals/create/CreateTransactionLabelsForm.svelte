@@ -9,7 +9,7 @@
 
 	type DDINoGroup = { id: string; title: string; enabled: boolean };
 	export let dropdownInfo: {
-		labels: Promise<DDINoGroup[]>;
+		label: Promise<DDINoGroup[]>;
 	};
 
 	let currentLabelId: string | undefined = undefined;
@@ -37,7 +37,7 @@
 		currentLabelId && (!$formData.labels || !$formData.labels.includes(currentLabelId));
 </script>
 
-{#await dropdownInfo.labels then labelDropdown}
+{#await dropdownInfo.label then labelDropdown}
 	<div class="flex flex-col gap-2">
 		<P class="flex text-sm font-semibold">Labels</P>
 		{#if $formData.labels && $formData.labels.length > 0}
