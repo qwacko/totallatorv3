@@ -42,6 +42,8 @@ import {
 	importLabel
 } from './helpers/importHelpers';
 import { processObjectReturnTransaction } from '$lib/helpers/importTransformation';
+import { getImportDetail } from './helpers/getImportDetail';
+import { processCreatedImport } from './helpers/processImport';
 
 export const importActions = {
 	list: async ({ db }: { db: DBType }) => {
@@ -242,232 +244,10 @@ export const importActions = {
 		const importData = data[0];
 
 		if (importData.status === 'created') {
-			if (importData.source === 'csv') {
-				if (!importData.filename) {
-					throw new Error('Import File Not Found');
-				}
-				const file = readFileSync(importData.filename);
-				const processedData = Papa.parse(file.toString(), { header: true, skipEmptyLines: true });
-
-				if (processedData.errors && processedData.errors.length > 0) {
-					await db
-						.update(importTable)
-						.set({
-							status: 'error',
-							errorInfo: processedData.errors,
-							...updatedTime()
-						})
-						.where(eq(importTable.id, id))
-						.execute();
-				} else {
-					if (importData.type === 'transaction') {
-						await importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createSimpleTransactionSchema
-						});
-					} else if (importData.type === 'account') {
-						await importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createAccountSchema,
-							getUniqueIdentifier: (data) =>
-								`${data.accountGroupCombined ? data.accountGroupCombined + ':' : ''}:${data.title}`,
-							checkUniqueIdentifiers: async (data) => {
-								const existingAccounts = await db
-									.select()
-									.from(account)
-									.where(inArray(account.accountTitleCombined, data))
-									.execute();
-								return existingAccounts.map((item) => item.accountTitleCombined);
-							}
-						});
-					} else if (importData.type === 'bill') {
-						await importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createBillSchema,
-							getUniqueIdentifier: (data) => data.title,
-							checkUniqueIdentifiers: async (data) => {
-								const existingBills = await db
-									.select()
-									.from(bill)
-									.where(inArray(bill.title, data))
-									.execute();
-								return existingBills.map((item) => item.title);
-							}
-						});
-					} else if (importData.type === 'budget') {
-						await importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createBudgetSchema,
-							getUniqueIdentifier: (data) => data.title,
-							checkUniqueIdentifiers: async (data) => {
-								const existingBudgets = await db
-									.select()
-									.from(budget)
-									.where(inArray(budget.title, data))
-									.execute();
-								return existingBudgets.map((item) => item.title);
-							}
-						});
-					} else if (importData.type === 'category') {
-						await importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createCategorySchema,
-							getUniqueIdentifier: (data) => data.title,
-							checkUniqueIdentifiers: async (data) => {
-								const existingCategories = await db
-									.select()
-									.from(category)
-									.where(inArray(category.title, data))
-									.execute();
-								return existingCategories.map((item) => item.title);
-							}
-						});
-					} else if (importData.type === 'tag') {
-						await importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createTagSchema,
-							getUniqueIdentifier: (data) => data.title,
-							checkUniqueIdentifiers: async (data) => {
-								const existingTags = await db
-									.select()
-									.from(tag)
-									.where(inArray(tag.title, data))
-									.execute();
-								return existingTags.map((item) => item.title);
-							}
-						});
-					} else if (importData.type === 'label') {
-						await importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createLabelSchema,
-							getUniqueIdentifier: (data) => data.title,
-							checkUniqueIdentifiers: async (data) => {
-								const existingLabels = await db
-									.select()
-									.from(label)
-									.where(inArray(label.title, data))
-									.execute();
-								return existingLabels.map((item) => item.title);
-							}
-						});
-					} else if (importData.type === 'mappedImport') {
-						if (importData.importMappingId) {
-							const importMappingDetail = await tActions.importMapping.getById({
-								db,
-								id: importData.importMappingId
-							});
-
-							if (importMappingDetail) {
-								if (importMappingDetail.configuration) {
-									const config = importMappingDetail.configuration;
-
-									await importActions.processItems<CreateSimpleTransactionType>({
-										db,
-										id,
-										data: processedData,
-										schema: createSimpleTransactionSchema as ZodSchema<CreateSimpleTransactionType>,
-										importDataToSchema: (data) => {
-											const currentRow = data as Record<string, unknown>;
-											const currentProcessedRow = processObjectReturnTransaction(
-												currentRow,
-												config
-											);
-											if (currentProcessedRow.errors) {
-												return { errors: currentProcessedRow.errors.map((item) => item.error) };
-											} else {
-												const validatedData = createSimpleTransactionSchema.safeParse(
-													currentProcessedRow.transaction
-												);
-												if (!validatedData.success) {
-													return { errors: [validatedData.error.message] };
-												} else {
-													return { data: validatedData.data };
-												}
-											}
-										},
-										getUniqueIdentifier: (data) => data.uniqueId,
-										checkUniqueIdentifiers: async (data) => {
-											const existingTransactions = await db
-												.select()
-												.from(journalEntry)
-												.where(inArray(journalEntry.uniqueId, data))
-												.execute();
-											return filterNullUndefinedAndDuplicates(
-												existingTransactions.map((item) => item.uniqueId)
-											);
-										}
-									});
-								}
-							}
-						}
-					}
-				}
-			}
-
-			await db
-				.update(importTable)
-				.set({ status: 'processed', ...updatedTime() })
-				.where(eq(importTable.id, id))
-				.execute();
+			await processCreatedImport({ db, id, importData });
 		}
 
-		const returnData = await db.query.importTable
-			.findFirst({
-				where: eq(importTable.id, id),
-				with: {
-					importDetails: {
-						with: {
-							journal: true,
-							journal2: true,
-							bill: true,
-							budget: true,
-							category: true,
-							tag: true,
-							label: true,
-							account: true
-						}
-					}
-				}
-			})
-			.execute();
-
-		if (!returnData) {
-			throw new Error('Error Retrieving Import Details');
-		}
-
-		const linkedItemCount = returnData.importDetails.reduce(
-			(prev, current) =>
-				prev +
-				Number(current.journal) +
-				Number(current.journal2) +
-				Number(current.bill) +
-				Number(current.budget) +
-				Number(current.category) +
-				Number(current.tag) +
-				Number(current.label) +
-				Number(current.account),
-			0
-		);
-
-		return {
-			type: returnData.type,
-			detail: returnData,
-			linkedItemCount
-		};
+		return getImportDetail({ db, id });
 	},
 	changeType: async ({ db, id, newType }: { db: DBType; id: string; newType: importTypeType }) => {
 		const targetItems = await db.select().from(importTable).where(eq(importTable.id, id)).execute();
@@ -551,7 +331,7 @@ export const importActions = {
 		await db.transaction(async (trx) => {
 			await Promise.all(
 				importDetails.map(async (item) => {
-					if (importInfo.type === 'transaction') {
+					if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
 						await importTransaction({ item, trx });
 					} else if (importInfo.type === 'account') {
 						await importAccount({ item, trx });
