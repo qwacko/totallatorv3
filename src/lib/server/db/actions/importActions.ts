@@ -1,7 +1,7 @@
 import { logging } from '$lib/server/logging';
 import { serverEnv } from '$lib/server/serverEnv';
 import { nanoid } from 'nanoid';
-import { writeFileSync, readFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import type { DBType } from '../db';
 import {
 	account,
@@ -16,21 +16,10 @@ import {
 	tag
 } from '../schema';
 import { updatedTime } from './helpers/updatedTime';
-import { eq, and, getTableColumns, desc, sql, inArray } from 'drizzle-orm';
-import Papa from 'papaparse';
-import {
-	createSimpleTransactionSchema,
-	type CreateSimpleTransactionType
-} from '$lib/schema/journalSchema';
+import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
-import { createAccountSchema } from '$lib/schema/accountSchema';
 import type { ZodSchema } from 'zod';
-import { createBillSchema } from '$lib/schema/billSchema';
-import { createBudgetSchema } from '$lib/schema/budgetSchema';
-import { createCategorySchema } from '$lib/schema/categorySchema';
-import { createTagSchema } from '$lib/schema/tagSchema';
-import { createLabelSchema } from '$lib/schema/labelSchema';
 import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema';
 import {
 	importTransaction,
@@ -41,7 +30,7 @@ import {
 	importTag,
 	importLabel
 } from './helpers/importHelpers';
-import { processObjectReturnTransaction } from '$lib/helpers/importTransformation';
+
 import { getImportDetail } from './helpers/getImportDetail';
 import { processCreatedImport } from './helpers/processImport';
 
