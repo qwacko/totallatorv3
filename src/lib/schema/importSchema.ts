@@ -12,30 +12,30 @@ export const importTypeEnum = [
 
 export type importTypeType = (typeof importTypeEnum)[number];
 
-export const importTypeToTitle = (type: (typeof importTypeEnum)[number]) => {
+export const importTypeToTitle = (type: (typeof importTypeEnum)[number], single = false) => {
 	if (type === 'transaction') {
-		return 'Transactions';
+		return single ? 'Transaction' : 'Transactions';
 	}
 	if (type === 'account') {
-		return 'Accounts';
+		return single ? 'Account' : 'Accounts';
 	}
 	if (type === 'bill') {
-		return 'Bills';
+		return single ? 'Bill' : 'Bills';
 	}
 	if (type === 'budget') {
-		return 'Budgets';
+		return single ? 'Budget' : 'Budgets';
 	}
 	if (type === 'category') {
-		return 'Categories';
+		return single ? 'Category' : 'Categories';
 	}
 	if (type === 'tag') {
-		return 'Tags';
+		return single ? 'Tag' : 'Tags';
 	}
 	if (type === 'label') {
-		return 'Labels';
+		return single ? 'Label' : 'Labels';
 	}
 	if (type === 'mappedImport') {
-		return 'Mapped Imports';
+		return single ? 'Mapped Import' : 'Mapped Imports';
 	}
 
 	return 'Unknown';
@@ -51,15 +51,16 @@ export const importDetailStatusEnum = [
 export const importStatusEnum = ['created', 'error', 'processed', 'imported', 'complete'] as const;
 
 export type ImportStatusType = (typeof importStatusEnum)[number];
+export type ImportDetailStatusEnum = (typeof importDetailStatusEnum)[number];
 
-export const importStatusToColour = (status: ImportStatusType) => {
+export const importStatusToColour = (status: ImportStatusType | ImportDetailStatusEnum) => {
 	if (status === 'complete') {
 		return 'green';
 	}
 	if (status === 'created') {
 		return 'blue';
 	}
-	if (status === 'error') {
+	if (status === 'error' || status === 'importError') {
 		return 'red';
 	}
 	if (status === 'imported') {
@@ -67,6 +68,9 @@ export const importStatusToColour = (status: ImportStatusType) => {
 	}
 	if (status === 'processed') {
 		return 'blue';
+	}
+	if (status === 'duplicate') {
+		return 'dark';
 	}
 
 	return 'primary';

@@ -54,6 +54,9 @@
 					<Badge color={importStatusToColour('error')}>
 						{currentImport.numImportErrors} Import Error
 					</Badge>
+					<Badge color={importStatusToColour('duplicate')}>
+						{currentImport.numDuplicate} Duplicate
+					</Badge>
 					<Badge color={importStatusToColour('imported')}>
 						{currentImport.numImport} Imported
 					</Badge>

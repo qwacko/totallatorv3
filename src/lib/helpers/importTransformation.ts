@@ -1,6 +1,11 @@
+import { createSimpleTransactionSchema } from '$lib/schema/journalSchema';
+
 type InputObject = Record<string, string>;
 
-export const processObject = <ConfigObject extends Record<string, string>>(
+export const processObject = <
+	Keys extends string,
+	ConfigObject extends Record<Keys, string | undefined>
+>(
 	input: Record<string, unknown>,
 	config: ConfigObject
 ) => {
@@ -22,6 +27,54 @@ export const processObject = <ConfigObject extends Record<string, string>>(
 		},
 		{} as Record<keyof ConfigObject, { text?: string; error?: string }>
 	);
+};
+
+export const processObjectReturnTransaction = <
+	Keys extends string,
+	ConfigObject extends Record<Keys, string | undefined>
+>(
+	input: Record<string, unknown>,
+	config: ConfigObject
+) => {
+	const processedObject = processObject(input, config);
+
+	const objectKeys = Object.keys(processedObject) as Keys[];
+
+	const hasErrors = objectKeys.reduce(
+		(prev, value) => (processedObject[value].error !== undefined ? true : prev),
+		false
+	);
+
+	const errorList = objectKeys.reduce(
+		(prev, value) => {
+			if (processedObject[value]?.error !== undefined) {
+				const errorMessage = processedObject[value].error || '';
+				return [...prev, { key: value, error: errorMessage }];
+			}
+			return prev;
+		},
+		[] as { key: Keys; error: string }[]
+	);
+
+	if (hasErrors) {
+		return { errors: errorList };
+	}
+
+	const returnObject = objectKeys.reduce(
+		(prev, value) => {
+			return { ...prev, [value]: processedObject[value].text };
+		},
+		{} as Record<Keys, string>
+	);
+
+	const processed = createSimpleTransactionSchema.safeParse(returnObject);
+
+	if (!processed.success) {
+		return { errors: [{ key: 'transaction', error: processed.error.message }] };
+	}
+	return {
+		transaction: processed.data
+	};
 };
 
 export function processConfigString(

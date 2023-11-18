@@ -9,15 +9,19 @@ import {
 	budget,
 	category,
 	importItemDetail,
+	importMapping,
 	importTable,
 	journalEntry,
 	label,
 	tag
 } from '../schema';
 import { updatedTime } from './helpers/updatedTime';
-import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
+import { eq, and, getTableColumns, desc, sql, inArray } from 'drizzle-orm';
 import Papa from 'papaparse';
-import { createSimpleTransactionSchema } from '$lib/schema/journalSchema';
+import {
+	createSimpleTransactionSchema,
+	type CreateSimpleTransactionType
+} from '$lib/schema/journalSchema';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 import { createAccountSchema } from '$lib/schema/accountSchema';
@@ -37,12 +41,15 @@ import {
 	importTag,
 	importLabel
 } from './helpers/importHelpers';
+import { processObjectReturnTransaction } from '$lib/helpers/importTransformation';
 
 export const importActions = {
 	list: async ({ db }: { db: DBType }) => {
 		const imports = await db
 			.select({
 				...getTableColumns(importTable),
+				importMappingId: importMapping.id,
+				importMappingTitle: importMapping.title,
 				numErrors:
 					sql`count(CASE WHEN ${importItemDetail.status} = 'error' THEN 1 ELSE NULL END)`.mapWith(
 						Number
@@ -70,15 +77,35 @@ export const importActions = {
 			})
 			.from(importTable)
 			.leftJoin(importItemDetail, eq(importItemDetail.importId, importTable.id))
+			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
 			.groupBy(importTable.id)
 			.orderBy(desc(importTable.createdAt))
 			.execute();
 
 		return imports;
 	},
-	storeCSV: async ({ newFile, db, type }: { db: DBType; newFile: File; type: importTypeType }) => {
+	storeCSV: async ({
+		newFile,
+		db,
+		type,
+		importMapping
+	}: {
+		db: DBType;
+		newFile: File;
+		type: importTypeType;
+		importMapping: string | undefined;
+	}) => {
 		if (newFile.type !== 'text/csv') {
 			throw new Error('Incorrect FileType');
+		}
+		if (type === 'mappedImport' && !importMapping) {
+			throw new Error('No Mapping Selected');
+		}
+		if (importMapping) {
+			const result = await tActions.importMapping.getById({ db, id: importMapping });
+			if (!result) {
+				throw new Error(`Mapping ${importMapping} Not Found`);
+			}
 		}
 		logging.info('New Filename', newFile.name);
 
@@ -97,6 +124,7 @@ export const importActions = {
 				id,
 				filename: combinedFilename,
 				title: originalFilename,
+				importMappingId: importMapping,
 				...updatedTime(),
 				status: 'created',
 				source: 'csv',
@@ -110,28 +138,79 @@ export const importActions = {
 		db,
 		id,
 		data,
-		schema
+		schema,
+		importDataToSchema = (data) => ({ data: data as S }),
+		getUniqueIdentifier,
+		checkUniqueIdentifiers
 	}: {
 		db: DBType;
 		id: string;
 		data: Papa.ParseResult<unknown>;
 		schema: ZodSchema<S>;
+		importDataToSchema?: (data: unknown) => { data: S } | { errors: string[] };
+		getUniqueIdentifier?: ((data: S) => string | null | undefined) | undefined;
+		checkUniqueIdentifiers?: (data: string[]) => Promise<string[]>;
 	}) => {
 		await Promise.all(
-			data.data.map(async (row) => {
-				const validatedData = schema.safeParse(row);
+			data.data.map(async (currentRow) => {
+				const row = currentRow as Record<string, unknown>;
 				const importDetailId = nanoid();
-				if (validatedData.success) {
+				const preprocessedData = importDataToSchema(row);
+				if ('errors' in preprocessedData) {
 					await db
 						.insert(importItemDetail)
 						.values({
 							id: importDetailId,
 							...updatedTime(),
-							status: 'processed',
-							processedInfo: validatedData.data,
+							status: 'error',
+							processedInfo: { source: row },
+							errorInfo: { errors: preprocessedData.errors },
 							importId: id
 						})
 						.execute();
+					return;
+				}
+				const validatedData = schema.safeParse(preprocessedData.data);
+				if (validatedData.success) {
+					const unqiueIdentifiers = getUniqueIdentifier
+						? getUniqueIdentifier(validatedData.data)
+						: undefined;
+					const foundUniqueIdentifiers =
+						checkUniqueIdentifiers && unqiueIdentifiers
+							? await checkUniqueIdentifiers([unqiueIdentifiers])
+							: undefined;
+
+					if (foundUniqueIdentifiers && foundUniqueIdentifiers.length > 0) {
+						await db
+							.insert(importItemDetail)
+							.values({
+								id: importDetailId,
+								...updatedTime(),
+								status: 'duplicate',
+								processedInfo: {
+									dataToUse: validatedData.data,
+									source: row,
+									processed: preprocessedData
+								},
+								importId: id
+							})
+							.execute();
+					} else {
+						await db
+							.insert(importItemDetail)
+							.values({
+								id: importDetailId,
+								...updatedTime(),
+								status: 'processed',
+								processedInfo: {
+									dataToUse: validatedData.data,
+									source: row,
+									processed: preprocessedData
+								},
+								importId: id
+							})
+							.execute();
+					}
 				} else {
 					await db
 						.insert(importItemDetail)
@@ -139,8 +218,8 @@ export const importActions = {
 							id: importDetailId,
 							...updatedTime(),
 							status: 'error',
-							processedInfo: row,
-							errorInfo: validatedData.error,
+							processedInfo: { source: row, processed: preprocessedData },
+							errorInfo: { error: validatedData.error },
 							importId: id
 						})
 						.execute();
@@ -182,54 +261,159 @@ export const importActions = {
 						.execute();
 				} else {
 					if (importData.type === 'transaction') {
-						importActions.processItems({
+						await importActions.processItems({
 							db,
 							id,
 							data: processedData,
 							schema: createSimpleTransactionSchema
 						});
 					} else if (importData.type === 'account') {
-						importActions.processItems({
+						await importActions.processItems({
 							db,
 							id,
 							data: processedData,
-							schema: createAccountSchema
+							schema: createAccountSchema,
+							getUniqueIdentifier: (data) =>
+								`${data.accountGroupCombined ? data.accountGroupCombined + ':' : ''}:${data.title}`,
+							checkUniqueIdentifiers: async (data) => {
+								const existingAccounts = await db
+									.select()
+									.from(account)
+									.where(inArray(account.accountTitleCombined, data))
+									.execute();
+								return existingAccounts.map((item) => item.accountTitleCombined);
+							}
 						});
 					} else if (importData.type === 'bill') {
-						importActions.processItems({
+						await importActions.processItems({
 							db,
 							id,
 							data: processedData,
-							schema: createBillSchema
+							schema: createBillSchema,
+							getUniqueIdentifier: (data) => data.title,
+							checkUniqueIdentifiers: async (data) => {
+								const existingBills = await db
+									.select()
+									.from(bill)
+									.where(inArray(bill.title, data))
+									.execute();
+								return existingBills.map((item) => item.title);
+							}
 						});
 					} else if (importData.type === 'budget') {
-						importActions.processItems({
+						await importActions.processItems({
 							db,
 							id,
 							data: processedData,
-							schema: createBudgetSchema
+							schema: createBudgetSchema,
+							getUniqueIdentifier: (data) => data.title,
+							checkUniqueIdentifiers: async (data) => {
+								const existingBudgets = await db
+									.select()
+									.from(budget)
+									.where(inArray(budget.title, data))
+									.execute();
+								return existingBudgets.map((item) => item.title);
+							}
 						});
 					} else if (importData.type === 'category') {
-						importActions.processItems({
+						await importActions.processItems({
 							db,
 							id,
 							data: processedData,
-							schema: createCategorySchema
+							schema: createCategorySchema,
+							getUniqueIdentifier: (data) => data.title,
+							checkUniqueIdentifiers: async (data) => {
+								const existingCategories = await db
+									.select()
+									.from(category)
+									.where(inArray(category.title, data))
+									.execute();
+								return existingCategories.map((item) => item.title);
+							}
 						});
 					} else if (importData.type === 'tag') {
-						importActions.processItems({
+						await importActions.processItems({
 							db,
 							id,
 							data: processedData,
-							schema: createTagSchema
+							schema: createTagSchema,
+							getUniqueIdentifier: (data) => data.title,
+							checkUniqueIdentifiers: async (data) => {
+								const existingTags = await db
+									.select()
+									.from(tag)
+									.where(inArray(tag.title, data))
+									.execute();
+								return existingTags.map((item) => item.title);
+							}
 						});
 					} else if (importData.type === 'label') {
-						importActions.processItems({
+						await importActions.processItems({
 							db,
 							id,
 							data: processedData,
-							schema: createLabelSchema
+							schema: createLabelSchema,
+							getUniqueIdentifier: (data) => data.title,
+							checkUniqueIdentifiers: async (data) => {
+								const existingLabels = await db
+									.select()
+									.from(label)
+									.where(inArray(label.title, data))
+									.execute();
+								return existingLabels.map((item) => item.title);
+							}
 						});
+					} else if (importData.type === 'mappedImport') {
+						if (importData.importMappingId) {
+							const importMappingDetail = await tActions.importMapping.getById({
+								db,
+								id: importData.importMappingId
+							});
+
+							if (importMappingDetail) {
+								if (importMappingDetail.configuration) {
+									const config = importMappingDetail.configuration;
+
+									await importActions.processItems<CreateSimpleTransactionType>({
+										db,
+										id,
+										data: processedData,
+										schema: createSimpleTransactionSchema as ZodSchema<CreateSimpleTransactionType>,
+										importDataToSchema: (data) => {
+											const currentRow = data as Record<string, unknown>;
+											const currentProcessedRow = processObjectReturnTransaction(
+												currentRow,
+												config
+											);
+											if (currentProcessedRow.errors) {
+												return { errors: currentProcessedRow.errors.map((item) => item.error) };
+											} else {
+												const validatedData = createSimpleTransactionSchema.safeParse(
+													currentProcessedRow.transaction
+												);
+												if (!validatedData.success) {
+													return { errors: [validatedData.error.message] };
+												} else {
+													return { data: validatedData.data };
+												}
+											}
+										},
+										getUniqueIdentifier: (data) => data.uniqueId,
+										checkUniqueIdentifiers: async (data) => {
+											const existingTransactions = await db
+												.select()
+												.from(journalEntry)
+												.where(inArray(journalEntry.uniqueId, data))
+												.execute();
+											return filterNullUndefinedAndDuplicates(
+												existingTransactions.map((item) => item.uniqueId)
+											);
+										}
+									});
+								}
+							}
+						}
 					}
 				}
 			}

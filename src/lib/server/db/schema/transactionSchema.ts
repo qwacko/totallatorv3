@@ -9,6 +9,7 @@ import {
 	importTypeEnum
 } from '../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../schema/reusableFilterSchema';
+import type { ZodError } from 'zod';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -259,6 +260,7 @@ export const transactionRelations = relations(transaction, ({ many }) => ({
 export const journalEntry = sqliteTable('journal_entry', {
 	...idColumn,
 	...importColumns(),
+	uniqueId: text('unique_id'),
 	amount: integer('amount', { mode: 'number' }).notNull().default(0),
 	transactionId: text('transaction_id').notNull(),
 	...journalSharedColumns,
@@ -306,13 +308,26 @@ export const importItemDetail = sqliteTable(
 	{
 		...idColumn,
 		importId: text('import_id').notNull(),
+		status: text('status', { enum: importDetailStatusEnum }).notNull().default('error'),
 		duplicateId: text('duplicate_id'),
 		relationId: text('relation_id'),
 		relation2Id: text('relation_2_id'),
 		importInfo: text('import_info', { mode: 'json' }),
-		processedInfo: text('processed_info', { mode: 'json' }),
-		errorInfo: text('error_info', { mode: 'json' }),
-		status: text('status', { enum: importDetailStatusEnum }).notNull().default('error'),
+		processedInfo: text('processed_info', { mode: 'json' }).$type<
+			| {
+					dataToUse?: Record<string, unknown>;
+					source?: Record<string, unknown>;
+					processed?: Record<string, unknown>;
+			  }
+			| undefined
+		>(),
+		errorInfo: text('error_info', { mode: 'json' }).$type<
+			| {
+					error?: Record<string, unknown> | ZodError<unknown>;
+					errors?: string[];
+			  }
+			| undefined
+		>(),
 		...timestampColumns
 	},
 	(t) => ({

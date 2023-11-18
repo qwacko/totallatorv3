@@ -3,11 +3,15 @@
 	import { goto } from '$app/navigation';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import { importTypeEnum } from '$lib/schema/importSchema';
+	import { importTypeEnum, importTypeToTitle, type importTypeType } from '$lib/schema/importSchema';
 	import { Badge, Button, Fileupload, Select } from 'flowbite-svelte';
 	import { z } from 'zod';
 
 	let errorMessage: string | undefined = '';
+
+	export let data;
+
+	let importType: importTypeType = importTypeEnum[0];
 </script>
 
 <CustomHeader pageTitle="New Import" />
@@ -44,10 +48,19 @@
 		<input class="flex" name="test" type="hidden" value="test" />
 		<Select
 			name="importType"
-			items={importTypeEnum.map((t) => ({ name: t, value: t }))}
+			items={importTypeEnum.map((t) => ({ name: importTypeToTitle(t, true), value: t }))}
 			placeholder="Select Import Type..."
 			required
+			bind:value={importType}
 		/>
+		{#if importType === 'mappedImport'}
+			<Select
+				name="importMappingId"
+				items={data.importMappingDropdown.map((t) => ({ name: t.title, value: t.id }))}
+				placeholder="Select Import Mapping..."
+				required
+			/>
+		{/if}
 		<Fileupload name="csvFile" accept=".csv" required />
 		<Button type="submit">Upload</Button>
 	</form>
