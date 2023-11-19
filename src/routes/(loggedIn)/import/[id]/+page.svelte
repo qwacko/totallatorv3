@@ -58,6 +58,14 @@
 				</Dropdown>
 			</div>
 			<div class="flex self-center flex-row gap-1">
+				<i>Duplicate Checking :</i>
+				{#if importData.detail.checkImportedOnly}
+					Only Imported Items
+				{:else}
+					All Items
+				{/if}
+			</div>
+			<div class="flex self-center flex-row gap-1">
 				<i>Created :</i>
 				{importData.detail.createdAt.toISOString().slice(0, 19)}
 			</div>

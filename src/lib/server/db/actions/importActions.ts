@@ -79,12 +79,14 @@ export const importActions = {
 		newFile,
 		db,
 		type,
-		importMapping
+		importMapping,
+		checkImportedOnly = false
 	}: {
 		db: DBType;
 		newFile: File;
 		type: importTypeType;
 		importMapping: string | undefined;
+		checkImportedOnly?: boolean;
 	}) => {
 		if (newFile.type !== 'text/csv') {
 			throw new Error('Incorrect FileType');
@@ -119,7 +121,8 @@ export const importActions = {
 				...updatedTime(),
 				status: 'created',
 				source: 'csv',
-				type
+				type,
+				checkImportedOnly
 			})
 			.execute();
 
@@ -163,12 +166,12 @@ export const importActions = {
 				}
 				const validatedData = schema.safeParse(preprocessedData.data);
 				if (validatedData.success) {
-					const unqiueIdentifiers = getUniqueIdentifier
+					const unqiueIdentifier = getUniqueIdentifier
 						? getUniqueIdentifier(validatedData.data)
 						: undefined;
 					const foundUniqueIdentifiers =
-						checkUniqueIdentifiers && unqiueIdentifiers
-							? await checkUniqueIdentifiers([unqiueIdentifiers])
+						checkUniqueIdentifiers && unqiueIdentifier
+							? await checkUniqueIdentifiers([unqiueIdentifier])
 							: undefined;
 
 					if (foundUniqueIdentifiers && foundUniqueIdentifiers.length > 0) {
@@ -183,7 +186,8 @@ export const importActions = {
 									source: row,
 									processed: preprocessedData
 								},
-								importId: id
+								importId: id,
+								uniqueId: unqiueIdentifier
 							})
 							.execute();
 					} else {
@@ -198,7 +202,8 @@ export const importActions = {
 									source: row,
 									processed: preprocessedData
 								},
-								importId: id
+								importId: id,
+								uniqueId: unqiueIdentifier
 							})
 							.execute();
 					}

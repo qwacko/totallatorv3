@@ -4,7 +4,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { importTypeEnum, importTypeToTitle, type importTypeType } from '$lib/schema/importSchema';
-	import { Badge, Button, Fileupload, Select } from 'flowbite-svelte';
+	import { Badge, Button, Checkbox, Fileupload, Select } from 'flowbite-svelte';
 	import { z } from 'zod';
 
 	let errorMessage: string | undefined = '';
@@ -53,6 +53,9 @@
 			required
 			bind:value={importType}
 		/>
+		{#if importType !== 'transaction'}
+			<Checkbox name="checkImportedOnly">Check Only Imported Items For Duplicates</Checkbox>
+		{/if}
 		{#if importType === 'mappedImport'}
 			<Select
 				name="importMappingId"

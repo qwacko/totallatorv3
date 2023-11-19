@@ -11,6 +11,8 @@ export const actions = {
 		const formData = Object.fromEntries(await request.formData());
 
 		let newId: undefined | string = undefined;
+		console.log('Create Form Data', formData);
+		const checkImportedOnly = formData.checkImportedOnly === 'on';
 
 		try {
 			const uploadType = formData.importType as importTypeType | undefined;
@@ -32,7 +34,8 @@ export const actions = {
 					newFile: uploadedFile,
 					db,
 					type: uploadType,
-					importMapping: uploadedMapping
+					importMapping: uploadedMapping,
+					checkImportedOnly
 				});
 			}
 		} catch (e) {
