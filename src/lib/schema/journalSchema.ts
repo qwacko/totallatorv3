@@ -27,6 +27,7 @@ const zodCoercedBoolean = z.boolean().or(
 );
 
 export const createJournalDBCore = z.object({
+	uniqueId: z.string().nullable().optional(),
 	date: dateStringSchema,
 	description: z.string(),
 	amount: z.coerce.number(),

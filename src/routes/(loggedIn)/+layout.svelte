@@ -12,10 +12,11 @@
 	import UserAccountIcon from '$lib/components/icons/UserAccountIcon.svelte';
 	import TagIcon from '$lib/components/icons/TagIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
-	import { Button, Tooltip } from 'flowbite-svelte';
+	import { Button, Dropdown, DropdownItem } from 'flowbite-svelte';
 	import DevIcon from '$lib/components/icons/DevIcon.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
+	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 
 	export let data;
 
@@ -27,7 +28,8 @@
 	$: pageIsJournalEntries = $page.route.id?.startsWith('/(loggedIn)/journal-entries');
 	$: pageIsAccounts = $page.route.id?.startsWith('/(loggedIn)/accounts');
 	$: pageIsDev = $page.route.id?.startsWith('/(loggedIn)/dev');
-	$: pageIsImport = $page.route.id?.startsWith('/(loggedIn)/import');
+	$: pageIsImportMapping = $page.route.id?.startsWith('/(loggedIn)/importMapping');
+	$: pageIsImport = $page.route.id?.startsWith('/(loggedIn)/import') && !pageIsImportMapping;
 	$: pageIsBackup = $page.route.id?.startsWith('/(loggedIn)/backup');
 	$: pageIsCurrentUser = data.user?.userId
 		? $page.url.toString().includes(data.user.userId)
@@ -94,6 +96,12 @@
 			href: urlGenerator({ address: '/(loggedIn)/import' })
 		},
 		{
+			label: 'Import Mapping',
+			active: pageIsImportMapping,
+			icon: ImportIcon,
+			href: urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} })
+		},
+		{
 			label: 'Backup',
 			active: pageIsBackup,
 			icon: BackupIcon,
@@ -133,11 +141,44 @@
 			  ]
 			: [])
 	];
+
+	$: pageMapWithoutJournals = pageMap.filter((page) => page.label !== 'Journal Entries');
 </script>
 
 <div class="flex flex-col justify-stretch p-2">
 	<div class="flex flex-row justify-center gap-2 pb-8 pt-4 flex-wrap">
-		{#each pageMap as currentPage}
+		<FilterDropdown
+			showDefaultJournalFilters
+			hideIcon
+			buttonText="Journals"
+			filters={data.filterDropdown}
+			newFilter={(newFilter) =>
+				urlGenerator({
+					address: '/(loggedIn)/journals',
+					searchParamsValue: {
+						...newFilter,
+						page: 0,
+						pageSize: 10
+					}
+				}).url}
+			updateFilter={(newFilter) =>
+				urlGenerator({
+					address: '/(loggedIn)/journals',
+					searchParamsValue: newFilter
+				}).url}
+			currentFilter={{ page: 0, pageSize: 10, orderBy: [{ field: 'date', direction: 'desc' }] }}
+		/>
+		<Button outline color="light">Config</Button>
+		<Dropdown>
+			{#each pageMapWithoutJournals as currentPage}
+				<DropdownItem href={currentPage.href.url}>
+					<div class="flex flex-row gap-2 items-center">
+						<svelte:component this={currentPage.icon} />{currentPage.label}
+					</div>
+				</DropdownItem>
+			{/each}
+		</Dropdown>
+		<!-- {#each pageMap as currentPage}
 			<Button
 				id={currentPage.label}
 				class="flex border-0"
@@ -147,7 +188,7 @@
 				<svelte:component this={currentPage.icon} />
 			</Button>
 			<Tooltip triggeredBy="[id^='{currentPage.label}']">{currentPage.label}</Tooltip>
-		{/each}
+		{/each} -->
 	</div>
 	<slot />
 </div>

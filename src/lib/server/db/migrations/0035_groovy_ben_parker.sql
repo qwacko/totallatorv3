@@ -1,0 +1,1 @@
+ALTER TABLE journal_entry ADD `unique_id` text;

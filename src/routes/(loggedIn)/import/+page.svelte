@@ -32,13 +32,31 @@
 				class="flex flex-col gap-2"
 			>
 				<div class="flex font-bold">{currentImport.title}</div>
-				<div class="flex flex-row gap-2">
-					<div class="flex font-semibold">Date</div>
-					<div class="flex">{currentImport.createdAt.toISOString().slice(0, 10)}</div>
+				<div class="flex flex-row gap-4">
+					<div class="flex flex-row gap-2">
+						<div class="flex font-semibold">Date</div>
+						<div class="flex">{currentImport.createdAt.toISOString().slice(0, 10)}</div>
+					</div>
+					{#if currentImport.type !== 'transaction'}
+						<div class="flex flex-row gap-2">
+							<div class="flex font-semibold">Duplicate Checking</div>
+							<div class="flex">
+								{#if currentImport.checkImportedOnly}Imported Only{:else}All{/if}
+							</div>
+						</div>
+					{/if}
 				</div>
-				<div class="flex flex-row gap-2">
-					<div class="flex font-semibold">Type</div>
-					<div class="flex">{importTypeToTitle(currentImport.type)}</div>
+				<div class="flex flex-row gap-4">
+					<div class="flex flex-row gap-2">
+						<div class="flex font-semibold">Type</div>
+						<div class="flex">{importTypeToTitle(currentImport.type)}</div>
+					</div>
+					{#if currentImport.type === 'mappedImport'}
+						<div class="flex flex-row gap-2">
+							<div class="flex font-semibold">Import Mapping</div>
+							<div class="flex">{currentImport.importMappingTitle}</div>
+						</div>
+					{/if}
 				</div>
 				<Badge color={importStatusToColour(currentImport.status)}>
 					{importStatusToTest(currentImport.status)}
@@ -53,6 +71,9 @@
 					</Badge>
 					<Badge color={importStatusToColour('error')}>
 						{currentImport.numImportErrors} Import Error
+					</Badge>
+					<Badge color={importStatusToColour('duplicate')}>
+						{currentImport.numDuplicate} Duplicate
 					</Badge>
 					<Badge color={importStatusToColour('imported')}>
 						{currentImport.numImport} Imported

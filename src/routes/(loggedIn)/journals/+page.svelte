@@ -30,7 +30,8 @@
 	import FilterModalContent from '$lib/components/FilterModalContent.svelte';
 	import DropdownFilterNestedText from '$lib/components/table/DropdownFilterNestedText.svelte';
 	import DateInput from '$lib/components/DateInput.svelte';
-	import FilterDropdown from './FilterDropdown.svelte';
+	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
+	import BulkJournalActions from './BulkJournalActions.svelte';
 
 	export let data;
 
@@ -97,8 +98,10 @@
 			currentOrder={data.searchParams.orderBy}
 			currentFilter={data.searchParams}
 			filterModalTitle="Filter Journals"
+			bulkSelection
 			bind:numberRows={$urlStore.searchParams.pageSize}
 			bind:filterOpened
+			rowToId={(row) => row.id}
 			columns={[
 				{ id: 'actions', title: '' },
 				{
@@ -155,6 +158,13 @@
 			]}
 			bind:shownColumns={$journalColumnsStore}
 		>
+			<svelte:fragment slot="bulkActions" let:selectedIds>
+				<BulkJournalActions
+					{selectedIds}
+					allCount={data.journals.count}
+					searchParams={$urlStore.searchParams}
+				/>
+			</svelte:fragment>
 			<svelte:fragment slot="filterButtons">
 				<FilterDropdown
 					filters={data.filterDropdown}
@@ -201,12 +211,12 @@
 				{#if $urlStore.searchParams}
 					<FilterModalContent
 						currentFilter={$urlStore.searchParams}
-						accountDropdown={data.dropdownInfo.accounts}
-						billDropdown={data.dropdownInfo.bills}
-						budgetDropdown={data.dropdownInfo.budgets}
-						categoryDropdown={data.dropdownInfo.categories}
-						tagDropdown={data.dropdownInfo.tags}
-						labelDropdown={data.dropdownInfo.labels}
+						accountDropdown={data.dropdownInfo.account}
+						billDropdown={data.dropdownInfo.bill}
+						budgetDropdown={data.dropdownInfo.budget}
+						categoryDropdown={data.dropdownInfo.category}
+						tagDropdown={data.dropdownInfo.tag}
+						labelDropdown={data.dropdownInfo.label}
 						urlFromFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
 					/>
 				{/if}

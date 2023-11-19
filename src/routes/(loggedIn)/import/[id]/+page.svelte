@@ -58,6 +58,14 @@
 				</Dropdown>
 			</div>
 			<div class="flex self-center flex-row gap-1">
+				<i>Duplicate Checking :</i>
+				{#if importData.detail.checkImportedOnly}
+					Only Imported Items
+				{:else}
+					All Items
+				{/if}
+			</div>
+			<div class="flex self-center flex-row gap-1">
 				<i>Created :</i>
 				{importData.detail.createdAt.toISOString().slice(0, 19)}
 			</div>
@@ -154,7 +162,10 @@
 					{#each importData.detail.importDetails as currentImportDetail, i}
 						{#if currentImportDetail.status === 'imported'}
 							<Card size="xl" padding="md" class="flex flex-col gap-2" color="green">
-								Row {i + 1}
+								<div class="flex flex-row items-center justify-between">
+									Row {i + 1}
+									<Badge color="green">Imported</Badge>
+								</div>
 								<RawDataModal
 									color="green"
 									data={currentImportDetail.importInfo}
@@ -163,10 +174,14 @@
 									title="Row {i + 1} Import Details"
 								/>
 							</Card>
-						{/if}
-						{#if currentImportDetail.status === 'error' || currentImportDetail.status === 'importError'}
+						{:else if currentImportDetail.status === 'error' || currentImportDetail.status === 'importError'}
 							<Card size="xl" padding="md" class="flex flex-col gap-2" color="red">
-								Row {i + 1}
+								<div class="flex flex-row items-center justify-between">
+									Row {i + 1}
+									<Badge color="red">
+										{currentImportDetail.status === 'error' ? 'Error' : 'Import Error'}
+									</Badge>
+								</div>
 								<RawDataModal
 									color="red"
 									data={currentImportDetail.errorInfo}
@@ -175,12 +190,28 @@
 									title="Row {i + 1} Error Details"
 								/>
 							</Card>
-						{/if}
-						{#if currentImportDetail.status === 'processed'}
+						{:else if currentImportDetail.status === 'processed'}
 							<Card size="xl" padding="md" class="flex flex-col gap-2" color="blue">
-								Row {i + 1}
+								<div class="flex flex-row items-center justify-between">
+									Row {i + 1}
+									<Badge color="blue">Processed</Badge>
+								</div>
 								<RawDataModal
 									color="blue"
+									data={currentImportDetail.processedInfo}
+									dev={true}
+									buttonText="Processed Details"
+									title="Row {i + 1} Processed Details"
+								/>
+							</Card>
+						{:else if currentImportDetail.status === 'duplicate'}
+							<Card size="xl" padding="md" class="flex flex-col gap-2" color="dark">
+								<div class="flex flex-row items-center justify-between">
+									Row {i + 1}
+									<Badge color="dark">Duplicate</Badge>
+								</div>
+								<RawDataModal
+									color="dark"
 									data={currentImportDetail.processedInfo}
 									dev={true}
 									buttonText="Processed Details"

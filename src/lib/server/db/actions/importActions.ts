@@ -1,7 +1,7 @@
 import { logging } from '$lib/server/logging';
 import { serverEnv } from '$lib/server/serverEnv';
 import { nanoid } from 'nanoid';
-import { writeFileSync, readFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import type { DBType } from '../db';
 import {
 	account,
@@ -9,6 +9,7 @@ import {
 	budget,
 	category,
 	importItemDetail,
+	importMapping,
 	importTable,
 	journalEntry,
 	label,
@@ -16,17 +17,9 @@ import {
 } from '../schema';
 import { updatedTime } from './helpers/updatedTime';
 import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
-import Papa from 'papaparse';
-import { createSimpleTransactionSchema } from '$lib/schema/journalSchema';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
-import { createAccountSchema } from '$lib/schema/accountSchema';
 import type { ZodSchema } from 'zod';
-import { createBillSchema } from '$lib/schema/billSchema';
-import { createBudgetSchema } from '$lib/schema/budgetSchema';
-import { createCategorySchema } from '$lib/schema/categorySchema';
-import { createTagSchema } from '$lib/schema/tagSchema';
-import { createLabelSchema } from '$lib/schema/labelSchema';
 import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema';
 import {
 	importTransaction,
@@ -38,11 +31,16 @@ import {
 	importLabel
 } from './helpers/importHelpers';
 
+import { getImportDetail } from './helpers/getImportDetail';
+import { processCreatedImport } from './helpers/processImport';
+
 export const importActions = {
 	list: async ({ db }: { db: DBType }) => {
 		const imports = await db
 			.select({
 				...getTableColumns(importTable),
+				importMappingId: importMapping.id,
+				importMappingTitle: importMapping.title,
 				numErrors:
 					sql`count(CASE WHEN ${importItemDetail.status} = 'error' THEN 1 ELSE NULL END)`.mapWith(
 						Number
@@ -70,15 +68,37 @@ export const importActions = {
 			})
 			.from(importTable)
 			.leftJoin(importItemDetail, eq(importItemDetail.importId, importTable.id))
+			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
 			.groupBy(importTable.id)
 			.orderBy(desc(importTable.createdAt))
 			.execute();
 
 		return imports;
 	},
-	storeCSV: async ({ newFile, db, type }: { db: DBType; newFile: File; type: importTypeType }) => {
+	storeCSV: async ({
+		newFile,
+		db,
+		type,
+		importMapping,
+		checkImportedOnly = false
+	}: {
+		db: DBType;
+		newFile: File;
+		type: importTypeType;
+		importMapping: string | undefined;
+		checkImportedOnly?: boolean;
+	}) => {
 		if (newFile.type !== 'text/csv') {
 			throw new Error('Incorrect FileType');
+		}
+		if (type === 'mappedImport' && !importMapping) {
+			throw new Error('No Mapping Selected');
+		}
+		if (importMapping) {
+			const result = await tActions.importMapping.getById({ db, id: importMapping });
+			if (!result) {
+				throw new Error(`Mapping ${importMapping} Not Found`);
+			}
 		}
 		logging.info('New Filename', newFile.name);
 
@@ -97,10 +117,12 @@ export const importActions = {
 				id,
 				filename: combinedFilename,
 				title: originalFilename,
+				importMappingId: importMapping,
 				...updatedTime(),
 				status: 'created',
 				source: 'csv',
-				type
+				type,
+				checkImportedOnly
 			})
 			.execute();
 
@@ -110,28 +132,81 @@ export const importActions = {
 		db,
 		id,
 		data,
-		schema
+		schema,
+		importDataToSchema = (data) => ({ data: data as S }),
+		getUniqueIdentifier,
+		checkUniqueIdentifiers
 	}: {
 		db: DBType;
 		id: string;
 		data: Papa.ParseResult<unknown>;
 		schema: ZodSchema<S>;
+		importDataToSchema?: (data: unknown) => { data: S } | { errors: string[] };
+		getUniqueIdentifier?: ((data: S) => string | null | undefined) | undefined;
+		checkUniqueIdentifiers?: (data: string[]) => Promise<string[]>;
 	}) => {
 		await Promise.all(
-			data.data.map(async (row) => {
-				const validatedData = schema.safeParse(row);
+			data.data.map(async (currentRow) => {
+				const row = currentRow as Record<string, unknown>;
 				const importDetailId = nanoid();
-				if (validatedData.success) {
+				const preprocessedData = importDataToSchema(row);
+				if ('errors' in preprocessedData) {
 					await db
 						.insert(importItemDetail)
 						.values({
 							id: importDetailId,
 							...updatedTime(),
-							status: 'processed',
-							processedInfo: validatedData.data,
+							status: 'error',
+							processedInfo: { source: row },
+							errorInfo: { errors: preprocessedData.errors },
 							importId: id
 						})
 						.execute();
+					return;
+				}
+				const validatedData = schema.safeParse(preprocessedData.data);
+				if (validatedData.success) {
+					const unqiueIdentifier = getUniqueIdentifier
+						? getUniqueIdentifier(validatedData.data)
+						: undefined;
+					const foundUniqueIdentifiers =
+						checkUniqueIdentifiers && unqiueIdentifier
+							? await checkUniqueIdentifiers([unqiueIdentifier])
+							: undefined;
+
+					if (foundUniqueIdentifiers && foundUniqueIdentifiers.length > 0) {
+						await db
+							.insert(importItemDetail)
+							.values({
+								id: importDetailId,
+								...updatedTime(),
+								status: 'duplicate',
+								processedInfo: {
+									dataToUse: validatedData.data,
+									source: row,
+									processed: preprocessedData
+								},
+								importId: id,
+								uniqueId: unqiueIdentifier
+							})
+							.execute();
+					} else {
+						await db
+							.insert(importItemDetail)
+							.values({
+								id: importDetailId,
+								...updatedTime(),
+								status: 'processed',
+								processedInfo: {
+									dataToUse: validatedData.data,
+									source: row,
+									processed: preprocessedData
+								},
+								importId: id,
+								uniqueId: unqiueIdentifier
+							})
+							.execute();
+					}
 				} else {
 					await db
 						.insert(importItemDetail)
@@ -139,8 +214,8 @@ export const importActions = {
 							id: importDetailId,
 							...updatedTime(),
 							status: 'error',
-							processedInfo: row,
-							errorInfo: validatedData.error,
+							processedInfo: { source: row, processed: preprocessedData },
+							errorInfo: { error: validatedData.error },
 							importId: id
 						})
 						.execute();
@@ -163,126 +238,10 @@ export const importActions = {
 		const importData = data[0];
 
 		if (importData.status === 'created') {
-			if (importData.source === 'csv') {
-				if (!importData.filename) {
-					throw new Error('Import File Not Found');
-				}
-				const file = readFileSync(importData.filename);
-				const processedData = Papa.parse(file.toString(), { header: true, skipEmptyLines: true });
-
-				if (processedData.errors && processedData.errors.length > 0) {
-					await db
-						.update(importTable)
-						.set({
-							status: 'error',
-							errorInfo: processedData.errors,
-							...updatedTime()
-						})
-						.where(eq(importTable.id, id))
-						.execute();
-				} else {
-					if (importData.type === 'transaction') {
-						importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createSimpleTransactionSchema
-						});
-					} else if (importData.type === 'account') {
-						importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createAccountSchema
-						});
-					} else if (importData.type === 'bill') {
-						importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createBillSchema
-						});
-					} else if (importData.type === 'budget') {
-						importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createBudgetSchema
-						});
-					} else if (importData.type === 'category') {
-						importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createCategorySchema
-						});
-					} else if (importData.type === 'tag') {
-						importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createTagSchema
-						});
-					} else if (importData.type === 'label') {
-						importActions.processItems({
-							db,
-							id,
-							data: processedData,
-							schema: createLabelSchema
-						});
-					}
-				}
-			}
-
-			await db
-				.update(importTable)
-				.set({ status: 'processed', ...updatedTime() })
-				.where(eq(importTable.id, id))
-				.execute();
+			await processCreatedImport({ db, id, importData });
 		}
 
-		const returnData = await db.query.importTable
-			.findFirst({
-				where: eq(importTable.id, id),
-				with: {
-					importDetails: {
-						with: {
-							journal: true,
-							journal2: true,
-							bill: true,
-							budget: true,
-							category: true,
-							tag: true,
-							label: true,
-							account: true
-						}
-					}
-				}
-			})
-			.execute();
-
-		if (!returnData) {
-			throw new Error('Error Retrieving Import Details');
-		}
-		const linkedItemCount = returnData.importDetails.reduce(
-			(prev, current) =>
-				prev +
-				Number(current.journal) +
-				Number(current.journal2) +
-				Number(current.bill) +
-				Number(current.budget) +
-				Number(current.category) +
-				Number(current.tag) +
-				Number(current.label) +
-				Number(current.account),
-			0
-		);
-
-		return {
-			type: returnData.type,
-			detail: returnData,
-			linkedItemCount
-		};
+		return getImportDetail({ db, id });
 	},
 	changeType: async ({ db, id, newType }: { db: DBType; id: string; newType: importTypeType }) => {
 		const targetItems = await db.select().from(importTable).where(eq(importTable.id, id)).execute();
@@ -366,7 +325,7 @@ export const importActions = {
 		await db.transaction(async (trx) => {
 			await Promise.all(
 				importDetails.map(async (item) => {
-					if (importInfo.type === 'transaction') {
+					if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
 						await importTransaction({ item, trx });
 					} else if (importInfo.type === 'account') {
 						await importAccount({ item, trx });

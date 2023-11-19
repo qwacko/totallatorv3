@@ -13,6 +13,7 @@ import {
 	reusableFilterFilterSchema,
 	reusableFilterCreationURLParams
 } from './schema/reusableFilterSchema';
+import { importMappingFilterSchema } from './schema/importMappingSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -37,6 +38,15 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/import/[id]/forget': { paramsValidation: idSchema.parse },
 		'/(loggedIn)/import/[id]/delete': { paramsValidation: idSchema.parse },
 		'/(loggedIn)/import/[id]/deleteLinked': { paramsValidation: idSchema.parse },
+
+		// Import Mappings
+		// ----------------------------------------
+		'/(loggedIn)/importMapping': {
+			searchParamsValidation: importMappingFilterSchema.catch({}).parse
+		},
+		'/(loggedIn)/importMapping/create': {},
+		'/(loggedIn)/importMapping/[id]': { paramsValidation: idSchema.parse },
+		'/(loggedIn)/importMapping/[id]/delete': { paramsValidation: idSchema.parse },
 
 		// Journals
 		// ----------------------------------------

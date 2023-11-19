@@ -9,6 +9,7 @@ import {
 	importTypeEnum
 } from '../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../schema/reusableFilterSchema';
+import type { ZodError } from 'zod';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -259,6 +260,7 @@ export const transactionRelations = relations(transaction, ({ many }) => ({
 export const journalEntry = sqliteTable('journal_entry', {
 	...idColumn,
 	...importColumns(),
+	uniqueId: text('unique_id'),
 	amount: integer('amount', { mode: 'number' }).notNull().default(0),
 	transactionId: text('transaction_id').notNull(),
 	...journalSharedColumns,
@@ -306,13 +308,27 @@ export const importItemDetail = sqliteTable(
 	{
 		...idColumn,
 		importId: text('import_id').notNull(),
+		status: text('status', { enum: importDetailStatusEnum }).notNull().default('error'),
 		duplicateId: text('duplicate_id'),
+		uniqueId: text('unique_id'),
 		relationId: text('relation_id'),
 		relation2Id: text('relation_2_id'),
 		importInfo: text('import_info', { mode: 'json' }),
-		processedInfo: text('processed_info', { mode: 'json' }),
-		errorInfo: text('error_info', { mode: 'json' }),
-		status: text('status', { enum: importDetailStatusEnum }).notNull().default('error'),
+		processedInfo: text('processed_info', { mode: 'json' }).$type<
+			| {
+					dataToUse?: Record<string, unknown>;
+					source?: Record<string, unknown>;
+					processed?: Record<string, unknown>;
+			  }
+			| undefined
+		>(),
+		errorInfo: text('error_info', { mode: 'json' }).$type<
+			| {
+					error?: Record<string, unknown> | ZodError<unknown>;
+					errors?: string[];
+			  }
+			| undefined
+		>(),
 		...timestampColumns
 	},
 	(t) => ({
@@ -370,26 +386,33 @@ export const importTable = sqliteTable(
 		...timestampColumns,
 		title: text('title').notNull(),
 		filename: text('filename'),
+		checkImportedOnly: integer('check_imported_only', { mode: 'boolean' }).notNull().default(false),
 		status: text('status', { enum: importStatusEnum }).notNull().default('error'),
 		source: text('source', { enum: importSourceEnum }).notNull().default('csv'),
 		type: text('type', { enum: importTypeEnum }).notNull().default('transaction'),
+		importMappingId: text('mapped_import_id'),
 		errorInfo: text('error_info', { mode: 'json' })
 	},
 	(t) => ({
 		statusIdx: index('label_status_idx').on(t.status),
 		sourceIdx: index('label_source_idx').on(t.source),
-		typeIdx: index('label_type_idx').on(t.type)
+		typeIdx: index('label_type_idx').on(t.type),
+		mappedImportIdx: index('label_mapped_import_idx').on(t.importMappingId)
 	})
 );
 
-export const importTableRelations = relations(importTable, ({ many }) => ({
+export const importTableRelations = relations(importTable, ({ many, one }) => ({
 	importDetails: many(importItemDetail),
 	journals: many(journalEntry),
 	bills: many(bill),
 	budgets: many(budget),
 	categories: many(category),
 	tags: many(tag),
-	labels: many(label)
+	labels: many(label),
+	importMapping: one(importMapping, {
+		fields: [importTable.importMappingId],
+		references: [importMapping.id]
+	})
 }));
 
 export const summaryTable = sqliteTable('summary', {
@@ -449,3 +472,17 @@ export const reusableFilter = sqliteTable('filter', {
 	change: text('change'),
 	changeText: text('change_text')
 });
+
+export const importMapping = sqliteTable('import_mapping', {
+	...idColumn,
+	...timestampColumns,
+	title: text('title').notNull(),
+	configuration: text('configuration').notNull(),
+	sampleData: text('sample_data')
+});
+
+export type ImportMappingType = typeof importMapping.$inferSelect;
+
+export const importMappingRelations = relations(importMapping, ({ many }) => ({
+	imports: many(importTable)
+}));
