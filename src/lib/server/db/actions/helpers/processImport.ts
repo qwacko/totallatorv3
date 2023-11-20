@@ -243,7 +243,7 @@ export const processCreatedImport = async ({
 	const onlyErrorsExist =
 		importFinalDetail.linkedItemStatus.error > 0 &&
 		importFinalDetail.linkedItemStatus.processed === 0;
-	const noItemsExist = importFinalDetail.linkedItemCount === 0;
+	const noItemsExist = importFinalDetail.linkedItemStatus.all === 0;
 
 	const targetStatus: ImportStatusType = noItemsExist
 		? 'complete'
