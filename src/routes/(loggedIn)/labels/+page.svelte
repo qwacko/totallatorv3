@@ -106,7 +106,6 @@
 						address: '/(loggedIn)/labels/[id]',
 						paramsValue: { id: currentRow.id }
 					}).url}
-
 					{@const deleteURL = urlGenerator({
 						address: '/(loggedIn)/labels/[id]/delete',
 						paramsValue: { id: currentRow.id }
@@ -115,7 +114,7 @@
 						address: '/(loggedIn)/journals',
 						searchParamsValue: {
 							...defaultJournalFilter(),
-							tag: { id: currentRow.id }
+							label: { id: currentRow.id }
 						}
 					}).url}
 					<div class="flex flex-row justify-center">
