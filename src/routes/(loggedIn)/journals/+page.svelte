@@ -256,6 +256,19 @@
 							<Button
 								disabled={false}
 								href={urlGenerator({
+									address: '/(loggedIn)/journals/delete',
+									searchParamsValue: {
+										idArray: [currentJournal.id],
+										...defaultAllJournalFilter()
+									}
+								}).url}
+								class="p-2"
+							>
+								<DeleteIcon height="15" width="15" />
+							</Button>
+							<Button
+								disabled={false}
+								href={urlGenerator({
 									address: '/(loggedIn)/journals',
 									searchParamsValue: {
 										...defaultJournalFilter(),
