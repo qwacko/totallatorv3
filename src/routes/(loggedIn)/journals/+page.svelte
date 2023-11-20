@@ -32,6 +32,7 @@
 	import DateInput from '$lib/components/DateInput.svelte';
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import BulkJournalActions from './BulkJournalActions.svelte';
+	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 
 	export let data;
 
@@ -253,17 +254,23 @@
 								<CloneIcon height="15" width="15" />
 							</Button>
 							<Button
-								disabled={currentJournal.complete}
+								disabled={false}
 								href={urlGenerator({
-									address: '/(loggedIn)/journals/delete',
+									address: '/(loggedIn)/journals',
 									searchParamsValue: {
-										idArray: [currentJournal.id],
-										...defaultAllJournalFilter()
+										...defaultJournalFilter(),
+										account: {
+											idArray: [currentJournal.accountId]
+										},
+										payee: {
+											idArray: currentJournal.otherJournals.map((journal) => journal.accountId)
+										},
+										description: currentJournal.description
 									}
 								}).url}
 								class="p-2"
 							>
-								<DeleteIcon height="15" width="15" />
+								<FilterIcon height="15" width="15" />
 							</Button>
 							{#if currentJournal.complete}
 								<Button class="p-2" type="submit" name="action" color="primary" value="uncomplete">
