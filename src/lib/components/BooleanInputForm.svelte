@@ -36,5 +36,5 @@
 	{wrapperClass}
 />
 {#if value !== undefined}
-	<input type="hidden" name={field} {value} />
+	<input type="hidden" name={field} value={$value} />
 {/if}
