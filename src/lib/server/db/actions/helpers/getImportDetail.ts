@@ -32,10 +32,11 @@ export const getImportDetail = async ({ db, id }: { db: DBType; id: string }) =>
 			const currentStatus = current.status;
 			return {
 				...prev,
-				[currentStatus]: prev[currentStatus] + 1
+				[currentStatus]: prev[currentStatus] + 1,
+				all: prev.all + 1
 			};
 		},
-		{ error: 0, importError: 0, duplicate: 0, processed: 0, imported: 0 }
+		{ error: 0, importError: 0, duplicate: 0, processed: 0, imported: 0, all: 0 }
 	);
 
 	const linkedItemCount = returnData.importDetails.reduce(
