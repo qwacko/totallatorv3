@@ -42,7 +42,7 @@ export const summaryActions = {
 		await db
 			.update(summaryTable)
 			.set({ needsUpdate: true })
-			.where(inArray(summaryTable.id, ids))
+			.where(inArray(summaryTable.relationId, ids))
 			.execute();
 	},
 	updateAndCreateMany: async ({
