@@ -6,7 +6,11 @@
 	import EyeIcon from '$lib/components/icons/EyeIcon.svelte';
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
-	import { defaultAllJournalFilter, type JournalFilterSchemaType } from '$lib/schema/journalSchema';
+	import {
+		defaultAllJournalFilter,
+		defaultJournalFilter,
+		type JournalFilterSchemaType
+	} from '$lib/schema/journalSchema';
 	import { P, ButtonGroup, Button, Dropdown, DropdownItem } from 'flowbite-svelte';
 
 	export let selectedIds: string[];
@@ -125,7 +129,7 @@
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: searchParams
 						? { ...searchParams, complete: false, pageSize: 100000, page: 0 }
-						: undefined
+						: { ...defaultAllJournalFilter(), complete: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><EditIcon />Edit</div>
@@ -135,7 +139,7 @@
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: searchParams
 						? { ...searchParams, complete: false, pageSize: 100000, page: 0 }
-						: undefined
+						: { ...defaultAllJournalFilter(), complete: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><CloneIcon />Clone</div>
@@ -145,7 +149,7 @@
 					address: '/(loggedIn)/journals/delete',
 					searchParamsValue: searchParams
 						? { ...searchParams, complete: false, pageSize: 100000, page: 0 }
-						: undefined
+						: { ...defaultAllJournalFilter(), complete: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><DeleteIcon />Delete</div>
@@ -154,8 +158,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals',
 					searchParamsValue: searchParams
-						? { ...searchParams, complete: false, pageSize: 100000, page: 0 }
-						: undefined
+						? { ...searchParams, complete: false }
+						: { ...defaultJournalFilter(), complete: false }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><FilterIcon />View</div>
@@ -172,7 +176,7 @@
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: searchParams
 						? { ...searchParams, dataChecked: false, pageSize: 100000, page: 0 }
-						: undefined
+						: { ...defaultAllJournalFilter(), dataChecked: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><EditIcon />Edit</div>
@@ -182,7 +186,7 @@
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: searchParams
 						? { ...searchParams, dataChecked: false, pageSize: 100000, page: 0 }
-						: undefined
+						: { ...defaultAllJournalFilter(), dataChecked: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><CloneIcon />Clone</div>
@@ -192,7 +196,7 @@
 					address: '/(loggedIn)/journals/delete',
 					searchParamsValue: searchParams
 						? { ...searchParams, dataChecked: false, pageSize: 100000, page: 0 }
-						: undefined
+						: { ...defaultAllJournalFilter(), dataChecked: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><DeleteIcon />Delete</div>
@@ -201,8 +205,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals',
 					searchParamsValue: searchParams
-						? { ...searchParams, dataChecked: false, pageSize: 100000, page: 0 }
-						: undefined
+						? { ...searchParams, dataChecked: false }
+						: { ...defaultJournalFilter(), dataChecked: false }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><FilterIcon />View</div>
@@ -219,7 +223,7 @@
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: searchParams
 						? { ...searchParams, reconciled: false, pageSize: 100000, page: 0 }
-						: undefined
+						: { ...defaultAllJournalFilter(), reconciled: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><EditIcon />Edit</div>
@@ -229,7 +233,7 @@
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: searchParams
 						? { ...searchParams, reconciled: false, pageSize: 100000, page: 0 }
-						: undefined
+						: { ...defaultAllJournalFilter(), reconciled: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><CloneIcon />Clone</div>
@@ -239,7 +243,7 @@
 					address: '/(loggedIn)/journals/delete',
 					searchParamsValue: searchParams
 						? { ...searchParams, reconciled: false, pageSize: 100000, page: 0 }
-						: undefined
+						: { ...defaultAllJournalFilter(), reconciled: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><DeleteIcon />Delete</div>
@@ -248,8 +252,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals',
 					searchParamsValue: searchParams
-						? { ...searchParams, reconciled: false, pageSize: 100000, page: 0 }
-						: undefined
+						? { ...searchParams, reconciled: false }
+						: { ...defaultJournalFilter(), reconciled: false }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><FilterIcon />View</div>
@@ -266,7 +270,13 @@
 					address: '/(loggedIn)/journals/bulkEdit',
 					searchParamsValue: searchParams
 						? { ...searchParams, reconciled: false, dataChecked: false, pageSize: 100000, page: 0 }
-						: undefined
+						: {
+								...defaultAllJournalFilter(),
+								reconciled: false,
+								dataChecked: false,
+								pageSize: 100000,
+								page: 0
+						  }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><EditIcon />Edit</div>
@@ -276,7 +286,13 @@
 					address: '/(loggedIn)/journals/clone',
 					searchParamsValue: searchParams
 						? { ...searchParams, reconciled: false, dataChecked: false, pageSize: 100000, page: 0 }
-						: undefined
+						: {
+								...defaultAllJournalFilter(),
+								reconciled: false,
+								dataChecked: false,
+								pageSize: 100000,
+								page: 0
+						  }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><CloneIcon />Clone</div>
@@ -286,7 +302,13 @@
 					address: '/(loggedIn)/journals/delete',
 					searchParamsValue: searchParams
 						? { ...searchParams, reconciled: false, dataChecked: false, pageSize: 100000, page: 0 }
-						: undefined
+						: {
+								...defaultAllJournalFilter(),
+								reconciled: false,
+								dataChecked: false,
+								pageSize: 100000,
+								page: 0
+						  }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><DeleteIcon />Delete</div>
@@ -295,8 +317,8 @@
 				href={urlGenerator({
 					address: '/(loggedIn)/journals',
 					searchParamsValue: searchParams
-						? { ...searchParams, reconciled: false, dataChecked: false, pageSize: 100000, page: 0 }
-						: undefined
+						? { ...searchParams, reconciled: false, dataChecked: false }
+						: { ...defaultJournalFilter(), reconciled: false, dataChecked: false }
 				}).url}
 			>
 				<div class="flex flex-row gap-1 items-center"><FilterIcon />View</div>
