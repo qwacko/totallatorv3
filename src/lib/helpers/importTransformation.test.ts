@@ -4,9 +4,16 @@ import { processConfigString } from './importTransformation'; // Adjust the impo
 describe('processConfigString', () => {
 	it('should correctly replace substring operations', () => {
 		const inputObject = { description: 'This is a description' };
+		const configString = '{{substring description 2 7}}';
+		const result = processConfigString(configString, inputObject);
+		expect(result).toBe('is is a');
+	});
+
+	it('should trim the result', () => {
+		const inputObject = { description: 'This is a description' };
 		const configString = '{{substring description 2 8}}';
 		const result = processConfigString(configString, inputObject);
-		expect(result).toBe('is is a ');
+		expect(result).toBe('is is a');
 	});
 
 	it('should correctly replace regex operations', () => {
@@ -50,6 +57,22 @@ describe('processConfigString', () => {
 		const result = processConfigString(configString, inputObject);
 		expect(result).toBeInstanceOf(Array);
 		expect(result).toEqual(['John', 'Test', '-Doe']);
+	});
+
+	it('should handle config arrays undefined / empty return values', () => {
+		const inputObject = {
+			firstName: 'John',
+			lastName: 'Doe',
+			age: '30'
+		};
+		const configString = [
+			'{{firstName}}',
+			"{{#if (eq firstName 'Alice')}}Alice{{/if}}",
+			'-{{lastName}}'
+		];
+		const result = processConfigString(configString, inputObject);
+		expect(result).toBeInstanceOf(Array);
+		expect(result).toEqual(['John', '-Doe']);
 	});
 
 	it('should correctly handle conditional operations', () => {
