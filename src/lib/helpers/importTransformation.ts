@@ -25,7 +25,7 @@ type InputObject = Record<string, string>;
 
 export const processObject = <
 	Keys extends string,
-	ConfigObject extends Record<Keys, string | undefined>
+	ConfigObject extends Record<Keys, string | string[] | undefined>
 >(
 	input: Record<string, unknown>,
 	config: ConfigObject
@@ -46,7 +46,7 @@ export const processObject = <
 				return acc;
 			}
 		},
-		{} as Record<keyof ConfigObject, { text?: string; error?: string }>
+		{} as Record<keyof ConfigObject, { text?: string | string[]; error?: string }>
 	);
 };
 
@@ -93,19 +93,28 @@ export const processObjectReturnTransaction = <
 	if (!processed.success) {
 		return { errors: [{ key: 'transaction', error: processed.error.message }] };
 	}
+
 	return {
 		transaction: processed.data
 	};
 };
 
+// Function implementation
 export function processConfigString(
-	configString: string | undefined,
+	configString: string | string[] | undefined,
 	inputObject: InputObject
-): string | undefined {
-	if (!configString) return undefined;
-	const template = Handlebars.compile(configString);
+) {
+	console.log('Process COnfig String : ', { configString, inputObject });
 
-	const processedString = template(inputObject);
-
-	return processedString;
+	if (typeof configString === 'string') {
+		const template = Handlebars.compile(configString);
+		return template(inputObject);
+	} else if (Array.isArray(configString)) {
+		return configString.map((config) => {
+			const template = Handlebars.compile(config);
+			return template(inputObject);
+		});
+	} else {
+		return configString; // which is undefined
+	}
 }
