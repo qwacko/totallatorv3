@@ -104,8 +104,6 @@ export function processConfigString(
 	configString: string | string[] | undefined,
 	inputObject: InputObject
 ) {
-	console.log('Process COnfig String : ', { configString, inputObject });
-
 	if (typeof configString === 'string') {
 		const template = Handlebars.compile(configString);
 		return template(inputObject);
