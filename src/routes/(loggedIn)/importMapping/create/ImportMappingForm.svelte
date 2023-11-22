@@ -4,7 +4,7 @@
 		ImportMappingDetailSuperSchema,
 		ImportMappingCreateFormSuperSchema
 	} from '$lib/schema/importMappingSchema.js';
-	import { Alert, Button, Heading, TabItem, Tabs } from 'flowbite-svelte';
+	import { Alert, Button, Heading, P, TabItem, Tabs } from 'flowbite-svelte';
 	import type { SuperForm } from 'sveltekit-superforms/client';
 	import DisplaySampleMappedData from './DisplaySampleMappedData.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
@@ -211,6 +211,17 @@
 					field="budgetTitle"
 					placeholder="Budget Title Mapping"
 				/>
+			</div>
+		</TabItem>
+		<TabItem title="Labels">
+			<div class="flex flex-col gap-4 items-stretch">
+				<TextInputForm
+					form={detailForm}
+					title="Label Titles"
+					field="labelTitles"
+					placeholder="Label Titles"
+				/>
+				<P size="xs">Use Commas to separate multiple labels</P>
 			</div>
 		</TabItem>
 	</Tabs>

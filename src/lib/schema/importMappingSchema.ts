@@ -16,7 +16,8 @@ export const importMappingDetailSchema = z.object({
 	billId: z.string().optional(),
 	billTitle: z.string().optional(),
 	budgetId: z.string().optional(),
-	budgetTitle: z.string().optional()
+	budgetTitle: z.string().optional(),
+	labelTitles: z.string().or(z.array(z.string())).optional()
 });
 
 export const importMappingDetailWithRefinementSchema = importMappingDetailSchema
@@ -51,7 +52,15 @@ export const importMappingDetailWithRefinementSchema = importMappingDetailSchema
 	.refine((data) => !(data.budgetId && data.budgetTitle), {
 		message: 'Either Budget ID or Budget Title must be set, not both',
 		path: ['budgetTitle']
-	});
+	})
+	.transform((data) => ({
+		...data,
+		labelTitles: data.labelTitles
+			? Array.isArray(data.labelTitles)
+				? data.labelTitles
+				: data.labelTitles.split(',').map((title) => title.trim())
+			: undefined
+	}));
 
 export type ImportMappingDetailSuperSchema = typeof importMappingDetailSchema;
 export type ImportMappingDetailSchema = z.infer<ImportMappingDetailSuperSchema>;

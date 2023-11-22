@@ -40,6 +40,18 @@ describe('processConfigString', () => {
 		expect(result).toBe('John Doe is 60 years old');
 	});
 
+	it('should handle config arrays', () => {
+		const inputObject = {
+			firstName: 'John',
+			lastName: 'Doe',
+			age: '30'
+		};
+		const configString = ['{{firstName}}', 'Test', '-{{lastName}}'];
+		const result = processConfigString(configString, inputObject);
+		expect(result).toBeInstanceOf(Array);
+		expect(result).toEqual(['John', 'Test', '-Doe']);
+	});
+
 	it('should correctly handle conditional operations', () => {
 		const inputObject = {
 			status: 'active',
