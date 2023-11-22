@@ -52,7 +52,7 @@ export const processObject = <
 
 export const processObjectReturnTransaction = <
 	Keys extends string,
-	ConfigObject extends Record<Keys, string | undefined>
+	ConfigObject extends Record<Keys, string | string[] | undefined>
 >(
 	input: Record<string, unknown>,
 	config: ConfigObject

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		Alert,
+		Badge,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -10,7 +11,10 @@
 	} from 'flowbite-svelte';
 	import HighlightText from './HighlightText.svelte';
 
-	export let data: Record<string, { text?: string; error?: string } | string | undefined>;
+	export let data: Record<
+		string,
+		{ text?: string | string[] | undefined; error?: string } | string | string[] | undefined
+	>;
 	export let highlightText: string | undefined = undefined;
 	export let hideUndefined: boolean = false;
 </script>
@@ -39,11 +43,26 @@
 									<span class="font-thin">{value.error}</span>
 								</Alert>
 							{:else if 'text' in value}
-								<HighlightText
-									highlight={highlightText !== undefined}
-									searchText={highlightText}
-									text={value.text}
-								/>
+								{#if Array.isArray(value.text) && value.text.length > 1}
+									<div class="flex flex-col gap-2">
+										{#each value.text as text}
+											<Badge>
+												<HighlightText
+													highlight={highlightText !== undefined}
+													searchText={highlightText}
+													{text}
+												/>
+											</Badge>
+										{/each}
+									</div>
+								{:else}
+									{@const displayText = Array.isArray(value.text) ? value.text[0] : value.text}
+									<HighlightText
+										highlight={highlightText !== undefined}
+										searchText={highlightText}
+										text={displayText}
+									/>
+								{/if}
 							{/if}
 						{/if}
 					</TableBodyCell>
