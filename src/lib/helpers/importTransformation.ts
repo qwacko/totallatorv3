@@ -1,5 +1,6 @@
 import { createSimpleTransactionSchema } from '$lib/schema/journalSchema';
 import Handlebars from 'handlebars';
+import { filterNullUndefinedAndDuplicates } from '../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 
 // Substring Helper
 Handlebars.registerHelper('substring', function (value, start, length) {
@@ -106,12 +107,16 @@ export function processConfigString(
 ) {
 	if (typeof configString === 'string') {
 		const template = Handlebars.compile(configString);
-		return template(inputObject);
+		const result = template(inputObject);
+		return result.trim().length > 0 ? result.trim() : undefined;
 	} else if (Array.isArray(configString)) {
-		return configString.map((config) => {
-			const template = Handlebars.compile(config);
-			return template(inputObject);
-		});
+		return filterNullUndefinedAndDuplicates(
+			configString.map((config) => {
+				const template = Handlebars.compile(config);
+				const result = template(inputObject);
+				return result.trim().length > 0 ? result.trim() : undefined;
+			})
+		);
 	} else {
 		return configString; // which is undefined
 	}
