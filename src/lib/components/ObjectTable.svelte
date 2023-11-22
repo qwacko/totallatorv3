@@ -46,13 +46,15 @@
 								{#if Array.isArray(value.text) && value.text.length > 1}
 									<div class="flex flex-col gap-2">
 										{#each value.text as text}
-											<Badge>
-												<HighlightText
-													highlight={highlightText !== undefined}
-													searchText={highlightText}
-													{text}
-												/>
-											</Badge>
+											{#if text && text.length > 0}
+												<Badge>
+													<HighlightText
+														highlight={highlightText !== undefined}
+														searchText={highlightText}
+														{text}
+													/>
+												</Badge>
+											{/if}
 										{/each}
 									</div>
 								{:else}
