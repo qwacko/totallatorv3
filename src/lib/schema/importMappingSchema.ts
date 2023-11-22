@@ -57,8 +57,10 @@ export const importMappingDetailWithRefinementSchema = importMappingDetailSchema
 		...data,
 		labelTitles: data.labelTitles
 			? Array.isArray(data.labelTitles)
-				? data.labelTitles
-				: data.labelTitles.split(',').map((title) => title.trim())
+				? data.labelTitles.filter((title) => title.trim().length > 0)
+				: data.labelTitles.trim().length > 0
+				? data.labelTitles.split(',').map((title) => title.trim())
+				: undefined
 			: undefined
 	}));
 
