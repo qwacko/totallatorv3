@@ -59,23 +59,6 @@ export const createJournalSchemaCore = createJournalDBCore.merge(
 );
 
 export const createJournalSchema = createJournalSchemaCore
-	.transform((data) => ({
-		...data,
-		tagTitle: data.tagTitle && data.tagTitle.trim().length > 0 ? data.tagTitle.trim() : undefined,
-		billTitle:
-			data.billTitle && data.billTitle?.trim().length > 0 ? data.billTitle.trim() : undefined,
-		budgetTitle:
-			data.budgetTitle && data.budgetTitle?.trim().length > 0 ? data.budgetTitle.trim() : undefined,
-		categoryTitle:
-			data.categoryTitle && data.categoryTitle?.trim().length > 0
-				? data.categoryTitle.trim()
-				: undefined,
-		accountTitle:
-			data.accountTitle && data.accountTitle?.trim().length > 0
-				? data.accountTitle.trim()
-				: undefined,
-		labelTitles: data.labelTitles?.filter((title) => title.trim().length > 0)
-	}))
 	.refine((data) => !(data.tagId && data.tagTitle), {
 		path: ['tagId'],
 		message: 'tagId and tagTitle cannot both be present'
@@ -113,27 +96,6 @@ export const createSimpleTransactionSchemaCore = createJournalSchemaCore
 export type CreateSimpleTransactionSuperType = typeof createSimpleTransactionSchemaCore;
 
 export const createSimpleTransactionSchema = createSimpleTransactionSchemaCore
-	.transform((data) => ({
-		...data,
-		tagTitle: data.tagTitle && data.tagTitle.trim().length > 0 ? data.tagTitle.trim() : undefined,
-		billTitle:
-			data.billTitle && data.billTitle?.trim().length > 0 ? data.billTitle.trim() : undefined,
-		budgetTitle:
-			data.budgetTitle && data.budgetTitle?.trim().length > 0 ? data.budgetTitle.trim() : undefined,
-		categoryTitle:
-			data.categoryTitle && data.categoryTitle?.trim().length > 0
-				? data.categoryTitle.trim()
-				: undefined,
-		fromAccountTitle:
-			data.fromAccountTitle && data.fromAccountTitle?.trim().length > 0
-				? data.fromAccountTitle.trim()
-				: undefined,
-		toAccountTitle:
-			data.toAccountTitle && data.toAccountTitle?.trim().length > 0
-				? data.toAccountTitle.trim()
-				: undefined,
-		labelTitles: data.labelTitles?.filter((title) => title.trim().length > 0)
-	}))
 	.refine((data) => !(data.tagId && data.tagTitle), {
 		path: ['tagId'],
 		message: 'tagId and tagTitle cannot both be present'
