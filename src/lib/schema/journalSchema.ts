@@ -223,14 +223,19 @@ export const journalOrderByEnum = [
 
 export const journalFilterSchema = z.object({
 	id: z.coerce.string().optional(),
+	excludeId: z.coerce.string().optional(),
 	idArray: z.array(z.string()).optional(),
+	excludeIdArray: z.array(z.string()).optional(),
 	transactionIdArray: z.array(z.string()).optional(),
+	excludeTransactionIdArray: z.array(z.string()).optional(),
 	dateBefore: dateStringSchema.optional(),
 	dateAfter: dateStringSchema.optional(),
 	maxAmount: z.number().optional(),
 	minAmount: z.number().optional(),
 	yearMonth: z.array(z.string()).optional(),
+	excludeYearMonth: z.array(z.string()).optional(),
 	description: z.coerce.string().optional(),
+	excludeDescription: z.coerce.string().optional(),
 	transfer: z.coerce.boolean().optional(),
 	linked: z.coerce.boolean().optional(),
 	reconciled: z.coerce.boolean().optional(),
@@ -245,16 +250,33 @@ export const journalFilterSchema = z.object({
 			title: z.string().optional()
 		})
 		.optional(),
+	excludePayee: z
+		.object({
+			id: z.string().optional(),
+			idArray: z.array(z.string()).optional(),
+			title: z.string().optional()
+		})
+		.optional(),
 	account: accountFilterSchema
 		.omit({ page: true, pageSize: true, orderBy: true })
 		.optional()
 		.default({ type: ['asset', 'liability'] })
 		.optional(),
+	excludeAccount: accountFilterSchema
+		.omit({ page: true, pageSize: true, orderBy: true })
+		.optional(),
 	tag: tagFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+	excludeTag: tagFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
 	bill: billFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+	excludeBill: billFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
 	budget: budgetFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+	excludeBudget: budgetFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
 	category: categoryFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+	excludeCategory: categoryFilterSchema
+		.omit({ page: true, pageSize: true, orderBy: true })
+		.optional(),
 	label: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+	excludeLabel: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
 	page: z.coerce.number().optional().default(0),
 	pageSize: z.coerce.number().optional().default(10),
 	orderBy: z
