@@ -9,6 +9,7 @@
 
 	export let activeFilter: JournalFilterSchemaType;
 	let yearMonth: string = '';
+	let excludeYearMonth: string = '';
 </script>
 
 <div class="flex flex-col gap-2">
@@ -50,10 +51,49 @@
 				</Button>{/each}
 		</div>
 	{/if}
+	<div class="flex font-semibold text-black text-sm">Exclude Year Month</div>
+	<div class="flex flex-row gap-1">
+		<Input
+			bind:value={excludeYearMonth}
+			class="flex flex-grow"
+			placeholder="year-month (i.e. 2020-12)..."
+		/>
+		<Button
+			on:click={() =>
+				activeFilter.excludeYearMonth
+					? (activeFilter.excludeYearMonth = [...activeFilter.excludeYearMonth, excludeYearMonth])
+					: (activeFilter.excludeYearMonth = [excludeYearMonth])}
+		>
+			Add
+		</Button>
+	</div>
+	{#if activeFilter.excludeYearMonth && activeFilter.excludeYearMonth.length > 0}
+		<div class="flex flex-row gap-2 flex-wrap">
+			{#each activeFilter.excludeYearMonth as currentYearMonth}
+				<Button
+					class="whitespace-nowrap"
+					size="xs"
+					color="light"
+					on:click={() =>
+						activeFilter.excludeYearMonth &&
+						(activeFilter.excludeYearMonth = activeFilter.excludeYearMonth.filter(
+							(item) => item !== currentYearMonth
+						))}
+				>
+					{currentYearMonth}
+				</Button>{/each}
+		</div>
+	{/if}
 	<TextInput
 		bind:value={activeFilter.description}
 		name="description"
 		title="Description"
+		errorMessage=""
+	/>
+	<TextInput
+		bind:value={activeFilter.excludeDescription}
+		name="excludeDescription"
+		title="Exclude Description"
 		errorMessage=""
 	/>
 	<DateInput

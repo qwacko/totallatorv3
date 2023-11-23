@@ -48,15 +48,47 @@
 			{/await}
 		</AccordionItem>
 		<AccordionItem>
+			<svelte:fragment slot="header">Exclude Account</svelte:fragment>
+			{#await accountDropdown then accountDropdownResolved}
+				<AccountFilter
+					bind:filter={activeFilter.excludeAccount}
+					accountDetails={accountDropdownResolved}
+				/>
+			{/await}
+		</AccordionItem>
+		<AccordionItem>
 			<svelte:fragment slot="header">Payee</svelte:fragment>
 			{#await accountDropdown then accountDropdownResolved}
 				<PayeeFilter bind:filter={activeFilter.payee} accountDetails={accountDropdownResolved} />
 			{/await}
 		</AccordionItem>
 		<AccordionItem>
+			<svelte:fragment slot="header">Exclude Payee</svelte:fragment>
+			{#await accountDropdown then accountDropdownResolved}
+				<PayeeFilter
+					bind:filter={activeFilter.excludePayee}
+					accountDetails={accountDropdownResolved}
+				/>
+			{/await}
+		</AccordionItem>
+		<AccordionItem>
 			<svelte:fragment slot="header">Bill</svelte:fragment>
 			{#await billDropdown then billDropdownResolved}
 				<BillFilter bind:filter={activeFilter.bill} billDetails={billDropdownResolved} />
+			{/await}
+		</AccordionItem>
+		<AccordionItem>
+			<svelte:fragment slot="header">Exclude Bill</svelte:fragment>
+			{#await billDropdown then billDropdownResolved}
+				<BillFilter bind:filter={activeFilter.excludeBill} billDetails={billDropdownResolved} />
+			{/await}
+		</AccordionItem><AccordionItem>
+			<svelte:fragment slot="header">Exclude Budget</svelte:fragment>
+			{#await budgetDropdown then budgetDropdownResolved}
+				<BudgetFilter
+					bind:filter={activeFilter.excludeBudget}
+					budgetDetails={budgetDropdownResolved}
+				/>
 			{/await}
 		</AccordionItem>
 		<AccordionItem>
@@ -75,15 +107,36 @@
 			{/await}
 		</AccordionItem>
 		<AccordionItem>
+			<svelte:fragment slot="header">Exclude Category</svelte:fragment>
+			{#await categoryDropdown then categoryDropdownResolved}
+				<CategoryFilter
+					bind:filter={activeFilter.excludeCategory}
+					categoryDetails={categoryDropdownResolved}
+				/>
+			{/await}
+		</AccordionItem>
+		<AccordionItem>
 			<svelte:fragment slot="header">Tag</svelte:fragment>
 			{#await tagDropdown then tagDropdownResolved}
 				<TagFilter bind:filter={activeFilter.tag} tagDetails={tagDropdownResolved} />
 			{/await}
 		</AccordionItem>
 		<AccordionItem>
+			<svelte:fragment slot="header">Exclude Tag</svelte:fragment>
+			{#await tagDropdown then tagDropdownResolved}
+				<TagFilter bind:filter={activeFilter.excludeTag} tagDetails={tagDropdownResolved} />
+			{/await}
+		</AccordionItem>
+		<AccordionItem>
 			<svelte:fragment slot="header">Label</svelte:fragment>
 			{#await labelDropdown then labelDropdownResolved}
 				<LabelFilter bind:filter={activeFilter.label} labelDetails={labelDropdownResolved} />
+			{/await}
+		</AccordionItem>
+		<AccordionItem>
+			<svelte:fragment slot="header">Exclude Label</svelte:fragment>
+			{#await labelDropdown then labelDropdownResolved}
+				<LabelFilter bind:filter={activeFilter.excludeLabel} labelDetails={labelDropdownResolved} />
 			{/await}
 		</AccordionItem>
 		<AccordionItem>
