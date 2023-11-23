@@ -28,28 +28,28 @@ export const actions = {
 				await tActions.journal.updateJournals({
 					db,
 					filter: { id: journalId },
-					journalData: { reconciled: true }
+					journalData: { setReconciled: true }
 				});
 			}
 			if (action === 'unreconcile') {
 				await tActions.journal.updateJournals({
 					db,
 					filter: { id: journalId },
-					journalData: { reconciled: false }
+					journalData: { clearReconciled: true }
 				});
 			}
 			if (action === 'check') {
 				await tActions.journal.updateJournals({
 					db,
 					filter: { id: journalId },
-					journalData: { dataChecked: true }
+					journalData: { setDataChecked: true }
 				});
 			}
 			if (action === 'uncheck') {
 				await tActions.journal.updateJournals({
 					db,
 					filter: { id: journalId },
-					journalData: { dataChecked: false }
+					journalData: { clearDataChecked: true }
 				});
 			}
 			return;

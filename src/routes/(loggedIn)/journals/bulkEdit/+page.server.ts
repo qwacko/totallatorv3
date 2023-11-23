@@ -22,9 +22,30 @@ export const load = async (data) => {
 		filter: pageInfo.current.searchParams || defaultJournalFilter()
 	});
 
-	const { allLabelIds, commonLabelIds, ...journalDataForForm } = journalData.common;
+	const {
+		allLabelIds,
+		commonLabelIds,
+		reconciled,
+		dataChecked,
+		complete,
+		linked,
+		...journalDataForForm
+	} = journalData.common;
 
-	const form = await superValidate(journalDataForForm, updateJournalSchema);
+	const form = await superValidate(
+		{
+			...journalDataForForm,
+			setReconciled: reconciled === true ? true : undefined,
+			clearReconciled: reconciled === false ? true : undefined,
+			setDataChecked: dataChecked === true ? true : undefined,
+			clearDataChecked: dataChecked === false ? true : undefined,
+			setComplete: complete === true ? true : undefined,
+			clearComplete: complete === false ? true : undefined,
+			setLinked: linked === true ? true : undefined,
+			clearLinked: linked === false ? true : undefined
+		},
+		updateJournalSchema
+	);
 
 	return {
 		selectedJournals: {
@@ -80,25 +101,19 @@ export const actions = {
 					journalFilter: parsedFilter.data
 				});
 			} else {
-				const reconciled =
-					form.data.action === 'reconciled'
-						? true
-						: form.data.action === 'unreconciled'
-						? false
-						: undefined;
-				const dataChecked =
-					form.data.action === 'dataChecked'
-						? true
-						: form.data.action === 'dataNotChecked'
-						? false
-						: undefined;
+				const setReconciled = form.data.action === 'reconciled';
+				const clearReconciled = form.data.action === 'unreconciled';
+				const setDataChecked = form.data.action === 'dataChecked';
+				const clearDataChecked = form.data.action === 'dataNotChecked';
 
 				await tActions.journal.updateJournals({
 					db,
 					filter: parsedFilter.data,
 					journalData: {
-						reconciled,
-						dataChecked
+						setReconciled,
+						clearReconciled,
+						setDataChecked,
+						clearDataChecked
 					}
 				});
 			}

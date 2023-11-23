@@ -668,6 +668,29 @@ export const journalActions = {
 
 			const targetDate = journalData.date ? expandDate(journalData.date) : {};
 
+			const complete =
+				journalData.setComplete === true
+					? true
+					: journalData.clearComplete === true
+					? false
+					: undefined;
+			const reconciled =
+				complete === true
+					? true
+					: journalData.setReconciled === true
+					? true
+					: journalData.clearReconciled === true
+					? false
+					: undefined;
+			const dataChecked =
+				complete === true
+					? true
+					: journalData.setDataChecked === true
+					? true
+					: journalData.clearDataChecked === true
+					? false
+					: undefined;
+
 			if (linkedJournals.length > 0) {
 				await db
 					.update(journalEntry)
@@ -676,9 +699,9 @@ export const journalActions = {
 						categoryId: await categoryId,
 						billId: await billId,
 						budgetId: await budgetId,
-						complete: journalData.complete,
-						dataChecked: journalData.dataChecked || journalData.complete,
-						reconciled: journalData.reconciled || journalData.complete,
+						complete,
+						dataChecked,
+						reconciled,
 						description: journalData.description,
 						...targetDate,
 						...updatedTime()
@@ -696,9 +719,9 @@ export const journalActions = {
 						categoryId: await categoryId,
 						billId: await billId,
 						budgetId: await budgetId,
-						complete: journalData.complete,
-						dataChecked: journalData.dataChecked || journalData.complete,
-						reconciled: journalData.reconciled || journalData.complete,
+						complete,
+						dataChecked,
+						reconciled,
 						...targetDate,
 						...updatedTime()
 					})
