@@ -155,7 +155,9 @@ export const reusableFilterActions = {
 						? item.filter.importIdArray
 							? [...item.filter.importIdArray, importId]
 							: [importId]
-						: undefined
+						: undefined,
+					page: 0,
+					pageSize: 100000
 				},
 				journalData: item.change
 			});
