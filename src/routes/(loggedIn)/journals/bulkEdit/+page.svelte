@@ -5,7 +5,10 @@
 	import { page } from '$app/stores';
 	import { pageInfo } from '$lib/routes';
 	import { superForm } from 'sveltekit-superforms/client';
-	import type { UpdateJournalSchemaSuperType } from '$lib/schema/journalSchema';
+	import {
+		updateJournalSchema,
+		type UpdateJournalSchemaSuperType
+	} from '$lib/schema/journalSchema';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import UpdateJournalForm from '../clone/UpdateJournalForm.svelte';
@@ -14,14 +17,19 @@
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
 	import UpdateJournalLabelsForm from '../clone/UpdateJournalLabelsForm.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	export let data;
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals/bulkEdit', $page);
 
-	const form = superForm<UpdateJournalSchemaSuperType>(data.form, { taintedMessage: null });
+	const form = superForm<UpdateJournalSchemaSuperType>(data.form, {
+		taintedMessage: null,
+		validators: updateJournalSchema
+	});
 
 	$: enhance = form.enhance;
+	$: formData = form.form;
 
 	$: titleText =
 		data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`;
@@ -32,6 +40,7 @@
 <PageLayout title={titleText}>
 	<FilterTextDisplay text={data.filterText} />
 	<Heading tag="h3">Set Journal State</Heading>
+	<RawDataModal data={$formData} dev={data.dev} />
 	<BulkEditState
 		currentPage={urlInfo.current.url}
 		filter={urlInfo.current.searchParams}

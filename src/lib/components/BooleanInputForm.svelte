@@ -35,6 +35,4 @@
 	{hideClear}
 	{wrapperClass}
 />
-{#if value !== undefined}
-	<input type="hidden" name={field} value={$value} />
-{/if}
+<input type="hidden" name={field} value={$booleanValue} />

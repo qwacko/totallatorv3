@@ -177,11 +177,14 @@ export const updateJournalSchema = z.object({
 	labels: z.array(z.string()).optional(),
 	labelTitles: z.array(z.string()).optional(),
 	clearLabels: z.boolean().optional().default(false),
-
-	linked: z.boolean().optional(),
-	reconciled: z.boolean().optional(),
-	dataChecked: z.boolean().optional(),
-	complete: z.boolean().optional()
+	setReconciled: z.coerce.boolean().optional().default(false),
+	clearReconciled: z.coerce.boolean().optional().default(false),
+	setDataChecked: z.coerce.boolean().optional().default(false),
+	clearDataChecked: z.coerce.boolean().optional().default(false),
+	setComplete: z.coerce.boolean().optional().default(false),
+	clearComplete: z.coerce.boolean().optional().default(false),
+	setLinked: z.coerce.boolean().optional().default(false),
+	clearLinked: z.coerce.boolean().optional().default(false)
 });
 
 export const cloneJournalUpdateSchema = updateJournalSchema

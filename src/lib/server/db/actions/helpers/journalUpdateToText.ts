@@ -17,12 +17,15 @@ export const journalUpdateToText = async (change: UpdateJournalSchemaType | unde
 	if (change.amount) messages.push(`Amount: ${change.amount}`);
 	if (change.date) messages.push(`Date: ${change.date}`);
 	if (change.accountTitle) messages.push(`Account Title: ${change.accountTitle}`);
-	if (change.complete !== undefined) messages.push(`Complete: ${change.complete}`);
-	if (change.dataChecked !== undefined) messages.push(`Data Checked: ${change.dataChecked}`);
+	if (change.setComplete === true) messages.push(`Set Complete`);
+	if (change.clearComplete === true) messages.push(`Clear Complete`);
+	if (change.setDataChecked === true) messages.push(`Set Data Checked`);
+	if (change.clearDataChecked === true) messages.push(`Clear Data Checked`);
+	if (change.setReconciled === true) messages.push(`Set Reconciled`);
+	if (change.clearReconciled === true) messages.push(`Clear Reconciled`);
+	if (change.setLinked === true) messages.push(`Set Linked`);
+	if (change.clearLinked === true) messages.push(`Clear Linked`);
 	if (change.description) messages.push(`Description: ${change.description}`);
-	if (change.linked !== undefined) messages.push(`Linked: ${change.linked}`);
-	if (change.reconciled !== undefined) messages.push(`Reconciled: ${change.reconciled}`);
-
 	//Account
 	if (change.accountId) messages.push(`Account: ${await accountIdToTitle(change.accountId)}`);
 	if (change.accountTitle) messages.push(`Account Title: ${change.accountTitle}`);
