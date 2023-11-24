@@ -51,7 +51,7 @@
 </script>
 
 <CustomHeader
-	pageTitle="Journals"
+	pageTitle="Reusable Filters"
 	filterText={data.filterText}
 	pageNumber={dataForTable.page}
 	numPages={dataForTable.pageCount}
@@ -157,7 +157,8 @@
 					rowToDisplay: (row) => row.journalCount.toString()
 				},
 				{
-					id: 'canApply',title: 'Can Apply',
+					id: 'canApply',
+					title: 'Can Apply',
 					sortKey: 'canApply',
 					rowToDisplay: (row) => (row.canApply ? 'Y' : '')
 				}
