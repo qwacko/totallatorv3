@@ -9,7 +9,9 @@ export const load = async (data) => {
 	authGuard(data);
 	const { current, updateParams } = serverPageInfo(data.route.id, data);
 
-	const filters = await tActions.reusableFitler.list({ db, filter: current.searchParams || {} });
+	const filterInfo = current.searchParams || {};
+
+	const filters = await tActions.reusableFitler.list({ db, filter: filterInfo });
 
 	const redirectRequired = filters.page >= filters.pageCount;
 	if (redirectRequired) {
@@ -20,6 +22,9 @@ export const load = async (data) => {
 	return {
 		filters,
 		filterText: reusableFilterToText(current.searchParams || {}),
-		searchParams: current.searchParams
+		searchParams: current.searchParams,
+		streamed: {
+			filters: tActions.reusableFitler.updateAndList({ db, filter: filterInfo })
+		}
 	};
 };

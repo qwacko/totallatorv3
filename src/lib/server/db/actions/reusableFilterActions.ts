@@ -38,6 +38,40 @@ export const reusableFilterActions = {
 			journalCount: count
 		};
 	},
+	updateAndList: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
+		const filters = await db.select().from(reusableFilter).execute();
+
+		await Promise.all(
+			filters.map(async (currentFilter) => {
+				const itemUnpacked = await reusableFilterDBUnpacked(currentFilter);
+
+				const count = await tActions.journal.count(db, itemUnpacked.filter);
+				const canApply =
+					count > 0 &&
+					currentFilter.change !== null &&
+					currentFilter.changeText !== null &&
+					currentFilter.changeText.length > 0;
+
+				if (count !== currentFilter.journalCount) {
+					await db
+						.update(reusableFilter)
+						.set({ journalCount: count })
+						.where(eq(reusableFilter.id, currentFilter.id))
+						.execute();
+				}
+
+				if (canApply !== currentFilter.canApply) {
+					await db
+						.update(reusableFilter)
+						.set({ canApply })
+						.where(eq(reusableFilter.id, currentFilter.id))
+						.execute();
+				}
+			})
+		);
+
+		return reusableFilterActions.list({ db, filter });
+	},
 	list: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
@@ -70,17 +104,6 @@ export const reusableFilterActions = {
 			.execute();
 
 		const resultsProcessed = await reusableFilterDBUnpackedMany(results);
-		const resultsWithRelated = await Promise.all(
-			resultsProcessed.map(async (item) => {
-				const count = await tActions.journal.count(db, item.filter);
-
-				return {
-					...item,
-					canApply: count > 0 && item.change && item.changeText && item.changeText.length > 0,
-					journalCount: count
-				};
-			})
-		);
 
 		const resultCount = await db
 			.select({ count: sql<number>`count(${reusableFilter.id})`.mapWith(Number) })
@@ -91,7 +114,7 @@ export const reusableFilterActions = {
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
-		return { count, data: resultsWithRelated, pageCount, page, pageSize };
+		return { count, data: resultsProcessed, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		const allResults = await db
@@ -208,6 +231,9 @@ export const reusableFilterActions = {
 
 		const changeText = await journalUpdateToText(change);
 
+		const count = await tActions.journal.count(db, filter);
+		const canApply = count > 0 && change && changeText && changeText.length > 0;
+
 		await db
 			.insert(reusableFilter)
 			.values({
@@ -220,6 +246,8 @@ export const reusableFilterActions = {
 				group: group && group.length > 0 ? group : undefined,
 				listed,
 				modificationType: listed ? modificationType : undefined,
+				canApply,
+				journalCount: count,
 				...updatedTime(),
 				...reusableFilterData
 			})

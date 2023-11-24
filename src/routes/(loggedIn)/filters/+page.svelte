@@ -21,7 +21,16 @@
 	import ApplyFilterIcon from '$lib/components/icons/ApplyFilterIcon.svelte';
 
 	export let data;
+
+	$: dataForTable = data.filters;
 	$: urlInfo = pageInfo('/(loggedIn)/filters', $page);
+
+	const updateData = async () => {
+		const newData = await data.streamed.filters;
+		dataForTable = newData;
+	};
+
+	$: data.filters && updateData();
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/filters',
@@ -44,8 +53,8 @@
 <CustomHeader
 	pageTitle="Journals"
 	filterText={data.filterText}
-	pageNumber={data.filters.page}
-	numPages={data.filters.pageCount}
+	pageNumber={dataForTable.page}
+	numPages={dataForTable.pageCount}
 />
 
 <PageLayout title="Reusable Filters" size="xl">
@@ -66,14 +75,14 @@
 			filterText={data.filterText}
 			onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
 			paginationInfo={{
-				page: data.filters.page,
-				count: data.filters.count,
-				perPage: data.filters.pageSize,
+				page: dataForTable.page,
+				count: dataForTable.count,
+				perPage: dataForTable.pageSize,
 				buttonCount: 5,
 				urlForPage: (value) => urlInfo.updateParams({ searchParams: { page: value } }).url
 			}}
 			noneFoundText="No Matching Filters Found"
-			data={data.filters.data}
+			data={dataForTable.data}
 			currentOrder={data.searchParams?.orderBy}
 			currentFilter={data.searchParams}
 			filterModalTitle="Filter Reusable Filters"
@@ -144,7 +153,13 @@
 				{
 					id: 'journalCount',
 					title: 'Journal Count',
+					sortKey: 'journalCount',
 					rowToDisplay: (row) => row.journalCount.toString()
+				},
+				{
+					id: 'canApply',title: 'Can Apply',
+					sortKey: 'canApply',
+					rowToDisplay: (row) => (row.canApply ? 'Y' : '')
 				}
 			]}
 		>
