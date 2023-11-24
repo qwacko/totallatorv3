@@ -23,6 +23,7 @@
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
+	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
 	export let data;
 
@@ -57,6 +58,7 @@
 	<RawDataModal {data} dev={data.dev} />
 	<form use:enhance method="POST" class="flex flex-col gap-4">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+			<PreviousUrlInput name="prevPage" routeBased />
 			<input type="hidden" name="filter" value={$formData.filter} />
 			{#if $formData.change}<input type="hidden" name="change" value={$formData.change} />{/if}
 			<div class="flex col-span-1 md:col-span-2 flex-row gap-2">

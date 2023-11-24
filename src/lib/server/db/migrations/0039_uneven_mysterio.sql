@@ -1,0 +1,1 @@
+ALTER TABLE filter ADD `can_apply` integer DEFAULT false NOT NULL;

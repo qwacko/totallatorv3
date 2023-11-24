@@ -1,0 +1,1 @@
+ALTER TABLE import ADD `journal_count` integer DEFAULT 0 NOT NULL;

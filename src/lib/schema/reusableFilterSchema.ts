@@ -70,7 +70,9 @@ const orderByEnum = [
 	'listed',
 	'filterText',
 	'changeText',
-	'modificationType'
+	'modificationType',
+	'journalCount',
+	'canApply'
 ] as const;
 
 type OrderByEnumType = (typeof orderByEnum)[number];
@@ -88,7 +90,9 @@ const enumTitles = {
 	listed: 'Listed',
 	filterText: 'Filter',
 	changeText: 'Change',
-	modificationType: 'Modification Type'
+	modificationType: 'Modification Type',
+	journalCount: 'Journal Count',
+	canApply: 'Can Apply'
 } satisfies OrderByEnumTitles;
 
 export const resuableFilterOrderByEnumToText = (input: OrderByEnumType) => {

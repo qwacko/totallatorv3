@@ -18,25 +18,63 @@ import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/
 import { tActions } from './tActions';
 
 export const reusableFilterActions = {
+	refreshFilterSummary: async ({
+		db,
+		currentFilter
+	}: {
+		db: DBType;
+		currentFilter: ReusableFilterTableType;
+	}) => {
+		const itemUnpacked = await reusableFilterDBUnpacked(currentFilter);
+
+		const count = await tActions.journal.count(db, itemUnpacked.filter);
+		const canApply =
+			count > 0 &&
+			currentFilter.change !== null &&
+			currentFilter.changeText !== null &&
+			currentFilter.changeText.length > 0;
+
+		if (count !== currentFilter.journalCount) {
+			await db
+				.update(reusableFilter)
+				.set({ journalCount: count })
+				.where(eq(reusableFilter.id, currentFilter.id))
+				.execute();
+		}
+
+		if (canApply !== currentFilter.canApply) {
+			await db
+				.update(reusableFilter)
+				.set({ canApply })
+				.where(eq(reusableFilter.id, currentFilter.id))
+				.execute();
+		}
+
+		return { ...itemUnpacked, canApply, journalCount: count };
+	},
 	getById: async ({ db, id }: { db: DBType; id: string }) => {
 		const item = await db.select().from(reusableFilter).where(eq(reusableFilter.id, id)).execute();
 		if (!item || item.length === 0) {
 			return undefined;
 		}
 
-		const itemUnpacked = await reusableFilterDBUnpacked(item[0]);
+		const updatedFilter = await reusableFilterActions.refreshFilterSummary({
+			db,
+			currentFilter: item[0]
+		});
 
-		const count = await tActions.journal.count(db, itemUnpacked.filter);
+		return updatedFilter;
+	},
+	updateAndList: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
+		const filters = await db.select().from(reusableFilter).execute();
 
-		return {
-			...itemUnpacked,
-			canApply:
-				count > 0 &&
-				itemUnpacked.change &&
-				itemUnpacked.changeText &&
-				itemUnpacked.changeText.length > 0,
-			journalCount: count
-		};
+		await Promise.all(
+			filters.map(async (currentFilter) => {
+				await reusableFilterActions.refreshFilterSummary({ db, currentFilter });
+			})
+		);
+
+		return reusableFilterActions.list({ db, filter });
 	},
 	list: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
@@ -70,17 +108,6 @@ export const reusableFilterActions = {
 			.execute();
 
 		const resultsProcessed = await reusableFilterDBUnpackedMany(results);
-		const resultsWithRelated = await Promise.all(
-			resultsProcessed.map(async (item) => {
-				const count = await tActions.journal.count(db, item.filter);
-
-				return {
-					...item,
-					canApply: count > 0 && item.change && item.changeText && item.changeText.length > 0,
-					journalCount: count
-				};
-			})
-		);
 
 		const resultCount = await db
 			.select({ count: sql<number>`count(${reusableFilter.id})`.mapWith(Number) })
@@ -91,7 +118,7 @@ export const reusableFilterActions = {
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
-		return { count, data: resultsWithRelated, pageCount, page, pageSize };
+		return { count, data: resultsProcessed, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		const allResults = await db
@@ -224,6 +251,8 @@ export const reusableFilterActions = {
 				...reusableFilterData
 			})
 			.execute();
+
+		return reusableFilterActions.getById({ db, id: idUse });
 	},
 	update: async ({
 		db,
@@ -270,6 +299,8 @@ export const reusableFilterActions = {
 			})
 			.where(eq(reusableFilter.id, id))
 			.execute();
+
+		return reusableFilterActions.getById({ db, id });
 	},
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
 		await db.delete(reusableFilter).where(eq(reusableFilter.id, id)).execute();
