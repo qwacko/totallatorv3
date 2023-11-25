@@ -50,6 +50,14 @@ export const reusableFilterActions = {
 				.execute();
 		}
 
+		if (currentFilter.needsUpdate) {
+			await db
+				.update(reusableFilter)
+				.set({ needsUpdate: false })
+				.where(eq(reusableFilter.id, currentFilter.id))
+				.execute();
+		}
+
 		return { ...itemUnpacked, canApply, journalCount: count };
 	},
 	getById: async ({ db, id }: { db: DBType; id: string }) => {
@@ -65,8 +73,24 @@ export const reusableFilterActions = {
 
 		return updatedFilter;
 	},
-	updateAndList: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
-		const filters = await db.select().from(reusableFilter).execute();
+	updateAndList: async ({
+		db,
+		filter,
+		delay = 0
+	}: {
+		db: DBType;
+		filter: ReusableFilterFilterSchemaType;
+		delay?: number;
+	}) => {
+		const filters = await db
+			.select()
+			.from(reusableFilter)
+			.where(eq(reusableFilter.needsUpdate, true))
+			.execute();
+
+		if (delay > 0) {
+			await new Promise((resolve) => setTimeout(resolve, delay));
+		}
 
 		await Promise.all(
 			filters.map(async (currentFilter) => {

@@ -104,11 +104,6 @@
 	$: allColumnIds = columns.map((item) => item.id);
 </script>
 
-<!-- <RawDataModal {data} buttonText="Data" dev={true} />
-<RawDataModal data={columns} buttonText="Columns" dev={true} />
-<RawDataModal data={currentOrder} buttonText="Current Order" dev={true} />
-<RawDataModal data={currentFilter} buttonText="Current Filter" dev={true} />
-<RawDataModal data={shownColumns} buttonText="Shown Columns" dev={true} /> -->
 {#if paginationInfo && data.length > 0 && !hideTopPagination}
 	<div class="flex flex-row justify-center gap-2">
 		<TablePagination {...paginationInfo} />

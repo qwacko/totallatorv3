@@ -461,6 +461,7 @@ export const reusableFilter = sqliteTable('filter', {
 	group: text('group'),
 	journalCount: integer('journal_count').notNull().default(0),
 	canApply: integer('can_apply', { mode: 'boolean' }).notNull().default(false),
+	needsUpdate: integer('needs_update', { mode: 'boolean' }).notNull().default(true),
 	applyAutomatically: integer('apply_automatically', { mode: 'boolean' }).notNull().default(false),
 	applyFollowingImport: integer('apply_following_import', { mode: 'boolean' })
 		.notNull()
