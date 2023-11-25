@@ -11,7 +11,12 @@ export const load = async (data) => {
 
 	const filterInfo = current.searchParams || {};
 
+	const startTime = Date.now();
+
 	const filters = await tActions.reusableFitler.list({ db, filter: filterInfo });
+
+	const endTime = Date.now();
+	console.log(`Reusable filter list took ${endTime - startTime}ms`);
 
 	const redirectRequired = filters.page >= filters.pageCount;
 	if (redirectRequired) {
@@ -24,7 +29,7 @@ export const load = async (data) => {
 		filterText: reusableFilterToText(current.searchParams || {}),
 		searchParams: current.searchParams,
 		streamed: {
-			filters: tActions.reusableFitler.updateAndList({ db, filter: filterInfo })
+			filters: await tActions.reusableFitler.updateAndList({ db, filter: filterInfo })
 		}
 	};
 };
