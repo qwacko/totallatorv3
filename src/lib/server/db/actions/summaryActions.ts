@@ -1,4 +1,4 @@
-import { eq, inArray, sql, isNull } from 'drizzle-orm';
+import { eq, inArray, sql, isNull, and } from 'drizzle-orm';
 import {
 	bill,
 	budget,
@@ -8,7 +8,8 @@ import {
 	label,
 	summaryTable,
 	journalEntry,
-	labelsToJournals
+	labelsToJournals,
+	reusableFilter
 } from '../schema';
 import type { DBType } from '../db';
 import { nanoid } from 'nanoid';
@@ -42,7 +43,13 @@ export const summaryActions = {
 		await db
 			.update(summaryTable)
 			.set({ needsUpdate: true })
-			.where(inArray(summaryTable.relationId, ids))
+			.where(and(inArray(summaryTable.relationId, ids), eq(summaryTable.needsUpdate, false)))
+			.execute();
+
+		await db
+			.update(reusableFilter)
+			.set({ needsUpdate: true })
+			.where(eq(reusableFilter.needsUpdate, false))
 			.execute();
 	},
 	updateAndCreateMany: async ({

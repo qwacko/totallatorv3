@@ -1,36 +1,17 @@
 <script lang="ts">
-	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
+	import { Button } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
-	import { goto, onNavigate } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import CustomTable from '$lib/components/table/CustomTable.svelte';
-	import { reusableFilterColumnsStore } from '$lib/stores/columnDisplayStores.js';
-	import { defaultJournalFilter } from '$lib/schema/journalSchema';
-	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
-	import EditIcon from '$lib/components/icons/EditIcon.svelte';
-	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
-	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import BooleanFilterButtons from '$lib/components/filters/BooleanFilterButtons.svelte';
-	import ReusableFilterFilter from '$lib/components/filters/ReusableFilterFilter.svelte';
-	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
-	import FilterModifyIcon from '$lib/components/icons/FilterModifyIcon.svelte';
-	import FilterReplaceIcon from '$lib/components/icons/FilterReplaceIcon.svelte';
-	import ApplyFilterIcon from '$lib/components/icons/ApplyFilterIcon.svelte';
+	import FilterTable from './FilterTable.svelte';
+	import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
 
 	export let data;
 
-	$: dataForTable = data.filters;
 	$: urlInfo = pageInfo('/(loggedIn)/filters', $page);
-
-	const updateData = async () => {
-		const newData = await data.streamed.filters;
-		dataForTable = newData;
-	};
-
-	$: data.filters && updateData();
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/filters',
@@ -43,18 +24,20 @@
 		updateDelay: 500
 	});
 
-	let filterOpened = false;
-
-	onNavigate(() => {
-		filterOpened = false;
-	});
+	$: tableConfig = {
+		dev: data.dev,
+		filterText: data.filterText,
+		urlForPage: (value: number) => urlInfo.updateParams({ searchParams: { page: value } }).url,
+		urlForSort: (newSort: ReusableFilterFilterSchemaType['orderBy']) =>
+			urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url
+	};
 </script>
 
 <CustomHeader
-	pageTitle="Journals"
+	pageTitle="Reusable Filters"
 	filterText={data.filterText}
-	pageNumber={dataForTable.page}
-	numPages={dataForTable.pageCount}
+	pageNumber={data.filters.page}
+	numPages={data.filters.pageCount}
 />
 
 <PageLayout title="Reusable Filters" size="xl">
@@ -68,6 +51,24 @@
 		</Button>
 	</svelte:fragment>
 
+	{#if $urlStore.searchParams}
+		{#await data.streamed.filters}
+			<FilterTable
+				dataForTable={data.filters}
+				loading={true}
+				bind:searchParams={$urlStore.searchParams}
+				{...tableConfig}
+			/>
+		{:then dataForUse}
+			<FilterTable
+				dataForTable={dataForUse}
+				loading={false}
+				bind:searchParams={$urlStore.searchParams}
+				{...tableConfig}
+			/>
+		{/await}
+	{/if}
+	<!-- 
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.multipleText}
@@ -157,7 +158,8 @@
 					rowToDisplay: (row) => row.journalCount.toString()
 				},
 				{
-					id: 'canApply',title: 'Can Apply',
+					id: 'canApply',
+					title: 'Can Apply',
 					sortKey: 'canApply',
 					rowToDisplay: (row) => (row.canApply ? 'Y' : '')
 				}
@@ -319,5 +321,5 @@
 				<ReusableFilterFilter bind:filter={$urlStore.searchParams} />
 			</svelte:fragment>
 		</CustomTable>
-	{/if}
+	{/if} -->
 </PageLayout>
