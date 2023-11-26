@@ -17,6 +17,7 @@ import { createBudget } from './helpers/seedBudgetData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { testingDelay } from '$lib/server/testingDelay';
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
@@ -95,6 +96,7 @@ export const budgetActions = {
 		return { count, data: results, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
+		await testingDelay();
 		const items = db
 			.select({ id: budget.id, title: budget.title, enabled: budget.allowUpdate })
 			.from(budget)

@@ -16,6 +16,7 @@ import { journalUpdateToText } from './helpers/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSchema';
 import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 import { tActions } from './tActions';
+import { testingDelay } from '$lib/server/testingDelay';
 
 export const reusableFilterActions = {
 	refreshFilterSummary: async ({
@@ -73,24 +74,13 @@ export const reusableFilterActions = {
 
 		return updatedFilter;
 	},
-	updateAndList: async ({
-		db,
-		filter,
-		delay = 0
-	}: {
-		db: DBType;
-		filter: ReusableFilterFilterSchemaType;
-		delay?: number;
-	}) => {
+	updateAndList: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
+		await testingDelay();
 		const filters = await db
 			.select()
 			.from(reusableFilter)
 			.where(eq(reusableFilter.needsUpdate, true))
 			.execute();
-
-		if (delay > 0) {
-			await new Promise((resolve) => setTimeout(resolve, delay));
-		}
 
 		await Promise.all(
 			filters.map(async (currentFilter) => {

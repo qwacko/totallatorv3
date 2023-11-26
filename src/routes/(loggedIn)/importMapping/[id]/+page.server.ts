@@ -11,10 +11,12 @@ import {
 } from '$lib/schema/importMappingSchema';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { z } from 'zod';
+import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 
 export const load = async (data) => {
 	authGuard(data);
 	const { current } = serverPageInfo(data.route.id, data);
+	bufferingHelper(data);
 
 	if (!current.params) {
 		throw redirect(

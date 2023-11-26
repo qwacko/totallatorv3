@@ -18,6 +18,7 @@ import { createCategory } from './helpers/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { testingDelay } from '$lib/server/testingDelay';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
@@ -96,6 +97,7 @@ export const categoryActions = {
 		return { count, data: results, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
+		await testingDelay();
 		const items = db
 			.select({
 				id: category.id,

@@ -48,6 +48,7 @@ import { nanoid } from 'nanoid';
 import { simpleSchemaToCombinedSchema } from './helpers/simpleSchemaToCombinedSchema';
 import { updateManyTransferInfo } from './helpers/updateTransactionTransfer';
 import { summaryActions } from './summaryActions';
+import { testingDelay } from '$lib/server/testingDelay';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -94,6 +95,9 @@ export const journalActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
+
+		await testingDelay();
+
 		const startDate12Months = new Date();
 		startDate12Months.setMonth(startDate12Months.getMonth() - 12 + 1);
 		const startLast12YearMonth = startDate12Months.toISOString().slice(0, 7);

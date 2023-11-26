@@ -8,9 +8,6 @@ import { redirect } from '@sveltejs/kit';
 export const load = async (data) => {
 	authGuard(data);
 	const { current, updateParams } = serverPageInfo(data.route.id, data);
-	data.setHeaders({
-		'X-Accel-Buffering': 'no'
-	});
 
 	const filterInfo = current.searchParams || {};
 
@@ -32,7 +29,10 @@ export const load = async (data) => {
 		filterText: reusableFilterToText(current.searchParams || {}),
 		searchParams: current.searchParams,
 		streamed: {
-			filters: tActions.reusableFitler.updateAndList({ db, filter: filterInfo, delay: 1000 })
+			filters: tActions.reusableFitler.updateAndList({
+				db,
+				filter: filterInfo
+			})
 		}
 	};
 };

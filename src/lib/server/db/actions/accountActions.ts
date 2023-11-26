@@ -25,6 +25,7 @@ import { accountTitleSplit } from './helpers/accountTitleSplit';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summaryOrderBy';
 import { getCommonData } from './helpers/getCommonData';
+import { testingDelay } from '$lib/server/testingDelay';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -105,6 +106,7 @@ export const accountActions = {
 		return { count, data: results, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
+		await testingDelay();
 		const items = db
 			.select({
 				id: account.id,

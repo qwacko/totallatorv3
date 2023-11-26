@@ -18,6 +18,7 @@ import { createTag } from './helpers/seedTagData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { testingDelay } from '$lib/server/testingDelay';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
@@ -99,6 +100,7 @@ export const tagActions = {
 		return { count, data: results, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
+		await testingDelay();
 		const items = db
 			.select({ id: tag.id, title: tag.title, group: tag.group, enabled: tag.allowUpdate })
 			.from(tag)

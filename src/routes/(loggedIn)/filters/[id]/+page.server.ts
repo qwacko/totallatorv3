@@ -6,6 +6,7 @@ import {
 	updateReusableFilterFormSchema,
 	updateReusableFilterSchema
 } from '$lib/schema/reusableFilterSchema';
+import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery';
 import { journalUpdateToText } from '$lib/server/db/actions/helpers/journalUpdateToText';
 import { tActions } from '$lib/server/db/actions/tActions';
@@ -18,6 +19,7 @@ import { setError, superValidate } from 'sveltekit-superforms/server';
 export const load = async (data) => {
 	authGuard(data);
 	const { current } = serverPageInfo(data.route.id, data);
+	bufferingHelper(data);
 
 	if (!current.params || !current.searchParams) {
 		throw redirect(
