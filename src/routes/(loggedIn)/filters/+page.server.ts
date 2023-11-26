@@ -8,6 +8,9 @@ import { redirect } from '@sveltejs/kit';
 export const load = async (data) => {
 	authGuard(data);
 	const { current, updateParams } = serverPageInfo(data.route.id, data);
+	data.setHeaders({
+		'X-Accel-Buffering': 'no'
+	});
 
 	const filterInfo = current.searchParams || {};
 
