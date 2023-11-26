@@ -5,6 +5,7 @@ import {
 	importMappingDetailSchema,
 	importMappingDetailWithRefinementSchema
 } from '$lib/schema/importMappingSchema.js';
+import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
@@ -16,6 +17,7 @@ import { z } from 'zod';
 export const load = (data) => {
 	authGuard(data);
 	serverPageInfo(data.route.id, data);
+	bufferingHelper(data);
 
 	const form = superValidate({ title: '', configuration: '' }, importMappingCreateFormSchema);
 	const detailForm = superValidate({}, importMappingDetailSchema);

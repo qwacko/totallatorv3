@@ -17,10 +17,12 @@ import { journalUpdateToText } from '$lib/server/db/actions/helpers/journalUpdat
 import { reusableFilterPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { redirect } from '@sveltejs/kit';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
+import { bufferingHelper } from '$lib/server/bufferingHelper';
 
 export const load = async (data) => {
 	authGuard(data);
 	const { current } = serverPageInfo(data.route.id, data);
+	bufferingHelper(data);
 
 	const filter = current.searchParams?.filter || defaultJournalFilter();
 	const change = current.searchParams?.change;

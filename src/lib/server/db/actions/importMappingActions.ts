@@ -10,6 +10,7 @@ import { importMapping, type ImportMappingType } from '../schema';
 import { updatedTime } from './helpers/updatedTime';
 import { asc, desc, getTableColumns, and, sql, eq } from 'drizzle-orm';
 import { importMappingFilterToQuery } from './helpers/importMappingFilterToQuery';
+import { testingDelay } from '$lib/server/testingDelay';
 
 const processImportedDataResult = (data: ImportMappingType) => {
 	const { configuration, ...restData } = data;
@@ -77,6 +78,7 @@ export const importMappingActions = {
 		};
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
+		await testingDelay();
 		const results = await db
 			.select({ id: importMapping.id, title: importMapping.title, enabled: sql<boolean>`true` })
 			.from(importMapping)

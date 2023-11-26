@@ -17,6 +17,7 @@ import { labelFilterToQuery } from './helpers/labelFilterToQuery';
 import { labelCreateInsertionData } from './helpers/labelCreateInsertionData';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { testingDelay } from '$lib/server/testingDelay';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
@@ -96,6 +97,7 @@ export const labelActions = {
 		return { count, data: results, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
+		await testingDelay();
 		const items = db
 			.select({ id: label.id, title: label.title, enabled: label.allowUpdate })
 			.from(label)

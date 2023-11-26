@@ -1,6 +1,7 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema.js';
+import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
@@ -10,6 +11,7 @@ import { redirect } from '@sveltejs/kit';
 export const load = async (data) => {
 	authGuard(data);
 	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
+	bufferingHelper(data);
 
 	const filter: JournalFilterSchemaType = pageInfo.searchParams || {
 		page: 0,
@@ -33,10 +35,12 @@ export const load = async (data) => {
 		filter: { ...filter, page: 0, pageSize: 1000000 }
 	});
 
+	const dropdownInfo = dropdownItems({ db });
+
 	return {
 		journals: journalData,
 		summary,
-		dropdownInfo: dropdownItems({ db }),
+		dropdownInfo,
 		filterText: journalFilterToText(filter, { prefix: 'Journal' }),
 		filterDropdown: tActions.reusableFitler.listForDropdown({ db })
 	};

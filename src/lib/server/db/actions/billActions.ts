@@ -17,6 +17,7 @@ import { createBill } from './helpers/seedBillData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { testingDelay } from '$lib/server/testingDelay';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
@@ -95,6 +96,7 @@ export const billActions = {
 		return { count, data: results, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
+		await testingDelay();
 		const items = db
 			.select({ id: bill.id, title: bill.title, enabled: bill.allowUpdate })
 			.from(bill)
