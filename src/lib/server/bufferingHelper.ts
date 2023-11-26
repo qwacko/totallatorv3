@@ -10,7 +10,7 @@ export const bufferingHelper = <
 >(
 	loadData: ServerData
 ) => {
-	if (!serverEnv.DISABLE_BUFFERING) {
+	if (serverEnv.DISABLE_BUFFERING) {
 		loadData.setHeaders({
 			'X-Accel-Buffering': 'no'
 		});
