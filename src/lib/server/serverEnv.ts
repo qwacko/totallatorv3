@@ -35,7 +35,7 @@ const serverEnvValidation = z.object({
 	CSRF_CHECK_ORIGIN: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
 	DATABASE_FILE: z.string().optional().default('./database.sqlite3'),
 	DB_QUERY_LOG: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
-	TESTING_DELAY: z.number().optional().default(0),
+	TESTING_DELAY: z.coerce.number().optional().default(0),
 	DISABLE_BUFFERING: parseEnvStringToBoolean({ defaultBoolean: true, optional: true })
 });
 
