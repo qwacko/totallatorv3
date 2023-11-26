@@ -8,10 +8,18 @@ import { redirect } from '@sveltejs/kit';
 export const load = async (data) => {
 	authGuard(data);
 	const { current, updateParams } = serverPageInfo(data.route.id, data);
+	data.setHeaders({
+		'X-Accel-Buffering': 'no'
+	});
 
 	const filterInfo = current.searchParams || {};
 
+	const startTime = Date.now();
+
 	const filters = await tActions.reusableFitler.list({ db, filter: filterInfo });
+
+	const endTime = Date.now();
+	console.log(`Reusable filter list took ${endTime - startTime}ms`);
 
 	const redirectRequired = filters.page >= filters.pageCount;
 	if (redirectRequired) {
@@ -24,7 +32,7 @@ export const load = async (data) => {
 		filterText: reusableFilterToText(current.searchParams || {}),
 		searchParams: current.searchParams,
 		streamed: {
-			filters: tActions.reusableFitler.updateAndList({ db, filter: filterInfo })
+			filters: tActions.reusableFitler.updateAndList({ db, filter: filterInfo, delay: 1000 })
 		}
 	};
 };
