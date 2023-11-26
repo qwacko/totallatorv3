@@ -32,7 +32,7 @@ export const load = async (data) => {
 		filterText: reusableFilterToText(current.searchParams || {}),
 		searchParams: current.searchParams,
 		streamed: {
-			filters: await tActions.reusableFitler.updateAndList({ db, filter: filterInfo })
+			filters: tActions.reusableFitler.updateAndList({ db, filter: filterInfo, delay: 1000 })
 		}
 	};
 };

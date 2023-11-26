@@ -54,8 +54,6 @@ export const journalList = async ({
 		.offset(page * pageSize)
 		.limit(pageSize);
 
-	// logging.info('Query Params : ', restFilter);
-	// logging.info('Query Text : ', journalQueryCore.toSQL());
 	const journalsPromise = journalQueryCore.execute();
 
 	const runningTotalInner = db
