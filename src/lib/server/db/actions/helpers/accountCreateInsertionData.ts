@@ -16,17 +16,6 @@ export const accountCreateInsertionData = (data: CreateAccountSchemaType, id: st
 			...combinedAccountTitleSplitRequired(data)
 		};
 	} else {
-		logging.info('Creating income Expense', {
-			id,
-			...data,
-			...statusUpdate(data.status),
-			...updatedTime(),
-			...combinedAccountTitleSplitRequired({ title: data.title, accountGroupCombined: '' }),
-			startDate: null,
-			endDate: null,
-			isCash: false,
-			isNetWorth: false
-		});
 		return {
 			id,
 			...data,

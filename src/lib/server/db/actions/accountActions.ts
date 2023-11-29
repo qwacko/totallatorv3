@@ -157,12 +157,38 @@ export const accountActions = {
 	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
+
+		if (data.startDate) {
+			if (data.startDate.length > 10) {
+				throw new Error('Invalid Start Date (Too Long)');
+			}
+			//Check that provided date is valid
+			const startDate = new Date(data.startDate);
+			if (isNaN(startDate.getTime())) {
+				throw new Error('Invalid Start Date');
+			}
+		}
+		if (data.endDate) {
+			//Check that provided date is valid
+			const startDate = new Date(data.endDate);
+			if (isNaN(startDate.getTime())) {
+				throw new Error('Invalid End Date');
+			}
+			if (data.endDate.length > 10) {
+				throw new Error('Invalid End Date (Too Long)');
+			}
+		}
+
 		await db.transaction(async (db) => {
 			await db.insert(account).values(accountCreateInsertionData(data, id));
 			await summaryActions.createMissing({ db });
 		});
 
 		return id;
+	},
+	createAndGet: async (db: DBType, data: CreateAccountSchemaType) => {
+		const id = await accountActions.create(db, data);
+		return db.query.account.findFirst({ where: eq(account.id, id) }).execute();
 	},
 	createOrGet: async ({
 		db,
