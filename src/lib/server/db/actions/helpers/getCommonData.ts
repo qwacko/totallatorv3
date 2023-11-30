@@ -34,6 +34,20 @@ type getToFromAccountAmountDataReturn = {
 	direction: boolean | undefined;
 };
 
+/**
+ * Retrieves a common set the to and from account id and amounts for multiple journals by analysing the other journals data.
+ * If there is more than 2 journals, in any transacstion then null value are returned. If there is a common to or from acounnt information
+ * then this is returned.
+ *
+ * @template T - The type of the key.
+ * @template U - The type of the objects in the data array.
+ *
+ * @param {T} key - The key to retrieve common data for.
+ * @param {U[]} data - The array of objects to retrieve data from.
+ * @param {boolean} [log=false] - Optional parameter to enable logging.
+ *
+ * @returns {U[T] | undefined} - The common data for the specified key, or undefined if there is no common data.
+ */
 export const getToFromAccountAmountData = <T extends journalsWithOtherJournalTypeAndAmount>(
 	data: T
 ): getToFromAccountAmountDataReturn => {

@@ -3,7 +3,7 @@ import type { DBType } from '../../db';
 import { updatedTime } from './updatedTime';
 import { nanoid } from 'nanoid';
 import { expandDate } from './expandDate';
-import { journalGetOrCreateLinkedItems } from './accountGetOrCreateLinkedItems';
+import { journalGetOrCreateLinkedItems } from './journalGetOrCreateLinkedItems';
 
 export const generateItemsForJournalCreation = async (
 	db: DBType,

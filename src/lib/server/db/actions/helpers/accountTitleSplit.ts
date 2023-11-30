@@ -1,4 +1,4 @@
-type AccountInfo = {
+export type AccountInfo = {
 	accountGroupCombined: string;
 	title: string;
 };

@@ -22,6 +22,7 @@ export const expandDate = (
 	const yearQuarter = `${year}-Q${String(Math.floor((month - 1) / 3) + 1).padStart(2, '0')}`;
 	return { yearMonthDay, yearWeek, yearMonth, yearQuarter, year, date: dateObject, dateText: date };
 };
+
 const getWeekNumber = (dateObject: Date): number => {
 	// startDay: 0 (Sunday) to 6 (Saturday)
 	const startDay = 0;

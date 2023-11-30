@@ -1,3 +1,14 @@
+/**
+ * Creates unique items based on the provided parameters. Developed for database seeding.
+ *
+ * @template T - The type of the items to be created.
+ * @param {Object} options - The options for creating unique items.
+ * @param {string[]} options.existing - The array of existing items.
+ * @param {(creation: T) => string} options.creationToString - The function that converts a created item to a string.
+ * @param {number} options.count - The number of unique items to create.
+ * @param {() => T} options.createItem - The function that creates a new item.
+ * @returns {T[]} - The array of unique items.
+ */
 export const createUniqueItemsOnly = <T extends Record<string, string>>({
 	existing,
 	creationToString,
