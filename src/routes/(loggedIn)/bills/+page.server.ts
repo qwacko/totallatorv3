@@ -31,7 +31,10 @@ export const load = async (data) => {
 	return {
 		bills,
 		searchParams: pageInfo.searchParams,
-		filterText: billFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		filterText: billFilterToText({
+			db,
+			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+		}),
 		billSummary,
 		billDropdowns: tActions.bill.listForDropdown({ db })
 	};

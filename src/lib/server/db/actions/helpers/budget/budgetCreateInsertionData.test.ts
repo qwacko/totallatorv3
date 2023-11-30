@@ -1,10 +1,11 @@
-import type { CreateBillSchemaType } from '$lib/schema/billSchema';
-import { billCreateInsertionData } from './billCreateInsertionData';
+import type { CreateBudgetSchemaType } from '$lib/schema/budgetSchema';
+
+import { budgetCreateInsertionData } from './budgetCreateInsertionData';
 import { expect, describe, it, vi } from 'vitest';
 
-describe('billCreateInsertionData', () => {
+describe('budgetCreateInsertionData', () => {
 	it('should return the correct insertion data', () => {
-		const data: CreateBillSchemaType = {
+		const data: CreateBudgetSchemaType = {
 			status: 'active',
 			title: 'test',
 			importDetailId: 'importDetail1',
@@ -16,7 +17,7 @@ describe('billCreateInsertionData', () => {
 		vi.useFakeTimers();
 		const now = new Date();
 		vi.setSystemTime(now);
-		const result = billCreateInsertionData(data, id);
+		const result = budgetCreateInsertionData(data, id);
 		vi.useRealTimers();
 
 		const expected = {
@@ -32,7 +33,7 @@ describe('billCreateInsertionData', () => {
 	});
 
 	it('should return the correct insertion data when status is disabled', () => {
-		const data: CreateBillSchemaType = {
+		const data: CreateBudgetSchemaType = {
 			status: 'disabled',
 			title: 'test',
 			importDetailId: 'importDetail1',
@@ -44,7 +45,7 @@ describe('billCreateInsertionData', () => {
 		vi.useFakeTimers();
 		const now = new Date();
 		vi.setSystemTime(now);
-		const result = billCreateInsertionData(data, id);
+		const result = budgetCreateInsertionData(data, id);
 		vi.useRealTimers();
 
 		const expected = {

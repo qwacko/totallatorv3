@@ -42,7 +42,7 @@ export const journalUpdateToText = async ({
 
 	//Budget
 	if (change.budgetClear) messages.push(`Budget Clear: ${change.budgetClear}`);
-	if (change.budgetId) messages.push(`Budget: ${await budgetIdToTitle(change.budgetId)}`);
+	if (change.budgetId) messages.push(`Budget: ${await budgetIdToTitle(db, change.budgetId)}`);
 	if (change.budgetTitle) messages.push(`Budget Title: ${change.budgetTitle}`);
 
 	//Category
@@ -52,7 +52,7 @@ export const journalUpdateToText = async ({
 
 	//Bills
 	if (change.billClear) messages.push(`Bill Clear: ${change.billClear}`);
-	if (change.billId) messages.push(`Bill: ${await billIdToTitle(change.billId)}`);
+	if (change.billId) messages.push(`Bill: ${await billIdToTitle(db, change.billId)}`);
 	if (change.billTitle) messages.push(`Bill Title: ${change.billTitle}`);
 
 	//Tags

@@ -1,14 +1,14 @@
-import { billFilterToQuery, billFilterToText } from './billFilterToQuery';
-import { bill } from '../../../schema';
+import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
+import { budget } from '../../../schema';
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { QueryBuilder } from 'drizzle-orm/sqlite-core';
 import { and } from 'drizzle-orm';
 import { createTestDB, initialiseTestDB, tearDownTestDB } from '$lib/server/db/test/dbTest';
 
-describe('billFilterToQuery', () => {
+describe('budgetFilterToQuery', () => {
 	const qb = new QueryBuilder();
 	it('Filter Returns A Good Value', () => {
-		const returnValue = billFilterToQuery(
+		const returnValue = budgetFilterToQuery(
 			{
 				id: 'id',
 				idArray: ['idArray1', 'idArray2'],
@@ -26,46 +26,46 @@ describe('billFilterToQuery', () => {
 
 		const query = qb
 			.select()
-			.from(bill)
+			.from(budget)
 			.where(and(...returnValue))
 			.toSQL();
 
 		//Id
-		expect(query.sql).toContain('"bill"."id" = ?');
+		expect(query.sql).toContain('"budget"."id" = ?');
 		expect(query.params).toHaveProperty('0', 'id');
 
 		//Id Array
-		expect(query.sql).toContain('"bill"."id" in (?, ?)');
+		expect(query.sql).toContain('"budget"."id" in (?, ?)');
 		expect(query.params).toHaveProperty('1', 'idArray1');
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"bill"."title" like ?');
+		expect(query.sql).toContain('"budget"."title" like ?');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Status
-		expect(query.sql).toContain('"bill"."status" = ?');
+		expect(query.sql).toContain('"budget"."status" = ?');
 		expect(query.params).toHaveProperty('4', 'active');
 
 		//Disabled
-		expect(query.sql).toContain('"bill"."disabled" = ?');
+		expect(query.sql).toContain('"budget"."disabled" = ?');
 		expect(query.params).toHaveProperty('5', 0);
 
 		//Allow Update
-		expect(query.sql).toContain('"bill"."allow_update" = ?');
+		expect(query.sql).toContain('"budget"."allow_update" = ?');
 		expect(query.params).toHaveProperty('6', 1);
 
 		//Active
-		expect(query.sql).toContain('"bill"."active" = ?');
+		expect(query.sql).toContain('"budget"."active" = ?');
 		expect(query.params).toHaveProperty('7', 0);
 
 		//Import Id Array
-		expect(query.sql).toContain('"bill"."import_id" in (?, ?)');
+		expect(query.sql).toContain('"budget"."import_id" in (?, ?)');
 		expect(query.params).toHaveProperty('8', 'importId1');
 		expect(query.params).toHaveProperty('9', 'importId2');
 
 		//Import Detail Id Array
-		expect(query.sql).toContain('"bill"."bill_import_detail_id" in (?, ?)');
+		expect(query.sql).toContain('"budget"."budget_import_detail_id" in (?, ?)');
 		expect(query.params).toHaveProperty('10', 'importDetailId1');
 		expect(query.params).toHaveProperty('11', 'importDetailId2');
 
@@ -75,7 +75,7 @@ describe('billFilterToQuery', () => {
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
-		const returnValue = billFilterToQuery(
+		const returnValue = budgetFilterToQuery(
 			{
 				disabled: true,
 				allowUpdate: false,
@@ -86,29 +86,29 @@ describe('billFilterToQuery', () => {
 
 		const query = qb
 			.select()
-			.from(bill)
+			.from(budget)
 			.where(and(...returnValue))
 			.toSQL();
 
 		//Disabled
-		expect(query.sql).toContain('"bill"."disabled" = ?');
+		expect(query.sql).toContain('"budget"."disabled" = ?');
 		expect(query.params).toHaveProperty('0', 1);
 
 		//Allow Update
-		expect(query.sql).toContain('"bill"."allow_update" = ?');
+		expect(query.sql).toContain('"budget"."allow_update" = ?');
 		expect(query.params).toHaveProperty('1', 0);
 
 		//Active
-		expect(query.sql).toContain('"bill"."active" = ?');
+		expect(query.sql).toContain('"budget"."active" = ?');
 		expect(query.params).toHaveProperty('2', 1);
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = billFilterToQuery({}, true);
+		const returnValue = budgetFilterToQuery({}, true);
 
 		const query = qb
 			.select()
-			.from(bill)
+			.from(budget)
 			.where(and(...returnValue))
 			.toSQL();
 
@@ -116,7 +116,7 @@ describe('billFilterToQuery', () => {
 	});
 
 	it('Blank Title and ID Return A Blank Value', () => {
-		const returnValue = billFilterToQuery(
+		const returnValue = budgetFilterToQuery(
 			{
 				id: '',
 				title: ''
@@ -126,7 +126,7 @@ describe('billFilterToQuery', () => {
 
 		const query = qb
 			.select()
-			.from(bill)
+			.from(budget)
 			.where(and(...returnValue))
 			.toSQL();
 
@@ -134,7 +134,7 @@ describe('billFilterToQuery', () => {
 	});
 
 	it("If include summary is turned off, then count max doesn't have impact", () => {
-		const returnValue = billFilterToQuery(
+		const returnValue = budgetFilterToQuery(
 			{
 				countMax: 10
 			},
@@ -143,7 +143,7 @@ describe('billFilterToQuery', () => {
 
 		const query = qb
 			.select()
-			.from(bill)
+			.from(budget)
 			.where(and(...returnValue))
 			.toSQL();
 
@@ -151,7 +151,7 @@ describe('billFilterToQuery', () => {
 	});
 
 	it('Id Array is not used if the array is empty', () => {
-		const returnValue = billFilterToQuery(
+		const returnValue = budgetFilterToQuery(
 			{
 				idArray: []
 			},
@@ -160,15 +160,15 @@ describe('billFilterToQuery', () => {
 
 		const query = qb
 			.select()
-			.from(bill)
+			.from(budget)
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"bill"."id" in (?, ?)');
+		expect(query.sql).not.toContain('"budget"."id" in (?, ?)');
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
-		const returnValue = billFilterToQuery(
+		const returnValue = budgetFilterToQuery(
 			{
 				importIdArray: []
 			},
@@ -177,15 +177,15 @@ describe('billFilterToQuery', () => {
 
 		const query = qb
 			.select()
-			.from(bill)
+			.from(budget)
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"bill"."import_id" in (?, ?)');
+		expect(query.sql).not.toContain('"budget"."import_id" in (?, ?)');
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
-		const returnValue = billFilterToQuery(
+		const returnValue = budgetFilterToQuery(
 			{
 				importDetailIdArray: []
 			},
@@ -194,15 +194,15 @@ describe('billFilterToQuery', () => {
 
 		const query = qb
 			.select()
-			.from(bill)
+			.from(budget)
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"bill"."bill_import_detail_id" in (?, ?)');
+		expect(query.sql).not.toContain('"budget"."budget_import_detail_id" in (?, ?)');
 	});
 
 	it('Filtering for disabled items works correctly', () => {
-		const returnValue = billFilterToQuery(
+		const returnValue = budgetFilterToQuery(
 			{
 				disabled: true
 			},
@@ -211,20 +211,20 @@ describe('billFilterToQuery', () => {
 
 		const query = qb
 			.select()
-			.from(bill)
+			.from(budget)
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).toContain('"bill"."disabled" = ?');
+		expect(query.sql).toContain('"budget"."disabled" = ?');
 		expect(query.params).toHaveProperty('0', 1);
 	});
 });
 
-describe('Bill Filter To Text', async () => {
-	const { db, sqliteDatabase, filename } = await createTestDB('billFilterToText');
+describe('Budget Filter To Text', async () => {
+	const { db, sqliteDatabase, filename } = await createTestDB('budgetFilterToText');
 
 	beforeEach(async () => {
-		await initialiseTestDB({ db, bills: true });
+		await initialiseTestDB({ db, budgets: true });
 	});
 
 	afterAll(async () => {
@@ -232,11 +232,11 @@ describe('Bill Filter To Text', async () => {
 	});
 
 	it('Filter Returns Useful Text', async () => {
-		const returnValue = await billFilterToText({
+		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
 				title: 'title',
-				id: 'Bill1',
+				id: 'Budget1',
 				status: 'active',
 				disabled: false,
 				allowUpdate: true,
@@ -245,8 +245,7 @@ describe('Bill Filter To Text', async () => {
 			}
 		});
 
-
-		expect(returnValue).toHaveProperty('0', 'Is Power');
+		expect(returnValue).toHaveProperty('0', 'Is Spending');
 		expect(returnValue).toHaveProperty('1', 'Title contains title');
 		expect(returnValue).toHaveProperty('2', 'Status equals active');
 		expect(returnValue).toHaveProperty('3', 'Is Not Disabled');
@@ -254,44 +253,44 @@ describe('Bill Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('5', 'Max Journal Count of 10');
 	});
 
-	it('Filter For Bill Id Works Correctly', async () => {
-		const returnValue = await billFilterToText({
+	it('Filter For Budget Id Works Correctly', async () => {
+		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
-				id: 'Bill2'
+				id: 'Budget2'
 			}
 		});
 
-		expect(returnValue).toHaveProperty('0', 'Is Rent');
+		expect(returnValue).toHaveProperty('0', 'Is Travel');
 	});
 
-	it('Filter For Bill Id Array Works Correctly (2 Values)', async () => {
-		const returnValue = await billFilterToText({
+	it('Filter For Budget Id Array Works Correctly (2 Values)', async () => {
+		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
-				idArray: ['Bill1', 'Bill2']
+				idArray: ['Budget1', 'Budget2']
 			}
 		});
 
-		expect(returnValue).toHaveProperty('0', 'Is one of Power, Rent');
+		expect(returnValue).toHaveProperty('0', 'Is one of Spending, Travel');
 	});
 
-	it('Filter For Bill Id Array Works Correctly (4 Values)', async () => {
-		const returnValue = await billFilterToText({
+	it('Filter For Budget Id Array Works Correctly (4 Values)', async () => {
+		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
-				idArray: ['Bill1', 'Bill2', 'Bill3', 'Bill4']
+				idArray: ['Budget1', 'Budget2', 'Budget3', 'Budget4']
 			}
 		});
 
-		expect(returnValue).toHaveProperty('0', 'Is one of Power, Rent, Insurance, Internet');
+		expect(returnValue).toHaveProperty('0', 'Is one of Spending, Travel, Vehicle, Fun');
 	});
 
-	it('Filter For Bill Id Array Works Correctly (5 Values)', async () => {
-		const returnValue = await billFilterToText({
+	it('Filter For Budget Id Array Works Correctly (5 Values)', async () => {
+		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
-				idArray: ['Bill1', 'Bill2', 'Bill3', 'Bill4', 'Bill5']
+				idArray: ['Budget1', 'Budget2', 'Budget3', 'Budget4', 'Budget5']
 			}
 		});
 
@@ -299,7 +298,7 @@ describe('Bill Filter To Text', async () => {
 	});
 
 	it('No filters returns expected text (Showing All)', async () => {
-		const returnValue = await billFilterToText({
+		const returnValue = await budgetFilterToText({
 			db,
 			filter: {}
 		});
@@ -308,14 +307,14 @@ describe('Bill Filter To Text', async () => {
 	});
 
 	it('Prefixes Work Correctly', async () => {
-		const returnValue = await billFilterToText({
+		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
-				title: 'Bill1'
+				title: 'Budget1'
 			},
 			prefix: 'Test Prefix'
 		});
 
-		expect(returnValue).toHaveProperty('0', 'Test Prefix Title contains Bill1');
+		expect(returnValue).toHaveProperty('0', 'Test Prefix Title contains Budget1');
 	});
 });

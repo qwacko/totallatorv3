@@ -8,6 +8,8 @@ import type { Logger } from 'drizzle-orm';
 import type { DBType } from '../db';
 import fs from 'fs/promises';
 import { seedTestAccounts } from './seedTestAccounts';
+import { seedTestBills } from './seedTestBills';
+import { seedTestBudgets } from './seedTestBudgets';
 
 export const createTestDB = async (suffix: string) => {
 	const filename = `${serverEnv.DATABASE_FILE}-test-${suffix}`;
@@ -73,10 +75,10 @@ export const initialiseTestDB = async ({
 		await seedTestAccounts(db);
 	}
 	if (bills) {
-		itemCount++;
+		await seedTestBills(db);
 	}
 	if (budgets) {
-		itemCount++;
+		await seedTestBudgets(db);
 	}
 	if (categories) {
 		itemCount++;

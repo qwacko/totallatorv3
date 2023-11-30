@@ -71,18 +71,21 @@ export const billFilterToText = async ({
 
 	const stringArray: string[] = [];
 	if (restFilter.id) stringArray.push(`Is ${await billIdToTitle(db, restFilter.id)}`);
-	if (restFilter.idArray) {
-		if (restFilter.idArray.length === 1) {
-			stringArray.push(`Is ${await billIdToTitle(db, restFilter.idArray[0])}`);
-		} else {
-			stringArray.push(`Is One Of ${(await billIdsToTitle(db, restFilter.idArray)).join(',')}`);
-		}
+	if (restFilter.idArray && restFilter.idArray.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.idArray,
+				inputToText: (titles) => billIdsToTitle(db, titles)
+			})
+		);
 	}
 	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
-	if (restFilter.disabled) stringArray.push(`Is Disabled`);
-	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
-	if (restFilter.active) stringArray.push(`Is Active`);
+	if (restFilter.disabled !== undefined)
+		stringArray.push(`Is ${restFilter.disabled ? '' : 'Not '}Disabled`);
+	if (restFilter.allowUpdate !== undefined)
+		stringArray.push(`Can${restFilter.allowUpdate ? '' : "'t"} Be Updated`);
+	if (restFilter.active) stringArray.push(`Is ${restFilter.active ? '' : 'Not '}Active`);
 	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
 		stringArray.push(
 			await arrayToText({

@@ -259,22 +259,31 @@ export const journalFilterToText = async ({
 	}
 
 	if (filter.bill) {
-		linkedArray.push(...(await billFilterToText(filter.bill, { prefix: 'Bill', allText: false })));
+		linkedArray.push(
+			...(await billFilterToText({ db, filter: filter.bill, prefix: 'Bill', allText: false }))
+		);
 	}
 	if (filter.excludeBill) {
 		linkedArray.push(
-			...(await billFilterToText(filter.excludeBill, { prefix: 'Exclude Bill', allText: false }))
+			...(await billFilterToText({
+				db,
+				filter: filter.excludeBill,
+				prefix: 'Exclude Bill',
+				allText: false
+			}))
 		);
 	}
 
 	if (filter.budget) {
 		linkedArray.push(
-			...(await budgetFilterToText(filter.budget, { prefix: 'Budget', allText: false }))
+			...(await budgetFilterToText({ db, filter: filter.budget, prefix: 'Budget', allText: false }))
 		);
 	}
 	if (filter.excludeBudget) {
 		linkedArray.push(
-			...(await budgetFilterToText(filter.excludeBudget, {
+			...(await budgetFilterToText({
+				db,
+				filter: filter.excludeBudget,
 				prefix: 'Exclude Budget',
 				allText: false
 			}))

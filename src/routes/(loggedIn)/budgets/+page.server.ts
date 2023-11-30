@@ -32,7 +32,10 @@ export const load = async (data) => {
 	return {
 		budgets,
 		searchParams: pageInfo.searchParams,
-		filterText: budgetFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		filterText: budgetFilterToText({
+			db,
+			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+		}),
 		budgetSummary,
 		budgetDropdowns: tActions.budget.listForDropdown({ db })
 	};
