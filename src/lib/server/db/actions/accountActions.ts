@@ -208,7 +208,6 @@ export const accountActions = {
 				return currentAccount;
 			}
 
-			logging.info('Starting To Create Account : ', { title });
 			const newAccountId = await accountActions.create(db, {
 				...accountTitleInfo,
 				type: isExpense ? 'expense' : 'asset',
@@ -273,8 +272,7 @@ export const accountActions = {
 			.execute();
 
 		if (!currentAccount) {
-			logging.info('Update Account: Account not found');
-			return id;
+			throw new Error(`Account ${id} not found`);
 		}
 
 		const changingToExpenseOrIncome =

@@ -1,7 +1,9 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, vi, beforeEach, describe, expect, it } from 'vitest';
 
 import { accountActions } from './accountActions';
 import { createTestDB, initialiseTestDB, tearDownTestDB } from '../test/dbTest';
+import { account } from '../schema';
+import { eq } from 'drizzle-orm';
 
 describe('accountActions', async () => {
 	const { db, sqliteDatabase, filename } = await createTestDB('accountActions');
@@ -194,9 +196,285 @@ describe('accountActions', async () => {
 		});
 
 		it('Should Return 0 When No Accounts Are Found', async () => {
-			const count = await accountActions.count(db, { title:'Doesnt Exist' });
+			const count = await accountActions.count(db, { title: 'Doesnt Exist' });
 
 			expect(count).toEqual(0);
+		});
+	});
+
+	describe('createOrGet', async () => {
+		it('Should return the correct account when it exists', async () => {
+			const account = await accountActions.createOrGet({
+				db,
+				title: 'Cash:Cash'
+			});
+
+			expect(account).not.toBeUndefined();
+			expect(account?.id).toEqual('Account1');
+			expect(account?.title).toEqual('Cash');
+		});
+
+		it('Should return the correct account when it does not exist', async () => {
+			const account = await accountActions.createOrGet({
+				db,
+				title: 'New Account'
+			});
+
+			expect(account).not.toBeUndefined();
+			expect(account?.title).toEqual('New Account');
+		});
+
+		it('If Id is supplied, it will fuction correctly', async () => {
+			const account = await accountActions.createOrGet({
+				db,
+				id: 'Account1'
+			});
+
+			expect(account).not.toBeUndefined();
+			expect(account?.title).toEqual('Cash');
+		});
+		it("If Id is supplied and doesn't exist, an error is thrown", async () => {
+			expect(
+				async () =>
+					await accountActions.createOrGet({
+						db,
+						id: 'Account11'
+					})
+			).rejects.toThrowError('Account Account11 not found');
+		});
+
+		it('If accout is disabled, and requireActive is true, an error is thrown', async () => {
+			await db.update(account).set({ status: 'disabled' }).where(eq(account.id, 'Account1'));
+
+			expect(
+				async () =>
+					await accountActions.createOrGet({
+						db,
+						id: 'Account1',
+						requireActive: true
+					})
+			).rejects.toThrowError('Account Cash is not active');
+		});
+
+		it('If Account is disabled and searched for by name, an error is thrown', async () => {
+			await db.update(account).set({ status: 'disabled' }).where(eq(account.id, 'Account1'));
+
+			expect(
+				async () =>
+					await accountActions.createOrGet({
+						db,
+						title: 'Cash:Cash'
+					})
+			).rejects.toThrowError('Account Cash is not active');
+		});
+
+		it('If Title or Id is not supplied, undefined is returned', async () => {
+			const account = await accountActions.createOrGet({
+				db
+			});
+
+			expect(account).toBeUndefined();
+		});
+	});
+
+	describe('update', async () => {
+		it('Should update the account correctly (asset / liability)', async () => {
+			await accountActions.update({
+				db,
+				id: 'Account1',
+				data: {
+					title: 'Updated Account',
+					type: 'liability',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'disabled'
+				}
+			});
+
+			const updatedAccount = await accountActions.getById(db, 'Account1');
+
+			expect(updatedAccount).not.toBeUndefined();
+			expect(updatedAccount?.title).toEqual('Updated Account');
+			expect(updatedAccount?.type).toEqual('liability');
+			expect(updatedAccount?.accountGroupCombined).toEqual('Group1:Group2:Group3');
+			expect(updatedAccount?.status).toEqual('disabled');
+		});
+
+		it('Should update the account correctly (income / expense)', async () => {
+			await accountActions.update({
+				db,
+				id: 'Account4',
+				data: {
+					title: 'Updated Account',
+					type: 'income',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'disabled'
+				}
+			});
+
+			const updatedAccount = await accountActions.getById(db, 'Account4');
+
+			expect(updatedAccount).not.toBeUndefined();
+			expect(updatedAccount?.title).toEqual('Updated Account');
+			expect(updatedAccount?.type).toEqual('income');
+			expect(updatedAccount?.accountGroupCombined).toEqual('');
+			expect(updatedAccount?.status).toEqual('disabled');
+		});
+
+		it('Switching an asset to an income / expense should clear the accountGroupCombined', async () => {
+			await accountActions.update({
+				db,
+				id: 'Account1',
+				data: {
+					title: 'Updated Account',
+					type: 'income',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'disabled'
+				}
+			});
+
+			const updatedAccount = await accountActions.getById(db, 'Account1');
+
+			expect(updatedAccount).not.toBeUndefined();
+			expect(updatedAccount?.title).toEqual('Updated Account');
+			expect(updatedAccount?.type).toEqual('income');
+			expect(updatedAccount?.accountGroupCombined).toEqual('');
+			expect(updatedAccount?.status).toEqual('disabled');
+		});
+
+		it('Switching an income / expense to an asset should allow account group to be set', async () => {
+			await accountActions.update({
+				db,
+				id: 'Account4',
+				data: {
+					title: 'Updated Account',
+					type: 'asset',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'disabled'
+				}
+			});
+
+			const updatedAccount = await accountActions.getById(db, 'Account4');
+
+			expect(updatedAccount).not.toBeUndefined();
+			expect(updatedAccount?.title).toEqual('Updated Account');
+			expect(updatedAccount?.type).toEqual('asset');
+			expect(updatedAccount?.accountGroupCombined).toEqual('Group1:Group2:Group3');
+			expect(updatedAccount?.status).toEqual('disabled');
+		});
+
+		it('Should throw an error if account does not exist', async () => {
+			expect(
+				async () =>
+					await accountActions.update({
+						db,
+						id: 'Account0',
+						data: {
+							title: 'Updated Account',
+							type: 'asset',
+							accountGroupCombined: 'Group1:Group2:Group3',
+							status: 'disabled'
+						}
+					})
+			).rejects.toThrowError('Account Account0 not found');
+		});
+
+		it('Updating an account updates updatedAt (for both asset and expense)', async () => {
+			vi.useFakeTimers();
+
+			const date = new Date(2020, 1, 1, 1, 0, 0, 0);
+			vi.setSystemTime(date);
+
+			await accountActions.update({
+				db,
+				id: 'Account1',
+				data: {
+					title: 'Updated Account',
+					type: 'asset',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'disabled'
+				}
+			});
+			await accountActions.update({
+				db,
+				id: 'Account4',
+				data: {
+					title: 'Updated Account',
+					type: 'expense',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'disabled'
+				}
+			});
+
+			vi.useRealTimers();
+
+			const updatedAccount = await accountActions.getById(db, 'Account1');
+			const updatedAccount2 = await accountActions.getById(db, 'Account4');
+
+			expect(updatedAccount?.updatedAt).toEqual(date);
+			expect(updatedAccount2?.updatedAt).toEqual(date);
+		});
+
+		it('Updating the status will update related items correctly (asset and expense)', async () => {
+			await accountActions.update({
+				db,
+				id: 'Account1',
+				data: {
+					title: 'Updated Account',
+					type: 'asset',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'disabled'
+				}
+			});
+			await accountActions.update({
+				db,
+				id: 'Account4',
+				data: {
+					title: 'Updated Account',
+					type: 'expense',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'disabled'
+				}
+			});
+
+			const updatedAccount = await accountActions.getById(db, 'Account1');
+			const updatedAccount2 = await accountActions.getById(db, 'Account4');
+
+			expect(updatedAccount?.active).toEqual(false);
+			expect(updatedAccount?.disabled).toEqual(true);
+			expect(updatedAccount2?.active).toEqual(false);
+			expect(updatedAccount2?.disabled).toEqual(true);
+		});
+	});
+
+	describe('updateMany', async () => {
+		it('Disable All Assets Works Correctly', async () => {
+			await accountActions.updateMany({
+				db,
+				data: {
+					status: 'disabled'
+				},
+				filter: {
+					type: ['asset']
+				}
+			});
+
+			const accounts = await db.select().from(account).where(eq(account.type, 'asset')).execute();
+
+			accounts.forEach((account) => {
+				expect(account.active).toEqual(false);
+				expect(account.disabled).toEqual(true);
+			});
+
+			const liabilityAccounts = await db
+				.select()
+				.from(account)
+				.where(eq(account.type, 'liability'))
+				.execute();
+
+			liabilityAccounts.forEach((account) => {
+				expect(account.active).toEqual(true);
+				expect(account.disabled).toEqual(false);
+			});
 		});
 	});
 });
