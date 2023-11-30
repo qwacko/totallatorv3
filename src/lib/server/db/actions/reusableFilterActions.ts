@@ -14,7 +14,7 @@ import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSchema';
-import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { tActions } from './tActions';
 import { testingDelay } from '$lib/server/testingDelay';
 

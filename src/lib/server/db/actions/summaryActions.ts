@@ -14,7 +14,7 @@ import {
 import type { DBType } from '../db';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 
 export const summaryTableColumnsToSelect = {
 	count: summaryTable.count,

@@ -27,7 +27,7 @@ import { createCategorySchema } from '$lib/schema/categorySchema';
 import { createLabelSchema } from '$lib/schema/labelSchema';
 import { createTagSchema } from '$lib/schema/tagSchema';
 import type { ZodSchema } from 'zod';
-import { filterNullUndefinedAndDuplicates } from '../../../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { tActions } from '../../tActions';
 import { getImportDetail } from './getImportDetail';
 import type { ImportStatusType } from '$lib/schema/importSchema';

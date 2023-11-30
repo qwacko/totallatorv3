@@ -29,7 +29,7 @@
 
 	import type { TableColumnsConfig } from './tableTypes';
 	import TablePagination from '../TablePagination.svelte';
-	import { filterNullUndefinedAndDuplicates } from '../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 	import FilterIcon from '../icons/FilterIcon.svelte';
 	import HighlightText from '../HighlightText.svelte';
 	import CustomTableHeadCell from './CustomTableHeadCell.svelte';

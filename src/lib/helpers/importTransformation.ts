@@ -1,6 +1,6 @@
 import { createSimpleTransactionSchema } from '$lib/schema/journalSchema';
 import Handlebars from 'handlebars';
-import { filterNullUndefinedAndDuplicates } from '../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { filterNullUndefinedAndDuplicates } from './filterNullUndefinedAndDuplicates';
 
 // Substring Helper
 Handlebars.registerHelper('substring', function (value, start, length) {
