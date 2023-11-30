@@ -668,5 +668,25 @@ describe('accountActions', async () => {
 			expect(commonProperties.accountGroupCombined).toEqual('Cash');
 			expect(commonProperties.title).toBeUndefined();
 		});
+
+		it('When only a single result is found, then the result should match the item', async () => {
+			const commonProperties = await accountActions.listCommonProperties({
+				db,
+				filter: {
+					id: 'Account1'
+				}
+			});
+
+			const accountItem = await accountActions.getById(db, 'Account1');
+
+			expect(commonProperties.type).toEqual(accountItem?.type);
+			expect(commonProperties.accountGroupCombined).toEqual(accountItem?.accountGroupCombined);
+			expect(commonProperties.title).toEqual(accountItem?.title);
+			expect(commonProperties.accountGroup).toEqual(accountItem?.accountGroup);
+			expect(commonProperties.accountGroup2).toEqual(accountItem?.accountGroup2);
+			expect(commonProperties.accountGroup3).toEqual(accountItem?.accountGroup3);
+			expect(commonProperties.isCash).toEqual(accountItem?.isCash);
+			expect(commonProperties.isNetWorth).toEqual(accountItem?.isNetWorth);
+		});
 	});
 });
