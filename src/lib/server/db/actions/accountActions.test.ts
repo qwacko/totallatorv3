@@ -163,4 +163,40 @@ describe('accountActions', async () => {
 			).rejects.toThrowError('UNIQUE constraint failed');
 		});
 	});
+
+	describe('getById', async () => {
+		it('Should return the correct account', async () => {
+			const account = await accountActions.getById(db, 'Account1');
+
+			expect(account).not.toBeUndefined();
+			expect(account?.id).toEqual('Account1');
+			expect(account?.title).toEqual('Cash');
+		});
+
+		it('Should return undefined if no account is found', async () => {
+			const account = await accountActions.getById(db, 'Account0');
+
+			expect(account).toBeUndefined();
+		});
+	});
+
+	describe('count', async () => {
+		it('Should return the correct number of accounts', async () => {
+			const count = await accountActions.count(db);
+
+			expect(count).toEqual(6);
+		});
+
+		it('Should return the correct number of accounts when filtered', async () => {
+			const count = await accountActions.count(db, { type: ['asset'] });
+
+			expect(count).toEqual(2);
+		});
+
+		it('Should Return 0 When No Accounts Are Found', async () => {
+			const count = await accountActions.count(db, { title:'Doesnt Exist' });
+
+			expect(count).toEqual(0);
+		});
+	});
 });
