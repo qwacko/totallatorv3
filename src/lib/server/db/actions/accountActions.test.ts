@@ -4,12 +4,23 @@ import { accountActions } from './accountActions';
 import { createTestDB, initialiseTestDB, tearDownTestDB } from '../test/dbTest';
 import { account } from '../schema';
 import { eq } from 'drizzle-orm';
+import { journalActions } from './journalActions';
 
 describe('accountActions', async () => {
 	const { db, sqliteDatabase, filename } = await createTestDB('accountActions');
 
 	beforeEach(async () => {
 		await initialiseTestDB({ db, accounts: true });
+		await journalActions.createFromSimpleTransaction({
+			db,
+			transaction: {
+				amount: 100,
+				date: '2020-01-01',
+				description: 'Description',
+				fromAccountId: 'Account1',
+				toAccountId: 'Account2'
+			}
+		});
 	});
 
 	afterAll(async () => {
@@ -475,6 +486,187 @@ describe('accountActions', async () => {
 				expect(account.active).toEqual(true);
 				expect(account.disabled).toEqual(false);
 			});
+		});
+	});
+
+	describe('Can Delete', async () => {
+		it('Items with no journals can be deleted', async () => {
+			const canDelete = await accountActions.canDelete(db, { id: 'Account3' });
+
+			expect(canDelete).toEqual(true);
+		});
+
+		it('Items with journals cannot be deleted', async () => {
+			const canDelete = await accountActions.canDelete(db, { id: 'Account2' });
+
+			expect(canDelete).toEqual(false);
+		});
+	});
+
+	describe('Can Delete Many', async () => {
+		it('If one item in a list cannot be deleted, the whole list cannot be deleted', async () => {
+			const canDelete = await accountActions.canDeleteMany(db, ['Account1', 'Account3']);
+
+			expect(canDelete).toEqual(false);
+		});
+
+		it('If all items in a list can be deleted, the whole list can be deleted', async () => {
+			const canDelete = await accountActions.canDeleteMany(db, ['Account3', 'Account4']);
+
+			expect(canDelete).toEqual(true);
+		});
+	});
+
+	describe('Delete', async () => {
+		it('If an account that can be deleted is deleted correctly', async () => {
+			await accountActions.delete(db, { id: 'Account3' });
+
+			const account = await accountActions.getById(db, 'Account3');
+
+			expect(account).toBeUndefined();
+		});
+
+		it("If an account cannot be deleted then it isn't deleted", async () => {
+			await accountActions.delete(db, { id: 'Account2' });
+
+			const accountCheck = await accountActions.getById(db, 'Account2');
+
+			expect(accountCheck).not.toBeUndefined();
+		});
+	});
+
+	describe('Delete Many', async () => {
+		it('If an account that can be deleted is deleted correctly', async () => {
+			await accountActions.deleteMany(db, [{ id: 'Account3' }]);
+
+			const account = await accountActions.getById(db, 'Account3');
+
+			expect(account).toBeUndefined();
+		});
+
+		it("If an account cannot be deleted then it isn't deleted", async () => {
+			await accountActions.deleteMany(db, [{ id: 'Account2' }]);
+
+			const accountCheck = await accountActions.getById(db, 'Account2');
+
+			expect(accountCheck).not.toBeUndefined();
+		});
+	});
+
+	describe('List', async () => {
+		it('List should return the correct number of items', async () => {
+			const accounts = await accountActions.list({ db });
+
+			expect(accounts.count).toEqual(6);
+		});
+
+		it('List Filtering Should Work', async () => {
+			const accounts = await accountActions.list({
+				db,
+				filter: {
+					type: ['asset']
+				}
+			});
+
+			expect(accounts.count).toEqual(2);
+		});
+
+		it('Pagination Works Correctly', async () => {
+			const accounts = await accountActions.list({
+				db,
+				filter: {
+					page: 1,
+					pageSize: 2
+				}
+			});
+
+			expect(accounts.count).toEqual(6);
+			expect(accounts.data.length).toEqual(2);
+			expect(accounts.pageCount).toEqual(3);
+			expect(accounts.pageSize).toEqual(2);
+			expect(accounts.page).toEqual(1);
+		});
+
+		it("Selecting Page That Doesn't Exist Works Correctly", async () => {
+			const accounts = await accountActions.list({
+				db,
+				filter: {
+					page: 4,
+					pageSize: 2
+				}
+			});
+
+			expect(accounts.count).toEqual(6);
+			expect(accounts.data.length).toEqual(0);
+			expect(accounts.pageCount).toEqual(3);
+			expect(accounts.pageSize).toEqual(2);
+			expect(accounts.page).toEqual(4);
+		});
+
+		it('Sorting Works Correctly', async () => {
+			const accounts = await accountActions.list({
+				db,
+				filter: {
+					orderBy: [
+						{
+							field: 'title',
+							direction: 'asc'
+						}
+					]
+				}
+			});
+
+			expect(accounts.count).toEqual(6);
+			expect(accounts.data.length).toEqual(6);
+			expect(accounts.data[0].title).toEqual('Bank');
+			expect(accounts.data[5].title).toEqual('Shop 2');
+
+			const accounts2 = await accountActions.list({
+				db,
+				filter: {
+					orderBy: [
+						{
+							field: 'title',
+							direction: 'desc'
+						}
+					]
+				}
+			});
+
+			expect(accounts2.count).toEqual(6);
+			expect(accounts2.data.length).toEqual(6);
+			expect(accounts2.data[0].title).toEqual('Shop 2');
+			expect(accounts2.data[5].title).toEqual('Bank');
+		});
+
+		it('Default Page Size Is 10', async () => {
+			const accounts = await accountActions.list({
+				db,
+				filter: {
+					page: 0
+				}
+			});
+
+			expect(accounts.count).toEqual(6);
+			expect(accounts.data.length).toEqual(6);
+			expect(accounts.pageCount).toEqual(1);
+			expect(accounts.pageSize).toEqual(10);
+			expect(accounts.page).toEqual(0);
+		});
+	});
+
+	describe('listCommonProperties', async () => {
+		it('If Filtered to include only assets, then assets are returned as a common property', async () => {
+			const commonProperties = await accountActions.listCommonProperties({
+				db,
+				filter: {
+					type: ['asset']
+				}
+			});
+
+			expect(commonProperties.type).toEqual('asset');
+			expect(commonProperties.accountGroupCombined).toEqual('Cash');
+			expect(commonProperties.title).toBeUndefined();
 		});
 	});
 });
