@@ -5,7 +5,7 @@ import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db/db';
 import { superValidate } from 'sveltekit-superforms/server';
 import { accountFilterSchema, updateAccountSchema } from '$lib/schema/accountSchema';
-import { accountFilterToText } from '$lib/server/db/actions/helpers/accountFilterToQuery';
+import { accountFilterToText } from '$lib/server/db/actions/helpers/account/accountFilterToQuery';
 import { accountPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 import { logging } from '$lib/server/logging';
 

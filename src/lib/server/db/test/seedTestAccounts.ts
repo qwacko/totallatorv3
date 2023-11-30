@@ -1,6 +1,6 @@
 import type { DBType } from '../db';
 import { account } from '../schema';
-import { accountCreateInsertionData } from '../actions/helpers/accountCreateInsertionData';
+import { accountCreateInsertionData } from '../actions/helpers/account/accountCreateInsertionData';
 
 export const seedTestAccounts = async (db: DBType) =>
 	db.insert(account).values([

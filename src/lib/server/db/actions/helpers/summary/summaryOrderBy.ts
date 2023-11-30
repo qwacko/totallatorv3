@@ -1,4 +1,4 @@
-import { summaryTable } from '../../schema';
+import { summaryTable } from '../../../schema';
 import { SQL, asc, desc } from 'drizzle-orm';
 
 type SummarySortOptions = 'count' | 'sum' | 'firstDate' | 'lastDate';

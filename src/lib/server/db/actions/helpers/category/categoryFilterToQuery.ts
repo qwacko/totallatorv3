@@ -1,10 +1,10 @@
 import type { CategoryFilterSchemaType } from '$lib/schema/categorySchema';
-import { db } from '../../db';
-import { category } from '../../schema';
+import { db } from '../../../db';
+import { category } from '../../../schema';
 import { SQL, eq, ilike, inArray, like } from 'drizzle-orm';
-import { arrayToText } from './arrayToText';
-import { importIdsToTitles } from './importIdsToTitles';
-import { summaryFilterToQuery, summaryFilterToText } from './summaryFilterToQuery';
+import { arrayToText } from '../arrayToText';
+import { importIdsToTitles } from '../importIdsToTitles';
+import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 
 export const categoryFilterToQuery = (
 	filter: Omit<CategoryFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,

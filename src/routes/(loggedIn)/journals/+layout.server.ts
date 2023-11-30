@@ -41,7 +41,7 @@ export const load = async (data) => {
 		journals: journalData,
 		summary,
 		dropdownInfo,
-		filterText: journalFilterToText(filter, { prefix: 'Journal' }),
+		filterText: journalFilterToText({ db, filter, prefix: 'Journal' }),
 		filterDropdown: tActions.reusableFitler.listForDropdown({ db })
 	};
 };

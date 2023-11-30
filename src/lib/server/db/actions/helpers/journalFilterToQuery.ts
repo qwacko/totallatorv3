@@ -5,12 +5,12 @@ import {
 	accountFilterToQuery,
 	accountFilterToText,
 	accountIdsToTitles
-} from './accountFilterToQuery';
-import { billFilterToQuery, billFilterToText } from './billFilterToQuery';
-import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
-import { tagFilterToQuery, tagFilterToText } from './tagFilterToQuery';
-import { categoryFilterToQuery, categoryFilterToText } from './categoryFilterToQuery';
-import { labelFilterToQuery, labelFilterToText } from './labelFilterToQuery';
+} from './account/accountFilterToQuery';
+import { billFilterToQuery, billFilterToText } from './bill/billFilterToQuery';
+import { budgetFilterToQuery, budgetFilterToText } from './budget/budgetFilterToQuery';
+import { tagFilterToQuery, tagFilterToText } from './tag/tagFilterToQuery';
+import { categoryFilterToQuery, categoryFilterToText } from './category/categoryFilterToQuery';
+import { labelFilterToQuery, labelFilterToText } from './label/labelFilterToQuery';
 import { db, type DBType } from '../../db';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { arrayToText } from './arrayToText';

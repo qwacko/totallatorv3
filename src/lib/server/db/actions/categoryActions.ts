@@ -12,12 +12,12 @@ import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
-import { categoryFilterToQuery } from './helpers/categoryFilterToQuery';
-import { categoryCreateInsertionData } from './helpers/categoryCreateInsertionData';
-import { createCategory } from './helpers/seedCategoryData';
+import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery';
+import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
+import { createCategory } from './helpers/seed/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
-import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { testingDelay } from '$lib/server/testingDelay';
 
 export const categoryActions = {

@@ -1,5 +1,5 @@
 import type { CreateBudgetSchemaType } from '$lib/schema/budgetSchema';
-import { getRandomInteger } from './getRandom';
+import { getRandomInteger } from '../getRandom';
 
 export const createBudget = (): CreateBudgetSchemaType => {
 	return {

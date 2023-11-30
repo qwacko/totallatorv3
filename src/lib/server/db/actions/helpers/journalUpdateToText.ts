@@ -1,12 +1,19 @@
 import type { UpdateJournalSchemaType } from '$lib/schema/journalSchema';
-import { accountIdToTitle } from './accountFilterToQuery';
-import { labelIdsToTitle } from './labelFilterToQuery';
-import { billIdToTitle } from './billFilterToQuery';
-import { budgetIdToTitle } from './budgetFilterToQuery';
-import { categoryIdToTitle } from './categoryFilterToQuery';
-import { tagIdToTitle } from './tagFilterToQuery';
+import { accountIdToTitle } from './account/accountFilterToQuery';
+import { labelIdsToTitle } from './label/labelFilterToQuery';
+import { billIdToTitle } from './bill/billFilterToQuery';
+import { budgetIdToTitle } from './budget/budgetFilterToQuery';
+import { categoryIdToTitle } from './category/categoryFilterToQuery';
+import { tagIdToTitle } from './tag/tagFilterToQuery';
+import type { DBType } from '../../db';
 
-export const journalUpdateToText = async (change: UpdateJournalSchemaType | undefined) => {
+export const journalUpdateToText = async ({
+	db,
+	change
+}: {
+	db: DBType;
+	change: UpdateJournalSchemaType | undefined;
+}) => {
 	if (!change) {
 		return undefined;
 	}
@@ -27,10 +34,10 @@ export const journalUpdateToText = async (change: UpdateJournalSchemaType | unde
 	if (change.clearLinked === true) messages.push(`Clear Linked`);
 	if (change.description) messages.push(`Description: ${change.description}`);
 	//Account
-	if (change.accountId) messages.push(`Account: ${await accountIdToTitle(change.accountId)}`);
+	if (change.accountId) messages.push(`Account: ${await accountIdToTitle(db, change.accountId)}`);
 	if (change.accountTitle) messages.push(`Account Title: ${change.accountTitle}`);
 	if (change.otherAccountId)
-		messages.push(`Other Account: ${await accountIdToTitle(change.otherAccountId)}`);
+		messages.push(`Other Account: ${await accountIdToTitle(db, change.otherAccountId)}`);
 	if (change.otherAccountTitle) messages.push(`Other Account Title: ${change.otherAccountTitle}`);
 
 	//Budget

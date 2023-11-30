@@ -1,5 +1,5 @@
 import type { CreateBillSchemaType } from '$lib/schema/billSchema';
-import { getRandomInteger } from './getRandom';
+import { getRandomInteger } from '../getRandom';
 
 export const createBill = (): CreateBillSchemaType => {
 	return {

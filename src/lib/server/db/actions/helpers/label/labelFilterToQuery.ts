@@ -1,10 +1,10 @@
 import type { LabelFilterSchemaType } from '$lib/schema/labelSchema';
-import { db } from '../../db';
-import { label } from '../../schema';
+import { db } from '../../../db';
+import { label } from '../../../schema';
 import { SQL, eq, inArray, like } from 'drizzle-orm';
-import { arrayToText } from './arrayToText';
-import { importIdsToTitles } from './importIdsToTitles';
-import { summaryFilterToQuery, summaryFilterToText } from './summaryFilterToQuery';
+import { arrayToText } from '../arrayToText';
+import { importIdsToTitles } from '../importIdsToTitles';
+import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 
 export const labelFilterToQuery = (
 	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,

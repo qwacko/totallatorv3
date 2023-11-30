@@ -29,7 +29,7 @@ import { updatedTime } from './helpers/updatedTime';
 import { expandDate } from './helpers/expandDate';
 import { accountActions } from './accountActions';
 import { tActions } from './tActions';
-import { seedTransactionData } from './helpers/seedTransactionData';
+import { seedTransactionData } from './helpers/seed/seedTransactionData';
 import { logging } from '$lib/server/logging';
 import { getMonthlySummary } from './helpers/getMonthlySummary';
 import {
@@ -95,7 +95,6 @@ export const journalActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
-
 		await testingDelay();
 
 		const startDate12Months = new Date();

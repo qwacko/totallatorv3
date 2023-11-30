@@ -1,5 +1,5 @@
 import type { CreateCategorySchemaType } from '$lib/schema/categorySchema';
-import { getRandomInteger } from './getRandom';
+import { getRandomInteger } from '../getRandom';
 
 export const createCategory = (): CreateCategorySchemaType => {
 	return {

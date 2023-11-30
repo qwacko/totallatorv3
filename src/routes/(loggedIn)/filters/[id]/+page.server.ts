@@ -38,9 +38,9 @@ export const load = async (data) => {
 	}
 
 	const change = current.searchParams?.change || reusableFilter.change;
-	const changeText = await journalUpdateToText(change);
+	const changeText = await journalUpdateToText({ db, change });
 	const filter = current.searchParams?.filter || reusableFilter.filter;
-	const filterText = await journalFilterToText(filter);
+	const filterText = await journalFilterToText({ db, filter });
 
 	const form = await superValidate(
 		{

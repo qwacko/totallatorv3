@@ -244,10 +244,10 @@ export const reusableFilterActions = {
 
 		const idUse = nanoid();
 
-		const filterText = await journalFilterToText(filter);
+		const filterText = await journalFilterToText({ db, filter });
 		const titleUse = title || filterText.join(' and ');
 
-		const changeText = await journalUpdateToText(change);
+		const changeText = await journalUpdateToText({ db, change });
 
 		await db
 			.insert(reusableFilter)
@@ -294,9 +294,9 @@ export const reusableFilterActions = {
 		const { filter, change, group, modificationType, listed, ...reusableFilterData } =
 			processedData.data;
 
-		const filterText = filter ? await journalFilterToText(filter) : undefined;
+		const filterText = filter ? await journalFilterToText({ db, filter }) : undefined;
 		const filterTextUse = filterText ? filterText.join(' and ') : undefined;
-		const changeText = await journalUpdateToText(change);
+		const changeText = await journalUpdateToText({ db, change });
 
 		await db
 			.update(reusableFilter)

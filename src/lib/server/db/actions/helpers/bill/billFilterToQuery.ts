@@ -1,10 +1,10 @@
 import type { BillFilterSchemaType } from '$lib/schema/billSchema';
-import { db } from '../../db';
-import { bill } from '../../schema';
+import { db } from '../../../db';
+import { bill } from '../../../schema';
 import { SQL, eq, inArray, like } from 'drizzle-orm';
-import { arrayToText } from './arrayToText';
-import { importIdsToTitles } from './importIdsToTitles';
-import { summaryFilterToQuery, summaryFilterToText } from './summaryFilterToQuery';
+import { arrayToText } from '../arrayToText';
+import { importIdsToTitles } from '../importIdsToTitles';
+import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 
 export const billFilterToQuery = (
 	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,

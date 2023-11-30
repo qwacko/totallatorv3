@@ -11,12 +11,12 @@ import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
-import { createLabel } from './helpers/seedLabelData';
+import { createLabel } from './helpers/seed/seedLabelData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
-import { labelFilterToQuery } from './helpers/labelFilterToQuery';
-import { labelCreateInsertionData } from './helpers/labelCreateInsertionData';
+import { labelFilterToQuery } from './helpers/label/labelFilterToQuery';
+import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionData';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
-import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { testingDelay } from '$lib/server/testingDelay';
 
 export const labelActions = {

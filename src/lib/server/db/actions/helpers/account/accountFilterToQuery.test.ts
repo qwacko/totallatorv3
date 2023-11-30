@@ -1,9 +1,9 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { accountFilterToQuery, accountFilterToText } from './accountFilterToQuery';
 import { and } from 'drizzle-orm';
-import { account } from '../../schema';
+import { account } from '../../../schema';
 import { QueryBuilder } from 'drizzle-orm/sqlite-core';
-import { createTestDB, initialiseTestDB, tearDownTestDB } from '../../test/dbTest';
+import { createTestDB, initialiseTestDB, tearDownTestDB } from '../../../test/dbTest';
 
 describe('Account Filter To Query', () => {
 	const qb = new QueryBuilder();

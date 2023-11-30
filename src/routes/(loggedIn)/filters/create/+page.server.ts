@@ -27,8 +27,8 @@ export const load = async (data) => {
 	const filter = current.searchParams?.filter || defaultJournalFilter();
 	const change = current.searchParams?.change;
 
-	const filterText = await journalFilterToText(filter);
-	const changeText = change ? await journalUpdateToText(change) : undefined;
+	const filterText = await journalFilterToText({ db, filter });
+	const changeText = change ? await journalUpdateToText({ db, change }) : undefined;
 
 	const form = await superValidate(
 		{

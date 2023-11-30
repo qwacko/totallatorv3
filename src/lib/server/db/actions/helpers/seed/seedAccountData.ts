@@ -1,5 +1,5 @@
 import type { CreateAccountSchemaType } from '$lib/schema/accountSchema';
-import { getRandomArrayElement, getRandomBoolean, getRandomInteger } from './getRandom';
+import { getRandomArrayElement, getRandomBoolean, getRandomInteger } from '../getRandom';
 
 const assetTitleParts = ['Bank', 'Home', 'Cash', 'Savings', 'Investment', 'Art', 'Retirement'];
 const assetTitleParts2 = ['Value', 'Account', 'Shares', 'Holdings', 'Card'];

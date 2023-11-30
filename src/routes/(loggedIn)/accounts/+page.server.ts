@@ -5,7 +5,7 @@ import {
 	defaultAllJournalFilter,
 	type JournalFilterSchemaInputType
 } from '$lib/schema/journalSchema';
-import { accountFilterToText } from '$lib/server/db/actions/helpers/accountFilterToQuery.js';
+import { accountFilterToText } from '$lib/server/db/actions/helpers/account/accountFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';

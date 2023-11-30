@@ -11,12 +11,12 @@ import { statusUpdate } from './helpers/statusUpdate';
 import { updatedTime } from './helpers/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
-import { billCreateInsertionData } from './helpers/billCreateInsertionData';
-import { billFilterToQuery } from './helpers/billFilterToQuery';
-import { createBill } from './helpers/seedBillData';
+import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData';
+import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
+import { createBill } from './helpers/seed/seedBillData';
 import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
-import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { testingDelay } from '$lib/server/testingDelay';
 
 export const billActions = {

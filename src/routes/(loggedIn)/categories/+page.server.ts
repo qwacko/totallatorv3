@@ -1,7 +1,7 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
 import { defaultJournalFilter } from '$lib/schema/journalSchema';
-import { categoryFilterToText } from '$lib/server/db/actions/helpers/categoryFilterToQuery.js';
+import { categoryFilterToText } from '$lib/server/db/actions/helpers/category/categoryFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';

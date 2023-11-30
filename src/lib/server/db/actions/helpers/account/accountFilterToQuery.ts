@@ -1,10 +1,10 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
-import type { DBType } from '../../db';
-import { account } from '../../schema';
+import type { DBType } from '$lib/server/db/db';
+import { account } from '$lib/server/db/schema';
 import { SQL, eq, gt, inArray, like, lt } from 'drizzle-orm';
-import { arrayToText } from './arrayToText';
-import { importIdsToTitles } from './importIdsToTitles';
-import { summaryFilterToQuery, summaryFilterToText } from './summaryFilterToQuery';
+import { arrayToText } from './../arrayToText';
+import { importIdsToTitles } from './../importIdsToTitles';
+import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 
 export const accountFilterToQuery = (
 	filter: Omit<AccountFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,
@@ -89,6 +89,7 @@ export const accountFilterToText = async ({
 			})
 		);
 	}
+
 	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
 	if (restFilter.accountGroup) stringArray.push(`Group contains ${restFilter.accountGroup}`);
 	if (restFilter.accountGroup2) stringArray.push(`Group 2 contains ${restFilter.accountGroup2}`);
