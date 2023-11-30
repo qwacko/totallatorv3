@@ -1,6 +1,6 @@
 import type { CreateLabelSchemaType } from '$lib/schema/labelSchema';
-import { statusUpdate } from '../statusUpdate';
-import { updatedTime } from '../updatedTime';
+import { statusUpdate } from '../misc/statusUpdate';
+import { updatedTime } from '../misc/updatedTime';
 
 export const labelCreateInsertionData = (data: CreateLabelSchemaType, id: string) => {
 	return {

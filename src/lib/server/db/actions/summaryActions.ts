@@ -13,7 +13,7 @@ import {
 } from '../schema';
 import type { DBType } from '../db';
 import { nanoid } from 'nanoid';
-import { updatedTime } from './helpers/updatedTime';
+import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 
 export const summaryTableColumnsToSelect = {

@@ -1,4 +1,4 @@
-import type { DBType } from '../../db';
+import type { DBType } from '../../../db';
 import {
 	account,
 	bill,
@@ -8,14 +8,14 @@ import {
 	label,
 	tag,
 	transaction
-} from '../../schema';
-import { updatedTime } from './updatedTime';
+} from '../../../schema';
+import { updatedTime } from '../misc/updatedTime';
 import { eq } from 'drizzle-orm';
 import {
 	createCombinedTransactionSchema,
 	createSimpleTransactionSchema
 } from '$lib/schema/journalSchema';
-import { tActions } from '../tActions';
+import { tActions } from '../../tActions';
 import { createAccountSchema } from '$lib/schema/accountSchema';
 import type { ZodType } from 'zod';
 import { createBillSchema } from '$lib/schema/billSchema';
@@ -23,7 +23,7 @@ import { createBudgetSchema } from '$lib/schema/budgetSchema';
 import { createCategorySchema } from '$lib/schema/categorySchema';
 import { createTagSchema } from '$lib/schema/tagSchema';
 import { createLabelSchema } from '$lib/schema/labelSchema';
-import { simpleSchemaToCombinedSchema } from './simpleSchemaToCombinedSchema';
+import { simpleSchemaToCombinedSchema } from '../journal/simpleSchemaToCombinedSchema';
 import { logging } from '$lib/server/logging';
 
 const importItem = async <T extends Record<string, unknown>, DBT extends { id: string }>({

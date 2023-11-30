@@ -7,9 +7,9 @@ import {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { importMapping, type ImportMappingType } from '../schema';
-import { updatedTime } from './helpers/updatedTime';
+import { updatedTime } from './helpers/misc/updatedTime';
 import { asc, desc, getTableColumns, and, sql, eq } from 'drizzle-orm';
-import { importMappingFilterToQuery } from './helpers/importMappingFilterToQuery';
+import { importMappingFilterToQuery } from './helpers/import/importMappingFilterToQuery';
 import { testingDelay } from '$lib/server/testingDelay';
 
 const processImportedDataResult = (data: ImportMappingType) => {

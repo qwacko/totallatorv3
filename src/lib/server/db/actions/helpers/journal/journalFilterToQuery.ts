@@ -1,20 +1,20 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import { account, journalEntry, label, labelsToJournals, transaction } from '../../schema';
+import { account, journalEntry, label, labelsToJournals, transaction } from '../../../schema';
 import { SQL, and, eq, gte, lte, inArray, like, not, notInArray } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
 	accountFilterToText,
 	accountIdsToTitles
-} from './account/accountFilterToQuery';
-import { billFilterToQuery, billFilterToText } from './bill/billFilterToQuery';
-import { budgetFilterToQuery, budgetFilterToText } from './budget/budgetFilterToQuery';
-import { tagFilterToQuery, tagFilterToText } from './tag/tagFilterToQuery';
-import { categoryFilterToQuery, categoryFilterToText } from './category/categoryFilterToQuery';
-import { labelFilterToQuery, labelFilterToText } from './label/labelFilterToQuery';
-import { db, type DBType } from '../../db';
+} from '../account/accountFilterToQuery';
+import { billFilterToQuery, billFilterToText } from '../bill/billFilterToQuery';
+import { budgetFilterToQuery, budgetFilterToText } from '../budget/budgetFilterToQuery';
+import { tagFilterToQuery, tagFilterToText } from '../tag/tagFilterToQuery';
+import { categoryFilterToQuery, categoryFilterToText } from '../category/categoryFilterToQuery';
+import { labelFilterToQuery, labelFilterToText } from '../label/labelFilterToQuery';
+import { db, type DBType } from '../../../db';
 import { alias } from 'drizzle-orm/sqlite-core';
-import { arrayToText } from './arrayToText';
-import { importIdsToTitles } from './importIdsToTitles';
+import { arrayToText } from '../misc/arrayToText';
+import { importIdsToTitles } from '../import/importIdsToTitles';
 
 export const journalFilterToQuery = async (
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>

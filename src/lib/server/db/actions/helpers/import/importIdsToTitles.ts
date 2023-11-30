@@ -1,6 +1,6 @@
-import { importTable } from '../../schema';
+import { importTable } from '../../../schema';
 import { eq } from 'drizzle-orm';
-import { db } from '../../db';
+import { db } from '../../../db';
 
 const importIdToTitle = async (id: string) => {
 	const foundImport = await db

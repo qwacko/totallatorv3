@@ -9,11 +9,11 @@ import {
 	createReusableFilterFormSchema,
 	createReusableFilterSchema
 } from '$lib/schema/reusableFilterSchema.js';
-import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery.js';
+import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { setError, superValidate } from 'sveltekit-superforms/server';
 import { db } from '$lib/server/db/db.js';
-import { journalUpdateToText } from '$lib/server/db/actions/helpers/journalUpdateToText.js';
+import { journalUpdateToText } from '$lib/server/db/actions/helpers/journal/journalUpdateToText.js';
 import { reusableFilterPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { redirect } from '@sveltejs/kit';
 import { dropdownItems } from '$lib/server/dropdownItems.js';

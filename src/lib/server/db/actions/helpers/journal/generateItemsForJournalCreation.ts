@@ -1,6 +1,6 @@
 import { createJournalDBCore, type CreateJournalSchemaType } from '$lib/schema/journalSchema';
-import type { DBType } from '../../db';
-import { updatedTime } from './updatedTime';
+import type { DBType } from '../../../db';
+import { updatedTime } from '../misc/updatedTime';
 import { nanoid } from 'nanoid';
 import { expandDate } from './expandDate';
 import { journalGetOrCreateLinkedItems } from './journalGetOrCreateLinkedItems';

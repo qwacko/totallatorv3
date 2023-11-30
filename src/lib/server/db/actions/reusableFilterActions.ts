@@ -8,11 +8,11 @@ import {
 import { and, asc, desc, eq, sql, type InferSelectModel, inArray } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { reusableFilter } from '$lib/server/db/schema';
-import { reusableFilterToQuery } from './helpers/reusableFilterToQuery';
+import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
 import { nanoid } from 'nanoid';
-import { journalFilterToText } from './helpers/journalFilterToQuery';
-import { updatedTime } from './helpers/updatedTime';
-import { journalUpdateToText } from './helpers/journalUpdateToText';
+import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSchema';
 import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
 import { tActions } from './tActions';

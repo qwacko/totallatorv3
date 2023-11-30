@@ -6,7 +6,7 @@ import {
 	getRandomBoolean,
 	getRandomDate,
 	getRandomInteger
-} from '../getRandom';
+} from '../misc/getRandom';
 
 export const seedTransactionData = ({
 	assetLiabilityIds,

@@ -8,8 +8,8 @@ import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, journalEntry, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
-import { statusUpdate } from './helpers/statusUpdate';
-import { updatedTime } from './helpers/updatedTime';
+import { statusUpdate } from './helpers/misc/statusUpdate';
+import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { combinedAccountTitleSplitRequired } from '$lib/helpers/combinedAccountTitleSplit';
@@ -24,7 +24,7 @@ import { accountCreateInsertionData } from './helpers/account/accountCreateInser
 import { accountTitleSplit } from './helpers/account/accountTitleSplit';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
-import { getCommonData } from './helpers/getCommonData';
+import { getCommonData } from './helpers/misc/getCommonData';
 import { testingDelay } from '$lib/server/testingDelay';
 
 export const accountActions = {

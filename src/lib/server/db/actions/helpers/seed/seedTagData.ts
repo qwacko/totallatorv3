@@ -1,5 +1,5 @@
 import type { CreateTagSchemaType } from '$lib/schema/tagSchema';
-import { getRandomInteger } from '../getRandom';
+import { getRandomInteger } from '../misc/getRandom';
 
 export const createTag = (): CreateTagSchemaType => {
 	return {

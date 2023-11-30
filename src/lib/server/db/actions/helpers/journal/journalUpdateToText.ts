@@ -1,11 +1,11 @@
 import type { UpdateJournalSchemaType } from '$lib/schema/journalSchema';
-import { accountIdToTitle } from './account/accountFilterToQuery';
-import { labelIdsToTitle } from './label/labelFilterToQuery';
-import { billIdToTitle } from './bill/billFilterToQuery';
-import { budgetIdToTitle } from './budget/budgetFilterToQuery';
-import { categoryIdToTitle } from './category/categoryFilterToQuery';
-import { tagIdToTitle } from './tag/tagFilterToQuery';
-import type { DBType } from '../../db';
+import { accountIdToTitle } from '../account/accountFilterToQuery';
+import { labelIdsToTitle } from '../label/labelFilterToQuery';
+import { billIdToTitle } from '../bill/billFilterToQuery';
+import { budgetIdToTitle } from '../budget/budgetFilterToQuery';
+import { categoryIdToTitle } from '../category/categoryFilterToQuery';
+import { tagIdToTitle } from '../tag/tagFilterToQuery';
+import type { DBType } from '../../../db';
 
 export const journalUpdateToText = async ({
 	db,

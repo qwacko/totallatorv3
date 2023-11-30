@@ -1,4 +1,4 @@
-import type { DBType } from '../../db';
+import type { DBType } from '../../../db';
 
 export const handleLinkedItem = async <T extends { id: string }>({
 	id,

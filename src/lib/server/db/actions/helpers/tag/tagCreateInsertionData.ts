@@ -1,7 +1,7 @@
 import type { CreateTagSchemaType } from '$lib/schema/tagSchema';
-import { statusUpdate } from '../statusUpdate';
+import { statusUpdate } from '../misc/statusUpdate';
 import { combinedTitleSplitRequired } from '$lib/helpers/combinedTitleSplit';
-import { updatedTime } from '../updatedTime';
+import { updatedTime } from '../misc/updatedTime';
 
 export const tagCreateInsertionData = (data: CreateTagSchemaType, id: string) => {
 	return {

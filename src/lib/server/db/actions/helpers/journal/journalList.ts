@@ -4,7 +4,7 @@ import {
 	type JournalFilterSchemaInputType
 } from '$lib/schema/journalSchema';
 import { getTableColumns, eq, and, sql, inArray } from 'drizzle-orm';
-import type { DBType } from '../../db';
+import type { DBType } from '../../../db';
 import {
 	account,
 	journalEntry,
@@ -15,7 +15,7 @@ import {
 	label,
 	labelsToJournals,
 	importTable
-} from '../../schema';
+} from '../../../schema';
 import { journalFilterToQuery } from './journalFilterToQuery';
 import { journalFilterToOrderBy } from './journalFilterToOrderBy';
 

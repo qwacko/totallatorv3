@@ -1,5 +1,5 @@
 import type { CreateLabelSchemaType } from '$lib/schema/labelSchema';
-import { getRandomInteger } from '../getRandom';
+import { getRandomInteger } from '../misc/getRandom';
 
 export const createLabel = (): CreateLabelSchemaType => {
 	return {

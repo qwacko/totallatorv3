@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { importTable } from '../../schema';
-import type { DBType } from '../../db';
+import { importTable } from '../../../schema';
+import type { DBType } from '../../../db';
 
 export const getImportDetail = async ({ db, id }: { db: DBType; id: string }) => {
 	const returnData = await db.query.importTable

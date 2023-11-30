@@ -2,8 +2,8 @@ import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import type { DBType } from '$lib/server/db/db';
 import { account } from '$lib/server/db/schema';
 import { SQL, eq, gt, inArray, like, lt } from 'drizzle-orm';
-import { arrayToText } from './../arrayToText';
-import { importIdsToTitles } from './../importIdsToTitles';
+import { arrayToText } from '../misc/arrayToText';
+import { importIdsToTitles } from '../import/importIdsToTitles';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 
 export const accountFilterToQuery = (

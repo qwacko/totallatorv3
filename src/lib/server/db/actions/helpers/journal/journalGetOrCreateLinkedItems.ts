@@ -1,11 +1,11 @@
 import type { CreateJournalSchemaType } from '$lib/schema/journalSchema';
-import type { DBType } from '../../db';
-import { accountActions } from '../accountActions';
-import { billActions } from '../billActions';
-import { budgetActions } from '../budgetActions';
-import { categoryActions } from '../categoryActions';
-import { labelActions } from '../labelActions';
-import { tagActions } from '../tagActions';
+import type { DBType } from '../../../db';
+import { accountActions } from '../../accountActions';
+import { billActions } from '../../billActions';
+import { budgetActions } from '../../budgetActions';
+import { categoryActions } from '../../categoryActions';
+import { labelActions } from '../../labelActions';
+import { tagActions } from '../../tagActions';
 
 export const journalGetOrCreateLinkedItems = async (
 	db: DBType,

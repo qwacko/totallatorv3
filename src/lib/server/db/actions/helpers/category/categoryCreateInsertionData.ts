@@ -1,7 +1,7 @@
 import type { CreateCategorySchemaType } from '$lib/schema/categorySchema';
-import { statusUpdate } from '../statusUpdate';
+import { statusUpdate } from '../misc/statusUpdate';
 import { combinedTitleSplitRequired } from '$lib/helpers/combinedTitleSplit';
-import { updatedTime } from '../updatedTime';
+import { updatedTime } from '../misc/updatedTime';
 
 export const categoryCreateInsertionData = (data: CreateCategorySchemaType, id: string) => {
 	return {

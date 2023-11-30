@@ -1,6 +1,6 @@
 import type { CreateBudgetSchemaType } from '$lib/schema/budgetSchema';
-import { statusUpdate } from '../statusUpdate';
-import { updatedTime } from '../updatedTime';
+import { statusUpdate } from '../misc/statusUpdate';
+import { updatedTime } from '../misc/updatedTime';
 
 export const budgetCreateInsertionData = (data: CreateBudgetSchemaType, id: string) => {
 	return {

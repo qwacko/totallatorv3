@@ -1,6 +1,6 @@
 import type { CreateBillSchemaType } from '$lib/schema/billSchema';
-import { statusUpdate } from '../statusUpdate';
-import { updatedTime } from '../updatedTime';
+import { statusUpdate } from '../misc/statusUpdate';
+import { updatedTime } from '../misc/updatedTime';
 
 export const billCreateInsertionData = (data: CreateBillSchemaType, id: string) => {
 	return {

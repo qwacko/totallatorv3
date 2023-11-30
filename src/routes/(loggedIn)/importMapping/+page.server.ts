@@ -1,6 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
-import { importMappingFilterToText } from '$lib/server/db/actions/helpers/importMappingFilterToQuery';
+import { importMappingFilterToText } from '$lib/server/db/actions/helpers/import/importMappingFilterToQuery';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db/db';

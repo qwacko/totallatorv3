@@ -1,6 +1,6 @@
 import type { CreateCombinedTransactionType } from '$lib/schema/journalSchema';
-import type { DBType } from '../../db';
-import { updatedTime } from './updatedTime';
+import type { DBType } from '../../../db';
+import { updatedTime } from '../misc/updatedTime';
 import { nanoid } from 'nanoid';
 import { generateItemsForJournalCreation } from './generateItemsForJournalCreation';
 

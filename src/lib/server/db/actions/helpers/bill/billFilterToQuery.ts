@@ -2,8 +2,8 @@ import type { BillFilterSchemaType } from '$lib/schema/billSchema';
 import { db } from '../../../db';
 import { bill } from '../../../schema';
 import { SQL, eq, inArray, like } from 'drizzle-orm';
-import { arrayToText } from '../arrayToText';
-import { importIdsToTitles } from '../importIdsToTitles';
+import { arrayToText } from '../misc/arrayToText';
+import { importIdsToTitles } from '../import/importIdsToTitles';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 
 export const billFilterToQuery = (

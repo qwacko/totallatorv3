@@ -1,4 +1,4 @@
-import { updateManyTransferInfo } from '../db/actions/helpers/updateTransactionTransfer';
+import { updateManyTransferInfo } from '../db/actions/helpers/journal/updateTransactionTransfer';
 import { summaryActions } from '../db/actions/summaryActions';
 import { tActions } from '../db/actions/tActions';
 import { backupDB, db } from '../db/db';

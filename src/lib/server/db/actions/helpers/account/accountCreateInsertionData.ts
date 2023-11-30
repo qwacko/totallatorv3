@@ -1,6 +1,6 @@
 import type { CreateAccountSchemaType } from '$lib/schema/accountSchema';
-import { statusUpdate } from '../statusUpdate';
-import { updatedTime } from '../updatedTime';
+import { statusUpdate } from '../misc/statusUpdate';
+import { updatedTime } from '../misc/updatedTime';
 import { combinedAccountTitleSplitRequired } from '$lib/helpers/combinedAccountTitleSplit';
 
 export const accountCreateInsertionData = (data: CreateAccountSchemaType, id: string) => {

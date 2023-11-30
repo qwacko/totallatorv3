@@ -2,8 +2,8 @@ import type { TagFilterSchemaType } from '$lib/schema/tagSchema';
 import { db } from '../../../db';
 import { tag } from '../../../schema';
 import { SQL, eq, ilike, inArray, like } from 'drizzle-orm';
-import { arrayToText } from '../arrayToText';
-import { importIdsToTitles } from '../importIdsToTitles';
+import { arrayToText } from '../misc/arrayToText';
+import { importIdsToTitles } from '../import/importIdsToTitles';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 
 export const tagFilterToQuery = (
