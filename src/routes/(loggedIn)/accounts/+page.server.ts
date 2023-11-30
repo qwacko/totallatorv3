@@ -48,7 +48,10 @@ export const load = async (data) => {
 	return {
 		accounts,
 		searchParams: pageInfo.searchParams,
-		filterText: accountFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		filterText: accountFilterToText({
+			filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
+			db
+		}),
 		accountSummary,
 		accountDropdown: tActions.account.listForDropdown({ db })
 	};

@@ -26,7 +26,7 @@ export const load = async (data) => {
 	if (!commonData) throw redirect(302, '/accounts');
 
 	const form = await superValidate(commonData, updateAccountSchema);
-	const filterText = accountFilterToText(filter);
+	const filterText = accountFilterToText({ filter, db });
 
 	const titles = accounts.data.map((item) => item.title);
 

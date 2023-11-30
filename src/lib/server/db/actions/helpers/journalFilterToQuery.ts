@@ -11,7 +11,7 @@ import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
 import { tagFilterToQuery, tagFilterToText } from './tagFilterToQuery';
 import { categoryFilterToQuery, categoryFilterToText } from './categoryFilterToQuery';
 import { labelFilterToQuery, labelFilterToText } from './labelFilterToQuery';
-import { db } from '../../db';
+import { db, type DBType } from '../../db';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from './importIdsToTitles';
@@ -158,10 +158,17 @@ export const journalFilterToQuery = async (
 	return where;
 };
 
-export const journalFilterToText = async (
-	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
-) => {
+export const journalFilterToText = async ({
+	filter,
+	prefix,
+	allText = true,
+	db
+}: {
+	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	prefix?: string;
+	allText?: boolean;
+	db: DBType;
+}) => {
 	const stringArray: string[] = [];
 	if (filter.id) stringArray.push(`ID is ${filter.id}`);
 	if (filter.excludeId) stringArray.push(`ID is not ${filter.excludeId}`);
@@ -231,15 +238,22 @@ export const journalFilterToText = async (
 	const linkedArray: string[] = [];
 	if (filter.account) {
 		linkedArray.push(
-			...(await accountFilterToText(filter.account, { prefix: 'Account', allText: false }))
+			...(await accountFilterToText({
+				filter: filter.account,
+				prefix: 'Account',
+				allText: false,
+				db
+			}))
 		);
 	}
 
 	if (filter.excludeAccount) {
 		linkedArray.push(
-			...(await accountFilterToText(filter.excludeAccount, {
+			...(await accountFilterToText({
+				filter: filter.excludeAccount,
 				prefix: 'Exclude Account',
-				allText: false
+				allText: false,
+				db
 			}))
 		);
 	}
@@ -303,10 +317,10 @@ export const journalFilterToText = async (
 	}
 
 	if (filter.payee?.id) {
-		linkedArray.push(`Payee is ${await accountIdsToTitles([filter.payee.id])}`);
+		linkedArray.push(`Payee is ${await accountIdsToTitles(db, [filter.payee.id])}`);
 	}
 	if (filter.excludePayee?.id) {
-		linkedArray.push(`Exclude Payee is ${await accountIdsToTitles([filter.excludePayee.id])}`);
+		linkedArray.push(`Exclude Payee is ${await accountIdsToTitles(db, [filter.excludePayee.id])}`);
 	}
 
 	if (filter.payee?.title) {
@@ -321,7 +335,7 @@ export const journalFilterToText = async (
 			await arrayToText({
 				data: filter.payee.idArray,
 				singularName: 'Payee',
-				inputToText: accountIdsToTitles
+				inputToText: (inputValue) => accountIdsToTitles(db, inputValue)
 			})
 		);
 	}
@@ -330,7 +344,7 @@ export const journalFilterToText = async (
 			await arrayToText({
 				data: filter.excludePayee.idArray,
 				singularName: 'Exclude Payee',
-				inputToText: accountIdsToTitles
+				inputToText: (inputValue) => accountIdsToTitles(db, inputValue)
 			})
 		);
 	}

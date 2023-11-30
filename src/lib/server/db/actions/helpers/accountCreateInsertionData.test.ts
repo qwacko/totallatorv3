@@ -1,5 +1,5 @@
 import { describe, vi, it, expect, beforeEach, afterEach } from 'vitest';
-import { accountCreateInsertionData } from './helpers/accountCreateInsertionData';
+import { accountCreateInsertionData } from './accountCreateInsertionData';
 
 describe('accountCreateInsertionData', () => {
 	beforeEach(() => {
@@ -127,5 +127,77 @@ describe('accountCreateInsertionData', () => {
 			allowUpdate: true,
 			disabled: true
 		});
+	});
+
+	it('Incorrect Start Date Should Produce An Error', () => {
+		const id = '123';
+
+		expect(() => {
+			accountCreateInsertionData(
+				{
+					title: 'Test Account',
+					type: 'asset',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'active',
+					startDate: '2020-14-02',
+					endDate: '2021-01-01'
+				},
+				id
+			);
+		}).toThrowError('Start date is not a valid date');
+	});
+
+	it('Incorrect End Date Should Produce An Error', () => {
+		const id = '123';
+
+		expect(() => {
+			accountCreateInsertionData(
+				{
+					title: 'Test Account',
+					type: 'asset',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'active',
+					startDate: '2020-02-02',
+					endDate: '2021-14-01'
+				},
+				id
+			);
+		}).toThrowError('End date is not a valid date');
+	});
+
+	it('Start Date With Incorrect Length Should Produce An Error', () => {
+		const id = '123';
+
+		expect(() => {
+			accountCreateInsertionData(
+				{
+					title: 'Test Account',
+					type: 'asset',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'active',
+					startDate: '2020-02-02-02',
+					endDate: '2021-01-01'
+				},
+				id
+			);
+		}).toThrowError('Start date must be 10 characters');
+	});
+
+	it('End Date With Incorrect Length Should Produce An Error', () => {
+		const id = '123';
+
+		expect(() => {
+			accountCreateInsertionData(
+				{
+					title: 'Test Account',
+					type: 'asset',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'active',
+					startDate: '2020-02-02',
+					endDate: '2021-01-01-01'
+				},
+				id
+			);
+		}).toThrowError('End date must be 10 characters');
 	});
 });

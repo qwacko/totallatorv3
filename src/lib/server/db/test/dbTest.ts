@@ -1,12 +1,13 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import sqlite, { type Database } from 'better-sqlite3';
-import * as schema from './schema';
+import * as schema from '../schema';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import { logging } from '../logging';
-import { serverEnv } from '../serverEnv';
+import { logging } from '../../logging';
+import { serverEnv } from '../../serverEnv';
 import type { Logger } from 'drizzle-orm';
-import type { DBType } from './db';
+import type { DBType } from '../db';
 import fs from 'fs/promises';
+import { seedTestAccounts } from './seedTestAccounts';
 
 export const createTestDB = async (suffix: string) => {
 	const filename = `${serverEnv.DATABASE_FILE}-test-${suffix}`;
@@ -32,7 +33,25 @@ export const createTestDB = async (suffix: string) => {
 	return { db: testDB, sqliteDatabase, filename };
 };
 
-export const initialiseTestDB = async (db: DBType) => {
+export const initialiseTestDB = async ({
+	db,
+	accounts = false,
+	bills = false,
+	budgets = false,
+	categories = false,
+	labels = false,
+	transactions = false,
+	tags = false
+}: {
+	db: DBType;
+	accounts?: boolean;
+	bills?: boolean;
+	budgets?: boolean;
+	categories?: boolean;
+	labels?: boolean;
+	transactions?: boolean;
+	tags?: boolean;
+}) => {
 	db.delete(schema.account).execute();
 	db.delete(schema.tag).execute();
 	db.delete(schema.bill).execute();
@@ -45,9 +64,33 @@ export const initialiseTestDB = async (db: DBType) => {
 	db.delete(schema.importTable).execute();
 	db.delete(schema.journalEntry).execute();
 	db.delete(schema.transaction).execute();
-
 	db.delete(schema.reusableFilter).execute();
 	db.delete(schema.summaryTable).execute();
+
+	let itemCount = 0;
+
+	if (accounts) {
+		await seedTestAccounts(db);
+	}
+	if (bills) {
+		itemCount++;
+	}
+	if (budgets) {
+		itemCount++;
+	}
+	if (categories) {
+		itemCount++;
+	}
+	if (labels) {
+		itemCount++;
+	}
+	if (transactions) {
+		itemCount++;
+	}
+	if (tags) {
+		itemCount++;
+	}
+	return itemCount;
 };
 
 export const tearDownTestDB = async ({

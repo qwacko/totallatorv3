@@ -4,19 +4,21 @@ export const arrayToText = async ({
 	inputToText = async (inValue) => inValue
 }: {
 	data: string[];
-	singularName: string;
+	singularName?: string;
 	inputToText?: (data: string[]) => Promise<string[]>;
 }): Promise<string> => {
+	const prefix = singularName ? `${singularName} is` : 'Is';
 	if (data.length === 0) {
 		return '';
 	} else if (data.length === 1) {
-		const convertedValue = (await inputToText([data[0]]))[0];
-		return `${singularName} is ${convertedValue}`;
+		const singleTitle = inputToText ? await inputToText([data[0]]) : undefined;
+		const convertedValue = singleTitle ? singleTitle[0] : data[0];
+		return `${prefix} ${convertedValue}`;
 	} else if (data.length > 4) {
-		return `${singularName} is one of ${data.length} values`;
+		return `${prefix} one of ${data.length} values`;
 	} else {
 		const convertedValues = await inputToText(data);
 
-		return `${singularName} is one of ${convertedValues.join(', ')}`;
+		return `${prefix} one of ${convertedValues.join(', ')}`;
 	}
 };

@@ -1,13 +1,13 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { accountActions } from './accountActions';
-import { createTestDB, initialiseTestDB, tearDownTestDB } from '../dbTest';
+import { createTestDB, initialiseTestDB, tearDownTestDB } from '../test/dbTest';
 
 describe('accountActions', async () => {
 	const { db, sqliteDatabase, filename } = await createTestDB('accountActions');
 
 	beforeEach(async () => {
-		await initialiseTestDB(db);
+		await initialiseTestDB({ db, accounts: true });
 	});
 
 	afterAll(async () => {
@@ -95,7 +95,7 @@ describe('accountActions', async () => {
 					startDate: '2020-02-02',
 					endDate
 				})
-			).rejects.toThrowError('Invalid End Date (Too Long)');
+			).rejects.toThrowError('End date must be 10 characters');
 		});
 
 		it('Creating an account With Long Start Date Should Work Correctly', async () => {
@@ -109,7 +109,7 @@ describe('accountActions', async () => {
 					endDate: '2020-02-02',
 					startDate
 				})
-			).rejects.toThrowError('Invalid Start Date (Too Long)');
+			).rejects.toThrowError('Start date must be 10 characters');
 		});
 
 		it('Creating an account With A Bad End Date Should Error', async () => {
@@ -123,7 +123,7 @@ describe('accountActions', async () => {
 						startDate: '2020-02-02',
 						endDate: '2021-13-01'
 					})
-			).rejects.toThrowError('Invalid End Date');
+			).rejects.toThrowError('End date is not a valid date');
 		});
 
 		it('Creating an account With A Bad Start Date Should Error', async () => {
@@ -137,7 +137,7 @@ describe('accountActions', async () => {
 						startDate: '2020-00-02',
 						endDate: '2021-12-01'
 					})
-			).rejects.toThrowError('Invalid Start Date');
+			).rejects.toThrowError('Start date is not a valid date');
 		});
 
 		it('Creating accounts with the same combined title will cause an error', async () => {

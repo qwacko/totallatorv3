@@ -1,5 +1,5 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
-import { db } from '../../db';
+import type { DBType } from '../../db';
 import { account } from '../../schema';
 import { SQL, eq, gt, inArray, like, lt } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
@@ -46,7 +46,7 @@ export const accountFilterToQuery = (
 	return where;
 };
 
-export const accountIdToTitle = async (id: string) => {
+export const accountIdToTitle = async (db: DBType, id: string) => {
 	const foundAccount = await db
 		.select({ title: account.title })
 		.from(account)
@@ -60,26 +60,34 @@ export const accountIdToTitle = async (id: string) => {
 	return id;
 };
 
-export const accountIdsToTitles = async (ids: string[]) => {
-	const titles = await Promise.all(ids.map(async (id) => accountIdToTitle(id)));
+export const accountIdsToTitles = async (db: DBType, ids: string[]) => {
+	const titles = await Promise.all(ids.map(async (id) => accountIdToTitle(db, id)));
 
 	return titles;
 };
 
-export const accountFilterToText = async (
-	filter: Omit<AccountFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
-) => {
+export const accountFilterToText = async ({
+	filter,
+	prefix,
+	allText = true,
+	db
+}: {
+	filter: Omit<AccountFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	prefix?: string;
+	allText?: boolean;
+	db: DBType;
+}) => {
 	const restFilter = filter;
 
 	const stringArray: string[] = [];
-	if (restFilter.id) stringArray.push(`Is ${await accountIdToTitle(restFilter.id)}`);
+	if (restFilter.id) stringArray.push(`Is ${await accountIdToTitle(db, restFilter.id)}`);
 	if (restFilter.idArray && restFilter.idArray.length > 0) {
-		if (restFilter.idArray.length === 1) {
-			stringArray.push(`Is ${await accountIdToTitle(restFilter.idArray[0])}`);
-		} else {
-			stringArray.push(`Is One Of ${(await accountIdsToTitles(restFilter.idArray)).join(',')}`);
-		}
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.idArray,
+				inputToText: async (currentValues) => accountIdsToTitles(db, currentValues)
+			})
+		);
 	}
 	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
 	if (restFilter.accountGroup) stringArray.push(`Group contains ${restFilter.accountGroup}`);
