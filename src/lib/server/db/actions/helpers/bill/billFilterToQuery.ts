@@ -1,5 +1,5 @@
 import type { BillFilterSchemaType } from '$lib/schema/billSchema';
-import { db } from '../../../db';
+import type { DBType } from '../../../db';
 import { bill } from '../../../schema';
 import { SQL, eq, inArray, like } from 'drizzle-orm';
 import { arrayToText } from '../misc/arrayToText';
@@ -13,14 +13,16 @@ export const billFilterToQuery = (
 	const restFilter = filter;
 
 	const where: SQL<unknown>[] = [];
-	if (restFilter.id) where.push(eq(bill.id, restFilter.id));
+	if (restFilter.id && restFilter.id !== '') where.push(eq(bill.id, restFilter.id));
 	if (restFilter.idArray && restFilter.idArray.length > 0)
 		where.push(inArray(bill.id, restFilter.idArray));
-	if (restFilter.title) where.push(like(bill.title, `%${restFilter.title}%`));
+	if (restFilter.title && restFilter.title !== '')
+		where.push(like(bill.title, `%${restFilter.title}%`));
 	if (restFilter.status) where.push(eq(bill.status, restFilter.status));
-	if (restFilter.disabled) where.push(eq(bill.disabled, restFilter.disabled));
-	if (restFilter.allowUpdate) where.push(eq(bill.allowUpdate, restFilter.allowUpdate));
-	if (restFilter.active) where.push(eq(bill.active, restFilter.active));
+	if (restFilter.disabled !== undefined) where.push(eq(bill.disabled, restFilter.disabled));
+	if (restFilter.allowUpdate !== undefined)
+		where.push(eq(bill.allowUpdate, restFilter.allowUpdate));
+	if (restFilter.active !== undefined) where.push(eq(bill.active, restFilter.active));
 	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
 		where.push(inArray(bill.importId, restFilter.importIdArray));
 
@@ -34,7 +36,7 @@ export const billFilterToQuery = (
 	return where;
 };
 
-export const billIdToTitle = async (id: string) => {
+export const billIdToTitle = async (db: DBType, id: string) => {
 	const foundBill = await db
 		.select({ title: bill.title })
 		.from(bill)
@@ -48,26 +50,32 @@ export const billIdToTitle = async (id: string) => {
 	return id;
 };
 
-const billIdsToTitle = async (ids: string[]) => {
-	const titles = await Promise.all(ids.map(async (id) => billIdToTitle(id)));
+const billIdsToTitle = async (db: DBType, ids: string[]) => {
+	const titles = await Promise.all(ids.map(async (id) => billIdToTitle(db, id)));
 
 	return titles;
 };
 
-export const billFilterToText = async (
-	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-
-	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
-) => {
+export const billFilterToText = async ({
+	db,
+	filter,
+	prefix,
+	allText = true
+}: {
+	db: DBType;
+	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	prefix?: string;
+	allText?: boolean;
+}) => {
 	const restFilter = filter;
 
 	const stringArray: string[] = [];
-	if (restFilter.id) stringArray.push(`Is ${await billIdToTitle(restFilter.id)}`);
+	if (restFilter.id) stringArray.push(`Is ${await billIdToTitle(db, restFilter.id)}`);
 	if (restFilter.idArray) {
 		if (restFilter.idArray.length === 1) {
-			stringArray.push(`Is ${await billIdToTitle(restFilter.idArray[0])}`);
+			stringArray.push(`Is ${await billIdToTitle(db, restFilter.idArray[0])}`);
 		} else {
-			stringArray.push(`Is One Of ${(await billIdsToTitle(restFilter.idArray)).join(',')}`);
+			stringArray.push(`Is One Of ${(await billIdsToTitle(db, restFilter.idArray)).join(',')}`);
 		}
 	}
 	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
