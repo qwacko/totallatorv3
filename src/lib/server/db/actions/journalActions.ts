@@ -11,7 +11,7 @@ import {
 	type CloneJournalUpdateSchemaType,
 	cloneJournalUpdateSchema
 } from '$lib/schema/journalSchema';
-import { eq, and, sql, inArray, not, SQL, or } from 'drizzle-orm';
+import { eq, and, sql, inArray, not, SQL, or, sum, count, avg } from 'drizzle-orm';
 import type { DBType } from '../db';
 import {
 	account,
@@ -56,7 +56,7 @@ export const journalActions = {
 	},
 	count: async (db: DBType, filter?: JournalFilterSchemaType) => {
 		const countQueryCore = db
-			.select({ count: sql<number>`count(${journalEntry.id})`.mapWith(Number) })
+			.select({ count: count(journalEntry.id) })
 			.from(journalEntry)
 			.leftJoin(account, eq(journalEntry.accountId, account.id))
 			.leftJoin(bill, eq(journalEntry.billId, bill.id))
@@ -65,13 +65,13 @@ export const journalActions = {
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
 			.where(and(...(filter ? await journalFilterToQuery(filter) : [])));
 
-		const count = await countQueryCore.execute();
+		const countResult = await countQueryCore.execute();
 
-		return count[0].count;
+		return countResult[0].count;
 	},
 	sum: async (db: DBType, filter?: JournalFilterSchemaType) => {
 		const countQueryCore = db
-			.select({ sum: sql<number>`sum(${journalEntry.amount})`.mapWith(Number) })
+			.select({ sum: sum(journalEntry.amount).mapWith(Number) })
 			.from(journalEntry)
 			.leftJoin(account, eq(journalEntry.accountId, account.id))
 			.leftJoin(bill, eq(journalEntry.billId, bill.id))
@@ -103,8 +103,8 @@ export const journalActions = {
 		const endLast12YearMonth = new Date().toISOString().slice(0, 7);
 
 		const commonSummary = {
-			count: sql`count(${journalEntry.id})`.mapWith(Number),
-			sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+			count: count(journalEntry.id),
+			sum: sum(journalEntry.amount).mapWith(Number),
 			sum12Months:
 				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} then ${journalEntry.amount} else 0 END)`.mapWith(
 					Number
@@ -216,9 +216,9 @@ export const journalActions = {
 		const monthlyQueryCore = db
 			.select({
 				yearMonth: journalEntry.yearMonth,
-				count: sql`count(${journalEntry.id})`.mapWith(Number),
-				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
-				average: sql`avg(${journalEntry.amount})`.mapWith(Number),
+				count: count(journalEntry.id),
+				sum: sum(journalEntry.amount).mapWith(Number),
+				average: avg(journalEntry.amount).mapWith(Number),
 				positiveSum:
 					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
 						Number

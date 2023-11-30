@@ -3,7 +3,7 @@ import {
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType
 } from '$lib/schema/journalSchema';
-import { getTableColumns, eq, and, sql, inArray } from 'drizzle-orm';
+import { getTableColumns, eq, and, sql, inArray, sum } from 'drizzle-orm';
 import type { DBType } from '../../../db';
 import {
 	account,
@@ -73,7 +73,7 @@ export const journalList = async ({
 		.as('sumInner');
 
 	const runningTotalPromise = db
-		.select({ sum: sql<number>`sum(${runningTotalInner.amount})`.mapWith(Number) })
+		.select({ sum: sum(runningTotalInner.amount).mapWith(Number) })
 		.from(runningTotalInner)
 		.execute();
 
