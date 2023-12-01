@@ -16,7 +16,7 @@ import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSchema';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { tActions } from './tActions';
-import { testingDelay } from '$lib/server/testingDelay';
+import { fixedDelay, testingDelay } from '$lib/server/testingDelay';
 import { logging } from '$lib/server/logging';
 
 export const reusableFilterActions = {
@@ -80,7 +80,7 @@ export const reusableFilterActions = {
 
 		let numberModified = 0;
 
-		while (Date.now() - startTime < maximumTime * 1000) {
+		while (Date.now() - startTime < maximumTime) {
 			const filter = await db
 				.select()
 				.from(reusableFilter)
@@ -96,7 +96,11 @@ export const reusableFilterActions = {
 		}
 
 		if (numberModified > 0) {
-			logging.info(`Updated ${numberModified} reusable filters, took ${Date.now() - startTime}ms`);
+			logging.info(
+				`Updated ${numberModified} reusable filters, took ${
+					Date.now() - startTime
+				}ms (limit = ${maximumTime}s))`
+			);
 		}
 
 		return numberModified;
@@ -110,6 +114,9 @@ export const reusableFilterActions = {
 		filter: ReusableFilterFilterSchemaType;
 		maximumTime: number;
 	}) => {
+		//Waits 100ms to allow for other updates to be processed
+		await fixedDelay(100);
+
 		await testingDelay();
 		await reusableFilterActions.refresh({ db, maximumTime });
 		return reusableFilterActions.list({ db, filter });

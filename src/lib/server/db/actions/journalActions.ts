@@ -95,6 +95,7 @@ export const journalActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
+		await fixedDelay(100);
 		await testingDelay();
 
 		const startDate12Months = new Date();
