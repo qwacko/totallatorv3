@@ -279,6 +279,7 @@ export const journalFilterToText = async ({
 			...(await budgetFilterToText({ db, filter: filter.budget, prefix: 'Budget', allText: false }))
 		);
 	}
+
 	if (filter.excludeBudget) {
 		linkedArray.push(
 			...(await budgetFilterToText({
@@ -312,23 +313,35 @@ export const journalFilterToText = async ({
 	}
 
 	if (filter.tag) {
-		linkedArray.push(...(await tagFilterToText(filter.tag, { prefix: 'Tag', allText: false })));
+		linkedArray.push(
+			...(await tagFilterToText({ db, filter: filter.tag, prefix: 'Tag', allText: false }))
+		);
 	}
 	if (filter.excludeTag) {
 		linkedArray.push(
-			...(await tagFilterToText(filter.excludeTag, { prefix: 'Exclude Tag', allText: false }))
+			...(await tagFilterToText({
+				db,
+				filter: filter.excludeTag,
+				prefix: 'Exclude Tag',
+				allText: false
+			}))
 		);
 	}
 
 	if (filter.label) {
 		linkedArray.push(
-			...(await labelFilterToText(filter.label, { prefix: 'Label', allText: false }))
+			...(await labelFilterToText({ db, filter: filter.label, prefix: 'Label', allText: false }))
 		);
 	}
 
 	if (filter.excludeLabel) {
 		linkedArray.push(
-			...(await labelFilterToText(filter.excludeLabel, { prefix: 'Exclude Label', allText: false }))
+			...(await labelFilterToText({
+				db,
+				filter: filter.excludeLabel,
+				prefix: 'Exclude Label',
+				allText: false
+			}))
 		);
 	}
 

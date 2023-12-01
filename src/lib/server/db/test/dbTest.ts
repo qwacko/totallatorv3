@@ -10,6 +10,8 @@ import { seedTestAccounts } from './seedTestAccounts';
 import { seedTestBills } from './seedTestBills';
 import { seedTestBudgets } from './seedTestBudgets';
 import { seedTestCategories } from './seedTestCategories';
+import { seedTestLabels } from './seedTestLabels';
+import { seedTestTags } from './seedTestTags';
 
 export const createTestDB = async (suffix: string) => {
 	const filename = `${serverEnv.DATABASE_FILE}-test-${suffix}`;
@@ -84,13 +86,13 @@ export const initialiseTestDB = async ({
 		await seedTestCategories(db);
 	}
 	if (labels) {
-		itemCount++;
+		await seedTestLabels(db);
 	}
 	if (transactions) {
 		itemCount++;
 	}
 	if (tags) {
-		itemCount++;
+		await seedTestTags(db);
 	}
 	return itemCount;
 };

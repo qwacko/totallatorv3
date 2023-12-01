@@ -31,7 +31,7 @@ export const load = async (data) => {
 	return {
 		tags,
 		searchParams: pageInfo.searchParams,
-		filterText: tagFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		filterText: tagFilterToText({ db, filter: pageInfo.searchParams || { page: 0, pageSize: 10 } }),
 		tagSummary,
 		tagDropdowns: tActions.tag.listForDropdown({ db })
 	};

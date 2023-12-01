@@ -1,27 +1,22 @@
 import type { LabelFilterSchemaType } from '$lib/schema/labelSchema';
-import { db } from '../../../db';
+
 import { label } from '../../../schema';
-import { SQL, eq, inArray, like } from 'drizzle-orm';
-import { arrayToText } from '../misc/arrayToText';
-import { importIdsToTitles } from '../import/importIdsToTitles';
+import { SQL, eq } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
+import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
+import { statusFilterToQuery, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import type { DBType } from '$lib/server/db/db';
 
 export const labelFilterToQuery = (
 	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,
 	includeSummary: boolean = false
 ) => {
 	const where: SQL<unknown>[] = [];
-	if (filter.id) where.push(eq(label.id, filter.id));
-	if (filter.idArray && filter.idArray.length > 0) where.push(inArray(label.id, filter.idArray));
-	if (filter.title) where.push(like(label.title, `%${filter.title}%`));
-	if (filter.status) where.push(eq(label.status, filter.status));
-	if (filter.disabled) where.push(eq(label.disabled, filter.disabled));
-	if (filter.allowUpdate) where.push(eq(label.allowUpdate, filter.allowUpdate));
-	if (filter.active) where.push(eq(label.active, filter.active));
-	if (filter.importIdArray && filter.importIdArray.length > 0)
-		where.push(inArray(label.importId, filter.importIdArray));
-	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
-		where.push(inArray(label.importDetailId, filter.importDetailIdArray));
+	idTitleFilterToQuery(where, filter, 'label');
+	statusFilterToQuery(where, filter, 'label');
+	importFilterToQuery(where, filter, 'label');
 
 	if (includeSummary) {
 		summaryFilterToQuery({ where, filter });
@@ -30,7 +25,7 @@ export const labelFilterToQuery = (
 	return where;
 };
 
-export const labelIdToTitle = async (id: string) => {
+export const labelIdToTitle = async (db: DBType, id: string) => {
 	const foundLabel = await db
 		.select({ title: label.title })
 		.from(label)
@@ -44,56 +39,29 @@ export const labelIdToTitle = async (id: string) => {
 	return id;
 };
 
-export const labelIdsToTitle = async (ids: string[]) => {
-	const titles = await Promise.all(ids.map(async (id) => labelIdToTitle(id)));
+export const labelIdsToTitle = async (db: DBType, ids: string[]) => {
+	const titles = await Promise.all(ids.map(async (id) => labelIdToTitle(db, id)));
 
 	return titles;
 };
 
-export const labelFilterToText = async (
-	filter: Omit<LabelFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
-) => {
+export const labelFilterToText = async ({
+	db,
+	filter,
+	prefix,
+	allText = true
+}: {
+	db: DBType;
+	filter: Omit<LabelFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	prefix?: string;
+	allText?: boolean;
+}) => {
 	const restFilter = filter;
 
 	const stringArray: string[] = [];
-	if (restFilter.id) stringArray.push(`Is ${await labelIdToTitle(restFilter.id)}`);
-	if (restFilter.idArray && restFilter.idArray.length > 0) {
-		if (restFilter.idArray.length === 1) {
-			stringArray.push(`Is ${await labelIdToTitle(restFilter.idArray[0])}`);
-		} else {
-			stringArray.push(`Is One Of ${(await labelIdsToTitle(restFilter.idArray)).join(',')}`);
-		}
-	}
-	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
-	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
-	if (restFilter.disabled) stringArray.push(`Is Disabled`);
-	if (restFilter.allowUpdate) stringArray.push(`Can Be Updated`);
-	if (restFilter.active) stringArray.push(`Is Active`);
-	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
-		stringArray.push(
-			await arrayToText({
-				data: restFilter.importIdArray,
-				singularName: 'Import',
-				inputToText: importIdsToTitles
-			})
-		);
-	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
-		stringArray.push(
-			await arrayToText({
-				data: restFilter.importDetailIdArray,
-				singularName: 'Import Detail ID'
-			})
-		);
-
+	await idTitleFilterToText(db, stringArray, filter, labelIdToTitle);
+	statusFilterToText(stringArray, filter);
+	importFilterToText(stringArray, filter);
 	summaryFilterToText({ stringArray, filter: restFilter });
-	if (stringArray.length === 0 && allText) {
-		stringArray.push('Showing All');
-	}
-
-	if (prefix) {
-		return stringArray.map((item) => `${prefix} ${item}`);
-	}
-
-	return stringArray;
+	return filterToQueryFinal({ stringArray, allText, prefix });
 };

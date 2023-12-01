@@ -58,7 +58,7 @@ export const journalUpdateToText = async ({
 
 	//Tags
 	if (change.tagClear) messages.push(`Tag Clear: ${change.tagClear}`);
-	if (change.tagId) messages.push(`Tag: ${await tagIdToTitle(change.tagId)}`);
+	if (change.tagId) messages.push(`Tag: ${await tagIdToTitle(db, change.tagId)}`);
 	if (change.tagTitle) messages.push(`Tag Title: ${change.tagTitle}`);
 
 	//Labels
@@ -67,16 +67,16 @@ export const journalUpdateToText = async ({
 		messages.push(`Set Labels: ${change.labelTitles.join(', ')}`);
 	}
 	if (change.labels && change.labels.length > 0) {
-		messages.push(`Set Labels: ${(await labelIdsToTitle(change.labels)).join(', ')}`);
+		messages.push(`Set Labels: ${(await labelIdsToTitle(db, change.labels)).join(', ')}`);
 	}
 	if (change.addLabelTitles && change.addLabelTitles.length > 0) {
 		messages.push(`Add Labels: ${change.addLabelTitles.join(', ')}`);
 	}
 	if (change.addLabels && change.addLabels.length > 0) {
-		messages.push(`Add Labels: ${(await labelIdsToTitle(change.addLabels)).join(', ')}`);
+		messages.push(`Add Labels: ${(await labelIdsToTitle(db, change.addLabels)).join(', ')}`);
 	}
 	if (change.removeLabels && change.removeLabels.length > 0) {
-		messages.push(`Remove Labels: ${(await labelIdsToTitle(change.removeLabels)).join(', ')}`);
+		messages.push(`Remove Labels: ${(await labelIdsToTitle(db, change.removeLabels)).join(', ')}`);
 	}
 
 	return messages;
