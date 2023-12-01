@@ -63,7 +63,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [])));
+			.where(and(...(filter ? await journalFilterToQuery(filter) : [sql`true`])));
 
 		const countResult = await countQueryCore.execute();
 

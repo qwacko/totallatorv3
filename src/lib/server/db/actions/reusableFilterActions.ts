@@ -85,6 +85,7 @@ export const reusableFilterActions = {
 				.select()
 				.from(reusableFilter)
 				.where(eq(reusableFilter.needsUpdate, true))
+				.limit(1)
 				.execute();
 			if (!filter || filter.length === 0) {
 				break;
