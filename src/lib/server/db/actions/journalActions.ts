@@ -48,7 +48,7 @@ import { nanoid } from 'nanoid';
 import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCombinedSchema';
 import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
 import { summaryActions } from './summaryActions';
-import { testingDelay } from '$lib/server/testingDelay';
+import { fixedDelay, testingDelay } from '$lib/server/testingDelay';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
