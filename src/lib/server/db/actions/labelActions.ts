@@ -7,16 +7,16 @@ import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, journalEntry, label, labelsToJournals, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
-import { statusUpdate } from './helpers/statusUpdate';
-import { updatedTime } from './helpers/updatedTime';
+import { statusUpdate } from './helpers/misc/statusUpdate';
+import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
-import { createLabel } from './helpers/seedLabelData';
-import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
-import { labelFilterToQuery } from './helpers/labelFilterToQuery';
-import { labelCreateInsertionData } from './helpers/labelCreateInsertionData';
+import { createLabel } from './helpers/seed/seedLabelData';
+import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
+import { labelFilterToQuery } from './helpers/label/labelFilterToQuery';
+import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionData';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
-import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { testingDelay } from '$lib/server/testingDelay';
 
 export const labelActions = {

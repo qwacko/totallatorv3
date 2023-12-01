@@ -15,7 +15,7 @@
 
 <CustomHeader pageTitle="Create First User" />
 
-<PageLayout title="Create First User" size="xs" class="pt-10">
+<PageLayout title="Create First User" size="lg" class="pt-10" hideBackButton>
 	<form method="POST" class="flex flex-col space-y-4" autocomplete="off" use:enhance>
 		<TextInput
 			title="Name"

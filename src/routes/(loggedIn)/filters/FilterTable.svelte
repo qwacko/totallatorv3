@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Badge, Button, ButtonGroup, DropdownItem, Input, Spinner } from 'flowbite-svelte';
+	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
 	import { urlGenerator } from '$lib/routes.js';
 	import { onNavigate } from '$app/navigation';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
@@ -18,6 +18,7 @@
 	import ApplyFilterIcon from '$lib/components/icons/ApplyFilterIcon.svelte';
 	import type { reusableFilterActions } from '$lib/server/db/actions/reusableFilterActions.js';
 	import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
 	export let dataForTable: Awaited<ReturnType<(typeof reusableFilterActions)['list']>>;
 	export let filterText: string[];
@@ -270,9 +271,7 @@
 		</svelte:fragment>
 		<svelte:fragment slot="bulkActions">
 			{#if loading}
-				<Badge class="flex flex-row gap-2" color="blue">
-					<Spinner size="8" class="p-1" /> Updating Count...
-				</Badge>
+				<LoadingSpinner loadingText="Updating Count..." />
 			{/if}
 		</svelte:fragment>
 	</CustomTable>

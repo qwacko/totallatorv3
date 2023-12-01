@@ -5,7 +5,7 @@ import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db/db';
 import { superValidate } from 'sveltekit-superforms/server';
 import { accountFilterSchema, updateAccountSchema } from '$lib/schema/accountSchema';
-import { accountFilterToText } from '$lib/server/db/actions/helpers/accountFilterToQuery';
+import { accountFilterToText } from '$lib/server/db/actions/helpers/account/accountFilterToQuery';
 import { accountPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 import { logging } from '$lib/server/logging';
 
@@ -26,7 +26,7 @@ export const load = async (data) => {
 	if (!commonData) throw redirect(302, '/accounts');
 
 	const form = await superValidate(commonData, updateAccountSchema);
-	const filterText = accountFilterToText(filter);
+	const filterText = accountFilterToText({ filter, db });
 
 	const titles = accounts.data.map((item) => item.title);
 

@@ -1,7 +1,7 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
 import { defaultJournalFilter } from '$lib/schema/journalSchema';
-import { billFilterToText } from '$lib/server/db/actions/helpers/billFilterToQuery.js';
+import { billFilterToText } from '$lib/server/db/actions/helpers/bill/billFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
@@ -31,7 +31,10 @@ export const load = async (data) => {
 	return {
 		bills,
 		searchParams: pageInfo.searchParams,
-		filterText: billFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		filterText: billFilterToText({
+			db,
+			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+		}),
 		billSummary,
 		billDropdowns: tActions.bill.listForDropdown({ db })
 	};

@@ -15,10 +15,10 @@ import {
 	label,
 	tag
 } from '../schema';
-import { updatedTime } from './helpers/updatedTime';
+import { updatedTime } from './helpers/misc/updatedTime';
 import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
 import { tActions } from './tActions';
-import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import type { ZodSchema } from 'zod';
 import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema';
 import {
@@ -29,10 +29,10 @@ import {
 	importCategory,
 	importTag,
 	importLabel
-} from './helpers/importHelpers';
+} from './helpers/import/importHelpers';
 
-import { getImportDetail } from './helpers/getImportDetail';
-import { processCreatedImport } from './helpers/processImport';
+import { getImportDetail } from './helpers/import/getImportDetail';
+import { processCreatedImport } from './helpers/import/processImport';
 
 export const importActions = {
 	list: async ({ db }: { db: DBType }) => {

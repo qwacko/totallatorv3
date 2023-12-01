@@ -8,13 +8,13 @@ import {
 import { and, asc, desc, eq, sql, type InferSelectModel, inArray } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { reusableFilter } from '$lib/server/db/schema';
-import { reusableFilterToQuery } from './helpers/reusableFilterToQuery';
+import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
 import { nanoid } from 'nanoid';
-import { journalFilterToText } from './helpers/journalFilterToQuery';
-import { updatedTime } from './helpers/updatedTime';
-import { journalUpdateToText } from './helpers/journalUpdateToText';
+import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSchema';
-import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { tActions } from './tActions';
 import { testingDelay } from '$lib/server/testingDelay';
 
@@ -244,10 +244,10 @@ export const reusableFilterActions = {
 
 		const idUse = nanoid();
 
-		const filterText = await journalFilterToText(filter);
+		const filterText = await journalFilterToText({ db, filter });
 		const titleUse = title || filterText.join(' and ');
 
-		const changeText = await journalUpdateToText(change);
+		const changeText = await journalUpdateToText({ db, change });
 
 		await db
 			.insert(reusableFilter)
@@ -294,9 +294,9 @@ export const reusableFilterActions = {
 		const { filter, change, group, modificationType, listed, ...reusableFilterData } =
 			processedData.data;
 
-		const filterText = filter ? await journalFilterToText(filter) : undefined;
+		const filterText = filter ? await journalFilterToText({ db, filter }) : undefined;
 		const filterTextUse = filterText ? filterText.join(' and ') : undefined;
-		const changeText = await journalUpdateToText(change);
+		const changeText = await journalUpdateToText({ db, change });
 
 		await db
 			.update(reusableFilter)

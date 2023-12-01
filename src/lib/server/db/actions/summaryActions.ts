@@ -1,4 +1,4 @@
-import { eq, inArray, sql, isNull, and } from 'drizzle-orm';
+import { eq, inArray, sql, isNull, and, count, sum, min, max } from 'drizzle-orm';
 import {
 	bill,
 	budget,
@@ -13,8 +13,8 @@ import {
 } from '../schema';
 import type { DBType } from '../db';
 import { nanoid } from 'nanoid';
-import { updatedTime } from './helpers/updatedTime';
-import { filterNullUndefinedAndDuplicates } from '../../../../routes/(loggedIn)/journals/filterNullUndefinedAndDuplicates';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 
 export const summaryTableColumnsToSelect = {
 	count: summaryTable.count,
@@ -25,17 +25,17 @@ export const summaryTableColumnsToSelect = {
 
 const aggregationColumns = (isAccount: boolean = false) => ({
 	sum: isAccount
-		? sql`sum(${journalEntry.amount})`.mapWith(Number)
+		? sum(journalEntry.amount).mapWith(Number)
 		: sql`sum(CASE WHEN ${account.type} IN ('asset', 'liability') THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
 				Number
 		  ),
 	count: isAccount
-		? sql`count(${journalEntry.id})`.mapWith(Number)
+		? count(journalEntry.id)
 		: sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
 				Number
 		  ),
-	firstDate: sql`min(${journalEntry.date})`.mapWith(journalEntry.date),
-	lastDate: sql`max(${journalEntry.date})`.mapWith(journalEntry.date)
+	firstDate: min(journalEntry.date),
+	lastDate: max(journalEntry.date)
 });
 
 export const summaryActions = {
@@ -115,12 +115,18 @@ export const summaryActions = {
 										...aggregationColumns(false)
 									})
 									.from(targetTable)
-									.where(ids ? inArray(targetTable.id, ids) : sql`true`)
+									.where(
+										and(
+											...[
+												ids ? inArray(targetTable.id, ids) : sql`true`,
+												needsUpdateOnly ? eq(summaryTable.needsUpdate, true) : sql`true`
+											]
+										)
+									)
 									.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, targetTable.id))
 									.leftJoin(journalEntry, eq(labelsToJournals.journalId, journalEntry.id))
 									.leftJoin(summaryTable, eq(summaryTable.relationId, targetTable.id))
 									.leftJoin(account, eq(account.id, journalEntry.accountId))
-									.where(needsUpdateOnly ? eq(summaryTable.needsUpdate, true) : sql`true`)
 									.groupBy(targetTable.id)
 									.execute()
 							: item === 'account'
@@ -131,10 +137,16 @@ export const summaryActions = {
 										...aggregationColumns(true)
 									})
 									.from(targetTable)
-									.where(ids ? inArray(targetTable.id, ids) : sql`true`)
+									.where(
+										and(
+											...[
+												ids ? inArray(targetTable.id, ids) : sql`true`,
+												needsUpdateOnly ? eq(summaryTable.needsUpdate, true) : sql`true`
+											]
+										)
+									)
 									.leftJoin(journalEntry, eq(journalIdColumn, targetTable.id))
 									.leftJoin(summaryTable, eq(summaryTable.relationId, targetTable.id))
-									.where(needsUpdateOnly ? eq(summaryTable.needsUpdate, true) : sql`true`)
 									.groupBy(targetTable.id)
 									.execute()
 							: await db
@@ -144,11 +156,17 @@ export const summaryActions = {
 										...aggregationColumns(false)
 									})
 									.from(targetTable)
-									.where(ids ? inArray(targetTable.id, ids) : sql`true`)
+									.where(
+										and(
+											...[
+												ids ? inArray(targetTable.id, ids) : sql`true`,
+												needsUpdateOnly ? eq(summaryTable.needsUpdate, true) : sql`true`
+											]
+										)
+									)
 									.leftJoin(journalEntry, eq(journalIdColumn, targetTable.id))
 									.leftJoin(summaryTable, eq(summaryTable.relationId, targetTable.id))
 									.leftJoin(account, eq(account.id, journalEntry.accountId))
-									.where(needsUpdateOnly ? eq(summaryTable.needsUpdate, true) : sql`true`)
 									.groupBy(targetTable.id)
 									.execute();
 

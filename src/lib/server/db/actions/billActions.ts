@@ -7,16 +7,16 @@ import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, bill, journalEntry, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
-import { statusUpdate } from './helpers/statusUpdate';
-import { updatedTime } from './helpers/updatedTime';
+import { statusUpdate } from './helpers/misc/statusUpdate';
+import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
-import { billCreateInsertionData } from './helpers/billCreateInsertionData';
-import { billFilterToQuery } from './helpers/billFilterToQuery';
-import { createBill } from './helpers/seedBillData';
-import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
+import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData';
+import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
+import { createBill } from './helpers/seed/seedBillData';
+import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
-import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { testingDelay } from '$lib/server/testingDelay';
 
 export const billActions = {

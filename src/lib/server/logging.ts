@@ -26,4 +26,7 @@ export const logging = {
 		if (serverEnv.LOGGING_CLASSES.includes('TRACE')) loggingFunction('TRACE', ...params);
 	}
 };
-logging.info('Server Environment:', serverEnv);
+
+if (!serverEnv.TEST_ENV) {
+	logging.info('Server Environment:', serverEnv);
+}

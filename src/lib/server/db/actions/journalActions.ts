@@ -11,7 +11,7 @@ import {
 	type CloneJournalUpdateSchemaType,
 	cloneJournalUpdateSchema
 } from '$lib/schema/journalSchema';
-import { eq, and, sql, inArray, not, SQL, or } from 'drizzle-orm';
+import { eq, and, sql, inArray, not, SQL, or, sum, count, avg } from 'drizzle-orm';
 import type { DBType } from '../db';
 import {
 	account,
@@ -23,30 +23,30 @@ import {
 	transaction,
 	labelsToJournals
 } from '../schema';
-import { journalFilterToQuery } from './helpers/journalFilterToQuery';
+import { journalFilterToQuery } from './helpers/journal/journalFilterToQuery';
 
-import { updatedTime } from './helpers/updatedTime';
-import { expandDate } from './helpers/expandDate';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { expandDate } from './helpers/journal/expandDate';
 import { accountActions } from './accountActions';
 import { tActions } from './tActions';
-import { seedTransactionData } from './helpers/seedTransactionData';
+import { seedTransactionData } from './helpers/seed/seedTransactionData';
 import { logging } from '$lib/server/logging';
-import { getMonthlySummary } from './helpers/getMonthlySummary';
+import { getMonthlySummary } from './helpers/summary/getMonthlySummary';
 import {
 	getCommonData,
 	getCommonLabelData,
 	getCommonOtherAccountData,
 	getToFromAccountAmountData
-} from './helpers/getCommonData';
-import { handleLinkedItem } from './helpers/handleLinkedItem';
-import { generateItemsForTransactionCreation } from './helpers/generateItemsForTransactionCreation';
-import { splitArrayIntoChunks } from './helpers/splitArrayIntoChunks';
-import { journalList } from './helpers/journalList';
+} from './helpers/misc/getCommonData';
+import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
+import { generateItemsForTransactionCreation } from './helpers/journal/generateItemsForTransactionCreation';
+import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
+import { journalList } from './helpers/journal/journalList';
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { nanoid } from 'nanoid';
-import { simpleSchemaToCombinedSchema } from './helpers/simpleSchemaToCombinedSchema';
-import { updateManyTransferInfo } from './helpers/updateTransactionTransfer';
+import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCombinedSchema';
+import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
 import { summaryActions } from './summaryActions';
 import { testingDelay } from '$lib/server/testingDelay';
 
@@ -56,7 +56,7 @@ export const journalActions = {
 	},
 	count: async (db: DBType, filter?: JournalFilterSchemaType) => {
 		const countQueryCore = db
-			.select({ count: sql<number>`count(${journalEntry.id})`.mapWith(Number) })
+			.select({ count: count(journalEntry.id) })
 			.from(journalEntry)
 			.leftJoin(account, eq(journalEntry.accountId, account.id))
 			.leftJoin(bill, eq(journalEntry.billId, bill.id))
@@ -65,13 +65,13 @@ export const journalActions = {
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
 			.where(and(...(filter ? await journalFilterToQuery(filter) : [])));
 
-		const count = await countQueryCore.execute();
+		const countResult = await countQueryCore.execute();
 
-		return count[0].count;
+		return countResult[0].count;
 	},
 	sum: async (db: DBType, filter?: JournalFilterSchemaType) => {
 		const countQueryCore = db
-			.select({ sum: sql<number>`sum(${journalEntry.amount})`.mapWith(Number) })
+			.select({ sum: sum(journalEntry.amount).mapWith(Number) })
 			.from(journalEntry)
 			.leftJoin(account, eq(journalEntry.accountId, account.id))
 			.leftJoin(bill, eq(journalEntry.billId, bill.id))
@@ -95,7 +95,6 @@ export const journalActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
-
 		await testingDelay();
 
 		const startDate12Months = new Date();
@@ -104,8 +103,8 @@ export const journalActions = {
 		const endLast12YearMonth = new Date().toISOString().slice(0, 7);
 
 		const commonSummary = {
-			count: sql`count(${journalEntry.id})`.mapWith(Number),
-			sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
+			count: count(journalEntry.id),
+			sum: sum(journalEntry.amount).mapWith(Number),
 			sum12Months:
 				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} then ${journalEntry.amount} else 0 END)`.mapWith(
 					Number
@@ -217,9 +216,9 @@ export const journalActions = {
 		const monthlyQueryCore = db
 			.select({
 				yearMonth: journalEntry.yearMonth,
-				count: sql`count(${journalEntry.id})`.mapWith(Number),
-				sum: sql`sum(${journalEntry.amount})`.mapWith(Number),
-				average: sql`avg(${journalEntry.amount})`.mapWith(Number),
+				count: count(journalEntry.id),
+				sum: sum(journalEntry.amount).mapWith(Number),
+				average: avg(journalEntry.amount).mapWith(Number),
 				positiveSum:
 					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
 						Number
