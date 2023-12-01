@@ -9,3 +9,8 @@ export const testingDelay = async () => {
 export const fixedDelay = async (delay: number) => {
 	await new Promise((resolve) => setTimeout(resolve, delay));
 };
+
+export const streamingDelay = async () => {
+	await testingDelay();
+	await fixedDelay(5);
+};

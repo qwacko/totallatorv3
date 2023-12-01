@@ -25,7 +25,7 @@ import { accountTitleSplit } from './helpers/account/accountTitleSplit';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { getCommonData } from './helpers/misc/getCommonData';
-import { testingDelay } from '$lib/server/testingDelay';
+import { streamingDelay } from '$lib/server/testingDelay';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -106,7 +106,7 @@ export const accountActions = {
 		return { count, data: results, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
-		await testingDelay();
+		await streamingDelay();
 		const items = db
 			.select({
 				id: account.id,
@@ -307,14 +307,14 @@ export const accountActions = {
 			const newAccountGroupCombined = accountGroupCombinedClear
 				? ''
 				: accountGroupCombined && accountGroupCombined !== ''
-				? accountGroupCombined
-				: [
-						accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
-						accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
-						accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
-				  ]
-						.filter((item) => item)
-						.join(':');
+				  ? accountGroupCombined
+				  : [
+							accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
+							accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
+							accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
+				    ]
+							.filter((item) => item)
+							.join(':');
 
 			const { startDate, endDate, isCash, isNetWorth } = restData;
 

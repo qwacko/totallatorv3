@@ -16,7 +16,7 @@ import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSchema';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { tActions } from './tActions';
-import { fixedDelay, testingDelay } from '$lib/server/testingDelay';
+import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { logging } from '$lib/server/logging';
 
 export const reusableFilterActions = {
@@ -114,8 +114,7 @@ export const reusableFilterActions = {
 		filter: ReusableFilterFilterSchemaType;
 		maximumTime: number;
 	}) => {
-		//Waits 100ms to allow for other updates to be processed
-		await fixedDelay(100);
+		await streamingDelay();
 
 		await testingDelay();
 		await reusableFilterActions.refresh({ db, maximumTime });

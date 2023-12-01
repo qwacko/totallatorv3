@@ -48,7 +48,7 @@ import { nanoid } from 'nanoid';
 import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCombinedSchema';
 import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
 import { summaryActions } from './summaryActions';
-import { fixedDelay, testingDelay } from '$lib/server/testingDelay';
+import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -95,7 +95,7 @@ export const journalActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
-		await fixedDelay(100);
+		await streamingDelay();
 		await testingDelay();
 
 		const startDate12Months = new Date();
@@ -676,24 +676,24 @@ export const journalActions = {
 				journalData.setComplete === true
 					? true
 					: journalData.clearComplete === true
-					? false
-					: undefined;
+					  ? false
+					  : undefined;
 			const reconciled =
 				complete === true
 					? true
 					: journalData.setReconciled === true
-					? true
-					: journalData.clearReconciled === true
-					? false
-					: undefined;
+					  ? true
+					  : journalData.clearReconciled === true
+					    ? false
+					    : undefined;
 			const dataChecked =
 				complete === true
 					? true
 					: journalData.setDataChecked === true
-					? true
-					: journalData.clearDataChecked === true
-					? false
-					: undefined;
+					  ? true
+					  : journalData.clearDataChecked === true
+					    ? false
+					    : undefined;
 
 			if (linkedJournals.length > 0) {
 				await db
