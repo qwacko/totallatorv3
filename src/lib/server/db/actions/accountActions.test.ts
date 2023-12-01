@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 import { journalActions } from './journalActions';
 
 describe('accountActions', async () => {
-	const { db, sqliteDatabase, filename } = await createTestDB('accountActions');
+	const { db, sqliteDatabase, filename } = await createTestDB();
 
 	beforeEach(async () => {
 		await initialiseTestDB({ db, accounts: true });

@@ -244,7 +244,7 @@ describe('Account Filter To Query', () => {
 });
 
 describe('Account Filter To Text', async () => {
-	const { db, sqliteDatabase, filename } = await createTestDB('accountFilterToText');
+	const { db, sqliteDatabase, filename } = await createTestDB();
 
 	beforeEach(async () => {
 		await initialiseTestDB({ db, accounts: true });

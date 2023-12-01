@@ -231,7 +231,7 @@ describe('tagFilterToQuery', () => {
 });
 
 describe('Tag Filter To Text', async () => {
-	const { db, sqliteDatabase, filename } = await createTestDB('categoryFilterToText');
+	const { db, sqliteDatabase, filename } = await createTestDB();
 
 	beforeEach(async () => {
 		await initialiseTestDB({ db, tags: true });

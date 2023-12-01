@@ -221,7 +221,7 @@ describe('budgetFilterToQuery', () => {
 });
 
 describe('Budget Filter To Text', async () => {
-	const { db, sqliteDatabase, filename } = await createTestDB('budgetFilterToText');
+	const { db, sqliteDatabase, filename } = await createTestDB();
 
 	beforeEach(async () => {
 		await initialiseTestDB({ db, budgets: true });

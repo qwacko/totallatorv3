@@ -221,7 +221,7 @@ describe('labelFilterToQuery', () => {
 });
 
 describe('Label Filter To Text', async () => {
-	const { db, sqliteDatabase, filename } = await createTestDB('labelFilterToText');
+	const { db, sqliteDatabase, filename } = await createTestDB();
 
 	beforeEach(async () => {
 		await initialiseTestDB({ db, labels: true });

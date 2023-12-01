@@ -12,8 +12,10 @@ import { seedTestBudgets } from './seedTestBudgets';
 import { seedTestCategories } from './seedTestCategories';
 import { seedTestLabels } from './seedTestLabels';
 import { seedTestTags } from './seedTestTags';
+import { nanoid } from 'nanoid';
 
-export const createTestDB = async (suffix: string) => {
+export const createTestDB = async () => {
+	const suffix = nanoid(8);
 	const filename = `${serverEnv.DATABASE_FILE}-test-${suffix}`;
 	const sqliteDatabase = sqlite(filename);
 

@@ -221,7 +221,7 @@ describe('billFilterToQuery', () => {
 });
 
 describe('Bill Filter To Text', async () => {
-	const { db, sqliteDatabase, filename } = await createTestDB('billFilterToText');
+	const { db, sqliteDatabase, filename } = await createTestDB();
 
 	beforeEach(async () => {
 		await initialiseTestDB({ db, bills: true });
@@ -244,7 +244,6 @@ describe('Bill Filter To Text', async () => {
 				countMax: 10
 			}
 		});
-
 
 		expect(returnValue).toHaveProperty('0', 'Is Power');
 		expect(returnValue).toHaveProperty('1', 'Title contains title');
