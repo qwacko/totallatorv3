@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Badge, Button, ButtonGroup, DropdownItem, Input, Spinner } from 'flowbite-svelte';
+	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
 	import { urlGenerator } from '$lib/routes.js';
 	import { onNavigate } from '$app/navigation';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
