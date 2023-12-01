@@ -2,7 +2,6 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import sqlite, { type Database } from 'better-sqlite3';
 import * as schema from '../schema';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import { logging } from '../../logging';
 import { serverEnv } from '../../serverEnv';
 import type { Logger } from 'drizzle-orm';
 import type { DBType } from '../db';
@@ -10,6 +9,7 @@ import fs from 'fs/promises';
 import { seedTestAccounts } from './seedTestAccounts';
 import { seedTestBills } from './seedTestBills';
 import { seedTestBudgets } from './seedTestBudgets';
+import { seedTestCategories } from './seedTestCategories';
 
 export const createTestDB = async (suffix: string) => {
 	const filename = `${serverEnv.DATABASE_FILE}-test-${suffix}`;
@@ -29,7 +29,7 @@ export const createTestDB = async (suffix: string) => {
 
 	const testDB = drizzle(sqliteDatabase, { schema, logger: new MyLogger() });
 
-	logging.info('Migrating Test DB!!');
+	// logging.info('Migrating Test DB!!');
 	migrate(testDB, { migrationsFolder: './src/lib/server/db/migrations' });
 
 	return { db: testDB, sqliteDatabase, filename };
@@ -81,7 +81,7 @@ export const initialiseTestDB = async ({
 		await seedTestBudgets(db);
 	}
 	if (categories) {
-		itemCount++;
+		await seedTestCategories(db);
 	}
 	if (labels) {
 		itemCount++;

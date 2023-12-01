@@ -289,15 +289,16 @@ describe('Account Filter To Text', async () => {
 			'Group Combined With Title contains accountTitleCombined'
 		);
 		expect(returnValue).toHaveProperty('6', 'Status equals active');
-		expect(returnValue).toHaveProperty('7', 'Can Be Updated');
-		expect(returnValue).toHaveProperty('8', 'Is Cash');
-		expect(returnValue).toHaveProperty('9', 'Is Net Worth');
-		expect(returnValue).toHaveProperty('10', 'Start Date Is After 2021-01-01');
-		expect(returnValue).toHaveProperty('11', 'Start Date Is Before 2021-01-02');
-		expect(returnValue).toHaveProperty('12', 'End Date Is After 2021-01-03');
-		expect(returnValue).toHaveProperty('13', 'End Date Is Before 2021-01-04');
-		expect(returnValue).toHaveProperty('14', 'Type is one of asset, liability');
-		expect(returnValue).toHaveProperty('15', 'Max Journal Count of 10');
+		expect(returnValue).toHaveProperty('7', 'Is Not Disabled');
+		expect(returnValue).toHaveProperty('8', 'Can Be Updated');
+		expect(returnValue).toHaveProperty('9', 'Is Cash');
+		expect(returnValue).toHaveProperty('10', 'Is Net Worth');
+		expect(returnValue).toHaveProperty('11', 'Start Date Is After 2021-01-01');
+		expect(returnValue).toHaveProperty('12', 'Start Date Is Before 2021-01-02');
+		expect(returnValue).toHaveProperty('13', 'End Date Is After 2021-01-03');
+		expect(returnValue).toHaveProperty('14', 'End Date Is Before 2021-01-04');
+		expect(returnValue).toHaveProperty('15', 'Type is one of asset, liability');
+		expect(returnValue).toHaveProperty('16', 'Max Journal Count of 10');
 	});
 
 	it('Filter For Account Id Works Correctly', async () => {

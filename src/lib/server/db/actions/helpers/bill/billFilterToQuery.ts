@@ -1,10 +1,12 @@
 import type { BillFilterSchemaType } from '$lib/schema/billSchema';
 import type { DBType } from '../../../db';
 import { bill } from '../../../schema';
-import { SQL, eq, inArray, like } from 'drizzle-orm';
-import { arrayToText } from '../misc/arrayToText';
-import { importIdsToTitles } from '../import/importIdsToTitles';
+import { SQL, eq } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
+import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
+import { statusFilterToQuery, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 
 export const billFilterToQuery = (
 	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
@@ -13,21 +15,9 @@ export const billFilterToQuery = (
 	const restFilter = filter;
 
 	const where: SQL<unknown>[] = [];
-	if (restFilter.id && restFilter.id !== '') where.push(eq(bill.id, restFilter.id));
-	if (restFilter.idArray && restFilter.idArray.length > 0)
-		where.push(inArray(bill.id, restFilter.idArray));
-	if (restFilter.title && restFilter.title !== '')
-		where.push(like(bill.title, `%${restFilter.title}%`));
-	if (restFilter.status) where.push(eq(bill.status, restFilter.status));
-	if (restFilter.disabled !== undefined) where.push(eq(bill.disabled, restFilter.disabled));
-	if (restFilter.allowUpdate !== undefined)
-		where.push(eq(bill.allowUpdate, restFilter.allowUpdate));
-	if (restFilter.active !== undefined) where.push(eq(bill.active, restFilter.active));
-	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
-		where.push(inArray(bill.importId, restFilter.importIdArray));
-
-	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
-		where.push(inArray(bill.importDetailId, restFilter.importDetailIdArray));
+	idTitleFilterToQuery(where, filter, 'bill');
+	statusFilterToQuery(where, filter, 'bill');
+	importFilterToQuery(where, filter, 'bill');
 
 	if (includeSummary) {
 		summaryFilterToQuery({ where, filter: restFilter });
@@ -50,12 +40,6 @@ export const billIdToTitle = async (db: DBType, id: string) => {
 	return id;
 };
 
-const billIdsToTitle = async (db: DBType, ids: string[]) => {
-	const titles = await Promise.all(ids.map(async (id) => billIdToTitle(db, id)));
-
-	return titles;
-};
-
 export const billFilterToText = async ({
 	db,
 	filter,
@@ -70,48 +54,9 @@ export const billFilterToText = async ({
 	const restFilter = filter;
 
 	const stringArray: string[] = [];
-	if (restFilter.id) stringArray.push(`Is ${await billIdToTitle(db, restFilter.id)}`);
-	if (restFilter.idArray && restFilter.idArray.length > 0) {
-		stringArray.push(
-			await arrayToText({
-				data: restFilter.idArray,
-				inputToText: (titles) => billIdsToTitle(db, titles)
-			})
-		);
-	}
-	if (restFilter.title) stringArray.push(`Title contains ${restFilter.title}`);
-	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
-	if (restFilter.disabled !== undefined)
-		stringArray.push(`Is ${restFilter.disabled ? '' : 'Not '}Disabled`);
-	if (restFilter.allowUpdate !== undefined)
-		stringArray.push(`Can${restFilter.allowUpdate ? '' : "'t"} Be Updated`);
-	if (restFilter.active) stringArray.push(`Is ${restFilter.active ? '' : 'Not '}Active`);
-	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
-		stringArray.push(
-			await arrayToText({
-				data: restFilter.importIdArray,
-				singularName: 'Import',
-				inputToText: importIdsToTitles
-			})
-		);
-
-	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
-		stringArray.push(
-			await arrayToText({
-				data: restFilter.importDetailIdArray,
-				singularName: 'Import Detail ID'
-			})
-		);
-
+	await idTitleFilterToText(db, stringArray, filter, billIdToTitle);
+	statusFilterToText(stringArray, filter);
+	importFilterToText(stringArray, filter);
 	summaryFilterToText({ stringArray, filter: restFilter });
-
-	if (stringArray.length === 0 && allText) {
-		stringArray.push('Showing All');
-	}
-
-	if (prefix) {
-		return stringArray.map((item) => `${prefix} ${item}`);
-	}
-
-	return stringArray;
+	return filterToQueryFinal({ stringArray, allText, prefix });
 };
