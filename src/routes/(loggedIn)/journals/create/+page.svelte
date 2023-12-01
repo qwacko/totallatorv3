@@ -46,8 +46,8 @@
 		<TextInputForm title="Description" {form} field="description" />
 		<DateInputForm title="Date" {form} field="date" />
 		<CurrencyInputForm title="Amount" {form} field="amount" />
-		<CreateTransactionLinksForm {form} dropdownInfo={data.dropdownInfo} />
-		<CreateTransactionLabelsForm {form} dropdownInfo={data.dropdownInfo} />
+		<CreateTransactionLinksForm {form} dropdownInfo={data.streamed.dropdownInfo} />
+		<CreateTransactionLabelsForm {form} dropdownInfo={data.streamed.dropdownInfo} />
 		<Button class="md:col-span-2 mt-4" type="submit">Create Transaction</Button>
 		<Button class="md:col-span-2 mt-4" on:click={() => form.reset()}>Reset</Button>
 		<ErrorText message={$message} />

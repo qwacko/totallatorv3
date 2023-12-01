@@ -5,7 +5,7 @@ import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
 
 import Papa from 'papaparse';
-import { filterNullUndefinedAndDuplicates } from '../filterNullUndefinedAndDuplicates.js';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates.js';
 
 export const GET = async (data) => {
 	authGuard(data);

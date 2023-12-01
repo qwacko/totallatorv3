@@ -8,8 +8,8 @@ import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, journalEntry, summaryTable } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
-import { statusUpdate } from './helpers/statusUpdate';
-import { updatedTime } from './helpers/updatedTime';
+import { statusUpdate } from './helpers/misc/statusUpdate';
+import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { combinedAccountTitleSplitRequired } from '$lib/helpers/combinedAccountTitleSplit';
@@ -18,13 +18,13 @@ import {
 	createExpense,
 	createIncome,
 	createLiability
-} from './helpers/seedAccountData';
-import { accountFilterToQuery } from './helpers/accountFilterToQuery';
-import { accountCreateInsertionData } from './helpers/accountCreateInsertionData';
-import { accountTitleSplit } from './helpers/accountTitleSplit';
+} from './helpers/seed/seedAccountData';
+import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
+import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
+import { accountTitleSplit } from './helpers/account/accountTitleSplit';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
-import { summaryOrderBy } from './helpers/summaryOrderBy';
-import { getCommonData } from './helpers/getCommonData';
+import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
+import { getCommonData } from './helpers/misc/getCommonData';
 import { testingDelay } from '$lib/server/testingDelay';
 
 export const accountActions = {
@@ -157,12 +157,17 @@ export const accountActions = {
 	},
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
+
 		await db.transaction(async (db) => {
 			await db.insert(account).values(accountCreateInsertionData(data, id));
 			await summaryActions.createMissing({ db });
 		});
 
 		return id;
+	},
+	createAndGet: async (db: DBType, data: CreateAccountSchemaType) => {
+		const id = await accountActions.create(db, data);
+		return db.query.account.findFirst({ where: eq(account.id, id) }).execute();
 	},
 	createOrGet: async ({
 		db,
@@ -203,7 +208,6 @@ export const accountActions = {
 				return currentAccount;
 			}
 
-			logging.info('Starting To Create Account : ', { title });
 			const newAccountId = await accountActions.create(db, {
 				...accountTitleInfo,
 				type: isExpense ? 'expense' : 'asset',
@@ -268,8 +272,7 @@ export const accountActions = {
 			.execute();
 
 		if (!currentAccount) {
-			logging.info('Update Account: Account not found');
-			return id;
+			throw new Error(`Account ${id} not found`);
 		}
 
 		const changingToExpenseOrIncome =

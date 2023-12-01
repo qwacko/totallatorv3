@@ -7,17 +7,17 @@ import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, journalEntry, summaryTable, tag } from '../schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
-import { statusUpdate } from './helpers/statusUpdate';
+import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
-import { updatedTime } from './helpers/updatedTime';
+import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
-import { tagCreateInsertionData } from './helpers/tagCreateInsertionData';
-import { tagFilterToQuery } from './helpers/tagFilterToQuery';
-import { createTag } from './helpers/seedTagData';
-import { createUniqueItemsOnly } from './helpers/createUniqueItemsOnly';
+import { tagCreateInsertionData } from './helpers/tag/tagCreateInsertionData';
+import { tagFilterToQuery } from './helpers/tag/tagFilterToQuery';
+import { createTag } from './helpers/seed/seedTagData';
+import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
-import { summaryOrderBy } from './helpers/summaryOrderBy';
+import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { testingDelay } from '$lib/server/testingDelay';
 
 export const tagActions = {

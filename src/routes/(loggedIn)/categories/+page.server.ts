@@ -1,7 +1,7 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
 import { defaultJournalFilter } from '$lib/schema/journalSchema';
-import { categoryFilterToText } from '$lib/server/db/actions/helpers/categoryFilterToQuery.js';
+import { categoryFilterToText } from '$lib/server/db/actions/helpers/category/categoryFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
@@ -31,7 +31,10 @@ export const load = async (data) => {
 	return {
 		categories,
 		searchParams: pageInfo.searchParams,
-		filterText: categoryFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		filterText: categoryFilterToText({
+			db,
+			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+		}),
 		categorySummary,
 		categoryDropdowns: tActions.category.listForDropdown({ db })
 	};

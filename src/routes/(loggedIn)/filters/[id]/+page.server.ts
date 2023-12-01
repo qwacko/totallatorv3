@@ -7,8 +7,8 @@ import {
 	updateReusableFilterSchema
 } from '$lib/schema/reusableFilterSchema';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
-import { journalFilterToText } from '$lib/server/db/actions/helpers/journalFilterToQuery';
-import { journalUpdateToText } from '$lib/server/db/actions/helpers/journalUpdateToText';
+import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery';
+import { journalUpdateToText } from '$lib/server/db/actions/helpers/journal/journalUpdateToText';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
@@ -38,9 +38,9 @@ export const load = async (data) => {
 	}
 
 	const change = current.searchParams?.change || reusableFilter.change;
-	const changeText = await journalUpdateToText(change);
+	const changeText = await journalUpdateToText({ db, change });
 	const filter = current.searchParams?.filter || reusableFilter.filter;
-	const filterText = await journalFilterToText(filter);
+	const filterText = await journalFilterToText({ db, filter });
 
 	const form = await superValidate(
 		{

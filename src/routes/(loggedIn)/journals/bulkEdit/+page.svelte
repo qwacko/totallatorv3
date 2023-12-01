@@ -61,10 +61,10 @@
 			<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 
 			<UpdateJournalForm {form} />
-			<UpdateJournalLinksForm {form} dropdownInfo={data.dropdownInfo} />
+			<UpdateJournalLinksForm {form} dropdownInfo={data.streamed.dropdownInfo} />
 			<UpdateJournalLabelsForm
 				{form}
-				dropdownInfo={data.dropdownInfo}
+				dropdownInfo={data.streamed.dropdownInfo}
 				allLabelIds={data.allLabelIds}
 				commonLabelIds={data.commonLabelIds}
 			/>

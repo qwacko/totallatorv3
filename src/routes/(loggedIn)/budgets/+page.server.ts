@@ -1,7 +1,7 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
 import { defaultJournalFilter } from '$lib/schema/journalSchema';
-import { budgetFilterToText } from '$lib/server/db/actions/helpers/budgetFilterToQuery.js';
+import { budgetFilterToText } from '$lib/server/db/actions/helpers/budget/budgetFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
@@ -32,7 +32,10 @@ export const load = async (data) => {
 	return {
 		budgets,
 		searchParams: pageInfo.searchParams,
-		filterText: budgetFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		filterText: budgetFilterToText({
+			db,
+			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+		}),
 		budgetSummary,
 		budgetDropdowns: tActions.budget.listForDropdown({ db })
 	};
