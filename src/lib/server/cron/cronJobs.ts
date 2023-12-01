@@ -63,5 +63,26 @@ export const cronJobs: CronJob[] = [
 				'CRON: Running Automatic Filters - Took ' + (new Date().getTime() - startTime) + 'ms'
 			);
 		}
+	},
+	{
+		name: 'Update Reusable Filters (Every 2 Minutes)',
+		schedule: '*/2 * * * *',
+		job: async () => {
+			const startTime = new Date().getTime();
+			const numberModified = await tActions.reusableFitler.refresh({
+				db,
+				maximumTime: 10000
+			});
+
+			if (numberModified > 0) {
+				logging.info(
+					'CRON: Updating Reusable Filters - Took ' +
+						(new Date().getTime() - startTime) +
+						'ms - Updated ' +
+						numberModified +
+						' filters'
+				);
+			}
+		}
 	}
 ];

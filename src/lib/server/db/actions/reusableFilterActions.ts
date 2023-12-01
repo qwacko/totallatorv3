@@ -74,20 +74,38 @@ export const reusableFilterActions = {
 
 		return updatedFilter;
 	},
-	updateAndList: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
+	refresh: async ({ db, maximumTime }: { db: DBType; maximumTime: number }) => {
+		const startTime = Date.now();
+
+		let numberModified = 0;
+
+		while (Date.now() - startTime < maximumTime * 1000) {
+			const filter = await db
+				.select()
+				.from(reusableFilter)
+				.where(eq(reusableFilter.needsUpdate, true))
+				.execute();
+			if (!filter || filter.length === 0) {
+				break;
+			}
+			const currentFilter = filter[0];
+
+			await reusableFilterActions.refreshFilterSummary({ db, currentFilter });
+			numberModified++;
+		}
+		return numberModified;
+	},
+	updateAndList: async ({
+		db,
+		filter,
+		maximumTime
+	}: {
+		db: DBType;
+		filter: ReusableFilterFilterSchemaType;
+		maximumTime: number;
+	}) => {
 		await testingDelay();
-		const filters = await db
-			.select()
-			.from(reusableFilter)
-			.where(eq(reusableFilter.needsUpdate, true))
-			.execute();
-
-		await Promise.all(
-			filters.map(async (currentFilter) => {
-				await reusableFilterActions.refreshFilterSummary({ db, currentFilter });
-			})
-		);
-
+		await reusableFilterActions.refresh({ db, maximumTime });
 		return reusableFilterActions.list({ db, filter });
 	},
 	list: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
