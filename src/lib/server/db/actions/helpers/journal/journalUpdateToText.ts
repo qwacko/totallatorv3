@@ -47,7 +47,8 @@ export const journalUpdateToText = async ({
 
 	//Category
 	if (change.categoryClear) messages.push(`Category Clear: ${change.categoryClear}`);
-	if (change.categoryId) messages.push(`Category: ${await categoryIdToTitle(change.categoryId)}`);
+	if (change.categoryId)
+		messages.push(`Category: ${await categoryIdToTitle(db, change.categoryId)}`);
 	if (change.categoryTitle) messages.push(`Category Title: ${change.categoryTitle}`);
 
 	//Bills

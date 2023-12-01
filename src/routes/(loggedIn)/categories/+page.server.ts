@@ -31,7 +31,10 @@ export const load = async (data) => {
 	return {
 		categories,
 		searchParams: pageInfo.searchParams,
-		filterText: categoryFilterToText(pageInfo.searchParams || { page: 0, pageSize: 10 }),
+		filterText: categoryFilterToText({
+			db,
+			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+		}),
 		categorySummary,
 		categoryDropdowns: tActions.category.listForDropdown({ db })
 	};

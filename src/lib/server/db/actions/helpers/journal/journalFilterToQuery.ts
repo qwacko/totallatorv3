@@ -292,12 +292,19 @@ export const journalFilterToText = async ({
 
 	if (filter.category) {
 		linkedArray.push(
-			...(await categoryFilterToText(filter.category, { prefix: 'Category', allText: false }))
+			...(await categoryFilterToText({
+				db,
+				filter: filter.category,
+				prefix: 'Category',
+				allText: false
+			}))
 		);
 	}
 	if (filter.excludeCategory) {
 		linkedArray.push(
-			...(await categoryFilterToText(filter.excludeCategory, {
+			...(await categoryFilterToText({
+				db,
+				filter: filter.excludeCategory,
 				prefix: 'Exclude Category',
 				allText: false
 			}))
