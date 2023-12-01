@@ -17,6 +17,7 @@ import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSch
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { tActions } from './tActions';
 import { testingDelay } from '$lib/server/testingDelay';
+import { logging } from '$lib/server/logging';
 
 export const reusableFilterActions = {
 	refreshFilterSummary: async ({
@@ -93,6 +94,11 @@ export const reusableFilterActions = {
 			await reusableFilterActions.refreshFilterSummary({ db, currentFilter });
 			numberModified++;
 		}
+
+		if (numberModified > 0) {
+			logging.info(`Updated ${numberModified} reusable filters, took ${Date.now() - startTime}ms`);
+		}
+
 		return numberModified;
 	},
 	updateAndList: async ({
