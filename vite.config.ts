@@ -55,7 +55,7 @@ export default defineConfig(({ mode }) => {
 		],
 		test: {
 			include: ['src/**/*.{test,spec}.{js,ts}'],
-			maxConcurrency: 1
+			maxConcurrency: 5
 		}
 	};
 });

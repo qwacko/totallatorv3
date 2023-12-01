@@ -25,9 +25,13 @@ export const db = drizzle(sqliteDatabase, { schema, logger: new MyLogger() });
 
 export type DBType = typeof db;
 
-logging.info('Migrating DB!!');
+//Only Migrate If not TEST_ENV
+if (!serverEnv.TEST_ENV) {
+	logging.info('Migrating DB!!');
+	migrate(db, { migrationsFolder: './src/lib/server/db/migrations' });
+}
 
-migrate(db, { migrationsFolder: './src/lib/server/db/migrations' });
+// migrate(db, { migrationsFolder: './src/lib/server/db/migrations' });
 
 export const backupDB = async (title = 'backup') => {
 	const date = new Date();

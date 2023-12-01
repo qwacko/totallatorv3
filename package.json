@@ -12,7 +12,7 @@
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
 		"test:integration": "playwright test",
-		"test:unit": "vitest",
+		"test:unit": "TEST_ENV=true vitest",
 		"db:generate": "pnpm drizzle-kit generate:sqlite",
 		"db:studio": "pnpm drizzle-kit studio",
 		"db:undo": "pnpm drizzle-kit drop",

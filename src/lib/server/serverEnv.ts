@@ -36,7 +36,8 @@ const serverEnvValidation = z.object({
 	DATABASE_FILE: z.string().optional().default('./database.sqlite3'),
 	DB_QUERY_LOG: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TESTING_DELAY: z.coerce.number().optional().default(0),
-	DISABLE_BUFFERING: parseEnvStringToBoolean({ defaultBoolean: true, optional: true })
+	DISABLE_BUFFERING: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
+	TEST_ENV: parseEnvStringToBoolean({ defaultBoolean: false, optional: true })
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -53,5 +54,6 @@ export const serverEnv = serverEnvValidation.parse({
 	DATABASE_FILE: env.DATABASE_FILE,
 	DB_QUERY_LOG: env.DB_QUERY_LOG,
 	TESTING_DELAY: env.TESTING_DELAY,
-	DISABLE_BUFFERING: env.DISABLE_BUFFERING
+	DISABLE_BUFFERING: env.DISABLE_BUFFERING,
+	TEST_ENV: env.TEST_ENV
 });
