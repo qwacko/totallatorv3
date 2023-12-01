@@ -39,8 +39,10 @@ export const load = async (data) => {
 
 	return {
 		journals: journalData,
-		summary,
-		dropdownInfo,
+		streamed: {
+			summary,
+			dropdownInfo
+		},
 		filterText: journalFilterToText({ db, filter, prefix: 'Journal' }),
 		filterDropdown: tActions.reusableFitler.listForDropdown({ db })
 	};

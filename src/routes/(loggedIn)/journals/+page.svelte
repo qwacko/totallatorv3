@@ -33,6 +33,7 @@
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import BulkJournalActions from './BulkJournalActions.svelte';
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
 	export let data;
 
@@ -76,11 +77,15 @@
 			Create Transaction
 		</Button>
 	</svelte:fragment>
-	<JournalSummaryPopoverContent
-		item={data.summary}
-		format={data.user?.currencyFormat || 'USD'}
-		summaryFilter={$urlStore.searchParams || defaultJournalFilter()}
-	/>
+	{#await data.streamed.summary}
+		<LoadingSpinner loadingText="Loading Summary..." />
+	{:then summary}
+		<JournalSummaryPopoverContent
+			item={summary}
+			format={data.user?.currencyFormat || 'USD'}
+			summaryFilter={$urlStore.searchParams || defaultJournalFilter()}
+		/>
+	{/await}
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams.description}
@@ -212,12 +217,12 @@
 				{#if $urlStore.searchParams}
 					<FilterModalContent
 						currentFilter={$urlStore.searchParams}
-						accountDropdown={data.dropdownInfo.account}
-						billDropdown={data.dropdownInfo.bill}
-						budgetDropdown={data.dropdownInfo.budget}
-						categoryDropdown={data.dropdownInfo.category}
-						tagDropdown={data.dropdownInfo.tag}
-						labelDropdown={data.dropdownInfo.label}
+						accountDropdown={data.streamed.dropdownInfo.account}
+						billDropdown={data.streamed.dropdownInfo.bill}
+						budgetDropdown={data.streamed.dropdownInfo.budget}
+						categoryDropdown={data.streamed.dropdownInfo.category}
+						tagDropdown={data.streamed.dropdownInfo.tag}
+						labelDropdown={data.streamed.dropdownInfo.label}
 						urlFromFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
 					/>
 				{/if}
