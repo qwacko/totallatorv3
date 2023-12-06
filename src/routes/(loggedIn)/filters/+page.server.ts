@@ -33,7 +33,8 @@ export const load = async (data) => {
 		streamed: {
 			filters: tActions.reusableFitler.updateAndList({
 				db,
-				filter: filterInfo
+				filter: filterInfo,
+				maximumTime: 2000
 			})
 		}
 	};

@@ -33,6 +33,7 @@ import {
 
 import { getImportDetail } from './helpers/import/getImportDetail';
 import { processCreatedImport } from './helpers/import/processImport';
+import { streamingDelay } from '$lib/server/testingDelay';
 
 export const importActions = {
 	list: async ({ db }: { db: DBType }) => {
@@ -229,6 +230,7 @@ export const importActions = {
 		return { importInfo: data[0] };
 	},
 	getDetail: async ({ db, id }: { db: DBType; id: string }) => {
+		await streamingDelay();
 		const data = await db.select().from(importTable).where(eq(importTable.id, id));
 
 		if (!data.length) {

@@ -16,7 +16,8 @@ import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '$lib/schema/journalSchema';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { tActions } from './tActions';
-import { testingDelay } from '$lib/server/testingDelay';
+import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
+import { logging } from '$lib/server/logging';
 
 export const reusableFilterActions = {
 	refreshFilterSummary: async ({
@@ -74,20 +75,50 @@ export const reusableFilterActions = {
 
 		return updatedFilter;
 	},
-	updateAndList: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
+	refresh: async ({ db, maximumTime }: { db: DBType; maximumTime: number }) => {
+		const startTime = Date.now();
+
+		let numberModified = 0;
+
+		while (Date.now() - startTime < maximumTime) {
+			const filter = await db
+				.select()
+				.from(reusableFilter)
+				.where(eq(reusableFilter.needsUpdate, true))
+				.limit(1)
+				.execute();
+			if (!filter || filter.length === 0) {
+				break;
+			}
+			const currentFilter = filter[0];
+
+			await reusableFilterActions.refreshFilterSummary({ db, currentFilter });
+			numberModified++;
+		}
+
+		if (numberModified > 0) {
+			logging.info(
+				`Updated ${numberModified} reusable filters, took ${
+					Date.now() - startTime
+				}ms (limit = ${maximumTime}s))`
+			);
+		}
+
+		return numberModified;
+	},
+	updateAndList: async ({
+		db,
+		filter,
+		maximumTime
+	}: {
+		db: DBType;
+		filter: ReusableFilterFilterSchemaType;
+		maximumTime: number;
+	}) => {
+		await streamingDelay();
+
 		await testingDelay();
-		const filters = await db
-			.select()
-			.from(reusableFilter)
-			.where(eq(reusableFilter.needsUpdate, true))
-			.execute();
-
-		await Promise.all(
-			filters.map(async (currentFilter) => {
-				await reusableFilterActions.refreshFilterSummary({ db, currentFilter });
-			})
-		);
-
+		await reusableFilterActions.refresh({ db, maximumTime });
 		return reusableFilterActions.list({ db, filter });
 	},
 	list: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
