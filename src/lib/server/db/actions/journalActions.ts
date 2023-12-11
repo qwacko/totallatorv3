@@ -423,28 +423,34 @@ export const journalActions = {
 		transactionIds: string[];
 	}) => {
 		if (transactionIds.length === 0) return;
-		const originalIds = await summaryActions.getUniqueTransactionInfo({ db, ids: transactionIds });
 		await db.transaction(async (db) => {
-			const journalsForDeletion = await db
-				.select()
-				.from(journalEntry)
-				.where(inArray(journalEntry.transactionId, transactionIds))
-				.execute();
-			await db
-				.delete(journalEntry)
-				.where(inArray(journalEntry.transactionId, transactionIds))
-				.execute();
-			await db.delete(transaction).where(inArray(transaction.id, transactionIds)).execute();
-			await db.delete(labelsToJournals).where(
-				inArray(
-					labelsToJournals.journalId,
-					journalsForDeletion.map((item) => item.id)
-				)
-			);
-			await summaryActions.markAsNeedingProcessing({
-				db,
-				ids: originalIds
-			});
+			const splitTransactionList = splitArrayIntoChunks(transactionIds, 500);
+
+			await Promise.all(splitTransactionList.map(async (currentTransactionIds) => {
+				const originalIds = await summaryActions.getUniqueTransactionInfo({ db, ids: currentTransactionIds });
+
+				const journalsForDeletion = await db
+					.select()
+					.from(journalEntry)
+					.where(inArray(journalEntry.transactionId, currentTransactionIds))
+					.execute();
+				await db
+					.delete(journalEntry)
+					.where(inArray(journalEntry.transactionId, currentTransactionIds))
+					.execute();
+				await db.delete(transaction).where(inArray(transaction.id, currentTransactionIds)).execute();
+				await db.delete(labelsToJournals).where(
+					inArray(
+						labelsToJournals.journalId,
+						journalsForDeletion.map((item) => item.id)
+					)
+				);
+				await summaryActions.markAsNeedingProcessing({
+					db,
+					ids: originalIds
+				});
+			}))
+
 		});
 	},
 	seed: async (db: DBType, count: number) => {
@@ -676,24 +682,24 @@ export const journalActions = {
 				journalData.setComplete === true
 					? true
 					: journalData.clearComplete === true
-					  ? false
-					  : undefined;
+						? false
+						: undefined;
 			const reconciled =
 				complete === true
 					? true
 					: journalData.setReconciled === true
-					  ? true
-					  : journalData.clearReconciled === true
-					    ? false
-					    : undefined;
+						? true
+						: journalData.clearReconciled === true
+							? false
+							: undefined;
 			const dataChecked =
 				complete === true
 					? true
 					: journalData.setDataChecked === true
-					  ? true
-					  : journalData.clearDataChecked === true
-					    ? false
-					    : undefined;
+						? true
+						: journalData.clearDataChecked === true
+							? false
+							: undefined;
 
 			if (linkedJournals.length > 0) {
 				await db
