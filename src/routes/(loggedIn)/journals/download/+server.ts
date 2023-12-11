@@ -47,7 +47,7 @@ export const GET = async (data) => {
 				billTitle: item.billTitle || undefined,
 				budgetTitle: item.budgetTitle || undefined,
 				categoryTitle: item.categoryTitle || undefined,
-				tagTitle: item.categoryTitle || undefined,
+				tagTitle: item.tagTitle || undefined,
 				complete: item.complete,
 				dataChecked: item.dataChecked,
 				reconciled: item.reconciled
