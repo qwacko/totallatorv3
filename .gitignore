@@ -16,4 +16,3 @@ db.db*
 /dockerTest
 *.sqlite3*
 docker-compose.yml
-core
