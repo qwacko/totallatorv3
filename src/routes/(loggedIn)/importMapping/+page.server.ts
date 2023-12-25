@@ -18,7 +18,7 @@ export const load = async (data) => {
 	const redirectRequired = importMappings.page >= importMappings.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, importMappings.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
 	return {

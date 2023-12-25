@@ -15,7 +15,7 @@ export const actions = {
 		}
 
 		if (deleted) {
-			throw redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
+			redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
 		}
 	}
 };

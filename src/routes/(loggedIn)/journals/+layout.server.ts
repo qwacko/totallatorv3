@@ -27,7 +27,7 @@ export const load = async (data) => {
 
 	if (journalData.page >= journalData.pageCount) {
 		const targetPage = Math.max(0, journalData.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
 	const summary = tActions.journal.summary({

@@ -10,10 +10,10 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) throw redirect(302, '/tags');
+	if (!pageInfo.current.params?.id) redirect(302, '/tags');
 
 	const tag = await tActions.tag.getById(db, pageInfo.current.params?.id);
-	if (!tag) throw redirect(302, '/tags');
+	if (!tag) redirect(302, '/tags');
 
 	return {
 		tag
@@ -28,6 +28,6 @@ export const actions = {
 			logging.error('Delete Tag Error', e);
 			return {};
 		}
-		throw redirect(302, '/tags');
+		redirect(302, '/tags');
 	}
 };

@@ -19,10 +19,10 @@ export const load = async (data) => {
 	bufferingHelper(data);
 
 	if (!current.params) {
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
+        		);
 	}
 
 	const importMapping = await tActions.importMapping.getById({
@@ -31,10 +31,10 @@ export const load = async (data) => {
 	});
 
 	if (!importMapping) {
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
+        		);
 	}
 
 	const form = await superValidate(
@@ -87,9 +87,9 @@ export const actions = {
 			return setError(form, 'Import Mapping Update Error');
 		}
 
-		throw redirect(
-			302,
-			prevPage || urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
-		);
+		redirect(
+        			302,
+        			prevPage || urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
+        		);
 	}
 };

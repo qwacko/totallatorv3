@@ -10,13 +10,13 @@ export const load = async (data) => {
 	const { current: pageInfo } = serverPageInfo(data.route.id, data);
 
 	if (!pageInfo.params?.id) {
-		throw redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
+		redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
 	}
 
 	const info = await tActions.import.get({ id: pageInfo.params.id, db });
 
 	if (!info.importInfo) {
-		throw redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
+		redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
 	}
 
 	return {

@@ -26,7 +26,7 @@ export const load = async (data) => {
 	const redirectRequired = accounts.page >= accounts.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, accounts.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
 	const filteredItems = {

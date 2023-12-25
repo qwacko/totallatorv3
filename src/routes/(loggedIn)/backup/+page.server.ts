@@ -15,17 +15,17 @@ export const load = async (data) => {
 	const numPages = Math.ceil(numberOfBackups / perPage);
 
 	if (numPages === 0 && page !== 0) {
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } }).url
+        		);
 	}
 
 	if (page >= numPages && numPages > 0) {
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: numPages - 1 } }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: numPages - 1 } }).url
+        		);
 	}
 
 	const backupFiles = current.searchParams

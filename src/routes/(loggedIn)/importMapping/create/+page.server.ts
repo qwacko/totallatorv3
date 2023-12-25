@@ -64,11 +64,11 @@ export const actions = {
 		}
 
 		if (form.data.prevPage) {
-			throw redirect(302, form.data.prevPage);
+			redirect(302, form.data.prevPage);
 		}
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
+        		);
 	}
 };

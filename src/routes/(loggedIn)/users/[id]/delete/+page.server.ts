@@ -19,9 +19,9 @@ export const actions = {
 
 		await auth.deleteUser(params.id);
 
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } }).url
+        		);
 	}
 };

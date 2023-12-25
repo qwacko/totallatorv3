@@ -9,19 +9,19 @@ export const load = async (data) => {
 	const { current } = serverPageInfo(data.route.id, data);
 
 	if (!current.params) {
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
+        		);
 	}
 
 	const filterInfo = await tActions.reusableFitler.getById({ db, id: current.params.id });
 
 	if (!filterInfo) {
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
+        		);
 	}
 
 	return {
@@ -37,11 +37,11 @@ export const actions = {
 
 		await tActions.reusableFitler.delete({ db, id });
 
-		throw redirect(
-			302,
-			prevPage
-				? prevPage.toString()
-				: urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
-		);
+		redirect(
+        			302,
+        			prevPage
+        				? prevPage.toString()
+        				: urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
+        		);
 	}
 };

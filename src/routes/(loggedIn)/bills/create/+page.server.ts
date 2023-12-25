@@ -29,6 +29,6 @@ export const actions = {
 			logging.info('Create Bill Error', e);
 			return message(form, 'Error Creating Bill, Possibly Already Exists');
 		}
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

@@ -10,7 +10,7 @@ export const load = async (data) => {
 	authGuard(data);
 	const form = await superValidate(signupSchema);
 	if (!serverEnv.ALLOW_SIGNUP) {
-		throw redirect(302, '/login');
+		redirect(302, '/login');
 	}
 
 	return { form };

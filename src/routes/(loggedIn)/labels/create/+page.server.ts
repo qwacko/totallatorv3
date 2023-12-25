@@ -32,6 +32,6 @@ export const actions = {
 			logging.info('Create Label Error', e);
 			return message(form, 'Error Creating Label, Possibly Already Exists');
 		}
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

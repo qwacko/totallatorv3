@@ -12,10 +12,10 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) throw redirect(302, '/labels');
+	if (!pageInfo.current.params?.id) redirect(302, '/labels');
 
 	const label = await tActions.label.getById(db, pageInfo.current.params?.id);
-	if (!label) throw redirect(302, '/labels');
+	if (!label) redirect(302, '/labels');
 	const form = await superValidate(
 		{ id: label.id, title: label.title, status: label.status },
 		updateLabelSchema
@@ -44,6 +44,6 @@ export const actions = {
 			logging.info('Update Label Error', e);
 			return message(form, 'Error Updating Label');
 		}
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

@@ -47,10 +47,10 @@ export const actions = {
 			return fail(400, { message: 'Unknown Error Loading File' });
 		}
 		if (newId) {
-			throw redirect(
-				302,
-				urlGenerator({ address: '/(loggedIn)/import/[id]', paramsValue: { id: newId } }).url
-			);
+			redirect(
+            				302,
+            				urlGenerator({ address: '/(loggedIn)/import/[id]', paramsValue: { id: newId } }).url
+            			);
 		}
 		return fail(400, { message: 'Unknown Error. Not Processed' });
 	}

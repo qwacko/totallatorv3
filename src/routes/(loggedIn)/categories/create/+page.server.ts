@@ -32,6 +32,6 @@ export const actions = {
 			logging.info('Create Category Error', e);
 			return message(form, 'Error Creating Category, Possibly Already Exists');
 		}
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

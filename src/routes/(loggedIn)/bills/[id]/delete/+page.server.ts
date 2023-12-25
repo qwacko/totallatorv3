@@ -10,10 +10,10 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) throw redirect(302, '/bills');
+	if (!pageInfo.current.params?.id) redirect(302, '/bills');
 
 	const bill = await tActions.bill.getById(db, pageInfo.current.params?.id);
-	if (!bill) throw redirect(302, '/bills');
+	if (!bill) redirect(302, '/bills');
 
 	return {
 		bill
@@ -28,6 +28,6 @@ export const actions = {
 			logging.error('Delete Bill Error', e);
 			return {};
 		}
-		throw redirect(302, '/bills');
+		redirect(302, '/bills');
 	}
 };

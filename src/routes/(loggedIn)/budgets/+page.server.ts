@@ -21,7 +21,7 @@ export const load = async (data) => {
 	const redirectRequired = budgets.page >= budgets.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, budgets.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
 	const budgetSummary = tActions.journal.summary({

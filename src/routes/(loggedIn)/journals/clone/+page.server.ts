@@ -48,14 +48,14 @@ export const actions = {
 
 		if (!form.valid) {
 			logging.error('Clone Form Is Not Valid');
-			throw redirect(302, form.data.currentPage);
+			redirect(302, form.data.currentPage);
 		}
 
 		const parsedFilter = journalFilterSchema.safeParse(JSON.parse(form.data.filter));
 
 		if (!parsedFilter.success) {
 			logging.error('Clone Filter Is Not Valid');
-			throw redirect(302, form.data.currentPage);
+			redirect(302, form.data.currentPage);
 		}
 
 		try {
@@ -70,6 +70,6 @@ export const actions = {
 			return message(form, 'Error Cloning Journals');
 		}
 
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

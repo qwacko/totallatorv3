@@ -22,7 +22,7 @@ export const load = async (data) => {
 	const redirectRequired = labels.page >= labels.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, labels.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
 	const labelSummary = tActions.journal.summary({
