@@ -39,11 +39,11 @@ dependencies:
     specifier: ^2.1.1
     version: 2.1.1
   skguard:
-    specifier: ^0.0.14
-    version: 0.0.14(svelte@4.2.8)
+    specifier: ^0.0.15
+    version: 0.0.15(svelte@4.2.8)
   skroutes:
-    specifier: ^0.0.14
-    version: 0.0.14(svelte@4.2.8)
+    specifier: ^0.0.15
+    version: 0.0.15(svelte@4.2.8)
   zod:
     specifier: ^3.22.4
     version: 3.22.4
@@ -5969,20 +5969,19 @@ packages:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
     dev: true
 
-  /skguard@0.0.14(svelte@4.2.8):
-    resolution: {integrity: sha512-//mN9n8tvIp3WWgns/iGrkjIqXIJJkgAKAuVpnST4Bi7A0Utm3jPJE2zSROuUJM4fkfBM5E3b01hIXbZvLVywg==}
+  /skguard@0.0.15(svelte@4.2.8):
+    resolution: {integrity: sha512-3QzRtD6VLjUY2Xu22hvrFx70skdfTXfGTbg7ESpRNoX8GYVS3B8ZTXvWFRLx3dhU19XO4lksZx/a4qOIEMVZ4Q==}
     peerDependencies:
       svelte: ^4.0.0
     dependencies:
       svelte: 4.2.8
     dev: false
 
-  /skroutes@0.0.14(svelte@4.2.8):
-    resolution: {integrity: sha512-uraHbjHf9GNjyqGkpH3vx0IMoK/xkwNvrPjzP1AwH1IVZTxo4DI1/g3O1LGsVBQFkV7Y6yWGjOKcy4hDvJ/J8w==}
+  /skroutes@0.0.15(svelte@4.2.8):
+    resolution: {integrity: sha512-DUZH9fJ3hUVEm+cKD7xEPuFR4ucX5yMAkfN+VXxXiotFVShSQil/M1JuL4+9mZhfaVM7LnLDmZ4q2KthIfeGMw==}
     peerDependencies:
       svelte: ^4.0.0
     dependencies:
-      lodash-es: 4.17.21
       svelte: 4.2.8
     dev: false
 

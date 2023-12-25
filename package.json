@@ -70,8 +70,8 @@
 		"lucia": "^2.7.6",
 		"nanoid": "^5.0.4",
 		"node-schedule": "^2.1.1",
-		"skguard": "^0.0.14",
-		"skroutes": "^0.0.14",
+		"skguard": "^0.0.15",
+		"skroutes": "^0.0.15",
 		"zod": "^3.22.4"
 	}
 }
