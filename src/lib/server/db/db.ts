@@ -1,11 +1,19 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
 import sqlite from 'better-sqlite3';
 import * as schema from './schema';
+import * as postgresSchema from './postgres/schema';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
+import { migrate as migratePostgres } from 'drizzle-orm/postgres-js/migrator';
 import { logging } from '../logging';
 import { serverEnv } from '../serverEnv';
 import fs from 'fs/promises';
 import type { Logger } from 'drizzle-orm';
+import postgres from 'postgres'
+
+const migrationClient = postgres(serverEnv.POSTGRES_URL, { max: 1 });
+const migrationDB = drizzlePostgres(migrationClient)
+const queryClient = postgres(serverEnv.POSTGRES_URL);
 
 export const sqliteDatabase = sqlite(serverEnv.DATABASE_FILE);
 
@@ -22,6 +30,7 @@ class MyLogger implements Logger {
 }
 
 export const db = drizzle(sqliteDatabase, { schema, logger: new MyLogger() });
+const postgresDB = drizzlePostgres(queryClient, { schema: postgresSchema, logger: new MyLogger() });
 
 export type DBType = typeof db;
 
@@ -29,6 +38,9 @@ export type DBType = typeof db;
 if (!serverEnv.TEST_ENV) {
 	logging.info('Migrating DB!!');
 	migrate(db, { migrationsFolder: './src/lib/server/db/migrations' });
+	migratePostgres(migrationDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
+	const query = await postgresDB.select().from(postgresSchema.user).limit(1);
+	logging.info('Postgres DB Connected', query);
 }
 
 // migrate(db, { migrationsFolder: './src/lib/server/db/migrations' });

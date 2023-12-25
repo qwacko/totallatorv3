@@ -16,6 +16,9 @@
 		"db:generate": "pnpm drizzle-kit generate:sqlite",
 		"db:studio": "pnpm drizzle-kit studio",
 		"db:undo": "pnpm drizzle-kit drop",
+		"postgres:generate": "pnpm drizzle-kit generate:pg --config=\"drizzlePostgres.config.ts\"",
+		"postgres:studio": "pnpm drizzle-kit studio --config=\"drizzlePostgres.config.ts\"",
+		"postgres:undo": "pnpm drizzle-kit drop --config=\"drizzlePostgres.config.ts\"",
 		"generate-pwa-assets": "pwa-assets-generator"
 	},
 	"devDependencies": {
@@ -70,6 +73,7 @@
 		"lucia": "^2.7.6",
 		"nanoid": "^5.0.4",
 		"node-schedule": "^2.1.1",
+		"postgres": "^3.4.3",
 		"skguard": "^0.0.15",
 		"skroutes": "^0.0.15",
 		"zod": "^3.22.4"
