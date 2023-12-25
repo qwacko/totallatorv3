@@ -26,7 +26,7 @@ export const load = async (data) => {
 	if (!commonData) redirect(302, '/accounts');
 
 	const form = await superValidate(commonData, updateAccountSchema);
-	const filterText = accountFilterToText({ filter, db });
+	const filterText = await accountFilterToText({ filter, db });
 
 	const titles = accounts.data.map((item) => item.title);
 
@@ -62,13 +62,13 @@ export const actions = {
 		} catch (e) {
 			logging.error('Error Updating Journal State : ', e);
 			redirect(
-            				302,
-            				form.data.prevPage ||
-            					urlGenerator({
-            						address: '/(loggedIn)/accounts',
-            						searchParamsValue: {}
-            					}).url
-            			);
+				302,
+				form.data.prevPage ||
+				urlGenerator({
+					address: '/(loggedIn)/accounts',
+					searchParamsValue: {}
+				}).url
+			);
 		}
 
 		redirect(302, form.data.prevPage);

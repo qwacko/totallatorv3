@@ -23,20 +23,24 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const categorySummary = tActions.journal.summary({
+	const categorySummary = await tActions.journal.summary({
 		db,
 		filter: { ...defaultJournalFilter(), category: pageInfo.searchParams }
 	});
 
+	const filterText = await categoryFilterToText({
+		db,
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+	})
+
+	const categoryDropdowns = await tActions.category.listForDropdown({ db })
+
 	return {
 		categories,
 		searchParams: pageInfo.searchParams,
-		filterText: categoryFilterToText({
-			db,
-			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
-		}),
+		filterText,
 		categorySummary,
-		categoryDropdowns: tActions.category.listForDropdown({ db })
+		categoryDropdowns
 	};
 };
 

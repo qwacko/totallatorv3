@@ -30,12 +30,15 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const summary = tActions.journal.summary({
+	const summary = await tActions.journal.summary({
 		db,
 		filter: { ...filter, page: 0, pageSize: 1000000 }
 	});
 
 	const dropdownInfo = dropdownItems({ db });
+
+	const filterText = await journalFilterToText({ db, filter, prefix: 'Journal' });
+	const filterDropdown = await tActions.reusableFitler.listForDropdown({ db });
 
 	return {
 		journals: journalData,
@@ -43,7 +46,7 @@ export const load = async (data) => {
 			summary,
 			dropdownInfo
 		},
-		filterText: journalFilterToText({ db, filter, prefix: 'Journal' }),
-		filterDropdown: tActions.reusableFitler.listForDropdown({ db })
+		filterText,
+		filterDropdown
 	};
 };

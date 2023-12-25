@@ -23,20 +23,24 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const billSummary = tActions.journal.summary({
+	const billSummary = await tActions.journal.summary({
 		db,
 		filter: { ...defaultJournalFilter(), bill: pageInfo.searchParams }
 	});
 
+	const filterText = await billFilterToText({
+		db,
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+	})
+
+	const billDropdowns = await tActions.bill.listForDropdown({ db })
+
 	return {
 		bills,
 		searchParams: pageInfo.searchParams,
-		filterText: billFilterToText({
-			db,
-			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
-		}),
+		filterText,
 		billSummary,
-		billDropdowns: tActions.bill.listForDropdown({ db })
+		billDropdowns
 	};
 };
 

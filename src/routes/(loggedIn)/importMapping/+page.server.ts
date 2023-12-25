@@ -21,9 +21,11 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
+	const filterText = await importMappingFilterToText(current.searchParams || {});
+
 	return {
 		importMappings,
-		filterText: importMappingFilterToText(current.searchParams || {}),
+		filterText,
 		searchParams: current.searchParams
 	};
 };

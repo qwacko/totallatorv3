@@ -24,20 +24,24 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const budgetSummary = tActions.journal.summary({
+	const budgetSummary = await tActions.journal.summary({
 		db,
 		filter: { ...defaultJournalFilter(), budget: pageInfo.searchParams }
 	});
 
+	const filterText = await budgetFilterToText({
+		db,
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+	})
+
+	const budgetDropdowns = await tActions.budget.listForDropdown({ db })
+
 	return {
 		budgets,
 		searchParams: pageInfo.searchParams,
-		filterText: budgetFilterToText({
-			db,
-			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
-		}),
+		filterText,
 		budgetSummary,
-		budgetDropdowns: tActions.budget.listForDropdown({ db })
+		budgetDropdowns
 	};
 };
 

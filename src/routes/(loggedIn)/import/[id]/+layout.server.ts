@@ -19,10 +19,12 @@ export const load = async (data) => {
 		redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
 	}
 
+	const canDelete = await tActions.import.canDelete({ db, id: pageInfo.params.id })
+
 	return {
 		id: pageInfo.params.id,
 		info,
-		canDelete: tActions.import.canDelete({ db, id: pageInfo.params.id }),
+		canDelete,
 		streaming: {
 			data: tActions.import.getDetail({ db, id: pageInfo.params.id })
 		}

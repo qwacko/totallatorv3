@@ -14,33 +14,33 @@ export const load = async () => {
 		{ title: '+ 100', income: 15, expense: 50, asset: 20, liability: 15 }
 	];
 
-	const billCount = tActions.bill.count(db);
+	const billCount = await tActions.bill.count(db);
 	const billsWithJournalCount = await tActions.bill.listWithTransactionCount(db);
 	const deletableBillCount = billsWithJournalCount.filter((item) => item.journalCount === 0).length;
 
-	const budgetCount = tActions.budget.count(db);
+	const budgetCount = await tActions.budget.count(db);
 	const budgetsWithJournalCount = await tActions.budget.listWithTransactionCount(db);
 	const deletableBudgetCount = budgetsWithJournalCount.filter(
 		(item) => item.journalCount === 0
 	).length;
 
-	const categoryCount = tActions.category.count(db);
+	const categoryCount = await tActions.category.count(db);
 	const categoriesWithJournalCount = await tActions.category.listWithTransactionCount(db);
 	const deletableCategoryCount = categoriesWithJournalCount.filter(
 		(item) => item.journalCount === 0
 	).length;
 
-	const tagCount = tActions.tag.count(db);
+	const tagCount = await tActions.tag.count(db);
 	const tagsWithJournalCount = await tActions.tag.listWithTransactionCount(db);
 	const deletableTagCount = tagsWithJournalCount.filter((item) => item.journalCount === 0).length;
 
-	const labelCount = tActions.label.count(db);
+	const labelCount = await tActions.label.count(db);
 	const labelsWithJournalCount = await tActions.label.listWithTransactionCount(db);
 	const deletableLabelCount = labelsWithJournalCount.filter(
 		(item) => item.journalCount === 0
 	).length;
 
-	const journalCount = tActions.journal.count(db);
+	const journalCount = await tActions.journal.count(db);
 	const deletableJournalCount = journalCount;
 
 	return {
