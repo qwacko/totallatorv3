@@ -15,7 +15,7 @@ import {
 	label,
 	labelsToJournals,
 	importTable
-} from '../../../schema';
+} from '../../../postgres/schema';
 import { journalFilterToQuery } from './journalFilterToQuery';
 import { journalFilterToOrderBy } from './journalFilterToOrderBy';
 
@@ -114,19 +114,19 @@ export const journalList = async ({
 	const transactionJournals =
 		transactionIds.length > 0
 			? await db
-					.select({
-						id: journalEntry.id,
-						transactionId: journalEntry.transactionId,
-						accountId: journalEntry.accountId,
-						accountTitle: account.title,
-						accountType: account.type,
-						accountGroup: account.accountGroupCombined,
-						amount: journalEntry.amount
-					})
-					.from(journalEntry)
-					.leftJoin(account, eq(journalEntry.accountId, account.id))
-					.where(inArray(journalEntry.transactionId, transactionIds))
-					.execute()
+				.select({
+					id: journalEntry.id,
+					transactionId: journalEntry.transactionId,
+					accountId: journalEntry.accountId,
+					accountTitle: account.title,
+					accountType: account.type,
+					accountGroup: account.accountGroupCombined,
+					amount: journalEntry.amount
+				})
+				.from(journalEntry)
+				.leftJoin(account, eq(journalEntry.accountId, account.id))
+				.where(inArray(journalEntry.transactionId, transactionIds))
+				.execute()
 			: [];
 
 	const journalsMerged = journals.map((journal, index) => {

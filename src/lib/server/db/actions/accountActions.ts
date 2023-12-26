@@ -6,7 +6,7 @@ import {
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, summaryTable } from '../schema';
+import { account, journalEntry, summaryTable } from '../postgres/schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -68,15 +68,15 @@ export const accountActions = {
 		const defaultOrderBy = [asc(account.title), desc(account.createdAt)];
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(account[remainingOrder.field])
-								: desc(account[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(account[remainingOrder.field])
+							: desc(account[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db
@@ -307,14 +307,14 @@ export const accountActions = {
 			const newAccountGroupCombined = accountGroupCombinedClear
 				? ''
 				: accountGroupCombined && accountGroupCombined !== ''
-				  ? accountGroupCombined
-				  : [
-							accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
-							accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
-							accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
-				    ]
-							.filter((item) => item)
-							.join(':');
+					? accountGroupCombined
+					: [
+						accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
+						accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
+						accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
+					]
+						.filter((item) => item)
+						.join(':');
 
 			const { startDate, endDate, isCash, isNetWorth } = restData;
 

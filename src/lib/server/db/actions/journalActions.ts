@@ -22,7 +22,7 @@ import {
 	tag,
 	transaction,
 	labelsToJournals
-} from '../schema';
+} from '../postgres/schema';
 import { journalFilterToQuery } from './helpers/journal/journalFilterToQuery';
 
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -42,7 +42,7 @@ import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
 import { generateItemsForTransactionCreation } from './helpers/journal/generateItemsForTransactionCreation';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
 import { journalList } from './helpers/journal/journalList';
-import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { nanoid } from 'nanoid';
 import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCombinedSchema';
@@ -122,7 +122,7 @@ export const journalActions = {
 			earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
 			latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
 			lastUpdated: sql`max(${journalEntry.updatedAt})`.mapWith(journalEntry.updatedAt)
-		} satisfies Record<string, SQL<unknown> | SQLiteColumn>;
+		} satisfies Record<string, SQL<unknown> | AnyPgColumn>;
 
 		const summaryQueryCore = db
 			.select(commonSummary)

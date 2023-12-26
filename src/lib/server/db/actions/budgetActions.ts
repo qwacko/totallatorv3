@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/budgetSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, budget, journalEntry, summaryTable } from '../schema';
+import { account, budget, journalEntry, summaryTable } from '../postgres/schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -57,15 +57,15 @@ export const budgetActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(budget[remainingOrder.field])
-								: desc(budget[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(budget[remainingOrder.field])
+							: desc(budget[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db

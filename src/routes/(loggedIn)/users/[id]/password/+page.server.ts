@@ -1,7 +1,7 @@
 import { updatePasswordSchema } from '$lib/schema/updatePasswordSchema.js';
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { db } from '$lib/server/db/db.js';
-import { user } from '$lib/server/db/schema';
+import { user } from '$lib/server/db/postgres/schema';
 import { auth } from '$lib/server/lucia.js';
 import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
@@ -44,7 +44,7 @@ export const actions = {
 			return message(form, "You're not allowed to do this");
 		}
 
-		const targetUser = db.select().from(user).where(eq(user.id, targetUserId)).get();
+		const targetUser = (await db.select().from(user).where(eq(user.id, targetUserId)).execute())[0];
 
 		if (!targetUser) {
 			return message(form, 'User Not Found');

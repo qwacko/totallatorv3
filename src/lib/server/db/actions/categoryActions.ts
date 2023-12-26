@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/categorySchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, category, journalEntry, summaryTable } from '../schema';
+import { account, category, journalEntry, summaryTable } from '../postgres/schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
@@ -58,15 +58,15 @@ export const categoryActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(category[remainingOrder.field])
-								: desc(category[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(category[remainingOrder.field])
+							: desc(category[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db

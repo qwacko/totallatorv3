@@ -1,5 +1,5 @@
 import type { SummaryFilterSchemaType } from '$lib/schema/summarySchema';
-import { summaryTable } from '../../../schema';
+import { summaryTable } from '../../../postgres/schema';
 import { SQL, gte, lte } from 'drizzle-orm';
 
 export const summaryFilterToQuery = ({

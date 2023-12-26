@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/tagSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, summaryTable, tag } from '../schema';
+import { account, journalEntry, summaryTable, tag } from '../postgres/schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
@@ -61,15 +61,15 @@ export const tagActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(tag[remainingOrder.field])
-								: desc(tag[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(tag[remainingOrder.field])
+							: desc(tag[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db

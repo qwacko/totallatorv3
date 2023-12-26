@@ -1,4 +1,4 @@
-import { budget, bill, category, tag, label, account } from '../../../schema';
+import { budget, bill, category, tag, label, account } from '../../../postgres/schema';
 import { SQL, eq, ilike, inArray, like } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import type { DBType } from '$lib/server/db/db';
@@ -22,14 +22,14 @@ export const idTitleFilterToQuery = (
 		type === 'bill'
 			? bill
 			: type === 'budget'
-			? budget
-			: type === 'category'
-			? category
-			: type === 'tag'
-			? tag
-			: type === 'label'
-			? label
-			: account;
+				? budget
+				: type === 'category'
+					? category
+					: type === 'tag'
+						? tag
+						: type === 'label'
+							? label
+							: account;
 
 	if (restFilter.id) where.push(eq(usedTable.id, restFilter.id));
 	if (restFilter.idArray && restFilter.idArray.length > 0)

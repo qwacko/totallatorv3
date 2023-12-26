@@ -1,5 +1,5 @@
 import type { DBType } from '../db';
-import { category } from '../schema';
+import { category } from '../postgres/schema';
 import { categoryCreateInsertionData } from '../actions/helpers/category/categoryCreateInsertionData';
 
 export const seedTestCategories = async (db: DBType) =>

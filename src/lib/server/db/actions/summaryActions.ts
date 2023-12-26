@@ -10,7 +10,7 @@ import {
 	journalEntry,
 	labelsToJournals,
 	reusableFilter
-} from '../schema';
+} from '../postgres/schema';
 import type { DBType } from '../db';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -27,13 +27,13 @@ const aggregationColumns = (isAccount: boolean = false) => ({
 	sum: isAccount
 		? sum(journalEntry.amount).mapWith(Number)
 		: sql`sum(CASE WHEN ${account.type} IN ('asset', 'liability') THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-				Number
-		  ),
+			Number
+		),
 	count: isAccount
 		? count(journalEntry.id)
 		: sql`count(CASE WHEN ${account.type} IN ('asset', 'liability') THEN 1 ELSE NULL END)`.mapWith(
-				Number
-		  ),
+			Number
+		),
 	firstDate: min(journalEntry.date),
 	lastDate: max(journalEntry.date)
 });
@@ -78,30 +78,30 @@ export const summaryActions = {
 						item === 'bill'
 							? bill
 							: item === 'budget'
-							? budget
-							: item === 'category'
-							? category
-							: item === 'tag'
-							? tag
-							: item === 'account'
-							? account
-							: item === 'label'
-							? label
-							: null;
+								? budget
+								: item === 'category'
+									? category
+									: item === 'tag'
+										? tag
+										: item === 'account'
+											? account
+											: item === 'label'
+												? label
+												: null;
 					const journalIdColumn =
 						item === 'bill'
 							? journalEntry.billId
 							: item === 'budget'
-							? journalEntry.budgetId
-							: item === 'category'
-							? journalEntry.categoryId
-							: item === 'tag'
-							? journalEntry.tagId
-							: item === 'account'
-							? journalEntry.accountId
-							: item === 'label'
-							? journalEntry.id
-							: null;
+								? journalEntry.budgetId
+								: item === 'category'
+									? journalEntry.categoryId
+									: item === 'tag'
+										? journalEntry.tagId
+										: item === 'account'
+											? journalEntry.accountId
+											: item === 'label'
+												? journalEntry.id
+												: null;
 					if (!targetTable || !journalIdColumn) {
 						throw new Error('No target table found for summary');
 					}
@@ -109,28 +109,28 @@ export const summaryActions = {
 					const foundData =
 						item === 'label'
 							? await db
-									.select({
-										itemId: targetTable.id,
-										summaryId: summaryTable.id,
-										...aggregationColumns(false)
-									})
-									.from(targetTable)
-									.where(
-										and(
-											...[
-												ids ? inArray(targetTable.id, ids) : sql`true`,
-												needsUpdateOnly ? eq(summaryTable.needsUpdate, true) : sql`true`
-											]
-										)
+								.select({
+									itemId: targetTable.id,
+									summaryId: summaryTable.id,
+									...aggregationColumns(false)
+								})
+								.from(targetTable)
+								.where(
+									and(
+										...[
+											ids ? inArray(targetTable.id, ids) : sql`true`,
+											needsUpdateOnly ? eq(summaryTable.needsUpdate, true) : sql`true`
+										]
 									)
-									.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, targetTable.id))
-									.leftJoin(journalEntry, eq(labelsToJournals.journalId, journalEntry.id))
-									.leftJoin(summaryTable, eq(summaryTable.relationId, targetTable.id))
-									.leftJoin(account, eq(account.id, journalEntry.accountId))
-									.groupBy(targetTable.id)
-									.execute()
+								)
+								.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, targetTable.id))
+								.leftJoin(journalEntry, eq(labelsToJournals.journalId, journalEntry.id))
+								.leftJoin(summaryTable, eq(summaryTable.relationId, targetTable.id))
+								.leftJoin(account, eq(account.id, journalEntry.accountId))
+								.groupBy(targetTable.id, summaryTable.id)
+								.execute()
 							: item === 'account'
-							? await db
+								? await db
 									.select({
 										itemId: targetTable.id,
 										summaryId: summaryTable.id,
@@ -147,9 +147,9 @@ export const summaryActions = {
 									)
 									.leftJoin(journalEntry, eq(journalIdColumn, targetTable.id))
 									.leftJoin(summaryTable, eq(summaryTable.relationId, targetTable.id))
-									.groupBy(targetTable.id)
+									.groupBy(targetTable.id, summaryTable.id)
 									.execute()
-							: await db
+								: await db
 									.select({
 										itemId: targetTable.id,
 										summaryId: summaryTable.id,
@@ -167,7 +167,7 @@ export const summaryActions = {
 									.leftJoin(journalEntry, eq(journalIdColumn, targetTable.id))
 									.leftJoin(summaryTable, eq(summaryTable.relationId, targetTable.id))
 									.leftJoin(account, eq(account.id, journalEntry.accountId))
-									.groupBy(targetTable.id)
+									.groupBy(targetTable.id, summaryTable.id)
 									.execute();
 
 					updateCount += foundData.length;
@@ -226,16 +226,16 @@ export const summaryActions = {
 						item === 'bill'
 							? bill
 							: item === 'budget'
-							? budget
-							: item === 'category'
-							? category
-							: item === 'tag'
-							? tag
-							: item === 'account'
-							? account
-							: item === 'label'
-							? label
-							: null;
+								? budget
+								: item === 'category'
+									? category
+									: item === 'tag'
+										? tag
+										: item === 'account'
+											? account
+											: item === 'label'
+												? label
+												: null;
 					if (!targetTable) {
 						throw new Error('No target table found for summary');
 					}

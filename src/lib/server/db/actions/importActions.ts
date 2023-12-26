@@ -14,7 +14,7 @@ import {
 	journalEntry,
 	label,
 	tag
-} from '../schema';
+} from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
 import { tActions } from './tActions';

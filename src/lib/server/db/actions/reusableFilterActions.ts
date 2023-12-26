@@ -7,7 +7,7 @@ import {
 } from '$lib/schema/reusableFilterSchema';
 import { and, asc, desc, eq, sql, type InferSelectModel, inArray } from 'drizzle-orm';
 import type { DBType } from '../db';
-import { reusableFilter } from '$lib/server/db/schema';
+import { reusableFilter } from '$lib/server/db/postgres/schema';
 import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
 import { nanoid } from 'nanoid';
 import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
@@ -98,8 +98,7 @@ export const reusableFilterActions = {
 
 		if (numberModified > 0) {
 			logging.info(
-				`Updated ${numberModified} reusable filters, took ${
-					Date.now() - startTime
+				`Updated ${numberModified} reusable filters, took ${Date.now() - startTime
 				}ms (limit = ${maximumTime}s))`
 			);
 		}
@@ -134,13 +133,13 @@ export const reusableFilterActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) => {
-						return currentOrder.direction === 'asc'
-							? asc(reusableFilter[currentOrder.field])
-							: desc(reusableFilter[currentOrder.field]);
-					}),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) => {
+					return currentOrder.direction === 'asc'
+						? asc(reusableFilter[currentOrder.field])
+						: desc(reusableFilter[currentOrder.field]);
+				}),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db

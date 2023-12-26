@@ -5,7 +5,7 @@ import type {
 } from '$lib/schema/billSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, bill, journalEntry, summaryTable } from '../schema';
+import { account, bill, journalEntry, summaryTable } from '../postgres/schema';
 import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -57,15 +57,15 @@ export const billActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(bill[remainingOrder.field])
-								: desc(bill[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(bill[remainingOrder.field])
+							: desc(bill[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db

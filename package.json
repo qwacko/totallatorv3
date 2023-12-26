@@ -62,6 +62,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@lucia-auth/adapter-postgresql": "^2.0.2",
 		"@lucia-auth/adapter-sqlite": "^2.0.1",
 		"@melt-ui/svelte": "^0.66.2",
 		"@sveltejs/adapter-node": "^2.0.2",

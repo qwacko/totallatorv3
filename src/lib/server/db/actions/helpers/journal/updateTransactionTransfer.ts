@@ -1,6 +1,6 @@
 import { eq, inArray } from 'drizzle-orm';
 import type { DBType } from '../../../db';
-import { account, journalEntry } from '../../../schema';
+import { account, journalEntry } from '../../../postgres/schema';
 import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 
 const doTransferUpdate = async ({

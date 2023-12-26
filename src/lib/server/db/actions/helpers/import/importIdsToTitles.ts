@@ -1,4 +1,4 @@
-import { importTable } from '../../../schema';
+import { importTable } from '../../../postgres/schema';
 import { eq } from 'drizzle-orm';
 import { db } from '../../../db';
 

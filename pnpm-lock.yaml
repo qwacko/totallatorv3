@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@lucia-auth/adapter-postgresql':
+    specifier: ^2.0.2
+    version: 2.0.2(lucia@2.7.6)(postgres@3.4.3)
   '@lucia-auth/adapter-sqlite':
     specifier: ^2.0.1
     version: 2.0.1(better-sqlite3@9.2.2)(lucia@2.7.6)
@@ -2219,6 +2222,22 @@ packages:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
+
+  /@lucia-auth/adapter-postgresql@2.0.2(lucia@2.7.6)(postgres@3.4.3):
+    resolution: {integrity: sha512-gQ7SlFu+gxQj2IX2J8ZVivcLBbdnf9SbNQOVWkJxZOdY1uaaIQGeNfEDld2Awy02VrXmA4sjHsbkJx1JPVw2+A==}
+    peerDependencies:
+      lucia: ^2.0.0
+      pg: ^8.8.0
+      postgres: ^3.3.0
+    peerDependenciesMeta:
+      pg:
+        optional: true
+      postgres:
+        optional: true
+    dependencies:
+      lucia: 2.7.6
+      postgres: 3.4.3
+    dev: false
 
   /@lucia-auth/adapter-sqlite@2.0.1(better-sqlite3@9.2.2)(lucia@2.7.6):
     resolution: {integrity: sha512-yc7XQ4X3sWG1gyUGHqaXipJIkmvB4MOgJypnSMWy7Vjhn3AOCM2xw51xTs+dGpLOQIn2Laomg9xpmDM2/9tgqQ==}

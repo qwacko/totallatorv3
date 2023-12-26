@@ -1,6 +1,6 @@
 import type { LabelFilterSchemaType } from '$lib/schema/labelSchema';
 
-import { label } from '../../../schema';
+import { label } from '../../../postgres/schema';
 import { SQL, eq } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
