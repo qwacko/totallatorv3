@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, journalEntry, summaryTable, tag } from '../postgres/schema';
-import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -19,6 +19,7 @@ import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
@@ -28,7 +29,7 @@ export const tagActions = {
 		const where = filter ? tagFilterToQuery(filter) : [];
 
 		const result = await db
-			.select({ count: sql<number>`count(${tag.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(tag.id) })
 			.from(tag)
 			.where(and(...where))
 			.execute();
@@ -37,7 +38,7 @@ export const tagActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: tag.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.select({ id: tag.id, journalCount: count(journalEntry.id) })
 			.from(tag)
 			.leftJoin(journalEntry, eq(journalEntry.tagId, tag.id))
 			.groupBy(tag.id)
@@ -89,7 +90,7 @@ export const tagActions = {
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${tag.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(tag.id) })
 			.from(tag)
 			.where(and(...where))
 			.execute();

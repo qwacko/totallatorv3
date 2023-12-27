@@ -11,6 +11,7 @@ import { updatedTime } from './helpers/misc/updatedTime';
 import { asc, desc, getTableColumns, and, sql, eq } from 'drizzle-orm';
 import { importMappingFilterToQuery } from './helpers/import/importMappingFilterToQuery';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
 
 const processImportedDataResult = (data: ImportMappingType) => {
 	const { configuration, ...restData } = data;
@@ -60,7 +61,7 @@ export const importMappingActions = {
 
 		const resultCount = await db
 			.select({
-				count: sql<number>`count(${importMapping.id})`.mapWith(Number)
+				count: drizzleCount(importMapping.id)
 			})
 			.from(importMapping)
 			.where(and(...where))

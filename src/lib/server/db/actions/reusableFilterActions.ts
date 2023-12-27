@@ -18,6 +18,7 @@ import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefin
 import { tActions } from './tActions';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { logging } from '$lib/server/logging';
+import { count as drizzleCount } from 'drizzle-orm'
 
 export const reusableFilterActions = {
 	refreshFilterSummary: async ({
@@ -154,7 +155,7 @@ export const reusableFilterActions = {
 		const resultsProcessed = await reusableFilterDBUnpackedMany(results);
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${reusableFilter.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(reusableFilter.id) })
 			.from(reusableFilter)
 			.where(and(...where))
 			.execute();

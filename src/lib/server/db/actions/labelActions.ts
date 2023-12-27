@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, journalEntry, label, labelsToJournals, summaryTable } from '../postgres/schema';
-import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -18,6 +18,7 @@ import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionDa
 import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
@@ -25,7 +26,7 @@ export const labelActions = {
 	},
 	count: async (db: DBType, filter?: LabelFilterSchemaType) => {
 		const count = await db
-			.select({ count: sql<number>`count(${label.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(label.id) })
 			.from(label)
 			.where(and(...(filter ? labelFilterToQuery(filter) : [])))
 			.execute();
@@ -34,7 +35,7 @@ export const labelActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: label.id, journalCount: sql<number>`count(${labelsToJournals.id})` })
+			.select({ id: label.id, journalCount: count(labelsToJournals.id) })
 			.from(label)
 			.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, label.id))
 			.groupBy(label.id)
@@ -86,7 +87,7 @@ export const labelActions = {
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${label.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(label.id) })
 			.from(label)
 			.where(and(...where))
 			.execute();

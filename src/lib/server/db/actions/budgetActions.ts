@@ -18,6 +18,7 @@ import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
@@ -25,7 +26,7 @@ export const budgetActions = {
 	},
 	count: async (db: DBType, filter?: BudgetFilterSchemaType) => {
 		const count = await db
-			.select({ count: sql<number>`count(${budget.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(budget.id) })
 			.from(budget)
 			.where(and(...(filter ? budgetFilterToQuery(filter) : [])))
 			.execute();
@@ -34,7 +35,7 @@ export const budgetActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: budget.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.select({ id: budget.id, journalCount: drizzleCount(journalEntry.id) })
 			.from(budget)
 			.leftJoin(journalEntry, eq(journalEntry.budgetId, budget.id))
 			.groupBy(budget.id)
@@ -85,7 +86,7 @@ export const budgetActions = {
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${budget.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(budget.id) })
 			.from(budget)
 			.where(and(...where))
 			.execute();

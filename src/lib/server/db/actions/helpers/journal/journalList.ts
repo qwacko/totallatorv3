@@ -18,6 +18,7 @@ import {
 } from '../../../postgres/schema';
 import { journalFilterToQuery } from './journalFilterToQuery';
 import { journalFilterToOrderBy } from './journalFilterToOrderBy';
+import { count as drizzleCount } from 'drizzle-orm'
 
 export const journalList = async ({
 	db,
@@ -69,7 +70,7 @@ export const journalList = async ({
 		.where(and(...(await journalFilterToQuery(restFilter))))
 		.orderBy(...journalFilterToOrderBy(processedFilter))
 		.offset(page * pageSize)
-		.limit(-1)
+		// .limit(-1)
 		.as('sumInner');
 
 	const runningTotalPromise = db
@@ -79,7 +80,7 @@ export const journalList = async ({
 
 	const resultCount = await db
 		.select({
-			count: sql<number>`count(${journalEntry.id})`.mapWith(Number)
+			count: drizzleCount(journalEntry.id)
 		})
 		.from(journalEntry)
 		.leftJoin(account, eq(journalEntry.accountId, account.id))

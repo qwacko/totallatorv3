@@ -235,11 +235,11 @@ export const journalActions = {
 					Number
 				),
 				positiveSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 AND ${journalEntry.transfer} = 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
 						Number
 					),
 				negativeSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 AND ${journalEntry.transfer} = 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
 						Number
 					)
 			})
