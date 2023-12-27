@@ -7,7 +7,7 @@ import {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, journalEntry, summaryTable } from '../postgres/schema';
-import { and, asc, count, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -26,6 +26,7 @@ import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSele
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -33,7 +34,7 @@ export const accountActions = {
 	},
 	count: async (db: DBType, filter?: AccountFilterSchemaType) => {
 		const count = await db
-			.select({ count: sql<number>`count(${account.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(account.id) })
 			.from(account)
 			.where(and(...(filter ? accountFilterToQuery(filter) : [])))
 			.execute();
@@ -95,7 +96,7 @@ export const accountActions = {
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${account.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(account.id) })
 			.from(account)
 			.where(and(...where))
 			.execute();

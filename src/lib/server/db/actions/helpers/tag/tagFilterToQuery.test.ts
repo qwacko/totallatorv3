@@ -1,9 +1,9 @@
 import { tagFilterToQuery, tagFilterToText } from './tagFilterToQuery';
 import { tag } from '../../../postgres/schema';
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, } from 'vitest';
 import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { and } from 'drizzle-orm';
-import { clearTestDB, createTestWrapper, getTestDB, initialiseTestDB, tearDownTestDB } from '$lib/server/db/test/dbTest';
+import { clearTestDB, createTestWrapper, getTestDB, initialiseTestDB, } from '$lib/server/db/test/dbTest';
 
 describe('tagFilterToQuery', () => {
     const qb = new QueryBuilder();
