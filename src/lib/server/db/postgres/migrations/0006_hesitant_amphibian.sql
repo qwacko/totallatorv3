@@ -1,0 +1,1 @@
+ALTER TABLE "user_key" ALTER COLUMN "hashed_password" SET DATA TYPE varchar(255);

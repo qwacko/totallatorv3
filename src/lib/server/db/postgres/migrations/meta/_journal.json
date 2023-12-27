@@ -29,6 +29,27 @@
       "when": 1703667068159,
       "tag": "0003_little_mentor",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1703670200451,
+      "tag": "0004_sturdy_gambit",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1703670580026,
+      "tag": "0005_melodic_captain_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1703670654156,
+      "tag": "0006_hesitant_amphibian",
+      "breakpoints": true
     }
   ]
 }

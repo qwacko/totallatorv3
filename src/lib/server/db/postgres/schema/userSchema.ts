@@ -2,7 +2,7 @@ import { currencyFormatEnum, dateFormatEnum } from '../../../../schema/userSchem
 import { pgTable, text, boolean, varchar, bigint } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
-	id: varchar('id', { length: 15 }).primaryKey(),
+	id: varchar('id', { length: 60 }).primaryKey(),
 	name: text('name').notNull().default('New User'),
 	username: text('username').notNull().unique(),
 	admin: boolean('admin').notNull().default(false),
@@ -12,21 +12,21 @@ export const user = pgTable('user', {
 
 export const session = pgTable('user_session', {
 	id: varchar('id', { length: 128 }).primaryKey(),
-	userId: varchar('user_id', { length: 15 })
+	userId: varchar('user_id', { length: 61 })
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
 	activeExpires: bigint('active_expires', {
 		mode: 'number'
 	}).notNull(),
-idleExpires: bigint('idle_expires', {
+	idleExpires: bigint('idle_expires', {
 		mode: 'number'
 	}).notNull()
 });
 
 export const key = pgTable('user_key', {
 	id: varchar('id', { length: 255 }).primaryKey(),
-	userId: varchar('user_id', { length: 15 })
+	userId: varchar('user_id', { length: 62 })
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
-	hashedPassword: varchar('hashed_password', { length: 15 })
+	hashedPassword: varchar('hashed_password', { length: 255 })
 });

@@ -1,10 +1,10 @@
-import { eq, sql } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { db } from '../db';
 import { user } from '../postgres/schema';
 
 export const dbUserCount = async () => {
 	const resultCount = await db
-		.select({ count: sql<number>`count(*)` })
+		.select({ count: count() })
 		.from(user)
 		.execute();
 
@@ -13,7 +13,7 @@ export const dbUserCount = async () => {
 
 export const dbAdminCount = async () => {
 	const resultCount = await db
-		.select({ count: sql<number>`count(*)` })
+		.select({ count: count() })
 		.from(user)
 		.where(eq(user.admin, true))
 		.execute();

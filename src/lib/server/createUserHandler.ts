@@ -22,6 +22,7 @@ export const createUserHandler = async ({
 	}
 
 	try {
+
 		const user = await auth.createUser({
 			key: {
 				providerId: 'username',
@@ -30,12 +31,14 @@ export const createUserHandler = async ({
 			},
 			attributes: {
 				username: form.data.username,
-				admin: (admin ? 1 : 0) as unknown as boolean,
+				admin: admin ? true : false,
 				currencyFormat: 'USD',
 				dateFormat: 'YYYY-MM-DD',
 				name: form.data.name
 			}
 		});
+
+
 		if (setSession) {
 			const session = await auth.createSession({
 				userId: user.userId,
