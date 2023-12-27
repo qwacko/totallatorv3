@@ -22,7 +22,7 @@ describe('billCreateInsertionData', () => {
 		const expected = {
 			...data,
 			id,
-			updatedAt: now,
+			updatedAt: now.toISOString(),
 			active: true,
 			disabled: false,
 			allowUpdate: true
@@ -50,7 +50,7 @@ describe('billCreateInsertionData', () => {
 		const expected = {
 			...data,
 			id,
-			updatedAt: now,
+			updatedAt: now.toISOString(),
 			active: false,
 			disabled: true,
 			allowUpdate: true

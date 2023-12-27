@@ -25,7 +25,7 @@ describe('categoryCreateInsertionData', () => {
 			group: '',
 			single: 'test',
 			id,
-			updatedAt: now,
+			updatedAt: now.toISOString(),
 			active: true,
 			disabled: false,
 			allowUpdate: true
@@ -55,7 +55,7 @@ describe('categoryCreateInsertionData', () => {
 			id,
 			group: '',
 			single: 'test',
-			updatedAt: now,
+			updatedAt: now.toISOString(),
 			active: false,
 			disabled: true,
 			allowUpdate: true
@@ -85,7 +85,7 @@ describe('categoryCreateInsertionData', () => {
 			id,
 			group: 'test1',
 			single: 'test2',
-			updatedAt: now,
+			updatedAt: now.toISOString(),
 			active: true,
 			disabled: false,
 			allowUpdate: true
