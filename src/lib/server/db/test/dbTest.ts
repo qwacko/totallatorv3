@@ -14,11 +14,13 @@ import postgres from 'postgres';
 import { it } from 'vitest'
 import { nanoid } from 'nanoid';
 
-export const getTestDB = async () => {
 
-	if (!serverEnv.POSTGRES_TEST_URL) {
-		throw new Error('POSTGRES_TEST_URL is not defined');
-	}
+
+if (!serverEnv.POSTGRES_TEST_URL) {
+	throw new Error('POSTGRES_TEST_URL is not defined');
+}
+
+const genTestDB = async () => {
 	const useURL = serverEnv.POSTGRES_TEST_URL || serverEnv.POSTGRES_URL;
 
 	const enableLogger = serverEnv.DB_QUERY_LOG;
@@ -32,19 +34,26 @@ export const getTestDB = async () => {
 		}
 	}
 
-	const postgresDatabase = postgres(useURL, { max: 4 });
+	const postgresDatabase = postgres(useURL, { max: 10 });
 
 
 	const testDB = drizzle(postgresDatabase, { schema, logger: new MyLogger() });
 
 	// logging.info('Migrating Test DB!!');
-	migrate(testDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
+	await migrate(testDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
 
 	return { testDB, postgresDatabase };
+
+}
+
+const testDBPromise = genTestDB();
+
+export const getTestDB = async () => {
+	return await testDBPromise;
 };
 
 export const closeTestDB = async (data: Awaited<ReturnType<typeof getTestDB>>) => {
-	await data.postgresDatabase.end();
+	// await data.postgresDatabase.end();
 }
 
 
@@ -87,22 +96,6 @@ export const initialiseTestDB = async ({
 	tags?: boolean;
 }) => {
 
-
-	// db.delete(schema.account).execute();
-	// db.delete(schema.tag).execute();
-	// db.delete(schema.bill).execute();
-	// db.delete(schema.budget).execute();
-	// db.delete(schema.category).execute();
-	// db.delete(schema.label).execute();
-	// db.delete(schema.labelsToJournals).execute();
-	// db.delete(schema.importItemDetail).execute();
-	// db.delete(schema.importMapping).execute();
-	// db.delete(schema.importTable).execute();
-	// db.delete(schema.journalEntry).execute();
-	// db.delete(schema.transaction).execute();
-	// db.delete(schema.reusableFilter).execute();
-	// db.delete(schema.summaryTable).execute();
-
 	let itemCount = 0;
 
 	if (accounts) {
@@ -139,32 +132,13 @@ export const createTestWrapper = async ({
 
 	return (name: string, testFunction: (db: DBType, id: string) => Promise<void>) => {
 		it(name, async () => {
-
-
 			const id = nanoid();
 
-			//The try / catch needs to be outside the transaction, otherwise the transaciton is not rolled back.
-			//Drizzle throws an error with the rollback function, so we need to make sure that is well propogated
-			//And then catch teh error outside the transaction to not propogate it further if it is a rollback
-			//otherwise the test function will not catch the error.
-			try {
-				await db.transaction(async (txdb) => {
-					// expect("this").toEqual("That")
-					if (beforeEach) await beforeEach(db, id);
-					await testFunction(txdb, id);
-					if (afterEach) await afterEach(db, id);
-					txdb.rollback();
-				}, { isolationLevel: "serializable", deferrable: true })
-			}
-			catch (error) {
+			// expect("this").toEqual("That")
+			if (beforeEach) await beforeEach(db, id);
+			await testFunction(db, id);
+			if (afterEach) await afterEach(db, id);
 
-				// console.log("Transactoin Error", error)
-
-				// Ignore rollback errors
-				//@ts-expect-error Error Message May Not Exist. Can't be bothered with types. Logic works.
-				if (error?.message && error.message === "Rollback") { return }
-				throw error; // Rethrow after logging
-			}
 		});
 	}
 }

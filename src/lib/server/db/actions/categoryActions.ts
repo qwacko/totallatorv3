@@ -16,7 +16,7 @@ import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery'
 import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
 import { createCategory } from './helpers/seed/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 
@@ -82,7 +82,7 @@ export const categoryActions = {
 			.leftJoin(journalEntry, eq(journalEntry.categoryId, category.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, category.id))
-			.groupBy(category.id)
+			.groupBy(category.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db

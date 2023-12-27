@@ -15,7 +15,7 @@ import { createLabel } from './helpers/seed/seedLabelData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { labelFilterToQuery } from './helpers/label/labelFilterToQuery';
 import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionData';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 
@@ -82,7 +82,7 @@ export const labelActions = {
 			.leftJoin(journalEntry, eq(journalEntry.id, labelsToJournals.journalId))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, label.id))
-			.groupBy(label.id)
+			.groupBy(label.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db

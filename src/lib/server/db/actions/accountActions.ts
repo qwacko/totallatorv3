@@ -7,7 +7,7 @@ import {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account, journalEntry, summaryTable } from '../postgres/schema';
-import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -22,7 +22,7 @@ import {
 import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
 import { accountTitleSplit } from './helpers/account/accountTitleSplit';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
@@ -42,7 +42,7 @@ export const accountActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: account.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.select({ id: account.id, journalCount: count(journalEntry.id) })
 			.from(account)
 			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
 			.groupBy(account.id)
@@ -91,7 +91,7 @@ export const accountActions = {
 			.orderBy(...orderByResult)
 			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, account.id))
-			.groupBy(account.id)
+			.groupBy(account.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
@@ -289,6 +289,7 @@ export const accountActions = {
 				changingToExpenseOrIncome) &&
 			!changingToAssetOrLiability
 		) {
+
 			//Limit what can be updated for an income or expense account
 			await db
 				.update(account)
@@ -318,6 +319,7 @@ export const accountActions = {
 
 			const { startDate, endDate, isCash, isNetWorth } = restData;
 
+
 			await db
 				.update(account)
 				.set({
@@ -335,6 +337,9 @@ export const accountActions = {
 				})
 				.where(eq(account.id, id))
 				.execute();
+
+			const matchingAccount = await db.select().from(account).where(eq(account.id, id)).execute();
+			console.log("New Update Time = ", matchingAccount[0].updatedAt)
 		}
 		return id;
 	},

@@ -13,7 +13,7 @@ import type { ZodError } from 'zod';
 
 const timestampColumns = {
 	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at').notNull()
+	updatedAt: timestamp('updated_at', { precision: 6, withTimezone: true, mode: "string" }).notNull()
 };
 
 const importColumns = (identifier?: string) => ({

@@ -23,6 +23,10 @@ export const summaryTableColumnsToSelect = {
 	lastDate: summaryTable.lastDate
 };
 
+export const summaryTableColumnsToGroupBy = [
+	summaryTable.count, summaryTable.sum, summaryTable.firstDate, summaryTable.lastDate
+]
+
 const aggregationColumns = (isAccount: boolean = false) => ({
 	sum: isAccount
 		? sum(journalEntry.amount).mapWith(Number)

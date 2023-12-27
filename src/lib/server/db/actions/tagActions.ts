@@ -16,7 +16,7 @@ import { tagCreateInsertionData } from './helpers/tag/tagCreateInsertionData';
 import { tagFilterToQuery } from './helpers/tag/tagFilterToQuery';
 import { createTag } from './helpers/seed/seedTagData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 
@@ -85,7 +85,7 @@ export const tagActions = {
 			.leftJoin(journalEntry, eq(journalEntry.tagId, tag.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, tag.id))
-			.groupBy(tag.id)
+			.groupBy(tag.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db

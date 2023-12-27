@@ -15,7 +15,7 @@ import { budgetCreateInsertionData } from './helpers/budget/budgetCreateInsertio
 import { budgetFilterToQuery } from './helpers/budget/budgetFilterToQuery';
 import { createBudget } from './helpers/seed/seedBudgetData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 
@@ -81,7 +81,7 @@ export const budgetActions = {
 			.leftJoin(journalEntry, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, budget.id))
-			.groupBy(budget.id)
+			.groupBy(budget.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db

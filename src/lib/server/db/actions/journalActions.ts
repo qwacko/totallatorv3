@@ -624,6 +624,7 @@ export const journalActions = {
 				.execute()
 		).map((item) => item.id);
 
+
 		await db.transaction(async (db) => {
 			const tagId = handleLinkedItem({
 				db,
@@ -806,7 +807,7 @@ export const journalActions = {
 
 						if (total !== 0) {
 							const journalToUpdate = transaction.journals.sort((a, b) =>
-								a.updatedAt.toISOString().localeCompare(b.updatedAt.toISOString())
+								new Date(a.updatedAt).toISOString().localeCompare(new Date(b.updatedAt).toISOString())
 							)[0];
 							await db
 								.update(journalEntry)
@@ -866,7 +867,7 @@ export const journalActions = {
 						journalId: string;
 						labelId: string;
 						createdAt: Date;
-						updatedAt: Date;
+						updatedAt: string;
 					}[]
 				);
 

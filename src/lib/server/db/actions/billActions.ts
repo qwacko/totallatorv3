@@ -15,7 +15,7 @@ import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData'
 import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
 import { createBill } from './helpers/seed/seedBillData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 
@@ -81,7 +81,7 @@ export const billActions = {
 			.leftJoin(journalEntry, eq(journalEntry.billId, bill.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, bill.id))
-			.groupBy(bill.id)
+			.groupBy(bill.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
