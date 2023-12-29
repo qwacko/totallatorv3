@@ -11,11 +11,14 @@ import fs from 'fs/promises';
 import type { Logger } from 'drizzle-orm';
 import postgres from 'postgres'
 
+
 const usedURL = serverEnv.POSTGRES_URL;
 
 const migrationClient = postgres(usedURL, { max: 1 });
 const migrationDB = drizzlePostgres(migrationClient)
-export const postgresDatabase = postgres(usedURL);
+export const postgresDatabase = postgres(usedURL, {
+	debug: true
+});
 
 export const sqliteDatabase = sqlite(serverEnv.DATABASE_FILE);
 
@@ -25,6 +28,7 @@ const enableLogger = serverEnv.DB_QUERY_LOG;
 
 class MyLogger implements Logger {
 	logQuery(query: string, params: unknown[]): void {
+		// console.log({ query, params });
 		if (query.startsWith('update') && enableLogger && serverEnv.DEV) {
 			console.log({ query, params });
 		}

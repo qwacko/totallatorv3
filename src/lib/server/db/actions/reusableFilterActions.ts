@@ -5,7 +5,7 @@ import {
 	type ReusableFilterFilterSchemaType,
 	type updateReusableFilterSchemaType
 } from '$lib/schema/reusableFilterSchema';
-import { and, asc, desc, eq, sql, type InferSelectModel, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, type InferSelectModel, inArray } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { reusableFilter } from '$lib/server/db/postgres/schema';
 import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
@@ -19,8 +19,18 @@ import { tActions } from './tActions';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { logging } from '$lib/server/logging';
 import { count as drizzleCount } from 'drizzle-orm'
+import { seedReusableFilterData } from './helpers/seed/seedReusableFilterData';
 
 export const reusableFilterActions = {
+	count: async (db: DBType) => {
+		const count = await db
+			.select({ count: drizzleCount(reusableFilter.id) })
+			.from(reusableFilter)
+			.execute();
+
+		return count[0].count;
+
+	},
 	refreshFilterSummary: async ({
 		db,
 		currentFilter
@@ -263,6 +273,25 @@ export const reusableFilterActions = {
 			})
 		);
 	},
+	createMany: async ({
+		db,
+		data
+	}: {
+		db: DBType;
+		data: CreateReusableFilterSchemaType[];
+	}) => {
+
+		const newFilters = await db.transaction(async (db) => {
+
+			return Promise.all(data.map(async (currentItem) => {
+				return reusableFilterActions.create({ db, data: currentItem })
+			}))
+		})
+
+		return newFilters
+
+
+	},
 	create: async ({ db, data }: { db: DBType; data: CreateReusableFilterSchemaType }) => {
 		const processedData = createReusableFilterSchema.safeParse(data);
 
@@ -354,6 +383,15 @@ export const reusableFilterActions = {
 		if (ids.length > 0) {
 			await db.delete(reusableFilter).where(inArray(reusableFilter.id, ids)).execute();
 		}
+	},
+	seed: async ({ db, count }: { db: DBType, count: number }) => {
+
+		const newFilters = Array(count).fill(0).map((_, index) => {
+			return seedReusableFilterData({ db, id: index })
+		})
+
+		await reusableFilterActions.createMany({ db, data: newFilters })
+
 	}
 };
 

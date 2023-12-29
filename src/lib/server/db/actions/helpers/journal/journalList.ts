@@ -3,7 +3,7 @@ import {
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType
 } from '$lib/schema/journalSchema';
-import { getTableColumns, eq, and, sql, inArray, sum } from 'drizzle-orm';
+import { getTableColumns, eq, and, inArray, sum } from 'drizzle-orm';
 import type { DBType } from '../../../db';
 import {
 	account,

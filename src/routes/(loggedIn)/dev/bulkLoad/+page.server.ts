@@ -1,9 +1,10 @@
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
+import { reusableFilter } from '$lib/server/db/postgres/schema';
 import { logging } from '$lib/server/logging.js';
 
 export const load = async () => {
-	const accountCount = tActions.account.count(db);
+	const accountCount = await tActions.account.count(db);
 	const accountsWithJournalCount = await tActions.account.listWithTransactionCount(db);
 	const deletableAccountCount = accountsWithJournalCount.filter(
 		(item) => item.journalCount === 0
@@ -40,6 +41,8 @@ export const load = async () => {
 		(item) => item.journalCount === 0
 	).length;
 
+	const reusableFilterCount = await tActions.reusableFitler.count(db);
+
 	const journalCount = await tActions.journal.count(db);
 	const deletableJournalCount = journalCount;
 
@@ -64,7 +67,9 @@ export const load = async () => {
 		deletableLabelCount,
 
 		journalCount,
-		deletableJournalCount
+		deletableJournalCount,
+
+		reusableFilterCount
 	};
 };
 
@@ -86,7 +91,6 @@ export const actions = {
 	bulkAddAccounts: async (data) => {
 		try {
 			const form = await data.request.formData();
-			logging.info('Form Data : ', form.entries.toString());
 			const countIncome = Number(form.get('countIncome')?.toString() || '10');
 			const countExpenses = Number(form.get('countExpenses')?.toString() || '10');
 			const countAssets = Number(form.get('countAssets')?.toString() || '10');
@@ -152,6 +156,16 @@ export const actions = {
 			logging.error('Error Creating Bulk Labels : ', e);
 		}
 	},
+	bulkAddReusableFilters: async (data) => {
+		try {
+			const form = await data.request.formData();
+			const count = Number(form.get('count')?.toString() || '10');
+
+			await tActions.reusableFitler.seed({ db, count });
+		} catch (e) {
+			logging.error('Error Creating Bulk Reusable Filters : ', e);
+		}
+	},
 	deleteUnusedJournals: async () => {
 		try {
 			logging.info('Deleting Unused Journals');
@@ -214,6 +228,14 @@ export const actions = {
 			await tActions.label.hardDeleteMany(db, items);
 		} catch (e) {
 			logging.error('Error Deleting Unused Labels : ', e);
+		}
+	},
+	deleteReusableFilters: async () => {
+		try {
+			const items = await db.select({ id: reusableFilter.id }).from(reusableFilter).execute();
+			await tActions.reusableFitler.deleteMany({ db, ids: items.map((item) => item.id) });
+		} catch (e) {
+			logging.error('Error Deleting Reusable Filters : ', e);
 		}
 	}
 };

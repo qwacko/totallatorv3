@@ -1,7 +1,7 @@
 import { accountTypeEnum } from '../../../../schema/accountTypeSchema';
 import { statusEnum } from '../../../../schema/statusSchema';
 import { relations, } from 'drizzle-orm';
-import { pgTable, text, integer, unique, index, boolean, timestamp, json, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, unique, index, boolean, timestamp, json, varchar, customType } from 'drizzle-orm/pg-core';
 import {
 	importDetailStatusEnum,
 	importSourceEnum,
@@ -10,6 +10,18 @@ import {
 } from '../../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
 import type { ZodError } from 'zod';
+
+const moneyType = customType<{ data: number }>({
+	dataType() {
+		return 'numeric(20, 4)';
+	},
+	fromDriver(value) {
+		return Number(value);
+	},
+	toDriver(value) {
+		return value.toFixed(4)
+	}
+});
 
 const timestampColumns = {
 	createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -259,7 +271,7 @@ export const journalEntry = pgTable('journal_entry', {
 	...idColumn,
 	...importColumns(),
 	uniqueId: text('unique_id'),
-	amount: integer('amount').notNull().default(0),
+	amount: moneyType('amount').notNull().default(0),
 	transactionId: text('transaction_id').notNull(),
 	...journalSharedColumns,
 	...timestampColumns
@@ -419,8 +431,8 @@ export const summaryTable = pgTable('summary', {
 	type: text('type', { enum: ['account', 'bill', 'budget', 'category', 'tag', 'label'] }).notNull(),
 	needsUpdate: boolean('needs_update').notNull().default(true),
 	relationId: text('relation_id').notNull(),
-	sum: integer('sum').default(0),
-	count: integer('count').default(0),
+	sum: moneyType('sum').default(0),
+	count: moneyType('count').default(0),
 	firstDate: timestamp('first_date'),
 	lastDate: timestamp('last_date')
 });
