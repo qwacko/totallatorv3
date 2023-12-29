@@ -27,6 +27,7 @@ import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -174,15 +175,17 @@ export const accountActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string;
 		id?: string;
 		requireActive?: boolean;
+		cachedData?: { id: string, title: string, status: StatusEnumType }[]
 	}) => {
 		if (id) {
-			const currentAccount = await db.query.account
+			const currentAccount = cachedData ? cachedData.find(item => item.id === id) : await db.query.account
 				.findFirst({ where: eq(account.id, id) })
 				.execute();
 
@@ -198,7 +201,7 @@ export const accountActions = {
 
 			const isExpense = accountTitleInfo.accountGroupCombined === '';
 
-			const currentAccount = await db.query.account
+			const currentAccount = cachedData ? cachedData.find(item => item.title === title) : await db.query.account
 				.findFirst({ where: eq(account.accountTitleCombined, title) })
 				.execute();
 

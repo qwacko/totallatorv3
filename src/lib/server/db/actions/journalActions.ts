@@ -24,7 +24,6 @@ import {
 	labelsToJournals
 } from '../postgres/schema';
 import { journalFilterToQuery } from './helpers/journal/journalFilterToQuery';
-
 import { updatedTime } from './helpers/misc/updatedTime';
 import { expandDate } from './helpers/journal/expandDate';
 import { accountActions } from './accountActions';
@@ -39,7 +38,7 @@ import {
 	getToFromAccountAmountData
 } from './helpers/misc/getCommonData';
 import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
-import { generateItemsForTransactionCreation } from './helpers/journal/generateItemsForTransactionCreation';
+import { generateItemsForTransactionCreation, getCachedData } from './helpers/journal/generateItemsForTransactionCreation';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
 import { journalList } from './helpers/journal/journalList';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
@@ -49,6 +48,8 @@ import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCo
 import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
 import { summaryActions } from './summaryActions';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
+import { timerHelperFunction } from '$lib/server/timerHelperFunction';
+
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -85,10 +86,7 @@ export const journalActions = {
 		return count[0].sum;
 	},
 	summary: async ({
-		db,
-		filter,
-		startDate,
-		endDate
+		db, filter, startDate, endDate
 	}: {
 		db: DBType;
 		filter?: JournalFilterSchemaType;
@@ -106,18 +104,15 @@ export const journalActions = {
 		const commonSummary = {
 			count: count(journalEntry.id),
 			sum: sum(journalEntry.amount).mapWith(Number),
-			sum12Months:
-				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} then ${journalEntry.amount} else 0 END)`.mapWith(
-					Number
-				),
-			sum12MonthsWithoutTransfer:
-				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} AND ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
-					Number
-				),
-			sumWithoutTransfer:
-				sql`sum(CASE WHEN ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
-					Number
-				),
+			sum12Months: sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} then ${journalEntry.amount} else 0 END)`.mapWith(
+				Number
+			),
+			sum12MonthsWithoutTransfer: sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} AND ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
+				Number
+			),
+			sumWithoutTransfer: sql`sum(CASE WHEN ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
+				Number
+			),
 			average: sql`avg(${journalEntry.amount})`.mapWith(Number),
 			earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
 			latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
@@ -220,28 +215,24 @@ export const journalActions = {
 				count: count(journalEntry.id),
 				sum: sum(journalEntry.amount).mapWith(Number),
 				average: avg(journalEntry.amount).mapWith(Number),
-				positiveSum:
-					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-						Number
-					),
+				positiveSum: sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+					Number
+				),
 				positiveCount: sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN 1 ELSE 0 END)`.mapWith(
 					Number
 				),
-				negativeSum:
-					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-						Number
-					),
+				negativeSum: sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+					Number
+				),
 				negativeCount: sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN 1 ELSE 0 END)`.mapWith(
 					Number
 				),
-				positiveSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-						Number
-					),
-				negativeSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-						Number
-					)
+				positiveSumNonTransfer: sql`SUM(CASE WHEN ${journalEntry.amount} > 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+					Number
+				),
+				negativeSumNonTransfer: sql`SUM(CASE WHEN ${journalEntry.amount} < 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+					Number
+				)
 			})
 			.from(journalEntry)
 			.leftJoin(account, eq(journalEntry.accountId, account.id))
@@ -287,12 +278,11 @@ export const journalActions = {
 
 		return parsedData;
 	},
-	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
+	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType; }) => {
 		return journalList({ db, filter });
 	},
 	listWithCommonData: async ({
-		db,
-		filter
+		db, filter
 	}: {
 		db: DBType;
 		filter: JournalFilterSchemaInputType;
@@ -340,8 +330,7 @@ export const journalActions = {
 		};
 	},
 	createFromSimpleTransaction: async ({
-		db,
-		transaction
+		db, transaction
 	}: {
 		db: DBType;
 		transaction: CreateSimpleTransactionType;
@@ -362,8 +351,7 @@ export const journalActions = {
 		return createdTransaction;
 	},
 	createManyTransactionJournals: async ({
-		db,
-		journalEntries
+		db, journalEntries
 	}: {
 		db: DBType;
 		journalEntries: CreateCombinedTransactionType[];
@@ -371,9 +359,11 @@ export const journalActions = {
 		let transactionIds: string[] = [];
 
 		await db.transaction(async (db) => {
+
+			const cachedData = await getCachedData({ db, count: journalEntries.length })
 			const itemsForCreation = await Promise.all(
 				journalEntries.map(async (journalEntry) => {
-					return generateItemsForTransactionCreation(db, journalEntry);
+					return generateItemsForTransactionCreation({ db, data: journalEntry, cachedData });
 				})
 			);
 
@@ -390,17 +380,17 @@ export const journalActions = {
 				.map(({ labels }) => labels)
 				.reduce((a, b) => [...a, ...b], []);
 
-			const transactionChunks = splitArrayIntoChunks(transactions, 5000);
+			const transactionChunks = splitArrayIntoChunks(transactions, 2000);
 			for (const chunk of transactionChunks) {
 				await db.insert(transaction).values(chunk).execute();
 			}
 
-			const journalChunks = splitArrayIntoChunks(journals, 1000);
+			const journalChunks = splitArrayIntoChunks(journals, 2000);
 			for (const chunk of journalChunks) {
 				await db.insert(journalEntry).values(chunk).execute();
 			}
 
-			const labelChunks = splitArrayIntoChunks(labels, 1000);
+			const labelChunks = splitArrayIntoChunks(labels, 2000);
 			for (const chunk of labelChunks) {
 				await db.insert(labelsToJournals).values(chunk).execute();
 			}
@@ -416,8 +406,7 @@ export const journalActions = {
 		return transactionIds;
 	},
 	hardDeleteTransactions: async ({
-		db,
-		transactionIds
+		db, transactionIds
 	}: {
 		db: DBType;
 		transactionIds: string[];
@@ -449,7 +438,7 @@ export const journalActions = {
 					db,
 					ids: originalIds
 				});
-			}))
+			}));
 
 		});
 	},
@@ -489,17 +478,16 @@ export const journalActions = {
 		});
 		const transactionsForCreation = Array(count)
 			.fill(0)
-			.map(() =>
-				seedTransactionData({
-					assetLiabilityIds: assetLiabilityAccounts.map(({ id }) => id),
-					incomeIds: incomeAccounts.map(({ id }) => id),
-					expenseIds: expenseAccounts.map(({ id }) => id),
-					billIds: bills.map(({ id }) => id),
-					budgetIds: budgets.map(({ id }) => id),
-					categoryIds: categories.map(({ id }) => id),
-					tagIds: tags.map(({ id }) => id),
-					labelIds: labels.map(({ id }) => id)
-				})
+			.map(() => seedTransactionData({
+				assetLiabilityIds: assetLiabilityAccounts.map(({ id }) => id),
+				incomeIds: incomeAccounts.map(({ id }) => id),
+				expenseIds: expenseAccounts.map(({ id }) => id),
+				billIds: bills.map(({ id }) => id),
+				budgetIds: budgets.map(({ id }) => id),
+				categoryIds: categories.map(({ id }) => id),
+				tagIds: tags.map(({ id }) => id),
+				labelIds: labels.map(({ id }) => id)
+			})
 			);
 
 		await db.transaction(async (db) => {
@@ -512,8 +500,7 @@ export const journalActions = {
 		logging.info(`Seeding ${count} transactions took ${endTime - startTime}ms`);
 	},
 	markManyComplete: async ({
-		db,
-		journalFilter
+		db, journalFilter
 	}: {
 		db: DBType;
 		journalFilter: JournalFilterSchemaInputType;
@@ -529,8 +516,7 @@ export const journalActions = {
 		});
 	},
 	markManyUncomplete: async ({
-		db,
-		journalFilter
+		db, journalFilter
 	}: {
 		db: DBType;
 		journalFilter: JournalFilterSchemaInputType;
@@ -570,9 +556,7 @@ export const journalActions = {
 			.execute();
 	},
 	updateJournals: async ({
-		db,
-		filter,
-		journalData
+		db, filter, journalData
 	}: {
 		db: DBType;
 		filter: JournalFilterSchemaInputType;
@@ -679,28 +663,25 @@ export const journalActions = {
 
 			const targetDate = journalData.date ? expandDate(journalData.date) : {};
 
-			const complete =
-				journalData.setComplete === true
+			const complete = journalData.setComplete === true
+				? true
+				: journalData.clearComplete === true
+					? false
+					: undefined;
+			const reconciled = complete === true
+				? true
+				: journalData.setReconciled === true
 					? true
-					: journalData.clearComplete === true
+					: journalData.clearReconciled === true
 						? false
 						: undefined;
-			const reconciled =
-				complete === true
+			const dataChecked = complete === true
+				? true
+				: journalData.setDataChecked === true
 					? true
-					: journalData.setReconciled === true
-						? true
-						: journalData.clearReconciled === true
-							? false
-							: undefined;
-			const dataChecked =
-				complete === true
-					? true
-					: journalData.setDataChecked === true
-						? true
-						: journalData.clearDataChecked === true
-							? false
-							: undefined;
+					: journalData.clearDataChecked === true
+						? false
+						: undefined;
 
 			if (linkedJournals.length > 0) {
 				await db
@@ -806,8 +787,7 @@ export const journalActions = {
 						const total = transaction.journals.reduce((prev, current) => prev + current.amount, 0);
 
 						if (total !== 0) {
-							const journalToUpdate = transaction.journals.sort((a, b) =>
-								new Date(a.updatedAt).toISOString().localeCompare(new Date(b.updatedAt).toISOString())
+							const journalToUpdate = transaction.journals.sort((a, b) => new Date(a.updatedAt).toISOString().localeCompare(new Date(b.updatedAt).toISOString())
 							)[0];
 							await db
 								.update(journalEntry)
@@ -819,12 +799,12 @@ export const journalActions = {
 				);
 			}
 
-			const labelSetting: { id?: string; title?: string }[] = [
+			const labelSetting: { id?: string; title?: string; }[] = [
 				...(journalData.labels ? journalData.labels.map((id) => ({ id })) : []),
 				...(journalData.labelTitles ? journalData.labelTitles.map((title) => ({ title })) : [])
 			];
 
-			const labelAddition: { id?: string; title?: string }[] = [
+			const labelAddition: { id?: string; title?: string; }[] = [
 				...(journalData.addLabels ? journalData.addLabels.map((id) => ({ id })) : []),
 				...(journalData.addLabelTitles
 					? journalData.addLabelTitles.map((title) => ({ title }))
@@ -917,9 +897,7 @@ export const journalActions = {
 		});
 	},
 	cloneJournals: async ({
-		db,
-		filter,
-		journalData
+		db, filter, journalData
 	}: {
 		db: DBType;
 		filter: JournalFilterSchemaInputType;
@@ -975,13 +953,7 @@ export const journalActions = {
 			});
 
 			const {
-				fromAccountId,
-				fromAccountTitle,
-				toAccountId,
-				toAccountTitle,
-				fromAmount,
-				toAmount,
-				...restProcessedData
+				fromAccountId, fromAccountTitle, toAccountId, toAccountTitle, fromAmount, toAmount, ...restProcessedData
 			} = processedData.data;
 
 			await journalActions.updateJournals({
@@ -994,11 +966,9 @@ export const journalActions = {
 				journalData: restProcessedData
 			});
 
-			if (
-				fromAccountId !== undefined ||
+			if (fromAccountId !== undefined ||
 				fromAccountTitle !== undefined ||
-				fromAmount !== undefined
-			) {
+				fromAmount !== undefined) {
 				await journalActions.updateJournals({
 					db,
 					filter: {
@@ -1035,5 +1005,3 @@ export const journalActions = {
 		return transactionIds;
 	}
 };
-
-export type JournalSummaryType = Awaited<ReturnType<(typeof journalActions)['summary']>>;

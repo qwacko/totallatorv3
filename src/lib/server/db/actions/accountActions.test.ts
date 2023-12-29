@@ -3,7 +3,7 @@ import { accountActions } from './accountActions';
 import { getTestDB, initialiseTestDB, createTestWrapper, clearTestDB, } from '../test/dbTest';
 import { account } from '../postgres/schema';
 import { eq } from 'drizzle-orm';
-import { journalActions } from './journalActions';
+import { journalActions } from './journalActions.1';
 
 
 describe('accountActions', async () => {

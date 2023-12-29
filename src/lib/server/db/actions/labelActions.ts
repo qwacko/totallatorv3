@@ -19,6 +19,7 @@ import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSele
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
@@ -110,15 +111,19 @@ export const labelActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string;
 		id?: string;
 		requireActive?: boolean;
+		cachedData?: { id: string, title: string, status: StatusEnumType }[]
 	}) => {
 		if (id) {
-			const currentLabel = await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
+			const currentLabel = cachedData
+				? cachedData.find((currentData) => currentData.id === id)
+				: await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
 
 			if (currentLabel) {
 				if (requireActive && currentLabel.status !== 'active') {
@@ -128,9 +133,11 @@ export const labelActions = {
 			}
 			throw new Error(`Label ${id} not found`);
 		} else if (title) {
-			const currentLabel = await db.query.label
-				.findFirst({ where: eq(label.title, title) })
-				.execute();
+			const currentLabel = cachedData
+				? cachedData.find((currentData) => currentData.title === title)
+				: await db.query.label
+					.findFirst({ where: eq(label.title, title) })
+					.execute();
 			if (currentLabel) {
 				if (requireActive && currentLabel.status !== 'active') {
 					throw new Error(`Label ${currentLabel.title} is not active`);

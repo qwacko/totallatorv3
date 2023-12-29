@@ -20,6 +20,7 @@ import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSele
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
@@ -113,15 +114,19 @@ export const tagActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string | null;
 		id?: string | null;
 		requireActive?: boolean;
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentTag = await db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
+			const currentTag = cachedData
+				? cachedData.find((current) => current.id === id)
+				: await db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
 
 			if (currentTag) {
 				if (requireActive && currentTag.status !== 'active') {
@@ -131,7 +136,9 @@ export const tagActions = {
 			}
 			throw new Error(`Tag ${id} not found`);
 		} else if (title) {
-			const currentTag = await db.query.tag.findFirst({ where: eq(tag.title, title) }).execute();
+			const currentTag = cachedData
+				? cachedData.find((current) => current.title === title)
+				: await db.query.tag.findFirst({ where: eq(tag.title, title) }).execute();
 			if (currentTag) {
 				if (requireActive && currentTag.status !== 'active') {
 					throw new Error(`Tag ${currentTag.title} is not active`);

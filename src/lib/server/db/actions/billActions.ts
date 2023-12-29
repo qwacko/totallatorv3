@@ -19,6 +19,7 @@ import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSele
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
@@ -110,15 +111,17 @@ export const billActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string | null;
 		id?: string | null;
 		requireActive?: boolean;
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentBill = await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
+			const currentBill = cachedData ? cachedData.find(item => item.id === id) : await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
 
 			if (currentBill) {
 				if (requireActive && currentBill.status !== 'active') {
@@ -128,7 +131,7 @@ export const billActions = {
 			}
 			throw new Error(`Bill ${id} not found`);
 		} else if (title) {
-			const currentBill = await db.query.bill.findFirst({ where: eq(bill.title, title) }).execute();
+			const currentBill = cachedData ? cachedData.find(item => item.title === title) : await db.query.bill.findFirst({ where: eq(bill.title, title) }).execute();
 			if (currentBill) {
 				if (requireActive && currentBill.status !== 'active') {
 					throw new Error(`Bill ${currentBill.title} is not active`);

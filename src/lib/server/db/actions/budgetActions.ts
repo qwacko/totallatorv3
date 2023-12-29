@@ -15,10 +15,15 @@ import { budgetCreateInsertionData } from './helpers/budget/budgetCreateInsertio
 import { budgetFilterToQuery } from './helpers/budget/budgetFilterToQuery';
 import { createBudget } from './helpers/seed/seedBudgetData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
+import {
+	summaryActions,
+	summaryTableColumnsToGroupBy,
+	summaryTableColumnsToSelect
+} from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm'
+import { count as drizzleCount } from 'drizzle-orm';
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
@@ -109,15 +114,19 @@ export const budgetActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string | null;
 		id?: string | null;
 		requireActive?: boolean;
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentBudget = await db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
+			const currentBudget = cachedData
+				? cachedData.find((item) => item.id === id)
+				: await db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
 
 			if (currentBudget) {
 				if (requireActive && currentBudget.status !== 'active') {
@@ -127,9 +136,9 @@ export const budgetActions = {
 			}
 			throw new Error(`Budget ${id} not found`);
 		} else if (title) {
-			const currentBudget = await db.query.budget
-				.findFirst({ where: eq(budget.title, title) })
-				.execute();
+			const currentBudget = cachedData
+				? cachedData.find((item) => item.title === title)
+				: await db.query.budget.findFirst({ where: eq(budget.title, title) }).execute();
 			if (currentBudget) {
 				if (requireActive && currentBudget.status !== 'active') {
 					throw new Error(`Budget ${currentBudget.title} is not active`);

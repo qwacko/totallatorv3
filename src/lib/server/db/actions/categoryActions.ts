@@ -20,6 +20,7 @@ import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSele
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
@@ -115,17 +116,21 @@ export const categoryActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string | null;
 		id?: string | null;
 		requireActive?: boolean;
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentCategory = await db.query.category
-				.findFirst({ where: eq(category.id, id) })
-				.execute();
+			const currentCategory = cachedData
+				? cachedData.find((item) => item.id === id)
+				: await db.query.category
+					.findFirst({ where: eq(category.id, id) })
+					.execute();
 
 			if (currentCategory) {
 				if (requireActive && currentCategory.status !== 'active') {
@@ -135,9 +140,11 @@ export const categoryActions = {
 			}
 			throw new Error(`Category ${id} not found`);
 		} else if (title) {
-			const currentCategory = await db.query.category
-				.findFirst({ where: eq(category.title, title) })
-				.execute();
+			const currentCategory = cachedData
+				? cachedData.find((item) => item.title === title)
+				: await db.query.category
+					.findFirst({ where: eq(category.title, title) })
+					.execute();
 			if (currentCategory) {
 				if (requireActive && currentCategory.status !== 'active') {
 					throw new Error(`Category ${currentCategory.title} is not active`);
