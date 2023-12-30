@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import TablePagination from '$lib/components/TablePagination.svelte';
-	import { pageInfo } from '$lib/routes.js';
+	import { pageInfo, urlGenerator } from '$lib/routes.js';
 	import {
 		Badge,
 		Button,
@@ -57,6 +57,16 @@
 									<input type="hidden" name="backupName" value={backup.filename} />
 									<Button class="delete-button" type="submit" outline color="red">Delete</Button>
 								</form>
+								<Button
+									href={urlGenerator({
+										address: '/(loggedIn)/backup/download/[filename]',
+										paramsValue: { filename: backup.filename }
+									}).url}
+									outline
+									color="blue"
+								>
+									Download
+								</Button>
 							</div>
 						</TableBodyCell>
 						<TableBodyCell>{backup.filename}</TableBodyCell>
