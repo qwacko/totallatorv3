@@ -1,7 +1,7 @@
 import { updateManyTransferInfo } from '../db/actions/helpers/journal/updateTransactionTransfer';
 import { summaryActions } from '../db/actions/summaryActions';
 import { tActions } from '../db/actions/tActions';
-import { backupDB, db } from '../db/db';
+import { db } from '../db/db';
 import { logging } from '../logging';
 import { serverEnv } from '../serverEnv';
 import type { CronJob } from './cron';
@@ -11,7 +11,7 @@ export const cronJobs: CronJob[] = [
 		name: 'Backup SQLite Database',
 		schedule: serverEnv.BACKUP_SCHEDULE,
 		job: async () => {
-			await backupDB('Scheduled Backup');
+			await tActions.backup.storeBackup({ db: db, title: 'Scheduled Backup', compress: true });
 		}
 	},
 	{

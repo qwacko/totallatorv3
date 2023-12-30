@@ -21,6 +21,8 @@
 
 	export let data;
 
+	let backupName: undefined | string = undefined;
+
 	$: displayFiles = data.backupFiles;
 </script>
 
@@ -48,16 +50,16 @@
 						<TableBodyCell>
 							<div class="flex flex-row gap-2">
 								<form action="?/restore" method="post" use:enhance class="flex">
-									<input type="hidden" name="backupName" value={backup} />
+									<input type="hidden" name="backupName" value={backup.filename} />
 									<Button type="submit" outline color="green">Restore</Button>
 								</form>
 								<form action="?/delete" method="post" use:enhance class="flex">
-									<input type="hidden" name="backupName" value={backup} />
+									<input type="hidden" name="backupName" value={backup.filename} />
 									<Button class="delete-button" type="submit" outline color="red">Delete</Button>
 								</form>
 							</div>
 						</TableBodyCell>
-						<TableBodyCell>{backup}</TableBodyCell>
+						<TableBodyCell>{backup.filename}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>
@@ -65,10 +67,19 @@
 	{:else}
 		<Badge color="blue" class="p-4">No Backups Present</Badge>
 	{/if}
-	<form action="?/backup" method="post" use:enhance>
-		<div class="flex flex-row gap-2">
-			<Input name="backupName" placeholder="Backup Name" class="flex flex-grow" />
+	<div class="flex flex-row gap-2">
+		<form action="?/backup" method="post" class="flex flex flex-row gap-2 flex-grow" use:enhance>
+			<Input
+				bind:value={backupName}
+				name="backupName"
+				placeholder="Backup Name"
+				class="flex flex-grow"
+			/>
 			<Button type="submit" class="whitespace-nowrap">Create New Backup</Button>
-		</div>
-	</form>
+		</form>
+		<form action="?/backupUncompressed" class="flex flex flex-row gap-2" method="post" use:enhance>
+			<input type="hidden" name="backupName" value={backupName} />
+			<Button type="submit" class="whitespace-nowrap">Create New Uncompressed Backup</Button>
+		</form>
+	</div>
 </PageLayout>
