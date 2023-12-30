@@ -11,7 +11,13 @@ export const cronJobs: CronJob[] = [
 		name: 'Backup SQLite Database',
 		schedule: serverEnv.BACKUP_SCHEDULE,
 		job: async () => {
-			await tActions.backup.storeBackup({ db: db, title: 'Scheduled Backup', compress: true });
+			await tActions.backup.storeBackup({
+				db: db,
+				title: 'Scheduled Backup',
+				compress: true,
+				createdBy: 'System',
+				creationReason: 'Scheduled Backup'
+			});
 		}
 	},
 	{

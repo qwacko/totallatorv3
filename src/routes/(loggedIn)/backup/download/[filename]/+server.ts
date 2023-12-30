@@ -15,11 +15,12 @@ export const GET = async (data) => {
 	const fileData = (await tActions.backup.getBackupData({
 		filename: params.filename,
 		returnRaw: true
-	})) as string;
+	})) as Buffer;
 
 	return new Response(fileData, {
+		status: 200,
 		headers: {
-			'Content-Type': 'text/plain',
+			'Content-Type': 'application/octet-stream',
 			'Content-Disposition': `attachment; filename=${params.filename}`
 		}
 	});

@@ -1,4 +1,5 @@
 import {
+	combinedBackupSchema,
 	currentBackupSchema,
 	type CurrentBackupSchemaType
 } from '$lib/server/backups/backupSchema';
@@ -53,18 +54,22 @@ export const backupActions = {
 	storeBackup: async ({
 		db,
 		title = 'Backup',
-		compress = true
+		compress = true,
+		creationReason,
+		createdBy
 	}: {
 		db: DBType;
 		title?: string;
 		compress?: boolean;
+		creationReason: string;
+		createdBy: string;
 	}) => {
 		const date = new Date();
 		const filenameUse = `${serverEnv.BACKUP_DIR}/${date.toISOString()}-${title}.${
 			compress ? 'data' : 'json'
 		}`;
 
-		const backupData: CurrentBackupSchemaType = {
+		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
 			version: 1,
 			data: {
 				user: await db.select().from(user).execute(),
@@ -83,6 +88,31 @@ export const backupActions = {
 				importTable: await db.select().from(importTable).execute(),
 				importMapping: await db.select().from(importMapping).execute(),
 				reusableFilter: await db.select().from(reusableFilter).execute()
+			}
+		};
+
+		const backupData: CurrentBackupSchemaType = {
+			...backupDataDB,
+			information: {
+				createdAt: date,
+				title,
+				creationReason,
+				createdBy,
+				itemCount: {
+					numberAccounts: backupDataDB.data.account.length,
+					numberBills: backupDataDB.data.bill.length,
+					numberBudgets: backupDataDB.data.budget.length,
+					numberCategories: backupDataDB.data.category.length,
+					numberTransactions: backupDataDB.data.transaction.length,
+					numberJournalEntries: backupDataDB.data.journalEntry.length,
+					numberLabels: backupDataDB.data.label.length,
+					numberLabelsToJournals: backupDataDB.data.labelsToJournals.length,
+					numberTags: backupDataDB.data.tag.length,
+					numberImportItemDetails: backupDataDB.data.importItemDetail.length,
+					numberImportTables: backupDataDB.data.importTable.length,
+					numberImportMappings: backupDataDB.data.importMapping.length,
+					numberReusableFilters: backupDataDB.data.reusableFilter.length
+				}
 			}
 		};
 
@@ -118,6 +148,21 @@ export const backupActions = {
 
 		return loadedBackupData;
 	},
+	getBackupDataStrutured: async ({
+		filename
+	}: {
+		filename: string;
+	}): Promise<CurrentBackupSchemaType> => {
+		const backupData = await backupActions.getBackupData({ filename, returnRaw: false });
+
+		const backupDataParsed = combinedBackupSchema.parse(backupData);
+
+		if (backupDataParsed.version !== 1) {
+			throw new Error('Backup Version Mismatch');
+		}
+
+		return backupDataParsed;
+	},
 	deleteBackup: async (backupName: string) => {
 		const targetDir = serverEnv.BACKUP_DIR;
 
@@ -142,15 +187,16 @@ export const backupActions = {
 		filename: string;
 		includeUsers?: boolean;
 	}) => {
-		const backupInfo = await backupActions.getBackupData({
-			filename,
-			returnRaw: false
-		});
-		const checkedBackupData = currentBackupSchema.parse(backupInfo);
+		const checkedBackupData = await backupActions.getBackupDataStrutured({ filename });
 
-		if (checkedBackupData.version !== 1) {
-			throw new Error('Backup Version Mismatch');
-		}
+		//Produce a new backup prior to any restore.
+		await backupActions.storeBackup({
+			db,
+			title: `Pre-Restore - ${filename}`,
+			compress: true,
+			createdBy: 'System',
+			creationReason: 'Pre-Restore'
+		});
 
 		const dataInsertionStart = Date.now();
 		await db.transaction(async (trx) => {

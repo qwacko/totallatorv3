@@ -46,7 +46,13 @@ export const actions = {
 
 		const backupNameValidated = backupName && backupName.length > 0 ? backupName : 'Manual Backup';
 
-		await tActions.backup.storeBackup({ db: db, title: backupNameValidated, compress: true });
+		await tActions.backup.storeBackup({
+			db: db,
+			title: backupNameValidated,
+			compress: true,
+			createdBy: 'User',
+			creationReason: 'Manual Backup'
+		});
 	},
 	backupUncompressed: async ({ request }) => {
 		const formData = await request.formData();
@@ -54,22 +60,12 @@ export const actions = {
 
 		const backupNameValidated = backupName && backupName.length > 0 ? backupName : 'Manual Backup';
 
-		await tActions.backup.storeBackup({ db: db, title: backupNameValidated, compress: false });
-	},
-	restore: async ({ request }) => {
-		const formData = await request.formData();
-		const backupName = formData.get('backupName')?.toString();
-
-		if (backupName) {
-			await tActions.backup.restoreBackup({ db: db, filename: backupName, includeUsers: false });
-		}
-	},
-	delete: async ({ request }) => {
-		const formData = await request.formData();
-		const backupName = formData.get('backupName')?.toString();
-
-		if (backupName) {
-			await tActions.backup.deleteBackup(backupName);
-		}
+		await tActions.backup.storeBackup({
+			db: db,
+			title: backupNameValidated,
+			compress: false,
+			createdBy: 'User',
+			creationReason: 'Manual Backup'
+		});
 	}
 };

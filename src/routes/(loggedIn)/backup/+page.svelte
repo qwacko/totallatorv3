@@ -49,23 +49,15 @@
 					<TableBodyRow>
 						<TableBodyCell>
 							<div class="flex flex-row gap-2">
-								<form action="?/restore" method="post" use:enhance class="flex">
-									<input type="hidden" name="backupName" value={backup.filename} />
-									<Button type="submit" outline color="green">Restore</Button>
-								</form>
-								<form action="?/delete" method="post" use:enhance class="flex">
-									<input type="hidden" name="backupName" value={backup.filename} />
-									<Button class="delete-button" type="submit" outline color="red">Delete</Button>
-								</form>
 								<Button
 									href={urlGenerator({
-										address: '/(loggedIn)/backup/download/[filename]',
+										address: '/(loggedIn)/backup/[filename]',
 										paramsValue: { filename: backup.filename }
 									}).url}
 									outline
 									color="blue"
 								>
-									Download
+									View
 								</Button>
 							</div>
 						</TableBodyCell>

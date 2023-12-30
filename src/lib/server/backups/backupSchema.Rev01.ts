@@ -31,6 +31,27 @@ const timestampColumns = {
 
 export const backupSchemaRev01 = z.object({
 	version: z.literal(1),
+	information: z.object({
+		createdAt: z.date(),
+		title: z.string(),
+		creationReason: z.string(),
+		createdBy: z.string(),
+		itemCount: z.object({
+			numberAccounts: z.number(),
+			numberBills: z.number(),
+			numberBudgets: z.number(),
+			numberCategories: z.number(),
+			numberTransactions: z.number(),
+			numberJournalEntries: z.number(),
+			numberLabels: z.number(),
+			numberLabelsToJournals: z.number(),
+			numberTags: z.number(),
+			numberImportItemDetails: z.number(),
+			numberImportTables: z.number(),
+			numberImportMappings: z.number(),
+			numberReusableFilters: z.number()
+		})
+	}),
 	data: z.object({
 		user: z.array(
 			z.object({
