@@ -28,7 +28,12 @@
 
 <CustomHeader pageTitle="Backups" numPages={data.numPages} pageNumber={data.page} />
 
-<PageLayout title="Backups">
+<PageLayout title="Backups" size="xl">
+	<svelte:fragment slot="right">
+		<Button href={urlGenerator({ address: '/(loggedIn)/backup/import' }).url} outline color="green">
+			Import
+		</Button>
+	</svelte:fragment>
 	{#if data.numberOfBackups > 0}
 		<div class="flex flex-row justify-center">
 			<TablePagination
@@ -43,6 +48,7 @@
 			<TableHead>
 				<TableHeadCell>Actions</TableHeadCell>
 				<TableHeadCell>Backup Name</TableHeadCell>
+				<TableHeadCell>Created At</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each displayFiles as backup}
@@ -62,6 +68,7 @@
 							</div>
 						</TableBodyCell>
 						<TableBodyCell>{backup.filename}</TableBodyCell>
+						<TableBodyCell>{backup.createdAt.toLocaleString()}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

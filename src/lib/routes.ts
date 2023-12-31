@@ -31,6 +31,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/backup/download/[filename]': {
 			paramsValidation: z.object({ filename: z.string() }).parse
 		},
+		'/(loggedIn)/backup/import': {},
 
 		// Bulk Data Load
 		// ----------------------------------------

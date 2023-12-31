@@ -291,11 +291,29 @@ export const backupActions = {
 	list: async () => {
 		const targetDir = serverEnv.BACKUP_DIR;
 
-		return (await fs.readdir(targetDir, { recursive: true }))
-			.sort((a, b) => b.localeCompare(a))
-			.map((file) => ({
-				filename: file,
-				compressed: file.endsWith('.data')
-			}));
+		const files = await fs.readdir(targetDir, { recursive: true });
+
+		const backupData = await Promise.all(
+			files.map(async (file) => {
+				const filePath = `${targetDir}/${file}`;
+				const stats = await fs.stat(filePath);
+
+				const createdAt = new Date(stats.birthtimeMs);
+				const updatedAt = new Date(stats.mtimeMs);
+				const createdAtNumber = stats.birthtimeMs;
+
+				return {
+					filename: file,
+					compressed: file.endsWith('.data'),
+					createdAt,
+					updatedAt,
+					createdAtNumber
+				};
+			})
+		);
+
+		const sortedBackupData = backupData.sort((a, b) => b.createdAtNumber - a.createdAtNumber);
+
+		return sortedBackupData;
 	}
 };

@@ -45,7 +45,6 @@
 			</div>
 		</div>
 	</div>
-	<!-- <pre>{JSON.stringify(data.information, null, 2)}</pre> -->
 	<div class="flex flex-row justify-center gap-2">
 		<form action="?/restore" method="post" use:enhance class="flex">
 			<Button type="submit" outline color="green">Restore</Button>
