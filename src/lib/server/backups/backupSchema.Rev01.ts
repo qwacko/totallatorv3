@@ -1,14 +1,36 @@
-import { accountTypeEnum } from '$lib/schema/accountTypeSchema';
-import {
-	importDetailStatusEnum,
-	importSourceEnum,
-	importStatusEnum,
-	importTypeEnum
-} from '$lib/schema/importSchema';
-import { reusableFilterModifcationType } from '$lib/schema/reusableFilterSchema';
-import { statusEnum } from '$lib/schema/statusSchema';
-import { currencyFormatEnum, dateFormatEnum } from '$lib/schema/userSchema';
 import { z } from 'zod';
+
+const importDetailStatusEnum = [
+	'error',
+	'processed',
+	'duplicate',
+	'imported',
+	'importError'
+] as const;
+
+const importStatusEnum = ['created', 'error', 'processed', 'imported', 'complete'] as const;
+
+const importTypeEnum = [
+	'transaction',
+	'account',
+	'bill',
+	'budget',
+	'category',
+	'tag',
+	'label',
+	'mappedImport'
+] as const;
+
+const importSourceEnum = ['csv'] as const;
+
+const accountTypeEnum = ['income', 'expense', 'asset', 'liability'] as const;
+
+const reusableFilterModifcationType = ['replace', 'modify'] as const;
+const statusEnum = ['active', 'disabled'] as const;
+
+const currencyFormatEnum = ['USD', 'GBP', 'INR', 'AUD', 'EUR'] as const;
+
+const dateFormatEnum = ['YYYY-MM-DD', 'MM/DD/YY', 'MM/DD/YYYY', 'DD/MM/YY', 'DD/MM/YYYY'] as const;
 
 const idColumn = { id: z.string() };
 
