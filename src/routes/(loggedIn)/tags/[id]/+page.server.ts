@@ -12,10 +12,10 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) throw redirect(302, '/tags');
+	if (!pageInfo.current.params?.id) redirect(302, '/tags');
 
 	const tag = await tActions.tag.getById(db, pageInfo.current.params?.id);
-	if (!tag) throw redirect(302, '/tags');
+	if (!tag) redirect(302, '/tags');
 	const form = await superValidate(
 		{ id: tag.id, title: tag.title, status: tag.status },
 		updateTagSchema
@@ -41,6 +41,6 @@ export const actions = {
 			logging.info('Update Tag Error', e);
 			return message(form, 'Error Updating Tag');
 		}
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

@@ -48,10 +48,23 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			...adminOnlyConfig,
 			POSTCheck: {
 				backup: POSTAllowAdminOnly,
+				backupUncompressed: POSTAllowAdminOnly
+			}
+		},
+		'/(loggedIn)/backup/[filename]': {
+			...adminOnlyConfig,
+			POSTCheck: {
 				restore: POSTAllowAdminOnly,
 				delete: POSTAllowAdminOnly
 			}
 		},
+		'/(loggedIn)/backup/import': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				import: POSTAllowAdminOnly
+			}
+		},
+		'/(loggedIn)/backup/download/[filename]': { ...adminOnlyConfig },
 
 		// Dev Actions
 		// ----------------------------------------

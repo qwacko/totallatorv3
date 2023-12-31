@@ -26,13 +26,13 @@ export const actions = {
 		const form = await superValidate(request, pageAndFilterValidation);
 
 		if (!form.valid) {
-			throw redirect(302, form.data.currentPage);
+			redirect(302, form.data.currentPage);
 		}
 
 		const parsedFilter = journalFilterSchema.safeParse(JSON.parse(form.data.filter));
 
 		if (!parsedFilter.success) {
-			throw redirect(302, form.data.currentPage);
+			redirect(302, form.data.currentPage);
 		}
 
 		try {
@@ -43,16 +43,16 @@ export const actions = {
 			await tActions.journal.hardDeleteTransactions({ db, transactionIds });
 		} catch (e) {
 			logging.error('Error Updating Journal State : ', e);
-			throw redirect(
-				302,
-				form.data.prevPage ||
-					urlGenerator({
-						address: '/(loggedIn)/journals',
-						searchParamsValue: defaultJournalFilter()
-					}).url
-			);
+			redirect(
+            				302,
+            				form.data.prevPage ||
+            					urlGenerator({
+            						address: '/(loggedIn)/journals',
+            						searchParamsValue: defaultJournalFilter()
+            					}).url
+            			);
 		}
 
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

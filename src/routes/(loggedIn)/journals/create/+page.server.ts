@@ -59,7 +59,7 @@ export const actions = {
 
 		if (!parsedFilter.success) {
 			logging.error('Update Filter Is Not Valid', parsedFilter.error);
-			throw redirect(302, form.data.currentPage);
+			redirect(302, form.data.currentPage);
 		}
 
 		try {
@@ -68,6 +68,6 @@ export const actions = {
 			logging.info('Create Transaction Error', e);
 			return message(form, 'Error Creating Transaction');
 		}
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

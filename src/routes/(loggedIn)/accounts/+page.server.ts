@@ -26,7 +26,7 @@ export const load = async (data) => {
 	const redirectRequired = accounts.page >= accounts.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, accounts.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
 	const filteredItems = {
@@ -40,20 +40,24 @@ export const load = async (data) => {
 		}
 	} satisfies JournalFilterSchemaInputType;
 
-	const accountSummary = tActions.journal.summary({
+	const accountSummary = await tActions.journal.summary({
 		db,
 		filter: filteredItems
 	});
 
+	const filterText = await accountFilterToText({
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
+		db
+	})
+
+	const accountDropdown = await tActions.account.listForDropdown({ db })
+
 	return {
 		accounts,
 		searchParams: pageInfo.searchParams,
-		filterText: accountFilterToText({
-			filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
-			db
-		}),
+		filterText,
 		accountSummary,
-		accountDropdown: tActions.account.listForDropdown({ db })
+		accountDropdown
 	};
 };
 

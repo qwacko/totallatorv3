@@ -12,10 +12,10 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) throw redirect(302, '/budgets');
+	if (!pageInfo.current.params?.id) redirect(302, '/budgets');
 
 	const budget = await tActions.budget.getById(db, pageInfo.current.params?.id);
-	if (!budget) throw redirect(302, '/budgets');
+	if (!budget) redirect(302, '/budgets');
 	const form = await superValidate(
 		{ id: budget.id, title: budget.title, status: budget.status },
 		updateBudgetSchema
@@ -44,6 +44,6 @@ export const actions = {
 			logging.info('Update Budget Error', e);
 			return message(form, 'Error Updating Budget');
 		}
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

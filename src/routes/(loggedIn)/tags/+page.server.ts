@@ -20,20 +20,23 @@ export const load = async (data) => {
 	const redirectRequired = tags.page >= tags.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, tags.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const tagSummary = tActions.journal.summary({
+	const tagSummary = await tActions.journal.summary({
 		db,
 		filter: { ...defaultJournalFilter(), tag: pageInfo.searchParams }
 	});
 
+	const tagDropdowns = await tActions.tag.listForDropdown({ db })
+	const filterText = await tagFilterToText({ db, filter: pageInfo.searchParams || { page: 0, pageSize: 10 } })
+
 	return {
 		tags,
 		searchParams: pageInfo.searchParams,
-		filterText: tagFilterToText({ db, filter: pageInfo.searchParams || { page: 0, pageSize: 10 } }),
+		filterText,
 		tagSummary,
-		tagDropdowns: tActions.tag.listForDropdown({ db })
+		tagDropdowns
 	};
 };
 

@@ -1,6 +1,6 @@
 import type { JournalSummaryType } from '$lib/server/db/actions/journalActions';
 import type { getCurrencyFormatter } from '$lib/schema/userSchema';
-import type { ChartProps } from 'flowbite-svelte/dist/charts/Chart.svelte';
+import type { ChartProps } from 'flowbite-svelte/Chart.svelte';
 import type { SummaryItemDetailsType } from '$lib/schema/summaryCacheSchema';
 import type { popoverViewSetting } from '$lib/stores/popoverView';
 import { filterTrendData } from './FilterTrendData';
@@ -28,13 +28,13 @@ const filterData = ({
 	return config.dateRange === 'all'
 		? filterTrendData({ data, dates: generateYearMonthsBetween(earliestDataDate, latestDataDate) })
 		: config.dateRange === 'last12'
-		? filterTrendData({ data, dates: generateYearMonthsBeforeToday(12) })
-		: config.dateRange === 'toNow'
-		? filterTrendData({
-				data,
-				dates: generateYearMonthsBetween(earliestDataDate, new Date().toISOString().slice(0, 7))
-		  })
-		: data;
+			? filterTrendData({ data, dates: generateYearMonthsBeforeToday(12) })
+			: config.dateRange === 'toNow'
+				? filterTrendData({
+					data,
+					dates: generateYearMonthsBetween(earliestDataDate, new Date().toISOString().slice(0, 7))
+				})
+				: data;
 };
 
 export const generateTotalTrendConfig = ({
@@ -261,8 +261,8 @@ export const generatePIChartConfig = ({
 				? data.map((item) => ({ ...item, sum: item.sum }))
 				: data.map((item) => ({ ...item, sum: item.sumWithoutTransfer }))
 			: config.includeTransfers
-			? data.map((item) => ({ ...item, sum: item.sum12Months }))
-			: data.map((item) => ({ ...item, sum: item.sum12MonthsWithoutTransfer }));
+				? data.map((item) => ({ ...item, sum: item.sum12Months }))
+				: data.map((item) => ({ ...item, sum: item.sum12MonthsWithoutTransfer }));
 
 	const sortedData = usedData
 		.sort((a, b) => b.sum - a.sum)

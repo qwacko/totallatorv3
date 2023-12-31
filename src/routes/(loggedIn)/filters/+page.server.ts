@@ -23,12 +23,15 @@ export const load = async (data) => {
 	const redirectRequired = filters.page >= filters.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, filters.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+
 	}
+
+	const filterText = await reusableFilterToText(current.searchParams || {})
 
 	return {
 		filters,
-		filterText: reusableFilterToText(current.searchParams || {}),
+		filterText,
 		searchParams: current.searchParams,
 		streamed: {
 			filters: tActions.reusableFitler.updateAndList({

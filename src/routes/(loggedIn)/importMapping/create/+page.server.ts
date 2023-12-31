@@ -14,13 +14,13 @@ import { fail, redirect } from '@sveltejs/kit';
 import { setError, superValidate } from 'sveltekit-superforms/client';
 import { z } from 'zod';
 
-export const load = (data) => {
+export const load = async (data) => {
 	authGuard(data);
 	serverPageInfo(data.route.id, data);
 	bufferingHelper(data);
 
-	const form = superValidate({ title: '', configuration: '' }, importMappingCreateFormSchema);
-	const detailForm = superValidate({}, importMappingDetailSchema);
+	const form = await superValidate({ title: '', configuration: '' }, importMappingCreateFormSchema);
+	const detailForm = await superValidate({}, importMappingDetailSchema);
 
 	return { form, detailForm, dropdowns: dropdownItems({ db }) };
 };
@@ -64,9 +64,9 @@ export const actions = {
 		}
 
 		if (form.data.prevPage) {
-			throw redirect(302, form.data.prevPage);
+			redirect(302, form.data.prevPage);
 		}
-		throw redirect(
+		redirect(
 			302,
 			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
 		);

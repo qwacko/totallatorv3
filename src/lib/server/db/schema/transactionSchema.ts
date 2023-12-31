@@ -9,7 +9,6 @@ import {
 	importTypeEnum
 } from '../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../schema/reusableFilterSchema';
-import type { ZodError } from 'zod';
 
 const timestampColumns = {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
@@ -324,7 +323,7 @@ export const importItemDetail = sqliteTable(
 		>(),
 		errorInfo: text('error_info', { mode: 'json' }).$type<
 			| {
-					error?: Record<string, unknown> | ZodError<unknown>;
+					error?: Record<string, unknown>;
 					errors?: string[];
 			  }
 			| undefined

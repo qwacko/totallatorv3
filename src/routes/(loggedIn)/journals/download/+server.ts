@@ -27,7 +27,7 @@ export const GET = async (data) => {
 					transactionIds.map((currentTransactionId) =>
 						journalData.data.find((item) => item.transactionId === currentTransactionId)
 					)
-			  )
+				)
 			: journalData.data;
 
 	const preppedData = journalDataToUse.map((item, row) => {
@@ -47,7 +47,7 @@ export const GET = async (data) => {
 				billTitle: item.billTitle || undefined,
 				budgetTitle: item.budgetTitle || undefined,
 				categoryTitle: item.categoryTitle || undefined,
-				tagTitle: item.categoryTitle || undefined,
+				tagTitle: item.tagTitle || undefined,
 				complete: item.complete,
 				dataChecked: item.dataChecked,
 				reconciled: item.reconciled
@@ -77,7 +77,7 @@ export const GET = async (data) => {
 	return new Response(csvData, {
 		headers: {
 			'Content-Type': 'text/csv',
-			'Content-Disposition': `attachement; filename=${dateText}-journalExport.csv`
+			'Content-Disposition': `attachment; filename=${dateText}-journalExport.csv`
 		}
 	});
 };

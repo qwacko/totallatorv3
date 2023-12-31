@@ -15,7 +15,7 @@ export const load = async (data) => {
 
 	const filter = pageInfo.current.searchParams;
 
-	if (!filter) throw redirect(302, '/accounts');
+	if (!filter) redirect(302, '/accounts');
 
 	const commonData = await tActions.account.listCommonProperties({
 		db,
@@ -23,10 +23,10 @@ export const load = async (data) => {
 	});
 	const accounts = await tActions.account.list({ db, filter });
 
-	if (!commonData) throw redirect(302, '/accounts');
+	if (!commonData) redirect(302, '/accounts');
 
 	const form = await superValidate(commonData, updateAccountSchema);
-	const filterText = accountFilterToText({ filter, db });
+	const filterText = await accountFilterToText({ filter, db });
 
 	const titles = accounts.data.map((item) => item.title);
 
@@ -47,13 +47,13 @@ export const actions = {
 	default: async ({ request }) => {
 		const form = await superValidate(request, submitValidation);
 		if (!form.valid) {
-			throw redirect(302, form.data.currentPage);
+			redirect(302, form.data.currentPage);
 		}
 
 		const parsedFilter = accountFilterSchema.safeParse(JSON.parse(form.data.filter));
 
 		if (!parsedFilter.success) {
-			throw redirect(302, form.data.currentPage);
+			redirect(302, form.data.currentPage);
 		}
 
 		try {
@@ -61,16 +61,16 @@ export const actions = {
 			await tActions.account.updateMany({ db, filter: parsedFilter.data, data: restData });
 		} catch (e) {
 			logging.error('Error Updating Journal State : ', e);
-			throw redirect(
+			redirect(
 				302,
 				form.data.prevPage ||
-					urlGenerator({
-						address: '/(loggedIn)/accounts',
-						searchParamsValue: {}
-					}).url
+				urlGenerator({
+					address: '/(loggedIn)/accounts',
+					searchParamsValue: {}
+				}).url
 			);
 		}
 
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

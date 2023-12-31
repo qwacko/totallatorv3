@@ -22,23 +22,27 @@ export const load = async (data) => {
 	const redirectRequired = labels.page >= labels.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, labels.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const labelSummary = tActions.journal.summary({
+	const labelSummary = await tActions.journal.summary({
 		db,
 		filter: { ...defaultJournalFilter(), label: pageInfo.searchParams }
 	});
 
+	const filterText = await labelFilterToText({
+		db,
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+	})
+
+	const labelDropdowns = await tActions.label.listForDropdown({ db })
+
 	return {
 		labels,
 		searchParams: pageInfo.searchParams,
-		filterText: labelFilterToText({
-			db,
-			filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
-		}),
+		filterText,
 		labelSummary,
-		labelDropdowns: tActions.label.listForDropdown({ db })
+		labelDropdowns
 	};
 };
 

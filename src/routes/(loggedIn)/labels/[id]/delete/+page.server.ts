@@ -10,10 +10,10 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) throw redirect(302, '/labels');
+	if (!pageInfo.current.params?.id) redirect(302, '/labels');
 
 	const label = await tActions.label.getById(db, pageInfo.current.params?.id);
-	if (!label) throw redirect(302, '/labels');
+	if (!label) redirect(302, '/labels');
 
 	return {
 		label
@@ -28,6 +28,6 @@ export const actions = {
 			logging.error('Delete Label Error', e);
 			return {};
 		}
-		throw redirect(302, '/labels');
+		redirect(302, '/labels');
 	}
 };

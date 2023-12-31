@@ -10,10 +10,10 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) throw redirect(302, '/categories');
+	if (!pageInfo.current.params?.id) redirect(302, '/categories');
 
 	const category = await tActions.category.getById(db, pageInfo.current.params?.id);
-	if (!category) throw redirect(302, '/categories');
+	if (!category) redirect(302, '/categories');
 
 	return {
 		category
@@ -28,6 +28,6 @@ export const actions = {
 			logging.error('Delete Category Error', e);
 			return {};
 		}
-		throw redirect(302, '/categories');
+		redirect(302, '/categories');
 	}
 };

@@ -10,10 +10,10 @@ export const load = async (data) => {
 	authGuard(data);
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) throw redirect(302, '/accounts');
+	if (!pageInfo.current.params?.id) redirect(302, '/accounts');
 
 	const account = await tActions.account.getById(db, pageInfo.current.params?.id);
-	if (!account) throw redirect(302, '/accounts');
+	if (!account) redirect(302, '/accounts');
 
 	return {
 		account
@@ -28,6 +28,6 @@ export const actions = {
 			logging.error('Delete Account Error', e);
 			return {};
 		}
-		throw redirect(302, '/accounts');
+		redirect(302, '/accounts');
 	}
 };

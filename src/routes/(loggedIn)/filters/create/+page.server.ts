@@ -111,6 +111,6 @@ export const actions = {
 			return setError(form, 'Reusable Filter Creation Error');
 		}
 
-		throw redirect(302, prevPage);
+		redirect(302, prevPage);
 	}
 };

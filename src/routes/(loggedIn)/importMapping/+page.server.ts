@@ -18,12 +18,14 @@ export const load = async (data) => {
 	const redirectRequired = importMappings.page >= importMappings.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, importMappings.pageCount - 1);
-		throw redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
+
+	const filterText = await importMappingFilterToText(current.searchParams || {});
 
 	return {
 		importMappings,
-		filterText: importMappingFilterToText(current.searchParams || {}),
+		filterText,
 		searchParams: current.searchParams
 	};
 };

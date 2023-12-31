@@ -10,19 +10,21 @@ export const load = async (data) => {
 	const { current: pageInfo } = serverPageInfo(data.route.id, data);
 
 	if (!pageInfo.params?.id) {
-		throw redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
+		redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
 	}
 
 	const info = await tActions.import.get({ id: pageInfo.params.id, db });
 
 	if (!info.importInfo) {
-		throw redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
+		redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
 	}
+
+	const canDelete = await tActions.import.canDelete({ db, id: pageInfo.params.id })
 
 	return {
 		id: pageInfo.params.id,
 		info,
-		canDelete: tActions.import.canDelete({ db, id: pageInfo.params.id }),
+		canDelete,
 		streaming: {
 			data: tActions.import.getDetail({ db, id: pageInfo.params.id })
 		}

@@ -29,6 +29,6 @@ export const actions = {
 			logging.info('Create Tag Error', e);
 			return message(form, 'Error Creating Tag, Possibly Already Exists');
 		}
-		throw redirect(302, form.data.prevPage);
+		redirect(302, form.data.prevPage);
 	}
 };

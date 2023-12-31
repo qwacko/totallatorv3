@@ -60,6 +60,6 @@ export const actions = {
 			return message(form, 'Error Updating Password', { status: 400 });
 		}
 
-		throw redirect(302, `/users/${targetUserId}`);
+		redirect(302, `/users/${targetUserId}`);
 	}
 };

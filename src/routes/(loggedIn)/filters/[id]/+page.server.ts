@@ -22,19 +22,19 @@ export const load = async (data) => {
 	bufferingHelper(data);
 
 	if (!current.params || !current.searchParams) {
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
+        		);
 	}
 
 	const reusableFilter = await tActions.reusableFitler.getById({ db, id: current.params.id });
 
 	if (!reusableFilter) {
-		throw redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
-		);
+		redirect(
+        			302,
+        			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
+        		);
 	}
 
 	const change = current.searchParams?.change || reusableFilter.change;
@@ -131,6 +131,6 @@ export const actions = {
 			return setError(form, 'Reusable Filter Update Error');
 		}
 
-		throw redirect(302, prevPage);
+		redirect(302, prevPage);
 	}
 };

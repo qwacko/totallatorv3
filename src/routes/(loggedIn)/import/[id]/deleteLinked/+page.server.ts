@@ -28,10 +28,10 @@ export const actions = {
 		}
 
 		if (deleted) {
-			throw redirect(
-				302,
-				urlGenerator({ address: '/(loggedIn)/import/[id]', paramsValue: { id: params.id } }).url
-			);
+			redirect(
+            				302,
+            				urlGenerator({ address: '/(loggedIn)/import/[id]', paramsValue: { id: params.id } }).url
+            			);
 		}
 	}
 };
