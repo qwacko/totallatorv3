@@ -20,6 +20,7 @@ export function generateYearMonthsBetween(start: string, end: string): string[] 
 export function generateYearMonthsBeforeToday(numberMonths: number): string[] {
 	const endDate = new Date();
 	const startDate = new Date();
+	startDate.setDate(1); // set the date to the 1st to avoid overflow
 	startDate.setMonth(startDate.getMonth() - numberMonths + 1);
 
 	return generateYearMonthsBetween(

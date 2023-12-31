@@ -216,7 +216,7 @@ export const importActions = {
 							...updatedTime(),
 							status: 'error',
 							processedInfo: { source: row, processed: preprocessedData },
-							errorInfo: { error: validatedData.error },
+							errorInfo: { errors: validatedData.error.errors.map((e) => e.message) },
 							importId: id
 						})
 						.execute();
