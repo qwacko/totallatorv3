@@ -82,7 +82,7 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 			.update(importItemDetail)
 			.set({
 				status: 'importError',
-				errorInfo: { error: processedItem.error },
+				errorInfo: { errors: processedItem.error.errors.map((e) => e.message) },
 				...updatedTime()
 			})
 			.where(eq(importItemDetail.id, item.id))
@@ -165,7 +165,7 @@ export async function importTransaction({
 				.update(importItemDetail)
 				.set({
 					status: 'importError',
-					errorInfo: { error: processedCombinedTransaction.error },
+					errorInfo: { errors: processedCombinedTransaction.error.errors.map((e) => e.message) },
 					...updatedTime()
 				})
 				.where(eq(importItemDetail.id, item.id))
@@ -174,7 +174,11 @@ export async function importTransaction({
 	} else {
 		await trx
 			.update(importItemDetail)
-			.set({ status: 'importError', errorInfo: { error: processedItem.error }, ...updatedTime() })
+			.set({
+				status: 'importError',
+				errorInfo: { errors: processedItem.error.errors.map((e) => e.message) },
+				...updatedTime()
+			})
 			.where(eq(importItemDetail.id, item.id))
 			.execute();
 	}

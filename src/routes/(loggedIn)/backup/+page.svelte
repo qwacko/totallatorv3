@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import TablePagination from '$lib/components/TablePagination.svelte';
-	import { pageInfo } from '$lib/routes.js';
+	import { pageInfo, urlGenerator } from '$lib/routes.js';
 	import {
 		Badge,
 		Button,
@@ -21,12 +21,19 @@
 
 	export let data;
 
+	let backupName: undefined | string = undefined;
+
 	$: displayFiles = data.backupFiles;
 </script>
 
 <CustomHeader pageTitle="Backups" numPages={data.numPages} pageNumber={data.page} />
 
-<PageLayout title="Backups">
+<PageLayout title="Backups" size="xl">
+	<svelte:fragment slot="right">
+		<Button href={urlGenerator({ address: '/(loggedIn)/backup/import' }).url} outline color="green">
+			Import
+		</Button>
+	</svelte:fragment>
 	{#if data.numberOfBackups > 0}
 		<div class="flex flex-row justify-center">
 			<TablePagination
@@ -41,23 +48,27 @@
 			<TableHead>
 				<TableHeadCell>Actions</TableHeadCell>
 				<TableHeadCell>Backup Name</TableHeadCell>
+				<TableHeadCell>Created At</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each displayFiles as backup}
 					<TableBodyRow>
 						<TableBodyCell>
 							<div class="flex flex-row gap-2">
-								<form action="?/restore" method="post" use:enhance class="flex">
-									<input type="hidden" name="backupName" value={backup} />
-									<Button type="submit" outline color="green">Restore</Button>
-								</form>
-								<form action="?/delete" method="post" use:enhance class="flex">
-									<input type="hidden" name="backupName" value={backup} />
-									<Button class="delete-button" type="submit" outline color="red">Delete</Button>
-								</form>
+								<Button
+									href={urlGenerator({
+										address: '/(loggedIn)/backup/[filename]',
+										paramsValue: { filename: backup.filename }
+									}).url}
+									outline
+									color="blue"
+								>
+									View
+								</Button>
 							</div>
 						</TableBodyCell>
-						<TableBodyCell>{backup}</TableBodyCell>
+						<TableBodyCell>{backup.filename}</TableBodyCell>
+						<TableBodyCell>{backup.createdAt.toLocaleString()}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>
@@ -65,10 +76,19 @@
 	{:else}
 		<Badge color="blue" class="p-4">No Backups Present</Badge>
 	{/if}
-	<form action="?/backup" method="post" use:enhance>
-		<div class="flex flex-row gap-2">
-			<Input name="backupName" placeholder="Backup Name" class="flex flex-grow" />
+	<div class="flex flex-row gap-2">
+		<form action="?/backup" method="post" class="flex flex flex-row gap-2 flex-grow" use:enhance>
+			<Input
+				bind:value={backupName}
+				name="backupName"
+				placeholder="Backup Name"
+				class="flex flex-grow"
+			/>
 			<Button type="submit" class="whitespace-nowrap">Create New Backup</Button>
-		</div>
-	</form>
+		</form>
+		<form action="?/backupUncompressed" class="flex flex flex-row gap-2" method="post" use:enhance>
+			<input type="hidden" name="backupName" value={backupName} />
+			<Button type="submit" class="whitespace-nowrap">Create New Uncompressed Backup</Button>
+		</form>
+	</div>
 </PageLayout>

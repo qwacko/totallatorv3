@@ -1,4 +1,5 @@
 import { accountActions } from './accountActions';
+import { backupActions } from './backupActions';
 import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
@@ -19,5 +20,6 @@ export const tActions = {
 	journal: journalActions,
 	import: importActions,
 	reusableFitler: reusableFilterActions,
-	importMapping: importMappingActions
+	importMapping: importMappingActions,
+	backup: backupActions
 };
