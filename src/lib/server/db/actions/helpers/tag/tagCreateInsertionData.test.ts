@@ -25,7 +25,7 @@ describe('tagCreateInsertionData', () => {
 			group: '',
 			single: 'test',
 			id,
-			updatedAt: now.toISOString(),
+			updatedAt: now,
 			active: true,
 			disabled: false,
 			allowUpdate: true
@@ -55,7 +55,7 @@ describe('tagCreateInsertionData', () => {
 			id,
 			group: '',
 			single: 'test',
-			updatedAt: now.toISOString(),
+			updatedAt: now,
 			active: false,
 			disabled: true,
 			allowUpdate: true
@@ -85,7 +85,7 @@ describe('tagCreateInsertionData', () => {
 			id,
 			group: 'test1',
 			single: 'test2',
-			updatedAt: now.toISOString(),
+			updatedAt: now,
 			active: true,
 			disabled: false,
 			allowUpdate: true

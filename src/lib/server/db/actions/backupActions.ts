@@ -21,13 +21,14 @@ import {
 	importTable,
 	importMapping,
 	reusableFilter
-} from '../schema';
+} from '../postgres/schema';
 import fs from 'fs/promises';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
 
 import { serverEnv } from '$lib/server/serverEnv';
 import superjson from 'superjson';
 import zlib from 'zlib';
+import { backupSchemaMigrate_01to02 } from '$lib/server/backups/backupSchemaMigrate_01to02';
 
 async function writeToMsgPackFile(data: unknown, filePath: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -70,7 +71,7 @@ export const backupActions = {
 		}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 1,
+			version: 2,
 			data: {
 				user: await db.select().from(user).execute(),
 				session: await db.select().from(session).execute(),
@@ -157,11 +158,14 @@ export const backupActions = {
 
 		const backupDataParsed = combinedBackupSchema.parse(backupData);
 
-		if (backupDataParsed.version !== 1) {
-			throw new Error('Backup Version Mismatch');
-		}
+		const backupDataParsed02 =
+			backupDataParsed.version === 2
+				? backupDataParsed
+				: backupSchemaMigrate_01to02(backupDataParsed);
 
-		return backupDataParsed;
+		console.log('Backup Data Parsed and Updated');
+
+		return backupDataParsed02;
 	},
 	deleteBackup: async (backupName: string) => {
 		const targetDir = serverEnv.BACKUP_DIR;

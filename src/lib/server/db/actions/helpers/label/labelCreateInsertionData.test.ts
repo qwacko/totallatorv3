@@ -22,7 +22,7 @@ describe('labelCreateInsertionData', () => {
 		const expected = {
 			...data,
 			id,
-			updatedAt: now.toISOString(),
+			updatedAt: now,
 			active: true,
 			disabled: false,
 			allowUpdate: true
@@ -50,7 +50,7 @@ describe('labelCreateInsertionData', () => {
 		const expected = {
 			...data,
 			id,
-			updatedAt: now.toISOString(),
+			updatedAt: now,
 			active: false,
 			disabled: true,
 			allowUpdate: true

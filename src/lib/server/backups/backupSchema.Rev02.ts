@@ -51,8 +51,8 @@ const timestampColumns = {
 	updatedAt: z.date()
 };
 
-export const backupSchemaRev01 = z.object({
-	version: z.literal(1),
+export const backupSchemaRev02 = z.object({
+	version: z.literal(2),
 	information: z.object({
 		createdAt: z.date(),
 		title: z.string(),
@@ -89,8 +89,8 @@ export const backupSchemaRev01 = z.object({
 			z.object({
 				id: z.string(),
 				userId: z.string(),
-				activeExpires: z.bigint(),
-				idleExpires: z.bigint()
+				activeExpires: z.number(),
+				idleExpires: z.number()
 			})
 		),
 		key: z.array(
@@ -286,4 +286,4 @@ export const backupSchemaRev01 = z.object({
 	})
 });
 
-export type BackupSchemaRev01Type = z.infer<typeof backupSchemaRev01>;
+export type BackupSchemaRev02Type = z.infer<typeof backupSchemaRev02>;

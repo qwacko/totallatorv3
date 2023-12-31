@@ -1,7 +1,18 @@
 import { accountTypeEnum } from '../../../../schema/accountTypeSchema';
 import { statusEnum } from '../../../../schema/statusSchema';
-import { relations, } from 'drizzle-orm';
-import { pgTable, text, integer, unique, index, boolean, timestamp, json, varchar, customType } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+import {
+	pgTable,
+	text,
+	integer,
+	unique,
+	index,
+	boolean,
+	timestamp,
+	json,
+	varchar,
+	customType
+} from 'drizzle-orm/pg-core';
 import {
 	importDetailStatusEnum,
 	importSourceEnum,
@@ -9,7 +20,6 @@ import {
 	importTypeEnum
 } from '../../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
-import type { ZodError } from 'zod';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -19,13 +29,13 @@ const moneyType = customType<{ data: number }>({
 		return Number(value);
 	},
 	toDriver(value) {
-		return value.toFixed(4)
+		return value.toFixed(4);
 	}
 });
 
 const timestampColumns = {
 	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at', { precision: 6, withTimezone: true, mode: "string" }).notNull()
+	updatedAt: timestamp('updated_at', { precision: 6, withTimezone: true }).notNull()
 };
 
 const importColumns = (identifier?: string) => ({
@@ -44,33 +54,39 @@ const idColumn = {
 	id: text('id').primaryKey().notNull()
 };
 
-export const account = pgTable('account', {
-	...idColumn,
-	...importColumns('account'),
+export const account = pgTable(
+	'account',
+	{
+		...idColumn,
+		...importColumns('account'),
 
-	title: text('title').notNull(),
-	type: text('type', { enum: accountTypeEnum }).notNull().default('expense'),
+		title: text('title').notNull(),
+		type: text('type', { enum: accountTypeEnum }).notNull().default('expense'),
 
-	isCash: boolean('is_cash').notNull().default(false),
-	isNetWorth: boolean('is_net_worth').notNull().default(false),
-	accountGroup: text('account_group').notNull(),
-	accountGroup2: text('account_group_2').notNull(),
-	accountGroup3: text('account_group_3').notNull(),
-	accountGroupCombined: text('account_group_combined').notNull(),
-	accountTitleCombined: text('account_title_combined').notNull().unique(),
-	startDate: varchar('start_date', { length: 10 }),
-	endDate: varchar('end_date', { length: 10 }),
-	summaryId: text('summary_id'),
-	...statusColumns,
-	...timestampColumns
-}, (t) => ({
-	title: index('account_title_idx').on(t.title),
-	type: index('account_type_idx').on(t.type),
-	isCash: index('account_is_cash_idx').on(t.isCash),
-	isNetWorth: index('account_is_net_worth_idx').on(t.isNetWorth),
-	accountGroupCombined: index('account_account_group_combined_idx').on(t.accountGroupCombined),
-	accountGroupTitleCombined: index('account_account_title_combined_idx').on(t.accountTitleCombined),
-}));
+		isCash: boolean('is_cash').notNull().default(false),
+		isNetWorth: boolean('is_net_worth').notNull().default(false),
+		accountGroup: text('account_group').notNull(),
+		accountGroup2: text('account_group_2').notNull(),
+		accountGroup3: text('account_group_3').notNull(),
+		accountGroupCombined: text('account_group_combined').notNull(),
+		accountTitleCombined: text('account_title_combined').notNull().unique(),
+		startDate: varchar('start_date', { length: 10 }),
+		endDate: varchar('end_date', { length: 10 }),
+		summaryId: text('summary_id'),
+		...statusColumns,
+		...timestampColumns
+	},
+	(t) => ({
+		title: index('account_title_idx').on(t.title),
+		type: index('account_type_idx').on(t.type),
+		isCash: index('account_is_cash_idx').on(t.isCash),
+		isNetWorth: index('account_is_net_worth_idx').on(t.isNetWorth),
+		accountGroupCombined: index('account_account_group_combined_idx').on(t.accountGroupCombined),
+		accountGroupTitleCombined: index('account_account_title_combined_idx').on(
+			t.accountTitleCombined
+		)
+	})
+);
 
 export const accountRelations = relations(account, ({ many, one }) => ({
 	journals: many(journalEntry),
@@ -88,21 +104,25 @@ export const accountRelations = relations(account, ({ many, one }) => ({
 	})
 }));
 
-export const tag = pgTable('tag', {
-	...idColumn,
-	...importColumns('tag'),
-	title: text('title').notNull().unique(),
-	group: text('group').notNull(),
-	single: text('single').notNull(),
-	summaryId: text('summary_id'),
-	...statusColumns,
-	...timestampColumns
-}, (t) => ({
-	title: index('tag_title_idx').on(t.title),
-	group: index('tag_group_idx').on(t.group),
-	single: index('tag_single_idx').on(t.single),
-	summaryId: index('tag_summary_id_idx').on(t.summaryId)
-}));
+export const tag = pgTable(
+	'tag',
+	{
+		...idColumn,
+		...importColumns('tag'),
+		title: text('title').notNull().unique(),
+		group: text('group').notNull(),
+		single: text('single').notNull(),
+		summaryId: text('summary_id'),
+		...statusColumns,
+		...timestampColumns
+	},
+	(t) => ({
+		title: index('tag_title_idx').on(t.title),
+		group: index('tag_group_idx').on(t.group),
+		single: index('tag_single_idx').on(t.single),
+		summaryId: index('tag_summary_id_idx').on(t.summaryId)
+	})
+);
 
 export const tagRelations = relations(tag, ({ many, one }) => ({
 	journals: many(journalEntry),
@@ -120,21 +140,25 @@ export const tagRelations = relations(tag, ({ many, one }) => ({
 	})
 }));
 
-export const category = pgTable('category', {
-	...idColumn,
-	...importColumns('category'),
-	title: text('title').notNull().unique(),
-	group: text('group').notNull(),
-	single: text('single').notNull(),
-	summaryId: text('summary_id'),
-	...statusColumns,
-	...timestampColumns
-}, (t) => ({
-	title: index('category_title_idx').on(t.title),
-	group: index('category_group_idx').on(t.group),
-	single: index('category_single_idx').on(t.single),
-	summaryId: index('category_summary_id_idx').on(t.summaryId)
-}));
+export const category = pgTable(
+	'category',
+	{
+		...idColumn,
+		...importColumns('category'),
+		title: text('title').notNull().unique(),
+		group: text('group').notNull(),
+		single: text('single').notNull(),
+		summaryId: text('summary_id'),
+		...statusColumns,
+		...timestampColumns
+	},
+	(t) => ({
+		title: index('category_title_idx').on(t.title),
+		group: index('category_group_idx').on(t.group),
+		single: index('category_single_idx').on(t.single),
+		summaryId: index('category_summary_id_idx').on(t.summaryId)
+	})
+);
 
 export const categoryRelations = relations(category, ({ many, one }) => ({
 	journals: many(journalEntry),
@@ -152,17 +176,21 @@ export const categoryRelations = relations(category, ({ many, one }) => ({
 	})
 }));
 
-export const bill = pgTable('bill', {
-	...idColumn,
-	...importColumns('bill'),
-	title: text('title').unique().notNull(),
-	summaryId: text('summary_id'),
-	...statusColumns,
-	...timestampColumns
-}, (t) => ({
-	title: index('bill_title_idx').on(t.title),
-	summaryId: index('bill_summary_id_idx').on(t.summaryId)
-}));
+export const bill = pgTable(
+	'bill',
+	{
+		...idColumn,
+		...importColumns('bill'),
+		title: text('title').unique().notNull(),
+		summaryId: text('summary_id'),
+		...statusColumns,
+		...timestampColumns
+	},
+	(t) => ({
+		title: index('bill_title_idx').on(t.title),
+		summaryId: index('bill_summary_id_idx').on(t.summaryId)
+	})
+);
 
 export const billRelations = relations(bill, ({ many, one }) => ({
 	journals: many(journalEntry),
@@ -180,17 +208,21 @@ export const billRelations = relations(bill, ({ many, one }) => ({
 	})
 }));
 
-export const budget = pgTable('budget', {
-	...idColumn,
-	...importColumns('budget'),
-	title: text('title').unique().notNull(),
-	summaryId: text('summary_id'),
-	...statusColumns,
-	...timestampColumns
-}, (t) => ({
-	title: index('budget_title_idx').on(t.title),
-	summaryId: index('budget_summary_id_idx').on(t.summaryId)
-}));
+export const budget = pgTable(
+	'budget',
+	{
+		...idColumn,
+		...importColumns('budget'),
+		title: text('title').unique().notNull(),
+		summaryId: text('summary_id'),
+		...statusColumns,
+		...timestampColumns
+	},
+	(t) => ({
+		title: index('budget_title_idx').on(t.title),
+		summaryId: index('budget_summary_id_idx').on(t.summaryId)
+	})
+);
 
 export const budgetRelations = relations(budget, ({ many, one }) => ({
 	journals: many(journalEntry),
@@ -290,34 +322,38 @@ export const transactionRelations = relations(transaction, ({ many }) => ({
 	journals: many(journalEntry)
 }));
 
-export const journalEntry = pgTable('journal_entry', {
-	...idColumn,
-	...importColumns(),
-	uniqueId: text('unique_id'),
-	amount: moneyType('amount').notNull().default(0),
-	transactionId: text('transaction_id').notNull(),
-	...journalSharedColumns,
-	...timestampColumns
-}, (t) => ({
-	createdAt: index('journalEntry_created_at_idx').on(t.createdAt),
-	transactionId: index('journalEntry_transaction_id_idx').on(t.transactionId),
-	dateAmount: index('journalEntry_date_amount_idx').on(t.date, t.amount),
-	date: index('journalEntry_date_idx').on(t.date),
-	dateText: index('journalEntry_date_text_idx').on(t.dateText),
-	description: index('journalEntry_description_idx').on(t.description),
-	transfer: index('journalEntry_transfer_idx').on(t.transfer),
-	complete: index('journalEntry_complete_idx').on(t.complete),
-	reconciled: index('journalEntry_reconciled_idx').on(t.reconciled),
-	dataChecked: index('journalEntry_data_checked_idx').on(t.dataChecked),
-	accountId: index('journalEntry_account_id_idx').on(t.accountId),
-	billId: index('journalEntry_bill_id_idx').on(t.billId),
-	budgetId: index('journalEntry_budget_id_idx').on(t.budgetId),
-	categoryId: index('journalEntry_category_id_idx').on(t.categoryId),
-	tagId: index('journalEntry_tag_id_idx').on(t.tagId),
-	importId: index('journalEntry_import_id_idx').on(t.importId),
-	importDetailId: index('journalEntry_import_detail_id_idx').on(t.importDetailId),
-	yearMonth: index('journalEntry_year_month_idx').on(t.yearMonth),
-}));
+export const journalEntry = pgTable(
+	'journal_entry',
+	{
+		...idColumn,
+		...importColumns(),
+		uniqueId: text('unique_id'),
+		amount: moneyType('amount').notNull().default(0),
+		transactionId: text('transaction_id').notNull(),
+		...journalSharedColumns,
+		...timestampColumns
+	},
+	(t) => ({
+		createdAt: index('journalEntry_created_at_idx').on(t.createdAt),
+		transactionId: index('journalEntry_transaction_id_idx').on(t.transactionId),
+		dateAmount: index('journalEntry_date_amount_idx').on(t.date, t.amount),
+		date: index('journalEntry_date_idx').on(t.date),
+		dateText: index('journalEntry_date_text_idx').on(t.dateText),
+		description: index('journalEntry_description_idx').on(t.description),
+		transfer: index('journalEntry_transfer_idx').on(t.transfer),
+		complete: index('journalEntry_complete_idx').on(t.complete),
+		reconciled: index('journalEntry_reconciled_idx').on(t.reconciled),
+		dataChecked: index('journalEntry_data_checked_idx').on(t.dataChecked),
+		accountId: index('journalEntry_account_id_idx').on(t.accountId),
+		billId: index('journalEntry_bill_id_idx').on(t.billId),
+		budgetId: index('journalEntry_budget_id_idx').on(t.budgetId),
+		categoryId: index('journalEntry_category_id_idx').on(t.categoryId),
+		tagId: index('journalEntry_tag_id_idx').on(t.tagId),
+		importId: index('journalEntry_import_id_idx').on(t.importId),
+		importDetailId: index('journalEntry_import_detail_id_idx').on(t.importDetailId),
+		yearMonth: index('journalEntry_year_month_idx').on(t.yearMonth)
+	})
+);
 
 export const journalEntryRelations = relations(journalEntry, ({ one, many }) => ({
 	transaction: one(transaction, {
@@ -368,17 +404,17 @@ export const importItemDetail = pgTable(
 		importInfo: json('import_info'),
 		processedInfo: json('processed_info').$type<
 			| {
-				dataToUse?: Record<string, unknown>;
-				source?: Record<string, unknown>;
-				processed?: Record<string, unknown>;
-			}
+					dataToUse?: Record<string, unknown>;
+					source?: Record<string, unknown>;
+					processed?: Record<string, unknown>;
+			  }
 			| undefined
 		>(),
 		errorInfo: json('error_info').$type<
 			| {
-				error?: Record<string, unknown> | ZodError<unknown>;
-				errors?: string[];
-			}
+					error?: Record<string, unknown>;
+					errors?: string[];
+			  }
 			| undefined
 		>(),
 		...timestampColumns
@@ -467,21 +503,27 @@ export const importTableRelations = relations(importTable, ({ many, one }) => ({
 	})
 }));
 
-export const summaryTable = pgTable('summary', {
-	...idColumn,
-	...timestampColumns,
-	type: text('type', { enum: ['account', 'bill', 'budget', 'category', 'tag', 'label'] }).notNull(),
-	needsUpdate: boolean('needs_update').notNull().default(true),
-	relationId: text('relation_id').notNull(),
-	sum: moneyType('sum').default(0),
-	count: moneyType('count').default(0),
-	firstDate: timestamp('first_date'),
-	lastDate: timestamp('last_date')
-}, (t) => ({
-	typeIdx: index('summary_type_idx').on(t.type),
-	relationIdx: index('summary_relation_idx').on(t.relationId),
-	needsUpdateIdx: index('summary_needs_update_idx').on(t.needsUpdate),
-}));
+export const summaryTable = pgTable(
+	'summary',
+	{
+		...idColumn,
+		...timestampColumns,
+		type: text('type', {
+			enum: ['account', 'bill', 'budget', 'category', 'tag', 'label']
+		}).notNull(),
+		needsUpdate: boolean('needs_update').notNull().default(true),
+		relationId: text('relation_id').notNull(),
+		sum: moneyType('sum').default(0),
+		count: moneyType('count').default(0),
+		firstDate: timestamp('first_date'),
+		lastDate: timestamp('last_date')
+	},
+	(t) => ({
+		typeIdx: index('summary_type_idx').on(t.type),
+		relationIdx: index('summary_relation_idx').on(t.relationId),
+		needsUpdateIdx: index('summary_needs_update_idx').on(t.needsUpdate)
+	})
+);
 
 export const summaryTableRelations = relations(summaryTable, ({ one }) => ({
 	account: one(account, {
@@ -510,36 +552,38 @@ export const summaryTableRelations = relations(summaryTable, ({ one }) => ({
 	})
 }));
 
-export const reusableFilter = pgTable('filter', {
-	...idColumn,
-	...timestampColumns,
-	title: text('title').notNull(),
-	group: text('group'),
-	journalCount: integer('journal_count').notNull().default(0),
-	canApply: boolean('can_apply').notNull().default(false),
-	needsUpdate: boolean('needs_update').notNull().default(true),
-	applyAutomatically: boolean('apply_automatically').notNull().default(false),
-	applyFollowingImport: boolean('apply_following_import')
-		.notNull()
-		.default(false),
-	listed: boolean('listed').notNull().default(true),
-	modificationType: text('modification_type', { enum: reusableFilterModifcationType }).default(
-		'replace'
-	),
-	filter: text('filter').notNull(),
-	filterText: text('filter_text').notNull(),
-	change: text('change'),
-	changeText: text('change_text')
-}, (t) => ({
-	titleIdx: index('filter_title_idx').on(t.title),
-	groupIdx: index('filter_group_idx').on(t.group),
-	canApplyIdx: index('filter_can_apply_idx').on(t.canApply),
-	needsUpdateIdx: index('filter_needs_update_idx').on(t.needsUpdate),
-	applyAutomaticallyIdx: index('filter_apply_automatically_idx').on(t.applyAutomatically),
-	applyFollowingImportIdx: index('filter_apply_following_import_idx').on(t.applyFollowingImport),
-	listedIdx: index('filter_listed_idx').on(t.listed),
-	modificationTypeIdx: index('filter_modification_type_idx').on(t.modificationType),
-}));
+export const reusableFilter = pgTable(
+	'filter',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title').notNull(),
+		group: text('group'),
+		journalCount: integer('journal_count').notNull().default(0),
+		canApply: boolean('can_apply').notNull().default(false),
+		needsUpdate: boolean('needs_update').notNull().default(true),
+		applyAutomatically: boolean('apply_automatically').notNull().default(false),
+		applyFollowingImport: boolean('apply_following_import').notNull().default(false),
+		listed: boolean('listed').notNull().default(true),
+		modificationType: text('modification_type', { enum: reusableFilterModifcationType }).default(
+			'replace'
+		),
+		filter: text('filter').notNull(),
+		filterText: text('filter_text').notNull(),
+		change: text('change'),
+		changeText: text('change_text')
+	},
+	(t) => ({
+		titleIdx: index('filter_title_idx').on(t.title),
+		groupIdx: index('filter_group_idx').on(t.group),
+		canApplyIdx: index('filter_can_apply_idx').on(t.canApply),
+		needsUpdateIdx: index('filter_needs_update_idx').on(t.needsUpdate),
+		applyAutomaticallyIdx: index('filter_apply_automatically_idx').on(t.applyAutomatically),
+		applyFollowingImportIdx: index('filter_apply_following_import_idx').on(t.applyFollowingImport),
+		listedIdx: index('filter_listed_idx').on(t.listed),
+		modificationTypeIdx: index('filter_modification_type_idx').on(t.modificationType)
+	})
+);
 
 export const importMapping = pgTable('import_mapping', {
 	...idColumn,

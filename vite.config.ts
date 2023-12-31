@@ -57,7 +57,8 @@ export default defineConfig(({ mode }) => {
 			include: ['src/**/*.{test,spec}.{js,ts}'],
 			maxConcurrency: 1,
 			maxWorkers: 1,
-			testTimeout: 1000
+			testTimeout: 1000,
+			poolOptions: { threads: { minThreads: 1, maxThreads: 1 } }
 		}
 	};
 });
