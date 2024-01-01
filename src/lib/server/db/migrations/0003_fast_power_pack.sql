@@ -1,1 +1,0 @@
-DROP INDEX IF EXISTS `account_title_unique`;

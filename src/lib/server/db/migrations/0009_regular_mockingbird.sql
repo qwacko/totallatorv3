@@ -1,1 +1,0 @@
-DROP TABLE `journals_to_journals`;
