@@ -33,6 +33,7 @@ export const actions = {
 			await tActions.backup.getBackupDataStrutured({ filename: backupFileName });
 		} catch (e) {
 			logging.error(`Backup Import Failed. Incorrect Contents - ${backupFileName}`);
+			logging.error('Error', e);
 			await fs.unlink(targetFilename);
 			return;
 		}

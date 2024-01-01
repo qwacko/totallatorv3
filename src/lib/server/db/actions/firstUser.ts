@@ -1,22 +1,22 @@
-import { eq, sql } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { db } from '../db';
-import { user } from '../schema';
+import { user } from '../postgres/schema';
 
 export const dbUserCount = async () => {
-	const resultCount = db
-		.select({ count: sql<number>`count(*)` })
+	const resultCount = await db
+		.select({ count: count() })
 		.from(user)
-		.all();
+		.execute();
 
 	return resultCount[0].count;
 };
 
 export const dbAdminCount = async () => {
-	const resultCount = db
-		.select({ count: sql<number>`count(*)` })
+	const resultCount = await db
+		.select({ count: count() })
 		.from(user)
 		.where(eq(user.admin, true))
-		.all();
+		.execute();
 
 	return resultCount[0].count;
 };

@@ -1,5 +1,5 @@
 import type { DBType } from '../db';
-import { budget } from '../schema';
+import { budget } from '../postgres/schema';
 import { budgetCreateInsertionData } from '../actions/helpers/budget/budgetCreateInsertionData';
 
 export const seedTestBudgets = async (db: DBType) =>

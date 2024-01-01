@@ -34,6 +34,8 @@ const serverEnvValidation = z.object({
 	DEV_OVERRIDE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	CSRF_CHECK_ORIGIN: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
 	DATABASE_FILE: z.string().optional().default('./database.sqlite3'),
+	POSTGRES_URL: z.string(),
+	POSTGRES_TEST_URL: z.string().optional(),
 	DB_QUERY_LOG: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TESTING_DELAY: z.coerce.number().optional().default(0),
 	DISABLE_BUFFERING: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
@@ -55,5 +57,7 @@ export const serverEnv = serverEnvValidation.parse({
 	DB_QUERY_LOG: env.DB_QUERY_LOG,
 	TESTING_DELAY: env.TESTING_DELAY,
 	DISABLE_BUFFERING: env.DISABLE_BUFFERING,
-	TEST_ENV: env.TEST_ENV
+	TEST_ENV: env.TEST_ENV,
+	POSTGRES_URL: env.POSTGRES_URL,
+	POSTGRES_TEST_URL: env.POSTGRES_TEST_URL
 });

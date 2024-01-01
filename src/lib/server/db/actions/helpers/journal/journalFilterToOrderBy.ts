@@ -1,6 +1,6 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { asc, desc, SQL } from 'drizzle-orm';
-import { account, journalEntry } from '../../../schema';
+import { account, journalEntry } from '../../../postgres/schema';
 
 export const journalFilterToOrderBy = (filter: JournalFilterSchemaType): SQL<unknown>[] => {
 	const { orderBy } = filter;

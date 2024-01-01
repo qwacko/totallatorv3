@@ -1,30 +1,66 @@
-import { eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import type { DBType } from '../../../db';
-import { account, journalEntry } from '../../../schema';
+import { journalEntry } from '../../../postgres/schema';
 import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 
-const doTransferUpdate = async ({
+type GroupedJournals = {
+	id: string;
+	journals: {
+		id: string;
+		transfer: boolean;
+		account: {
+			type: AccountTypeEnumType;
+		};
+	}[];
+}[]
+
+const doManyTransferUpdate = async ({
 	db,
-	journals,
-	transactionId
+	groupedJournals
 }: {
 	db: DBType;
-	journals: { id: string; transfer: boolean; accountType: AccountTypeEnumType | null }[];
-	transactionId: string;
+	groupedJournals: GroupedJournals;
 }) => {
-	const isTransfer = journals.reduce(
-		(prev, current) =>
-			current.accountType === 'asset' || current.accountType === 'liability' ? prev : false,
-		true
-	);
+	let transferTransactions: string[] = [];
+	let nonTransferTransactions: string[] = [];
 
-	const journalTransferInfo = new Set(journals.map((item) => item.transfer));
+	groupedJournals.forEach(({ id: transactionId, journals }) => {
+		const isTransfer = journals.reduce(
+			(prev, current) =>
+				current.account.type === 'asset' || current.account.type === 'liability' ? prev : false,
+			true
+		);
 
-	if (journalTransferInfo.size > 1 || journalTransferInfo.has(!isTransfer)) {
+		if (isTransfer) {
+			transferTransactions.push(transactionId);
+		} else {
+			nonTransferTransactions.push(transactionId);
+		}
+	});
+
+	if (transferTransactions.length > 0) {
 		await db
 			.update(journalEntry)
-			.set({ transfer: isTransfer })
-			.where(eq(journalEntry.transactionId, transactionId))
+			.set({ transfer: true })
+			.where(
+				and(
+					inArray(journalEntry.transactionId, transferTransactions),
+					eq(journalEntry.transfer, false)
+				)
+			)
+			.execute();
+	}
+
+	if (nonTransferTransactions.length > 0) {
+		await db
+			.update(journalEntry)
+			.set({ transfer: false })
+			.where(
+				and(
+					inArray(journalEntry.transactionId, nonTransferTransactions),
+					eq(journalEntry.transfer, true)
+				)
+			)
 			.execute();
 	}
 };
@@ -36,14 +72,7 @@ export const updateTransactionTransfer = async ({
 	transactionId: string;
 	db: DBType;
 }) => {
-	const journals = await db
-		.select({ id: journalEntry.id, transfer: journalEntry.transfer, accountType: account.type })
-		.from(journalEntry)
-		.leftJoin(account, eq(account.id, journalEntry.accountId))
-		.where(eq(journalEntry.transactionId, transactionId))
-		.execute();
-
-	await doTransferUpdate({ db, journals, transactionId });
+	await updateManyTransferInfo({ db, transactionIds: [transactionId] });
 };
 
 export const updateManyTransferInfo = async ({
@@ -53,27 +82,29 @@ export const updateManyTransferInfo = async ({
 	db: DBType;
 	transactionIds?: string[];
 }) => {
-	const journals = await db
-		.select({
-			id: journalEntry.id,
-			transfer: journalEntry.transfer,
-			accountType: account.type,
-			transactionId: journalEntry.transactionId
-		})
-		.from(journalEntry)
-		.leftJoin(account, eq(account.id, journalEntry.accountId))
-		.where(transactionIds ? inArray(journalEntry.transactionId, transactionIds) : undefined)
-		.execute();
+	const journals2 = await db.query.transaction.findMany({
+		where: (transaction, { inArray }) =>
+			transactionIds ? inArray(transaction.id, transactionIds) : undefined,
+		with: {
+			journals: {
+				with: {
+					account: {
+						columns: {
+							type: true
+						}
+					}
+				},
+				columns: {
+					id: true,
+					transfer: true,
+				}
+			}
+		}
+		,
+		columns: {
+			id: true
+		}
+	});
 
-	const returnedTransactionIds = [...new Set(journals.map((journal) => journal.transactionId))];
-
-	await Promise.all(
-		returnedTransactionIds.map(async (currentTransactionId) => {
-			const transJournals = journals.filter(
-				(item) => item.transactionId === currentTransactionId && item.accountType !== null
-			);
-
-			await doTransferUpdate({ db, journals: transJournals, transactionId: currentTransactionId });
-		})
-	);
+	await doManyTransferUpdate({ db, groupedJournals: journals2 });
 };

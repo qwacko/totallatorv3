@@ -1,5 +1,5 @@
 import type { DBType } from '../db';
-import { bill } from '../schema';
+import { bill } from '../postgres/schema';
 import { billCreateInsertionData } from '../actions/helpers/bill/billCreateInsertionData';
 
 export const seedTestBills = async (db: DBType) =>

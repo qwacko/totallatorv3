@@ -1,9 +1,14 @@
 import { categoryFilterToQuery, categoryFilterToText } from './categoryFilterToQuery';
-import { category } from '../../../schema';
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { QueryBuilder } from 'drizzle-orm/sqlite-core';
+import { category } from '../../../postgres/schema';
+import { describe, it, expect } from 'vitest';
+import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { and } from 'drizzle-orm';
-import { createTestDB, initialiseTestDB, tearDownTestDB } from '$lib/server/db/test/dbTest';
+import {
+	clearTestDB,
+	createTestWrapper,
+	getTestDB,
+	initialiseTestDB
+} from '$lib/server/db/test/dbTest';
 
 describe('categoryFilterToQuery', () => {
 	const qb = new QueryBuilder();
@@ -33,55 +38,55 @@ describe('categoryFilterToQuery', () => {
 			.toSQL();
 
 		//Id
-		expect(query.sql).toContain('"category"."id" = ?');
+		expect(query.sql).toContain('"category"."id" = $');
 		expect(query.params).toHaveProperty('0', 'id');
 
 		//Id Array
-		expect(query.sql).toContain('"category"."id" in (?, ?)');
+		expect(query.sql).toContain('"category"."id" in ($');
 		expect(query.params).toHaveProperty('1', 'idArray1');
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"category"."title" like ?');
+		expect(query.sql).toContain('"category"."title" like $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Group
-		expect(query.sql).toContain('"category"."group" ilike ?');
+		expect(query.sql).toContain('"category"."group" ilike $');
 		expect(query.params).toHaveProperty('4', '%group%');
 
 		//Single
-		expect(query.sql).toContain('"category"."single" ilike ?');
+		expect(query.sql).toContain('"category"."single" ilike $');
 		expect(query.params).toHaveProperty('5', '%single%');
 
 		//Status
-		expect(query.sql).toContain('"category"."status" = ?');
+		expect(query.sql).toContain('"category"."status" = $');
 		expect(query.params).toHaveProperty('6', 'active');
 
 		//Disabled
-		expect(query.sql).toContain('"category"."disabled" = ?');
-		expect(query.params).toHaveProperty('7', 0);
+		expect(query.sql).toContain('"category"."disabled" = $');
+		expect(query.params).toHaveProperty('7', false);
 
 		//Allow Update
-		expect(query.sql).toContain('"category"."allow_update" = ?');
-		expect(query.params).toHaveProperty('8', 1);
+		expect(query.sql).toContain('"category"."allow_update" = $');
+		expect(query.params).toHaveProperty('8', true);
 
 		//Active
-		expect(query.sql).toContain('"category"."active" = ?');
-		expect(query.params).toHaveProperty('9', 0);
+		expect(query.sql).toContain('"category"."active" = $');
+		expect(query.params).toHaveProperty('9', false);
 
 		//Import Id Array
-		expect(query.sql).toContain('"category"."import_id" in (?, ?)');
+		expect(query.sql).toContain('"category"."import_id" in ($');
 		expect(query.params).toHaveProperty('10', 'importId1');
 		expect(query.params).toHaveProperty('11', 'importId2');
 
 		//Import Detail Id Array
-		expect(query.sql).toContain('"category"."category_import_detail_id" in (?, ?)');
+		expect(query.sql).toContain('"category"."category_import_detail_id" in ($');
 		expect(query.params).toHaveProperty('12', 'importDetailId1');
 		expect(query.params).toHaveProperty('13', 'importDetailId2');
 
 		//Count Max
-		expect(query.sql).toContain('"summary"."count" <= ?');
-		expect(query.params).toHaveProperty('14', 10);
+		expect(query.sql).toContain('"summary"."count" <= $');
+		expect(query.params).toHaveProperty('14', '10.0000');
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
@@ -101,16 +106,16 @@ describe('categoryFilterToQuery', () => {
 			.toSQL();
 
 		//Disabled
-		expect(query.sql).toContain('"category"."disabled" = ?');
-		expect(query.params).toHaveProperty('0', 1);
+		expect(query.sql).toContain('"category"."disabled" = $');
+		expect(query.params).toHaveProperty('0', true);
 
 		//Allow Update
-		expect(query.sql).toContain('"category"."allow_update" = ?');
-		expect(query.params).toHaveProperty('1', 0);
+		expect(query.sql).toContain('"category"."allow_update" = $');
+		expect(query.params).toHaveProperty('1', false);
 
 		//Active
-		expect(query.sql).toContain('"category"."active" = ?');
-		expect(query.params).toHaveProperty('2', 1);
+		expect(query.sql).toContain('"category"."active" = $');
+		expect(query.params).toHaveProperty('2', true);
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
@@ -157,7 +162,7 @@ describe('categoryFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"summary"."count" <= ?');
+		expect(query.sql).not.toContain('"summary"."count" <= $');
 	});
 
 	it('Id Array is not used if the array is empty', () => {
@@ -174,7 +179,7 @@ describe('categoryFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"category"."id" in (?, ?)');
+		expect(query.sql).not.toContain('"category"."id" in ($');
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
@@ -191,7 +196,7 @@ describe('categoryFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"category"."import_id" in (?, ?)');
+		expect(query.sql).not.toContain('"category"."import_id" in ($');
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
@@ -208,7 +213,7 @@ describe('categoryFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"category"."category_import_detail_id" in (?, ?)');
+		expect(query.sql).not.toContain('"category"."category_import_detail_id" in ($');
 	});
 
 	it('Filtering for disabled items works correctly', () => {
@@ -225,23 +230,23 @@ describe('categoryFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).toContain('"category"."disabled" = ?');
-		expect(query.params).toHaveProperty('0', 1);
+		expect(query.sql).toContain('"category"."disabled" = $');
+		expect(query.params).toHaveProperty('0', true);
 	});
 });
 
 describe('Category Filter To Text', async () => {
-	const { db, sqliteDatabase, filename } = await createTestDB();
+	const db = await getTestDB();
 
-	beforeEach(async () => {
-		await initialiseTestDB({ db, categories: true });
+	const testIT = await createTestWrapper({
+		db: db.testDB,
+		beforeEach: async (db, id) => {
+			await clearTestDB(db);
+			await initialiseTestDB({ db, categories: true, id });
+		}
 	});
 
-	afterAll(async () => {
-		await tearDownTestDB({ sqliteDatabase, filename });
-	});
-
-	it('Filter Returns Useful Text', async () => {
+	testIT('Filter Returns Useful Text', async (db) => {
 		const returnValue = await categoryFilterToText({
 			db,
 			filter: {
@@ -267,7 +272,7 @@ describe('Category Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('7', 'Max Journal Count of 10');
 	});
 
-	it('Filter For Category Id Works Correctly', async () => {
+	testIT('Filter For Category Id Works Correctly', async (db) => {
 		const returnValue = await categoryFilterToText({
 			db,
 			filter: {
@@ -278,7 +283,7 @@ describe('Category Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('0', 'Is Bank:Interest');
 	});
 
-	it('Filter For Category Id Array Works Correctly (2 Values)', async () => {
+	testIT('Filter For Category Id Array Works Correctly (2 Values)', async (db) => {
 		const returnValue = await categoryFilterToText({
 			db,
 			filter: {
@@ -289,7 +294,7 @@ describe('Category Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('0', 'Is one of Bank:Fee, Bank:Interest');
 	});
 
-	it('Filter For Category Id Array Works Correctly (4 Values)', async () => {
+	testIT('Filter For Category Id Array Works Correctly (4 Values)', async (db) => {
 		const returnValue = await categoryFilterToText({
 			db,
 			filter: {
@@ -303,7 +308,7 @@ describe('Category Filter To Text', async () => {
 		);
 	});
 
-	it('Filter For Category Id Array Works Correctly (5 Values)', async () => {
+	testIT('Filter For Category Id Array Works Correctly (5 Values)', async (db) => {
 		const returnValue = await categoryFilterToText({
 			db,
 			filter: {
@@ -314,7 +319,7 @@ describe('Category Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('0', 'Is one of 5 values');
 	});
 
-	it('No filters returns expected text (Showing All)', async () => {
+	testIT('No filters returns expected text (Showing All)', async (db) => {
 		const returnValue = await categoryFilterToText({
 			db,
 			filter: {}
@@ -323,7 +328,7 @@ describe('Category Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('0', 'Showing All');
 	});
 
-	it('Prefixes Work Correctly', async () => {
+	testIT('Prefixes Work Correctly', async (db) => {
 		const returnValue = await categoryFilterToText({
 			db,
 			filter: {

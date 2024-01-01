@@ -1,6 +1,6 @@
 import type { BudgetFilterSchemaType } from '$lib/schema/budgetSchema';
 import type { DBType } from '../../../db';
-import { budget } from '../../../schema';
+import { budget } from '../../../postgres/schema';
 import { SQL, eq } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';

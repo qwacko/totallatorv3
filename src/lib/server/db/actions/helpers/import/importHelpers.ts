@@ -8,7 +8,7 @@ import {
 	label,
 	tag,
 	transaction
-} from '../../../schema';
+} from '../../../postgres/schema';
 import { updatedTime } from '../misc/updatedTime';
 import { eq } from 'drizzle-orm';
 import {

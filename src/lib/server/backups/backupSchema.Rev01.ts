@@ -285,3 +285,5 @@ export const backupSchemaRev01 = z.object({
 		)
 	})
 });
+
+export type BackupSchemaRev01Type = z.infer<typeof backupSchemaRev01>;

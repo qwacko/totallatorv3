@@ -22,9 +22,8 @@ import {
 	tag,
 	transaction,
 	labelsToJournals
-} from '../schema';
+} from '../postgres/schema';
 import { journalFilterToQuery } from './helpers/journal/journalFilterToQuery';
-
 import { updatedTime } from './helpers/misc/updatedTime';
 import { expandDate } from './helpers/journal/expandDate';
 import { accountActions } from './accountActions';
@@ -39,10 +38,13 @@ import {
 	getToFromAccountAmountData
 } from './helpers/misc/getCommonData';
 import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
-import { generateItemsForTransactionCreation } from './helpers/journal/generateItemsForTransactionCreation';
+import {
+	generateItemsForTransactionCreation,
+	getCachedData
+} from './helpers/journal/generateItemsForTransactionCreation';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
 import { journalList } from './helpers/journal/journalList';
-import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { nanoid } from 'nanoid';
 import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCombinedSchema';
@@ -122,7 +124,7 @@ export const journalActions = {
 			earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
 			latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
 			lastUpdated: sql`max(${journalEntry.updatedAt})`.mapWith(journalEntry.updatedAt)
-		} satisfies Record<string, SQL<unknown> | SQLiteColumn>;
+		} satisfies Record<string, SQL<unknown> | AnyPgColumn>;
 
 		const summaryQueryCore = db
 			.select(commonSummary)
@@ -235,11 +237,11 @@ export const journalActions = {
 					Number
 				),
 				positiveSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 AND ${journalEntry.transfer} = 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
 						Number
 					),
 				negativeSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 AND ${journalEntry.transfer} = 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
 						Number
 					)
 			})
@@ -371,9 +373,10 @@ export const journalActions = {
 		let transactionIds: string[] = [];
 
 		await db.transaction(async (db) => {
+			const cachedData = await getCachedData({ db, count: journalEntries.length });
 			const itemsForCreation = await Promise.all(
 				journalEntries.map(async (journalEntry) => {
-					return generateItemsForTransactionCreation(db, journalEntry);
+					return generateItemsForTransactionCreation({ db, data: journalEntry, cachedData });
 				})
 			);
 
@@ -390,17 +393,17 @@ export const journalActions = {
 				.map(({ labels }) => labels)
 				.reduce((a, b) => [...a, ...b], []);
 
-			const transactionChunks = splitArrayIntoChunks(transactions, 5000);
+			const transactionChunks = splitArrayIntoChunks(transactions, 2000);
 			for (const chunk of transactionChunks) {
 				await db.insert(transaction).values(chunk).execute();
 			}
 
-			const journalChunks = splitArrayIntoChunks(journals, 1000);
+			const journalChunks = splitArrayIntoChunks(journals, 2000);
 			for (const chunk of journalChunks) {
 				await db.insert(journalEntry).values(chunk).execute();
 			}
 
-			const labelChunks = splitArrayIntoChunks(labels, 1000);
+			const labelChunks = splitArrayIntoChunks(labels, 2000);
 			for (const chunk of labelChunks) {
 				await db.insert(labelsToJournals).values(chunk).execute();
 			}
@@ -426,31 +429,38 @@ export const journalActions = {
 		await db.transaction(async (db) => {
 			const splitTransactionList = splitArrayIntoChunks(transactionIds, 500);
 
-			await Promise.all(splitTransactionList.map(async (currentTransactionIds) => {
-				const originalIds = await summaryActions.getUniqueTransactionInfo({ db, ids: currentTransactionIds });
+			await Promise.all(
+				splitTransactionList.map(async (currentTransactionIds) => {
+					const originalIds = await summaryActions.getUniqueTransactionInfo({
+						db,
+						ids: currentTransactionIds
+					});
 
-				const journalsForDeletion = await db
-					.select()
-					.from(journalEntry)
-					.where(inArray(journalEntry.transactionId, currentTransactionIds))
-					.execute();
-				await db
-					.delete(journalEntry)
-					.where(inArray(journalEntry.transactionId, currentTransactionIds))
-					.execute();
-				await db.delete(transaction).where(inArray(transaction.id, currentTransactionIds)).execute();
-				await db.delete(labelsToJournals).where(
-					inArray(
-						labelsToJournals.journalId,
-						journalsForDeletion.map((item) => item.id)
-					)
-				);
-				await summaryActions.markAsNeedingProcessing({
-					db,
-					ids: originalIds
-				});
-			}))
-
+					const journalsForDeletion = await db
+						.select()
+						.from(journalEntry)
+						.where(inArray(journalEntry.transactionId, currentTransactionIds))
+						.execute();
+					await db
+						.delete(journalEntry)
+						.where(inArray(journalEntry.transactionId, currentTransactionIds))
+						.execute();
+					await db
+						.delete(transaction)
+						.where(inArray(transaction.id, currentTransactionIds))
+						.execute();
+					await db.delete(labelsToJournals).where(
+						inArray(
+							labelsToJournals.journalId,
+							journalsForDeletion.map((item) => item.id)
+						)
+					);
+					await summaryActions.markAsNeedingProcessing({
+						db,
+						ids: originalIds
+					});
+				})
+			);
 		});
 	},
 	seed: async (db: DBType, count: number) => {
@@ -806,7 +816,9 @@ export const journalActions = {
 
 						if (total !== 0) {
 							const journalToUpdate = transaction.journals.sort((a, b) =>
-								a.updatedAt.toISOString().localeCompare(b.updatedAt.toISOString())
+								new Date(a.updatedAt)
+									.toISOString()
+									.localeCompare(new Date(b.updatedAt).toISOString())
 							)[0];
 							await db
 								.update(journalEntry)

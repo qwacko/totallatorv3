@@ -1,1 +1,0 @@
-ALTER TABLE filter ADD `group` text;
