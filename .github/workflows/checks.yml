@@ -12,6 +12,10 @@ jobs:
     permissions:
       packages: write
       contents: read
+      
+    env:
+      POSTGRES_URL: postgres://postgres@localhost:5432/postgres
+      POSTGRES_TEST_URL: postgres://postgres@localhost:5432/postgres
 
     steps:
       # Setsup Postgres
@@ -43,6 +47,3 @@ jobs:
       - run: pnpm install
       - run: pnpm check
       - run: pnpm test:unit
-        env:
-          POSTGRES_URL: postgres://postgres@localhost:5432/postgres
-          POSTGRES_TEST_URL: postgres://postgres@localhost:5432/postgres
