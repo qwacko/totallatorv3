@@ -44,4 +44,5 @@ jobs:
       - run: pnpm check
       - run: pnpm test:unit
         env:
-          DATABASE_URL: postgres://postgres@localhost:5432/postgres
+          POSTGRES_URL: postgres://postgres@localhost:5432/postgres
+          POSTGRES_TEST_URL: postgres://postgres@localhost:5432/postgres
