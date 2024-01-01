@@ -11,17 +11,15 @@ import { seedTestCategories } from './seedTestCategories';
 import { seedTestLabels } from './seedTestLabels';
 import { seedTestTags } from './seedTestTags';
 import postgres from 'postgres';
-import { it } from 'vitest'
+import { it } from 'vitest';
 import { nanoid } from 'nanoid';
-
-
 
 if (!serverEnv.POSTGRES_TEST_URL) {
 	throw new Error('POSTGRES_TEST_URL is not defined');
 }
 
 const genTestDB = async () => {
-	const useURL = serverEnv.POSTGRES_TEST_URL || serverEnv.POSTGRES_URL;
+	const useURL = serverEnv.POSTGRES_TEST_URL || serverEnv.POSTGRES_URL || '';
 
 	const enableLogger = serverEnv.DB_QUERY_LOG;
 
@@ -36,15 +34,13 @@ const genTestDB = async () => {
 
 	const postgresDatabase = postgres(useURL, { max: 10 });
 
-
 	const testDB = drizzle(postgresDatabase, { schema, logger: new MyLogger() });
 
 	// logging.info('Migrating Test DB!!');
 	await migrate(testDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
 
 	return { testDB, postgresDatabase };
-
-}
+};
 
 const testDBPromise = genTestDB();
 
@@ -54,8 +50,7 @@ export const getTestDB = async () => {
 
 export const closeTestDB = async (data: Awaited<ReturnType<typeof getTestDB>>) => {
 	// await data.postgresDatabase.end();
-}
-
+};
 
 export const clearTestDB = async (db: DBType) => {
 	await db.delete(schema.account).execute();
@@ -72,11 +67,11 @@ export const clearTestDB = async (db: DBType) => {
 	await db.delete(schema.transaction).execute();
 	await db.delete(schema.reusableFilter).execute();
 	await db.delete(schema.summaryTable).execute();
-}
-
+};
 
 export const initialiseTestDB = async ({
-	db, id,
+	db,
+	id,
 	accounts = false,
 	bills = false,
 	budgets = false,
@@ -95,7 +90,6 @@ export const initialiseTestDB = async ({
 	transactions?: boolean;
 	tags?: boolean;
 }) => {
-
 	let itemCount = 0;
 
 	if (accounts) {
@@ -123,13 +117,14 @@ export const initialiseTestDB = async ({
 };
 
 export const createTestWrapper = async ({
-	beforeEach, afterEach, db
+	beforeEach,
+	afterEach,
+	db
 }: {
 	beforeEach?: (db: DBType, id: string) => Promise<void>;
 	afterEach?: (db: DBType, id: string) => Promise<void>;
 	db: DBType;
 }) => {
-
 	return (name: string, testFunction: (db: DBType, id: string) => Promise<void>) => {
 		it(name, async () => {
 			const id = nanoid();
@@ -138,7 +133,6 @@ export const createTestWrapper = async ({
 			if (beforeEach) await beforeEach(db, id);
 			await testFunction(db, id);
 			if (afterEach) await afterEach(db, id);
-
 		});
-	}
-}
+	};
+};
