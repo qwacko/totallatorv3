@@ -14,8 +14,8 @@ jobs:
       contents: read
       
     env:
-      POSTGRES_URL: postgres://postgres@localhost:5432/postgres
-      POSTGRES_TEST_URL: postgres://postgres@localhost:5432/postgres
+      POSTGRES_URL: postgres://postgres:postgres@localhost:5432/postgres
+      POSTGRES_TEST_URL: postgres://postgres:postgres@localhost:5432/postgres
 
     steps:
       # Setsup Postgres
