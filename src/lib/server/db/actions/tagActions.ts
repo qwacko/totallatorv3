@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/tagSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, summaryTable, tag } from '../schema';
-import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { account, journalEntry, summaryTable, tag } from '../postgres/schema';
+import { and, asc, count, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -16,9 +16,11 @@ import { tagCreateInsertionData } from './helpers/tag/tagCreateInsertionData';
 import { tagFilterToQuery } from './helpers/tag/tagFilterToQuery';
 import { createTag } from './helpers/seed/seedTagData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
@@ -28,7 +30,7 @@ export const tagActions = {
 		const where = filter ? tagFilterToQuery(filter) : [];
 
 		const result = await db
-			.select({ count: sql<number>`count(${tag.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(tag.id) })
 			.from(tag)
 			.where(and(...where))
 			.execute();
@@ -37,7 +39,7 @@ export const tagActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: tag.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.select({ id: tag.id, journalCount: count(journalEntry.id) })
 			.from(tag)
 			.leftJoin(journalEntry, eq(journalEntry.tagId, tag.id))
 			.groupBy(tag.id)
@@ -61,15 +63,15 @@ export const tagActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(tag[remainingOrder.field])
-								: desc(tag[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(tag[remainingOrder.field])
+							: desc(tag[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db
@@ -85,11 +87,11 @@ export const tagActions = {
 			.leftJoin(journalEntry, eq(journalEntry.tagId, tag.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, tag.id))
-			.groupBy(tag.id)
+			.groupBy(tag.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${tag.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(tag.id) })
 			.from(tag)
 			.where(and(...where))
 			.execute();
@@ -112,15 +114,19 @@ export const tagActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string | null;
 		id?: string | null;
 		requireActive?: boolean;
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentTag = await db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
+			const currentTag = cachedData
+				? cachedData.find((current) => current.id === id)
+				: await db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
 
 			if (currentTag) {
 				if (requireActive && currentTag.status !== 'active') {
@@ -130,7 +136,9 @@ export const tagActions = {
 			}
 			throw new Error(`Tag ${id} not found`);
 		} else if (title) {
-			const currentTag = await db.query.tag.findFirst({ where: eq(tag.title, title) }).execute();
+			const currentTag = cachedData
+				? cachedData.find((current) => current.title === title)
+				: await db.query.tag.findFirst({ where: eq(tag.title, title) }).execute();
 			if (currentTag) {
 				if (requireActive && currentTag.status !== 'active') {
 					throw new Error(`Tag ${currentTag.title} is not active`);

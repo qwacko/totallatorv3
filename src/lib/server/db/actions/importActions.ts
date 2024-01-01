@@ -14,7 +14,7 @@ import {
 	journalEntry,
 	label,
 	tag
-} from '../schema';
+} from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
 import { tActions } from './tActions';
@@ -70,7 +70,7 @@ export const importActions = {
 			.from(importTable)
 			.leftJoin(importItemDetail, eq(importItemDetail.importId, importTable.id))
 			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
-			.groupBy(importTable.id)
+			.groupBy(importTable.id, importMapping.id, importMapping.title)
 			.orderBy(desc(importTable.createdAt))
 			.execute();
 

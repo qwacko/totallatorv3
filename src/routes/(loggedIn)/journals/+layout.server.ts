@@ -30,7 +30,7 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const summary = await tActions.journal.summary({
+	const summary = tActions.journal.summary({
 		db,
 		filter: { ...filter, page: 0, pageSize: 1000000 }
 	});
@@ -39,6 +39,7 @@ export const load = async (data) => {
 
 	const filterText = await journalFilterToText({ db, filter, prefix: 'Journal' });
 	const filterDropdown = await tActions.reusableFitler.listForDropdown({ db });
+
 
 	return {
 		journals: journalData,

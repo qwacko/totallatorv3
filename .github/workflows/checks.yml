@@ -12,8 +12,14 @@ jobs:
     permissions:
       packages: write
       contents: read
+      
+    env:
+      POSTGRES_URL: postgres://postgres:postgres@localhost:5432/postgres
+      POSTGRES_TEST_URL: postgres://postgres:postgres@localhost:5432/postgres
 
     steps:
+      # Setsup Postgres
+      - uses: ikalnytskyi/action-setup-postgres@v4
       - uses: actions/checkout@v3
       - name: Install Node.js
         uses: actions/setup-node@v3

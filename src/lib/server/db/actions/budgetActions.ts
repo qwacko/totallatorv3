@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/budgetSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, budget, journalEntry, summaryTable } from '../schema';
-import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { account, budget, journalEntry, summaryTable } from '../postgres/schema';
+import { and, asc, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -15,9 +15,15 @@ import { budgetCreateInsertionData } from './helpers/budget/budgetCreateInsertio
 import { budgetFilterToQuery } from './helpers/budget/budgetFilterToQuery';
 import { createBudget } from './helpers/seed/seedBudgetData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import {
+	summaryActions,
+	summaryTableColumnsToGroupBy,
+	summaryTableColumnsToSelect
+} from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm';
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
@@ -25,7 +31,7 @@ export const budgetActions = {
 	},
 	count: async (db: DBType, filter?: BudgetFilterSchemaType) => {
 		const count = await db
-			.select({ count: sql<number>`count(${budget.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(budget.id) })
 			.from(budget)
 			.where(and(...(filter ? budgetFilterToQuery(filter) : [])))
 			.execute();
@@ -34,7 +40,7 @@ export const budgetActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: budget.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.select({ id: budget.id, journalCount: drizzleCount(journalEntry.id) })
 			.from(budget)
 			.leftJoin(journalEntry, eq(journalEntry.budgetId, budget.id))
 			.groupBy(budget.id)
@@ -57,15 +63,15 @@ export const budgetActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(budget[remainingOrder.field])
-								: desc(budget[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(budget[remainingOrder.field])
+							: desc(budget[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db
@@ -81,11 +87,11 @@ export const budgetActions = {
 			.leftJoin(journalEntry, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, budget.id))
-			.groupBy(budget.id)
+			.groupBy(budget.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${budget.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(budget.id) })
 			.from(budget)
 			.where(and(...where))
 			.execute();
@@ -108,15 +114,19 @@ export const budgetActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string | null;
 		id?: string | null;
 		requireActive?: boolean;
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentBudget = await db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
+			const currentBudget = cachedData
+				? cachedData.find((item) => item.id === id)
+				: await db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
 
 			if (currentBudget) {
 				if (requireActive && currentBudget.status !== 'active') {
@@ -126,9 +136,9 @@ export const budgetActions = {
 			}
 			throw new Error(`Budget ${id} not found`);
 		} else if (title) {
-			const currentBudget = await db.query.budget
-				.findFirst({ where: eq(budget.title, title) })
-				.execute();
+			const currentBudget = cachedData
+				? cachedData.find((item) => item.title === title)
+				: await db.query.budget.findFirst({ where: eq(budget.title, title) }).execute();
 			if (currentBudget) {
 				if (requireActive && currentBudget.status !== 'active') {
 					throw new Error(`Budget ${currentBudget.title} is not active`);

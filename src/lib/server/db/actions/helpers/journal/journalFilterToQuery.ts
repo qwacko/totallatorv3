@@ -1,5 +1,5 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import { account, journalEntry, label, labelsToJournals, transaction } from '../../../schema';
+import { account, journalEntry, label, labelsToJournals, transaction } from '../../../postgres/schema';
 import { SQL, and, eq, gte, lte, inArray, like, not, notInArray } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
@@ -12,7 +12,7 @@ import { tagFilterToQuery, tagFilterToText } from '../tag/tagFilterToQuery';
 import { categoryFilterToQuery, categoryFilterToText } from '../category/categoryFilterToQuery';
 import { labelFilterToQuery, labelFilterToText } from '../label/labelFilterToQuery';
 import { db, type DBType } from '../../../db';
-import { alias } from 'drizzle-orm/sqlite-core';
+import { alias } from 'drizzle-orm/pg-core';
 import { arrayToText } from '../misc/arrayToText';
 import { importIdsToTitles } from '../import/importIdsToTitles';
 

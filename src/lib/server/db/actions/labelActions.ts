@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/labelSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, label, labelsToJournals, summaryTable } from '../schema';
-import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { account, journalEntry, label, labelsToJournals, summaryTable } from '../postgres/schema';
+import { and, asc, count, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -15,9 +15,11 @@ import { createLabel } from './helpers/seed/seedLabelData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { labelFilterToQuery } from './helpers/label/labelFilterToQuery';
 import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionData';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
@@ -25,7 +27,7 @@ export const labelActions = {
 	},
 	count: async (db: DBType, filter?: LabelFilterSchemaType) => {
 		const count = await db
-			.select({ count: sql<number>`count(${label.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(label.id) })
 			.from(label)
 			.where(and(...(filter ? labelFilterToQuery(filter) : [])))
 			.execute();
@@ -34,7 +36,7 @@ export const labelActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: label.id, journalCount: sql<number>`count(${labelsToJournals.id})` })
+			.select({ id: label.id, journalCount: count(labelsToJournals.id) })
 			.from(label)
 			.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, label.id))
 			.groupBy(label.id)
@@ -57,15 +59,15 @@ export const labelActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(label[remainingOrder.field])
-								: desc(label[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(label[remainingOrder.field])
+							: desc(label[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db
@@ -82,11 +84,11 @@ export const labelActions = {
 			.leftJoin(journalEntry, eq(journalEntry.id, labelsToJournals.journalId))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, label.id))
-			.groupBy(label.id)
+			.groupBy(label.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${label.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(label.id) })
 			.from(label)
 			.where(and(...where))
 			.execute();
@@ -109,15 +111,19 @@ export const labelActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string;
 		id?: string;
 		requireActive?: boolean;
+		cachedData?: { id: string, title: string, status: StatusEnumType }[]
 	}) => {
 		if (id) {
-			const currentLabel = await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
+			const currentLabel = cachedData
+				? cachedData.find((currentData) => currentData.id === id)
+				: await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
 
 			if (currentLabel) {
 				if (requireActive && currentLabel.status !== 'active') {
@@ -127,9 +133,11 @@ export const labelActions = {
 			}
 			throw new Error(`Label ${id} not found`);
 		} else if (title) {
-			const currentLabel = await db.query.label
-				.findFirst({ where: eq(label.title, title) })
-				.execute();
+			const currentLabel = cachedData
+				? cachedData.find((currentData) => currentData.title === title)
+				: await db.query.label
+					.findFirst({ where: eq(label.title, title) })
+					.execute();
 			if (currentLabel) {
 				if (requireActive && currentLabel.status !== 'active') {
 					throw new Error(`Label ${currentLabel.title} is not active`);

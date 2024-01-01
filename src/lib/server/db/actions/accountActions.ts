@@ -6,8 +6,8 @@ import {
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, summaryTable } from '../schema';
-import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { account, journalEntry, summaryTable } from '../postgres/schema';
+import { and, asc, count, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -22,10 +22,12 @@ import {
 import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
 import { accountTitleSplit } from './helpers/account/accountTitleSplit';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -33,7 +35,7 @@ export const accountActions = {
 	},
 	count: async (db: DBType, filter?: AccountFilterSchemaType) => {
 		const count = await db
-			.select({ count: sql<number>`count(${account.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(account.id) })
 			.from(account)
 			.where(and(...(filter ? accountFilterToQuery(filter) : [])))
 			.execute();
@@ -42,7 +44,7 @@ export const accountActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: account.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.select({ id: account.id, journalCount: count(journalEntry.id) })
 			.from(account)
 			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
 			.groupBy(account.id)
@@ -68,15 +70,15 @@ export const accountActions = {
 		const defaultOrderBy = [asc(account.title), desc(account.createdAt)];
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(account[remainingOrder.field])
-								: desc(account[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(account[remainingOrder.field])
+							: desc(account[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db
@@ -91,11 +93,11 @@ export const accountActions = {
 			.orderBy(...orderByResult)
 			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, account.id))
-			.groupBy(account.id)
+			.groupBy(account.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${account.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(account.id) })
 			.from(account)
 			.where(and(...where))
 			.execute();
@@ -173,15 +175,17 @@ export const accountActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string;
 		id?: string;
 		requireActive?: boolean;
+		cachedData?: { id: string, title: string, status: StatusEnumType }[]
 	}) => {
 		if (id) {
-			const currentAccount = await db.query.account
+			const currentAccount = cachedData ? cachedData.find(item => item.id === id) : await db.query.account
 				.findFirst({ where: eq(account.id, id) })
 				.execute();
 
@@ -197,7 +201,7 @@ export const accountActions = {
 
 			const isExpense = accountTitleInfo.accountGroupCombined === '';
 
-			const currentAccount = await db.query.account
+			const currentAccount = cachedData ? cachedData.find(item => item.title === title) : await db.query.account
 				.findFirst({ where: eq(account.accountTitleCombined, title) })
 				.execute();
 
@@ -289,6 +293,7 @@ export const accountActions = {
 				changingToExpenseOrIncome) &&
 			!changingToAssetOrLiability
 		) {
+
 			//Limit what can be updated for an income or expense account
 			await db
 				.update(account)
@@ -307,16 +312,17 @@ export const accountActions = {
 			const newAccountGroupCombined = accountGroupCombinedClear
 				? ''
 				: accountGroupCombined && accountGroupCombined !== ''
-				  ? accountGroupCombined
-				  : [
-							accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
-							accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
-							accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
-				    ]
-							.filter((item) => item)
-							.join(':');
+					? accountGroupCombined
+					: [
+						accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
+						accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
+						accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
+					]
+						.filter((item) => item)
+						.join(':');
 
 			const { startDate, endDate, isCash, isNetWorth } = restData;
+
 
 			await db
 				.update(account)
@@ -335,6 +341,9 @@ export const accountActions = {
 				})
 				.where(eq(account.id, id))
 				.execute();
+
+			const matchingAccount = await db.select().from(account).where(eq(account.id, id)).execute();
+			console.log("New Update Time = ", matchingAccount[0].updatedAt)
 		}
 		return id;
 	},

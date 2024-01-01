@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/categorySchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, category, journalEntry, summaryTable } from '../schema';
-import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { account, category, journalEntry, summaryTable } from '../postgres/schema';
+import { and, asc, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -16,9 +16,11 @@ import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery'
 import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
 import { createCategory } from './helpers/seed/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
@@ -26,7 +28,7 @@ export const categoryActions = {
 	},
 	count: async (db: DBType, filter?: CategoryFilterSchemaType) => {
 		const count = await db
-			.select({ count: sql<number>`count(${category.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(category.id) })
 			.from(category)
 			.where(and(...(filter ? categoryFilterToQuery(filter) : [])))
 			.execute();
@@ -35,7 +37,7 @@ export const categoryActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: category.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.select({ id: category.id, journalCount: drizzleCount(journalEntry.id) })
 			.from(category)
 			.leftJoin(journalEntry, eq(journalEntry.categoryId, category.id))
 			.groupBy(category.id)
@@ -58,15 +60,15 @@ export const categoryActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(category[remainingOrder.field])
-								: desc(category[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(category[remainingOrder.field])
+							: desc(category[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db
@@ -82,11 +84,11 @@ export const categoryActions = {
 			.leftJoin(journalEntry, eq(journalEntry.categoryId, category.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, category.id))
-			.groupBy(category.id)
+			.groupBy(category.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${category.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(category.id) })
 			.from(category)
 			.where(and(...where))
 			.execute();
@@ -114,17 +116,21 @@ export const categoryActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string | null;
 		id?: string | null;
 		requireActive?: boolean;
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentCategory = await db.query.category
-				.findFirst({ where: eq(category.id, id) })
-				.execute();
+			const currentCategory = cachedData
+				? cachedData.find((item) => item.id === id)
+				: await db.query.category
+					.findFirst({ where: eq(category.id, id) })
+					.execute();
 
 			if (currentCategory) {
 				if (requireActive && currentCategory.status !== 'active') {
@@ -134,9 +140,11 @@ export const categoryActions = {
 			}
 			throw new Error(`Category ${id} not found`);
 		} else if (title) {
-			const currentCategory = await db.query.category
-				.findFirst({ where: eq(category.title, title) })
-				.execute();
+			const currentCategory = cachedData
+				? cachedData.find((item) => item.title === title)
+				: await db.query.category
+					.findFirst({ where: eq(category.title, title) })
+					.execute();
 			if (currentCategory) {
 				if (requireActive && currentCategory.status !== 'active') {
 					throw new Error(`Category ${currentCategory.title} is not active`);

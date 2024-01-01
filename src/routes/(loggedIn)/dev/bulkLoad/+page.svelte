@@ -76,4 +76,11 @@
 		currentCount={data.labelCount}
 		deletableCount={data.deletableLabelCount}
 	/>
+	<BulkCreateDisplay
+		title="Reusable Filters"
+		createAction="?/bulkAddReusableFilters"
+		deleteAction="?/deleteReusableFilters"
+		currentCount={data.reusableFilterCount}
+		deletableCount={data.reusableFilterCount}
+	/>
 </PageLayout>

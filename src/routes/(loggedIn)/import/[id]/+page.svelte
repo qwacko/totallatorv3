@@ -71,7 +71,7 @@
 			</div>
 			<div class="flex self-center flex-row gap-1">
 				<i>Last Modification :</i>
-				{importData.detail.updatedAt.toISOString().slice(0, 19)}
+				{new Date(importData.detail.updatedAt).toISOString().slice(0, 19)}
 			</div>
 			<div class="flex self-center flex-row gap-1">
 				{#if importCount > 0}

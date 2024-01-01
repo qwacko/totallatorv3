@@ -3,7 +3,7 @@ import {
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType
 } from '$lib/schema/journalSchema';
-import { getTableColumns, eq, and, sql, inArray, sum } from 'drizzle-orm';
+import { getTableColumns, eq, and, inArray, sum } from 'drizzle-orm';
 import type { DBType } from '../../../db';
 import {
 	account,
@@ -15,9 +15,10 @@ import {
 	label,
 	labelsToJournals,
 	importTable
-} from '../../../schema';
+} from '../../../postgres/schema';
 import { journalFilterToQuery } from './journalFilterToQuery';
 import { journalFilterToOrderBy } from './journalFilterToOrderBy';
+import { count as drizzleCount } from 'drizzle-orm'
 
 export const journalList = async ({
 	db,
@@ -69,7 +70,7 @@ export const journalList = async ({
 		.where(and(...(await journalFilterToQuery(restFilter))))
 		.orderBy(...journalFilterToOrderBy(processedFilter))
 		.offset(page * pageSize)
-		.limit(-1)
+		// .limit(-1)
 		.as('sumInner');
 
 	const runningTotalPromise = db
@@ -79,7 +80,7 @@ export const journalList = async ({
 
 	const resultCount = await db
 		.select({
-			count: sql<number>`count(${journalEntry.id})`.mapWith(Number)
+			count: drizzleCount(journalEntry.id)
 		})
 		.from(journalEntry)
 		.leftJoin(account, eq(journalEntry.accountId, account.id))
@@ -114,19 +115,19 @@ export const journalList = async ({
 	const transactionJournals =
 		transactionIds.length > 0
 			? await db
-					.select({
-						id: journalEntry.id,
-						transactionId: journalEntry.transactionId,
-						accountId: journalEntry.accountId,
-						accountTitle: account.title,
-						accountType: account.type,
-						accountGroup: account.accountGroupCombined,
-						amount: journalEntry.amount
-					})
-					.from(journalEntry)
-					.leftJoin(account, eq(journalEntry.accountId, account.id))
-					.where(inArray(journalEntry.transactionId, transactionIds))
-					.execute()
+				.select({
+					id: journalEntry.id,
+					transactionId: journalEntry.transactionId,
+					accountId: journalEntry.accountId,
+					accountTitle: account.title,
+					accountType: account.type,
+					accountGroup: account.accountGroupCombined,
+					amount: journalEntry.amount
+				})
+				.from(journalEntry)
+				.leftJoin(account, eq(journalEntry.accountId, account.id))
+				.where(inArray(journalEntry.transactionId, transactionIds))
+				.execute()
 			: [];
 
 	const journalsMerged = journals.map((journal, index) => {

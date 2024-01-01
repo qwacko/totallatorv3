@@ -1,1 +1,5 @@
-export const updatedTime = () => ({ updatedAt: new Date() });
+export const updatedTime = () => {
+    const updatedAt = new Date()
+    // console.log("UpdatedTime = ", updatedAt)
+    return { updatedAt }
+}

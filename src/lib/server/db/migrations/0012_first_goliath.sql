@@ -1,1 +1,0 @@
-ALTER TABLE import ADD `title` text NOT NULL;

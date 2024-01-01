@@ -1,4 +1,4 @@
-import { budget, bill, category, tag, label, account } from '../../../schema';
+import { budget, bill, category, tag, label, account } from '../../../postgres/schema';
 import { SQL, eq } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 
@@ -20,14 +20,14 @@ export const statusFilterToQuery = (
 		type === 'bill'
 			? bill
 			: type === 'budget'
-			? budget
-			: type === 'category'
-			? category
-			: type === 'tag'
-			? tag
-			: type === 'label'
-			? label
-			: account;
+				? budget
+				: type === 'category'
+					? category
+					: type === 'tag'
+						? tag
+						: type === 'label'
+							? label
+							: account;
 
 	if (restFilter.status) where.push(eq(usedTable.status, restFilter.status));
 	if (restFilter.disabled !== undefined) where.push(eq(usedTable.disabled, restFilter.disabled));

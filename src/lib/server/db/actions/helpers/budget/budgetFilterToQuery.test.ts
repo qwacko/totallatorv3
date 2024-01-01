@@ -1,9 +1,14 @@
 import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
-import { budget } from '../../../schema';
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { QueryBuilder } from 'drizzle-orm/sqlite-core';
+import { budget } from '../../../postgres/schema';
+import { describe, it, expect } from 'vitest';
+import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { and } from 'drizzle-orm';
-import { createTestDB, initialiseTestDB, tearDownTestDB } from '$lib/server/db/test/dbTest';
+import {
+	clearTestDB,
+	createTestWrapper,
+	getTestDB,
+	initialiseTestDB
+} from '$lib/server/db/test/dbTest';
 
 describe('budgetFilterToQuery', () => {
 	const qb = new QueryBuilder();
@@ -31,47 +36,47 @@ describe('budgetFilterToQuery', () => {
 			.toSQL();
 
 		//Id
-		expect(query.sql).toContain('"budget"."id" = ?');
+		expect(query.sql).toContain('"budget"."id" = $');
 		expect(query.params).toHaveProperty('0', 'id');
 
 		//Id Array
-		expect(query.sql).toContain('"budget"."id" in (?, ?)');
+		expect(query.sql).toContain('"budget"."id" in ($');
 		expect(query.params).toHaveProperty('1', 'idArray1');
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"budget"."title" like ?');
+		expect(query.sql).toContain('"budget"."title" like $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Status
-		expect(query.sql).toContain('"budget"."status" = ?');
+		expect(query.sql).toContain('"budget"."status" = $');
 		expect(query.params).toHaveProperty('4', 'active');
 
 		//Disabled
-		expect(query.sql).toContain('"budget"."disabled" = ?');
-		expect(query.params).toHaveProperty('5', 0);
+		expect(query.sql).toContain('"budget"."disabled" = $');
+		expect(query.params).toHaveProperty('5', false);
 
 		//Allow Update
-		expect(query.sql).toContain('"budget"."allow_update" = ?');
-		expect(query.params).toHaveProperty('6', 1);
+		expect(query.sql).toContain('"budget"."allow_update" = $');
+		expect(query.params).toHaveProperty('6', true);
 
 		//Active
-		expect(query.sql).toContain('"budget"."active" = ?');
-		expect(query.params).toHaveProperty('7', 0);
+		expect(query.sql).toContain('"budget"."active" = $');
+		expect(query.params).toHaveProperty('7', false);
 
 		//Import Id Array
-		expect(query.sql).toContain('"budget"."import_id" in (?, ?)');
+		expect(query.sql).toContain('"budget"."import_id" in ($');
 		expect(query.params).toHaveProperty('8', 'importId1');
 		expect(query.params).toHaveProperty('9', 'importId2');
 
 		//Import Detail Id Array
-		expect(query.sql).toContain('"budget"."budget_import_detail_id" in (?, ?)');
+		expect(query.sql).toContain('"budget"."budget_import_detail_id" in ($');
 		expect(query.params).toHaveProperty('10', 'importDetailId1');
 		expect(query.params).toHaveProperty('11', 'importDetailId2');
 
 		//Count Max
-		expect(query.sql).toContain('"summary"."count" <= ?');
-		expect(query.params).toHaveProperty('12', 10);
+		expect(query.sql).toContain('"summary"."count" <= $');
+		expect(query.params).toHaveProperty('12', '10.0000');
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
@@ -91,16 +96,16 @@ describe('budgetFilterToQuery', () => {
 			.toSQL();
 
 		//Disabled
-		expect(query.sql).toContain('"budget"."disabled" = ?');
-		expect(query.params).toHaveProperty('0', 1);
+		expect(query.sql).toContain('"budget"."disabled" = $');
+		expect(query.params).toHaveProperty('0', true);
 
 		//Allow Update
-		expect(query.sql).toContain('"budget"."allow_update" = ?');
-		expect(query.params).toHaveProperty('1', 0);
+		expect(query.sql).toContain('"budget"."allow_update" = $');
+		expect(query.params).toHaveProperty('1', false);
 
 		//Active
-		expect(query.sql).toContain('"budget"."active" = ?');
-		expect(query.params).toHaveProperty('2', 1);
+		expect(query.sql).toContain('"budget"."active" = $');
+		expect(query.params).toHaveProperty('2', true);
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
@@ -147,7 +152,7 @@ describe('budgetFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"summary"."count" <= ?');
+		expect(query.sql).not.toContain('"summary"."count" <= $');
 	});
 
 	it('Id Array is not used if the array is empty', () => {
@@ -164,7 +169,7 @@ describe('budgetFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"budget"."id" in (?, ?)');
+		expect(query.sql).not.toContain('"budget"."id" in ($');
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
@@ -181,7 +186,7 @@ describe('budgetFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"budget"."import_id" in (?, ?)');
+		expect(query.sql).not.toContain('"budget"."import_id" in ($');
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
@@ -198,7 +203,7 @@ describe('budgetFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"budget"."budget_import_detail_id" in (?, ?)');
+		expect(query.sql).not.toContain('"budget"."budget_import_detail_id" in ($');
 	});
 
 	it('Filtering for disabled items works correctly', () => {
@@ -215,23 +220,23 @@ describe('budgetFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).toContain('"budget"."disabled" = ?');
-		expect(query.params).toHaveProperty('0', 1);
+		expect(query.sql).toContain('"budget"."disabled" = $');
+		expect(query.params).toHaveProperty('0', true);
 	});
 });
 
 describe('Budget Filter To Text', async () => {
-	const { db, sqliteDatabase, filename } = await createTestDB();
+	const db = await getTestDB();
 
-	beforeEach(async () => {
-		await initialiseTestDB({ db, budgets: true });
+	const testIT = await createTestWrapper({
+		db: db.testDB,
+		beforeEach: async (db, id) => {
+			await clearTestDB(db);
+			await initialiseTestDB({ db, budgets: true, id });
+		}
 	});
 
-	afterAll(async () => {
-		await tearDownTestDB({ sqliteDatabase, filename });
-	});
-
-	it('Filter Returns Useful Text', async () => {
+	testIT('Filter Returns Useful Text', async (db) => {
 		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
@@ -253,7 +258,7 @@ describe('Budget Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('5', 'Max Journal Count of 10');
 	});
 
-	it('Filter For Budget Id Works Correctly', async () => {
+	testIT('Filter For Budget Id Works Correctly', async (db) => {
 		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
@@ -264,7 +269,7 @@ describe('Budget Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('0', 'Is Travel');
 	});
 
-	it('Filter For Budget Id Array Works Correctly (2 Values)', async () => {
+	testIT('Filter For Budget Id Array Works Correctly (2 Values)', async (db) => {
 		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
@@ -275,7 +280,7 @@ describe('Budget Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('0', 'Is one of Spending, Travel');
 	});
 
-	it('Filter For Budget Id Array Works Correctly (4 Values)', async () => {
+	testIT('Filter For Budget Id Array Works Correctly (4 Values)', async (db) => {
 		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
@@ -286,7 +291,7 @@ describe('Budget Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('0', 'Is one of Spending, Travel, Vehicle, Fun');
 	});
 
-	it('Filter For Budget Id Array Works Correctly (5 Values)', async () => {
+	testIT('Filter For Budget Id Array Works Correctly (5 Values)', async (db) => {
 		const returnValue = await budgetFilterToText({
 			db,
 			filter: {
@@ -297,7 +302,7 @@ describe('Budget Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('0', 'Is one of 5 values');
 	});
 
-	it('No filters returns expected text (Showing All)', async () => {
+	testIT('No filters returns expected text (Showing All)', async (db) => {
 		const returnValue = await budgetFilterToText({
 			db,
 			filter: {}
@@ -306,7 +311,7 @@ describe('Budget Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('0', 'Showing All');
 	});
 
-	it('Prefixes Work Correctly', async () => {
+	testIT('Prefixes Work Correctly', async (db) => {
 		const returnValue = await budgetFilterToText({
 			db,
 			filter: {

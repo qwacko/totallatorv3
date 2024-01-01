@@ -1,5 +1,5 @@
 import type { DBType } from '../db';
-import { tag } from '../schema';
+import { tag } from '../postgres/schema';
 import { tagCreateInsertionData } from '../actions/helpers/tag/tagCreateInsertionData';
 
 export const seedTestTags = async (db: DBType) =>

@@ -1,6 +1,6 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import type { DBType } from '$lib/server/db/db';
-import { account } from '$lib/server/db/schema';
+import { account } from '$lib/server/db/postgres/schema';
 import { SQL, eq, gt, inArray, like, lt } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';

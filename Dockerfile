@@ -16,7 +16,6 @@ RUN pnpm i;
 
 
 COPY . .
-ENV DATABASE_FILE ./dev.db
 
 RUN pnpm build
 
@@ -39,7 +38,7 @@ COPY --from=builder /app/build ./build
 
 COPY package.json pnpm-lock.yaml\* ./
 COPY dockerEntrypoint.sh ./dockerEntrypoint.sh
-COPY src/lib/server/db/migrations ./src/lib/server/db/migrations
+COPY src/lib/server/db/postgres/migrations ./src/lib/server/db/postgres/migrations
 
 EXPOSE 3000
 ENV PORT 3000

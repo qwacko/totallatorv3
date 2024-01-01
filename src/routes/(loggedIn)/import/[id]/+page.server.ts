@@ -1,7 +1,7 @@
 import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { db } from '$lib/server/db/db';
-import { importTable } from '$lib/server/db/schema';
+import { importTable } from '$lib/server/db/postgres/schema';
 import { logging } from '$lib/server/logging';
 
 import { eq } from 'drizzle-orm';

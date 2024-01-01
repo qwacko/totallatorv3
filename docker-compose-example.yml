@@ -5,7 +5,6 @@ services:
   totallatorv3:
     image: ghcr.io/qwacko/totallatorv3:latest
     environment:
-      - DATABASE_FILE=/app/db/db.db
       - ORIGIN=https://www.example.com
       - PORT=3000
       - ALLOW_SIGNUP=false
@@ -13,10 +12,22 @@ services:
       - IMPORT_DIR=./import/
       - BACKUP_SCHEDULE="0 0 * * *"
       - DB_QUERY_LOG=false
+      - POSTGRES_URL=postgres://postgres:postgres@db:5432/totallatorv3
     volumes:
-      - ./db/:/app/db
       - ./backup:/app/backup
       - ./import:/app/import
     ports:
       - 3000:3000
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=totallatorv3
+    volumes:
+      - ./db:/var/lib/postgresql/data
     restart: unless-stopped

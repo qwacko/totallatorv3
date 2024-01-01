@@ -1,5 +1,5 @@
 import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
-import { reusableFilter } from '$lib/server/db/schema';
+import { reusableFilter } from '$lib/server/db/postgres/schema';
 import { SQL, eq, inArray, like, or } from 'drizzle-orm';
 
 export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) => {

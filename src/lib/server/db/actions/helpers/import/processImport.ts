@@ -10,7 +10,7 @@ import {
 	journalEntry,
 	label,
 	tag
-} from '../../../schema/transactionSchema';
+} from '$lib/server/db/postgres/schema';
 import Papa from 'papaparse';
 import { readFileSync } from 'fs';
 import { updatedTime } from '../misc/updatedTime';
@@ -248,10 +248,10 @@ export const processCreatedImport = async ({
 	const targetStatus: ImportStatusType = noItemsExist
 		? 'complete'
 		: onlyErrorsExist
-		? 'error'
-		: onlyDuplicatesExist
-		? 'complete'
-		: 'processed';
+			? 'error'
+			: onlyDuplicatesExist
+				? 'complete'
+				: 'processed';
 
 	await db
 		.update(importTable)

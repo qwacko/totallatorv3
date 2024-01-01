@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/billSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, bill, journalEntry, summaryTable } from '../schema';
-import { and, asc, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { account, bill, journalEntry, summaryTable } from '../postgres/schema';
+import { and, asc, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -15,9 +15,11 @@ import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData'
 import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
 import { createBill } from './helpers/seed/seedBillData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToSelect } from './summaryActions';
+import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
+import { count as drizzleCount } from 'drizzle-orm'
+import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
@@ -25,7 +27,7 @@ export const billActions = {
 	},
 	count: async (db: DBType, filter?: BillFilterSchemaType) => {
 		const count = await db
-			.select({ count: sql<number>`count(${bill.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(bill.id) })
 			.from(bill)
 			.where(and(...(filter ? billFilterToQuery(filter) : [])))
 			.execute();
@@ -34,7 +36,7 @@ export const billActions = {
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		const items = db
-			.select({ id: bill.id, journalCount: sql<number>`count(${journalEntry.id})` })
+			.select({ id: bill.id, journalCount: drizzleCount(journalEntry.id) })
 			.from(bill)
 			.leftJoin(journalEntry, eq(journalEntry.billId, bill.id))
 			.groupBy(bill.id)
@@ -57,15 +59,15 @@ export const billActions = {
 
 		const orderByResult = orderBy
 			? [
-					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(bill[remainingOrder.field])
-								: desc(bill[remainingOrder.field]);
-						})
-					),
-					...defaultOrderBy
-			  ]
+				...orderBy.map((currentOrder) =>
+					summaryOrderBy(currentOrder, (remainingOrder) => {
+						return remainingOrder.direction === 'asc'
+							? asc(bill[remainingOrder.field])
+							: desc(bill[remainingOrder.field]);
+					})
+				),
+				...defaultOrderBy
+			]
 			: defaultOrderBy;
 
 		const results = await db
@@ -81,11 +83,11 @@ export const billActions = {
 			.leftJoin(journalEntry, eq(journalEntry.billId, bill.id))
 			.leftJoin(account, eq(account.id, journalEntry.accountId))
 			.leftJoin(summaryTable, eq(summaryTable.relationId, bill.id))
-			.groupBy(bill.id)
+			.groupBy(bill.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
-			.select({ count: sql<number>`count(${bill.id})`.mapWith(Number) })
+			.select({ count: drizzleCount(bill.id) })
 			.from(bill)
 			.where(and(...where))
 			.execute();
@@ -109,15 +111,17 @@ export const billActions = {
 		db,
 		title,
 		id,
-		requireActive = true
+		requireActive = true,
+		cachedData
 	}: {
 		db: DBType;
 		title?: string | null;
 		id?: string | null;
 		requireActive?: boolean;
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentBill = await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
+			const currentBill = cachedData ? cachedData.find(item => item.id === id) : await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
 
 			if (currentBill) {
 				if (requireActive && currentBill.status !== 'active') {
@@ -127,7 +131,7 @@ export const billActions = {
 			}
 			throw new Error(`Bill ${id} not found`);
 		} else if (title) {
-			const currentBill = await db.query.bill.findFirst({ where: eq(bill.title, title) }).execute();
+			const currentBill = cachedData ? cachedData.find(item => item.title === title) : await db.query.bill.findFirst({ where: eq(bill.title, title) }).execute();
 			if (currentBill) {
 				if (requireActive && currentBill.status !== 'active') {
 					throw new Error(`Bill ${currentBill.title} is not active`);

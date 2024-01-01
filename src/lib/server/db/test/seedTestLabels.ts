@@ -1,5 +1,5 @@
 import type { DBType } from '../db';
-import { label } from '../schema';
+import { label } from '../postgres/schema';
 import { labelCreateInsertionData } from '../actions/helpers/label/labelCreateInsertionData';
 
 export const seedTestLabels = async (db: DBType) =>

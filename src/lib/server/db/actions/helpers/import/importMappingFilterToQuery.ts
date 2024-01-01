@@ -1,6 +1,6 @@
 import type { ImportMappingFilterSchema } from '$lib/schema/importMappingSchema';
 import { db } from '../../../db';
-import { importMapping } from '../../../schema';
+import { importMapping } from '../../../postgres/schema';
 import { SQL, eq, ilike, inArray, like, or } from 'drizzle-orm';
 import { arrayToText } from '../misc/arrayToText';
 
