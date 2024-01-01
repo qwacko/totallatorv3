@@ -9,10 +9,10 @@ import postgres from 'postgres';
 
 const usedURL = serverEnv.POSTGRES_URL;
 
-const migrationClient = postgres(usedURL, { max: 1 });
+const migrationClient = postgres(usedURL || '', { max: 1 });
 const migrationDB = drizzlePostgres(migrationClient);
-export const postgresDatabase = postgres(usedURL, {
-	debug: true
+export const postgresDatabase = postgres(usedURL || '', {
+	debug: serverEnv.DEV
 });
 
 const enableLogger = serverEnv.DB_QUERY_LOG;
@@ -33,8 +33,12 @@ export const db = drizzlePostgres(postgresDatabase, {
 
 export type DBType = typeof db;
 
-//Only Migrate If not TEST_ENV
-if (!serverEnv.TEST_ENV) {
+//Only Migrate If not TEST_ENV and if there is a POSTGRES_URL
+if (!serverEnv.TEST_ENV && serverEnv.POSTGRES_URL) {
 	logging.info('Migrating DB!!');
 	migratePostgres(migrationDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
+} else if (!serverEnv.POSTGRES_URL) {
+	logging.warn('No POSTGRES_URL found, skipping migration!');
+} else if (serverEnv.TEST_ENV) {
+	logging.warn('TEST_ENV is true, skipping migration!');
 }

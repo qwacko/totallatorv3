@@ -33,7 +33,7 @@ const serverEnvValidation = z.object({
 	ALLOW_SIGNUP: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
 	DEV_OVERRIDE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	CSRF_CHECK_ORIGIN: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
-	POSTGRES_URL: z.string(),
+	POSTGRES_URL: z.string().optional(),
 	POSTGRES_TEST_URL: z.string().optional(),
 	DB_QUERY_LOG: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TESTING_DELAY: z.coerce.number().optional().default(0),
