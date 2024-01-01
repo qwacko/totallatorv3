@@ -16,7 +16,7 @@ RUN pnpm i;
 
 
 COPY . .
-ENV DATABASE_FILE ./dev.db
+ENV POSTGRES_URL postgres://postgres:postgres@localhost:5432/postgres
 
 RUN pnpm build
 
