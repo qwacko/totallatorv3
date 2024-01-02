@@ -36,7 +36,6 @@ const genTestDB = async () => {
 
 	const testDB = drizzle(postgresDatabase, { schema, logger: new MyLogger() });
 
-	// logging.info('Migrating Test DB!!');
 	await migrate(testDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
 
 	return { testDB, postgresDatabase };

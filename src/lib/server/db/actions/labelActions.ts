@@ -15,10 +15,14 @@ import { createLabel } from './helpers/seed/seedLabelData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { labelFilterToQuery } from './helpers/label/labelFilterToQuery';
 import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionData';
-import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
+import {
+	summaryActions,
+	summaryTableColumnsToGroupBy,
+	summaryTableColumnsToSelect
+} from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm'
+import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const labelActions = {
@@ -59,15 +63,15 @@ export const labelActions = {
 
 		const orderByResult = orderBy
 			? [
-				...orderBy.map((currentOrder) =>
-					summaryOrderBy(currentOrder, (remainingOrder) => {
-						return remainingOrder.direction === 'asc'
-							? asc(label[remainingOrder.field])
-							: desc(label[remainingOrder.field]);
-					})
-				),
-				...defaultOrderBy
-			]
+					...orderBy.map((currentOrder) =>
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(label[remainingOrder.field])
+								: desc(label[remainingOrder.field]);
+						})
+					),
+					...defaultOrderBy
+				]
 			: defaultOrderBy;
 
 		const results = await db
@@ -118,7 +122,7 @@ export const labelActions = {
 		title?: string;
 		id?: string;
 		requireActive?: boolean;
-		cachedData?: { id: string, title: string, status: StatusEnumType }[]
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
 			const currentLabel = cachedData
@@ -135,9 +139,7 @@ export const labelActions = {
 		} else if (title) {
 			const currentLabel = cachedData
 				? cachedData.find((currentData) => currentData.title === title)
-				: await db.query.label
-					.findFirst({ where: eq(label.title, title) })
-					.execute();
+				: await db.query.label.findFirst({ where: eq(label.title, title) }).execute();
 			if (currentLabel) {
 				if (requireActive && currentLabel.status !== 'active') {
 					throw new Error(`Label ${currentLabel.title} is not active`);
@@ -202,10 +204,9 @@ export const labelActions = {
 	update: async (db: DBType, data: UpdateLabelSchemaType) => {
 		const { id } = data;
 		const currentLabel = await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
-		logging.info('Update Label: ', data, currentLabel);
 
 		if (!currentLabel) {
-			logging.info('Update Label: Label not found');
+			logging.error('Update Label: Label not found', data);
 			return id;
 		}
 

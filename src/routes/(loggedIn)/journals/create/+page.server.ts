@@ -65,7 +65,7 @@ export const actions = {
 		try {
 			await tActions.journal.createFromSimpleTransaction({ db, transaction: form.data });
 		} catch (e) {
-			logging.info('Create Transaction Error', e);
+			logging.error('Create Transaction Error', e);
 			return message(form, 'Error Creating Transaction');
 		}
 		redirect(302, form.data.prevPage);

@@ -38,7 +38,7 @@ export const actions = {
 		try {
 			await tActions.bill.update(db, form.data);
 		} catch (e) {
-			logging.info('Update Bill Error', e);
+			logging.error('Update Bill Error', e);
 			return message(form, 'Error Updating Bill');
 		}
 		redirect(302, form.data.prevPage);

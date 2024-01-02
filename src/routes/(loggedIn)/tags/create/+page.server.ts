@@ -26,7 +26,7 @@ export const actions = {
 		try {
 			await tActions.tag.create(db, form.data);
 		} catch (e) {
-			logging.info('Create Tag Error', e);
+			logging.error('Create Tag Error', e);
 			return message(form, 'Error Creating Tag, Possibly Already Exists');
 		}
 		redirect(302, form.data.prevPage);

@@ -16,10 +16,14 @@ import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery'
 import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
 import { createCategory } from './helpers/seed/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
+import {
+	summaryActions,
+	summaryTableColumnsToGroupBy,
+	summaryTableColumnsToSelect
+} from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm'
+import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const categoryActions = {
@@ -60,15 +64,15 @@ export const categoryActions = {
 
 		const orderByResult = orderBy
 			? [
-				...orderBy.map((currentOrder) =>
-					summaryOrderBy(currentOrder, (remainingOrder) => {
-						return remainingOrder.direction === 'asc'
-							? asc(category[remainingOrder.field])
-							: desc(category[remainingOrder.field]);
-					})
-				),
-				...defaultOrderBy
-			]
+					...orderBy.map((currentOrder) =>
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(category[remainingOrder.field])
+								: desc(category[remainingOrder.field]);
+						})
+					),
+					...defaultOrderBy
+				]
 			: defaultOrderBy;
 
 		const results = await db
@@ -128,9 +132,7 @@ export const categoryActions = {
 		if (id) {
 			const currentCategory = cachedData
 				? cachedData.find((item) => item.id === id)
-				: await db.query.category
-					.findFirst({ where: eq(category.id, id) })
-					.execute();
+				: await db.query.category.findFirst({ where: eq(category.id, id) }).execute();
 
 			if (currentCategory) {
 				if (requireActive && currentCategory.status !== 'active') {
@@ -142,9 +144,7 @@ export const categoryActions = {
 		} else if (title) {
 			const currentCategory = cachedData
 				? cachedData.find((item) => item.title === title)
-				: await db.query.category
-					.findFirst({ where: eq(category.title, title) })
-					.execute();
+				: await db.query.category.findFirst({ where: eq(category.title, title) }).execute();
 			if (currentCategory) {
 				if (requireActive && currentCategory.status !== 'active') {
 					throw new Error(`Category ${currentCategory.title} is not active`);
@@ -192,10 +192,9 @@ export const categoryActions = {
 		const currentCategory = await db.query.category
 			.findFirst({ where: eq(category.id, id) })
 			.execute();
-		logging.info('Update Category: ', data, currentCategory);
 
 		if (!currentCategory) {
-			logging.info('Update Category: Category not found');
+			logging.error('Update Category: Category not found', data);
 			return id;
 		}
 

@@ -38,7 +38,7 @@ export const actions = {
 		try {
 			await tActions.tag.update(db, form.data);
 		} catch (e) {
-			logging.info('Update Tag Error', e);
+			logging.error('Update Tag Error', e);
 			return message(form, 'Error Updating Tag');
 		}
 		redirect(302, form.data.prevPage);

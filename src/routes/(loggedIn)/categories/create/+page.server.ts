@@ -29,7 +29,7 @@ export const actions = {
 		try {
 			await tActions.category.create(db, form.data);
 		} catch (e) {
-			logging.info('Create Category Error', e);
+			logging.error('Create Category Error', e);
 			return message(form, 'Error Creating Category, Possibly Already Exists');
 		}
 		redirect(302, form.data.prevPage);

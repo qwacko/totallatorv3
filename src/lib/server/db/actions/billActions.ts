@@ -15,10 +15,14 @@ import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData'
 import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
 import { createBill } from './helpers/seed/seedBillData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
+import {
+	summaryActions,
+	summaryTableColumnsToGroupBy,
+	summaryTableColumnsToSelect
+} from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm'
+import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const billActions = {
@@ -59,15 +63,15 @@ export const billActions = {
 
 		const orderByResult = orderBy
 			? [
-				...orderBy.map((currentOrder) =>
-					summaryOrderBy(currentOrder, (remainingOrder) => {
-						return remainingOrder.direction === 'asc'
-							? asc(bill[remainingOrder.field])
-							: desc(bill[remainingOrder.field]);
-					})
-				),
-				...defaultOrderBy
-			]
+					...orderBy.map((currentOrder) =>
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(bill[remainingOrder.field])
+								: desc(bill[remainingOrder.field]);
+						})
+					),
+					...defaultOrderBy
+				]
 			: defaultOrderBy;
 
 		const results = await db
@@ -121,7 +125,9 @@ export const billActions = {
 		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentBill = cachedData ? cachedData.find(item => item.id === id) : await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
+			const currentBill = cachedData
+				? cachedData.find((item) => item.id === id)
+				: await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
 
 			if (currentBill) {
 				if (requireActive && currentBill.status !== 'active') {
@@ -131,7 +137,9 @@ export const billActions = {
 			}
 			throw new Error(`Bill ${id} not found`);
 		} else if (title) {
-			const currentBill = cachedData ? cachedData.find(item => item.title === title) : await db.query.bill.findFirst({ where: eq(bill.title, title) }).execute();
+			const currentBill = cachedData
+				? cachedData.find((item) => item.title === title)
+				: await db.query.bill.findFirst({ where: eq(bill.title, title) }).execute();
 			if (currentBill) {
 				if (requireActive && currentBill.status !== 'active') {
 					throw new Error(`Bill ${currentBill.title} is not active`);
@@ -175,10 +183,9 @@ export const billActions = {
 	update: async (db: DBType, data: UpdateBillSchemaType) => {
 		const { id } = data;
 		const currentBill = await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
-		logging.info('Update Bill: ', data, currentBill);
 
 		if (!currentBill) {
-			logging.info('Update Bill: Bill not found');
+			logging.error('Update Bill: Bill not found', data);
 			return id;
 		}
 

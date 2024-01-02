@@ -41,7 +41,7 @@ export const actions = {
 		try {
 			await tActions.category.update(db, form.data);
 		} catch (e) {
-			logging.info('Update Category Error', e);
+			logging.error('Update Category Error', e);
 			return message(form, 'Error Updating Category');
 		}
 		redirect(302, form.data.prevPage);
