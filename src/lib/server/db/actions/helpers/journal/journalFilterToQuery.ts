@@ -1,6 +1,12 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import { account, journalEntry, label, labelsToJournals, transaction } from '../../../postgres/schema';
-import { SQL, and, eq, gte, lte, inArray, like, not, notInArray } from 'drizzle-orm';
+import {
+	account,
+	journalEntry,
+	label,
+	labelsToJournals,
+	transaction
+} from '../../../postgres/schema';
+import { SQL, and, eq, gte, lte, inArray, ilike, not, notInArray } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
 	accountFilterToText,
@@ -36,9 +42,9 @@ export const journalFilterToQuery = async (
 		where.push(inArray(journalEntry.transactionId, filter.transactionIdArray));
 	if (filter.excludeTransactionIdArray && filter.excludeTransactionIdArray.length > 0)
 		where.push(notInArray(journalEntry.transactionId, filter.excludeTransactionIdArray));
-	if (filter.description) where.push(like(journalEntry.description, `%${filter.description}%`));
+	if (filter.description) where.push(ilike(journalEntry.description, `%${filter.description}%`));
 	if (filter.excludeDescription)
-		where.push(not(like(journalEntry.description, `%${filter.excludeDescription}%`)));
+		where.push(not(ilike(journalEntry.description, `%${filter.excludeDescription}%`)));
 	if (filter.dateAfter !== undefined) where.push(gte(journalEntry.dateText, filter.dateAfter));
 	if (filter.dateBefore !== undefined) where.push(lte(journalEntry.dateText, filter.dateBefore));
 	if (filter.transfer !== undefined) where.push(eq(journalEntry.transfer, filter.transfer));
@@ -399,7 +405,7 @@ async function payeeToFilter(payee: { id?: string; idArray?: string[]; title?: s
 		payeeFilter.push(eq(otherJournal.accountId, payee.id));
 	}
 	if (payee.title) {
-		payeeFilter.push(like(account.title, `%${payee.title}%`));
+		payeeFilter.push(ilike(account.title, `%${payee.title}%`));
 	}
 
 	if (payee.idArray && payee.idArray.length > 0) {

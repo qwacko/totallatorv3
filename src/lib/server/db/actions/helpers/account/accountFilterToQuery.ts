@@ -1,7 +1,7 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import type { DBType } from '$lib/server/db/db';
 import { account } from '$lib/server/db/postgres/schema';
-import { SQL, eq, gt, inArray, like, lt } from 'drizzle-orm';
+import { SQL, eq, gt, inArray, ilike, lt } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { statusFilterToQuery, statusFilterToText } from '../misc/filterToQueryStatusCore';
@@ -14,13 +14,13 @@ export const accountFilterToQuery = (
 ) => {
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQuery(where, filter, 'account');
-	if (filter.accountGroup) where.push(like(account.accountGroup, `%${filter.accountGroup}%`));
-	if (filter.accountGroup2) where.push(like(account.accountGroup2, `%${filter.accountGroup2}%`));
-	if (filter.accountGroup3) where.push(like(account.accountGroup3, `%${filter.accountGroup3}%`));
+	if (filter.accountGroup) where.push(ilike(account.accountGroup, `%${filter.accountGroup}%`));
+	if (filter.accountGroup2) where.push(ilike(account.accountGroup2, `%${filter.accountGroup2}%`));
+	if (filter.accountGroup3) where.push(ilike(account.accountGroup3, `%${filter.accountGroup3}%`));
 	if (filter.accountGroupCombined)
-		where.push(like(account.accountGroupCombined, `%${filter.accountGroupCombined}%`));
+		where.push(ilike(account.accountGroupCombined, `%${filter.accountGroupCombined}%`));
 	if (filter.accountTitleCombined)
-		where.push(like(account.accountTitleCombined, `%${filter.accountTitleCombined}%`));
+		where.push(ilike(account.accountTitleCombined, `%${filter.accountTitleCombined}%`));
 	statusFilterToQuery(where, filter, 'account');
 	if (filter.isCash !== undefined) where.push(eq(account.isCash, filter.isCash));
 	if (filter.isNetWorth !== undefined) where.push(eq(account.isNetWorth, filter.isNetWorth));

@@ -1,5 +1,5 @@
 import { budget, bill, category, tag, label, account } from '../../../postgres/schema';
-import { SQL, eq, ilike, inArray, like } from 'drizzle-orm';
+import { SQL, eq, ilike, inArray } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import type { DBType } from '$lib/server/db/db';
 
@@ -34,7 +34,7 @@ export const idTitleFilterToQuery = (
 	if (restFilter.id) where.push(eq(usedTable.id, restFilter.id));
 	if (restFilter.idArray && restFilter.idArray.length > 0)
 		where.push(inArray(usedTable.id, restFilter.idArray));
-	if (restFilter.title) where.push(like(usedTable.title, `%${restFilter.title}%`));
+	if (restFilter.title) where.push(ilike(usedTable.title, `%${restFilter.title}%`));
 	if ('group' in usedTable && 'single' in usedTable) {
 		if (restFilter.group) where.push(ilike(usedTable.group, `%${restFilter.group}%`));
 		if (restFilter.single) where.push(ilike(usedTable.single, `%${restFilter.single}%`));
