@@ -26,7 +26,7 @@ export const actions = {
 		try {
 			await tActions.bill.create(db, form.data);
 		} catch (e) {
-			logging.info('Create Bill Error', e);
+			logging.error('Create Bill Error', e);
 			return message(form, 'Error Creating Bill, Possibly Already Exists');
 		}
 		redirect(302, form.data.prevPage);

@@ -41,7 +41,7 @@ export const actions = {
 		try {
 			await tActions.budget.update(db, form.data);
 		} catch (e) {
-			logging.info('Update Budget Error', e);
+			logging.error('Update Budget Error', e);
 			return message(form, 'Error Updating Budget');
 		}
 		redirect(302, form.data.prevPage);

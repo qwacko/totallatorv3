@@ -29,7 +29,7 @@ export const actions = {
 		try {
 			await tActions.account.create(db, form.data);
 		} catch (e) {
-			logging.info('Create Account Error', e);
+			logging.error('Create Account Error', e);
 			return message(form, 'Error Creating Account, Possibly Already Exists');
 		}
 		redirect(302, form.data.prevPage);

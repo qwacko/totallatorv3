@@ -45,7 +45,7 @@ describe('budgetFilterToQuery', () => {
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"budget"."title" like $');
+		expect(query.sql).toContain('"budget"."title" ilike $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Status

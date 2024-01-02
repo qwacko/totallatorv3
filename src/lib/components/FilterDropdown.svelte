@@ -20,7 +20,7 @@
 	export let showDefaultJournalFilters = false;
 	export let buttonText: string | undefined = undefined;
 
-	$: filterKeys = Object.keys(filters);
+	$: filterKeys = Object.keys(filters).sort((a, b) => a.localeCompare(b));
 
 	const filterToURL = (
 		filter: Pick<ReusableFilterDropdownListType[string][number], 'filter' | 'modificationType'>
@@ -54,7 +54,7 @@
 		</DropdownItem>
 	{/if}
 	{#each filterKeys as filterKey}
-		{@const currentFilter = filters[filterKey]}
+		{@const currentFilter = filters[filterKey].sort((a, b) => a.title.localeCompare(b.title))}
 		{#if currentFilter.length === 1}
 			{@const filter = currentFilter[0]}
 			<DropdownItem href={filterToURL(filter)} class="flex flex-row gap-2">

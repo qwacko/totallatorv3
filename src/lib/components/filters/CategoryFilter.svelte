@@ -57,7 +57,7 @@
 		<IdFilter bind:id={filter.id} {idToString} />
 		<FilterIdArray
 			bind:idArray={filter.idArray}
-			title="Bill IDs"
+			title="Category IDs"
 			lookupItems={categoryDetails}
 			{idToString}
 			{itemToDisplay}

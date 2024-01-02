@@ -1,7 +1,7 @@
 import type { ImportMappingFilterSchema } from '$lib/schema/importMappingSchema';
 import { db } from '../../../db';
 import { importMapping } from '../../../postgres/schema';
-import { SQL, eq, ilike, inArray, like, or } from 'drizzle-orm';
+import { SQL, eq, ilike, inArray, or } from 'drizzle-orm';
 import { arrayToText } from '../misc/arrayToText';
 
 export const importMappingFilterToQuery = (
@@ -13,13 +13,13 @@ export const importMappingFilterToQuery = (
 	if (restFilter.id) where.push(eq(importMapping.id, restFilter.id));
 	if (restFilter.idArray && restFilter.idArray.length > 0)
 		where.push(inArray(importMapping.id, restFilter.idArray));
-	if (restFilter.title) where.push(like(importMapping.title, `%${restFilter.title}%`));
+	if (restFilter.title) where.push(ilike(importMapping.title, `%${restFilter.title}%`));
 	if (restFilter.configuration)
 		where.push(ilike(importMapping.title, `%${restFilter.configuration}%`));
 	if (restFilter.combinedText) {
 		const orValue = or(
-			like(importMapping.title, `%${restFilter.combinedText}%`),
-			like(importMapping.configuration, `%${restFilter.combinedText}%`)
+			ilike(importMapping.title, `%${restFilter.combinedText}%`),
+			ilike(importMapping.configuration, `%${restFilter.combinedText}%`)
 		);
 		if (orValue) where.push(orValue);
 	}

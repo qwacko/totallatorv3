@@ -41,7 +41,7 @@ export const actions = {
 		try {
 			await tActions.label.update(db, form.data);
 		} catch (e) {
-			logging.info('Update Label Error', e);
+			logging.error('Update Label Error', e);
 			return message(form, 'Error Updating Label');
 		}
 		redirect(302, form.data.prevPage);

@@ -63,15 +63,15 @@ export const budgetActions = {
 
 		const orderByResult = orderBy
 			? [
-				...orderBy.map((currentOrder) =>
-					summaryOrderBy(currentOrder, (remainingOrder) => {
-						return remainingOrder.direction === 'asc'
-							? asc(budget[remainingOrder.field])
-							: desc(budget[remainingOrder.field]);
-					})
-				),
-				...defaultOrderBy
-			]
+					...orderBy.map((currentOrder) =>
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(budget[remainingOrder.field])
+								: desc(budget[remainingOrder.field]);
+						})
+					),
+					...defaultOrderBy
+				]
 			: defaultOrderBy;
 
 		const results = await db
@@ -182,10 +182,9 @@ export const budgetActions = {
 	update: async (db: DBType, data: UpdateBudgetSchemaType) => {
 		const { id } = data;
 		const currentBudget = await db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
-		logging.info('Update Budget: ', data, currentBudget);
 
 		if (!currentBudget) {
-			logging.info('Update Budget: Budget not found');
+			logging.error('Update Budget: Budget not found', data);
 			return id;
 		}
 

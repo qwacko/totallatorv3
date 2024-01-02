@@ -52,27 +52,27 @@ describe('Account Filter To Query', () => {
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"account"."title" like $');
+		expect(query.sql).toContain('"account"."title" ilike $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Account Group
-		expect(query.sql).toContain('"account"."account_group" like $');
+		expect(query.sql).toContain('"account"."account_group" ilike $');
 		expect(query.params).toHaveProperty('4', '%thisAccountGroup%');
 
 		//Account Group 2
-		expect(query.sql).toContain('"account"."account_group_2" like $');
+		expect(query.sql).toContain('"account"."account_group_2" ilike $');
 		expect(query.params).toHaveProperty('5', '%accountGroup2%');
 
 		//Account Group 3
-		expect(query.sql).toContain('"account"."account_group_3" like $');
+		expect(query.sql).toContain('"account"."account_group_3" ilike $');
 		expect(query.params).toHaveProperty('6', '%accountGroup3%');
 
 		//Account Group Combined
-		expect(query.sql).toContain('"account"."account_group_combined" like $');
+		expect(query.sql).toContain('"account"."account_group_combined" ilike $');
 		expect(query.params).toHaveProperty('7', '%accountGroupCombined%');
 
 		//Account Title Combined
-		expect(query.sql).toContain('"account"."account_title_combined" like $');
+		expect(query.sql).toContain('"account"."account_title_combined" ilike $');
 		expect(query.params).toHaveProperty('8', '%accountTitleCombined%');
 
 		//Status

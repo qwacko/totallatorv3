@@ -9,21 +9,27 @@ export const loggingFunction = (logClass: logClasses = 'INFO', ...params: logPar
 	}
 };
 
+const logErrors = serverEnv.LOGGING_CLASSES.includes('ERROR');
+const logWarns = serverEnv.LOGGING_CLASSES.includes('WARN');
+const logInfos = serverEnv.LOGGING_CLASSES.includes('INFO');
+const logDebugs = serverEnv.LOGGING_CLASSES.includes('DEBUG');
+const logTraces = serverEnv.LOGGING_CLASSES.includes('TRACE');
+
 export const logging = {
 	error: (...params: logParams) => {
-		if (serverEnv.LOGGING_CLASSES.includes('ERROR')) loggingFunction('ERROR', ...params);
+		if (logErrors) loggingFunction('ERROR', ...params);
 	},
 	warn: (...params: logParams) => {
-		if (serverEnv.LOGGING_CLASSES.includes('WARN')) loggingFunction('WARN', ...params);
+		if (logWarns) loggingFunction('WARN', ...params);
 	},
 	info: (...params: logParams) => {
-		if (serverEnv.LOGGING_CLASSES.includes('INFO')) loggingFunction('INFO', ...params);
+		if (logInfos) loggingFunction('INFO', ...params);
 	},
 	debug: (...params: logParams) => {
-		if (serverEnv.LOGGING_CLASSES.includes('DEBUG')) loggingFunction('DEBUG', ...params);
+		if (logDebugs) loggingFunction('DEBUG', ...params);
 	},
 	trace: (...params: logParams) => {
-		if (serverEnv.LOGGING_CLASSES.includes('TRACE')) loggingFunction('TRACE', ...params);
+		if (logTraces) loggingFunction('TRACE', ...params);
 	}
 };
 

@@ -11,6 +11,7 @@ export const cronJobs: CronJob[] = [
 		name: 'Backup SQLite Database',
 		schedule: serverEnv.BACKUP_SCHEDULE,
 		job: async () => {
+			logging.debug('CRON: Backing Up Database');
 			await tActions.backup.storeBackup({
 				db: db,
 				title: 'Scheduled Backup',
@@ -24,7 +25,7 @@ export const cronJobs: CronJob[] = [
 		name: 'Regular Journal Cleanup / Fix',
 		schedule: '0 * * * *',
 		job: async () => {
-			logging.info('CRON: Updating Journal Transfer Settings');
+			logging.debug('CRON: Updating Journal Transfer Settings');
 			updateManyTransferInfo({ db: db });
 		}
 	},
@@ -34,7 +35,7 @@ export const cronJobs: CronJob[] = [
 		job: async () => {
 			const startTime = new Date().getTime();
 			await summaryActions.updateAndCreateMany({ db, needsUpdateOnly: false, allowCreation: true });
-			logging.info(
+			logging.debug(
 				'CRON: Updated All Summaries (Hourly) - Took ' + (new Date().getTime() - startTime) + 'ms'
 			);
 		}
@@ -50,7 +51,7 @@ export const cronJobs: CronJob[] = [
 				needsUpdateOnly: true,
 				allowCreation: true
 			});
-			logging.info(
+			logging.debug(
 				'CRON: Creating and Updating Summaries that Need Update - Took ' +
 					(new Date().getTime() - startTime) +
 					'ms - Updated ' +
@@ -65,7 +66,7 @@ export const cronJobs: CronJob[] = [
 		job: async () => {
 			const startTime = new Date().getTime();
 			await tActions.reusableFitler.applyAllAutomatic({ db });
-			logging.info(
+			logging.debug(
 				'CRON: Running Automatic Filters - Took ' + (new Date().getTime() - startTime) + 'ms'
 			);
 		}
@@ -81,7 +82,7 @@ export const cronJobs: CronJob[] = [
 			});
 
 			if (numberModified > 0) {
-				logging.info(
+				logging.debug(
 					'CRON: Updating Reusable Filters - Took ' +
 						(new Date().getTime() - startTime) +
 						'ms - Updated ' +

@@ -29,7 +29,7 @@ export const actions = {
 		try {
 			await tActions.budget.create(db, form.data);
 		} catch (e) {
-			logging.info('Create Budget Error', e);
+			logging.error('Create Budget Error', e);
 			return message(form, 'Error Creating Budget, Possibly Already Exists');
 		}
 		redirect(302, form.data.prevPage);

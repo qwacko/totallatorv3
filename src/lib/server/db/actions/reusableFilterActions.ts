@@ -18,7 +18,7 @@ import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefin
 import { tActions } from './tActions';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { logging } from '$lib/server/logging';
-import { count as drizzleCount } from 'drizzle-orm'
+import { count as drizzleCount } from 'drizzle-orm';
 import { seedReusableFilterData } from './helpers/seed/seedReusableFilterData';
 
 export const reusableFilterActions = {
@@ -29,7 +29,6 @@ export const reusableFilterActions = {
 			.execute();
 
 		return count[0].count;
-
 	},
 	refreshFilterSummary: async ({
 		db,
@@ -108,8 +107,9 @@ export const reusableFilterActions = {
 		}
 
 		if (numberModified > 0) {
-			logging.info(
-				`Updated ${numberModified} reusable filters, took ${Date.now() - startTime
+			logging.debug(
+				`Updated ${numberModified} reusable filters, took ${
+					Date.now() - startTime
 				}ms (limit = ${maximumTime}s))`
 			);
 		}
@@ -144,13 +144,13 @@ export const reusableFilterActions = {
 
 		const orderByResult = orderBy
 			? [
-				...orderBy.map((currentOrder) => {
-					return currentOrder.direction === 'asc'
-						? asc(reusableFilter[currentOrder.field])
-						: desc(reusableFilter[currentOrder.field]);
-				}),
-				...defaultOrderBy
-			]
+					...orderBy.map((currentOrder) => {
+						return currentOrder.direction === 'asc'
+							? asc(reusableFilter[currentOrder.field])
+							: desc(reusableFilter[currentOrder.field]);
+					}),
+					...defaultOrderBy
+				]
 			: defaultOrderBy;
 
 		const results = await db
@@ -273,24 +273,16 @@ export const reusableFilterActions = {
 			})
 		);
 	},
-	createMany: async ({
-		db,
-		data
-	}: {
-		db: DBType;
-		data: CreateReusableFilterSchemaType[];
-	}) => {
-
+	createMany: async ({ db, data }: { db: DBType; data: CreateReusableFilterSchemaType[] }) => {
 		const newFilters = await db.transaction(async (db) => {
+			return Promise.all(
+				data.map(async (currentItem) => {
+					return reusableFilterActions.create({ db, data: currentItem });
+				})
+			);
+		});
 
-			return Promise.all(data.map(async (currentItem) => {
-				return reusableFilterActions.create({ db, data: currentItem })
-			}))
-		})
-
-		return newFilters
-
-
+		return newFilters;
 	},
 	create: async ({ db, data }: { db: DBType; data: CreateReusableFilterSchemaType }) => {
 		const processedData = createReusableFilterSchema.safeParse(data);
@@ -384,14 +376,14 @@ export const reusableFilterActions = {
 			await db.delete(reusableFilter).where(inArray(reusableFilter.id, ids)).execute();
 		}
 	},
-	seed: async ({ db, count }: { db: DBType, count: number }) => {
+	seed: async ({ db, count }: { db: DBType; count: number }) => {
+		const newFilters = Array(count)
+			.fill(0)
+			.map((_, index) => {
+				return seedReusableFilterData({ db, id: index });
+			});
 
-		const newFilters = Array(count).fill(0).map((_, index) => {
-			return seedReusableFilterData({ db, id: index })
-		})
-
-		await reusableFilterActions.createMany({ db, data: newFilters })
-
+		await reusableFilterActions.createMany({ db, data: newFilters });
 	}
 };
 

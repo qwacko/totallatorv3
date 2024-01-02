@@ -45,7 +45,7 @@ describe('labelFilterToQuery', () => {
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"label"."title" like $');
+		expect(query.sql).toContain('"label"."title" ilike $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Status

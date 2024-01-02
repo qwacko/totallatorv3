@@ -13,21 +13,15 @@ export const load = async (data) => {
 
 	const filterInfo = current.searchParams || {};
 
-	const startTime = Date.now();
-
 	const filters = await tActions.reusableFitler.list({ db, filter: filterInfo });
-
-	const endTime = Date.now();
-	console.log(`Reusable filter list took ${endTime - startTime}ms`);
 
 	const redirectRequired = filters.page >= filters.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, filters.pageCount - 1);
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
-
 	}
 
-	const filterText = await reusableFilterToText(current.searchParams || {})
+	const filterText = await reusableFilterToText(current.searchParams || {});
 
 	return {
 		filters,

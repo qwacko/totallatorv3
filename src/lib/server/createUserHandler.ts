@@ -22,7 +22,6 @@ export const createUserHandler = async ({
 	}
 
 	try {
-
 		const user = await auth.createUser({
 			key: {
 				providerId: 'username',
@@ -38,7 +37,6 @@ export const createUserHandler = async ({
 			}
 		});
 
-
 		if (setSession) {
 			const session = await auth.createSession({
 				userId: user.userId,
@@ -51,7 +49,7 @@ export const createUserHandler = async ({
 			return { form: newForm };
 		}
 	} catch (e) {
-		logging.info('Error creating user', e);
+		logging.error('Error creating user', e);
 		return setError(form, 'username', 'Error creating user. Username possibly already exists.');
 	}
 	// redirect to

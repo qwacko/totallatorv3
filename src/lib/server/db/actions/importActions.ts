@@ -1,4 +1,3 @@
-import { logging } from '$lib/server/logging';
 import { serverEnv } from '$lib/server/serverEnv';
 import { nanoid } from 'nanoid';
 import { writeFileSync } from 'fs';
@@ -101,7 +100,6 @@ export const importActions = {
 				throw new Error(`Mapping ${importMapping} Not Found`);
 			}
 		}
-		logging.info('New Filename', newFile.name);
 
 		const originalFilename = newFile.name;
 		const id = nanoid();

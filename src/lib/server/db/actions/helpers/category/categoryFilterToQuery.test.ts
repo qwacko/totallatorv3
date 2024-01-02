@@ -47,7 +47,7 @@ describe('categoryFilterToQuery', () => {
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"category"."title" like $');
+		expect(query.sql).toContain('"category"."title" ilike $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Group

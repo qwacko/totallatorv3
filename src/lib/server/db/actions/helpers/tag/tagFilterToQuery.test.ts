@@ -47,7 +47,7 @@ describe('tagFilterToQuery', () => {
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"tag"."title" like $');
+		expect(query.sql).toContain('"tag"."title" ilike $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Group

@@ -1,6 +1,6 @@
 import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
 import { reusableFilter } from '$lib/server/db/postgres/schema';
-import { SQL, eq, inArray, like, or } from 'drizzle-orm';
+import { SQL, eq, inArray, ilike, or } from 'drizzle-orm';
 
 export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) => {
 	const restFilter = filter;
@@ -9,14 +9,14 @@ export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) =>
 	if (restFilter.id) where.push(eq(reusableFilter.id, restFilter.id));
 	if (restFilter.idArray && restFilter.idArray.length > 0)
 		where.push(inArray(reusableFilter.id, restFilter.idArray));
-	if (restFilter.title) where.push(like(reusableFilter.title, `%${restFilter.title}%`));
-	if (restFilter.group) where.push(like(reusableFilter.group, `%${restFilter.group}%`));
+	if (restFilter.title) where.push(ilike(reusableFilter.title, `%${restFilter.title}%`));
+	if (restFilter.group) where.push(ilike(reusableFilter.group, `%${restFilter.group}%`));
 	if (restFilter.multipleText) {
 		const orValue = or(
-			like(reusableFilter.title, `%${restFilter.multipleText}%`),
-			like(reusableFilter.filterText, `%${restFilter.multipleText}%`),
-			like(reusableFilter.changeText, `%${restFilter.multipleText}%`),
-			like(reusableFilter.group, `%${restFilter.multipleText}%`)
+			ilike(reusableFilter.title, `%${restFilter.multipleText}%`),
+			ilike(reusableFilter.filterText, `%${restFilter.multipleText}%`),
+			ilike(reusableFilter.changeText, `%${restFilter.multipleText}%`),
+			ilike(reusableFilter.group, `%${restFilter.multipleText}%`)
 		);
 		if (orValue) {
 			where.push(orValue);
@@ -30,9 +30,9 @@ export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) =>
 	if (restFilter.modificationType)
 		where.push(eq(reusableFilter.modificationType, restFilter.modificationType));
 	if (restFilter.filterText)
-		where.push(like(reusableFilter.filterText, `%${restFilter.filterText}%`));
+		where.push(ilike(reusableFilter.filterText, `%${restFilter.filterText}%`));
 	if (restFilter.changeText)
-		where.push(like(reusableFilter.changeText, `%${restFilter.changeText}%`));
+		where.push(ilike(reusableFilter.changeText, `%${restFilter.changeText}%`));
 
 	return where;
 };

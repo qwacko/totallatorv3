@@ -1,5 +1,6 @@
 import schedule from 'node-schedule';
 import { cronJobs } from './cronJobs';
+import { logging } from '../logging';
 
 export type CronJob = {
 	name: string;
@@ -9,7 +10,13 @@ export type CronJob = {
 
 export const processCronJobs = (cronJobs: CronJob[]) => {
 	return cronJobs.map((cronJob) => {
-		return schedule.scheduleJob(cronJob.name, cronJob.schedule, cronJob.job);
+		return schedule.scheduleJob(cronJob.name, cronJob.schedule, () => {
+			try {
+				cronJob.job();
+			} catch (e) {
+				logging.error('Error in cron job', cronJob.name, cronJob.schedule, e);
+			}
+		});
 	});
 };
 

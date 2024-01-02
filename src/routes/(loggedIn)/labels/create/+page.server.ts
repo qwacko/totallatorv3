@@ -29,7 +29,7 @@ export const actions = {
 		try {
 			await tActions.label.create(db, form.data);
 		} catch (e) {
-			logging.info('Create Label Error', e);
+			logging.error('Create Label Error', e);
 			return message(form, 'Error Creating Label, Possibly Already Exists');
 		}
 		redirect(302, form.data.prevPage);

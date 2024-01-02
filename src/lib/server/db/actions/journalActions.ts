@@ -596,8 +596,6 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
-		// logging.info('Updating Journals - Filter : ', processedFilter);
-		// logging.info('Updating Journals - New Data : ', processedData.data);
 		const journals = await journalActions.list({ db, filter: processedFilter });
 
 		if (journals.data.length === 0) return;
