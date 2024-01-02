@@ -10,7 +10,7 @@ services:
       - ALLOW_SIGNUP=false
       - BACKUP_DIR=./backup/
       - IMPORT_DIR=./import/
-      - BACKUP_SCHEDULE="0 0 * * *"
+      - BACKUP_SCHEDULE=0 0 * * *
       - DB_QUERY_LOG=false
       - POSTGRES_URL=postgres://postgres:postgres@db:5432/totallatorv3
       - BODY_SIZE_LIMIT=10000000
