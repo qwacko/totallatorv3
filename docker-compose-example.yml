@@ -13,6 +13,8 @@ services:
       - BACKUP_SCHEDULE="0 0 * * *"
       - DB_QUERY_LOG=false
       - POSTGRES_URL=postgres://postgres:postgres@db:5432/totallatorv3
+      - BODY_SIZE_LIMIT=10000000
+      - DISABLE_BUFFERING=true
     volumes:
       - ./backup:/app/backup
       - ./import:/app/import
@@ -28,6 +30,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=totallatorv3
+      - PGDATA=/data/postgres
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - ./db:/data/postgres
     restart: unless-stopped
