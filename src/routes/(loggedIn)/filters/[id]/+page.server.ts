@@ -10,7 +10,6 @@ import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery';
 import { journalUpdateToText } from '$lib/server/db/actions/helpers/journal/journalUpdateToText';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
@@ -18,23 +17,18 @@ import { setError, superValidate } from 'sveltekit-superforms/server';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current } = serverPageInfo(data.route.id, data);
 	bufferingHelper(data);
 
 	if (!current.params || !current.searchParams) {
-		redirect(
-        			302,
-        			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
-        		);
+		redirect(302, urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url);
 	}
 
 	const reusableFilter = await tActions.reusableFitler.getById({ db, id: current.params.id });
 
 	if (!reusableFilter) {
-		redirect(
-        			302,
-        			urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url
-        		);
+		redirect(302, urlGenerator({ address: '/(loggedIn)/filters', searchParamsValue: {} }).url);
 	}
 
 	const change = current.searchParams?.change || reusableFilter.change;
@@ -126,7 +120,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.reusableFitler.update({ db, id, data: processedUpdate.data });
+			await tActions.reusableFitler.update({ db: data.locals.db, id, data: processedUpdate.data });
 		} catch (e) {
 			return setError(form, 'Reusable Filter Update Error');
 		}

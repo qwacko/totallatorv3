@@ -2,7 +2,6 @@ import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
 import type { CreateSimpleTransactionType } from '$lib/schema/journalSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
-import { db } from '$lib/server/db/db';
 
 import Papa from 'papaparse';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates.js';
@@ -14,7 +13,7 @@ export const GET = async (data) => {
 	} = serverPageInfo(data.route.id, data);
 
 	const journalData = await tActions.journal.list({
-		db,
+		db: data.locals.db,
 		filter: { ...searchParams, page: 0, pageSize: 100000 }
 	});
 

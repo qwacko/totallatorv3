@@ -3,11 +3,11 @@ import { serverPageInfo } from '$lib/routes.js';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { reusableFilterToText } from '$lib/server/db/actions/helpers/journal/reusableFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current, updateParams } = serverPageInfo(data.route.id, data);
 	bufferingHelper(data);
 

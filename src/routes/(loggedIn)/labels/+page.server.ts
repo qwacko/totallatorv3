@@ -3,7 +3,6 @@ import { serverPageInfo } from '$lib/routes.js';
 import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { labelFilterToText } from '$lib/server/db/actions/helpers/label/labelFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/client';
@@ -11,6 +10,7 @@ import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 
 	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 
@@ -33,9 +33,9 @@ export const load = async (data) => {
 	const filterText = await labelFilterToText({
 		db,
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
-	})
+	});
 
-	const labelDropdowns = await tActions.label.listForDropdown({ db })
+	const labelDropdowns = await tActions.label.listForDropdown({ db });
 
 	return {
 		labels,
@@ -52,7 +52,8 @@ const submitValidation = z.object({
 });
 
 export const actions = {
-	update: async ({ request }) => {
+	update: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, submitValidation);
 
 		if (!form.valid) {

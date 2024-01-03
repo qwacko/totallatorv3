@@ -57,7 +57,7 @@ export const categoryFilterToText = async ({
 	const stringArray: string[] = [];
 	await idTitleFilterToText(db, stringArray, filter, categoryIdToTitle);
 	statusFilterToText(stringArray, filter);
-	importFilterToText(stringArray, filter);
+	importFilterToText(db, stringArray, filter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

@@ -2,6 +2,7 @@ import { category, bill, budget, tag, label, account } from '../../../postgres/s
 import { SQL, inArray } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from '../import/importIdsToTitles';
+import type { DBType } from '$lib/server/db/db';
 
 type FilterCoreType = { importIdArray?: string[]; importDetailIdArray?: string[] };
 
@@ -33,7 +34,11 @@ export const importFilterToQuery = (
 	return where;
 };
 
-export const importFilterToText = async (stringArray: string[], filter: FilterCoreType) => {
+export const importFilterToText = async (
+	db: DBType,
+	stringArray: string[],
+	filter: FilterCoreType
+) => {
 	const restFilter = filter;
 
 	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
@@ -41,7 +46,7 @@ export const importFilterToText = async (stringArray: string[], filter: FilterCo
 			await arrayToText({
 				data: restFilter.importIdArray,
 				singularName: 'Import',
-				inputToText: importIdsToTitles
+				inputToText: (title) => importIdsToTitles(db, title)
 			})
 		);
 	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)

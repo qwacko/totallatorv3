@@ -12,7 +12,6 @@ import {
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { setError, superValidate } from 'sveltekit-superforms/server';
-import { db } from '$lib/server/db/db.js';
 import { journalUpdateToText } from '$lib/server/db/actions/helpers/journal/journalUpdateToText.js';
 import { reusableFilterPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { redirect } from '@sveltejs/kit';
@@ -21,6 +20,7 @@ import { bufferingHelper } from '$lib/server/bufferingHelper';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current } = serverPageInfo(data.route.id, data);
 	bufferingHelper(data);
 
@@ -106,7 +106,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.reusableFitler.create({ db, data: processedCreation.data });
+			await tActions.reusableFitler.create({ db: data.locals.db, data: processedCreation.data });
 		} catch (e) {
 			return setError(form, 'Reusable Filter Creation Error');
 		}

@@ -1,12 +1,12 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions.js';
-import { db } from '$lib/server/db/db';
 
 import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current: pageInfo } = serverPageInfo(data.route.id, data);
 
 	if (!pageInfo.params?.id) {
@@ -19,7 +19,7 @@ export const load = async (data) => {
 		redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
 	}
 
-	const canDelete = await tActions.import.canDelete({ db, id: pageInfo.params.id })
+	const canDelete = await tActions.import.canDelete({ db, id: pageInfo.params.id });
 
 	return {
 		id: pageInfo.params.id,

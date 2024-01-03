@@ -2,7 +2,6 @@ import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/db/db';
 import { setError, superValidate } from 'sveltekit-superforms/server';
 import {
 	importMappingDetailSchema,
@@ -15,14 +14,15 @@ import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current } = serverPageInfo(data.route.id, data);
 	bufferingHelper(data);
 
 	if (!current.params) {
 		redirect(
-        			302,
-        			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
-        		);
+			302,
+			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
+		);
 	}
 
 	const importMapping = await tActions.importMapping.getById({
@@ -32,9 +32,9 @@ export const load = async (data) => {
 
 	if (!importMapping) {
 		redirect(
-        			302,
-        			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
-        		);
+			302,
+			urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
+		);
 	}
 
 	const form = await superValidate(
@@ -76,7 +76,7 @@ export const actions = {
 
 		try {
 			await tActions.importMapping.update({
-				db,
+				db: data.locals.db,
 				id,
 				data: {
 					configuration: configurationProcessed.data,
@@ -88,8 +88,8 @@ export const actions = {
 		}
 
 		redirect(
-        			302,
-        			prevPage || urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
-        		);
+			302,
+			prevPage || urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} }).url
+		);
 	}
 };

@@ -2,7 +2,6 @@ import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/db/db';
 import { superValidate } from 'sveltekit-superforms/server';
 import { accountFilterSchema, updateAccountSchema } from '$lib/schema/accountSchema';
 import { accountFilterToText } from '$lib/server/db/actions/helpers/account/accountFilterToQuery';
@@ -11,6 +10,7 @@ import { logging } from '$lib/server/logging';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const pageInfo = serverPageInfo(data.route.id, data);
 
 	const filter = pageInfo.current.searchParams;
@@ -44,7 +44,8 @@ export const load = async (data) => {
 const submitValidation = updateAccountSchema.merge(accountPageAndFilterValidation);
 
 export const actions = {
-	default: async ({ request }) => {
+	default: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, submitValidation);
 		if (!form.valid) {
 			redirect(302, form.data.currentPage);
@@ -64,10 +65,10 @@ export const actions = {
 			redirect(
 				302,
 				form.data.prevPage ||
-				urlGenerator({
-					address: '/(loggedIn)/accounts',
-					searchParamsValue: {}
-				}).url
+					urlGenerator({
+						address: '/(loggedIn)/accounts',
+						searchParamsValue: {}
+					}).url
 			);
 		}
 

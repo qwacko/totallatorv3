@@ -65,7 +65,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [sql`true`])));
+			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [sql`true`])));
 
 		const countResult = await countQueryCore.execute();
 
@@ -80,7 +80,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [])));
+			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])));
 
 		const count = await countQueryCore.execute();
 
@@ -134,7 +134,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [])));
+			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])));
 
 		const tagsQuery = db
 			.select({
@@ -148,7 +148,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
 			.groupBy(tag.id, tag.title)
 			.execute();
 
@@ -164,7 +164,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
 			.groupBy(category.id, category.title)
 			.execute();
 
@@ -180,7 +180,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
 			.groupBy(bill.id, bill.title)
 			.execute();
 
@@ -196,7 +196,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
 			.groupBy(budget.id, budget.title)
 			.execute();
 
@@ -212,7 +212,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
 			.groupBy(account.id, account.title)
 			.execute();
 
@@ -251,7 +251,7 @@ export const journalActions = {
 			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 			.leftJoin(category, eq(journalEntry.categoryId, category.id))
 			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(filter) : [])))
+			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
 			.groupBy(journalEntry.yearMonth);
 
 		const summaryQuery = (await summaryQueryCore.execute())[0];
@@ -924,6 +924,8 @@ export const journalActions = {
 
 			await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
 		});
+
+		return targetJournals;
 	},
 	cloneJournals: async ({
 		db,

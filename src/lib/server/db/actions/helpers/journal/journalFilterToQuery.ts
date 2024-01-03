@@ -17,12 +17,13 @@ import { budgetFilterToQuery, budgetFilterToText } from '../budget/budgetFilterT
 import { tagFilterToQuery, tagFilterToText } from '../tag/tagFilterToQuery';
 import { categoryFilterToQuery, categoryFilterToText } from '../category/categoryFilterToQuery';
 import { labelFilterToQuery, labelFilterToText } from '../label/labelFilterToQuery';
-import { db, type DBType } from '../../../db';
+import { type DBType } from '../../../db';
 import { alias } from 'drizzle-orm/pg-core';
 import { arrayToText } from '../misc/arrayToText';
 import { importIdsToTitles } from '../import/importIdsToTitles';
 
 export const journalFilterToQuery = async (
+	db: DBType,
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
 ) => {
 	const where: SQL<unknown>[] = [];
@@ -148,14 +149,14 @@ export const journalFilterToQuery = async (
 	}
 
 	if (filter.payee) {
-		const allowedJournalIds = await payeeToFilter(filter.payee);
+		const allowedJournalIds = await payeeToFilter(db, filter.payee);
 		if (allowedJournalIds) {
 			where.push(inArray(journalEntry.id, allowedJournalIds));
 		}
 	}
 
 	if (filter.excludePayee) {
-		const disallowedJournalIds = await payeeToFilter(filter.excludePayee);
+		const disallowedJournalIds = await payeeToFilter(db, filter.excludePayee);
 		if (disallowedJournalIds) {
 			where.push(notInArray(journalEntry.id, disallowedJournalIds));
 		}
@@ -230,7 +231,7 @@ export const journalFilterToText = async ({
 			await arrayToText({
 				data: filter.importIdArray,
 				singularName: 'Import',
-				inputToText: importIdsToTitles
+				inputToText: (title) => importIdsToTitles(db, title)
 			})
 		);
 	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
@@ -396,7 +397,10 @@ export const journalFilterToText = async ({
 	return combinedArray;
 };
 
-async function payeeToFilter(payee: { id?: string; idArray?: string[]; title?: string }) {
+async function payeeToFilter(
+	db: DBType,
+	payee: { id?: string; idArray?: string[]; title?: string }
+) {
 	const otherJournal = alias(journalEntry, 'otherJournal');
 
 	const payeeFilter: SQL<unknown>[] = [];

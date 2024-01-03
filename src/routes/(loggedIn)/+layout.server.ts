@@ -1,8 +1,7 @@
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 
-export const load = async () => {
+export const load = async ({ locals }) => {
 	return {
-		filterDropdown: await tActions.reusableFitler.listForDropdown({ db })
+		filterDropdown: await tActions.reusableFitler.listForDropdown({ db: locals.db })
 	};
 };

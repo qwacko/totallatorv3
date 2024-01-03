@@ -56,7 +56,7 @@ export const tagFilterToText = async ({
 	const stringArray: string[] = [];
 	await idTitleFilterToText(db, stringArray, filter, tagIdToTitle);
 	statusFilterToText(stringArray, filter);
-	importFilterToText(stringArray, filter);
+	importFilterToText(db, stringArray, filter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

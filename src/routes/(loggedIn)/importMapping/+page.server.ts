@@ -3,11 +3,11 @@ import { serverPageInfo } from '$lib/routes';
 import { importMappingFilterToText } from '$lib/server/db/actions/helpers/import/importMappingFilterToQuery';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current, updateParams } = serverPageInfo(data.route.id, data);
 
 	const importMappings = await tActions.importMapping.list({
@@ -21,7 +21,7 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const filterText = await importMappingFilterToText(current.searchParams || {});
+	const filterText = await importMappingFilterToText(db, current.searchParams || {});
 
 	return {
 		importMappings,
@@ -38,7 +38,7 @@ export const actions = {
 		if (!importMappingId || !action) return;
 		try {
 			if (action === 'clone') {
-				await tActions.importMapping.clone({ db, id: importMappingId });
+				await tActions.importMapping.clone({ db: data.locals.db, id: importMappingId });
 			}
 
 			return;

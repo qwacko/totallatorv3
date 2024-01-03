@@ -56,7 +56,7 @@ export const billFilterToText = async ({
 	const stringArray: string[] = [];
 	await idTitleFilterToText(db, stringArray, filter, billIdToTitle);
 	statusFilterToText(stringArray, filter);
-	importFilterToText(stringArray, filter);
+	importFilterToText(db, stringArray, filter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

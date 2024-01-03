@@ -3,7 +3,6 @@ import { serverPageInfo } from '$lib/routes.js';
 import { defaultJournalFilter, journalFilterSchema } from '$lib/schema/journalSchema.js';
 import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/server';
@@ -11,6 +10,7 @@ import { urlGenerator } from '$lib/routes.js';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const pageInfo = serverPageInfo(data.route.id, data);
 
 	const journalData = await tActions.journal.list({
@@ -22,7 +22,8 @@ export const load = async (data) => {
 };
 
 export const actions = {
-	delete: async ({ request }) => {
+	delete: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, pageAndFilterValidation);
 
 		if (!form.valid) {
@@ -44,13 +45,13 @@ export const actions = {
 		} catch (e) {
 			logging.error('Error Updating Journal State : ', e);
 			redirect(
-            				302,
-            				form.data.prevPage ||
-            					urlGenerator({
-            						address: '/(loggedIn)/journals',
-            						searchParamsValue: defaultJournalFilter()
-            					}).url
-            			);
+				302,
+				form.data.prevPage ||
+					urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: defaultJournalFilter()
+					}).url
+			);
 		}
 
 		redirect(302, form.data.prevPage);

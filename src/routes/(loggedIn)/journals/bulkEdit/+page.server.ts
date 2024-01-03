@@ -6,7 +6,6 @@ import {
 	updateJournalSchema
 } from '$lib/schema/journalSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms/server';
@@ -15,6 +14,7 @@ import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const pageInfo = serverPageInfo(data.route.id, data);
 
 	const journalData = await tActions.journal.listWithCommonData({
@@ -76,7 +76,8 @@ const updateStateActionValidation = pageAndFilterValidation.merge(
 const updateValidation = updateJournalSchema.merge(pageAndFilterValidation);
 
 export const actions = {
-	updateState: async ({ request }) => {
+	updateState: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, updateStateActionValidation);
 
 		if (!form.valid) {
@@ -120,18 +121,19 @@ export const actions = {
 		} catch (e) {
 			logging.error('Error Updating Journal State : ', e);
 			redirect(
-            				302,
-            				form.data.prevPage ||
-            					urlGenerator({
-            						address: '/(loggedIn)/journals',
-            						searchParamsValue: defaultJournalFilter()
-            					}).url
-            			);
+				302,
+				form.data.prevPage ||
+					urlGenerator({
+						address: '/(loggedIn)/journals',
+						searchParamsValue: defaultJournalFilter()
+					}).url
+			);
 		}
 
 		redirect(302, form.data.prevPage);
 	},
-	update: async ({ request }) => {
+	update: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, updateValidation);
 
 		if (!form.valid) {

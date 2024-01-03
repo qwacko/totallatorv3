@@ -7,7 +7,6 @@ import {
 } from '$lib/schema/importMappingSchema.js';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { logging } from '$lib/server/logging';
 import { fail, redirect } from '@sveltejs/kit';
@@ -16,6 +15,7 @@ import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	serverPageInfo(data.route.id, data);
 	bufferingHelper(data);
 
@@ -50,7 +50,7 @@ export const actions = {
 
 		try {
 			await tActions.importMapping.create({
-				db: db,
+				db: data.locals.db,
 				data: {
 					title: form.data.title,
 					configuration: detailFormData.data,
