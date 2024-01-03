@@ -67,6 +67,7 @@ export const journalList = async ({
 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+		.leftJoin(importTable, eq(journalEntry.importId, importTable.id))
 		.where(and(...(await journalFilterToQuery(db, restFilter))))
 		.orderBy(...journalFilterToOrderBy(processedFilter))
 		.offset(page * pageSize)
