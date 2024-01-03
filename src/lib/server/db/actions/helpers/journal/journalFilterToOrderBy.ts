@@ -2,11 +2,17 @@ import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { asc, desc, SQL } from 'drizzle-orm';
 import { account, journalEntry } from '../../../postgres/schema';
 
+const defaultOrderBy = [
+	desc(journalEntry.amount),
+	desc(journalEntry.createdAt),
+	desc(journalEntry.id)
+];
+
 export const journalFilterToOrderBy = (filter: JournalFilterSchemaType): SQL<unknown>[] => {
 	const { orderBy } = filter;
 
 	if (!orderBy) {
-		return [];
+		return [desc(journalEntry.date), ...defaultOrderBy];
 	}
 	const processedOrderBy = orderBy.map((currentOrder) => {
 		if (
@@ -33,5 +39,5 @@ export const journalFilterToOrderBy = (filter: JournalFilterSchemaType): SQL<unk
 		return desc(journalEntry.createdAt);
 	});
 
-	return processedOrderBy;
+	return [...processedOrderBy, ...defaultOrderBy];
 };
