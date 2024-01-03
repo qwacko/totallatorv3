@@ -4,12 +4,12 @@ import type { JournalFilterSchemaType } from '$lib/schema/journalSchema.js';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 	bufferingHelper(data);
 
@@ -39,7 +39,6 @@ export const load = async (data) => {
 
 	const filterText = await journalFilterToText({ db, filter, prefix: 'Journal' });
 	const filterDropdown = await tActions.reusableFitler.listForDropdown({ db });
-
 
 	return {
 		journals: journalData,

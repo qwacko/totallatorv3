@@ -1,13 +1,13 @@
 import { urlGenerator } from '$lib/routes.js';
 import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
-import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 
 export const actions = {
-	create: async ({ request }) => {
+	create: async ({ request, locals }) => {
+		const db = locals.db;
 		const formData = Object.fromEntries(await request.formData());
 
 		let newId: undefined | string = undefined;
@@ -48,9 +48,9 @@ export const actions = {
 		}
 		if (newId) {
 			redirect(
-            				302,
-            				urlGenerator({ address: '/(loggedIn)/import/[id]', paramsValue: { id: newId } }).url
-            			);
+				302,
+				urlGenerator({ address: '/(loggedIn)/import/[id]', paramsValue: { id: newId } }).url
+			);
 		}
 		return fail(400, { message: 'Unknown Error. Not Processed' });
 	}

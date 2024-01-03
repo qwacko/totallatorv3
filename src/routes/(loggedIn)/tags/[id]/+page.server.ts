@@ -3,13 +3,13 @@ import { serverPageInfo } from '$lib/routes';
 import { tagPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 import { updateTagSchema } from '$lib/schema/tagSchema';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms/server';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const pageInfo = serverPageInfo(data.route.id, data);
 
 	if (!pageInfo.current.params?.id) redirect(302, '/tags');
@@ -28,7 +28,8 @@ export const load = async (data) => {
 };
 
 export const actions = {
-	default: async ({ request }) => {
+	default: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, updateTagSchema.merge(tagPageAndFilterValidation));
 
 		if (!form.valid) {

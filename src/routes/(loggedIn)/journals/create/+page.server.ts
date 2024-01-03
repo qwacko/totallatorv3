@@ -5,7 +5,6 @@ import {
 } from '$lib/schema/journalSchema.js';
 import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 import { tActions } from '$lib/server/db/actions/tActions.js';
-import { db } from '$lib/server/db/db.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms/client';
@@ -47,7 +46,8 @@ export const load = async (data) => {
 const createValidation = createSimpleTransactionSchemaCore.merge(pageAndFilterValidation);
 
 export const actions = {
-	default: async ({ request }) => {
+	default: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, createValidation);
 
 		if (!form.valid) {

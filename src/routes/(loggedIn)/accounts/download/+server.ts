@@ -2,12 +2,12 @@ import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { serverPageInfo } from '$lib/routes.js';
 import type { CreateAccountSchemaType } from '$lib/schema/accountSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
-import { db } from '$lib/server/db/db';
 
 import Papa from 'papaparse';
 
 export const GET = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const {
 		current: { searchParams }
 	} = serverPageInfo(data.route.id, data);

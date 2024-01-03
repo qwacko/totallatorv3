@@ -101,7 +101,7 @@ export const accountFilterToText = async ({
 			stringArray.push(`Type is one of ${restFilter.type.join(', ')}`);
 		}
 	}
-	importFilterToText(stringArray, filter);
+	importFilterToText(db, stringArray, filter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

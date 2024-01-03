@@ -7,7 +7,6 @@ import {
 } from '$lib/schema/journalSchema';
 import { accountFilterToText } from '$lib/server/db/actions/helpers/account/accountFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/client';
@@ -15,6 +14,7 @@ import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 
 	const searchParams = pageInfo.searchParams || { page: 0, pageSize: 10 };
@@ -48,9 +48,9 @@ export const load = async (data) => {
 	const filterText = await accountFilterToText({
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
 		db
-	})
+	});
 
-	const accountDropdown = await tActions.account.listForDropdown({ db })
+	const accountDropdown = await tActions.account.listForDropdown({ db });
 
 	return {
 		accounts,
@@ -67,7 +67,8 @@ const submitValidation = z.object({
 });
 
 export const actions = {
-	update: async ({ request }) => {
+	update: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, submitValidation);
 
 		if (!form.valid) {

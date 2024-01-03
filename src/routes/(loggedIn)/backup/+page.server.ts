@@ -2,7 +2,6 @@ import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/db/db';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -40,7 +39,8 @@ export const load = async (data) => {
 };
 
 export const actions = {
-	backup: async ({ request }) => {
+	backup: async ({ request, locals }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 		const backupName = formData.get('backupName')?.toString();
 
@@ -54,7 +54,8 @@ export const actions = {
 			creationReason: 'Manual Backup'
 		});
 	},
-	backupUncompressed: async ({ request }) => {
+	backupUncompressed: async ({ request, locals }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 		const backupName = formData.get('backupName')?.toString();
 

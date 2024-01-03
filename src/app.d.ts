@@ -8,6 +8,7 @@ declare global {
 		interface Locals {
 			auth: import('lucia').AuthRequest;
 			user: import('lucia').User | undefined;
+			db: import('$lib/server/db/db').DBType;
 		}
 	}
 

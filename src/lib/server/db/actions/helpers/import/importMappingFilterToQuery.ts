@@ -1,5 +1,5 @@
 import type { ImportMappingFilterSchema } from '$lib/schema/importMappingSchema';
-import { db } from '../../../db';
+import type { DBType } from '../../../db';
 import { importMapping } from '../../../postgres/schema';
 import { SQL, eq, ilike, inArray, or } from 'drizzle-orm';
 import { arrayToText } from '../misc/arrayToText';
@@ -27,7 +27,7 @@ export const importMappingFilterToQuery = (
 	return where;
 };
 
-export const importMappingIdToTitle = async (id: string) => {
+export const importMappingIdToTitle = async (db: DBType, id: string) => {
 	const foundImportMapping = await db
 		.select({ title: importMapping.title })
 		.from(importMapping)
@@ -41,13 +41,14 @@ export const importMappingIdToTitle = async (id: string) => {
 	return id;
 };
 
-const importMappingIdsToTitle = async (ids: string[]) => {
-	const titles = await Promise.all(ids.map(async (id) => importMappingIdToTitle(id)));
+const importMappingIdsToTitle = async (db: DBType, ids: string[]) => {
+	const titles = await Promise.all(ids.map(async (id) => importMappingIdToTitle(db, id)));
 
 	return titles;
 };
 
 export const importMappingFilterToText = async (
+	db: DBType,
 	filter: Omit<ImportMappingFilterSchema, 'page' | 'pageSize' | 'orderBy'>,
 
 	{ prefix, allText = true }: { prefix?: string; allText?: boolean } = {}
@@ -55,13 +56,13 @@ export const importMappingFilterToText = async (
 	const restFilter = filter;
 
 	const stringArray: string[] = [];
-	if (restFilter.id) stringArray.push(`Is ${await importMappingIdToTitle(restFilter.id)}`);
+	if (restFilter.id) stringArray.push(`Is ${await importMappingIdToTitle(db, restFilter.id)}`);
 	if (restFilter.idArray && restFilter.idArray.length > 0)
 		stringArray.push(
 			await arrayToText({
 				data: restFilter.idArray,
 				singularName: 'Import Mapping',
-				inputToText: importMappingIdsToTitle
+				inputToText: (title) => importMappingIdsToTitle(db, title)
 			})
 		);
 

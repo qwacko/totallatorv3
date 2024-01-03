@@ -1,11 +1,10 @@
 import { tActions } from '$lib/server/db/actions/tActions.js';
-import { db } from '$lib/server/db/db';
 import { reusableFilter } from '$lib/server/db/postgres/schema';
 import { logging } from '$lib/server/logging.js';
 
-export const load = async () => {
-	const accountCount = await tActions.account.count(db);
-	const accountsWithJournalCount = await tActions.account.listWithTransactionCount(db);
+export const load = async ({ locals }) => {
+	const accountCount = await tActions.account.count(locals.db);
+	const accountsWithJournalCount = await tActions.account.listWithTransactionCount(locals.db);
 	const deletableAccountCount = accountsWithJournalCount.filter(
 		(item) => item.journalCount === 0
 	).length;
@@ -15,35 +14,35 @@ export const load = async () => {
 		{ title: '+ 100', income: 15, expense: 50, asset: 20, liability: 15 }
 	];
 
-	const billCount = await tActions.bill.count(db);
-	const billsWithJournalCount = await tActions.bill.listWithTransactionCount(db);
+	const billCount = await tActions.bill.count(locals.db);
+	const billsWithJournalCount = await tActions.bill.listWithTransactionCount(locals.db);
 	const deletableBillCount = billsWithJournalCount.filter((item) => item.journalCount === 0).length;
 
-	const budgetCount = await tActions.budget.count(db);
-	const budgetsWithJournalCount = await tActions.budget.listWithTransactionCount(db);
+	const budgetCount = await tActions.budget.count(locals.db);
+	const budgetsWithJournalCount = await tActions.budget.listWithTransactionCount(locals.db);
 	const deletableBudgetCount = budgetsWithJournalCount.filter(
 		(item) => item.journalCount === 0
 	).length;
 
-	const categoryCount = await tActions.category.count(db);
-	const categoriesWithJournalCount = await tActions.category.listWithTransactionCount(db);
+	const categoryCount = await tActions.category.count(locals.db);
+	const categoriesWithJournalCount = await tActions.category.listWithTransactionCount(locals.db);
 	const deletableCategoryCount = categoriesWithJournalCount.filter(
 		(item) => item.journalCount === 0
 	).length;
 
-	const tagCount = await tActions.tag.count(db);
-	const tagsWithJournalCount = await tActions.tag.listWithTransactionCount(db);
+	const tagCount = await tActions.tag.count(locals.db);
+	const tagsWithJournalCount = await tActions.tag.listWithTransactionCount(locals.db);
 	const deletableTagCount = tagsWithJournalCount.filter((item) => item.journalCount === 0).length;
 
-	const labelCount = await tActions.label.count(db);
-	const labelsWithJournalCount = await tActions.label.listWithTransactionCount(db);
+	const labelCount = await tActions.label.count(locals.db);
+	const labelsWithJournalCount = await tActions.label.listWithTransactionCount(locals.db);
 	const deletableLabelCount = labelsWithJournalCount.filter(
 		(item) => item.journalCount === 0
 	).length;
 
-	const reusableFilterCount = await tActions.reusableFitler.count(db);
+	const reusableFilterCount = await tActions.reusableFitler.count(locals.db);
 
-	const journalCount = await tActions.journal.count(db);
+	const journalCount = await tActions.journal.count(locals.db);
 	const deletableJournalCount = journalCount;
 
 	return {
@@ -80,7 +79,7 @@ export const actions = {
 			const form = await data.request.formData();
 			const count = Number(form.get('count')?.toString() || '200');
 
-			await tActions.journal.seed(db, count);
+			await tActions.journal.seed(data.locals.db, count);
 			const endTime = new Date();
 			const timeDiff = (endTime.getTime() - startTime.getTime()) / 1000;
 			logging.info(`Added ${count} transactions in ${timeDiff.toString()} seconds`);
@@ -96,7 +95,7 @@ export const actions = {
 			const countAssets = Number(form.get('countAssets')?.toString() || '10');
 			const countLiabilities = Number(form.get('countLiabilities')?.toString() || '10');
 
-			await tActions.account.seed(db, {
+			await tActions.account.seed(data.locals.db, {
 				countAssets,
 				countExpenses,
 				countIncome,
@@ -111,7 +110,7 @@ export const actions = {
 			const form = await data.request.formData();
 			const count = Number(form.get('count')?.toString() || '10');
 
-			await tActions.tag.seed(db, count);
+			await tActions.tag.seed(data.locals.db, count);
 		} catch (e) {
 			logging.error('Error Creating Bulk Tags : ', e);
 		}
@@ -121,7 +120,7 @@ export const actions = {
 			const form = await data.request.formData();
 			const count = Number(form.get('count')?.toString() || '10');
 
-			await tActions.bill.seed(db, count);
+			await tActions.bill.seed(data.locals.db, count);
 		} catch (e) {
 			logging.error('Error Creating Bulk Bills : ', e);
 		}
@@ -131,7 +130,7 @@ export const actions = {
 			const form = await data.request.formData();
 			const count = Number(form.get('count')?.toString() || '10');
 
-			await tActions.budget.seed(db, count);
+			await tActions.budget.seed(data.locals.db, count);
 		} catch (e) {
 			logging.error('Error Creating Budget Tags : ', e);
 		}
@@ -141,7 +140,7 @@ export const actions = {
 			const form = await data.request.formData();
 			const count = Number(form.get('count')?.toString() || '10');
 
-			await tActions.category.seed(db, count);
+			await tActions.category.seed(data.locals.db, count);
 		} catch (e) {
 			logging.error('Error Creating Bulk Categories : ', e);
 		}
@@ -151,7 +150,7 @@ export const actions = {
 			const form = await data.request.formData();
 			const count = Number(form.get('count')?.toString() || '10');
 
-			await tActions.label.seed(db, count);
+			await tActions.label.seed(data.locals.db, count);
 		} catch (e) {
 			logging.error('Error Creating Bulk Labels : ', e);
 		}
@@ -161,78 +160,91 @@ export const actions = {
 			const form = await data.request.formData();
 			const count = Number(form.get('count')?.toString() || '10');
 
-			await tActions.reusableFitler.seed({ db, count });
+			await tActions.reusableFitler.seed({ db: data.locals.db, count });
 		} catch (e) {
 			logging.error('Error Creating Bulk Reusable Filters : ', e);
 		}
 	},
-	deleteUnusedJournals: async () => {
+	deleteUnusedJournals: async (data) => {
 		try {
-			const journals = await tActions.journal.list({ db, filter: { pageSize: 10000 } });
+			const journals = await tActions.journal.list({
+				db: data.locals.db,
+				filter: { pageSize: 10000 }
+			});
 			const transactionIds = journals.data.map((item) => item.transactionId);
-			await tActions.journal.hardDeleteTransactions({ db, transactionIds });
+			await tActions.journal.hardDeleteTransactions({ db: data.locals.db, transactionIds });
 		} catch (e) {
 			logging.error('Error Deleting Unused Journals : ', e);
 		}
 	},
-	deleteUnusedAccounts: async () => {
+	deleteUnusedAccounts: async (data) => {
 		try {
-			const accountsWithJournalCount = await tActions.account.listWithTransactionCount(db);
+			const accountsWithJournalCount = await tActions.account.listWithTransactionCount(
+				data.locals.db
+			);
 			const items = accountsWithJournalCount.filter((item) => item.journalCount === 0);
-			await tActions.account.deleteMany(db, items);
+			await tActions.account.deleteMany(data.locals.db, items);
 		} catch (e) {
 			logging.error('Error Deleting Unused Accounts : ', e);
 		}
 	},
-	deleteUnusedTags: async () => {
+	deleteUnusedTags: async (data) => {
 		try {
-			const tagsWithJournalCount = await tActions.tag.listWithTransactionCount(db);
+			const tagsWithJournalCount = await tActions.tag.listWithTransactionCount(data.locals.db);
 			const items = tagsWithJournalCount.filter((item) => item.journalCount === 0);
-			await tActions.tag.deleteMany(db, items);
+			await tActions.tag.deleteMany(data.locals.db, items);
 		} catch (e) {
 			logging.error('Error Deleting Unused Tags : ', e);
 		}
 	},
-	deleteUnusedCategories: async () => {
+	deleteUnusedCategories: async ({ locals }) => {
 		try {
-			const categoriesWithJournalCount = await tActions.category.listWithTransactionCount(db);
+			const categoriesWithJournalCount = await tActions.category.listWithTransactionCount(
+				locals.db
+			);
 			const items = categoriesWithJournalCount.filter((item) => item.journalCount === 0);
-			await tActions.category.deleteMany(db, items);
+			await tActions.category.deleteMany(locals.db, items);
 		} catch (e) {
 			logging.error('Error Deleting Unused Categories : ', e);
 		}
 	},
-	deleteUnusedBills: async () => {
+	deleteUnusedBills: async ({ locals }) => {
 		try {
-			const billsWithJournalCount = await tActions.bill.listWithTransactionCount(db);
+			const billsWithJournalCount = await tActions.bill.listWithTransactionCount(locals.db);
 			const items = billsWithJournalCount.filter((item) => item.journalCount === 0);
-			await tActions.bill.deleteMany(db, items);
+			await tActions.bill.deleteMany(locals.db, items);
 		} catch (e) {
 			logging.error('Error Deleting Unused Bills : ', e);
 		}
 	},
-	deleteUnusedBudgets: async () => {
+	deleteUnusedBudgets: async ({ locals }) => {
 		try {
-			const budgetsWithJournalCount = await tActions.budget.listWithTransactionCount(db);
+			const budgetsWithJournalCount = await tActions.budget.listWithTransactionCount(locals.db);
 			const items = budgetsWithJournalCount.filter((item) => item.journalCount === 0);
-			await tActions.budget.deleteMany(db, items);
+			await tActions.budget.deleteMany(locals.db, items);
 		} catch (e) {
 			logging.error('Error Deleting Unused Budgets : ', e);
 		}
 	},
-	deleteUnusedLabels: async () => {
+	deleteUnusedLabels: async ({ locals }) => {
 		try {
-			const labelsWithJournalCount = await tActions.label.listWithTransactionCount(db);
+			const labelsWithJournalCount = await tActions.label.listWithTransactionCount(locals.db);
 			const items = labelsWithJournalCount.filter((item) => item.journalCount === 0);
-			await tActions.label.hardDeleteMany(db, items);
+			await tActions.label.hardDeleteMany(locals.db, items);
 		} catch (e) {
 			logging.error('Error Deleting Unused Labels : ', e);
 		}
 	},
-	deleteReusableFilters: async () => {
+	deleteReusableFilters: async ({ locals }) => {
 		try {
-			const items = await db.select({ id: reusableFilter.id }).from(reusableFilter).execute();
-			await tActions.reusableFitler.deleteMany({ db, ids: items.map((item) => item.id) });
+			const items = await locals.db
+				.select({ id: reusableFilter.id })
+				.from(reusableFilter)
+				.execute();
+			await tActions.reusableFitler.deleteMany({
+				db: locals.db,
+				ids: items.map((item) => item.id)
+			});
 		} catch (e) {
 			logging.error('Error Deleting Reusable Filters : ', e);
 		}

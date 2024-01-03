@@ -6,7 +6,6 @@ import {
 	journalFilterSchema
 } from '$lib/schema/journalSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms/server';
@@ -15,6 +14,7 @@ import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const pageInfo = serverPageInfo(data.route.id, data);
 
 	const journalData = await tActions.journal.listWithCommonData({
@@ -43,7 +43,8 @@ export const load = async (data) => {
 const cloneValidation = cloneJournalUpdateSchema.merge(pageAndFilterValidation);
 
 export const actions = {
-	clone: async ({ request }) => {
+	clone: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, cloneValidation);
 
 		if (!form.valid) {

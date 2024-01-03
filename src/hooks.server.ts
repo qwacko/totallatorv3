@@ -5,6 +5,7 @@ import { logging } from '$lib/server/logging';
 
 import { auth } from '$lib/server/lucia';
 import { redirect, type Handle } from '@sveltejs/kit';
+import { db } from '$lib/server/db/db';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 initateCronJobs();
@@ -13,8 +14,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// we can pass `event` because we used the SvelteKit middleware
 
 	event.locals.auth = auth.handleRequest(event);
+	event.locals.db = db;
 
-	const [user, noAdmin] = await Promise.all([event.locals.auth.validate(), dbNoAdmins()]);
+	const [user, noAdmin] = await Promise.all([
+		event.locals.auth.validate(),
+		dbNoAdmins(event.locals.db)
+	]);
 
 	event.locals.user = user?.user;
 

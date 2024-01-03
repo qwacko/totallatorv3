@@ -3,7 +3,6 @@ import { serverPageInfo } from '$lib/routes.js';
 import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { tagFilterToText } from '$lib/server/db/actions/helpers/tag/tagFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/client';
@@ -11,6 +10,7 @@ import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 
 	const tags = await tActions.tag.list({
@@ -28,8 +28,11 @@ export const load = async (data) => {
 		filter: { ...defaultJournalFilter(), tag: pageInfo.searchParams }
 	});
 
-	const tagDropdowns = await tActions.tag.listForDropdown({ db })
-	const filterText = await tagFilterToText({ db, filter: pageInfo.searchParams || { page: 0, pageSize: 10 } })
+	const tagDropdowns = await tActions.tag.listForDropdown({ db });
+	const filterText = await tagFilterToText({
+		db,
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+	});
 
 	return {
 		tags,
@@ -46,7 +49,8 @@ const submitValidation = z.object({
 });
 
 export const actions = {
-	update: async ({ request }) => {
+	update: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, submitValidation);
 
 		if (!form.valid) {

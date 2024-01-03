@@ -1,6 +1,5 @@
 import { urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 
@@ -18,7 +17,8 @@ export const load = async (data) => {
 };
 
 export const actions = {
-	default: async ({ params }) => {
+	default: async ({ params, locals }) => {
+		const db = locals.db;
 		let deleted = false;
 		try {
 			await tActions.import.delete({ db, id: params.id });

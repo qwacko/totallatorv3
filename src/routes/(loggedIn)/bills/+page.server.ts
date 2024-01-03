@@ -3,7 +3,6 @@ import { serverPageInfo } from '$lib/routes.js';
 import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { billFilterToText } from '$lib/server/db/actions/helpers/bill/billFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { db } from '$lib/server/db/db';
 import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/server';
@@ -11,6 +10,7 @@ import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
+	const db = data.locals.db;
 	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 
 	const bills = await tActions.bill.list({
@@ -31,9 +31,9 @@ export const load = async (data) => {
 	const filterText = await billFilterToText({
 		db,
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
-	})
+	});
 
-	const billDropdowns = await tActions.bill.listForDropdown({ db })
+	const billDropdowns = await tActions.bill.listForDropdown({ db });
 
 	return {
 		bills,
@@ -50,7 +50,8 @@ const submitValidation = z.object({
 });
 
 export const actions = {
-	update: async ({ request }) => {
+	update: async ({ request, locals }) => {
+		const db = locals.db;
 		const form = await superValidate(request, submitValidation);
 
 		if (!form.valid) {
