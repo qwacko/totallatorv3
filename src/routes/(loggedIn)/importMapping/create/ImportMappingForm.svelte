@@ -4,7 +4,7 @@
 		ImportMappingDetailSuperSchema,
 		ImportMappingCreateFormSuperSchema
 	} from '$lib/schema/importMappingSchema.js';
-	import { Alert, Button, Heading, P, TabItem, Tabs } from 'flowbite-svelte';
+	import { Alert, Button, Heading, NumberInput, P, TabItem, Tabs } from 'flowbite-svelte';
 	import type { SuperForm } from 'sveltekit-superforms/client';
 	import DisplaySampleMappedData from './DisplaySampleMappedData.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
@@ -44,6 +44,9 @@
 <Heading tag="h3">Detail</Heading>
 <div>
 	<Tabs>
+		<TabItem title="Skip Rows" class="flex flex-col gap-4">
+			<NumberInput bind:value={$detailFormData.rowsToSkip} />
+		</TabItem>
 		<TabItem title="Unique ID" class="flex flex-col gap-4">
 			<TextInputForm
 				form={detailForm}

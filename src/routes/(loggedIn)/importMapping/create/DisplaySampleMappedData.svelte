@@ -10,9 +10,39 @@
 
 	export let csvData: Record<string, any>[] | undefined = undefined;
 
+	$: rowsToSkip = mappingConfig.rowsToSkip;
+
 	let rowNumber = 1;
+	let currentFile: File | undefined = undefined;
 
 	$: numberRows = csvData?.length ?? 1;
+
+	const processFile = (file: File, numRows: number) => {
+		Papa.parse(file, {
+			header: true,
+			beforeFirstChunk: function (chunk) {
+				// Split the chunk into lines
+				let lines = chunk.split(/\r\n|\r|\n/);
+				// Skip the specified number of lines
+				lines.splice(0, rowsToSkip);
+				// Rejoin the remaining lines and return the modified chunk
+				return lines.join('\n');
+			},
+			complete: function (results) {
+				csvData = results.data as Record<string, unknown>[];
+				rowNumber = 1;
+			},
+			error: function (error) {
+				console.log('CSV Data Error', error);
+				csvData = undefined;
+				rowNumber = 1;
+				numberRows = 1;
+			},
+			skipEmptyLines: true
+		});
+	};
+
+	$: currentFile && processFile(currentFile, rowsToSkip);
 
 	const updateFileValue = (event: Event) => {
 		if (event?.target) {
@@ -20,20 +50,10 @@
 			const files = target.files;
 			if (files && files.length > 0) {
 				const file = files[0];
+				currentFile = file;
 				console.log('File: ', file);
-				Papa.parse(file, {
-					header: true,
-					complete: function (results) {
-						csvData = results.data as Record<string, unknown>[];
-						rowNumber = 1;
-					},
-					error: function (error) {
-						console.log('CSV Data Error', error);
-						csvData = undefined;
-						rowNumber = 1;
-						numberRows = 1;
-					}
-				});
+			} else {
+				currentFile = undefined;
 			}
 		}
 	};

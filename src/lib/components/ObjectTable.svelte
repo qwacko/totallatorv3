@@ -13,7 +13,11 @@
 
 	export let data: Record<
 		string,
-		{ text?: string | string[] | undefined; error?: string } | string | string[] | undefined
+		| { text?: string | string[] | undefined; error?: string }
+		| string
+		| string[]
+		| number
+		| undefined
 	>;
 	export let highlightText: string | undefined = undefined;
 	export let hideUndefined: boolean = false;
@@ -36,6 +40,12 @@
 									highlight={highlightText !== undefined}
 									searchText={highlightText}
 									text={value}
+								/>
+							{:else if typeof value === 'number'}
+								<HighlightText
+									highlight={highlightText !== undefined}
+									searchText={highlightText}
+									text={value.toString()}
 								/>
 							{:else if 'error' in value}
 								<Alert color="red">
