@@ -2,9 +2,23 @@ import { describe, it, expect } from 'vitest';
 import { processConfigString } from './importTransformation'; // Adjust the import path
 
 describe('processConfigString', () => {
+	it('should correctly replace substring operations for keys with spaces', () => {
+		const inputObject = { 'description text': 'This is a description' };
+		const configString = '{{substring (getProperty this "description text") 2 7}}';
+		const result = processConfigString(configString, inputObject);
+		expect(result).toBe('is is a');
+	});
+
 	it('should correctly replace substring operations', () => {
 		const inputObject = { description: 'This is a description' };
 		const configString = '{{substring description 2 7}}';
+		const result = processConfigString(configString, inputObject);
+		expect(result).toBe('is is a');
+	});
+
+	it('should correctly replace substring operations (Complex Keys)', () => {
+		const inputObject = { 'This_Has/N&Thing': 'This is a description' };
+		const configString = '{{substring (getProperty this "This_Has/N&Thing") 2 7}}';
 		const result = processConfigString(configString, inputObject);
 		expect(result).toBe('is is a');
 	});

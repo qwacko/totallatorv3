@@ -7,6 +7,10 @@ Handlebars.registerHelper('substring', function (value, start, length) {
 	return value.substring(start, start + length);
 });
 
+Handlebars.registerHelper('getProperty', function (object, key) {
+	return object[key] || '';
+});
+
 // Regex Replacement Helper
 Handlebars.registerHelper('regexReplace', function (value, pattern, replacement) {
 	return value.replace(new RegExp(pattern, 'g'), replacement);
