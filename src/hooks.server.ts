@@ -6,12 +6,21 @@ import { logging } from '$lib/server/logging';
 import { auth } from '$lib/server/lucia';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { db } from '$lib/server/db/db';
+import { serverEnv } from '$lib/server/serverEnv';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 initateCronJobs();
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// we can pass `event` because we used the SvelteKit middleware
+	const start = Date.now();
+	const timeLimit = serverEnv.PAGE_TIMEOUT_MS;
+	const timeout = setTimeout(() => {
+		logging.error(`Request took longer than ${timeLimit}ms to resolve`, {
+			request: event.request,
+			elapsedTime: Date.now() - start,
+			requestURL: event.request.url
+		});
+	}, timeLimit);
 
 	event.locals.auth = auth.handleRequest(event);
 	event.locals.db = db;
@@ -44,5 +53,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		authGuard(event as Parameters<typeof authGuard>[0]);
 	}
 
-	return await resolve(event);
+	const result = await resolve(event);
+
+	clearTimeout(timeout);
+
+	return result;
 };

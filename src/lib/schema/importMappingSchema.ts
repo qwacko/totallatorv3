@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const importMappingDetailSchema = z.object({
 	uniqueId: z.string().optional(),
+	rowsToSkip: z.number().default(0),
 	date: z.string(),
 	fromAccountId: z.string().optional(),
 	fromAccountTitle: z.string().optional(),
@@ -59,8 +60,8 @@ export const importMappingDetailWithRefinementSchema = importMappingDetailSchema
 			? Array.isArray(data.labelTitles)
 				? data.labelTitles.filter((title) => title.trim().length > 0)
 				: data.labelTitles.trim().length > 0
-				? data.labelTitles.split(',').map((title) => title.trim())
-				: undefined
+					? data.labelTitles.split(',').map((title) => title.trim())
+					: undefined
 			: undefined
 	}));
 

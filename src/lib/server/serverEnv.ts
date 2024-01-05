@@ -26,6 +26,11 @@ const serverEnvValidation = z.object({
 		.optional()
 		.default('ERROR,WARN,INFO')
 		.transform((data) => data.split(',').map((d) => d.trim().toUpperCase())),
+	PAGE_TIMEOUT_MS: z.coerce
+		.string()
+		.optional()
+		.default('1000')
+		.transform((data) => parseInt(data)),
 	BACKUP_DIR: z.string().optional().default('./backup'),
 	IMPORT_DIR: z.string().optional().default('./import'),
 	BACKUP_SCHEDULE: z.string().optional().default('0 0 * * *'),
@@ -45,6 +50,7 @@ export const serverEnv = serverEnvValidation.parse({
 	DEV: dev,
 	LOGGING: env.LOGGING,
 	LOOGGING_CLASSES: env.DEBUG_CLASSES,
+	PAGE_TIMEOUT_MS: env.PAGE_TIMEOUT_MS,
 	BACKUP_DIR: env.BACKUP_DIR,
 	BACKUP_SCHEDULE: env.BACKUP_SCHEDULE,
 	AUTOMATIC_FILTER_SCHEDULE: env.AUTOMATIC_FILTER_SCHEDULE,

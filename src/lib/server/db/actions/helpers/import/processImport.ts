@@ -41,15 +41,30 @@ export const processCreatedImport = async ({
 	id: string;
 	importData: InferSelectModel<typeof importTable>;
 }) => {
+	const importMappingInformation = importData.importMappingId
+		? await tActions.importMapping.getById({ db, id: importData.importMappingId })
+		: undefined;
+
 	if (importData.status !== 'created') return;
 	if (importData.source === 'csv') {
 		if (!importData.filename) {
 			throw new Error('Import File Not Found');
 		}
 		const file = readFileSync(importData.filename);
+		const rowsToSkip = importMappingInformation?.configuration
+			? importMappingInformation.configuration.rowsToSkip
+			: 0;
 		const processedData = Papa.parse(file.toString(), {
 			header: true,
-			skipEmptyLines: true
+			skipEmptyLines: true,
+			beforeFirstChunk: function (chunk) {
+				// Split the chunk into lines
+				let lines = chunk.split(/\r\n|\r|\n/);
+				// Skip the specified number of lines
+				lines.splice(0, rowsToSkip);
+				// Rejoin the remaining lines and return the modified chunk
+				return lines.join('\n');
+			}
 		});
 
 		const checkImportDuplicates =

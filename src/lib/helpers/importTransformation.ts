@@ -7,6 +7,10 @@ Handlebars.registerHelper('substring', function (value, start, length) {
 	return value.substring(start, start + length);
 });
 
+Handlebars.registerHelper('getProperty', function (object, key) {
+	return object[key] || '';
+});
+
 // Regex Replacement Helper
 Handlebars.registerHelper('regexReplace', function (value, pattern, replacement) {
 	return value.replace(new RegExp(pattern, 'g'), replacement);
@@ -26,7 +30,7 @@ type InputObject = Record<string, string>;
 
 export const processObject = <
 	Keys extends string,
-	ConfigObject extends Record<Keys, string | string[] | undefined>
+	ConfigObject extends Record<Keys, string | string[] | number | undefined>
 >(
 	input: Record<string, unknown>,
 	config: ConfigObject
@@ -35,10 +39,13 @@ export const processObject = <
 		(acc, val) => {
 			const key = val as keyof ConfigObject;
 
-			if (config[key] === undefined) return acc;
+			const configValue = config[key];
+
+			if (configValue === undefined) return acc;
+			if (typeof configValue === 'number') return acc;
 
 			try {
-				acc[key] = { text: processConfigString(config[key], input as InputObject) };
+				acc[key] = { text: processConfigString(configValue, input as InputObject) };
 				return acc;
 			} catch (error) {
 				const errorMessage = error as { message: string };
@@ -53,7 +60,7 @@ export const processObject = <
 
 export const processObjectReturnTransaction = <
 	Keys extends string,
-	ConfigObject extends Record<Keys, string | string[] | undefined>
+	ConfigObject extends Record<Keys, string | string[] | number | undefined>
 >(
 	input: Record<string, unknown>,
 	config: ConfigObject
