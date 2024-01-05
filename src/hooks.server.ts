@@ -6,13 +6,14 @@ import { logging } from '$lib/server/logging';
 import { auth } from '$lib/server/lucia';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { db } from '$lib/server/db/db';
+import { serverEnv } from '$lib/server/serverEnv';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 initateCronJobs();
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const start = Date.now();
-	const timeLimit = 100;
+	const timeLimit = serverEnv.PAGE_TIMEOUT_MS;
 	const timeout = setTimeout(() => {
 		logging.error(`Request took longer than ${timeLimit}ms to resolve`, {
 			request: event.request,
