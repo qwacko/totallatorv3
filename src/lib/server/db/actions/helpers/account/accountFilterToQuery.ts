@@ -83,9 +83,10 @@ export const accountFilterToText = async ({
 	if (restFilter.accountTitleCombined)
 		stringArray.push(`Group Combined With Title contains ${restFilter.accountTitleCombined}`);
 	statusFilterToText(stringArray, filter);
-	if (restFilter.isCash !== undefined) stringArray.push(`Is ${restFilter.isCash ? '' : 'Not'}Cash`);
+	if (restFilter.isCash !== undefined)
+		stringArray.push(`Is ${restFilter.isCash ? '' : 'Not '}Cash`);
 	if (restFilter.isNetWorth !== undefined)
-		stringArray.push(`Is ${restFilter.isCash ? '' : 'Not'}Net Worth`);
+		stringArray.push(`Is ${restFilter.isNetWorth ? '' : 'Not '}Net Worth`);
 	if (restFilter.startDateAfter !== undefined)
 		stringArray.push(`Start Date Is After ${restFilter.startDateAfter}`);
 	if (restFilter.startDateBefore !== undefined)
