@@ -292,7 +292,7 @@ describe('Account Filter To Text', async () => {
 		expect(returnValue).toHaveProperty('7', 'Is Not Disabled');
 		expect(returnValue).toHaveProperty('8', 'Can Be Updated');
 		expect(returnValue).toHaveProperty('9', 'Is Cash');
-		expect(returnValue).toHaveProperty('10', 'Is Net Worth');
+		expect(returnValue).toHaveProperty('10', 'Is Not Net Worth');
 		expect(returnValue).toHaveProperty('11', 'Start Date Is After 2021-01-01');
 		expect(returnValue).toHaveProperty('12', 'Start Date Is Before 2021-01-02');
 		expect(returnValue).toHaveProperty('13', 'End Date Is After 2021-01-03');
