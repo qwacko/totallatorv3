@@ -598,3 +598,111 @@ export type ImportMappingType = typeof importMapping.$inferSelect;
 export const importMappingRelations = relations(importMapping, ({ many }) => ({
 	imports: many(importTable)
 }));
+
+export const filter = pgTable(
+	'single_filter',
+	{
+		...idColumn,
+		...timestampColumns,
+		filter: text('filter').notNull(),
+		filterText: text('filter_text').notNull()
+	},
+	(t) => ({
+		filterTextIdx: index('filter_filter_text_idx').on(t.filterText)
+	})
+);
+
+export const reportConfig = pgTable(
+	'report_config',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title').notNull(),
+		group: text('group'),
+		locked: boolean('locked').notNull().default(false),
+		reusable: boolean('reusable').notNull().default(false),
+		filterId: text('filter_id'),
+		configuration: text('configuration').notNull(),
+		configurationText: text('configuration_text').notNull()
+	},
+	(t) => ({
+		titleIdx: index('report_config_title_idx').on(t.title),
+		groupIdx: index('report_config_group_idx').on(t.group),
+		reusableIdx: index('report_config_reusable_idx').on(t.reusable),
+		titleGroupIdx: index('report_config_title_group_idx').on(t.title, t.group),
+		lockedIdx: index('report_config_locked_idx').on(t.locked),
+		filterIdx: index('report_config_filter_idx').on(t.filterId)
+	})
+);
+
+export const report = pgTable(
+	'report',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title').notNull(),
+		group: text('group'),
+		locked: boolean('locked').notNull().default(false),
+		filterId: text('filter_id')
+	},
+	(t) => ({
+		titleIdx: index('report_title_idx').on(t.title),
+		groupIdx: index('report_group_idx').on(t.group),
+		titleGroupIdx: index('report_title_group_idx').on(t.title, t.group),
+		lockedIdx: index('report_locked_idx').on(t.locked),
+		filterIdx: index('report_filter_idx').on(t.filterId)
+	})
+);
+
+export const reportConfigToReport = pgTable(
+	'report_config_to_report',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title'),
+		size: text('size', { enum: ['small', 'medium', 'large'] })
+			.notNull()
+			.default('medium'),
+		reportConfigId: text('report_config_id').notNull(),
+		reportId: text('report_id').notNull(),
+		position: integer('position').notNull().default(0),
+		filterId: text('filter_id')
+	},
+	(t) => ({
+		uniqueRelation: unique().on(t.reportConfigId, t.reportId),
+		reportConfigIdx: index('report_config_idx').on(t.reportConfigId),
+		reportIdx: index('report_idx').on(t.reportId),
+		filterIdx: index('report__config_to_report_filter_idx').on(t.filterId)
+	})
+);
+
+export const reportConfigToReportRelations = relations(reportConfigToReport, ({ one }) => ({
+	reportConfig: one(reportConfig, {
+		fields: [reportConfigToReport.reportConfigId],
+		references: [reportConfig.id]
+	}),
+	report: one(report, {
+		fields: [reportConfigToReport.reportId],
+		references: [report.id]
+	}),
+	filter: one(filter, {
+		fields: [reportConfigToReport.filterId],
+		references: [filter.id]
+	})
+}));
+
+export const reportConfigRelations = relations(reportConfig, ({ many, one }) => ({
+	reports: many(reportConfigToReport),
+	filter: one(filter, {
+		fields: [reportConfig.filterId],
+		references: [filter.id]
+	})
+}));
+
+export const reportRelations = relations(report, ({ many, one }) => ({
+	reportConfigs: many(reportConfigToReport),
+	filter: one(filter, {
+		fields: [report.filterId],
+		references: [filter.id]
+	})
+}));
