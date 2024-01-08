@@ -107,44 +107,27 @@ export const journalFilterToQuery = async (
 	if (filter.label) {
 		const labelFilter = labelFilterToQuery(filter.label);
 		if (labelFilter.length > 0) {
-			const labelIds = await db
+			const labelIdsSubquery = db
 				.select({ id: journalEntry.id })
-				.from(journalEntry)
-				.leftJoin(labelsToJournals, eq(labelsToJournals.journalId, journalEntry.id))
+				.from(labelsToJournals)
 				.leftJoin(label, eq(label.id, labelsToJournals.labelId))
 				.where(and(...labelFilter))
-				.groupBy(journalEntry.id)
-				.execute();
-
-			const allowableJournalIds = labelIds.map((x) => x.id);
-
-			if (allowableJournalIds.length === 0) {
-				where.push(eq(journalEntry.id, 'nothing'));
-			} else {
-				where.push(inArray(journalEntry.id, allowableJournalIds));
-			}
+				.as('label_sq');
+			where.push(inArray(journalEntry.id, labelIdsSubquery));
 		}
 	}
 
 	if (filter.excludeLabel) {
 		const labelExcludeFilter = labelFilterToQuery(filter.excludeLabel);
 		if (labelExcludeFilter.length > 0) {
-			const labelIds = await db
+			const excludeLabelIdsSubquery = await db
 				.select({ id: journalEntry.id })
-				.from(journalEntry)
-				.leftJoin(labelsToJournals, eq(labelsToJournals.journalId, journalEntry.id))
+				.from(labelsToJournals)
 				.leftJoin(label, eq(label.id, labelsToJournals.labelId))
 				.where(and(...labelExcludeFilter))
-				.groupBy(journalEntry.id)
-				.execute();
+				.as('label_exclude_sq');
 
-			const allowableJournalIds = labelIds.map((x) => x.id);
-
-			if (allowableJournalIds.length === 0) {
-				where.push(eq(journalEntry.id, 'nothing'));
-			} else {
-				where.push(notInArray(journalEntry.id, allowableJournalIds));
-			}
+			where.push(notInArray(journalEntry.id, excludeLabelIdsSubquery));
 		}
 	}
 

@@ -7,6 +7,7 @@ import { importActions } from './importActions';
 import { importMappingActions } from './importMappingActions';
 import { journalActions } from './journalActions';
 import { labelActions } from './labelActions';
+import { reportActions } from './reportActions';
 import { reusableFilterActions } from './reusableFilterActions';
 import { tagActions } from './tagActions';
 
@@ -21,5 +22,6 @@ export const tActions = {
 	import: importActions,
 	reusableFitler: reusableFilterActions,
 	importMapping: importMappingActions,
-	backup: backupActions
+	backup: backupActions,
+	report: reportActions
 };

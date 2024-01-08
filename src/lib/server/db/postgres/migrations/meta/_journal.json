@@ -92,6 +92,13 @@
       "when": 1704565808393,
       "tag": "0012_aspiring_wrecking_crew",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1704566701692,
+      "tag": "0013_goofy_sabretooth",
+      "breakpoints": true
     }
   ]
 }

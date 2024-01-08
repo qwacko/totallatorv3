@@ -11,7 +11,8 @@ import {
 	timestamp,
 	json,
 	varchar,
-	customType
+	customType,
+	jsonb
 } from 'drizzle-orm/pg-core';
 import {
 	importDetailStatusEnum,
@@ -20,6 +21,7 @@ import {
 	importTypeEnum
 } from '../../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
+import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -604,7 +606,7 @@ export const filter = pgTable(
 	{
 		...idColumn,
 		...timestampColumns,
-		filter: text('filter').notNull(),
+		filter: jsonb('filter').notNull().$type<JournalFilterSchemaType>(),
 		filterText: text('filter_text').notNull()
 	},
 	(t) => ({
