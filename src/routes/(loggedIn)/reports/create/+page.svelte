@@ -1,11 +1,7 @@
 <script lang="ts">
-	import CombinedTitleDisplay from '$lib/components/CombinedTitleDisplay.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { statusEnumSelectionWithoutDeleted } from '$lib/schema/statusSchema.js';
-	import type { CreateCategorySchemaSuperType } from '$lib/schema/categorySchema.js';
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms/client';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
@@ -14,12 +10,24 @@
 	import { pageInfo } from '$lib/routes';
 	import type { CreateReportSupertype } from '$lib/schema/reportSchema.js';
 	import ReportLayoutOptionDisplay from './ReportLayoutOptionDisplay.svelte';
+	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
+	import {
+		getNextReportLayoutOption,
+		reportLayoutDropdownOptions,
+		getPreviousReportLayoutOption
+	} from './reportLayoutOptions';
+	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
+	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance } = superForm<CreateReportSupertype>(
-		data.form
-	);
+	const formAll = superForm<CreateReportSupertype>(data.form);
+
+	$: form = formAll.form;
+	$: errors = formAll.errors;
+	$: constraints = formAll.constraints;
+	$: message = formAll.message;
+	$: enhance = formAll.enhance;
 
 	$: urlInfo = pageInfo('/(loggedIn)/reports/create', $page);
 </script>
@@ -44,8 +52,43 @@
 			bind:value={$form.group}
 			{...$constraints.group}
 		/>
-		<ReportLayoutOptionDisplay format="default" />
-		<ReportLayoutOptionDisplay format="sixEven" />
+		<ComboSelectForm
+			form={formAll}
+			field="layout"
+			items={reportLayoutDropdownOptions}
+			title="Layout"
+			itemToDisplay={(item) => ({ title: item.title })}
+			itemToOption={(item) => ({ value: item.id, label: item.title })}
+		/>
+
+		{#if $form.layout}
+			<div class="flex flex-col gap-2">
+				<div class="flex flex-row gap-2 self-stretch">
+					<Button
+						on:click={() => {
+							$form.layout = getPreviousReportLayoutOption($form.layout);
+						}}
+						class="flex flex-grow basis-0 gap-2"
+						color="primary"
+						outline
+					>
+						<ArrowLeftIcon />Prev
+					</Button>
+					<Button
+						on:click={() => {
+							$form.layout = getNextReportLayoutOption($form.layout);
+						}}
+						class="flex flex-grow basis-0 gap-2"
+						color="primary"
+						outline
+					>
+						Next<ArrowRightIcon />
+					</Button>
+				</div>
+				<ReportLayoutOptionDisplay format={$form.layout} />
+			</div>
+		{/if}
+
 		<Button type="submit">Create</Button>
 		<ErrorText message={$message} />
 	</form>

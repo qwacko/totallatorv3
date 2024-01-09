@@ -99,6 +99,13 @@
       "when": 1704566701692,
       "tag": "0013_goofy_sabretooth",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "5",
+      "when": 1704825576451,
+      "tag": "0014_narrow_kingpin",
+      "breakpoints": true
     }
   ]
 }

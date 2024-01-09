@@ -1,4 +1,5 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
+import { urlGenerator } from '$lib/routes.js';
 import { reportPageValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { createReportSchema } from '$lib/schema/reportSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
@@ -23,12 +24,17 @@ export const actions = {
 			return { form };
 		}
 
+		let newReportId = '';
+
 		try {
-			await tActions.report.create({ db, data: form.data });
+			newReportId = await tActions.report.create({ db, data: form.data });
 		} catch (e) {
 			logging.error('Create Report Error', e);
 			return message(form, 'Error Creating Report, Possibly Group / Title Already Exists');
 		}
-		redirect(302, form.data.prevPage);
+		redirect(
+			302,
+			urlGenerator({ address: '/(loggedIn)/reports/[id]', paramsValue: { id: newReportId } }).url
+		);
 	}
 };

@@ -1,10 +1,15 @@
 import { z } from 'zod';
 import { journalFilterSchema } from './journalSchema';
 
+export const reportLayoutOptionsEnum = ['default', 'sixEven', 'wideOnly'] as const;
+
+export type ReportLayoutIds = (typeof reportLayoutOptionsEnum)[number];
+
 export const createReportSchema = z.object({
 	title: z.string(),
 	group: z.string().optional(),
-	locked: z.boolean().optional().default(false)
+	locked: z.boolean().optional().default(false),
+	layout: z.enum(reportLayoutOptionsEnum).optional().default('default')
 });
 
 export type CreateReportType = z.infer<typeof createReportSchema>;

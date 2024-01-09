@@ -1,31 +1,19 @@
 <script lang="ts">
-	export let format: 'default' | 'sixEven';
+	import type { ReportLayoutIds } from '$lib/schema/reportSchema';
 
-	const configurations = {
-		default: [
-			{ cols: 5, rows: 3 },
-			{ cols: 1, rows: 1 },
-			{ cols: 1, rows: 1 },
-			{ cols: 1, rows: 1 },
-			{ cols: 6, rows: 4 }
-		],
-		sixEven: [
-			{ cols: 3, rows: 3 },
-			{ cols: 3, rows: 3 },
-			{ cols: 3, rows: 3 },
-			{ cols: 3, rows: 3 },
-			{ cols: 3, rows: 3 },
-			{ cols: 3, rows: 3 }
-		]
-	};
+	export let format: ReportLayoutIds;
 
-	$: currentConfiguration = configurations[format] || configurations.default;
+	import { reportLayoutOptions } from './reportLayoutOptions';
+
+	$: currentConfiguration = (reportLayoutOptions[format] || reportLayoutOptions.default).sort(
+		(a, b) => a.order - b.order
+	);
 </script>
 
 <div class="grid grid-cols-6 gap-2 auto-rows-[50px]">
-	{#each currentConfiguration as { cols, rows }}
+	{#each currentConfiguration as { cols, rows, title }}
 		<div
-			class="col-span-2 h-full w-full rounded-lg shadow-md border border-gray-300 hover:border-gray-500 hover:shadow-lg"
+			class="col-span-2 h-full w-full rounded-lg shadow-md border border-gray-300 hover:border-gray-500 hover:shadow-lg text-gray-400 text-center flex items-center justify-center"
 			class:col-span-1={cols === 1}
 			class:col-span-2={cols === 2}
 			class:col-span-3={cols === 3}
@@ -38,6 +26,8 @@
 			class:row-span-4={rows === 4}
 			class:row-span-5={rows === 5}
 			class:row-span-6={rows === 6}
-		></div>
+		>
+			{#if title}{title}{/if}
+		</div>
 	{/each}
 </div>

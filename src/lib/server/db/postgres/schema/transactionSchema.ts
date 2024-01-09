@@ -21,7 +21,7 @@ import {
 	importTypeEnum
 } from '../../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
-import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
+import type { JournalFilterSchemaWithoutPaginationType } from '../../../../schema/journalSchema';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -606,7 +606,7 @@ export const filter = pgTable(
 	{
 		...idColumn,
 		...timestampColumns,
-		filter: jsonb('filter').notNull().$type<JournalFilterSchemaType>(),
+		filter: jsonb('filter').notNull().$type<JournalFilterSchemaWithoutPaginationType>(),
 		filterText: text('filter_text').notNull()
 	},
 	(t) => ({
@@ -614,8 +614,8 @@ export const filter = pgTable(
 	})
 );
 
-export const reportConfig = pgTable(
-	'report_config',
+export const reportElementConfig = pgTable(
+	'report_element_config',
 	{
 		...idColumn,
 		...timestampColumns,
@@ -628,12 +628,12 @@ export const reportConfig = pgTable(
 		configurationText: text('configuration_text').notNull()
 	},
 	(t) => ({
-		titleIdx: index('report_config_title_idx').on(t.title),
-		groupIdx: index('report_config_group_idx').on(t.group),
-		reusableIdx: index('report_config_reusable_idx').on(t.reusable),
-		titleGroupIdx: index('report_config_title_group_idx').on(t.title, t.group),
-		lockedIdx: index('report_config_locked_idx').on(t.locked),
-		filterIdx: index('report_config_filter_idx').on(t.filterId)
+		titleIdx: index('report_element_config_title_idx').on(t.title),
+		groupIdx: index('report_element_config_group_idx').on(t.group),
+		reusableIdx: index('report_element_config_reusable_idx').on(t.reusable),
+		titleGroupIdx: index('report_element_config_title_group_idx').on(t.title, t.group),
+		lockedIdx: index('report_element_config_locked_idx').on(t.locked),
+		filterIdx: index('report_element_config_filter_idx').on(t.filterId)
 	})
 );
 
@@ -656,53 +656,55 @@ export const report = pgTable(
 	})
 );
 
-export const reportConfigToReport = pgTable(
-	'report_config_to_report',
+export const reportElement = pgTable(
+	'report_element',
 	{
 		...idColumn,
 		...timestampColumns,
 		title: text('title'),
-		size: text('size', { enum: ['small', 'medium', 'large'] })
-			.notNull()
-			.default('medium'),
-		reportConfigId: text('report_config_id').notNull(),
 		reportId: text('report_id').notNull(),
-		position: integer('position').notNull().default(0),
+
+		//Position Information
+		rows: integer('rows').notNull().default(0),
+		cols: integer('cols').notNull().default(0),
+		order: integer('order').notNull().default(0),
+
+		//View Configuration
+		reportElementConfigId: text('report_element_config_id'),
 		filterId: text('filter_id')
 	},
 	(t) => ({
-		uniqueRelation: unique().on(t.reportConfigId, t.reportId),
-		reportConfigIdx: index('report_config_idx').on(t.reportConfigId),
+		reportElementConfigIdx: index('report_element_config_idx').on(t.reportElementConfigId),
 		reportIdx: index('report_idx').on(t.reportId),
-		filterIdx: index('report__config_to_report_filter_idx').on(t.filterId)
+		filterIdx: index('report_element_filter_idx').on(t.filterId)
 	})
 );
 
-export const reportConfigToReportRelations = relations(reportConfigToReport, ({ one }) => ({
-	reportConfig: one(reportConfig, {
-		fields: [reportConfigToReport.reportConfigId],
-		references: [reportConfig.id]
+export const reportElementRelations = relations(reportElement, ({ one }) => ({
+	reportElementConfig: one(reportElementConfig, {
+		fields: [reportElement.reportElementConfigId],
+		references: [reportElementConfig.id]
 	}),
 	report: one(report, {
-		fields: [reportConfigToReport.reportId],
+		fields: [reportElement.reportId],
 		references: [report.id]
 	}),
 	filter: one(filter, {
-		fields: [reportConfigToReport.filterId],
+		fields: [reportElement.filterId],
 		references: [filter.id]
 	})
 }));
 
-export const reportConfigRelations = relations(reportConfig, ({ many, one }) => ({
-	reports: many(reportConfigToReport),
+export const reportElementConfigRelations = relations(reportElementConfig, ({ many, one }) => ({
+	reportElements: many(reportElement),
 	filter: one(filter, {
-		fields: [reportConfig.filterId],
+		fields: [reportElementConfig.filterId],
 		references: [filter.id]
 	})
 }));
 
 export const reportRelations = relations(report, ({ many, one }) => ({
-	reportConfigs: many(reportConfigToReport),
+	reportElements: many(reportElement),
 	filter: one(filter, {
 		fields: [report.filterId],
 		references: [filter.id]

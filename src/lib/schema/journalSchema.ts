@@ -221,7 +221,7 @@ export const journalOrderByEnum = [
 	'accountName'
 ] as const;
 
-export const journalFilterSchema = z.object({
+export const journalFilterSchemaWithoutPagination = z.object({
 	id: z.coerce.string().optional(),
 	excludeId: z.coerce.string().optional(),
 	idArray: z.array(z.string()).optional(),
@@ -287,6 +287,27 @@ export const journalFilterSchema = z.object({
 			{ direction: 'desc', field: 'amount' }
 		])
 });
+
+export type JournalFilterSchemaWithoutPaginationInputType = z.input<
+	typeof journalFilterSchemaWithoutPagination
+>;
+export type JournalFilterSchemaWithoutPaginationType = z.infer<
+	typeof journalFilterSchemaWithoutPagination
+>;
+
+export const journalFilterSchema = journalFilterSchemaWithoutPagination.merge(
+	z.object({
+		page: z.coerce.number().optional().default(0),
+		pageSize: z.coerce.number().optional().default(10),
+		orderBy: z
+			.array(z.object({ field: z.enum(journalOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+			.optional()
+			.default([
+				{ direction: 'desc', field: 'date' },
+				{ direction: 'desc', field: 'amount' }
+			])
+	})
+);
 
 export type JournalFilterSchemaInputType = z.input<typeof journalFilterSchema>;
 
