@@ -1,4 +1,6 @@
 <script lang="ts">
+	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
+	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
 	import type { ReportLayoutIds } from '$lib/schema/reportSchema';
 
 	export let format: ReportLayoutIds;
@@ -10,10 +12,13 @@
 	);
 </script>
 
-<div class="grid grid-cols-6 gap-2 auto-rows-[50px]">
+<ReportGridWrapper size="xs">
 	{#each currentConfiguration as { cols, rows, title }}
-		<div
-			class="col-span-2 h-full w-full rounded-lg shadow-md border border-gray-300 hover:border-gray-500 hover:shadow-lg text-gray-400 text-center flex items-center justify-center"
+		<ReportGridItem {cols} {rows} highlightOnHover>
+			{#if title}{title}{/if}
+		</ReportGridItem>
+		<!-- <div
+			class="col-span-2 flex h-full w-full items-center justify-center rounded-lg border border-gray-300 text-center text-gray-400 shadow-md hover:border-gray-500 hover:shadow-lg"
 			class:col-span-1={cols === 1}
 			class:col-span-2={cols === 2}
 			class:col-span-3={cols === 3}
@@ -28,6 +33,6 @@
 			class:row-span-6={rows === 6}
 		>
 			{#if title}{title}{/if}
-		</div>
+		</div> -->
 	{/each}
-</div>
+</ReportGridWrapper>

@@ -1,10 +1,11 @@
 <script lang="ts">
+	import type { PageSizeIds } from '$lib/schema/pageSizeSchema';
 	import PrevPageButton from './PrevPageButton.svelte';
 	import ArrowLeftIcon from './icons/ArrowLeftIcon.svelte';
 
 	export let title: string | undefined = undefined;
 	export let subtitle: string | undefined = undefined;
-	export let size: 'sm' | 'lg' | 'xs' | 'xl' = 'lg';
+	export let size: PageSizeIds = 'lg';
 	export let hideBackButton = false;
 	export let routeBasedBack = false;
 </script>

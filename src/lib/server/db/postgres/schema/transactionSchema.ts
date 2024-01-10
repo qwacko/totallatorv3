@@ -12,7 +12,8 @@ import {
 	json,
 	varchar,
 	customType,
-	jsonb
+	jsonb,
+	pgEnum
 } from 'drizzle-orm/pg-core';
 import {
 	importDetailStatusEnum,
@@ -22,6 +23,7 @@ import {
 } from '../../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
 import type { JournalFilterSchemaWithoutPaginationType } from '../../../../schema/journalSchema';
+import { pageSizeEnum } from '../../../../schema/pageSizeSchema';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -637,6 +639,8 @@ export const reportElementConfig = pgTable(
 	})
 );
 
+export const reportSizeEnum = pgEnum('report_size', pageSizeEnum);
+
 export const report = pgTable(
 	'report',
 	{
@@ -644,6 +648,7 @@ export const report = pgTable(
 		...timestampColumns,
 		title: text('title').notNull(),
 		group: text('group'),
+		size: reportSizeEnum('size').notNull().default('xl'),
 		locked: boolean('locked').notNull().default(false),
 		filterId: text('filter_id')
 	},
