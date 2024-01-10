@@ -17,6 +17,7 @@
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
+	import ReportDropdown from '$lib/components/report/ReportDropdown.svelte';
 
 	export let data;
 
@@ -147,6 +148,7 @@
 
 <div class="flex flex-col justify-stretch p-2">
 	<div class="flex flex-row justify-center gap-2 pb-8 pt-4 flex-wrap">
+		<ReportDropdown items={data.reportDropdown} />
 		<FilterDropdown
 			showDefaultJournalFilters
 			hideIcon

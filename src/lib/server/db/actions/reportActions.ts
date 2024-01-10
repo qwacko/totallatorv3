@@ -74,3 +74,5 @@ export type ReportLayoutConfigType = Exclude<
 	Awaited<ReturnType<typeof reportActions.getReportConfig>>,
 	undefined
 >;
+
+export type ReportDropdownType = Awaited<ReturnType<typeof reportActions.listForDropdown>>;
