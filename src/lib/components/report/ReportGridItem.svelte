@@ -4,7 +4,7 @@
 	export let rows: number = 1;
 	export let cols: number = 1;
 	export let highlightOnHover: boolean = false;
-	export let title: string | undefined = undefined;
+	export let title: string | undefined | null = undefined;
 </script>
 
 <div
