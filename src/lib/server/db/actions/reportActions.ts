@@ -70,3 +70,7 @@ export const reportActions = {
 		return reportConfig;
 	}
 };
+export type ReportLayoutConfigType = Exclude<
+	Awaited<ReturnType<typeof reportActions.getReportConfig>>,
+	undefined
+>;

@@ -24,8 +24,12 @@
 	class:row-span-5={rows === 5}
 	class:row-span-6={rows === 6}
 >
-	{#if title}
-		<Heading class="self-center text-left" tag="h3">{title}</Heading>
-	{/if}
+	<div class="flex w-full flex-row justify-between self-center">
+		<slot name="titleLeft" />
+		{#if title}
+			<Heading class="text-left" tag="h4">{title}</Heading>
+		{/if}
+		<slot name="titleRight" />
+	</div>
 	<slot />
 </div>
