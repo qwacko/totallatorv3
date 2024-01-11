@@ -7,6 +7,27 @@ import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefin
 import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/create/reportLayoutOptions';
 import { eq, inArray } from 'drizzle-orm';
 
+const returnDelayedData = async <T>(data: T | Promise<T>): Promise<T> => {
+	const useData = await data;
+	//Delay by a random amount between 1 and 10 seconds to simulate a slow database
+	await new Promise((resolve) => setTimeout(resolve, Math.random() * 10000));
+
+	return useData;
+};
+
+const getReportElementData = ({ db, id }: { db: DBType; id: string }) => {
+	//Delay by a random amount between 1 and 10 seconds to simulate a slow database
+	const data = returnDelayedData(
+		db.query.reportElement.findFirst({
+			where: (reportElement, { eq }) => eq(reportElement.id, id)
+		})
+	);
+
+	return { id, data };
+};
+
+export type GetReportElementDataType = ReturnType<typeof getReportElementData>;
+
 export const reportActions = {
 	create: async ({ db, data }: { db: DBType; data: CreateReportType }) => {
 		const id = nanoid();
@@ -68,7 +89,15 @@ export const reportActions = {
 			}
 		});
 
-		return reportConfig;
+		if (!reportConfig) {
+			return undefined;
+		}
+
+		const reportElementData = reportConfig.reportElements.map((item) =>
+			getReportElementData({ db, id: item.id })
+		);
+
+		return { ...reportConfig, reportElementsWithData: reportElementData };
 	},
 	updateLayout: async ({
 		db,

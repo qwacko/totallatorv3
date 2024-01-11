@@ -13,6 +13,7 @@
 	import { goto } from '$app/navigation';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
+	import ReportElementDisplay from './ReportElementDisplay.svelte';
 
 	export let data;
 
@@ -92,7 +93,9 @@
 			<ReportGridItem {cols} {rows} highlightOnHover={false} title={edit ? undefined : title}>
 				<div class="flex h-full w-full flex-col gap-2">
 					<div class="item-stretch flex flex-grow flex-row gap-2">
-						<div class="flex flex-grow bg-blue-200">Data Goes Here</div>
+						<div class="flex flex-grow content-center self-center">
+							<ReportElementDisplay {id} data={data.report.reportElementsWithData} />
+						</div>
 						{#if edit}
 							<div class="flex flex-col gap-2 self-center">
 								<Button
