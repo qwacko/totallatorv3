@@ -4,15 +4,19 @@
 	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
 	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import { Badge, Button, Input } from 'flowbite-svelte';
+	import { Badge, Button, Input, Spinner } from 'flowbite-svelte';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import ArrowDownIcon from '$lib/components/icons/ArrowDownIcon.svelte';
 	import ArrowUpIcon from '$lib/components/icons/ArrowUpIcon.svelte';
 	import { reportLayoutStore } from './reportLayoutStore.js';
+	import { enhance, applyAction } from '$app/forms';
+	import { goto } from '$app/navigation';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
 	export let data;
 
 	let edit = false;
+	let saving = false;
 
 	$: reportData = reportLayoutStore(data.report);
 	$: reportLayoutStringStore = reportData.reportLayoutStringStore;
@@ -23,9 +27,50 @@
 <PageLayout title={$reportData.title} size={$reportData.size}>
 	<svelte:fragment slot="right">
 		{#if edit}
-			<Button color="red" on:click={() => (edit = false)} class="gap-2">
-				<EditIcon />Editing
+			<Button
+				color="red"
+				on:click={() => {
+					reportData.reset();
+					edit = false;
+				}}
+				class="gap-2"
+			>
+				<EditIcon />Cancel Modifications
 			</Button>
+			<form
+				action="?/updateLayout"
+				method="post"
+				use:enhance={({ formElement, formData, action, cancel }) => {
+					saving = true;
+					return async ({ result }) => {
+						// `result` is an `ActionResult` object
+						if (result.type === 'redirect') {
+							edit = false;
+							saving = false;
+							goto(result.location);
+						} else {
+							await applyAction(result);
+							edit = false;
+							saving = false;
+						}
+					};
+				}}
+			>
+				<input type="hidden" name="id" value={$reportData.id} />
+				<input type="hidden" name="reportElements" value={$reportLayoutStringStore} />
+				<Button
+					color="primary"
+					type="submit"
+					class="flex flex-row justify-center gap-1"
+					disabled={saving}
+				>
+					{#if saving}
+						<Spinner size="5" />Saving
+					{:else}
+						Save Layout
+					{/if}
+				</Button>
+			</form>
 		{:else}
 			<Button color="primary" outline on:click={() => (edit = true)}><EditIcon /></Button>
 		{/if}

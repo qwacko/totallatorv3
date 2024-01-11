@@ -19,6 +19,13 @@ export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 		return JSON.stringify(dataForStorage);
 	});
 
+	const reset = () => {
+		reportLayoutStore.set({
+			...reportData,
+			reportElements: reportData.reportElements.sort((a, b) => a.order - b.order)
+		});
+	};
+
 	const moveUp = (id: string) => {
 		reportLayoutStore.update((reportData) => {
 			const index = reportData.reportElements.findIndex((el) => el.id === id);
@@ -101,6 +108,7 @@ export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 		moveUp,
 		moveDown,
 		changeHeight,
-		changeWidth
+		changeWidth,
+		reset
 	};
 };

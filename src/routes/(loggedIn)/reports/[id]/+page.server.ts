@@ -1,6 +1,8 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
+import { updateReportLayoutSchema } from '$lib/schema/reportSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
+import { logging } from '$lib/server/logging.js';
 import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
@@ -16,4 +18,30 @@ export const load = async (data) => {
 	return {
 		report
 	};
+};
+
+export const actions = {
+	updateLayout: async ({ request, locals }) => {
+		const form = await request.formData();
+		const id = form.get('id');
+		const reportElements = form.get('reportElements');
+
+		if (!id || !reportElements) return;
+
+		const data = updateReportLayoutSchema.safeParse({
+			id: id.toString(),
+			reportElements: JSON.parse(reportElements.toString())
+		});
+
+		if (!data.success) return;
+
+		try {
+			await tActions.report.updateLayout({ db: locals.db, layoutConfig: data.data });
+		} catch (e) {
+			logging.error('Error updating report layout', e);
+			return;
+		}
+
+		return;
+	}
 };

@@ -25,3 +25,19 @@ export const updateReportSchema = z.object({
 
 export type UpdateReportType = z.infer<typeof updateReportSchema>;
 export type UpdateReportSupertype = typeof updateReportSchema;
+
+export const updateReportLayoutSchema = z.object({
+	id: z.string(),
+	reportElements: z.array(
+		z.object({
+			id: z.string(),
+			cols: z.number(),
+			rows: z.number(),
+			order: z.number(),
+			title: z.string().optional().nullable()
+		})
+	)
+});
+
+export type UpdateReportLayoutType = z.infer<typeof updateReportLayoutSchema>;
+export type UpdateReportLayoutSupertype = typeof updateReportLayoutSchema;

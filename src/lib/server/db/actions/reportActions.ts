@@ -1,10 +1,12 @@
-import type { CreateReportType } from '$lib/schema/reportSchema';
+import type { CreateReportType, UpdateReportLayoutType } from '$lib/schema/reportSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { report, reportElement } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/create/reportLayoutOptions';
+import { eq } from 'drizzle-orm';
+import { logging } from '$lib/server/logging';
 
 export const reportActions = {
 	create: async ({ db, data }: { db: DBType; data: CreateReportType }) => {
@@ -68,6 +70,59 @@ export const reportActions = {
 		});
 
 		return reportConfig;
+	},
+	updateLayout: async ({
+		db,
+		layoutConfig
+	}: {
+		db: DBType;
+		layoutConfig: UpdateReportLayoutType;
+	}) => {
+		const { id, reportElements } = layoutConfig;
+
+		const reportConfig = await reportActions.getReportConfig({ db, id });
+
+		if (!reportConfig) {
+			throw new Error('Report not found');
+		}
+
+		//Confirm that all reportElements are in the reportConfig
+		const reportElementIds = reportElements.map((item) => item.id);
+		const reportConfigElementIds = reportConfig.reportElements.map((item) => item.id);
+
+		if (reportElementIds.length !== reportConfigElementIds.length) {
+			throw new Error('Report element count mismatch');
+		}
+
+		const reportElementIdsMatch = reportElementIds.every((item) =>
+			reportConfigElementIds.includes(item)
+		);
+
+		if (!reportElementIdsMatch) {
+			throw new Error('Report element id mismatch');
+		}
+
+		//Make sure the report elements are continuous and contiguous by sorting an then setting to order to the index
+		//rather than directly using the provided order.
+		const reportElementsAdjusted = reportElements
+			.sort((a, b) => a.order - b.order)
+			.map((item, index) => ({
+				...item,
+				order: index + 1
+			}));
+
+		//Update the reportElements
+		await db.transaction(async (trx) => {
+			await Promise.all(
+				reportElementsAdjusted.map(async (currentReportElement) => {
+					await trx
+						.update(reportElement)
+						.set(currentReportElement)
+						.where(eq(reportElement.id, currentReportElement.id))
+						.execute();
+				})
+			);
+		});
 	}
 };
 export type ReportLayoutConfigType = Exclude<
