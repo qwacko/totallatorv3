@@ -11,7 +11,8 @@
 	import { reportLayoutStore } from './reportLayoutStore.js';
 	import { enhance, applyAction } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
+	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 
 	export let data;
 
@@ -71,10 +72,19 @@
 					{/if}
 				</Button>
 			</form>
+			<Button
+				color="blue"
+				type="submit"
+				class="flex flex-row justify-center gap-1"
+				on:click={() => reportData.addElement()}
+			>
+				<PlusIcon />Add Element
+			</Button>
 		{:else}
 			<Button color="primary" outline on:click={() => (edit = true)}><EditIcon /></Button>
 		{/if}
 	</svelte:fragment>
+
 	<RawDataModal data={data.report} dev={data.dev} />
 	<RawDataModal data={$reportLayoutStringStore} dev={data.dev} />
 	<ReportGridWrapper size="xl">
@@ -88,6 +98,7 @@
 								<Button
 									color="primary"
 									size="xs"
+									class="p-1"
 									outline
 									on:click={() => reportData.changeWidth(id, +1)}
 								>
@@ -97,6 +108,7 @@
 								<Button
 									color="primary"
 									size="xs"
+									class="p-1"
 									outline
 									on:click={() => reportData.changeWidth(id, -1)}
 								>
@@ -110,6 +122,7 @@
 							<Button
 								color="primary"
 								size="xs"
+								class="p-1"
 								outline
 								on:click={() => reportData.changeHeight(id, +1)}
 							>
@@ -119,6 +132,7 @@
 							<Button
 								color="primary"
 								size="xs"
+								class="p-1"
 								outline
 								on:click={() => reportData.changeHeight(id, -1)}
 							>
@@ -136,12 +150,32 @@
 				<svelte:fragment slot="titleRight">
 					{#if edit}
 						<div class="flex flex-row gap-2">
-							<Button color="primary" size="xs" outline on:click={() => reportData.moveUp(id)}>
+							<Button
+								color="primary"
+								size="xs"
+								class="p-1"
+								outline
+								on:click={() => reportData.moveUp(id)}
+							>
 								<ArrowUpIcon />
 							</Button>
 							<Badge color="blue">{order}</Badge>
-							<Button color="primary" size="xs" outline on:click={() => reportData.moveDown(id)}>
+							<Button
+								color="primary"
+								size="xs"
+								class="p-1"
+								outline
+								on:click={() => reportData.moveDown(id)}
+							>
 								<ArrowDownIcon />
+							</Button>
+							<Button
+								color="red"
+								size="xs"
+								class="h-full p-1"
+								on:click={() => reportData.removeElement(id)}
+							>
+								<DeleteIcon />
 							</Button>
 						</div>
 					{/if}

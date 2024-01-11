@@ -5,8 +5,7 @@ import { report, reportElement } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/create/reportLayoutOptions';
-import { eq } from 'drizzle-orm';
-import { logging } from '$lib/server/logging';
+import { eq, inArray } from 'drizzle-orm';
 
 export const reportActions = {
 	create: async ({ db, data }: { db: DBType; data: CreateReportType }) => {
@@ -86,22 +85,6 @@ export const reportActions = {
 			throw new Error('Report not found');
 		}
 
-		//Confirm that all reportElements are in the reportConfig
-		const reportElementIds = reportElements.map((item) => item.id);
-		const reportConfigElementIds = reportConfig.reportElements.map((item) => item.id);
-
-		if (reportElementIds.length !== reportConfigElementIds.length) {
-			throw new Error('Report element count mismatch');
-		}
-
-		const reportElementIdsMatch = reportElementIds.every((item) =>
-			reportConfigElementIds.includes(item)
-		);
-
-		if (!reportElementIdsMatch) {
-			throw new Error('Report element id mismatch');
-		}
-
 		//Make sure the report elements are continuous and contiguous by sorting an then setting to order to the index
 		//rather than directly using the provided order.
 		const reportElementsAdjusted = reportElements
@@ -111,17 +94,53 @@ export const reportActions = {
 				order: index + 1
 			}));
 
+		//List existing report elements to remove
+		const reportElementsToRemove = reportConfig.reportElements
+			.filter((item) => !reportElements.find((el) => el.id === item.id))
+			.map((item) => item.id);
+
+		//List existing report elements to create
+		const reportElementsToAdd = reportElementsAdjusted
+			.filter((item) => item.id.startsWith('new'))
+			.map((item) => ({
+				...item,
+				id: nanoid(),
+				reportId: id,
+				...updatedTime()
+			}));
+
+		//List existing report elements to update
+		const reportElementsToUpdate = reportElementsAdjusted.filter(
+			(item) => !item.id.startsWith('new')
+		);
+
 		//Update the reportElements
 		await db.transaction(async (trx) => {
-			await Promise.all(
-				reportElementsAdjusted.map(async (currentReportElement) => {
-					await trx
-						.update(reportElement)
-						.set(currentReportElement)
-						.where(eq(reportElement.id, currentReportElement.id))
-						.execute();
-				})
-			);
+			if (reportElementsToRemove.length > 0) {
+				//Remove old elements
+				await trx
+					.delete(reportElement)
+					.where(inArray(reportElement.id, reportElementsToRemove))
+					.execute();
+			}
+
+			if (reportElementsToUpdate.length > 0) {
+				//Update Existing ELements
+				await Promise.all(
+					reportElementsToUpdate.map(async (currentReportElement) => {
+						await trx
+							.update(reportElement)
+							.set(currentReportElement)
+							.where(eq(reportElement.id, currentReportElement.id))
+							.execute();
+					})
+				);
+			}
+
+			if (reportElementsToAdd.length > 0) {
+				//Create New Elements
+				await trx.insert(reportElement).values(reportElementsToAdd).execute();
+			}
 		});
 	}
 };

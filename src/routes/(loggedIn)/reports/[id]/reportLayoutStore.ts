@@ -1,5 +1,6 @@
 import type { ReportLayoutConfigType } from '$lib/server/db/actions/reportActions';
-import { derived, writable } from 'svelte/store';
+import { nanoid } from 'nanoid';
+import { derived, get, writable } from 'svelte/store';
 
 export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 	const reportLayoutStore = writable<ReportLayoutConfigType>({
@@ -19,11 +20,63 @@ export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 		return JSON.stringify(dataForStorage);
 	});
 
+	const fixOrderNumbers = () => {
+		reportLayoutStore.update((reportData) => {
+			return {
+				...reportData,
+				reportElements: reportData.reportElements
+					.sort((a, b) => a.order - b.order)
+					.map((item, index) => ({ ...item, order: index + 1 }))
+			};
+		});
+	};
+
+	const addElement = () => {
+		const maxOrder = get(reportLayoutStore).reportElements.reduce((acc, item) => {
+			return item.order > acc ? item.order : acc;
+		}, 0);
+		const newId = `new${nanoid()}`;
+		reportLayoutStore.update((currentReportData) => {
+			return {
+				...currentReportData,
+				reportElements: [
+					...currentReportData.reportElements,
+					{
+						id: newId,
+						cols: 1,
+						rows: 1,
+						order: maxOrder + 1,
+						title: 'New',
+						createdAt: new Date(),
+						updatedAt: new Date(),
+						reportId: currentReportData.id,
+						filterId: null,
+						filter: null,
+						reportElementConfig: null,
+						reportElementConfigId: null
+					}
+				]
+			};
+		});
+		fixOrderNumbers();
+	};
+
+	const removeElement = (id: string) => {
+		reportLayoutStore.update((reportData) => {
+			return {
+				...reportData,
+				reportElements: reportData.reportElements.filter((item) => item.id !== id)
+			};
+		});
+		fixOrderNumbers();
+	};
+
 	const reset = () => {
 		reportLayoutStore.set({
 			...reportData,
 			reportElements: reportData.reportElements.sort((a, b) => a.order - b.order)
 		});
+		fixOrderNumbers();
 	};
 
 	const moveUp = (id: string) => {
@@ -48,6 +101,7 @@ export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 					.sort((a, b) => a.order - b.order)
 			};
 		});
+		fixOrderNumbers();
 	};
 
 	const moveDown = (id: string) => {
@@ -72,6 +126,7 @@ export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 					.sort((a, b) => a.order - b.order)
 			};
 		});
+		fixOrderNumbers();
 	};
 
 	const changeWidth = (id: string, change: number) => {
@@ -86,6 +141,7 @@ export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 				})
 			};
 		});
+		fixOrderNumbers();
 	};
 
 	const changeHeight = (id: string, change: number) => {
@@ -100,6 +156,7 @@ export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 				})
 			};
 		});
+		fixOrderNumbers();
 	};
 
 	return {
@@ -109,6 +166,8 @@ export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 		moveDown,
 		changeHeight,
 		changeWidth,
-		reset
+		reset,
+		addElement,
+		removeElement
 	};
 };
