@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
-import { db } from '../../db';
+import { type DBType } from '../../db';
 import { keyValueTable } from '../../postgres/schema';
 
 export const keyValueStore = (key: string) => {
 	return {
-		get: async () => {
+		get: async (db: DBType) => {
 			const keyValue = await db
 				.select({ value: keyValueTable.value })
 				.from(keyValueTable)
@@ -17,7 +17,7 @@ export const keyValueStore = (key: string) => {
 			}
 			return undefined;
 		},
-		set: async (value: string) => {
+		set: async (db: DBType, value: string) => {
 			await db
 				.insert(keyValueTable)
 				.values({
@@ -34,8 +34,8 @@ export const booleanKeyValueStore = (key: string, defaultValue: boolean = false)
 	const store = keyValueStore(key);
 
 	return {
-		get: async () => {
-			const value = await store.get();
+		get: async (db: DBType) => {
+			const value = await store.get(db);
 
 			if (value === undefined) {
 				return defaultValue;
@@ -43,8 +43,8 @@ export const booleanKeyValueStore = (key: string, defaultValue: boolean = false)
 
 			return value === 'true';
 		},
-		set: async (value: boolean) => {
-			await store.set(value ? 'true' : 'false');
+		set: async (db: DBType, value: boolean) => {
+			await store.set(db, value ? 'true' : 'false');
 		}
 	};
 };

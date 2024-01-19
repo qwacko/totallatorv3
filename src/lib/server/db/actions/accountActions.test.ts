@@ -4,6 +4,7 @@ import { getTestDB, initialiseTestDB, createTestWrapper, clearTestDB } from '../
 import { account } from '../postgres/schema';
 import { eq } from 'drizzle-orm';
 import { journalActions } from './journalActions';
+import { materializedViewActions } from './materializedViewActions';
 
 describe('accountActions', async () => {
 	const db = await getTestDB();
@@ -23,16 +24,13 @@ describe('accountActions', async () => {
 					toAccountId: `Account2`
 				}
 			});
+			await materializedViewActions.setRefreshRequired(db);
 		}
 	});
 
 	beforeAll(async () => {
 		await clearTestDB(db.testDB);
 	});
-
-	// afterAll(async () => {
-	// 	await closeTestDB(db)
-	// });
 
 	describe('createAccount', async () => {
 		testIT('Created Account Should Have Correct Group Data - (asset / liability)', async (db) => {

@@ -1,12 +1,21 @@
 import type { BudgetFilterSchemaType } from '$lib/schema/budgetSchema';
 import type { DBType } from '../../../db';
 import { budget } from '../../../postgres/schema';
-import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
+import {
+	budgetMaterializedView,
+	journalExtendedView
+} from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
-import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
-import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import {
+	importFilterToQueryMaterialized,
+	importFilterToText
+} from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 
 export const budgetFilterToQuery = ({
@@ -24,26 +33,50 @@ export const budgetFilterToQuery = ({
 	idTitleFilterToQueryMapped({
 		where,
 		filter,
-		idColumn: materializedJournals ? journalExtendedView.budgetId : budget.id,
-		titleColumn: materializedJournals ? journalExtendedView.budgetTitle : budget.title
+		idColumn: materializedJournals ? journalExtendedView.budgetId : budgetMaterializedView.id,
+		titleColumn: materializedJournals
+			? journalExtendedView.budgetTitle
+			: budgetMaterializedView.title
 	});
 	statusFilterToQueryMapped({
 		where,
 		filter,
-		statusColumn: materializedJournals ? journalExtendedView.budgetStatus : budget.status,
-		disabledColumn: materializedJournals ? journalExtendedView.budgetDisabled : budget.disabled,
-		activeColumn: materializedJournals ? journalExtendedView.budgetActive : budget.active,
+		statusColumn: materializedJournals
+			? journalExtendedView.budgetStatus
+			: budgetMaterializedView.status,
+		disabledColumn: materializedJournals
+			? journalExtendedView.budgetDisabled
+			: budgetMaterializedView.disabled,
+		activeColumn: materializedJournals
+			? journalExtendedView.budgetActive
+			: budgetMaterializedView.active,
 		allowUpdateColumn: materializedJournals
 			? journalExtendedView.budgetAllowUpdate
-			: budget.allowUpdate
+			: budgetMaterializedView.allowUpdate
 	});
 
 	if (!materializedJournals) {
-		importFilterToQuery(where, filter, 'budget');
+		importFilterToQueryMaterialized({
+			where,
+			filter,
+			table: {
+				importId: budgetMaterializedView.importId,
+				importDetailId: budgetMaterializedView.importDetailId
+			}
+		});
 	}
 
 	if (includeSummary) {
-		summaryFilterToQuery({ where, filter: restFilter });
+		summaryFilterToQueryMaterialized({
+			where,
+			filter: restFilter,
+			table: {
+				count: budgetMaterializedView.count,
+				sum: budgetMaterializedView.sum,
+				firstDate: budgetMaterializedView.firstDate,
+				lastDate: budgetMaterializedView.lastDate
+			}
+		});
 	}
 
 	return where;

@@ -23,6 +23,30 @@ export const summaryFilterToQuery = ({
 		where.push(gte(summaryTable.lastDate, new Date(restFilter.lastDateMin)));
 };
 
+export const summaryFilterToQueryMaterialized = ({
+	where,
+	filter: restFilter,
+	table
+}: {
+	where: SQL<unknown>[];
+	filter: SummaryFilterSchemaType;
+	table: {
+		count: SQL.Aliased<number>;
+		sum: SQL.Aliased<number>;
+		firstDate: SQL.Aliased<Date | null>;
+		lastDate: SQL.Aliased<Date | null>;
+	};
+}) => {
+	if (restFilter.countMax !== undefined) where.push(lte(table.count, restFilter.countMax));
+	if (restFilter.countMin !== undefined) where.push(gte(table.count, restFilter.countMin));
+	if (restFilter.totalMax !== undefined) where.push(lte(table.sum, restFilter.totalMax));
+	if (restFilter.totalMin !== undefined) where.push(gte(table.sum, restFilter.totalMin));
+	if (restFilter.firstDateMax) where.push(lte(table.firstDate, new Date(restFilter.firstDateMax)));
+	if (restFilter.firstDateMin) where.push(gte(table.firstDate, new Date(restFilter.firstDateMin)));
+	if (restFilter.lastDateMax) where.push(lte(table.lastDate, new Date(restFilter.lastDateMax)));
+	if (restFilter.lastDateMin) where.push(gte(table.lastDate, new Date(restFilter.lastDateMin)));
+};
+
 export const summaryFilterToText = ({
 	stringArray,
 	filter

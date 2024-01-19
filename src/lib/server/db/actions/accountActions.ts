@@ -6,8 +6,8 @@ import {
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, summaryTable } from '../postgres/schema';
-import { and, asc, count, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
+import { account } from '../postgres/schema';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -22,17 +22,13 @@ import {
 import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
 import { accountTitleSplit } from './helpers/account/accountTitleSplit';
-import {
-	summaryActions,
-	summaryTableColumnsToGroupBy,
-	summaryTableColumnsToSelect
-} from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
+import { accountMaterializedView } from '../postgres/schema/materializedViewSchema';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -41,29 +37,24 @@ export const accountActions = {
 	count: async (db: DBType, filter?: AccountFilterSchemaType) => {
 		const count = await db
 			.select({ count: drizzleCount(account.id) })
-			.from(account)
+			.from(accountMaterializedView)
 			.where(and(...(filter ? accountFilterToQuery({ filter }) : [])))
 			.execute();
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
+		await materializedViewActions.conditionalRefresh({ db });
+
 		const items = db
-			.select({ id: account.id, journalCount: count(journalEntry.id) })
-			.from(account)
-			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
-			.groupBy(account.id)
+			.select({ id: accountMaterializedView.id, journalCount: accountMaterializedView.count })
+			.from(accountMaterializedView)
 			.execute();
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter?: AccountFilterSchemaType }) => {
-		await summaryActions.updateAndCreateMany({
-			db,
-			ids: undefined,
-			needsUpdateOnly: true,
-			allowCreation: true
-		});
+		await materializedViewActions.conditionalRefresh({ db });
 		const {
 			page = 0,
 			pageSize = 10,
@@ -72,14 +63,17 @@ export const accountActions = {
 		} = filter || { page: 10, pageSize: 10 };
 
 		const where = accountFilterToQuery({ filter: restFilter, target: 'accountWithSummary' });
-		const defaultOrderBy = [asc(account.title), desc(account.createdAt)];
+		const defaultOrderBy = [
+			asc(accountMaterializedView.title),
+			desc(accountMaterializedView.createdAt)
+		];
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
 						summaryOrderBy(currentOrder, (remainingOrder) => {
 							return remainingOrder.direction === 'asc'
-								? asc(account[remainingOrder.field])
-								: desc(account[remainingOrder.field]);
+								? asc(accountMaterializedView[remainingOrder.field])
+								: desc(accountMaterializedView[remainingOrder.field]);
 						})
 					),
 					...defaultOrderBy
@@ -87,23 +81,17 @@ export const accountActions = {
 			: defaultOrderBy;
 
 		const results = await db
-			.select({
-				...getTableColumns(account),
-				...summaryTableColumnsToSelect
-			})
-			.from(account)
+			.select()
+			.from(accountMaterializedView)
 			.where(and(...where))
 			.limit(pageSize)
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
-			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
-			.leftJoin(summaryTable, eq(summaryTable.relationId, account.id))
-			.groupBy(account.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
 			.select({ count: drizzleCount(account.id) })
-			.from(account)
+			.from(accountMaterializedView)
 			.where(and(...where))
 			.execute();
 
@@ -165,12 +153,9 @@ export const accountActions = {
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
 
-		await db.transaction(async (db) => {
-			await db.insert(account).values(accountCreateInsertionData(data, id));
-			await summaryActions.createMissing({ db });
-		});
+		await db.insert(account).values(accountCreateInsertionData(data, id));
 
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return id;
 	},
@@ -288,7 +273,7 @@ export const accountActions = {
 			throw new Error(`Account ${id} not found`);
 		}
 
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 		const changingToExpenseOrIncome =
 			type && (type === 'expense' || type === 'income') && type !== currentAccount.type;
 
@@ -377,7 +362,7 @@ export const accountActions = {
 			await db.delete(account).where(eq(account.id, data.id)).execute();
 		}
 
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 		return data.id;
 	},
 	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
@@ -397,7 +382,7 @@ export const accountActions = {
 				)
 				.execute();
 			return true;
-			await materializedViewActions.setRefreshRequired();
+			await materializedViewActions.setRefreshRequired(db);
 		}
 		return false;
 	},
@@ -409,10 +394,9 @@ export const accountActions = {
 
 		await db.transaction(async (db) => {
 			await db.insert(account).values(dataForInsertion);
-			await summaryActions.createMissing({ db });
 		});
 
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 		return dataForInsertion.map((item) => item.id);
 	},
 	seed: async (
@@ -456,6 +440,6 @@ export const accountActions = {
 		];
 
 		await accountActions.createMany(db, itemsToCreate);
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 	}
 };

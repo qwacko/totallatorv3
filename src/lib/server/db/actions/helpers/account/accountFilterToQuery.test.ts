@@ -4,6 +4,7 @@ import { and } from 'drizzle-orm';
 import { account } from '../../../postgres/schema';
 import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { clearTestDB, createTestWrapper, getTestDB, initialiseTestDB } from '../../../test/dbTest';
+import { accountMaterializedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
 
 describe('Account Filter To Query', () => {
 	const qb = new QueryBuilder();
@@ -38,101 +39,101 @@ describe('Account Filter To Query', () => {
 
 		const query = qb
 			.select()
-			.from(account)
+			.from(accountMaterializedView)
 			.where(and(...returnValue))
 			.toSQL();
 
 		//Id
-		expect(query.sql).toContain('"account"."id" = $');
+		expect(query.sql).toContain('"account_materialized_view"."id" = $');
 		expect(query.params).toHaveProperty('0', 'id');
 
 		//Id Array
-		expect(query.sql).toContain('"account"."id" in ($');
+		expect(query.sql).toContain('"account_materialized_view"."id" in ($');
 		expect(query.params).toHaveProperty('1', 'idArray1');
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"account"."title" ilike $');
+		expect(query.sql).toContain('"account_materialized_view"."title" ilike $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Account Group
-		expect(query.sql).toContain('"account"."account_group" ilike $');
+		expect(query.sql).toContain('"account_materialized_view"."account_group" ilike $');
 		expect(query.params).toHaveProperty('4', '%thisAccountGroup%');
 
 		//Account Group 2
-		expect(query.sql).toContain('"account"."account_group_2" ilike $');
+		expect(query.sql).toContain('"account_materialized_view"."account_group_2" ilike $');
 		expect(query.params).toHaveProperty('5', '%accountGroup2%');
 
 		//Account Group 3
-		expect(query.sql).toContain('"account"."account_group_3" ilike $');
+		expect(query.sql).toContain('"account_materialized_view"."account_group_3" ilike $');
 		expect(query.params).toHaveProperty('6', '%accountGroup3%');
 
 		//Account Group Combined
-		expect(query.sql).toContain('"account"."account_group_combined" ilike $');
+		expect(query.sql).toContain('"account_materialized_view"."account_group_combined" ilike $');
 		expect(query.params).toHaveProperty('7', '%accountGroupCombined%');
 
 		//Account Title Combined
-		expect(query.sql).toContain('"account"."account_title_combined" ilike $');
+		expect(query.sql).toContain('"account_materialized_view"."account_title_combined" ilike $');
 		expect(query.params).toHaveProperty('8', '%accountTitleCombined%');
 
 		//Status
-		expect(query.sql).toContain('"account"."status" = $');
+		expect(query.sql).toContain('"account_materialized_view"."status" = $');
 		expect(query.params).toHaveProperty('9', 'active');
 
 		//Disabled
-		expect(query.sql).toContain('"account"."disabled" = $');
+		expect(query.sql).toContain('"account_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('10', false);
 
 		//Allow Update
-		expect(query.sql).toContain('"account"."allow_update" = $');
+		expect(query.sql).toContain('"account_materialized_view"."allow_update" = $');
 		expect(query.params).toHaveProperty('11', true);
 
 		//Active
-		expect(query.sql).toContain('"account"."active" = $');
+		expect(query.sql).toContain('"account_materialized_view"."active" = $');
 		expect(query.params).toHaveProperty('12', false);
 
 		//Is Cash
-		expect(query.sql).toContain('"account"."is_cash" = $');
+		expect(query.sql).toContain('"account_materialized_view"."is_cash" = $');
 		expect(query.params).toHaveProperty('13', true);
 
 		//Is Net Worth
-		expect(query.sql).toContain('"account"."is_net_worth" = $');
+		expect(query.sql).toContain('"account_materialized_view"."is_net_worth" = $');
 		expect(query.params).toHaveProperty('14', false);
 
 		//Start Date After
-		expect(query.sql).toContain('"account"."start_date" > $');
+		expect(query.sql).toContain('"account_materialized_view"."start_date" > $');
 		expect(query.params).toHaveProperty('15', '2021-01-01');
 
 		//Start Date Before
-		expect(query.sql).toContain('"account"."start_date" < $');
+		expect(query.sql).toContain('"account_materialized_view"."start_date" < $');
 		expect(query.params).toHaveProperty('16', '2021-01-02');
 
 		//End Date After
-		expect(query.sql).toContain('"account"."end_date" > $');
+		expect(query.sql).toContain('"account_materialized_view"."end_date" > $');
 		expect(query.params).toHaveProperty('17', '2021-01-03');
 
 		//End Date Before
-		expect(query.sql).toContain('"account"."end_date" < $');
+		expect(query.sql).toContain('"account_materialized_view"."end_date" < $');
 		expect(query.params).toHaveProperty('18', '2021-01-04');
 
 		//Import Id Array
-		expect(query.sql).toContain('"account"."import_id" in ($');
+		expect(query.sql).toContain('"account_materialized_view"."import_id" in ($');
 		expect(query.params).toHaveProperty('19', 'importId1');
 		expect(query.params).toHaveProperty('20', 'importId2');
 
 		//Import Detail Id Array
-		expect(query.sql).toContain('"account"."account_import_detail_id" in ($');
+		expect(query.sql).toContain('"account_materialized_view"."account_import_detail_id" in ($');
 		expect(query.params).toHaveProperty('21', 'importDetailId1');
 		expect(query.params).toHaveProperty('22', 'importDetailId2');
 
 		//Type
-		expect(query.sql).toContain('"account"."type" in ($');
+		expect(query.sql).toContain('"account_materialized_view"."type" in ($');
 		expect(query.params).toHaveProperty('23', 'asset');
 		expect(query.params).toHaveProperty('24', 'liability');
 
 		//Count Max
-		expect(query.sql).toContain('"summary"."count" <= $');
-		expect(query.params).toHaveProperty('25', '10.0000');
+		expect(query.sql).toContain('"count" <= $');
+		expect(query.params).toHaveProperty('25', 10);
 	});
 
 	it("If include summary is turned off, then count max doesn't have impact", () => {
@@ -145,11 +146,11 @@ describe('Account Filter To Query', () => {
 
 		const query = qb
 			.select()
-			.from(account)
+			.from(accountMaterializedView)
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"summary"."count" <= ?');
+		expect(query.sql).not.toContain('"account_materialized_view"."count" <= ?');
 	});
 
 	it('If dates are not real dates, they are still passed through', () => {
@@ -163,14 +164,14 @@ describe('Account Filter To Query', () => {
 
 		const query = qb
 			.select()
-			.from(account)
+			.from(accountMaterializedView)
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).toContain('"account"."end_date" > $');
+		expect(query.sql).toContain('."end_date" > $');
 		expect(query.params).toHaveProperty('1', '2020-00-00');
 
-		expect(query.sql).toContain('"account"."start_date" < $');
+		expect(query.sql).toContain('."start_date" < $');
 		expect(query.params).toHaveProperty('0', "this isn't a date");
 	});
 
@@ -188,7 +189,7 @@ describe('Account Filter To Query', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"account"."id" in (?, ?)');
+		expect(query.sql).not.toContain('"account_materialized_view"."id" in (?, ?)');
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
@@ -201,11 +202,11 @@ describe('Account Filter To Query', () => {
 
 		const query = qb
 			.select()
-			.from(account)
+			.from(accountMaterializedView)
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"account"."import_id" in (?, ?)');
+		expect(query.sql).not.toContain('"account_materialized_view"."import_id" in (?, ?)');
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
@@ -218,11 +219,13 @@ describe('Account Filter To Query', () => {
 
 		const query = qb
 			.select()
-			.from(account)
+			.from(accountMaterializedView)
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"account"."account_import_detail_id" in (?, ?)');
+		expect(query.sql).not.toContain(
+			'"account_materialized_view"."account_import_detail_id" in (?, ?)'
+		);
 	});
 
 	it('Type is not used if the array is empty', () => {
@@ -235,11 +238,11 @@ describe('Account Filter To Query', () => {
 
 		const query = qb
 			.select()
-			.from(account)
+			.from(accountMaterializedView)
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"account"."type" in (?, ?)');
+		expect(query.sql).not.toContain('"account_materialized_view"."type" in (?, ?)');
 	});
 });
 

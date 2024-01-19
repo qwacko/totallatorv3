@@ -169,7 +169,7 @@ export const labelActions = {
 			await summaryActions.createMissing({ db });
 		});
 
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return id;
 	},
@@ -190,7 +190,7 @@ export const labelActions = {
 				allowCreation: true
 			});
 		});
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	createMany: async (db: DBType, data: CreateLabelSchemaType[]) => {
 		const ids = data.map(() => nanoid());
@@ -202,7 +202,7 @@ export const labelActions = {
 			await db.insert(label).values(insertData).execute();
 			await summaryActions.createMissing({ db });
 		});
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return ids;
 	},
@@ -224,7 +224,7 @@ export const labelActions = {
 			})
 			.where(eq(label.id, id))
 			.execute();
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return id;
 	},
@@ -256,7 +256,7 @@ export const labelActions = {
 					.execute();
 
 				await transDb.delete(label).where(eq(label.id, data.id)).execute();
-				await materializedViewActions.setRefreshRequired();
+				await materializedViewActions.setRefreshRequired(db);
 			}
 
 			return data.id;
@@ -274,7 +274,7 @@ export const labelActions = {
 
 			await transDb.delete(label).where(inArray(label.id, idList)).execute();
 		});
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	seed: async (db: DBType, count: number) => {
 		logging.info('Seeding Labels : ', count);

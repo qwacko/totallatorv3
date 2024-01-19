@@ -416,7 +416,7 @@ export const journalActions = {
 
 			await updateManyTransferInfo({ db, transactionIds });
 		});
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return transactionIds;
 	},
@@ -464,7 +464,7 @@ export const journalActions = {
 				})
 			);
 		});
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	seed: async (db: DBType, count: number) => {
 		const startTime = Date.now();
@@ -540,7 +540,7 @@ export const journalActions = {
 				})
 			);
 		});
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	markManyUncomplete: async ({
 		db,
@@ -558,7 +558,7 @@ export const journalActions = {
 				})
 			);
 		});
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	markComplete: async (db: DBType, journalId: string) => {
 		const journal = await db.query.journalEntry
@@ -571,7 +571,7 @@ export const journalActions = {
 			.set({ complete: true, dataChecked: true, reconciled: true, ...updatedTime() })
 			.where(eq(journalEntry.transactionId, transactionId))
 			.execute();
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	markUncomplete: async (db: DBType, journalId: string) => {
 		const journal = await db.query.journalEntry
@@ -584,7 +584,7 @@ export const journalActions = {
 			.set({ complete: false, ...updatedTime() })
 			.where(eq(journalEntry.transactionId, transactionId))
 			.execute();
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateJournals: async ({
 		db,
@@ -931,7 +931,7 @@ export const journalActions = {
 
 			await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
 		});
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return targetJournals;
 	},

@@ -19,23 +19,23 @@ import { booleanKeyValueStore, keyValueStore } from './helpers/keyValueStore';
 
 const refreshRequiredStore = booleanKeyValueStore('journalExtendedViewRefresh', true);
 
-const materializedViewValue = '3';
+const materializedViewValue = '4';
 const materialisedVersionStore = keyValueStore('materializedViewVersion');
 
-const checkIfMaterializedViewExists = async () => {
-	const value = await materialisedVersionStore.get();
+const checkIfMaterializedViewExists = async (db: DBType) => {
+	const value = await materialisedVersionStore.get(db);
 	return value === materializedViewValue;
 };
 
-const updateMaterializedViewVersion = async () => {
-	await materialisedVersionStore.set(materializedViewValue);
+const updateMaterializedViewVersion = async (db: DBType) => {
+	await materialisedVersionStore.set(db, materializedViewValue);
 };
 
 export const materializedViewActions = {
 	initialize: async (db: DBType) => {
 		const startTime = new Date();
 
-		const materializedViewExists = await checkIfMaterializedViewExists();
+		const materializedViewExists = await checkIfMaterializedViewExists(db);
 
 		if (!materializedViewExists) {
 			await recreateMaterializedViewList(db, [
@@ -55,7 +55,7 @@ export const materializedViewActions = {
 				columns: [journalExtendedView.id.name, journalExtendedView.accountId.name]
 			});
 
-			await updateMaterializedViewVersion();
+			await updateMaterializedViewVersion(db);
 		}
 
 		const endTime = new Date();
@@ -65,13 +65,13 @@ export const materializedViewActions = {
 		const startTime = Date.now();
 
 		await Promise.all([
-			db.refreshMaterializedView(journalExtendedView).concurrently(),
-			db.refreshMaterializedView(accountMaterializedView).concurrently(),
-			db.refreshMaterializedView(tagMaterializedView).concurrently(),
-			db.refreshMaterializedView(billMaterializedView).concurrently(),
-			db.refreshMaterializedView(budgetMaterializedView).concurrently(),
-			db.refreshMaterializedView(categoryMaterializedView).concurrently(),
-			db.refreshMaterializedView(labelMaterializedView).concurrently()
+			db.refreshMaterializedView(journalExtendedView),
+			db.refreshMaterializedView(accountMaterializedView),
+			db.refreshMaterializedView(tagMaterializedView),
+			db.refreshMaterializedView(billMaterializedView),
+			db.refreshMaterializedView(budgetMaterializedView),
+			db.refreshMaterializedView(categoryMaterializedView),
+			db.refreshMaterializedView(labelMaterializedView)
 		]);
 
 		const endTime = Date.now();
@@ -79,14 +79,14 @@ export const materializedViewActions = {
 			console.log(`Refreshed ${journalExtendedView} in ${endTime - startTime}ms`);
 		}
 	},
-	conditionalRefresh: async ({ db, logStats = false }: { db: DBType; logStats: boolean }) => {
-		if (await refreshRequiredStore.get()) {
+	conditionalRefresh: async ({ db, logStats = false }: { db: DBType; logStats?: boolean }) => {
+		if (await refreshRequiredStore.get(db)) {
 			await materializedViewActions.refresh({ db, logStats });
-			await refreshRequiredStore.set(false);
+			await refreshRequiredStore.set(db, false);
 		}
 	},
-	setRefreshRequired: async () => {
-		await refreshRequiredStore.set(true);
+	setRefreshRequired: async (db: DBType) => {
+		await refreshRequiredStore.set(db, true);
 	}
 };
 

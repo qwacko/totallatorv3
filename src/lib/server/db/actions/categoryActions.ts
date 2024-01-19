@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/categorySchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, category, journalEntry, summaryTable } from '../postgres/schema';
-import { and, asc, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
+import { category } from '../postgres/schema';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -16,60 +16,55 @@ import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery'
 import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
 import { createCategory } from './helpers/seed/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import {
-	summaryActions,
-	summaryTableColumnsToGroupBy,
-	summaryTableColumnsToSelect
-} from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
+import { categoryMaterializedView } from '../postgres/schema/materializedViewSchema';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.category.findFirst({ where: eq(category.id, id) }).execute();
 	},
 	count: async (db: DBType, filter?: CategoryFilterSchemaType) => {
+		materializedViewActions.conditionalRefresh({ db });
 		const count = await db
-			.select({ count: drizzleCount(category.id) })
-			.from(category)
+			.select({ count: drizzleCount(categoryMaterializedView.id) })
+			.from(categoryMaterializedView)
 			.where(and(...(filter ? categoryFilterToQuery({ filter, target: 'category' }) : [])))
 			.execute();
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
+		materializedViewActions.conditionalRefresh({ db });
 		const items = db
-			.select({ id: category.id, journalCount: drizzleCount(journalEntry.id) })
-			.from(category)
-			.leftJoin(journalEntry, eq(journalEntry.categoryId, category.id))
-			.groupBy(category.id)
+			.select({ id: categoryMaterializedView.id, journalCount: categoryMaterializedView.count })
+			.from(categoryMaterializedView)
 			.execute();
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: CategoryFilterSchemaType }) => {
-		await summaryActions.updateAndCreateMany({
-			db,
-			ids: undefined,
-			needsUpdateOnly: true,
-			allowCreation: true
-		});
+		materializedViewActions.conditionalRefresh({ db });
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = categoryFilterToQuery({ filter: restFilter, target: 'categoryWithSummary' });
 
-		const defaultOrderBy = [asc(category.group), asc(category.single), desc(category.createdAt)];
+		const defaultOrderBy = [
+			asc(categoryMaterializedView.group),
+			asc(categoryMaterializedView.single),
+			desc(categoryMaterializedView.createdAt)
+		];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
 						summaryOrderBy(currentOrder, (remainingOrder) => {
 							return remainingOrder.direction === 'asc'
-								? asc(category[remainingOrder.field])
-								: desc(category[remainingOrder.field]);
+								? asc(categoryMaterializedView[remainingOrder.field])
+								: desc(categoryMaterializedView[remainingOrder.field]);
 						})
 					),
 					...defaultOrderBy
@@ -77,24 +72,17 @@ export const categoryActions = {
 			: defaultOrderBy;
 
 		const results = await db
-			.select({
-				...getTableColumns(category),
-				...summaryTableColumnsToSelect
-			})
-			.from(category)
+			.select()
+			.from(categoryMaterializedView)
 			.where(and(...where))
 			.limit(pageSize)
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
-			.leftJoin(journalEntry, eq(journalEntry.categoryId, category.id))
-			.leftJoin(account, eq(account.id, journalEntry.accountId))
-			.leftJoin(summaryTable, eq(summaryTable.relationId, category.id))
-			.groupBy(category.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
 			.select({ count: drizzleCount(category.id) })
-			.from(category)
+			.from(categoryMaterializedView)
 			.where(and(...where))
 			.execute();
 
@@ -169,11 +157,8 @@ export const categoryActions = {
 	},
 	create: async (db: DBType, data: CreateCategorySchemaType) => {
 		const id = nanoid();
-		await db.transaction(async (db) => {
-			await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();
-			await summaryActions.createMissing({ db });
-		});
-		await materializedViewActions.setRefreshRequired();
+		await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return id;
 	},
@@ -182,11 +167,8 @@ export const categoryActions = {
 		const insertData = data.map((currentData, index) =>
 			categoryCreateInsertionData(currentData, ids[index])
 		);
-		await db.transaction(async (db) => {
-			await db.insert(category).values(insertData).execute();
-			await summaryActions.createMissing({ db });
-		});
-		await materializedViewActions.setRefreshRequired();
+		await db.insert(category).values(insertData).execute();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return ids;
 	},
@@ -210,7 +192,7 @@ export const categoryActions = {
 			})
 			.where(eq(category.id, id))
 			.execute();
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 		return id;
 	},
 	canDeleteMany: async (db: DBType, ids: string[]) => {
@@ -235,7 +217,7 @@ export const categoryActions = {
 		if (await categoryActions.canDelete(db, data)) {
 			await db.delete(category).where(eq(category.id, data.id)).execute();
 		}
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return data.id;
 	},
@@ -256,7 +238,7 @@ export const categoryActions = {
 					)
 				)
 				.execute();
-			await materializedViewActions.setRefreshRequired();
+			await materializedViewActions.setRefreshRequired(db);
 			return true;
 		}
 		return false;

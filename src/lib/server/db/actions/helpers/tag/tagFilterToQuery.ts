@@ -1,12 +1,21 @@
 import type { TagFilterSchemaType } from '$lib/schema/tagSchema';
 import type { DBType } from '../../../db';
 import { tag } from '../../../postgres/schema';
-import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
+import {
+	journalExtendedView,
+	tagMaterializedView
+} from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
-import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
-import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import {
+	importFilterToQueryMaterialized,
+	importFilterToText
+} from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 
 export const tagFilterToQuery = ({
@@ -24,26 +33,46 @@ export const tagFilterToQuery = ({
 	idTitleFilterToQueryMapped({
 		where,
 		filter,
-		idColumn: materializedJournals ? journalExtendedView.tagId : tag.id,
-		titleColumn: materializedJournals ? journalExtendedView.tagTitle : tag.title,
-		groupColumn: materializedJournals ? journalExtendedView.tagGroup : tag.group,
-		singleColumn: materializedJournals ? journalExtendedView.tagSingle : tag.single
+		idColumn: materializedJournals ? journalExtendedView.tagId : tagMaterializedView.id,
+		titleColumn: materializedJournals ? journalExtendedView.tagTitle : tagMaterializedView.title,
+		groupColumn: materializedJournals ? journalExtendedView.tagGroup : tagMaterializedView.group,
+		singleColumn: materializedJournals ? journalExtendedView.tagSingle : tagMaterializedView.single
 	});
 	statusFilterToQueryMapped({
 		where,
 		filter,
-		statusColumn: materializedJournals ? journalExtendedView.tagStatus : tag.status,
-		disabledColumn: materializedJournals ? journalExtendedView.tagDisabled : tag.disabled,
-		activeColumn: materializedJournals ? journalExtendedView.tagActive : tag.active,
-		allowUpdateColumn: materializedJournals ? journalExtendedView.tagAllowUpdate : tag.allowUpdate
+		statusColumn: materializedJournals ? journalExtendedView.tagStatus : tagMaterializedView.status,
+		disabledColumn: materializedJournals
+			? journalExtendedView.tagDisabled
+			: tagMaterializedView.disabled,
+		activeColumn: materializedJournals ? journalExtendedView.tagActive : tagMaterializedView.active,
+		allowUpdateColumn: materializedJournals
+			? journalExtendedView.tagAllowUpdate
+			: tagMaterializedView.allowUpdate
 	});
 
 	if (!materializedJournals) {
-		importFilterToQuery(where, filter, 'tag');
+		importFilterToQueryMaterialized({
+			where,
+			filter,
+			table: {
+				importId: tagMaterializedView.importId,
+				importDetailId: tagMaterializedView.importDetailId
+			}
+		});
 	}
 
 	if (includeSummary) {
-		summaryFilterToQuery({ where, filter: restFilter });
+		summaryFilterToQueryMaterialized({
+			where,
+			filter: restFilter,
+			table: {
+				count: tagMaterializedView.count,
+				sum: tagMaterializedView.sum,
+				firstDate: tagMaterializedView.firstDate,
+				lastDate: tagMaterializedView.lastDate
+			}
+		});
 	}
 
 	return where;

@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/budgetSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, budget, journalEntry, summaryTable } from '../postgres/schema';
-import { and, asc, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
+import { budget } from '../postgres/schema';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -15,60 +15,56 @@ import { budgetCreateInsertionData } from './helpers/budget/budgetCreateInsertio
 import { budgetFilterToQuery } from './helpers/budget/budgetFilterToQuery';
 import { createBudget } from './helpers/seed/seedBudgetData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import {
-	summaryActions,
-	summaryTableColumnsToGroupBy,
-	summaryTableColumnsToSelect
-} from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
+import { budgetMaterializedView } from '../postgres/schema/materializedViewSchema';
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.budget.findFirst({ where: eq(budget.id, id) }).execute();
 	},
 	count: async (db: DBType, filter?: BudgetFilterSchemaType) => {
+		await materializedViewActions.conditionalRefresh({ db });
 		const count = await db
-			.select({ count: drizzleCount(budget.id) })
-			.from(budget)
+			.select({ count: drizzleCount(budgetMaterializedView.id) })
+			.from(budgetMaterializedView)
 			.where(and(...(filter ? budgetFilterToQuery({ filter, target: 'budget' }) : [])))
 			.execute();
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
+		await materializedViewActions.conditionalRefresh({ db });
+
 		const items = db
-			.select({ id: budget.id, journalCount: drizzleCount(journalEntry.id) })
-			.from(budget)
-			.leftJoin(journalEntry, eq(journalEntry.budgetId, budget.id))
-			.groupBy(budget.id)
+			.select({ id: budgetMaterializedView.id, journalCount: budgetMaterializedView.count })
+			.from(budgetMaterializedView)
 			.execute();
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: BudgetFilterSchemaType }) => {
-		await summaryActions.updateAndCreateMany({
-			db,
-			ids: undefined,
-			needsUpdateOnly: true,
-			allowCreation: true
-		});
+		await materializedViewActions.conditionalRefresh({ db });
+
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = budgetFilterToQuery({ filter: restFilter, target: 'budgetWithSummary' });
 
-		const defaultOrderBy = [asc(budget.title), desc(budget.createdAt)];
+		const defaultOrderBy = [
+			asc(budgetMaterializedView.title),
+			desc(budgetMaterializedView.createdAt)
+		];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
 						summaryOrderBy(currentOrder, (remainingOrder) => {
 							return remainingOrder.direction === 'asc'
-								? asc(budget[remainingOrder.field])
-								: desc(budget[remainingOrder.field]);
+								? asc(budgetMaterializedView[remainingOrder.field])
+								: desc(budgetMaterializedView[remainingOrder.field]);
 						})
 					),
 					...defaultOrderBy
@@ -76,24 +72,17 @@ export const budgetActions = {
 			: defaultOrderBy;
 
 		const results = await db
-			.select({
-				...getTableColumns(budget),
-				...summaryTableColumnsToSelect
-			})
-			.from(budget)
+			.select()
+			.from(budgetMaterializedView)
 			.where(and(...where))
 			.limit(pageSize)
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
-			.leftJoin(journalEntry, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(account, eq(account.id, journalEntry.accountId))
-			.leftJoin(summaryTable, eq(summaryTable.relationId, budget.id))
-			.groupBy(budget.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
-			.select({ count: drizzleCount(budget.id) })
-			.from(budget)
+			.select({ count: drizzleCount(budgetMaterializedView.id) })
+			.from(budgetMaterializedView)
 			.where(and(...where))
 			.execute();
 
@@ -163,12 +152,9 @@ export const budgetActions = {
 	},
 	create: async (db: DBType, data: CreateBudgetSchemaType) => {
 		const id = nanoid();
-		await db.transaction(async (db) => {
-			await db.insert(budget).values(budgetCreateInsertionData(data, id)).execute();
-			await summaryActions.createMissing({ db });
-		});
+		await db.insert(budget).values(budgetCreateInsertionData(data, id)).execute();
 
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return id;
 	},
@@ -177,11 +163,8 @@ export const budgetActions = {
 			const id = nanoid();
 			return budgetCreateInsertionData(item, id);
 		});
-		await db.transaction(async (db) => {
-			await db.insert(budget).values(items).execute();
-			await summaryActions.createMissing({ db });
-		});
-		await materializedViewActions.setRefreshRequired();
+		await db.insert(budget).values(items).execute();
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	update: async (db: DBType, data: UpdateBudgetSchemaType) => {
 		const { id } = data;
@@ -202,7 +185,7 @@ export const budgetActions = {
 			.where(eq(budget.id, id))
 			.execute();
 
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return id;
 	},
@@ -228,7 +211,7 @@ export const budgetActions = {
 		if (await budgetActions.canDelete(db, data)) {
 			await db.delete(budget).where(eq(budget.id, data.id)).execute();
 		}
-		await materializedViewActions.setRefreshRequired();
+		await materializedViewActions.setRefreshRequired(db);
 
 		return data.id;
 	},
@@ -250,7 +233,7 @@ export const budgetActions = {
 					)
 				)
 				.execute();
-			await materializedViewActions.setRefreshRequired();
+			await materializedViewActions.setRefreshRequired(db);
 		}
 	},
 	seed: async (db: DBType, count: number) => {

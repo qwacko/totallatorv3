@@ -38,10 +38,9 @@ export type DBType = typeof db;
 if (!serverEnv.TEST_ENV && serverEnv.POSTGRES_URL) {
 	logging.info('Migrating DB!!');
 	migrate(migrationDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
+	await materializedViewActions.initialize(db);
 } else if (!serverEnv.POSTGRES_URL) {
 	logging.warn('No POSTGRES_URL found, skipping migration!');
 } else if (serverEnv.TEST_ENV) {
 	logging.warn('TEST_ENV is true, skipping migration!');
 }
-
-await materializedViewActions.initialize(db);

@@ -38,55 +38,55 @@ describe('tagFilterToQuery', () => {
 			.toSQL();
 
 		//Id
-		expect(query.sql).toContain('"tag"."id" = $');
+		expect(query.sql).toContain('"tag_materialized_view"."id" = $');
 		expect(query.params).toHaveProperty('0', 'id');
 
 		//Id Array
-		expect(query.sql).toContain('"tag"."id" in ($');
+		expect(query.sql).toContain('"tag_materialized_view"."id" in ($');
 		expect(query.params).toHaveProperty('1', 'idArray1');
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"tag"."title" ilike $');
+		expect(query.sql).toContain('"tag_materialized_view"."title" ilike $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Group
-		expect(query.sql).toContain('"tag"."group" ilike $');
+		expect(query.sql).toContain('"tag_materialized_view"."group" ilike $');
 		expect(query.params).toHaveProperty('4', '%group%');
 
 		//Single
-		expect(query.sql).toContain('"tag"."single" ilike $');
+		expect(query.sql).toContain('"tag_materialized_view"."single" ilike $');
 		expect(query.params).toHaveProperty('5', '%single%');
 
 		//Status
-		expect(query.sql).toContain('"tag"."status" = $');
+		expect(query.sql).toContain('"tag_materialized_view"."status" = $');
 		expect(query.params).toHaveProperty('6', 'active');
 
 		//Disabled
-		expect(query.sql).toContain('"tag"."disabled" = $');
+		expect(query.sql).toContain('"tag_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('7', false);
 
 		//Allow Update
-		expect(query.sql).toContain('"tag"."allow_update" = $');
+		expect(query.sql).toContain('"tag_materialized_view"."allow_update" = $');
 		expect(query.params).toHaveProperty('8', true);
 
 		//Active
-		expect(query.sql).toContain('"tag"."active" = $');
+		expect(query.sql).toContain('"tag_materialized_view"."active" = $');
 		expect(query.params).toHaveProperty('9', false);
 
 		//Import Id Array
-		expect(query.sql).toContain('"tag"."import_id" in ($');
+		expect(query.sql).toContain('"tag_materialized_view"."import_id" in ($');
 		expect(query.params).toHaveProperty('10', 'importId1');
 		expect(query.params).toHaveProperty('11', 'importId2');
 
 		//Import Detail Id Array
-		expect(query.sql).toContain('"tag"."tag_import_detail_id" in ($');
+		expect(query.sql).toContain('"tag_materialized_view"."tag_import_detail_id" in ($');
 		expect(query.params).toHaveProperty('12', 'importDetailId1');
 		expect(query.params).toHaveProperty('13', 'importDetailId2');
 
 		//Count Max
-		expect(query.sql).toContain('"summary"."count" <= $');
-		expect(query.params).toHaveProperty('14', '10.0000');
+		expect(query.sql).toContain('"count" <= $');
+		expect(query.params).toHaveProperty('14', 10);
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
@@ -106,15 +106,15 @@ describe('tagFilterToQuery', () => {
 			.toSQL();
 
 		//Disabled
-		expect(query.sql).toContain('"tag"."disabled" = $');
+		expect(query.sql).toContain('"tag_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('0', true);
 
 		//Allow Update
-		expect(query.sql).toContain('"tag"."allow_update" = $');
+		expect(query.sql).toContain('"tag_materialized_view"."allow_update" = $');
 		expect(query.params).toHaveProperty('1', false);
 
 		//Active
-		expect(query.sql).toContain('"tag"."active" = $');
+		expect(query.sql).toContain('"tag_materialized_view"."active" = $');
 		expect(query.params).toHaveProperty('2', true);
 	});
 
@@ -179,7 +179,7 @@ describe('tagFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"tag"."id" in ($');
+		expect(query.sql).not.toContain('"tag_materialized_view"."id" in ($');
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
@@ -196,7 +196,7 @@ describe('tagFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"tag"."import_id" in ($');
+		expect(query.sql).not.toContain('"tag_materialized_view"."import_id" in ($');
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
@@ -213,7 +213,7 @@ describe('tagFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"tag"."category_import_detail_id" in ($');
+		expect(query.sql).not.toContain('"tag_materialized_view"."tag_import_detail_id" in ($');
 	});
 
 	it('Filtering for disabled items works correctly', () => {
@@ -230,7 +230,7 @@ describe('tagFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).toContain('"tag"."disabled" = $');
+		expect(query.sql).toContain('"tag_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('0', true);
 	});
 });

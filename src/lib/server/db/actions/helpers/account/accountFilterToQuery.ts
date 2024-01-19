@@ -1,12 +1,21 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import type { DBType } from '$lib/server/db/db';
 import { account } from '$lib/server/db/postgres/schema';
-import { journalExtendedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
+import {
+	accountMaterializedView,
+	journalExtendedView
+} from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { SQL, eq, gt, inArray, ilike, lt } from 'drizzle-orm';
-import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
-import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import {
+	importFilterToQueryMaterialized,
+	importFilterToText
+} from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 
 export const accountFilterToQuery = ({
@@ -41,7 +50,7 @@ export const accountFilterToQuery = ({
 				allowUpdate: journalExtendedView.accountAllowUpdate,
 				active: journalExtendedView.accountActive
 			}
-		: account;
+		: accountMaterializedView;
 
 	idTitleFilterToQueryMapped({
 		where,
@@ -77,13 +86,29 @@ export const accountFilterToQuery = ({
 	if (filter.endDateBefore !== undefined)
 		where.push(lt(selectedTable.endDate, filter.endDateBefore));
 	if (!materializedJournals) {
-		importFilterToQuery(where, filter, 'account');
+		importFilterToQueryMaterialized({
+			where,
+			filter,
+			table: {
+				importId: accountMaterializedView.importId,
+				importDetailId: accountMaterializedView.importDetailId
+			}
+		});
 	}
 	if (filter.type !== undefined && filter.type.length > 0)
 		where.push(inArray(selectedTable.type, filter.type));
 
 	if (includeSummary) {
-		summaryFilterToQuery({ where, filter });
+		summaryFilterToQueryMaterialized({
+			filter,
+			where,
+			table: {
+				count: accountMaterializedView.count,
+				sum: accountMaterializedView.sum,
+				firstDate: accountMaterializedView.firstDate,
+				lastDate: accountMaterializedView.lastDate
+			}
+		});
 	}
 
 	return where;

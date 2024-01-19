@@ -1,12 +1,21 @@
 import type { BillFilterSchemaType } from '$lib/schema/billSchema';
 import type { DBType } from '../../../db';
 import { bill } from '../../../postgres/schema';
-import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
+import {
+	billMaterializedView,
+	journalExtendedView
+} from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
-import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
-import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import {
+	importFilterToQueryMaterialized,
+	importFilterToText
+} from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 
 export const billFilterToQuery = ({
@@ -24,23 +33,47 @@ export const billFilterToQuery = ({
 	idTitleFilterToQueryMapped({
 		where,
 		filter,
-		idColumn: materializedJournals ? journalExtendedView.billId : bill.id,
-		titleColumn: materializedJournals ? journalExtendedView.billTitle : bill.title
+		idColumn: materializedJournals ? journalExtendedView.billId : billMaterializedView.id,
+		titleColumn: materializedJournals ? journalExtendedView.billTitle : billMaterializedView.title
 	});
 	statusFilterToQueryMapped({
 		where,
 		filter,
-		statusColumn: materializedJournals ? journalExtendedView.billStatus : bill.status,
-		disabledColumn: materializedJournals ? journalExtendedView.billDisabled : bill.disabled,
-		activeColumn: materializedJournals ? journalExtendedView.billActive : bill.active,
-		allowUpdateColumn: materializedJournals ? journalExtendedView.billAllowUpdate : bill.allowUpdate
+		statusColumn: materializedJournals
+			? journalExtendedView.billStatus
+			: billMaterializedView.status,
+		disabledColumn: materializedJournals
+			? journalExtendedView.billDisabled
+			: billMaterializedView.disabled,
+		activeColumn: materializedJournals
+			? journalExtendedView.billActive
+			: billMaterializedView.active,
+		allowUpdateColumn: materializedJournals
+			? journalExtendedView.billAllowUpdate
+			: billMaterializedView.allowUpdate
 	});
 	if (!materializedJournals) {
-		importFilterToQuery(where, filter, 'bill');
+		importFilterToQueryMaterialized({
+			where,
+			filter,
+			table: {
+				importId: billMaterializedView.importId,
+				importDetailId: billMaterializedView.importDetailId
+			}
+		});
 	}
 
 	if (includeSummary) {
-		summaryFilterToQuery({ where, filter: restFilter });
+		summaryFilterToQueryMaterialized({
+			where,
+			filter: restFilter,
+			table: {
+				count: billMaterializedView.count,
+				sum: billMaterializedView.sum,
+				firstDate: billMaterializedView.firstDate,
+				lastDate: billMaterializedView.lastDate
+			}
+		});
 	}
 
 	return where;

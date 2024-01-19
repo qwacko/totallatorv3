@@ -13,6 +13,7 @@ import { seedTestTags } from './seedTestTags';
 import postgres from 'postgres';
 import { it } from 'vitest';
 import { nanoid } from 'nanoid';
+import { materializedViewActions } from '../actions/materializedViewActions';
 
 if (!serverEnv.POSTGRES_TEST_URL) {
 	throw new Error('POSTGRES_TEST_URL is not defined');
@@ -37,6 +38,7 @@ const genTestDB = async () => {
 	const testDB = drizzle(postgresDatabase, { schema, logger: new MyLogger() });
 
 	await migrate(testDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
+	await materializedViewActions.initialize(testDB);
 
 	return { testDB, postgresDatabase };
 };
@@ -66,6 +68,7 @@ export const clearTestDB = async (db: DBType) => {
 	await db.delete(schema.transaction).execute();
 	await db.delete(schema.reusableFilter).execute();
 	await db.delete(schema.summaryTable).execute();
+	await materializedViewActions.setRefreshRequired(db);
 };
 
 export const initialiseTestDB = async ({
@@ -112,6 +115,9 @@ export const initialiseTestDB = async ({
 	if (tags) {
 		await seedTestTags(db);
 	}
+
+	await materializedViewActions.setRefreshRequired(db);
+
 	return itemCount;
 };
 

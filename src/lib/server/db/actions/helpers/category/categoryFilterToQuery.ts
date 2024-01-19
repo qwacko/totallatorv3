@@ -1,12 +1,21 @@
 import type { CategoryFilterSchemaType } from '$lib/schema/categorySchema';
 import type { DBType } from '$lib/server/db/db';
 import { category } from '$lib/server/db/postgres/schema';
-import { journalExtendedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
+import {
+	categoryMaterializedView,
+	journalExtendedView
+} from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
 
-import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
 import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
-import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import {
+	importFilterToQueryMaterialized,
+	importFilterToText
+} from '../misc/filterToQueryImportCore';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 
@@ -25,28 +34,56 @@ export const categoryFilterToQuery = ({
 	idTitleFilterToQueryMapped({
 		where,
 		filter,
-		idColumn: materializedJournals ? journalExtendedView.categoryId : category.id,
-		titleColumn: materializedJournals ? journalExtendedView.categoryTitle : category.title,
-		groupColumn: materializedJournals ? journalExtendedView.categoryGroup : category.group,
-		singleColumn: materializedJournals ? journalExtendedView.categorySingle : category.single
+		idColumn: materializedJournals ? journalExtendedView.categoryId : categoryMaterializedView.id,
+		titleColumn: materializedJournals
+			? journalExtendedView.categoryTitle
+			: categoryMaterializedView.title,
+		groupColumn: materializedJournals
+			? journalExtendedView.categoryGroup
+			: categoryMaterializedView.group,
+		singleColumn: materializedJournals
+			? journalExtendedView.categorySingle
+			: categoryMaterializedView.single
 	});
 	statusFilterToQueryMapped({
 		where,
 		filter,
-		statusColumn: materializedJournals ? journalExtendedView.categoryStatus : category.status,
-		disabledColumn: materializedJournals ? journalExtendedView.categoryDisabled : category.disabled,
-		activeColumn: materializedJournals ? journalExtendedView.categoryActive : category.active,
+		statusColumn: materializedJournals
+			? journalExtendedView.categoryStatus
+			: categoryMaterializedView.status,
+		disabledColumn: materializedJournals
+			? journalExtendedView.categoryDisabled
+			: categoryMaterializedView.disabled,
+		activeColumn: materializedJournals
+			? journalExtendedView.categoryActive
+			: categoryMaterializedView.active,
 		allowUpdateColumn: materializedJournals
 			? journalExtendedView.categoryAllowUpdate
-			: category.allowUpdate
+			: categoryMaterializedView.allowUpdate
 	});
 
 	if (!materializedJournals) {
-		importFilterToQuery(where, filter, 'category');
+		importFilterToQueryMaterialized({
+			where,
+			filter,
+			table: {
+				importId: categoryMaterializedView.importId,
+				importDetailId: categoryMaterializedView.importDetailId
+			}
+		});
 	}
 
 	if (includeSummary) {
-		summaryFilterToQuery({ where, filter: restFilter });
+		summaryFilterToQueryMaterialized({
+			where,
+			filter: restFilter,
+			table: {
+				count: categoryMaterializedView.count,
+				sum: categoryMaterializedView.sum,
+				firstDate: categoryMaterializedView.firstDate,
+				lastDate: categoryMaterializedView.lastDate
+			}
+		});
 	}
 
 	return where;
