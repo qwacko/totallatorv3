@@ -24,6 +24,7 @@ import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { materializedViewActions } from './materializedViewActions';
 
 export const budgetActions = {
 	getById: async (db: DBType, id: string) => {
@@ -167,6 +168,8 @@ export const budgetActions = {
 			await summaryActions.createMissing({ db });
 		});
 
+		await materializedViewActions.setRefreshRequired();
+
 		return id;
 	},
 	createMany: async (db: DBType, data: CreateBudgetSchemaType[]) => {
@@ -178,6 +181,7 @@ export const budgetActions = {
 			await db.insert(budget).values(items).execute();
 			await summaryActions.createMissing({ db });
 		});
+		await materializedViewActions.setRefreshRequired();
 	},
 	update: async (db: DBType, data: UpdateBudgetSchemaType) => {
 		const { id } = data;
@@ -197,6 +201,8 @@ export const budgetActions = {
 			})
 			.where(eq(budget.id, id))
 			.execute();
+
+		await materializedViewActions.setRefreshRequired();
 
 		return id;
 	},
@@ -222,6 +228,7 @@ export const budgetActions = {
 		if (await budgetActions.canDelete(db, data)) {
 			await db.delete(budget).where(eq(budget.id, data.id)).execute();
 		}
+		await materializedViewActions.setRefreshRequired();
 
 		return data.id;
 	},
@@ -243,6 +250,7 @@ export const budgetActions = {
 					)
 				)
 				.execute();
+			await materializedViewActions.setRefreshRequired();
 		}
 	},
 	seed: async (db: DBType, count: number) => {

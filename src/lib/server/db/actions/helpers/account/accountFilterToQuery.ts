@@ -1,6 +1,7 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import type { DBType } from '$lib/server/db/db';
-import { account, journalExtendedView } from '$lib/server/db/postgres/schema';
+import { account } from '$lib/server/db/postgres/schema';
+import { journalExtendedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { SQL, eq, gt, inArray, ilike, lt } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';

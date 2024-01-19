@@ -1,6 +1,6 @@
 import { and, count, eq, sql, sum } from 'drizzle-orm';
 import type { DBType } from '../db';
-import { journalExtendedView } from '../postgres/schema';
+import { journalExtendedView } from '../postgres/schema/materializedViewSchema';
 import { getMaterializedViewConfig } from 'drizzle-orm/pg-core';
 import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
 import type {

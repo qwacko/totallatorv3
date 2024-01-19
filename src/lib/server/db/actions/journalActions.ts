@@ -51,6 +51,7 @@ import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCo
 import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
 import { summaryActions } from './summaryActions';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
+import { materializedViewActions } from './materializedViewActions';
 
 export const journalActions = {
 	getById: async (db: DBType, id: string) => {
@@ -415,6 +416,7 @@ export const journalActions = {
 
 			await updateManyTransferInfo({ db, transactionIds });
 		});
+		await materializedViewActions.setRefreshRequired();
 
 		return transactionIds;
 	},
@@ -462,6 +464,7 @@ export const journalActions = {
 				})
 			);
 		});
+		await materializedViewActions.setRefreshRequired();
 	},
 	seed: async (db: DBType, count: number) => {
 		const startTime = Date.now();
@@ -537,6 +540,7 @@ export const journalActions = {
 				})
 			);
 		});
+		await materializedViewActions.setRefreshRequired();
 	},
 	markManyUncomplete: async ({
 		db,
@@ -554,6 +558,7 @@ export const journalActions = {
 				})
 			);
 		});
+		await materializedViewActions.setRefreshRequired();
 	},
 	markComplete: async (db: DBType, journalId: string) => {
 		const journal = await db.query.journalEntry
@@ -566,6 +571,7 @@ export const journalActions = {
 			.set({ complete: true, dataChecked: true, reconciled: true, ...updatedTime() })
 			.where(eq(journalEntry.transactionId, transactionId))
 			.execute();
+		await materializedViewActions.setRefreshRequired();
 	},
 	markUncomplete: async (db: DBType, journalId: string) => {
 		const journal = await db.query.journalEntry
@@ -578,6 +584,7 @@ export const journalActions = {
 			.set({ complete: false, ...updatedTime() })
 			.where(eq(journalEntry.transactionId, transactionId))
 			.execute();
+		await materializedViewActions.setRefreshRequired();
 	},
 	updateJournals: async ({
 		db,
@@ -924,6 +931,7 @@ export const journalActions = {
 
 			await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
 		});
+		await materializedViewActions.setRefreshRequired();
 
 		return targetJournals;
 	},

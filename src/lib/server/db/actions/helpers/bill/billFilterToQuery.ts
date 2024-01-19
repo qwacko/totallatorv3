@@ -1,6 +1,7 @@
 import type { BillFilterSchemaType } from '$lib/schema/billSchema';
 import type { DBType } from '../../../db';
-import { bill, journalExtendedView } from '../../../postgres/schema';
+import { bill } from '../../../postgres/schema';
+import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';

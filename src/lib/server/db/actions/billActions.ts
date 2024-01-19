@@ -24,6 +24,7 @@ import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { materializedViewActions } from './materializedViewActions';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
@@ -124,6 +125,7 @@ export const billActions = {
 		requireActive?: boolean;
 		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
+		await materializedViewActions.setRefreshRequired();
 		if (id) {
 			const currentBill = cachedData
 				? cachedData.find((item) => item.id === id)
@@ -166,6 +168,7 @@ export const billActions = {
 			await summaryActions.createMissing({ db });
 		});
 
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
 	createMany: async (db: DBType, data: CreateBillSchemaType[]) => {
@@ -178,6 +181,7 @@ export const billActions = {
 			await summaryActions.createMissing({ db });
 		});
 
+		await materializedViewActions.setRefreshRequired();
 		return ids;
 	},
 	update: async (db: DBType, data: UpdateBillSchemaType) => {
@@ -199,6 +203,7 @@ export const billActions = {
 			.where(eq(bill.id, id))
 			.execute();
 
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
 
@@ -222,6 +227,7 @@ export const billActions = {
 	delete: async (db: DBType, data: IdSchemaType) => {
 		if (await billActions.canDelete(db, data)) {
 			await db.delete(bill).where(eq(bill.id, data.id)).execute();
+			await materializedViewActions.setRefreshRequired();
 		}
 
 		return data.id;
@@ -243,6 +249,7 @@ export const billActions = {
 					)
 				)
 				.execute();
+			await materializedViewActions.setRefreshRequired();
 			return true;
 		}
 		return false;

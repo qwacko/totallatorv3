@@ -32,6 +32,7 @@ import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { materializedViewActions } from './materializedViewActions';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -169,6 +170,8 @@ export const accountActions = {
 			await summaryActions.createMissing({ db });
 		});
 
+		await materializedViewActions.setRefreshRequired();
+
 		return id;
 	},
 	createAndGet: async (db: DBType, data: CreateAccountSchemaType) => {
@@ -285,6 +288,7 @@ export const accountActions = {
 			throw new Error(`Account ${id} not found`);
 		}
 
+		await materializedViewActions.setRefreshRequired();
 		const changingToExpenseOrIncome =
 			type && (type === 'expense' || type === 'income') && type !== currentAccount.type;
 
@@ -373,6 +377,7 @@ export const accountActions = {
 			await db.delete(account).where(eq(account.id, data.id)).execute();
 		}
 
+		await materializedViewActions.setRefreshRequired();
 		return data.id;
 	},
 	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
@@ -392,6 +397,7 @@ export const accountActions = {
 				)
 				.execute();
 			return true;
+			await materializedViewActions.setRefreshRequired();
 		}
 		return false;
 	},
@@ -406,6 +412,7 @@ export const accountActions = {
 			await summaryActions.createMissing({ db });
 		});
 
+		await materializedViewActions.setRefreshRequired();
 		return dataForInsertion.map((item) => item.id);
 	},
 	seed: async (
@@ -449,5 +456,6 @@ export const accountActions = {
 		];
 
 		await accountActions.createMany(db, itemsToCreate);
+		await materializedViewActions.setRefreshRequired();
 	}
 };

@@ -14,9 +14,9 @@ import {
 	tag,
 	label,
 	labelsToJournals,
-	importTable,
-	journalExtendedView
+	importTable
 } from '../../../postgres/schema';
+import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
 import { journalFilterToQuery } from './journalFilterToQuery';
 import { journalFilterToOrderBy } from './journalFilterToOrderBy';
 import { count as drizzleCount } from 'drizzle-orm';

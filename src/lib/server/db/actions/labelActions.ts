@@ -24,6 +24,7 @@ import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { materializedViewActions } from './materializedViewActions';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
@@ -168,6 +169,8 @@ export const labelActions = {
 			await summaryActions.createMissing({ db });
 		});
 
+		await materializedViewActions.setRefreshRequired();
+
 		return id;
 	},
 	createLink: async (
@@ -187,6 +190,7 @@ export const labelActions = {
 				allowCreation: true
 			});
 		});
+		await materializedViewActions.setRefreshRequired();
 	},
 	createMany: async (db: DBType, data: CreateLabelSchemaType[]) => {
 		const ids = data.map(() => nanoid());
@@ -198,6 +202,7 @@ export const labelActions = {
 			await db.insert(label).values(insertData).execute();
 			await summaryActions.createMissing({ db });
 		});
+		await materializedViewActions.setRefreshRequired();
 
 		return ids;
 	},
@@ -219,6 +224,7 @@ export const labelActions = {
 			})
 			.where(eq(label.id, id))
 			.execute();
+		await materializedViewActions.setRefreshRequired();
 
 		return id;
 	},
@@ -250,6 +256,7 @@ export const labelActions = {
 					.execute();
 
 				await transDb.delete(label).where(eq(label.id, data.id)).execute();
+				await materializedViewActions.setRefreshRequired();
 			}
 
 			return data.id;
@@ -267,6 +274,7 @@ export const labelActions = {
 
 			await transDb.delete(label).where(inArray(label.id, idList)).execute();
 		});
+		await materializedViewActions.setRefreshRequired();
 	},
 	seed: async (db: DBType, count: number) => {
 		logging.info('Seeding Labels : ', count);

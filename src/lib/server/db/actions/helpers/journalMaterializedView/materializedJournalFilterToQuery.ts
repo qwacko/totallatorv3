@@ -1,5 +1,5 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import { journalExtendedView } from '../../../postgres/schema';
+import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq, gte, lte, inArray, ilike, not, notInArray } from 'drizzle-orm';
 import { accountFilterToQuery } from '../account/accountFilterToQuery';
 import { billFilterToQuery } from '../bill/billFilterToQuery';

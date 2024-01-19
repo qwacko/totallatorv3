@@ -25,6 +25,7 @@ import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { materializedViewActions } from './materializedViewActions';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
@@ -170,6 +171,7 @@ export const tagActions = {
 			await summaryActions.createMissing({ db });
 		});
 
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
 	createMany: async (db: DBType, data: CreateTagSchemaType[]) => {
@@ -182,6 +184,7 @@ export const tagActions = {
 			await summaryActions.createMissing({ db });
 		});
 
+		await materializedViewActions.setRefreshRequired();
 		return ids;
 	},
 	update: async (db: DBType, data: UpdateTagSchemaType) => {
@@ -203,6 +206,7 @@ export const tagActions = {
 			.where(eq(tag.id, id))
 			.execute();
 
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
 	canDeleteMany: async (db: DBType, ids: string[]) => {
@@ -229,6 +233,7 @@ export const tagActions = {
 			await db.delete(tag).where(eq(tag.id, data.id)).execute();
 		}
 
+		await materializedViewActions.setRefreshRequired();
 		return data.id;
 	},
 	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
@@ -248,6 +253,7 @@ export const tagActions = {
 					)
 				)
 				.execute();
+			await materializedViewActions.setRefreshRequired();
 			return true;
 		}
 		return false;

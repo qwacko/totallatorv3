@@ -1,6 +1,7 @@
 import type { CategoryFilterSchemaType } from '$lib/schema/categorySchema';
 import type { DBType } from '$lib/server/db/db';
-import { category, journalExtendedView } from '$lib/server/db/postgres/schema';
+import { category } from '$lib/server/db/postgres/schema';
+import { journalExtendedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
 
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';

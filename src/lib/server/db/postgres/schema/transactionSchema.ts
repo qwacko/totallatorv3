@@ -1,14 +1,6 @@
 import { accountTypeEnum } from '../../../../schema/accountTypeSchema';
 import { statusEnum } from '../../../../schema/statusSchema';
-import {
-	relations,
-	eq,
-	getTableColumns,
-	type ColumnBaseConfig,
-	type ColumnDataType,
-	sql,
-	not
-} from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import {
 	pgTable,
 	text,
@@ -21,10 +13,7 @@ import {
 	varchar,
 	customType,
 	jsonb,
-	pgEnum,
-	pgMaterializedView,
-	PgColumn,
-	alias
+	pgEnum
 } from 'drizzle-orm/pg-core';
 import {
 	importDetailStatusEnum,
@@ -727,115 +716,7 @@ export const reportRelations = relations(report, ({ many, one }) => ({
 	})
 }));
 
-const customAliasedTableColumn = <
-	T extends ColumnBaseConfig<ColumnDataType, string> = ColumnBaseConfig<ColumnDataType, string>
->(
-	column: PgColumn<T>,
-	alias: string
-) => {
-	return sql<typeof column>`${column}`.as(alias) as unknown as typeof column;
-};
-
-// export const journalExtesndedView = pgMaterializedView('journal_extended_view').as((db, t) => {});
-export const journalExtendedView = pgMaterializedView('journal_extended_view').as((qb) => {
-	const labelsq = qb.$with('labelsq').as(
-		qb
-			.select({
-				journalId: labelsToJournals.journalId,
-				labelData: sql<
-					{ labelToJournalId: string; id: string; title: string }[]
-				>`jsonb_agg(jsonb_build_object('labelToJournalId', ${labelsToJournals.id}, 'id', ${labelsToJournals.labelId}, 'title', ${label.title}))`.as(
-					'labelData'
-				)
-			})
-			.from(labelsToJournals)
-			.leftJoin(label, eq(labelsToJournals.labelId, label.id))
-			.groupBy(labelsToJournals.journalId)
-	);
-
-	const otherJournals = alias(journalEntry, 'otherJournal');
-
-	const journalsq = qb.$with('journalsq').as(
-		qb
-			.select({
-				journalId: journalEntry.id,
-				otherJournalData: sql<
-					{
-						id: string;
-						transactionId: string;
-						accountId: string;
-						accountTitle: string;
-						accountType: string;
-						accountGroup: string;
-						amount: number;
-					}[]
-				>`jsonb_agg(jsonb_build_object('id', ${otherJournals.id}, 'transactionId', ${otherJournals.transactionId}, 'accountId', ${account.id}, 'accountTitle', ${account.title}, 'accountType', ${account.type}, 'accountGroup', ${account.accountGroupCombined}, 'amount', ${otherJournals.amount}))`.as(
-					'otherJournalData'
-				)
-			})
-			.from(journalEntry)
-			.leftJoin(otherJournals, eq(otherJournals.transactionId, journalEntry.transactionId))
-			.leftJoin(account, eq(otherJournals.accountId, account.id))
-			.where(not(eq(otherJournals.id, journalEntry.id)))
-			.groupBy(journalEntry.id)
-	);
-
-	return qb
-		.with(labelsq, journalsq)
-		.select({
-			...getTableColumns(journalEntry),
-			transactionId: customAliasedTableColumn(transaction.id, 'transaction_id'),
-			accountTitle: account.title,
-			accountType: account.type,
-			accountIsCash: account.isCash,
-			accountIsNetWorth: account.isNetWorth,
-			accountGroup: account.accountGroup,
-			accountGroup2: account.accountGroup2,
-			accountGroup3: account.accountGroup3,
-			accountGroupCombined: account.accountGroupCombined,
-			accountTitleCombined: account.accountTitleCombined,
-			accountStartDate: account.startDate,
-			accountEndDate: account.endDate,
-			accountStatus: customAliasedTableColumn(account.status, 'account_status'),
-			accountActive: customAliasedTableColumn(account.active, 'account_active'),
-			accountDisabled: customAliasedTableColumn(account.disabled, 'account_disabled'),
-			accountAllowUpdate: customAliasedTableColumn(account.allowUpdate, 'account_allow_update'),
-			billTitle: customAliasedTableColumn(bill.title, 'bill_title'),
-			billStatus: customAliasedTableColumn(bill.status, 'bill_status'),
-			billActive: customAliasedTableColumn(bill.active, 'bill_active'),
-			billDisabled: customAliasedTableColumn(bill.disabled, 'bill_disabled'),
-			billAllowUpdate: customAliasedTableColumn(bill.allowUpdate, 'bill_allow_update'),
-			budgetTitle: customAliasedTableColumn(budget.title, 'budget_title'),
-			budgetStatus: customAliasedTableColumn(budget.status, 'budget_status'),
-			budgetActive: customAliasedTableColumn(budget.active, 'budget_active'),
-			budgetDisabled: customAliasedTableColumn(budget.disabled, 'budget_disabled'),
-			budgetAllowUpdate: customAliasedTableColumn(budget.allowUpdate, 'budget_allow_update'),
-			categoryTitle: customAliasedTableColumn(category.title, 'category_title'),
-			categoryGroup: customAliasedTableColumn(category.group, 'category_group'),
-			categorySingle: customAliasedTableColumn(category.single, 'category_single'),
-			categoryStatus: customAliasedTableColumn(category.status, 'category_status'),
-			categoryActive: customAliasedTableColumn(category.active, 'category_active'),
-			categoryDisabled: customAliasedTableColumn(category.disabled, 'category_disabled'),
-			categoryAllowUpdate: customAliasedTableColumn(category.allowUpdate, 'category_allow_update'),
-			tagTitle: customAliasedTableColumn(tag.title, 'tag_title'),
-			tagGroup: customAliasedTableColumn(tag.group, 'tag_group'),
-			tagSingle: customAliasedTableColumn(tag.single, 'tag_single'),
-			tagStatus: customAliasedTableColumn(tag.status, 'tag_status'),
-			tagActive: customAliasedTableColumn(tag.active, 'tag_active'),
-			tagDisabled: customAliasedTableColumn(tag.disabled, 'tag_disabled'),
-			tagAllowUpdate: customAliasedTableColumn(tag.allowUpdate, 'tag_allow_update'),
-			importTitle: customAliasedTableColumn(importTable.title, 'import_title'),
-			labels: labelsq.labelData,
-			otherJournals: journalsq.otherJournalData
-		})
-		.from(journalEntry)
-		.leftJoin(transaction, eq(journalEntry.transactionId, transaction.id))
-		.leftJoin(account, eq(journalEntry.accountId, account.id))
-		.leftJoin(bill, eq(journalEntry.billId, bill.id))
-		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-		.leftJoin(category, eq(journalEntry.categoryId, category.id))
-		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-		.leftJoin(importTable, eq(journalEntry.importId, importTable.id))
-		.leftJoin(labelsq, eq(journalEntry.id, labelsq.journalId))
-		.leftJoin(journalsq, eq(journalEntry.id, journalsq.journalId));
+export const keyValueTable = pgTable('key_value_table', {
+	key: text('key').notNull().unique(),
+	value: text('value').notNull()
 });

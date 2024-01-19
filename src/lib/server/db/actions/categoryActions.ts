@@ -25,6 +25,7 @@ import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { materializedViewActions } from './materializedViewActions';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
@@ -172,6 +173,7 @@ export const categoryActions = {
 			await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();
 			await summaryActions.createMissing({ db });
 		});
+		await materializedViewActions.setRefreshRequired();
 
 		return id;
 	},
@@ -184,6 +186,7 @@ export const categoryActions = {
 			await db.insert(category).values(insertData).execute();
 			await summaryActions.createMissing({ db });
 		});
+		await materializedViewActions.setRefreshRequired();
 
 		return ids;
 	},
@@ -207,7 +210,7 @@ export const categoryActions = {
 			})
 			.where(eq(category.id, id))
 			.execute();
-
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
 	canDeleteMany: async (db: DBType, ids: string[]) => {
@@ -232,6 +235,7 @@ export const categoryActions = {
 		if (await categoryActions.canDelete(db, data)) {
 			await db.delete(category).where(eq(category.id, data.id)).execute();
 		}
+		await materializedViewActions.setRefreshRequired();
 
 		return data.id;
 	},
@@ -252,6 +256,7 @@ export const categoryActions = {
 					)
 				)
 				.execute();
+			await materializedViewActions.setRefreshRequired();
 			return true;
 		}
 		return false;

@@ -1,6 +1,6 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { asc, desc, SQL } from 'drizzle-orm';
-import { journalExtendedView } from '../../../postgres/schema';
+import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
 
 const defaultOrderBy = [
 	desc(journalExtendedView.amount),

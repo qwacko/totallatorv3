@@ -6,7 +6,7 @@ import { logging } from '../logging';
 import { serverEnv } from '../serverEnv';
 import { type Logger } from 'drizzle-orm';
 import postgres from 'postgres';
-import { journalMaterializedViewActions } from './actions/journalMaterializedViewActions';
+import { materializedViewActions } from './actions/materializedViewActions';
 
 const usedURL = serverEnv.POSTGRES_URL;
 
@@ -44,4 +44,4 @@ if (!serverEnv.TEST_ENV && serverEnv.POSTGRES_URL) {
 	logging.warn('TEST_ENV is true, skipping migration!');
 }
 
-await journalMaterializedViewActions.initialize(db);
+await materializedViewActions.initialize(db);
