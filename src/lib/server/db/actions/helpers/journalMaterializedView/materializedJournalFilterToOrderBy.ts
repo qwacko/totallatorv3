@@ -8,7 +8,9 @@ const defaultOrderBy = [
 	desc(journalExtendedView.id)
 ];
 
-export const journalFilterToOrderBy = (filter: JournalFilterSchemaType): SQL<unknown>[] => {
+export const materializedJournalFilterToOrderBy = (
+	filter: JournalFilterSchemaType
+): SQL<unknown>[] => {
 	const { orderBy } = filter;
 
 	if (!orderBy) {

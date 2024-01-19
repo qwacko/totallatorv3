@@ -1,7 +1,19 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, count, eq, sql, sum } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { journalExtendedView } from '../postgres/schema';
 import { getMaterializedViewConfig } from 'drizzle-orm/pg-core';
+import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
+import type {
+	JournalFilterSchemaInputType,
+	JournalFilterSchemaType
+} from '$lib/schema/journalSchema';
+import { journalMaterialisedList } from './helpers/journal/journalList';
+import {
+	getCommonData,
+	getCommonLabelData,
+	getCommonOtherAccountData,
+	getToFromAccountAmountData
+} from './helpers/misc/getCommonData';
 
 let refreshRequired = true;
 
@@ -35,37 +47,25 @@ export const journalMaterializedViewActions = {
 	},
 	getById: async (db: DBType, id: string) => {
 		return db.select().from(journalExtendedView).where(eq(journalExtendedView.id, id)).execute();
-	}
-	// count: async (db: DBType, filter?: JournalFilterSchemaType) => {
-	// 	const countQueryCore = db
-	// 		.select({ count: count(journalEntry.id) })
-	// 		.from(journalEntry)
-	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
-	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
-	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
-	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [sql`true`])));
+	},
+	count: async (db: DBType, filter?: JournalFilterSchemaType) => {
+		const countQuery = await db
+			.select({ count: count(journalExtendedView.id) })
+			.from(journalExtendedView)
+			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [sql`true`])))
+			.execute();
 
-	// 	const countResult = await countQueryCore.execute();
+		return countQuery[0].count;
+	},
+	sum: async (db: DBType, filter?: JournalFilterSchemaType) => {
+		const sumQuery = await db
+			.select({ sum: sum(journalExtendedView.id) })
+			.from(journalExtendedView)
+			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [sql`true`])))
+			.execute();
 
-	// 	return countResult[0].count;
-	// },
-	// sum: async (db: DBType, filter?: JournalFilterSchemaType) => {
-	// 	const countQueryCore = db
-	// 		.select({ sum: sum(journalEntry.amount).mapWith(Number) })
-	// 		.from(journalEntry)
-	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
-	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
-	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
-	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])));
-
-	// 	const count = await countQueryCore.execute();
-
-	// 	return count[0].sum;
-	// },
+		return sumQuery[0].sum;
+	},
 	// summary: async ({
 	// 	db,
 	// 	filter,
@@ -269,56 +269,56 @@ export const journalMaterializedViewActions = {
 
 	// 	return parsedData;
 	// },
-	// list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
-	// 	return journalList({ db, filter });
-	// },
-	// listWithCommonData: async ({
-	// 	db,
-	// 	filter
-	// }: {
-	// 	db: DBType;
-	// 	filter: JournalFilterSchemaInputType;
-	// }) => {
-	// 	const journalInformation = await journalActions.list({ db, filter });
+	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
+		return journalMaterialisedList({ db, filter });
+	},
+	listWithCommonData: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: JournalFilterSchemaInputType;
+	}) => {
+		const journalInformation = await journalMaterializedViewActions.list({ db, filter });
 
-	// 	const accountId = getCommonData('accountId', journalInformation.data);
-	// 	const amount = getCommonData('amount', journalInformation.data);
+		const accountId = getCommonData('accountId', journalInformation.data);
+		const amount = getCommonData('amount', journalInformation.data);
 
-	// 	//Note that the following have "undefined" as this removes the null option which isn't relevant for this functionaliy. This helps the forms work correctly.
-	// 	const tagId = getCommonData('tagId', journalInformation.data) || undefined;
-	// 	const categoryId = getCommonData('categoryId', journalInformation.data) || undefined;
-	// 	const billId = getCommonData('billId', journalInformation.data) || undefined;
-	// 	const budgetId = getCommonData('budgetId', journalInformation.data) || undefined;
-	// 	const date = getCommonData('dateText', journalInformation.data);
-	// 	const description = getCommonData('description', journalInformation.data);
-	// 	const linked = getCommonData('linked', journalInformation.data);
-	// 	const reconciled = getCommonData('reconciled', journalInformation.data);
-	// 	const complete = getCommonData('complete', journalInformation.data);
-	// 	const dataChecked = getCommonData('dataChecked', journalInformation.data);
-	// 	const labelData = getCommonLabelData(journalInformation.data);
-	// 	const otherAccountId = getCommonOtherAccountData(journalInformation.data);
+		//Note that the following have "undefined" as this removes the null option which isn't relevant for this functionaliy. This helps the forms work correctly.
+		const tagId = getCommonData('tagId', journalInformation.data) || undefined;
+		const categoryId = getCommonData('categoryId', journalInformation.data) || undefined;
+		const billId = getCommonData('billId', journalInformation.data) || undefined;
+		const budgetId = getCommonData('budgetId', journalInformation.data) || undefined;
+		const date = getCommonData('dateText', journalInformation.data);
+		const description = getCommonData('description', journalInformation.data);
+		const linked = getCommonData('linked', journalInformation.data);
+		const reconciled = getCommonData('reconciled', journalInformation.data);
+		const complete = getCommonData('complete', journalInformation.data);
+		const dataChecked = getCommonData('dataChecked', journalInformation.data);
+		const labelData = getCommonLabelData(journalInformation.data);
+		const otherAccountId = getCommonOtherAccountData(journalInformation.data);
 
-	// 	const cloneData = getToFromAccountAmountData(journalInformation.data);
+		const cloneData = getToFromAccountAmountData(journalInformation.data);
 
-	// 	return {
-	// 		journals: journalInformation,
-	// 		common: {
-	// 			accountId,
-	// 			otherAccountId,
-	// 			amount,
-	// 			tagId,
-	// 			categoryId,
-	// 			billId,
-	// 			budgetId,
-	// 			date,
-	// 			description,
-	// 			linked,
-	// 			reconciled,
-	// 			complete,
-	// 			dataChecked,
-	// 			...cloneData,
-	// 			...labelData
-	// 		}
-	// 	};
-	// }
+		return {
+			journals: journalInformation,
+			common: {
+				accountId,
+				otherAccountId,
+				amount,
+				tagId,
+				categoryId,
+				billId,
+				budgetId,
+				date,
+				description,
+				linked,
+				reconciled,
+				complete,
+				dataChecked,
+				...cloneData,
+				...labelData
+			}
+		};
+	}
 };

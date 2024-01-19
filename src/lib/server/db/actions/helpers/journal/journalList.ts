@@ -14,11 +14,84 @@ import {
 	tag,
 	label,
 	labelsToJournals,
-	importTable
+	importTable,
+	journalExtendedView
 } from '../../../postgres/schema';
 import { journalFilterToQuery } from './journalFilterToQuery';
 import { journalFilterToOrderBy } from './journalFilterToOrderBy';
 import { count as drizzleCount } from 'drizzle-orm';
+import { materializedJournalFilterToQuery } from '../journalMaterializedView/materializedJournalFilterToQuery';
+import { materializedJournalFilterToOrderBy } from '../journalMaterializedView/materializedJournalFilterToOrderBy';
+
+export const journalMaterialisedList = async ({
+	db,
+	filter
+}: {
+	db: DBType;
+	filter: JournalFilterSchemaInputType;
+}) => {
+	const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
+
+	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
+
+	const journalQueryCore = db
+		.select()
+		.from(journalExtendedView)
+		.where(and(...(await materializedJournalFilterToQuery(db, restFilter))))
+		.orderBy(...materializedJournalFilterToOrderBy(processedFilter))
+		.offset(page * pageSize)
+		.limit(pageSize);
+
+	const journalsPromise = journalQueryCore.execute();
+
+	const runningTotalInner = db
+		.select({ amount: journalExtendedView.amount })
+		.from(journalExtendedView)
+		.where(and(...(await materializedJournalFilterToQuery(db, restFilter))))
+		.orderBy(...materializedJournalFilterToOrderBy(processedFilter))
+		.offset(page * pageSize)
+		.as('sumInner');
+
+	const runningTotalPromise = db
+		.select({ sum: sum(runningTotalInner.amount).mapWith(Number) })
+		.from(runningTotalInner)
+		.execute();
+
+	const resultCount = await db
+		.select({
+			count: drizzleCount(journalExtendedView.id)
+		})
+		.from(journalExtendedView)
+		.where(and(...(await materializedJournalFilterToQuery(db, restFilter))))
+		.execute();
+
+	const count = resultCount[0].count;
+	const pageCount = Math.max(1, Math.ceil(count / pageSize));
+
+	const journals = await journalsPromise;
+
+	const runningTotal = (await runningTotalPromise)[0].sum;
+
+	const journalsMerged = journals.map((journal, index) => {
+		const priorJournals = journals.filter((_, i) => i < index);
+		const priorJournalTotal = priorJournals.reduce((prev, current) => prev + current.amount, 0);
+		const total = runningTotal - priorJournalTotal;
+
+		return {
+			...journal,
+			total
+		};
+	});
+
+	return {
+		count,
+		data: journalsMerged,
+		pageCount,
+		page,
+		pageSize,
+		runningTotal
+	};
+};
 
 export const journalList = async ({
 	db,
