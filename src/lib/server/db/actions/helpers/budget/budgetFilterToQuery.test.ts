@@ -13,8 +13,8 @@ import {
 describe('budgetFilterToQuery', () => {
 	const qb = new QueryBuilder();
 	it('Filter Returns A Good Value', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				id: 'id',
 				idArray: ['idArray1', 'idArray2'],
 				title: 'title',
@@ -26,8 +26,8 @@ describe('budgetFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			true
-		);
+			target: 'budgetWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -80,14 +80,14 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				disabled: true,
 				allowUpdate: false,
 				active: true
 			},
-			true
-		);
+			target: 'budgetWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -109,7 +109,7 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = budgetFilterToQuery({}, true);
+		const returnValue = budgetFilterToQuery({ filter: {}, target: 'budgetWithSummary' });
 
 		const query = qb
 			.select()
@@ -121,13 +121,13 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Blank Title and ID Return A Blank Value', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				id: '',
 				title: ''
 			},
-			true
-		);
+			target: 'budgetWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -139,12 +139,12 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it("If include summary is turned off, then count max doesn't have impact", () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				countMax: 10
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()
@@ -156,12 +156,12 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Id Array is not used if the array is empty', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				idArray: []
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()
@@ -173,12 +173,12 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				importIdArray: []
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()
@@ -190,12 +190,12 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				importDetailIdArray: []
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()
@@ -207,12 +207,12 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Filtering for disabled items works correctly', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				disabled: true
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()

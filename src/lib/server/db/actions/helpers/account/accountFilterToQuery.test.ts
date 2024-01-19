@@ -8,8 +8,8 @@ import { clearTestDB, createTestWrapper, getTestDB, initialiseTestDB } from '../
 describe('Account Filter To Query', () => {
 	const qb = new QueryBuilder();
 	it('Filter Returns A Good Value', () => {
-		const returnValue = accountFilterToQuery(
-			{
+		const returnValue = accountFilterToQuery({
+			filter: {
 				id: 'id',
 				idArray: ['idArray1', 'idArray2'],
 				title: 'title',
@@ -33,8 +33,8 @@ describe('Account Filter To Query', () => {
 				type: ['asset', 'liability'],
 				countMax: 10
 			},
-			true
-		);
+			target: 'accountWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -136,12 +136,12 @@ describe('Account Filter To Query', () => {
 	});
 
 	it("If include summary is turned off, then count max doesn't have impact", () => {
-		const returnValue = accountFilterToQuery(
-			{
+		const returnValue = accountFilterToQuery({
+			filter: {
 				countMax: 10
 			},
-			false
-		);
+			target: 'account'
+		});
 
 		const query = qb
 			.select()
@@ -153,13 +153,13 @@ describe('Account Filter To Query', () => {
 	});
 
 	it('If dates are not real dates, they are still passed through', () => {
-		const returnValue = accountFilterToQuery(
-			{
+		const returnValue = accountFilterToQuery({
+			filter: {
 				endDateAfter: '2020-00-00',
 				startDateBefore: "this isn't a date"
 			},
-			false
-		);
+			target: 'account'
+		});
 
 		const query = qb
 			.select()
@@ -175,12 +175,12 @@ describe('Account Filter To Query', () => {
 	});
 
 	it('Id Array is not used if the array is empty', () => {
-		const returnValue = accountFilterToQuery(
-			{
+		const returnValue = accountFilterToQuery({
+			filter: {
 				idArray: []
 			},
-			false
-		);
+			target: 'account'
+		});
 
 		const query = qb
 			.select()
@@ -192,12 +192,12 @@ describe('Account Filter To Query', () => {
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
-		const returnValue = accountFilterToQuery(
-			{
+		const returnValue = accountFilterToQuery({
+			filter: {
 				importIdArray: []
 			},
-			false
-		);
+			target: 'account'
+		});
 
 		const query = qb
 			.select()
@@ -209,12 +209,12 @@ describe('Account Filter To Query', () => {
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
-		const returnValue = accountFilterToQuery(
-			{
+		const returnValue = accountFilterToQuery({
+			filter: {
 				importDetailIdArray: []
 			},
-			false
-		);
+			target: 'account'
+		});
 
 		const query = qb
 			.select()
@@ -226,12 +226,12 @@ describe('Account Filter To Query', () => {
 	});
 
 	it('Type is not used if the array is empty', () => {
-		const returnValue = accountFilterToQuery(
-			{
+		const returnValue = accountFilterToQuery({
+			filter: {
 				type: []
 			},
-			false
-		);
+			target: 'account'
+		});
 
 		const query = qb
 			.select()

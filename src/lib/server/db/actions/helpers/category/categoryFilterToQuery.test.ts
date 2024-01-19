@@ -13,8 +13,8 @@ import {
 describe('categoryFilterToQuery', () => {
 	const qb = new QueryBuilder();
 	it('Filter Returns A Good Value', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				id: 'id',
 				idArray: ['idArray1', 'idArray2'],
 				title: 'title',
@@ -28,8 +28,8 @@ describe('categoryFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			true
-		);
+			target: 'categoryWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -90,14 +90,14 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				disabled: true,
 				allowUpdate: false,
 				active: true
 			},
-			true
-		);
+			target: 'categoryWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -119,7 +119,7 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = categoryFilterToQuery({}, true);
+		const returnValue = categoryFilterToQuery({ filter: {}, target: 'categoryWithSummary' });
 
 		const query = qb
 			.select()
@@ -131,13 +131,13 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Blank Title and ID Return A Blank Value', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				id: '',
 				title: ''
 			},
-			true
-		);
+			target: 'categoryWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -149,12 +149,12 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it("If include summary is turned off, then count max doesn't have impact", () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				countMax: 10
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()
@@ -166,12 +166,12 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Id Array is not used if the array is empty', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				idArray: []
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()
@@ -183,12 +183,12 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				importIdArray: []
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()
@@ -200,12 +200,12 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				importDetailIdArray: []
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()
@@ -217,12 +217,12 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Filtering for disabled items works correctly', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				disabled: true
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()

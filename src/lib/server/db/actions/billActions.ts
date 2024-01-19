@@ -33,7 +33,7 @@ export const billActions = {
 		const count = await db
 			.select({ count: drizzleCount(bill.id) })
 			.from(bill)
-			.where(and(...(filter ? billFilterToQuery(filter) : [])))
+			.where(and(...(filter ? billFilterToQuery({ filter, target: 'bill' }) : [])))
 			.execute();
 
 		return count[0].count;
@@ -57,7 +57,7 @@ export const billActions = {
 		});
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = billFilterToQuery(restFilter, true);
+		const where = billFilterToQuery({ filter: restFilter, target: 'billWithSummary' });
 
 		const defaultOrderBy = [asc(bill.title), desc(bill.createdAt)];
 

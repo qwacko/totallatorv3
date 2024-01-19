@@ -1,5 +1,5 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-import { journalEntry } from '../../../postgres/schema';
+import { journalExtendedView } from '../../../postgres/schema';
 import { SQL, eq, gte, lte, inArray, ilike, not, notInArray } from 'drizzle-orm';
 import {
 	accountFilterToQuery,
@@ -14,122 +14,145 @@ import { labelFilterToSubQuery, labelFilterToText } from '../label/labelFilterTo
 import { type DBType } from '../../../db';
 import { arrayToText } from '../misc/arrayToText';
 import { importIdsToTitles } from '../import/importIdsToTitles';
-import { journalPayeeToSubquery } from './journalPayeeToSubquery';
+import { journalPayeeToSubquery } from '../journal/journalPayeeToSubquery';
 
 export const journalFilterToQuery = async (
 	db: DBType,
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
 ) => {
 	const where: SQL<unknown>[] = [];
-	if (filter.id) where.push(eq(journalEntry.id, filter.id));
-	if (filter.excludeId) where.push(not(eq(journalEntry.id, filter.excludeId)));
+	if (filter.id) where.push(eq(journalExtendedView.id, filter.id));
+	if (filter.excludeId) where.push(not(eq(journalExtendedView.id, filter.excludeId)));
 	if (filter.idArray && filter.idArray.length > 0)
-		where.push(inArray(journalEntry.id, filter.idArray));
+		where.push(inArray(journalExtendedView.id, filter.idArray));
 	if (filter.excludeIdArray && filter.excludeIdArray.length > 0)
-		where.push(notInArray(journalEntry.id, filter.excludeIdArray));
-	if (filter.maxAmount !== undefined) where.push(lte(journalEntry.amount, filter.maxAmount));
-	if (filter.minAmount !== undefined) where.push(gte(journalEntry.amount, filter.minAmount));
+		where.push(notInArray(journalExtendedView.id, filter.excludeIdArray));
+	if (filter.maxAmount !== undefined) where.push(lte(journalExtendedView.amount, filter.maxAmount));
+	if (filter.minAmount !== undefined) where.push(gte(journalExtendedView.amount, filter.minAmount));
 	if (filter.yearMonth && filter.yearMonth.length > 0)
-		where.push(inArray(journalEntry.yearMonth, filter.yearMonth));
+		where.push(inArray(journalExtendedView.yearMonth, filter.yearMonth));
 	if (filter.excludeYearMonth && filter.excludeYearMonth.length > 0)
-		where.push(notInArray(journalEntry.yearMonth, filter.excludeYearMonth));
+		where.push(notInArray(journalExtendedView.yearMonth, filter.excludeYearMonth));
 	if (filter.transactionIdArray && filter.transactionIdArray.length > 0)
-		where.push(inArray(journalEntry.transactionId, filter.transactionIdArray));
+		where.push(inArray(journalExtendedView.transactionId, filter.transactionIdArray));
 	if (filter.excludeTransactionIdArray && filter.excludeTransactionIdArray.length > 0)
-		where.push(notInArray(journalEntry.transactionId, filter.excludeTransactionIdArray));
-	if (filter.description) where.push(ilike(journalEntry.description, `%${filter.description}%`));
+		where.push(notInArray(journalExtendedView.transactionId, filter.excludeTransactionIdArray));
+	if (filter.description)
+		where.push(ilike(journalExtendedView.description, `%${filter.description}%`));
 	if (filter.excludeDescription)
-		where.push(not(ilike(journalEntry.description, `%${filter.excludeDescription}%`)));
-	if (filter.dateAfter !== undefined) where.push(gte(journalEntry.dateText, filter.dateAfter));
-	if (filter.dateBefore !== undefined) where.push(lte(journalEntry.dateText, filter.dateBefore));
-	if (filter.transfer !== undefined) where.push(eq(journalEntry.transfer, filter.transfer));
-	if (filter.complete !== undefined) where.push(eq(journalEntry.complete, filter.complete));
-	if (filter.linked !== undefined) where.push(eq(journalEntry.linked, filter.linked));
+		where.push(not(ilike(journalExtendedView.description, `%${filter.excludeDescription}%`)));
+	if (filter.dateAfter !== undefined)
+		where.push(gte(journalExtendedView.dateText, filter.dateAfter));
+	if (filter.dateBefore !== undefined)
+		where.push(lte(journalExtendedView.dateText, filter.dateBefore));
+	if (filter.transfer !== undefined) where.push(eq(journalExtendedView.transfer, filter.transfer));
+	if (filter.complete !== undefined) where.push(eq(journalExtendedView.complete, filter.complete));
+	if (filter.linked !== undefined) where.push(eq(journalExtendedView.linked, filter.linked));
 	if (filter.dataChecked !== undefined)
-		where.push(eq(journalEntry.dataChecked, filter.dataChecked));
-	if (filter.reconciled !== undefined) where.push(eq(journalEntry.reconciled, filter.reconciled));
+		where.push(eq(journalExtendedView.dataChecked, filter.dataChecked));
+	if (filter.reconciled !== undefined)
+		where.push(eq(journalExtendedView.reconciled, filter.reconciled));
 	if (filter.importIdArray && filter.importIdArray.length > 0)
-		where.push(inArray(journalEntry.importId, filter.importIdArray));
+		where.push(inArray(journalExtendedView.importId, filter.importIdArray));
 	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
-		where.push(inArray(journalEntry.importDetailId, filter.importDetailIdArray));
+		where.push(inArray(journalExtendedView.importDetailId, filter.importDetailIdArray));
+
+	if (filter.account) {
+		if (filter.account.id) {
+			where.push(eq(journalExtendedView.accountId, filter.account.id));
+		}
+		if (filter.account.idArray && filter.account.idArray.length > 0) {
+			where.push(inArray(journalExtendedView.accountId, filter.account.idArray));
+		}
+	}
 
 	if (filter.account) {
 		const accountFilter = accountFilterToQuery({
 			filter: filter.account,
-			target: 'account'
+			target: 'materializedJournals'
 		});
 		where.push(...accountFilter);
 	}
 	if (filter.excludeAccount) {
 		const excludeAccountFilter = accountFilterToQuery({
 			filter: filter.excludeAccount,
-			target: 'account'
+			target: 'materializedJournals'
 		});
 		where.push(...excludeAccountFilter.map((x) => not(x)));
 	}
 
 	if (filter.bill) {
-		const billFilter = billFilterToQuery({ filter: filter.bill, target: 'bill' });
+		const billFilter = billFilterToQuery({ filter: filter.bill, target: 'materializedJournals' });
 		where.push(...billFilter);
 	}
 	if (filter.excludeBill) {
-		const excludeBillFilter = billFilterToQuery({ filter: filter.excludeBill, target: 'bill' });
+		const excludeBillFilter = billFilterToQuery({
+			filter: filter.excludeBill,
+			target: 'materializedJournals'
+		});
 		where.push(...excludeBillFilter.map((x) => not(x)));
 	}
 
 	if (filter.budget) {
-		const budgetFilter = budgetFilterToQuery({
-			filter: filter.budget,
-			target: 'materializedJournals'
-		});
+		const budgetFilter = budgetFilterToQuery({ filter: filter.budget, target: 'budget' });
 		where.push(...budgetFilter);
 	}
 	if (filter.excludeBudget) {
 		const excludeBudgetFilter = budgetFilterToQuery({
 			filter: filter.excludeBudget,
-			target: 'materializedJournals'
+			target: 'budget'
 		});
 		where.push(...excludeBudgetFilter.map((x) => not(x)));
 	}
 
 	if (filter.category) {
-		const categoryFilter = categoryFilterToQuery({ filter: filter.category, target: 'category' });
+		const categoryFilter = categoryFilterToQuery({
+			filter: filter.category,
+			target: 'materializedJournals'
+		});
 		where.push(...categoryFilter);
 	}
 	if (filter.excludeCategory) {
 		const excludeCategoryFilter = categoryFilterToQuery({
 			filter: filter.excludeCategory,
-			target: 'category'
+			target: 'materializedJournals'
 		});
 		where.push(...excludeCategoryFilter.map((x) => not(x)));
 	}
 
 	if (filter.tag) {
-		const tagFilter = tagFilterToQuery({ filter: filter.tag, target: 'tag' });
+		const tagFilter = tagFilterToQuery({ filter: filter.tag, target: 'materializedJournals' });
 		where.push(...tagFilter);
 	}
 	if (filter.excludeTag) {
-		const excludeTagFilter = tagFilterToQuery({ filter: filter.excludeTag, target: 'tag' });
+		const excludeTagFilter = tagFilterToQuery({
+			filter: filter.excludeTag,
+			target: 'materializedJournals'
+		});
 		where.push(...excludeTagFilter.map((x) => not(x)));
 	}
 
 	if (filter.label) {
-		where.push(inArray(journalEntry.id, labelFilterToSubQuery({ filter: filter.label, db })));
+		where.push(
+			inArray(journalExtendedView.id, labelFilterToSubQuery({ filter: filter.label, db }))
+		);
 	}
 
 	if (filter.excludeLabel) {
 		where.push(
-			notInArray(journalEntry.id, labelFilterToSubQuery({ filter: filter.excludeLabel, db }))
+			notInArray(journalExtendedView.id, labelFilterToSubQuery({ filter: filter.excludeLabel, db }))
 		);
 	}
 
 	if (filter.payee) {
-		where.push(inArray(journalEntry.id, journalPayeeToSubquery({ db, payee: filter.payee })));
+		where.push(
+			inArray(journalExtendedView.id, journalPayeeToSubquery({ db, payee: filter.payee }))
+		);
 	}
 
 	if (filter.excludePayee) {
 		where.push(
-			notInArray(journalEntry.id, journalPayeeToSubquery({ db, payee: filter.excludePayee }))
+			notInArray(journalExtendedView.id, journalPayeeToSubquery({ db, payee: filter.excludePayee }))
 		);
 	}
 

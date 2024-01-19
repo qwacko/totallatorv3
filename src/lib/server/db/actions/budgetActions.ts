@@ -33,7 +33,7 @@ export const budgetActions = {
 		const count = await db
 			.select({ count: drizzleCount(budget.id) })
 			.from(budget)
-			.where(and(...(filter ? budgetFilterToQuery(filter) : [])))
+			.where(and(...(filter ? budgetFilterToQuery({ filter, target: 'budget' }) : [])))
 			.execute();
 
 		return count[0].count;
@@ -57,7 +57,7 @@ export const budgetActions = {
 		});
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = budgetFilterToQuery(restFilter, true);
+		const where = budgetFilterToQuery({ filter: restFilter, target: 'budgetWithSummary' });
 
 		const defaultOrderBy = [asc(budget.title), desc(budget.createdAt)];
 

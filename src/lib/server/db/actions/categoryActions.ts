@@ -34,7 +34,7 @@ export const categoryActions = {
 		const count = await db
 			.select({ count: drizzleCount(category.id) })
 			.from(category)
-			.where(and(...(filter ? categoryFilterToQuery(filter) : [])))
+			.where(and(...(filter ? categoryFilterToQuery({ filter, target: 'category' }) : [])))
 			.execute();
 
 		return count[0].count;
@@ -58,7 +58,7 @@ export const categoryActions = {
 		});
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = categoryFilterToQuery(restFilter, true);
+		const where = categoryFilterToQuery({ filter: restFilter, target: 'categoryWithSummary' });
 
 		const defaultOrderBy = [asc(category.group), asc(category.single), desc(category.createdAt)];
 

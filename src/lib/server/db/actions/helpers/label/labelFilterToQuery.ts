@@ -1,7 +1,7 @@
 import type { LabelFilterSchemaType } from '$lib/schema/labelSchema';
 
-import { label } from '../../../postgres/schema';
-import { SQL, eq } from 'drizzle-orm';
+import { journalEntry, label, labelsToJournals } from '../../../postgres/schema';
+import { SQL, and, eq } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
 import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { statusFilterToQuery, statusFilterToText } from '../misc/filterToQueryStatusCore';
@@ -23,6 +23,26 @@ export const labelFilterToQuery = (
 	}
 
 	return where;
+};
+
+export const labelFilterToSubQuery = ({
+	filter,
+	includeSummary = false,
+	db
+}: {
+	db: DBType;
+	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>;
+	includeSummary?: boolean;
+}) => {
+	const labelFilter = labelFilterToQuery(filter, includeSummary);
+	const labelIdsSubquery = db
+		.select({ id: journalEntry.id })
+		.from(labelsToJournals)
+		.leftJoin(label, eq(label.id, labelsToJournals.labelId))
+		.where(and(...labelFilter))
+		.as('label_sq');
+
+	return labelIdsSubquery;
 };
 
 export const labelIdToTitle = async (db: DBType, id: string) => {

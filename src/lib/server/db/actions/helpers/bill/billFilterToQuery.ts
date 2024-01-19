@@ -1,23 +1,42 @@
 import type { BillFilterSchemaType } from '$lib/schema/billSchema';
 import type { DBType } from '../../../db';
-import { bill } from '../../../postgres/schema';
+import { bill, journalExtendedView } from '../../../postgres/schema';
 import { SQL, eq } from 'drizzle-orm';
 import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
-import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { statusFilterToQuery, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
+import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
 import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 
-export const billFilterToQuery = (
-	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-	includeSummary: boolean = false
-) => {
+export const billFilterToQuery = ({
+	filter,
+	target = 'bill'
+}: {
+	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	target?: 'materializedJournals' | 'bill' | 'billWithSummary';
+}) => {
 	const restFilter = filter;
+	const includeSummary = target === 'billWithSummary';
+	const materializedJournals = target === 'materializedJournals';
 
 	const where: SQL<unknown>[] = [];
-	idTitleFilterToQuery(where, filter, 'bill');
-	statusFilterToQuery(where, filter, 'bill');
-	importFilterToQuery(where, filter, 'bill');
+	idTitleFilterToQueryMapped({
+		where,
+		filter,
+		idColumn: materializedJournals ? journalExtendedView.billId : bill.id,
+		titleColumn: materializedJournals ? journalExtendedView.billTitle : bill.title
+	});
+	statusFilterToQueryMapped({
+		where,
+		filter,
+		statusColumn: materializedJournals ? journalExtendedView.billStatus : bill.status,
+		disabledColumn: materializedJournals ? journalExtendedView.billDisabled : bill.disabled,
+		activeColumn: materializedJournals ? journalExtendedView.billActive : bill.active,
+		allowUpdateColumn: materializedJournals ? journalExtendedView.billAllowUpdate : bill.allowUpdate
+	});
+	if (!materializedJournals) {
+		importFilterToQuery(where, filter, 'bill');
+	}
 
 	if (includeSummary) {
 		summaryFilterToQuery({ where, filter: restFilter });

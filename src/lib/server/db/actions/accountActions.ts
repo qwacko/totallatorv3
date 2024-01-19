@@ -22,11 +22,15 @@ import {
 import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
 import { accountTitleSplit } from './helpers/account/accountTitleSplit';
-import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
+import {
+	summaryActions,
+	summaryTableColumnsToGroupBy,
+	summaryTableColumnsToSelect
+} from './summaryActions';
 import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm'
+import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 
 export const accountActions = {
@@ -37,7 +41,7 @@ export const accountActions = {
 		const count = await db
 			.select({ count: drizzleCount(account.id) })
 			.from(account)
-			.where(and(...(filter ? accountFilterToQuery(filter) : [])))
+			.where(and(...(filter ? accountFilterToQuery({ filter }) : [])))
 			.execute();
 
 		return count[0].count;
@@ -66,19 +70,19 @@ export const accountActions = {
 			...restFilter
 		} = filter || { page: 10, pageSize: 10 };
 
-		const where = accountFilterToQuery(restFilter, true);
+		const where = accountFilterToQuery({ filter: restFilter, target: 'accountWithSummary' });
 		const defaultOrderBy = [asc(account.title), desc(account.createdAt)];
 		const orderByResult = orderBy
 			? [
-				...orderBy.map((currentOrder) =>
-					summaryOrderBy(currentOrder, (remainingOrder) => {
-						return remainingOrder.direction === 'asc'
-							? asc(account[remainingOrder.field])
-							: desc(account[remainingOrder.field]);
-					})
-				),
-				...defaultOrderBy
-			]
+					...orderBy.map((currentOrder) =>
+						summaryOrderBy(currentOrder, (remainingOrder) => {
+							return remainingOrder.direction === 'asc'
+								? asc(account[remainingOrder.field])
+								: desc(account[remainingOrder.field]);
+						})
+					),
+					...defaultOrderBy
+				]
 			: defaultOrderBy;
 
 		const results = await db
@@ -182,12 +186,12 @@ export const accountActions = {
 		title?: string;
 		id?: string;
 		requireActive?: boolean;
-		cachedData?: { id: string, title: string, status: StatusEnumType }[]
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentAccount = cachedData ? cachedData.find(item => item.id === id) : await db.query.account
-				.findFirst({ where: eq(account.id, id) })
-				.execute();
+			const currentAccount = cachedData
+				? cachedData.find((item) => item.id === id)
+				: await db.query.account.findFirst({ where: eq(account.id, id) }).execute();
 
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
@@ -201,9 +205,11 @@ export const accountActions = {
 
 			const isExpense = accountTitleInfo.accountGroupCombined === '';
 
-			const currentAccount = cachedData ? cachedData.find(item => item.title === title) : await db.query.account
-				.findFirst({ where: eq(account.accountTitleCombined, title) })
-				.execute();
+			const currentAccount = cachedData
+				? cachedData.find((item) => item.title === title)
+				: await db.query.account
+						.findFirst({ where: eq(account.accountTitleCombined, title) })
+						.execute();
 
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
@@ -293,7 +299,6 @@ export const accountActions = {
 				changingToExpenseOrIncome) &&
 			!changingToAssetOrLiability
 		) {
-
 			//Limit what can be updated for an income or expense account
 			await db
 				.update(account)
@@ -314,15 +319,14 @@ export const accountActions = {
 				: accountGroupCombined && accountGroupCombined !== ''
 					? accountGroupCombined
 					: [
-						accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
-						accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
-						accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
-					]
-						.filter((item) => item)
-						.join(':');
+							accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
+							accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
+							accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
+						]
+							.filter((item) => item)
+							.join(':');
 
 			const { startDate, endDate, isCash, isNetWorth } = restData;
-
 
 			await db
 				.update(account)
@@ -343,7 +347,7 @@ export const accountActions = {
 				.execute();
 
 			const matchingAccount = await db.select().from(account).where(eq(account.id, id)).execute();
-			console.log("New Update Time = ", matchingAccount[0].updatedAt)
+			console.log('New Update Time = ', matchingAccount[0].updatedAt);
 		}
 		return id;
 	},

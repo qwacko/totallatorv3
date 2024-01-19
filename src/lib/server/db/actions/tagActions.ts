@@ -31,7 +31,7 @@ export const tagActions = {
 		return db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
 	},
 	count: async (db: DBType, filter?: TagFilterSchemaType) => {
-		const where = filter ? tagFilterToQuery(filter) : [];
+		const where = filter ? tagFilterToQuery({ filter, target: 'tag' }) : [];
 
 		const result = await db
 			.select({ count: drizzleCount(tag.id) })
@@ -61,7 +61,7 @@ export const tagActions = {
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = tagFilterToQuery(restFilter, true);
+		const where = tagFilterToQuery({ filter: restFilter, target: 'tagWithSummary' });
 
 		const defaultOrderBy = [asc(tag.group), asc(tag.single), desc(tag.createdAt)];
 

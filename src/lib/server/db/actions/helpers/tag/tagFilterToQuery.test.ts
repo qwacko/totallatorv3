@@ -13,8 +13,8 @@ import {
 describe('tagFilterToQuery', () => {
 	const qb = new QueryBuilder();
 	it('Filter Returns A Good Value', () => {
-		const returnValue = tagFilterToQuery(
-			{
+		const returnValue = tagFilterToQuery({
+			filter: {
 				id: 'id',
 				idArray: ['idArray1', 'idArray2'],
 				title: 'title',
@@ -28,8 +28,8 @@ describe('tagFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			true
-		);
+			target: 'tagWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -90,14 +90,14 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
-		const returnValue = tagFilterToQuery(
-			{
+		const returnValue = tagFilterToQuery({
+			filter: {
 				disabled: true,
 				allowUpdate: false,
 				active: true
 			},
-			true
-		);
+			target: 'tagWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -119,7 +119,7 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = tagFilterToQuery({}, true);
+		const returnValue = tagFilterToQuery({ filter: {}, target: 'tagWithSummary' });
 
 		const query = qb
 			.select()
@@ -131,13 +131,13 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it('Blank Title and ID Return A Blank Value', () => {
-		const returnValue = tagFilterToQuery(
-			{
+		const returnValue = tagFilterToQuery({
+			filter: {
 				id: '',
 				title: ''
 			},
-			true
-		);
+			target: 'tagWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -149,12 +149,12 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it("If include summary is turned off, then count max doesn't have impact", () => {
-		const returnValue = tagFilterToQuery(
-			{
+		const returnValue = tagFilterToQuery({
+			filter: {
 				countMax: 10
 			},
-			false
-		);
+			target: 'tag'
+		});
 
 		const query = qb
 			.select()
@@ -166,12 +166,12 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it('Id Array is not used if the array is empty', () => {
-		const returnValue = tagFilterToQuery(
-			{
+		const returnValue = tagFilterToQuery({
+			filter: {
 				idArray: []
 			},
-			false
-		);
+			target: 'tag'
+		});
 
 		const query = qb
 			.select()
@@ -183,12 +183,12 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
-		const returnValue = tagFilterToQuery(
-			{
+		const returnValue = tagFilterToQuery({
+			filter: {
 				importIdArray: []
 			},
-			false
-		);
+			target: 'tag'
+		});
 
 		const query = qb
 			.select()
@@ -200,12 +200,12 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
-		const returnValue = tagFilterToQuery(
-			{
+		const returnValue = tagFilterToQuery({
+			filter: {
 				importDetailIdArray: []
 			},
-			false
-		);
+			target: 'tag'
+		});
 
 		const query = qb
 			.select()
@@ -217,12 +217,12 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it('Filtering for disabled items works correctly', () => {
-		const returnValue = tagFilterToQuery(
-			{
+		const returnValue = tagFilterToQuery({
+			filter: {
 				disabled: true
 			},
-			false
-		);
+			target: 'tag'
+		});
 
 		const query = qb
 			.select()

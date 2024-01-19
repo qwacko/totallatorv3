@@ -6,6 +6,7 @@ import { categoryActions } from './categoryActions';
 import { importActions } from './importActions';
 import { importMappingActions } from './importMappingActions';
 import { journalActions } from './journalActions';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { labelActions } from './labelActions';
 import { reportActions } from './reportActions';
 import { reusableFilterActions } from './reusableFilterActions';
@@ -23,5 +24,6 @@ export const tActions = {
 	reusableFitler: reusableFilterActions,
 	importMapping: importMappingActions,
 	backup: backupActions,
-	report: reportActions
+	report: reportActions,
+	journalView: journalMaterializedViewActions,
 };

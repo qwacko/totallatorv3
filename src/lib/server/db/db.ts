@@ -4,8 +4,9 @@ import * as schema from './postgres/schema';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { logging } from '../logging';
 import { serverEnv } from '../serverEnv';
-import type { Logger } from 'drizzle-orm';
+import { type Logger } from 'drizzle-orm';
 import postgres from 'postgres';
+import { journalMaterializedViewActions } from './actions/journalMaterializedViewActions';
 
 const usedURL = serverEnv.POSTGRES_URL;
 
@@ -42,3 +43,5 @@ if (!serverEnv.TEST_ENV && serverEnv.POSTGRES_URL) {
 } else if (serverEnv.TEST_ENV) {
 	logging.warn('TEST_ENV is true, skipping migration!');
 }
+
+await journalMaterializedViewActions.initialize(db);
