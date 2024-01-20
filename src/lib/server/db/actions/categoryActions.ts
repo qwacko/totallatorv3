@@ -16,7 +16,6 @@ import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery'
 import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
 import { createCategory } from './helpers/seed/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
@@ -61,11 +60,9 @@ export const categoryActions = {
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(categoryMaterializedView[remainingOrder.field])
-								: desc(categoryMaterializedView[remainingOrder.field]);
-						})
+						currentOrder.direction === 'asc'
+							? asc(categoryMaterializedView[currentOrder.field])
+							: desc(categoryMaterializedView[currentOrder.field])
 					),
 					...defaultOrderBy
 				]

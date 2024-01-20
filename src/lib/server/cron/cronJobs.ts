@@ -1,5 +1,4 @@
 import { updateManyTransferInfo } from '../db/actions/helpers/journal/updateTransactionTransfer';
-import { summaryActions } from '../db/actions/summaryActions';
 import { tActions } from '../db/actions/tActions';
 import { db } from '../db/db';
 import { logging } from '../logging';
@@ -27,37 +26,6 @@ export const cronJobs: CronJob[] = [
 		job: async () => {
 			logging.debug('CRON: Updating Journal Transfer Settings');
 			updateManyTransferInfo({ db: db });
-		}
-	},
-	{
-		name: 'Regular Update Of All Summaries (Hourly)',
-		schedule: '0 * * * *',
-		job: async () => {
-			const startTime = new Date().getTime();
-			await summaryActions.updateAndCreateMany({ db, needsUpdateOnly: false, allowCreation: true });
-			logging.debug(
-				'CRON: Updated All Summaries (Hourly) - Took ' + (new Date().getTime() - startTime) + 'ms'
-			);
-		}
-	},
-	{
-		name: 'Regular Addition Of New Summaries + Needs Update (every 5 minutes)',
-		schedule: '*/5 * * * *',
-		job: async () => {
-			const startTime = new Date().getTime();
-			await summaryActions.createMissing({ db });
-			const numberUpdated = await summaryActions.updateAndCreateMany({
-				db,
-				needsUpdateOnly: true,
-				allowCreation: true
-			});
-			logging.debug(
-				'CRON: Creating and Updating Summaries that Need Update - Took ' +
-					(new Date().getTime() - startTime) +
-					'ms - Updated ' +
-					numberUpdated +
-					' summaries'
-			);
 		}
 	},
 	{

@@ -49,7 +49,6 @@ import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { nanoid } from 'nanoid';
 import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCombinedSchema';
 import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
-import { summaryActions } from './summaryActions';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { materializedViewActions } from './materializedViewActions';
 
@@ -409,11 +408,6 @@ export const journalActions = {
 				await db.insert(labelsToJournals).values(chunk).execute();
 			}
 
-			await summaryActions.markAsNeedingProcessing({
-				db,
-				ids: await summaryActions.getUniqueTransactionInfo({ db, ids: transactionIds })
-			});
-
 			await updateManyTransferInfo({ db, transactionIds });
 		});
 		await materializedViewActions.setRefreshRequired(db);
@@ -433,11 +427,6 @@ export const journalActions = {
 
 			await Promise.all(
 				splitTransactionList.map(async (currentTransactionIds) => {
-					const originalIds = await summaryActions.getUniqueTransactionInfo({
-						db,
-						ids: currentTransactionIds
-					});
-
 					const journalsForDeletion = await db
 						.select()
 						.from(journalEntry)
@@ -457,10 +446,6 @@ export const journalActions = {
 							journalsForDeletion.map((item) => item.id)
 						)
 					);
-					await summaryActions.markAsNeedingProcessing({
-						db,
-						ids: originalIds
-					});
 				})
 			);
 		});
@@ -615,11 +600,6 @@ export const journalActions = {
 		const unlinkedJournals = journals.data.filter((journal) => !journal.linked);
 		const linkedTransactionIds = [...new Set(linkedJournals.map((item) => item.transactionId))];
 		const allTransactionIds = [...new Set(journals.data.map((item) => item.transactionId))];
-
-		const originalLinkedIds = await summaryActions.getUniqueTransactionInfo({
-			db,
-			ids: allTransactionIds
-		});
 
 		const journalIds = [...new Set(unlinkedJournals.map((item) => item.id))];
 		const targetJournals = (
@@ -918,16 +898,6 @@ export const journalActions = {
 					)
 					.execute();
 			}
-
-			const completedIds = await summaryActions.getUniqueTransactionInfo({
-				db,
-				ids: allTransactionIds
-			});
-
-			await summaryActions.markAsNeedingProcessing({
-				db,
-				ids: [...completedIds, ...originalLinkedIds]
-			});
 
 			await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
 		});

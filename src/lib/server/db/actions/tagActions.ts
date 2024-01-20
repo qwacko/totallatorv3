@@ -16,7 +16,6 @@ import { tagCreateInsertionData } from './helpers/tag/tagCreateInsertionData';
 import { tagFilterToQuery } from './helpers/tag/tagFilterToQuery';
 import { createTag } from './helpers/seed/seedTagData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
@@ -65,11 +64,9 @@ export const tagActions = {
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(tagMaterializedView[remainingOrder.field])
-								: desc(tagMaterializedView[remainingOrder.field]);
-						})
+						currentOrder.direction === 'asc'
+							? asc(tagMaterializedView[currentOrder.field])
+							: desc(tagMaterializedView[currentOrder.field])
 					),
 					...defaultOrderBy
 				]

@@ -24,6 +24,22 @@ const materialisedVersionStore = keyValueStore('materializedViewVersion');
 
 const checkIfMaterializedViewExists = async (db: DBType) => {
 	const value = await materialisedVersionStore.get(db);
+
+	const journalMaterializedViewExists = await db.execute(sql`SELECT matviewname FROM pg_matviews;`);
+
+	if (journalMaterializedViewExists.length === 0) return false;
+
+	const materializedViewTitles = journalMaterializedViewExists.map((view) => view.matviewname);
+	const targetMaterializedViewTitles = Object.keys(materializedViewTableNames).map(
+		(key) => materializedViewTableNames[key as any as keyof typeof materializedViewTableNames]
+	);
+
+	const allViewsExist = targetMaterializedViewTitles.every((title) =>
+		materializedViewTitles.includes(title)
+	);
+
+	if (!allViewsExist) return false;
+
 	return value === materializedViewValue;
 };
 
@@ -61,7 +77,7 @@ export const materializedViewActions = {
 		const endTime = new Date();
 		console.log(`Initialized materialized views in ${endTime.getTime() - startTime.getTime()}ms`);
 	},
-	refresh: async ({ db, logStats = false }: { db: DBType; logStats: boolean }) => {
+	refresh: async ({ db, logStats = false }: { db: DBType; logStats?: boolean }) => {
 		const startTime = Date.now();
 
 		await Promise.all([

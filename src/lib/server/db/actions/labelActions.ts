@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/labelSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, label, labelsToJournals, summaryTable } from '../postgres/schema';
-import { and, asc, count, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
+import { label, labelsToJournals } from '../postgres/schema';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -15,86 +15,69 @@ import { createLabel } from './helpers/seed/seedLabelData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { labelFilterToQuery } from './helpers/label/labelFilterToQuery';
 import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionData';
-import {
-	summaryActions,
-	summaryTableColumnsToGroupBy,
-	summaryTableColumnsToSelect
-} from './summaryActions';
-import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
+import { labelMaterializedView } from '../postgres/schema/materializedViewSchema';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.label.findFirst({ where: eq(label.id, id) }).execute();
 	},
 	count: async (db: DBType, filter?: LabelFilterSchemaType) => {
+		materializedViewActions.conditionalRefresh({ db });
 		const count = await db
 			.select({ count: drizzleCount(label.id) })
-			.from(label)
+			.from(labelMaterializedView)
 			.where(and(...(filter ? labelFilterToQuery(filter) : [])))
 			.execute();
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
+		materializedViewActions.conditionalRefresh({ db });
 		const items = db
-			.select({ id: label.id, journalCount: count(labelsToJournals.id) })
-			.from(label)
-			.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, label.id))
-			.groupBy(label.id)
+			.select({ id: labelMaterializedView.id, journalCount: labelMaterializedView.count })
+			.from(labelMaterializedView)
 			.execute();
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: LabelFilterSchemaType }) => {
-		await summaryActions.updateAndCreateMany({
-			db,
-			ids: undefined,
-			needsUpdateOnly: true,
-			allowCreation: true
-		});
+		materializedViewActions.conditionalRefresh({ db });
 		const { page = 0, pageSize = 10, orderBy } = filter;
 
 		const where = labelFilterToQuery(filter, true);
 
-		const defaultOrderBy = [asc(label.title), desc(label.createdAt)];
+		const defaultOrderBy = [
+			asc(labelMaterializedView.title),
+			desc(labelMaterializedView.createdAt)
+		];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(label[remainingOrder.field])
-								: desc(label[remainingOrder.field]);
-						})
+						currentOrder.direction === 'asc'
+							? asc(labelMaterializedView[currentOrder.field])
+							: desc(labelMaterializedView[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
 			: defaultOrderBy;
 
 		const results = await db
-			.select({
-				...getTableColumns(label),
-				...summaryTableColumnsToSelect
-			})
-			.from(label)
+			.select()
+			.from(labelMaterializedView)
 			.where(and(...where))
 			.limit(pageSize)
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
-			.leftJoin(labelsToJournals, eq(labelsToJournals.labelId, label.id))
-			.leftJoin(journalEntry, eq(journalEntry.id, labelsToJournals.journalId))
-			.leftJoin(account, eq(account.id, journalEntry.accountId))
-			.leftJoin(summaryTable, eq(summaryTable.relationId, label.id))
-			.groupBy(label.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
 			.select({ count: drizzleCount(label.id) })
-			.from(label)
+			.from(labelMaterializedView)
 			.where(and(...where))
 			.execute();
 
@@ -164,10 +147,7 @@ export const labelActions = {
 	},
 	create: async (db: DBType, data: CreateLabelSchemaType) => {
 		const id = nanoid();
-		await db.transaction(async (db) => {
-			await db.insert(label).values(labelCreateInsertionData(data, id)).execute();
-			await summaryActions.createMissing({ db });
-		});
+		await db.insert(label).values(labelCreateInsertionData(data, id)).execute();
 
 		await materializedViewActions.setRefreshRequired(db);
 
@@ -178,18 +158,10 @@ export const labelActions = {
 		{ journalId, labelId }: { journalId: string; labelId: string }
 	) => {
 		const id = nanoid();
-		await db.transaction(async (db) => {
-			await db
-				.insert(labelsToJournals)
-				.values({ id, journalId, labelId, ...updatedTime() })
-				.execute();
-			await summaryActions.updateAndCreateMany({
-				db,
-				ids: [labelId],
-				needsUpdateOnly: false,
-				allowCreation: true
-			});
-		});
+		await db
+			.insert(labelsToJournals)
+			.values({ id, journalId, labelId, ...updatedTime() })
+			.execute();
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	createMany: async (db: DBType, data: CreateLabelSchemaType[]) => {
@@ -198,10 +170,7 @@ export const labelActions = {
 			labelCreateInsertionData(currentData, ids[index])
 		);
 
-		await db.transaction(async (db) => {
-			await db.insert(label).values(insertData).execute();
-			await summaryActions.createMissing({ db });
-		});
+		await db.insert(label).values(insertData).execute();
 		await materializedViewActions.setRefreshRequired(db);
 
 		return ids;

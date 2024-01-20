@@ -1,27 +1,5 @@
 import type { SummaryFilterSchemaType } from '$lib/schema/summarySchema';
-import { summaryTable } from '../../../postgres/schema';
 import { SQL, gte, lte } from 'drizzle-orm';
-
-export const summaryFilterToQuery = ({
-	where,
-	filter: restFilter
-}: {
-	where: SQL<unknown>[];
-	filter: SummaryFilterSchemaType;
-}) => {
-	if (restFilter.countMax !== undefined) where.push(lte(summaryTable.count, restFilter.countMax));
-	if (restFilter.countMin !== undefined) where.push(gte(summaryTable.count, restFilter.countMin));
-	if (restFilter.totalMax !== undefined) where.push(lte(summaryTable.sum, restFilter.totalMax));
-	if (restFilter.totalMin !== undefined) where.push(gte(summaryTable.sum, restFilter.totalMin));
-	if (restFilter.firstDateMax)
-		where.push(lte(summaryTable.firstDate, new Date(restFilter.firstDateMax)));
-	if (restFilter.firstDateMin)
-		where.push(gte(summaryTable.firstDate, new Date(restFilter.firstDateMin)));
-	if (restFilter.lastDateMax)
-		where.push(lte(summaryTable.lastDate, new Date(restFilter.lastDateMax)));
-	if (restFilter.lastDateMin)
-		where.push(gte(summaryTable.lastDate, new Date(restFilter.lastDateMin)));
-};
 
 export const summaryFilterToQueryMaterialized = ({
 	where,

@@ -25,5 +25,5 @@ export const tActions = {
 	importMapping: importMappingActions,
 	backup: backupActions,
 	report: reportActions,
-	journalView: journalMaterializedViewActions,
+	journalView: journalMaterializedViewActions
 };

@@ -22,7 +22,6 @@ import {
 import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
 import { accountTitleSplit } from './helpers/account/accountTitleSplit';
-import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
@@ -70,11 +69,9 @@ export const accountActions = {
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(accountMaterializedView[remainingOrder.field])
-								: desc(accountMaterializedView[remainingOrder.field]);
-						})
+						currentOrder.direction === 'asc'
+							? asc(accountMaterializedView[currentOrder.field])
+							: desc(accountMaterializedView[currentOrder.field])
 					),
 					...defaultOrderBy
 				]

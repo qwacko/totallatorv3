@@ -15,7 +15,6 @@ import { budgetCreateInsertionData } from './helpers/budget/budgetCreateInsertio
 import { budgetFilterToQuery } from './helpers/budget/budgetFilterToQuery';
 import { createBudget } from './helpers/seed/seedBudgetData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
@@ -61,11 +60,9 @@ export const budgetActions = {
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(budgetMaterializedView[remainingOrder.field])
-								: desc(budgetMaterializedView[remainingOrder.field]);
-						})
+						currentOrder.direction === 'asc'
+							? asc(budgetMaterializedView[currentOrder.field])
+							: desc(budgetMaterializedView[currentOrder.field])
 					),
 					...defaultOrderBy
 				]

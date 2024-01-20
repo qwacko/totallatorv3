@@ -20,6 +20,8 @@ if (!serverEnv.POSTGRES_TEST_URL) {
 }
 
 const genTestDB = async () => {
+	console.log('Generating Test DB');
+
 	const useURL = serverEnv.POSTGRES_TEST_URL || serverEnv.POSTGRES_URL || '';
 
 	const enableLogger = serverEnv.DB_QUERY_LOG;
@@ -67,7 +69,7 @@ export const clearTestDB = async (db: DBType) => {
 	await db.delete(schema.journalEntry).execute();
 	await db.delete(schema.transaction).execute();
 	await db.delete(schema.reusableFilter).execute();
-	await db.delete(schema.summaryTable).execute();
+	await materializedViewActions.refresh({ db });
 	await materializedViewActions.setRefreshRequired(db);
 };
 
@@ -116,6 +118,7 @@ export const initialiseTestDB = async ({
 		await seedTestTags(db);
 	}
 
+	await materializedViewActions.refresh({ db });
 	await materializedViewActions.setRefreshRequired(db);
 
 	return itemCount;

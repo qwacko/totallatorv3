@@ -15,7 +15,6 @@ import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData'
 import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
 import { createBill } from './helpers/seed/seedBillData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
@@ -56,11 +55,9 @@ export const billActions = {
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(billMaterializedView[remainingOrder.field])
-								: desc(billMaterializedView[remainingOrder.field]);
-						})
+						currentOrder.direction === 'asc'
+							? asc(billMaterializedView[currentOrder.field])
+							: desc(billMaterializedView[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
