@@ -40,7 +40,6 @@ const genTestDB = async () => {
 	const testDB = drizzle(postgresDatabase, { schema, logger: new MyLogger() });
 
 	await migrate(testDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
-	await materializedViewActions.initialize(testDB);
 
 	return { testDB, postgresDatabase };
 };

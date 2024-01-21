@@ -14,6 +14,7 @@
 		"test:integration": "playwright test",
 		"test:unit": "TEST_ENV=true vitest",
 		"db:generate": "pnpm drizzle-kit generate:pg --config=\"drizzlePostgres.config.ts\"",
+		"db:custom": "pnpm drizzle-kit generate:pg --custom --config=\"drizzlePostgres.config.ts\"",
 		"db:studio": "pnpm drizzle-kit studio --config=\"drizzlePostgres.config.ts\"",
 		"db:undo": "pnpm drizzle-kit drop --config=\"drizzlePostgres.config.ts\"",
 		"generate-pwa-assets": "pwa-assets-generator"
@@ -45,6 +46,7 @@
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.1.2",
 		"prettier-plugin-tailwindcss": "^0.5.11",
+		"sql-formatter": "^15.0.2",
 		"superjson": "^2.2.1",
 		"svelte": "^4.2.8",
 		"svelte-check": "^3.6.2",
