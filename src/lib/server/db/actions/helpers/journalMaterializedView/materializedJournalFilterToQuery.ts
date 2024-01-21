@@ -1,6 +1,6 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
-import { SQL, eq, gte, lte, inArray, ilike, not, notInArray, sql } from 'drizzle-orm';
+import { SQL, eq, gte, lte, inArray, ilike, not, notInArray } from 'drizzle-orm';
 import { accountFilterToQuery } from '../account/accountFilterToQuery';
 import { billFilterToQuery } from '../bill/billFilterToQuery';
 import { budgetFilterToQuery } from '../budget/budgetFilterToQuery';
@@ -131,19 +131,13 @@ export const materializedJournalFilterToQuery = async (
 
 	if (filter.label) {
 		where.push(
-			inArray(
-				journalExtendedView.id,
-				labelFilterToSubQuery({ filter: filter.label, db, sqName: 'labelsq' })
-			)
+			inArray(journalExtendedView.id, labelFilterToSubQuery({ filter: filter.label, db }))
 		);
 	}
 
 	if (filter.excludeLabel) {
 		where.push(
-			notInArray(
-				journalExtendedView.id,
-				labelFilterToSubQuery({ filter: filter.excludeLabel, db, sqName: 'excludelabelsq' })
-			)
+			notInArray(journalExtendedView.id, labelFilterToSubQuery({ filter: filter.excludeLabel, db }))
 		);
 	}
 

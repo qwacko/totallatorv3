@@ -16,9 +16,6 @@ export const load = async (data) => {
 	const testData = await db.select().from(journalExtendedView).limit(1).toSQL();
 	console.log('Report Test Data', testData);
 
-	//Testing UPdating Materialized View
-	await tActions.journalView.refresh({ db, logStats: true });
-
 	if (!pageInfo.current.params?.id) redirect(302, '/journalEntries');
 
 	const report = await tActions.report.getReportConfig({ db, id: pageInfo.current.params?.id });
