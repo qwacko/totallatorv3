@@ -1,6 +1,6 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
-import { SQL, eq, gte, lte, inArray, ilike, not, notInArray } from 'drizzle-orm';
+import { SQL, eq, gte, lte, inArray, ilike, not, notInArray, sql } from 'drizzle-orm';
 import { accountFilterToQuery } from '../account/accountFilterToQuery';
 import { billFilterToQuery } from '../bill/billFilterToQuery';
 import { budgetFilterToQuery } from '../budget/budgetFilterToQuery';
@@ -88,13 +88,16 @@ export const materializedJournalFilterToQuery = async (
 	}
 
 	if (filter.budget) {
-		const budgetFilter = budgetFilterToQuery({ filter: filter.budget, target: 'budget' });
+		const budgetFilter = budgetFilterToQuery({
+			filter: filter.budget,
+			target: 'materializedJournals'
+		});
 		where.push(...budgetFilter);
 	}
 	if (filter.excludeBudget) {
 		const excludeBudgetFilter = budgetFilterToQuery({
 			filter: filter.excludeBudget,
-			target: 'budget'
+			target: 'materializedJournals'
 		});
 		where.push(...excludeBudgetFilter.map((x) => not(x)));
 	}
@@ -128,26 +131,38 @@ export const materializedJournalFilterToQuery = async (
 
 	if (filter.label) {
 		where.push(
-			inArray(journalExtendedView.id, labelFilterToSubQuery({ filter: filter.label, db }))
+			inArray(
+				journalExtendedView.id,
+				labelFilterToSubQuery({ filter: filter.label, db, sqName: 'labelsq' })
+			)
 		);
 	}
 
 	if (filter.excludeLabel) {
 		where.push(
-			notInArray(journalExtendedView.id, labelFilterToSubQuery({ filter: filter.excludeLabel, db }))
+			notInArray(
+				journalExtendedView.id,
+				labelFilterToSubQuery({ filter: filter.excludeLabel, db, sqName: 'excludelabelsq' })
+			)
 		);
 	}
 
 	if (filter.payee) {
-		where.push(
-			inArray(journalExtendedView.id, journalPayeeToSubquery({ db, payee: filter.payee }))
-		);
+		const payeeSubquery = journalPayeeToSubquery({
+			payee: filter.payee,
+			db
+		});
+
+		where.push(inArray(journalExtendedView.id, payeeSubquery));
 	}
 
 	if (filter.excludePayee) {
-		where.push(
-			notInArray(journalExtendedView.id, journalPayeeToSubquery({ db, payee: filter.excludePayee }))
-		);
+		const payeeExcludeSubquery = journalPayeeToSubquery({
+			payee: filter.excludePayee,
+			db
+		});
+
+		where.push(notInArray(journalExtendedView.id, payeeExcludeSubquery));
 	}
 
 	return where;

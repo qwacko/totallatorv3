@@ -20,7 +20,7 @@ export const load = async (data) => {
 		account: { type: ['asset', 'liability'] }
 	};
 
-	const journalData = await tActions.journal.list({
+	const journalData = await tActions.journalView.list({
 		db,
 		filter
 	});
@@ -30,7 +30,7 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const summary = tActions.journal.summary({
+	const summary = tActions.journalView.summary({
 		db,
 		filter: { ...filter, page: 0, pageSize: 1000000 }
 	});

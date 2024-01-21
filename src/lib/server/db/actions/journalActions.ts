@@ -1,6 +1,5 @@
 import {
 	type CreateCombinedTransactionType,
-	type JournalFilterSchemaType,
 	journalFilterSchema,
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType,
@@ -11,336 +10,316 @@ import {
 	type CloneJournalUpdateSchemaType,
 	cloneJournalUpdateSchema
 } from '$lib/schema/journalSchema';
-import { eq, and, sql, inArray, not, SQL, or, sum, count, avg } from 'drizzle-orm';
+import { eq, and, inArray, not, or } from 'drizzle-orm';
 import type { DBType } from '../db';
-import {
-	account,
-	journalEntry,
-	bill,
-	budget,
-	category,
-	tag,
-	transaction,
-	labelsToJournals
-} from '../postgres/schema';
-import { journalFilterToQuery } from './helpers/journal/journalFilterToQuery';
+import { journalEntry, transaction, labelsToJournals } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { expandDate } from './helpers/journal/expandDate';
 import { accountActions } from './accountActions';
 import { tActions } from './tActions';
 import { seedTransactionData } from './helpers/seed/seedTransactionData';
 import { logging } from '$lib/server/logging';
-import { getMonthlySummary } from './helpers/summary/getMonthlySummary';
-import {
-	getCommonData,
-	getCommonLabelData,
-	getCommonOtherAccountData,
-	getToFromAccountAmountData
-} from './helpers/misc/getCommonData';
 import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
 import {
 	generateItemsForTransactionCreation,
 	getCachedData
 } from './helpers/journal/generateItemsForTransactionCreation';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
-import { journalList } from './helpers/journal/journalList';
-import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { nanoid } from 'nanoid';
 import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCombinedSchema';
 import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
-import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { materializedViewActions } from './materializedViewActions';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 
 export const journalActions = {
-	getById: async (db: DBType, id: string) => {
-		return db.query.journalEntry.findFirst({ where: eq(journalEntry.id, id) }).execute();
-	},
-	count: async (db: DBType, filter?: JournalFilterSchemaType) => {
-		const countQueryCore = db
-			.select({ count: count(journalEntry.id) })
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [sql`true`])));
+	// getById: async (db: DBType, id: string) => {
+	// 	return db.query.journalEntry.findFirst({ where: eq(journalEntry.id, id) }).execute();
+	// },
+	// count: async (db: DBType, filter?: JournalFilterSchemaType) => {
+	// 	const countQueryCore = db
+	// 		.select({ count: count(journalEntry.id) })
+	// 		.from(journalEntry)
+	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [sql`true`])));
 
-		const countResult = await countQueryCore.execute();
+	// 	const countResult = await countQueryCore.execute();
 
-		return countResult[0].count;
-	},
-	sum: async (db: DBType, filter?: JournalFilterSchemaType) => {
-		const countQueryCore = db
-			.select({ sum: sum(journalEntry.amount).mapWith(Number) })
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])));
+	// 	return countResult[0].count;
+	// },
+	// sum: async (db: DBType, filter?: JournalFilterSchemaType) => {
+	// 	const countQueryCore = db
+	// 		.select({ sum: sum(journalEntry.amount).mapWith(Number) })
+	// 		.from(journalEntry)
+	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])));
 
-		const count = await countQueryCore.execute();
+	// 	const count = await countQueryCore.execute();
 
-		return count[0].sum;
-	},
-	summary: async ({
-		db,
-		filter,
-		startDate,
-		endDate
-	}: {
-		db: DBType;
-		filter?: JournalFilterSchemaType;
-		startDate?: string;
-		endDate?: string;
-	}) => {
-		await streamingDelay();
-		await testingDelay();
+	// 	return count[0].sum;
+	// },
+	// summary: async ({
+	// 	db,
+	// 	filter,
+	// 	startDate,
+	// 	endDate
+	// }: {
+	// 	db: DBType;
+	// 	filter?: JournalFilterSchemaType;
+	// 	startDate?: string;
+	// 	endDate?: string;
+	// }) => {
+	// 	await streamingDelay();
+	// 	await testingDelay();
 
-		const startDate12Months = new Date();
-		startDate12Months.setMonth(startDate12Months.getMonth() - 12 + 1);
-		const startLast12YearMonth = startDate12Months.toISOString().slice(0, 7);
-		const endLast12YearMonth = new Date().toISOString().slice(0, 7);
+	// 	const startDate12Months = new Date();
+	// 	startDate12Months.setMonth(startDate12Months.getMonth() - 12 + 1);
+	// 	const startLast12YearMonth = startDate12Months.toISOString().slice(0, 7);
+	// 	const endLast12YearMonth = new Date().toISOString().slice(0, 7);
 
-		const commonSummary = {
-			count: count(journalEntry.id),
-			sum: sum(journalEntry.amount).mapWith(Number),
-			sum12Months:
-				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} then ${journalEntry.amount} else 0 END)`.mapWith(
-					Number
-				),
-			sum12MonthsWithoutTransfer:
-				sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} AND ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
-					Number
-				),
-			sumWithoutTransfer:
-				sql`sum(CASE WHEN ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
-					Number
-				),
-			average: sql`avg(${journalEntry.amount})`.mapWith(Number),
-			earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
-			latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
-			lastUpdated: sql`max(${journalEntry.updatedAt})`.mapWith(journalEntry.updatedAt)
-		} satisfies Record<string, SQL<unknown> | AnyPgColumn>;
+	// 	const commonSummary = {
+	// 		count: count(journalEntry.id),
+	// 		sum: sum(journalEntry.amount).mapWith(Number),
+	// 		sum12Months:
+	// 			sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} then ${journalEntry.amount} else 0 END)`.mapWith(
+	// 				Number
+	// 			),
+	// 		sum12MonthsWithoutTransfer:
+	// 			sql`sum(CASE WHEN ${journalEntry.yearMonth} >= ${startLast12YearMonth} AND ${journalEntry.yearMonth} <= ${endLast12YearMonth} AND ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
+	// 				Number
+	// 			),
+	// 		sumWithoutTransfer:
+	// 			sql`sum(CASE WHEN ${journalEntry.transfer} <> true then ${journalEntry.amount} else 0 END)`.mapWith(
+	// 				Number
+	// 			),
+	// 		average: sql`avg(${journalEntry.amount})`.mapWith(Number),
+	// 		earliest: sql`min(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
+	// 		latest: sql`max(${journalEntry.dateText})`.mapWith(journalEntry.dateText),
+	// 		lastUpdated: sql`max(${journalEntry.updatedAt})`.mapWith(journalEntry.updatedAt)
+	// 	} satisfies Record<string, SQL<unknown> | AnyPgColumn>;
 
-		const summaryQueryCore = db
-			.select(commonSummary)
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])));
+	// 	const summaryQueryCore = db
+	// 		.select(commonSummary)
+	// 		.from(journalEntry)
+	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])));
 
-		const tagsQuery = db
-			.select({
-				id: tag.id,
-				title: tag.title,
-				...commonSummary
-			})
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
-			.groupBy(tag.id, tag.title)
-			.execute();
+	// 	const tagsQuery = db
+	// 		.select({
+	// 			id: tag.id,
+	// 			title: tag.title,
+	// 			...commonSummary
+	// 		})
+	// 		.from(journalEntry)
+	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
+	// 		.groupBy(tag.id, tag.title)
+	// 		.execute();
 
-		const categoriesQuery = db
-			.select({
-				id: category.id,
-				title: category.title,
-				...commonSummary
-			})
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
-			.groupBy(category.id, category.title)
-			.execute();
+	// 	const categoriesQuery = db
+	// 		.select({
+	// 			id: category.id,
+	// 			title: category.title,
+	// 			...commonSummary
+	// 		})
+	// 		.from(journalEntry)
+	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
+	// 		.groupBy(category.id, category.title)
+	// 		.execute();
 
-		const billsQuery = db
-			.select({
-				id: bill.id,
-				title: bill.title,
-				...commonSummary
-			})
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
-			.groupBy(bill.id, bill.title)
-			.execute();
+	// 	const billsQuery = db
+	// 		.select({
+	// 			id: bill.id,
+	// 			title: bill.title,
+	// 			...commonSummary
+	// 		})
+	// 		.from(journalEntry)
+	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
+	// 		.groupBy(bill.id, bill.title)
+	// 		.execute();
 
-		const budgetsQuery = db
-			.select({
-				id: budget.id,
-				title: budget.title,
-				...commonSummary
-			})
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
-			.groupBy(budget.id, budget.title)
-			.execute();
+	// 	const budgetsQuery = db
+	// 		.select({
+	// 			id: budget.id,
+	// 			title: budget.title,
+	// 			...commonSummary
+	// 		})
+	// 		.from(journalEntry)
+	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
+	// 		.groupBy(budget.id, budget.title)
+	// 		.execute();
 
-		const accountsQuery = db
-			.select({
-				id: account.id,
-				title: account.title,
-				...commonSummary
-			})
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
-			.groupBy(account.id, account.title)
-			.execute();
+	// 	const accountsQuery = db
+	// 		.select({
+	// 			id: account.id,
+	// 			title: account.title,
+	// 			...commonSummary
+	// 		})
+	// 		.from(journalEntry)
+	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
+	// 		.groupBy(account.id, account.title)
+	// 		.execute();
 
-		const monthlyQueryCore = db
-			.select({
-				yearMonth: journalEntry.yearMonth,
-				count: count(journalEntry.id),
-				sum: sum(journalEntry.amount).mapWith(Number),
-				average: avg(journalEntry.amount).mapWith(Number),
-				positiveSum:
-					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-						Number
-					),
-				positiveCount: sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN 1 ELSE 0 END)`.mapWith(
-					Number
-				),
-				negativeSum:
-					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-						Number
-					),
-				negativeCount: sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN 1 ELSE 0 END)`.mapWith(
-					Number
-				),
-				positiveSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalEntry.amount} > 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-						Number
-					),
-				negativeSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalEntry.amount} < 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
-						Number
-					)
-			})
-			.from(journalEntry)
-			.leftJoin(account, eq(journalEntry.accountId, account.id))
-			.leftJoin(bill, eq(journalEntry.billId, bill.id))
-			.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
-			.leftJoin(category, eq(journalEntry.categoryId, category.id))
-			.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-			.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
-			.groupBy(journalEntry.yearMonth);
+	// 	const monthlyQueryCore = db
+	// 		.select({
+	// 			yearMonth: journalEntry.yearMonth,
+	// 			count: count(journalEntry.id),
+	// 			sum: sum(journalEntry.amount).mapWith(Number),
+	// 			average: avg(journalEntry.amount).mapWith(Number),
+	// 			positiveSum:
+	// 				sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+	// 					Number
+	// 				),
+	// 			positiveCount: sql`SUM(CASE WHEN ${journalEntry.amount} > 0 THEN 1 ELSE 0 END)`.mapWith(
+	// 				Number
+	// 			),
+	// 			negativeSum:
+	// 				sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+	// 					Number
+	// 				),
+	// 			negativeCount: sql`SUM(CASE WHEN ${journalEntry.amount} < 0 THEN 1 ELSE 0 END)`.mapWith(
+	// 				Number
+	// 			),
+	// 			positiveSumNonTransfer:
+	// 				sql`SUM(CASE WHEN ${journalEntry.amount} > 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+	// 					Number
+	// 				),
+	// 			negativeSumNonTransfer:
+	// 				sql`SUM(CASE WHEN ${journalEntry.amount} < 0 AND ${journalEntry.transfer} = false THEN ${journalEntry.amount} ELSE 0 END)`.mapWith(
+	// 					Number
+	// 				)
+	// 		})
+	// 		.from(journalEntry)
+	// 		.leftJoin(account, eq(journalEntry.accountId, account.id))
+	// 		.leftJoin(bill, eq(journalEntry.billId, bill.id))
+	// 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
+	// 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
+	// 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
+	// 		.where(and(...(filter ? await journalFilterToQuery(db, filter) : [])))
+	// 		.groupBy(journalEntry.yearMonth);
 
-		const summaryQuery = (await summaryQueryCore.execute())[0];
+	// 	const summaryQuery = (await summaryQueryCore.execute())[0];
 
-		const monthlyQuery = await monthlyQueryCore.execute();
+	// 	const monthlyQuery = await monthlyQueryCore.execute();
 
-		const monthlySummary = getMonthlySummary({
-			monthlyQuery,
-			startDate,
-			endDate,
-			defaultValue: {
-				sum: 0,
-				average: 0,
-				count: 0,
-				negativeCount: 0,
-				positiveCount: 0,
-				negativeSum: 0,
-				positiveSum: 0,
-				runningTotal: 0,
-				runningCount: 0,
-				negativeSumNonTransfer: 0,
-				positiveSumNonTransfer: 0
-			}
-		});
+	// 	const monthlySummary = getMonthlySummary({
+	// 		monthlyQuery,
+	// 		startDate,
+	// 		endDate,
+	// 		defaultValue: {
+	// 			sum: 0,
+	// 			average: 0,
+	// 			count: 0,
+	// 			negativeCount: 0,
+	// 			positiveCount: 0,
+	// 			negativeSum: 0,
+	// 			positiveSum: 0,
+	// 			runningTotal: 0,
+	// 			runningCount: 0,
+	// 			negativeSumNonTransfer: 0,
+	// 			positiveSumNonTransfer: 0
+	// 		}
+	// 	});
 
-		const parsedData = summaryCacheDataSchema.parse({
-			...summaryQuery,
-			monthlySummary,
-			categories: await categoriesQuery,
-			tags: await tagsQuery,
-			bills: await billsQuery,
-			budgets: await budgetsQuery,
-			accounts: await accountsQuery
-		});
+	// 	const parsedData = summaryCacheDataSchema.parse({
+	// 		...summaryQuery,
+	// 		monthlySummary,
+	// 		categories: await categoriesQuery,
+	// 		tags: await tagsQuery,
+	// 		bills: await billsQuery,
+	// 		budgets: await budgetsQuery,
+	// 		accounts: await accountsQuery
+	// 	});
 
-		return parsedData;
-	},
-	list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
-		return journalList({ db, filter });
-	},
-	listWithCommonData: async ({
-		db,
-		filter
-	}: {
-		db: DBType;
-		filter: JournalFilterSchemaInputType;
-	}) => {
-		const journalInformation = await journalActions.list({ db, filter });
+	// 	return parsedData;
+	// },
+	// list: async ({ db, filter }: { db: DBType; filter: JournalFilterSchemaInputType }) => {
+	// 	return journalList({ db, filter });
+	// },
+	// listWithCommonData: async ({
+	// 	db,
+	// 	filter
+	// }: {
+	// 	db: DBType;
+	// 	filter: JournalFilterSchemaInputType;
+	// }) => {
+	// 	const journalInformation = await journalActions.list({ db, filter });
 
-		const accountId = getCommonData('accountId', journalInformation.data);
-		const amount = getCommonData('amount', journalInformation.data);
+	// 	const accountId = getCommonData('accountId', journalInformation.data);
+	// 	const amount = getCommonData('amount', journalInformation.data);
 
-		//Note that the following have "undefined" as this removes the null option which isn't relevant for this functionaliy. This helps the forms work correctly.
-		const tagId = getCommonData('tagId', journalInformation.data) || undefined;
-		const categoryId = getCommonData('categoryId', journalInformation.data) || undefined;
-		const billId = getCommonData('billId', journalInformation.data) || undefined;
-		const budgetId = getCommonData('budgetId', journalInformation.data) || undefined;
-		const date = getCommonData('dateText', journalInformation.data);
-		const description = getCommonData('description', journalInformation.data);
-		const linked = getCommonData('linked', journalInformation.data);
-		const reconciled = getCommonData('reconciled', journalInformation.data);
-		const complete = getCommonData('complete', journalInformation.data);
-		const dataChecked = getCommonData('dataChecked', journalInformation.data);
-		const labelData = getCommonLabelData(journalInformation.data);
-		const otherAccountId = getCommonOtherAccountData(journalInformation.data);
+	// 	//Note that the following have "undefined" as this removes the null option which isn't relevant for this functionaliy. This helps the forms work correctly.
+	// 	const tagId = getCommonData('tagId', journalInformation.data) || undefined;
+	// 	const categoryId = getCommonData('categoryId', journalInformation.data) || undefined;
+	// 	const billId = getCommonData('billId', journalInformation.data) || undefined;
+	// 	const budgetId = getCommonData('budgetId', journalInformation.data) || undefined;
+	// 	const date = getCommonData('dateText', journalInformation.data);
+	// 	const description = getCommonData('description', journalInformation.data);
+	// 	const linked = getCommonData('linked', journalInformation.data);
+	// 	const reconciled = getCommonData('reconciled', journalInformation.data);
+	// 	const complete = getCommonData('complete', journalInformation.data);
+	// 	const dataChecked = getCommonData('dataChecked', journalInformation.data);
+	// 	const labelData = getCommonLabelData(journalInformation.data);
+	// 	const otherAccountId = getCommonOtherAccountData(journalInformation.data);
 
-		const cloneData = getToFromAccountAmountData(journalInformation.data);
+	// 	const cloneData = getToFromAccountAmountData(journalInformation.data);
 
-		return {
-			journals: journalInformation,
-			common: {
-				accountId,
-				otherAccountId,
-				amount,
-				tagId,
-				categoryId,
-				billId,
-				budgetId,
-				date,
-				description,
-				linked,
-				reconciled,
-				complete,
-				dataChecked,
-				...cloneData,
-				...labelData
-			}
-		};
-	},
+	// 	return {
+	// 		journals: journalInformation,
+	// 		common: {
+	// 			accountId,
+	// 			otherAccountId,
+	// 			amount,
+	// 			tagId,
+	// 			categoryId,
+	// 			billId,
+	// 			budgetId,
+	// 			date,
+	// 			description,
+	// 			linked,
+	// 			reconciled,
+	// 			complete,
+	// 			dataChecked,
+	// 			...cloneData,
+	// 			...labelData
+	// 		}
+	// 	};
+	// },
 	createFromSimpleTransaction: async ({
 		db,
 		transaction
@@ -516,7 +495,7 @@ export const journalActions = {
 		db: DBType;
 		journalFilter: JournalFilterSchemaInputType;
 	}) => {
-		const journals = await journalActions.list({ db, filter: journalFilter });
+		const journals = await tActions.journalView.list({ db, filter: journalFilter });
 
 		await db.transaction(async (db) => {
 			await Promise.all(
@@ -534,7 +513,7 @@ export const journalActions = {
 		db: DBType;
 		journalFilter: JournalFilterSchemaInputType;
 	}) => {
-		const journals = await journalActions.list({ db, filter: journalFilter });
+		const journals = await tActions.journalView.list({ db, filter: journalFilter });
 
 		await db.transaction(async (db) => {
 			await Promise.all(
@@ -588,7 +567,7 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
-		const journals = await journalActions.list({ db, filter: processedFilter });
+		const journals = await tActions.journalView.list({ db, filter: processedFilter });
 
 		if (journals.data.length === 0) return;
 
@@ -598,8 +577,12 @@ export const journalActions = {
 
 		const linkedJournals = journals.data.filter((journal) => journal.linked);
 		const unlinkedJournals = journals.data.filter((journal) => !journal.linked);
-		const linkedTransactionIds = [...new Set(linkedJournals.map((item) => item.transactionId))];
-		const allTransactionIds = [...new Set(journals.data.map((item) => item.transactionId))];
+		const linkedTransactionIds = filterNullUndefinedAndDuplicates(
+			linkedJournals.map((item) => item.transactionId)
+		);
+		const allTransactionIds = filterNullUndefinedAndDuplicates(
+			journals.data.map((item) => item.transactionId)
+		);
 
 		const journalIds = [...new Set(unlinkedJournals.map((item) => item.id))];
 		const targetJournals = (
@@ -777,7 +760,9 @@ export const journalActions = {
 					.execute();
 
 				//Get Transactions that have a non-zero combined total and update the one with the oldest update time.
-				const transactionIds = journals.data.map((journal) => journal.transactionId);
+				const transactionIds = filterNullUndefinedAndDuplicates(
+					journals.data.map((journal) => journal.transactionId)
+				);
 
 				const transactionJournals = await db.query.transaction.findMany({
 					where: inArray(transaction.id, transactionIds),
@@ -922,13 +907,13 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.parse(filter);
-		const journals = await journalActions.list({ db, filter: processedFilter });
+		const journals = await tActions.journalView.list({ db, filter: processedFilter });
 
 		if (journals.data.length === 0) return;
 
-		const originalTransactionIds = [
-			...new Set(journals.data.map((journal) => journal.transactionId))
-		];
+		const originalTransactionIds = filterNullUndefinedAndDuplicates(
+			journals.data.map((journal) => journal.transactionId)
+		);
 
 		const transactions = await db.query.transaction
 			.findMany({
@@ -1025,4 +1010,4 @@ export const journalActions = {
 	}
 };
 
-export type JournalSummaryType = Awaited<ReturnType<(typeof journalActions)['summary']>>;
+export type JournalSummaryType = Awaited<ReturnType<(typeof tActions.journalView)['summary']>>;

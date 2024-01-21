@@ -17,7 +17,6 @@ export const printMaterializedViewList = (
 ) => {
 	let outputText = '';
 
-	logging.info('----- Materialized View Queries  -------');
 	for (let i = materializedList.length - 1; i >= 0; i--) {
 		const materializedView = materializedList[i];
 

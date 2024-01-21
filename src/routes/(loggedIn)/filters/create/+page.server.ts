@@ -46,7 +46,7 @@ export const load = async (data) => {
 
 	const modificationForm = await superValidate(change || {}, updateJournalSchema);
 
-	const numberResults = await tActions.journal.count(db, filter);
+	const numberResults = await tActions.journalView.count(db, filter);
 
 	return {
 		searchParams: current.searchParams,

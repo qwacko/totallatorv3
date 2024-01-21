@@ -24,7 +24,7 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const budgetSummary = await tActions.journal.summary({
+	const budgetSummary = await tActions.journalView.summary({
 		db,
 		filter: { ...defaultJournalFilter(), budget: pageInfo.searchParams }
 	});

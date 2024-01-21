@@ -35,8 +35,7 @@ export function journalPayeeToSubquery({
 		)
 		.leftJoin(account, eq(otherJournal.accountId, account.id))
 		.where(and(...payeeFilter))
-		.groupBy(journalEntry.id)
-		.as('payee_journal_sq');
+		.groupBy(journalEntry.id);
 
 	return payeeJournalSQ;
 }

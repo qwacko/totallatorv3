@@ -211,15 +211,18 @@ WITH
   "labelsq" AS (
     SELECT
       "labels_to_journals"."journal_id",
-      JSONB_AGG(
-        JSONB_BUILD_OBJECT(
-          'labelToJournalId',
-          "labels_to_journals"."id",
-          'id',
-          "labels_to_journals"."label_id",
-          'title',
-          "label"."title"
-        )
+      COALESCE(
+        JSONB_AGG(
+          JSONB_BUILD_OBJECT(
+            'labelToJournalId',
+            "labels_to_journals"."id",
+            'id',
+            "labels_to_journals"."label_id",
+            'title',
+            "label"."title"
+          )
+        ),
+        '[]'::JSONB
       ) AS "labelData"
     FROM
       "labels_to_journals"
@@ -230,23 +233,26 @@ WITH
   "journalsq" AS (
     SELECT
       "journal_entry"."id",
-      JSONB_AGG(
-        JSONB_BUILD_OBJECT(
-          'id',
-          "otherJournal"."id",
-          'transactionId',
-          "otherJournal"."transaction_id",
-          'accountId',
-          "account"."id",
-          'accountTitle',
-          "account"."title",
-          'accountType',
-          "account"."type",
-          'accountGroup',
-          "account"."account_group_combined",
-          'amount',
-          "otherJournal"."amount"
-        )
+      COALESCE(
+        JSONB_AGG(
+          JSONB_BUILD_OBJECT(
+            'id',
+            "otherJournal"."id",
+            'transactionId',
+            "otherJournal"."transaction_id",
+            'accountId',
+            "account"."id",
+            'accountTitle',
+            "account"."title",
+            'accountType',
+            "account"."type",
+            'accountGroup',
+            "account"."account_group_combined",
+            'amount',
+            "otherJournal"."amount"
+          )
+        ),
+        '[]'::JSONB
       ) AS "otherJournalData"
     FROM
       "journal_entry"
@@ -324,8 +330,8 @@ SELECT
   "tag"."disabled" AS "tag_disabled",
   "tag"."allow_update" AS "tag_allow_update",
   "import"."title" AS "import_title",
-  "labelData",
-  "otherJournalData"
+  COALESCE("labelData", '[]'::JSONB) AS "labelData",
+  COALESCE("otherJournalData", '[]'::JSONB) AS "otherJournalData"
 FROM
   "journal_entry"
   LEFT JOIN "transaction" ON "journal_entry"."transaction_id" = "transaction"."id"

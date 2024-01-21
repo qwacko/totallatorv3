@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { label, labelsToJournals } from '../postgres/schema';
-import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -28,7 +28,7 @@ export const labelActions = {
 	count: async (db: DBType, filter?: LabelFilterSchemaType) => {
 		materializedViewActions.conditionalRefresh({ db });
 		const count = await db
-			.select({ count: drizzleCount(label.id) })
+			.select({ count: drizzleCount(labelMaterializedView.id) })
 			.from(labelMaterializedView)
 			.where(and(...(filter ? labelFilterToQuery(filter) : [])))
 			.execute();
@@ -76,7 +76,7 @@ export const labelActions = {
 			.execute();
 
 		const resultCount = await db
-			.select({ count: drizzleCount(label.id) })
+			.select({ count: drizzleCount(labelMaterializedView.id) })
 			.from(labelMaterializedView)
 			.where(and(...where))
 			.execute();

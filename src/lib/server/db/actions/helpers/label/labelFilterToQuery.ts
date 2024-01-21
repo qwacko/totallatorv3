@@ -73,9 +73,9 @@ export const labelFilterToSubQuery = ({
 	const labelIdsSubquery = db
 		.select({ id: journalEntry.id })
 		.from(labelsToJournals)
-		.leftJoin(label, eq(label.id, labelsToJournals.labelId))
-		.where(and(...labelFilter))
-		.as('label_sq');
+		.leftJoin(labelMaterializedView, eq(labelMaterializedView.id, labelsToJournals.labelId))
+		.leftJoin(journalEntry, eq(journalEntry.id, labelsToJournals.journalId))
+		.where(and(...labelFilter));
 
 	return labelIdsSubquery;
 };

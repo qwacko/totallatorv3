@@ -39,7 +39,7 @@ export const reusableFilterActions = {
 	}) => {
 		const itemUnpacked = await reusableFilterDBUnpacked(currentFilter);
 
-		const count = await tActions.journal.count(db, itemUnpacked.filter);
+		const count = await tActions.journalView.count(db, itemUnpacked.filter);
 		const canApply =
 			count > 0 &&
 			currentFilter.change !== null &&

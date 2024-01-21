@@ -37,7 +37,7 @@ export const accountActions = {
 		const count = await db
 			.select({ count: drizzleCount(account.id) })
 			.from(accountMaterializedView)
-			.where(and(...(filter ? accountFilterToQuery({ filter }) : [])))
+			.where(and(...(filter ? accountFilterToQuery({ filter, target: 'account' }) : [])))
 			.execute();
 
 		return count[0].count;
