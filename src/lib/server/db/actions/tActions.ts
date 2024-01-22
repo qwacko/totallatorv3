@@ -8,6 +8,7 @@ import { importMappingActions } from './importMappingActions';
 import { journalActions } from './journalActions';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { labelActions } from './labelActions';
+import { materializedViewActions } from './materializedViewActions';
 import { reportActions } from './reportActions';
 import { reusableFilterActions } from './reusableFilterActions';
 import { tagActions } from './tagActions';
@@ -25,5 +26,6 @@ export const tActions = {
 	importMapping: importMappingActions,
 	backup: backupActions,
 	report: reportActions,
-	journalView: journalMaterializedViewActions
+	journalView: journalMaterializedViewActions,
+	materializedViews: materializedViewActions
 };

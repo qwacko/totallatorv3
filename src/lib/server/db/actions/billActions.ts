@@ -45,7 +45,7 @@ export const billActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: BillFilterSchemaType }) => {
-		await materializedViewActions.conditionalRefresh({ db });
+		await materializedViewActions.conditionalRefresh({ db, items: { bill: true } });
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = billFilterToQuery({ filter: restFilter, target: 'billWithSummary' });

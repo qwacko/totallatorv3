@@ -22,11 +22,11 @@ const logStats = true;
 
 export const journalMaterializedViewActions = {
 	getById: async (db: DBType, id: string) => {
-		await materializedViewActions.conditionalRefresh({ db, logStats });
+		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
 		return db.select().from(journalExtendedView).where(eq(journalExtendedView.id, id)).execute();
 	},
 	count: async (db: DBType, filter?: JournalFilterSchemaType) => {
-		await materializedViewActions.conditionalRefresh({ db, logStats });
+		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
 		const countQuery = await db
 			.select({ count: count(journalExtendedView.id) })
 			.from(journalExtendedView)
@@ -36,7 +36,7 @@ export const journalMaterializedViewActions = {
 		return countQuery[0].count;
 	},
 	sum: async (db: DBType, filter?: JournalFilterSchemaType) => {
-		await materializedViewActions.conditionalRefresh({ db, logStats });
+		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
 		const sumQuery = await db
 			.select({ sum: sum(journalExtendedView.id) })
 			.from(journalExtendedView)
@@ -56,7 +56,7 @@ export const journalMaterializedViewActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
-		await materializedViewActions.conditionalRefresh({ db, logStats });
+		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
 		const startDate12Months = new Date();
 		startDate12Months.setMonth(startDate12Months.getMonth() - 12 + 1);
 		const startLast12YearMonth = startDate12Months.toISOString().slice(0, 7);
@@ -218,7 +218,8 @@ export const journalMaterializedViewActions = {
 		filter: JournalFilterSchemaInputType;
 		disableRefresh?: boolean;
 	}) => {
-		if (!disableRefresh) await materializedViewActions.conditionalRefresh({ db, logStats });
+		if (!disableRefresh)
+			await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
 		return journalMaterialisedList({ db, filter });
 	},
 	listWithCommonData: async ({
@@ -230,7 +231,8 @@ export const journalMaterializedViewActions = {
 		filter: JournalFilterSchemaInputType;
 		disableRefresh?: boolean;
 	}) => {
-		if (!disableRefresh) await materializedViewActions.conditionalRefresh({ db, logStats });
+		if (!disableRefresh)
+			await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
 		const journalInformation = await journalMaterializedViewActions.list({ db, filter });
 
 		const accountId = getCommonData('accountId', journalInformation.data);

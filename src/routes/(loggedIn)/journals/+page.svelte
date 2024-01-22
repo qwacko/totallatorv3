@@ -170,6 +170,11 @@
 					allCount={data.journals.count}
 					searchParams={$urlStore.searchParams}
 				/>
+				{#await data.streamed.refresh}
+					<LoadingSpinner loadingText="Refreshing..." />
+				{:then}
+					<div />
+				{/await}
 			</svelte:fragment>
 			<svelte:fragment slot="filterButtons">
 				<FilterDropdown

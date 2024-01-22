@@ -74,16 +74,16 @@
 				color="light"
 				size="xs"
 				on:click={() => ($showSummaryStore = false)}
-				class="flex-row gap-2 h-8"
+				class="h-8 flex-row gap-2"
 			>
 				<EyeIcon /> Hide Summary
 			</Button>
 			{#if showJournalLink}
-				<Button {href} color="light" size="xs" class="flex-row gap-2 h-8">
+				<Button {href} color="light" size="xs" class="h-8 flex-row gap-2">
 					<JournalEntryIcon />
 				</Button>
 			{/if}
-			<div class="flex flex-col gap-0.5 items-end flex-grow">
+			<div class="flex flex-grow flex-col items-end gap-0.5">
 				<div class="flex text-lg">
 					<DisplayCurrency amount={item.sum} {format} />
 				</div>
@@ -136,7 +136,7 @@
 						id
 							? gotoUpdatedFilter({
 									account: { id, type: ['asset', 'liability', 'income', 'expense'] }
-							  })
+								})
 							: null,
 					config: $popoverViewStore
 				})}
@@ -198,7 +198,7 @@
 			on:click={() => ($showSummaryStore = true)}
 			color="light"
 			size="xs"
-			class="flex-row gap-2 h-8"
+			class="h-8 flex-row gap-2"
 		>
 			<EyeIcon /> Show Summary
 		</Button>

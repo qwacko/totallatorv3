@@ -25,7 +25,7 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const labelSummary = await tActions.journalView.summary({
+	const labelSummary = tActions.journalView.summary({
 		db,
 		filter: { ...defaultJournalFilter(), label: pageInfo.searchParams }
 	});

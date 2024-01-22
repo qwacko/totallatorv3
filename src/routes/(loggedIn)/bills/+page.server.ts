@@ -17,13 +17,14 @@ export const load = async (data) => {
 		db,
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
+
 	const redirectRequired = bills.page >= bills.pageCount;
 	if (redirectRequired) {
 		const targetPage = Math.max(0, bills.pageCount - 1);
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const billSummary = await tActions.journalView.summary({
+	const billSummary = tActions.journalView.summary({
 		db,
 		filter: { ...defaultJournalFilter(), bill: pageInfo.searchParams }
 	});

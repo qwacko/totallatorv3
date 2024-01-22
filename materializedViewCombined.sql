@@ -207,62 +207,6 @@ GROUP BY
 ----------------------------------------------------------------------------------------------------
 
 CREATE MATERIALIZED VIEW "journal_extended_view" AS
-WITH
-  "labelsq" AS (
-    SELECT
-      "labels_to_journals"."journal_id",
-      COALESCE(
-        JSONB_AGG(
-          JSONB_BUILD_OBJECT(
-            'labelToJournalId',
-            "labels_to_journals"."id",
-            'id',
-            "labels_to_journals"."label_id",
-            'title',
-            "label"."title"
-          )
-        ),
-        '[]'::JSONB
-      ) AS "labelData"
-    FROM
-      "labels_to_journals"
-      LEFT JOIN "label" ON "labels_to_journals"."label_id" = "label"."id"
-    GROUP BY
-      "labels_to_journals"."journal_id"
-  ),
-  "journalsq" AS (
-    SELECT
-      "journal_entry"."id",
-      COALESCE(
-        JSONB_AGG(
-          JSONB_BUILD_OBJECT(
-            'id',
-            "otherJournal"."id",
-            'transactionId',
-            "otherJournal"."transaction_id",
-            'accountId',
-            "account"."id",
-            'accountTitle',
-            "account"."title",
-            'accountType',
-            "account"."type",
-            'accountGroup',
-            "account"."account_group_combined",
-            'amount',
-            "otherJournal"."amount"
-          )
-        ),
-        '[]'::JSONB
-      ) AS "otherJournalData"
-    FROM
-      "journal_entry"
-      LEFT JOIN "journal_entry" "otherJournal" ON "otherJournal"."transaction_id" = "journal_entry"."transaction_id"
-      LEFT JOIN "account" ON "otherJournal"."account_id" = "account"."id"
-    WHERE
-      NOT "otherJournal"."id" = "journal_entry"."id"
-    GROUP BY
-      "journal_entry"."id"
-  )
 SELECT
   "journal_entry"."id",
   "journal_entry"."import_id",
@@ -329,9 +273,7 @@ SELECT
   "tag"."active" AS "tag_active",
   "tag"."disabled" AS "tag_disabled",
   "tag"."allow_update" AS "tag_allow_update",
-  "import"."title" AS "import_title",
-  COALESCE("labelData", '[]'::JSONB) AS "labelData",
-  COALESCE("otherJournalData", '[]'::JSONB) AS "otherJournalData"
+  "import"."title" AS "import_title"
 FROM
   "journal_entry"
   LEFT JOIN "transaction" ON "journal_entry"."transaction_id" = "transaction"."id"
@@ -340,8 +282,6 @@ FROM
   LEFT JOIN "budget" ON "journal_entry"."budget_id" = "budget"."id"
   LEFT JOIN "category" ON "journal_entry"."category_id" = "category"."id"
   LEFT JOIN "tag" ON "journal_entry"."tag_id" = "tag"."id"
-  LEFT JOIN "import" ON "journal_entry"."import_id" = "import"."id"
-  LEFT JOIN "labelsq" ON "journal_entry"."id" = "labelsq"."journal_id"
-  LEFT JOIN "journalsq" ON "journal_entry"."id" = "journalsq"."id";
+  LEFT JOIN "import" ON "journal_entry"."import_id" = "import"."id";
 ----------------------------------------------------------------------------------------------------
 

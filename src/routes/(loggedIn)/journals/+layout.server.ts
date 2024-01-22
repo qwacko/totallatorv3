@@ -22,7 +22,8 @@ export const load = async (data) => {
 
 	const journalData = await tActions.journalView.list({
 		db,
-		filter
+		filter,
+		disableRefresh: true
 	});
 
 	if (journalData.page >= journalData.pageCount) {
@@ -44,7 +45,8 @@ export const load = async (data) => {
 		journals: journalData,
 		streamed: {
 			summary,
-			dropdownInfo
+			dropdownInfo,
+			refresh: tActions.materializedViews.conditionalRefresh({ db, logStats: true })
 		},
 		filterText,
 		filterDropdown

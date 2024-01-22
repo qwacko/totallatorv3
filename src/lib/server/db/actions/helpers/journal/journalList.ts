@@ -3,7 +3,7 @@ import {
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType
 } from '$lib/schema/journalSchema';
-import { getTableColumns, eq, and, inArray, sum } from 'drizzle-orm';
+import { getTableColumns, eq, and, inArray, sum, sql, not } from 'drizzle-orm';
 import type { DBType } from '../../../db';
 import {
 	account,
@@ -22,6 +22,77 @@ import { journalFilterToOrderBy } from './journalFilterToOrderBy';
 import { count as drizzleCount } from 'drizzle-orm';
 import { materializedJournalFilterToQuery } from '../journalMaterializedView/materializedJournalFilterToQuery';
 import { materializedJournalFilterToOrderBy } from '../journalMaterializedView/materializedJournalFilterToOrderBy';
+import { alias } from 'drizzle-orm/pg-core';
+import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
+
+type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
+type OtherJournalsColumnType = {
+	id: string;
+	transactionId: string;
+	accountId: string;
+	accountTitle: string;
+	accountType: AccountTypeEnumType;
+	accountGroup: string;
+	amount: number;
+}[];
+
+const getOtherJournalInfo = async (db: DBType, journalIds: string[]) => {
+	const labelsq = db.$with('labelsq').as(
+		db
+			.select({
+				journalId: labelsToJournals.journalId,
+				labelData:
+					sql<LabelColumnType>`COALESCE(jsonb_agg(jsonb_build_object('labelToJournalId', ${labelsToJournals.id}, 'id', ${labelsToJournals.labelId}, 'title', ${label.title})), '[]'::jsonb)`.as(
+						'labelData'
+					)
+			})
+			.from(labelsToJournals)
+			.leftJoin(label, eq(labelsToJournals.labelId, label.id))
+			.where(journalIds.length > 0 ? inArray(labelsToJournals.journalId, journalIds) : sql`FALSE`)
+			.groupBy(labelsToJournals.journalId)
+	);
+
+	const otherJournals = alias(journalEntry, 'otherJournal');
+
+	const journalsq = db.$with('journalsq').as(
+		db
+			.select({
+				journalId: journalEntry.id,
+				otherJournalData:
+					sql<OtherJournalsColumnType>`COALESCE(jsonb_agg(jsonb_build_object('id', ${otherJournals.id}, 'transactionId', ${otherJournals.transactionId}, 'accountId', ${account.id}, 'accountTitle', ${account.title}, 'accountType', ${account.type}, 'accountGroup', ${account.accountGroupCombined}, 'amount', ${otherJournals.amount})), '[]'::jsonb)`.as(
+						'otherJournalData'
+					)
+			})
+			.from(journalEntry)
+			.leftJoin(otherJournals, eq(otherJournals.transactionId, journalEntry.transactionId))
+			.leftJoin(account, eq(otherJournals.accountId, account.id))
+			.where(
+				and(
+					not(eq(otherJournals.id, journalEntry.id)),
+					journalIds.length > 0 ? inArray(journalEntry.id, journalIds) : sql`FALSE`
+				)
+			)
+			.groupBy(journalEntry.id)
+	);
+
+	const otherJournalInformation = await db
+		.with(labelsq, journalsq)
+		.select({
+			id: journalEntry.id,
+			labels: sql<LabelColumnType>`COALESCE(${labelsq.labelData},'[]'::JSONB)`.as('labelData'),
+			otherJournals:
+				sql<OtherJournalsColumnType>`COALESCE(${journalsq.otherJournalData},'[]'::JSONB)`.as(
+					'otherJournalData'
+				)
+		})
+		.from(journalEntry)
+		.where(journalIds.length > 0 ? inArray(journalEntry.id, journalIds) : sql`FALSE`)
+		.leftJoin(labelsq, eq(journalEntry.id, labelsq.journalId))
+		.leftJoin(journalsq, eq(journalEntry.id, journalsq.journalId))
+		.execute();
+
+	return otherJournalInformation;
+};
 
 export const journalMaterialisedList = async ({
 	db,
@@ -43,6 +114,8 @@ export const journalMaterialisedList = async ({
 		.limit(pageSize);
 
 	const journalsPromise = journalQueryCore.execute();
+
+	// console.log(otherInfo);
 
 	const runningTotalInner = db
 		.select({ amount: journalExtendedView.amount })
@@ -69,17 +142,23 @@ export const journalMaterialisedList = async ({
 	const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 	const journals = await journalsPromise;
+	const journalIds = journals.map((item) => item.id);
 
 	const runningTotal = (await runningTotalPromise)[0].sum;
+
+	const otherJournalData = await getOtherJournalInfo(db, journalIds);
 
 	const journalsMerged = journals.map((journal, index) => {
 		const priorJournals = journals.filter((_, i) => i < index);
 		const priorJournalTotal = priorJournals.reduce((prev, current) => prev + current.amount, 0);
+		const thisOtherJournalData = otherJournalData.find((x) => x.id === journal.id);
 		const total = runningTotal - priorJournalTotal;
 
 		return {
 			...journal,
-			total
+			total,
+			otherJournals: thisOtherJournalData?.otherJournals ?? [],
+			labels: thisOtherJournalData?.labels ?? []
 		};
 	});
 

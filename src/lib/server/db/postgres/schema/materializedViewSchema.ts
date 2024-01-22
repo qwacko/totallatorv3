@@ -4,13 +4,12 @@ import {
 	type ColumnBaseConfig,
 	type ColumnDataType,
 	sql,
-	not,
 	count,
 	sum,
 	min,
 	max
 } from 'drizzle-orm';
-import { pgMaterializedView, PgColumn, alias } from 'drizzle-orm/pg-core';
+import { pgMaterializedView, PgColumn } from 'drizzle-orm/pg-core';
 import {
 	labelsToJournals,
 	label,
@@ -23,7 +22,6 @@ import {
 	tag,
 	importTable
 } from './transactionSchema';
-import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 
 const customAliasedTableColumn = <
 	T extends ColumnBaseConfig<ColumnDataType, string> = ColumnBaseConfig<ColumnDataType, string>
@@ -44,54 +42,10 @@ export const materializedViewTableNames = {
 	labelMaterializedView: 'label_materialized_view'
 };
 
-type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
-type OtherJournalsColumnType = {
-	id: string;
-	transactionId: string;
-	accountId: string;
-	accountTitle: string;
-	accountType: AccountTypeEnumType;
-	accountGroup: string;
-	amount: number;
-}[];
-
 export const journalExtendedView = pgMaterializedView(
 	materializedViewTableNames.journalExtendedView
 ).as((qb) => {
-	const labelsq = qb.$with('labelsq').as(
-		qb
-			.select({
-				journalId: labelsToJournals.journalId,
-				labelData:
-					sql<LabelColumnType>`COALESCE(jsonb_agg(jsonb_build_object('labelToJournalId', ${labelsToJournals.id}, 'id', ${labelsToJournals.labelId}, 'title', ${label.title})), '[]'::jsonb)`.as(
-						'labelData'
-					)
-			})
-			.from(labelsToJournals)
-			.leftJoin(label, eq(labelsToJournals.labelId, label.id))
-			.groupBy(labelsToJournals.journalId)
-	);
-
-	const otherJournals = alias(journalEntry, 'otherJournal');
-
-	const journalsq = qb.$with('journalsq').as(
-		qb
-			.select({
-				journalId: journalEntry.id,
-				otherJournalData:
-					sql<OtherJournalsColumnType>`COALESCE(jsonb_agg(jsonb_build_object('id', ${otherJournals.id}, 'transactionId', ${otherJournals.transactionId}, 'accountId', ${account.id}, 'accountTitle', ${account.title}, 'accountType', ${account.type}, 'accountGroup', ${account.accountGroupCombined}, 'amount', ${otherJournals.amount})), '[]'::jsonb)`.as(
-						'otherJournalData'
-					)
-			})
-			.from(journalEntry)
-			.leftJoin(otherJournals, eq(otherJournals.transactionId, journalEntry.transactionId))
-			.leftJoin(account, eq(otherJournals.accountId, account.id))
-			.where(not(eq(otherJournals.id, journalEntry.id)))
-			.groupBy(journalEntry.id)
-	);
-
 	return qb
-		.with(labelsq, journalsq)
 		.select({
 			...getTableColumns(journalEntry),
 			transactionId: customAliasedTableColumn(transaction.id, 'transaction_id'),
@@ -134,12 +88,7 @@ export const journalExtendedView = pgMaterializedView(
 			tagActive: customAliasedTableColumn(tag.active, 'tag_active'),
 			tagDisabled: customAliasedTableColumn(tag.disabled, 'tag_disabled'),
 			tagAllowUpdate: customAliasedTableColumn(tag.allowUpdate, 'tag_allow_update'),
-			importTitle: customAliasedTableColumn(importTable.title, 'import_title'),
-			labels: sql<LabelColumnType>`COALESCE(${labelsq.labelData},'[]'::JSONB)`.as('labelData'),
-			otherJournals:
-				sql<OtherJournalsColumnType>`COALESCE(${journalsq.otherJournalData},'[]'::JSONB)`.as(
-					'otherJournalData'
-				)
+			importTitle: customAliasedTableColumn(importTable.title, 'import_title')
 		})
 		.from(journalEntry)
 		.leftJoin(transaction, eq(journalEntry.transactionId, transaction.id))
@@ -148,9 +97,7 @@ export const journalExtendedView = pgMaterializedView(
 		.leftJoin(budget, eq(journalEntry.budgetId, budget.id))
 		.leftJoin(category, eq(journalEntry.categoryId, category.id))
 		.leftJoin(tag, eq(journalEntry.tagId, tag.id))
-		.leftJoin(importTable, eq(journalEntry.importId, importTable.id))
-		.leftJoin(labelsq, eq(journalEntry.id, labelsq.journalId))
-		.leftJoin(journalsq, eq(journalEntry.id, journalsq.journalId));
+		.leftJoin(importTable, eq(journalEntry.importId, importTable.id));
 });
 const aggregationColumns = (isAccount: boolean = false) => ({
 	sum: (isAccount
