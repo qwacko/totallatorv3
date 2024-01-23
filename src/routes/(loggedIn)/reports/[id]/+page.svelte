@@ -14,6 +14,7 @@
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import ReportElementDisplay from './ReportElementDisplay.svelte';
+	import { urlGenerator } from '$lib/routes.js';
 
 	export let data;
 
@@ -92,6 +93,17 @@
 		{#each $reportData.reportElements as { cols, rows, title, id, order }}
 			<ReportGridItem {cols} {rows} highlightOnHover={false} title={edit ? undefined : title}>
 				<div class="flex h-full w-full flex-col gap-2">
+					<div class="flex flex-row gap-2">
+						<div class="flex">{title}</div>
+						<a
+							href={urlGenerator({
+								address: '/(loggedIn)/reports/element/[id]',
+								paramsValue: { id }
+							}).url}
+						>
+							Edit
+						</a>
+					</div>
 					<div class="item-stretch flex flex-grow flex-row gap-2">
 						<div class="flex flex-grow content-center self-center">
 							<ReportElementDisplay {id} data={data.report.reportElementsWithData} />

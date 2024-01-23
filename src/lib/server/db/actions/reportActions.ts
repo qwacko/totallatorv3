@@ -171,6 +171,26 @@ export const reportActions = {
 				await trx.insert(reportElement).values(reportElementsToAdd).execute();
 			}
 		});
+	},
+	getReportElementData: async ({ db, id }: { db: DBType; id: string }) => {
+		const reportElementData = await db.query.reportElement.findFirst({
+			where: (reportElement, { eq }) => eq(reportElement.id, id),
+			with: {
+				filter: true,
+				reportElementConfig: true,
+				report: {
+					with: {
+						filter: true
+					}
+				}
+			}
+		});
+
+		if (!reportElementData) {
+			return undefined;
+		}
+
+		return reportElementData;
 	}
 };
 export type ReportLayoutConfigType = Exclude<
