@@ -66,6 +66,7 @@
 		"@melt-ui/svelte": "^0.70.0",
 		"@sveltejs/adapter-node": "^4.0.1",
 		"@tailwindcss/container-queries": "^0.1.1",
+		"devalue": "^4.3.2",
 		"drizzle-orm": "^0.29.3",
 		"handlebars": "^4.7.8",
 		"lodash-es": "^4.17.21",

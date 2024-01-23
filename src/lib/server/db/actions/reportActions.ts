@@ -6,6 +6,9 @@ import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/create/reportLayoutOptions';
 import { eq, inArray } from 'drizzle-orm';
+import { filter as filterTable } from '../postgres/schema';
+import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
+import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
 
 const returnDelayedData = async <T>(data: T | Promise<T>): Promise<T> => {
 	const useData = await data;
@@ -172,25 +175,99 @@ export const reportActions = {
 			}
 		});
 	},
-	getReportElementData: async ({ db, id }: { db: DBType; id: string }) => {
-		const reportElementData = await db.query.reportElement.findFirst({
-			where: (reportElement, { eq }) => eq(reportElement.id, id),
-			with: {
-				filter: true,
-				reportElementConfig: true,
-				report: {
-					with: {
-						filter: true
+	reportElement: {
+		get: async ({ db, id }: { db: DBType; id: string }) => {
+			const reportElementData = await db.query.reportElement.findFirst({
+				where: (reportElement, { eq }) => eq(reportElement.id, id),
+				with: {
+					filter: true,
+					reportElementConfig: true,
+					report: {
+						with: {
+							filter: true
+						}
 					}
 				}
+			});
+
+			if (!reportElementData) {
+				return undefined;
 			}
-		});
 
-		if (!reportElementData) {
-			return undefined;
+			return reportElementData;
+		},
+		addFilter: async ({ db, id }: { db: DBType; id: string }) => {
+			const reportElementData = await reportActions.reportElement.get({ db, id });
+
+			if (!reportElementData) {
+				throw new Error('Report Element not found');
+			}
+
+			const existingFilter =
+				reportElementData.filter?.filter || reportElementData.report.filter?.filter;
+
+			if (existingFilter) {
+				throw new Error('Report Element Filter Exists');
+			}
+
+			const filterId = nanoid();
+
+			const filterConfig: JournalFilterSchemaWithoutPaginationType = {};
+			const filterText = (await journalFilterToText({ db, filter: filterConfig })).join(' and ');
+
+			await db.transaction(async (trx) => {
+				await trx
+					.insert(filterTable)
+					.values({ id: filterId, ...updatedTime(), filter: filterConfig, filterText })
+					.execute();
+
+				await trx
+					.update(reportElement)
+					.set({
+						filterId
+					})
+					.where(eq(reportElement.id, id))
+					.execute();
+			});
+
+			return;
+		},
+		updateFilter: async ({
+			db,
+			id,
+			filter
+		}: {
+			db: DBType;
+			id: string;
+			filter: JournalFilterSchemaWithoutPaginationType;
+		}) => {
+			const reportElementData = await reportActions.reportElement.get({ db, id });
+
+			if (!reportElementData) {
+				throw new Error('Report Element not found');
+			}
+
+			const filterId = reportElementData.filterId;
+
+			if (!filterId) {
+				throw new Error('Report Element Filter does not exist');
+			}
+
+			const filterText = await journalFilterToText({ db, filter });
+
+			await db.transaction(async (trx) => {
+				await trx
+					.update(filterTable)
+					.set({
+						filter,
+						filterText: filterText.join(' and ')
+					})
+					.where(eq(filterTable.id, filterId))
+					.execute();
+			});
+
+			return;
 		}
-
-		return reportElementData;
 	}
 };
 export type ReportLayoutConfigType = Exclude<

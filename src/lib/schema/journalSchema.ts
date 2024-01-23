@@ -276,16 +276,7 @@ export const journalFilterSchemaWithoutPagination = z.object({
 		.omit({ page: true, pageSize: true, orderBy: true })
 		.optional(),
 	label: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	excludeLabel: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	page: z.coerce.number().optional().default(0),
-	pageSize: z.coerce.number().optional().default(10),
-	orderBy: z
-		.array(z.object({ field: z.enum(journalOrderByEnum), direction: z.enum(['asc', 'desc']) }))
-		.optional()
-		.default([
-			{ direction: 'desc', field: 'date' },
-			{ direction: 'desc', field: 'amount' }
-		])
+	excludeLabel: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional()
 });
 
 export type JournalFilterSchemaWithoutPaginationInputType = z.input<

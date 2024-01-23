@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { journalFilterSchema } from './journalSchema';
+import { journalFilterSchemaWithoutPagination } from './journalSchema';
 
 export const reportLayoutOptionsEnum = ['default', 'sixEven', 'wideOnly'] as const;
 
@@ -20,7 +20,7 @@ export const updateReportSchema = z.object({
 	title: z.string().optional(),
 	group: z.string().optional(),
 	locked: z.string().optional(),
-	filter: journalFilterSchema.optional()
+	filter: journalFilterSchemaWithoutPagination.optional()
 });
 
 export type UpdateReportType = z.infer<typeof updateReportSchema>;
@@ -46,6 +46,9 @@ export const updateReportElementSchema = z.object({
 	id: z.string(),
 	title: z.string().optional(),
 	clearTitle: z.boolean().optional(),
-	filter: journalFilterSchema.optional(),
+	filter: z.string().nullable().optional(),
 	clearFilter: z.boolean().optional()
 });
+
+export type UpdateReportElementType = z.infer<typeof updateReportElementSchema>;
+export type UpdateReportElementSupertype = typeof updateReportElementSchema;
