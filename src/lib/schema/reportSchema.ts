@@ -45,9 +45,7 @@ export type UpdateReportLayoutSupertype = typeof updateReportLayoutSchema;
 export const updateReportElementSchema = z.object({
 	id: z.string(),
 	title: z.string().optional(),
-	clearTitle: z.boolean().optional(),
-	filter: z.string().nullable().optional(),
-	clearFilter: z.boolean().optional()
+	clearTitle: z.boolean().optional()
 });
 
 export type UpdateReportElementType = z.infer<typeof updateReportElementSchema>;

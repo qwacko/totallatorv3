@@ -18,6 +18,7 @@
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import ReportDropdown from '$lib/components/report/ReportDropdown.svelte';
+	import NotificationDisplay from '$lib/components/NotificationDisplay.svelte';
 
 	export let data;
 
@@ -119,7 +120,7 @@
 							paramsValue: { id: data.user?.userId }
 						})
 					}
-			  ]
+				]
 			: []),
 		...(data.user?.admin
 			? [
@@ -129,7 +130,7 @@
 						icon: UsersIcon,
 						href: urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } })
 					}
-			  ]
+				]
 			: []),
 		...(data.dev
 			? [
@@ -139,7 +140,7 @@
 						icon: DevIcon,
 						href: urlGenerator({ address: '/(loggedIn)/dev/bulkLoad' })
 					}
-			  ]
+				]
 			: [])
 	];
 
@@ -147,7 +148,7 @@
 </script>
 
 <div class="flex flex-col justify-stretch p-2">
-	<div class="flex flex-row justify-center gap-2 pb-8 pt-4 flex-wrap">
+	<div class="flex flex-row flex-wrap justify-center gap-2 pb-8 pt-4">
 		<ReportDropdown items={data.reportDropdown} />
 		<FilterDropdown
 			showDefaultJournalFilters
@@ -174,7 +175,7 @@
 		<Dropdown>
 			{#each pageMapWithoutJournals as currentPage}
 				<DropdownItem href={currentPage.href.url}>
-					<div class="flex flex-row gap-2 items-center">
+					<div class="flex flex-row items-center gap-2">
 						<svelte:component this={currentPage.icon} />{currentPage.label}
 					</div>
 				</DropdownItem>
@@ -193,4 +194,5 @@
 		{/each} -->
 	</div>
 	<slot />
+	<NotificationDisplay />
 </div>

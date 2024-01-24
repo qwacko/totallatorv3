@@ -8,12 +8,30 @@
 	import FilterModal from '$lib/components/FilterModal.svelte';
 	import { enhance } from '$app/forms';
 	import { customEnhance } from './customEnhance.js';
+	import { notificationStore } from '$lib/stores/notificationStore.js';
+	import { onError, onSuccess } from '$lib/stores/notificationHelpers.js';
 
 	export let data;
 
 	let filterOpen = false;
 
-	const { form, constraints, errors } = superForm<UpdateReportElementSupertype>(data.form);
+	const {
+		form,
+		constraints,
+		errors,
+		enhance: elementEnhance
+	} = superForm<UpdateReportElementSupertype>(data.form, {
+		onError: onError('Error updating report element'),
+		onResult: ({ result }) => {
+			if (result.type === 'success') {
+				notificationStore.send({
+					type: 'success',
+					message: 'Report element updated successfully',
+					duration: 2000
+				});
+			}
+		}
+	});
 </script>
 
 <CustomHeader pageTitle={data.elementData.title || 'Report Element'} />
@@ -26,7 +44,8 @@
 	</div>
 	<Heading tag="h4">Report Element Configuration</Heading>
 
-	<div class="flex flex-row items-end gap-2">
+	<form action="?/update" method="POST" class="flex flex-row items-end gap-2" use:elementEnhance>
+		<input type="hidden" name="id" value={data.elementData.id} />
 		<TextInput
 			title="Title"
 			errorMessage={$errors.title}
@@ -43,7 +62,8 @@
 		>
 			Clear
 		</Button>
-	</div>
+		<Button type="submit">Update</Button>
+	</form>
 
 	{#if data.elementData.filter}
 		<div class="flex flex-row items-center gap-2">
@@ -64,10 +84,16 @@
 						action="?/updateFilter"
 						method="POST"
 						use:enhance={customEnhance({
-							onSuccess: ({ data }) => {
-								console.log('Success : ', data);
+							onSuccess: () => {
 								filterOpen = false;
-							}
+								notificationStore.send({
+									type: 'success',
+									message: 'Filter updated successfully',
+									duration: 2000
+								});
+							},
+							onError: onError('Error updating filter'),
+							onFailure: onError('Error updating filter')
 						})}
 					>
 						<input type="hidden" name="filterText" value={JSON.stringify(activeFilter)} />
@@ -75,11 +101,30 @@
 					</form>
 				</svelte:fragment>
 			</FilterModal>
+			<form
+				action="?/removeFilter"
+				method="POST"
+				use:enhance={customEnhance({
+					onSuccess: onSuccess('Filter removed successfully'),
+					onError: onError('Error removing filter'),
+					onFailure: onError('Error removing filter')
+				})}
+			>
+				<Button type="submit" color="red" outline>Remove Filter</Button>
+			</form>
 			<P>Filter : {data.elementData.filter.filterText}</P>
 		</div>
 	{/if}
 	{#if !data.elementData.filter}
-		<form action="?/addFilter" method="POST" use:enhance>
+		<form
+			action="?/addFilter"
+			method="POST"
+			use:enhance={customEnhance({
+				onSuccess: onSuccess('Filter added successfully'),
+				onError: onError('Error adding filter'),
+				onFailure: onError('Error adding filter')
+			})}
+		>
 			<Button type="submit">Add Filter</Button>
 		</form>
 	{/if}

@@ -333,7 +333,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		},
 		'/(loggedIn)/reports/element/[id]': {
 			...adminOnlyConfig,
-			POSTCheck: { addFilter: POSTAllowAdminOnly, updateFilter: POSTAllowAdminOnly }
+			POSTCheck: {
+				addFilter: POSTAllowAdminOnly,
+				updateFilter: POSTAllowAdminOnly,
+				removeFilter: POSTAllowAdminOnly,
+				update: POSTAllowAdminOnly
+			}
 		},
 
 		// Users

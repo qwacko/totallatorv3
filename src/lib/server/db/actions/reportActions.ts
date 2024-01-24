@@ -1,4 +1,8 @@
-import type { CreateReportType, UpdateReportLayoutType } from '$lib/schema/reportSchema';
+import type {
+	CreateReportType,
+	UpdateReportElementType,
+	UpdateReportLayoutType
+} from '$lib/schema/reportSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { report, reportElement } from '../postgres/schema';
@@ -196,6 +200,29 @@ export const reportActions = {
 
 			return reportElementData;
 		},
+		update: async ({ db, data }: { db: DBType; data: UpdateReportElementType }) => {
+			const { id, ...restData } = data;
+
+			console.log('Updating Report Element : ', data);
+
+			await db.transaction(async (trx) => {
+				if (restData.clearTitle) {
+					await trx
+						.update(reportElement)
+						.set({ title: null })
+						.where(eq(reportElement.id, id))
+						.execute();
+				} else if (restData.title) {
+					await trx
+						.update(reportElement)
+						.set({ title: restData.title })
+						.where(eq(reportElement.id, id))
+						.execute();
+				}
+			});
+
+			return;
+		},
 		addFilter: async ({ db, id }: { db: DBType; id: string }) => {
 			const reportElementData = await reportActions.reportElement.get({ db, id });
 
@@ -264,6 +291,33 @@ export const reportActions = {
 					})
 					.where(eq(filterTable.id, filterId))
 					.execute();
+			});
+
+			return;
+		},
+		removeFilter: async ({ db, id }: { db: DBType; id: string }) => {
+			const reportElementData = await reportActions.reportElement.get({ db, id });
+
+			if (!reportElementData) {
+				throw new Error('Report Element not found');
+			}
+
+			const filterId = reportElementData.filterId;
+
+			if (!filterId) {
+				return;
+			}
+
+			await db.transaction(async (trx) => {
+				await trx
+					.update(reportElement)
+					.set({
+						filterId: null
+					})
+					.where(eq(reportElement.id, id))
+					.execute();
+
+				await trx.delete(filterTable).where(eq(filterTable.id, filterId)).execute();
 			});
 
 			return;

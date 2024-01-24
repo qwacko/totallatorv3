@@ -53,6 +53,21 @@ export const load = async (data) => {
 };
 
 export const actions = {
+	update: async (data) => {
+		const db = data.locals.db;
+		const id = data.params.id;
+		const form = await superValidate(data.request, updateReportElementSchema);
+
+		if (!form.valid) {
+			return form;
+		}
+
+		try {
+			await tActions.report.reportElement.update({ db, data: { ...form.data, id } });
+		} catch (e) {
+			logging.error('Error Updating Report Element : ', e);
+		}
+	},
 	addFilter: async (data) => {
 		const id = data.params.id;
 		const db = data.locals.db;
@@ -92,6 +107,18 @@ export const actions = {
 			});
 		} catch (e) {
 			logging.error('Error Updating Filter to Report Element', e);
+		}
+
+		return;
+	},
+	removeFilter: async (data) => {
+		const id = data.params.id;
+		const db = data.locals.db;
+
+		try {
+			await tActions.report.reportElement.removeFilter({ db, id });
+		} catch (e) {
+			logging.error('Error Removing Filter to Report Element', e);
 		}
 
 		return;
