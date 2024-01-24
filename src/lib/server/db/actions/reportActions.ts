@@ -1,11 +1,12 @@
 import type {
+	CreateReportElementType,
 	CreateReportType,
 	UpdateReportElementType,
 	UpdateReportLayoutType
 } from '$lib/schema/reportSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { report, reportElement } from '../postgres/schema';
+import { report, reportElement, reportElementConfig } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/create/reportLayoutOptions';
@@ -36,14 +37,28 @@ const getReportElementData = ({ db, id }: { db: DBType; id: string }) => {
 export type GetReportElementDataType = ReturnType<typeof getReportElementData>;
 
 export const reportActions = {
+	delete: async ({ db, id }: { db: DBType; id: string }) => {
+		const reportInfo = await reportActions.getReportConfig({ db, id });
+
+		if (!reportInfo) throw new Error('Report not found');
+
+		await db.transaction(async (trx) => {
+			await reportActions.reportElement.deleteMany({
+				db: trx,
+				ids: reportInfo.reportElements.map((item) => item.id)
+			});
+			if (reportInfo.filterId) {
+				await trx.delete(filterTable).where(eq(filterTable.id, reportInfo.filterId)).execute();
+			}
+			await trx.delete(report).where(eq(report.id, id)).execute();
+		});
+	},
 	create: async ({ db, data }: { db: DBType; data: CreateReportType }) => {
 		const id = nanoid();
-		const reportElementsData = reportLayoutOptions[data.layout].map((item) => ({
-			id: nanoid(),
-			reportId: id,
-			...updatedTime(),
-			...item
-		}));
+
+		const reportElementCreationList: CreateReportElementType[] = reportLayoutOptions[
+			data.layout
+		].map((item) => ({ ...item, reportId: id }));
 
 		await db.transaction(async (trx) => {
 			await trx
@@ -51,7 +66,10 @@ export const reportActions = {
 				.values({ id, ...data, ...updatedTime() })
 				.execute();
 
-			await trx.insert(reportElement).values(reportElementsData).execute();
+			await reportActions.reportElement.createMany({
+				db: trx,
+				configurations: reportElementCreationList
+			});
 		});
 
 		return id;
@@ -81,6 +99,20 @@ export const reportActions = {
 				.filter((item) => !item.group || item.group.length === 0)
 				.sort((a, b) => a.title.localeCompare(b.title))
 		];
+	},
+	getSimpleReportConfig: async ({ db, id }: { db: DBType; id: string }) => {
+		const reportConfig = await db.query.report.findFirst({
+			where: (report, { eq }) => eq(report.id, id),
+			with: {
+				filter: true
+			}
+		});
+
+		if (!reportConfig) {
+			return undefined;
+		}
+
+		return reportConfig;
 	},
 	getReportConfig: async ({ db, id }: { db: DBType; id: string }) => {
 		const reportConfig = await db.query.report.findFirst({
@@ -154,10 +186,7 @@ export const reportActions = {
 		await db.transaction(async (trx) => {
 			if (reportElementsToRemove.length > 0) {
 				//Remove old elements
-				await trx
-					.delete(reportElement)
-					.where(inArray(reportElement.id, reportElementsToRemove))
-					.execute();
+				await reportActions.reportElement.deleteMany({ db: trx, ids: reportElementsToRemove });
 			}
 
 			if (reportElementsToUpdate.length > 0) {
@@ -175,11 +204,99 @@ export const reportActions = {
 
 			if (reportElementsToAdd.length > 0) {
 				//Create New Elements
-				await trx.insert(reportElement).values(reportElementsToAdd).execute();
+				await reportActions.reportElement.createMany({
+					db: trx,
+					configurations: reportElementsToAdd
+				});
 			}
 		});
 	},
+	reportElementConfiguration: {
+		listReusable: async ({ db }: { db: DBType }) => {
+			const reportElementConfigs = await db
+				.select({ id: reportElementConfig.id, title: reportElementConfig.title })
+				.from(reportElementConfig)
+				.where(eq(reportElementConfig.reusable, true))
+				.execute();
+
+			return reportElementConfigs;
+		}
+	},
 	reportElement: {
+		deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
+			const reportElements = await db.query.reportElement.findMany({
+				where: (reportElement, { inArray }) => inArray(reportElement.id, ids)
+			});
+
+			const reportElementConfigIds = reportElements.map((item) => item.reportElementConfigId);
+
+			const reportElementConfigs = await db.query.reportElementConfig.findMany({
+				where: (reportElementConfig, { inArray }) =>
+					inArray(reportElementConfig.id, reportElementConfigIds),
+				with: {
+					reportElements: true
+				}
+			});
+
+			const reportElementsToDelete = reportElements.map((item) => item.id);
+			const reportConfigsToDelete = filterNullUndefinedAndDuplicates(
+				reportElementConfigs.map((item) => {
+					if (item.locked) return undefined;
+					if (item.reusable) return undefined;
+					const matchingElementIds = item.reportElements.map((el) => el.id);
+					const allElementIdsAreBeingRemoved = matchingElementIds.every((el) =>
+						reportElementsToDelete.includes(el)
+					);
+
+					if (allElementIdsAreBeingRemoved) {
+						return item.id;
+					}
+					return undefined;
+				})
+			);
+
+			await db.transaction(async (trx) => {
+				if (reportElementsToDelete.length > 0) {
+					await trx
+						.delete(reportElement)
+						.where(inArray(reportElement.id, reportElementsToDelete))
+						.execute();
+				}
+
+				if (reportConfigsToDelete.length > 0) {
+					await trx
+						.delete(reportElementConfig)
+						.where(inArray(reportElementConfig.id, reportConfigsToDelete))
+						.execute();
+				}
+			});
+		},
+		createMany: async ({
+			db,
+			configurations
+		}: {
+			db: DBType;
+			configurations: CreateReportElementType[];
+		}) => {
+			const reportElementsData = configurations.map((item) => ({
+				id: nanoid(),
+				reportElementConfigId: nanoid(),
+				...updatedTime(),
+				...item
+			}));
+
+			const reportElementsConfigData = reportElementsData.map((item) => ({
+				id: item.reportElementConfigId,
+				reportElementId: item.id,
+				title: item.title,
+				...updatedTime()
+			}));
+
+			await db.transaction(async (trx) => {
+				await trx.insert(reportElement).values(reportElementsData).execute();
+				await trx.insert(reportElementConfig).values(reportElementsConfigData).execute();
+			});
+		},
 		get: async ({ db, id }: { db: DBType; id: string }) => {
 			const reportElementData = await db.query.reportElement.findFirst({
 				where: (reportElement, { eq }) => eq(reportElement.id, id),

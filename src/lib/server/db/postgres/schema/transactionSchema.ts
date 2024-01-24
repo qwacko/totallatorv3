@@ -24,6 +24,7 @@ import {
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
 import type { JournalFilterSchemaWithoutPaginationType } from '../../../../schema/journalSchema';
 import { pageSizeEnum } from '../../../../schema/pageSizeSchema';
+import type { ReportElementConfigType } from '../../../../schema/reportSchema';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -538,13 +539,12 @@ export const reportElementConfig = pgTable(
 	{
 		...idColumn,
 		...timestampColumns,
-		title: text('title').notNull(),
+		title: text('title'),
 		group: text('group'),
 		locked: boolean('locked').notNull().default(false),
 		reusable: boolean('reusable').notNull().default(false),
 		filterId: text('filter_id'),
-		configuration: text('configuration').notNull(),
-		configurationText: text('configuration_text').notNull()
+		configuration: jsonb('configuration').$type<ReportElementConfigType>()
 	},
 	(t) => ({
 		titleIdx: index('report_element_config_title_idx').on(t.title),
@@ -592,7 +592,7 @@ export const reportElement = pgTable(
 		order: integer('order').notNull().default(0),
 
 		//View Configuration
-		reportElementConfigId: text('report_element_config_id'),
+		reportElementConfigId: text('report_element_config_id').notNull(),
 		filterId: text('filter_id')
 	},
 	(t) => ({

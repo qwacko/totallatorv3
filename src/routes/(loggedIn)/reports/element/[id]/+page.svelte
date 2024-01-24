@@ -10,6 +10,8 @@
 	import { customEnhance } from './customEnhance.js';
 	import { notificationStore } from '$lib/stores/notificationStore.js';
 	import { onError, onSuccess } from '$lib/stores/notificationHelpers.js';
+	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
+	import { urlGenerator } from '$lib/routes.js';
 
 	export let data;
 
@@ -37,6 +39,17 @@
 <CustomHeader pageTitle={data.elementData.title || 'Report Element'} />
 
 <PageLayout title={data.elementData.title || 'Report Element'} size="lg">
+	<svelte:fragment slot="left">
+		<Button
+			outline
+			href={urlGenerator({
+				address: '/(loggedIn)/reports/[id]',
+				paramsValue: { id: data.elementData.reportId }
+			}).url}
+		>
+			<ArrowLeftIcon />
+		</Button>
+	</svelte:fragment>
 	<Heading tag="h4">Report Information</Heading>
 	<div class="flex flex-row gap-2">
 		<P weight="bold">Title :</P>
@@ -110,7 +123,7 @@
 					onFailure: onError('Error removing filter')
 				})}
 			>
-				<Button type="submit" color="red" outline>Remove Filter</Button>
+				<Button type="submit" color="red" size="sm" outline>Remove Filter</Button>
 			</form>
 			<P>Filter : {data.elementData.filter.filterText}</P>
 		</div>

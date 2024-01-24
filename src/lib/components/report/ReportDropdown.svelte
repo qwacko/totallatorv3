@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ReportDropdownType } from '$lib/server/db/actions/reportActions';
-	import { Button, Dropdown, DropdownItem } from 'flowbite-svelte';
+	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 	import ArrowRightIcon from '../icons/ArrowRightIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 
@@ -38,4 +38,8 @@
 			</DropdownItem>
 		{/if}
 	{/each}
+	<DropdownDivider />
+	<DropdownItem href={urlGenerator({ address: '/(loggedIn)/reports/create' }).url}>
+		New Report
+	</DropdownItem>
 </Dropdown>

@@ -84,6 +84,7 @@
 			</Button>
 		{:else}
 			<Button color="primary" outline on:click={() => (edit = true)}><EditIcon /></Button>
+			<Button color="red" outline href={urlGenerator({address: "/(loggedIn)/reports/[id]/delete", paramsValue: {id: $reportData.id}}).url}><DeleteIcon /></Button>
 		{/if}
 	</svelte:fragment>
 

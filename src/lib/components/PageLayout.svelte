@@ -19,16 +19,18 @@
 	>
 		<div class="flex flex-row gap-2">
 			<div class="flex flex-grow basis-0">
-				{#if !hideBackButton}
-					<PrevPageButton color="light" outline routeBased={routeBasedBack}>
-						<ArrowLeftIcon />
-					</PrevPageButton>
-				{/if}
+				<slot name="left">
+					{#if !hideBackButton}
+						<PrevPageButton color="light" outline routeBased={routeBasedBack}>
+							<ArrowLeftIcon />
+						</PrevPageButton>
+					{/if}
+				</slot>
 			</div>
 			{#if title}
 				<h3 class="flex justify-center text-4xl font-bold">{title}</h3>
 			{/if}
-			<div class="flex flex-grow basis-0 flex-row gap-2 justify-end">
+			<div class="flex flex-grow basis-0 flex-row justify-end gap-2">
 				<slot name="right" />
 			</div>
 		</div>

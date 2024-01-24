@@ -33,6 +33,7 @@ type ActionOptions<
 		status: number;
 		defaultAction: () => void;
 	}) => void | Promise<void>;
+	updateLoading?: (loading: boolean) => void;
 	disableDefaultAction?: boolean;
 	disableReset?: boolean;
 	disableInvalidate?: boolean;
@@ -48,9 +49,12 @@ export function customEnhance<
 	onRedirect,
 	disableDefaultAction,
 	disableInvalidate,
-	disableReset
+	disableReset,
+	updateLoading
 }: ActionOptions<SuccessType, FailureType> = {}): SubmitFunction<SuccessType, FailureType> {
 	return () => {
+		updateLoading && updateLoading(true);
+
 		return async ({ result, action, formData, update, formElement }) => {
 			// `result` is an `ActionResult` object
 
@@ -99,6 +103,8 @@ export function customEnhance<
 					reset: !disableReset
 				});
 			}
+
+			updateLoading && updateLoading(false);
 		};
 	};
 }

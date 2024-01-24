@@ -18,10 +18,14 @@
 	} from './reportLayoutOptions';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
+	import ActionButton from '$lib/components/ActionButton.svelte';
 
 	export let data;
 
-	const formAll = superForm<CreateReportSupertype>(data.form);
+	const formAll = superForm<CreateReportSupertype>(data.form, {
+		onSubmit: () => (loading = true),
+		onResult: () => (loading = false)
+	});
 
 	$: form = formAll.form;
 	$: errors = formAll.errors;
@@ -30,6 +34,8 @@
 	$: enhance = formAll.enhance;
 
 	$: urlInfo = pageInfo('/(loggedIn)/reports/create', $page);
+
+	let loading = false;
 </script>
 
 <CustomHeader pageTitle="New Report" />
@@ -88,8 +94,13 @@
 				<ReportLayoutOptionDisplay format={$form.layout} />
 			</div>
 		{/if}
-
-		<Button type="submit">Create</Button>
+		<ActionButton
+			{loading}
+			message="Create"
+			loadingMessage="Creating..."
+			class="flex flex-grow"
+			type="submit"
+		/>
 		<ErrorText message={$message} />
 	</form>
 </PageLayout>
