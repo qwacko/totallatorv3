@@ -14,9 +14,8 @@ import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/creat
 import { eq, inArray } from 'drizzle-orm';
 import { filter as filterTable } from '../postgres/schema';
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
-import { journalFilterToQuery, journalFilterToText } from './helpers/journal/journalFilterToQuery';
+import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
 import { getData } from './helpers/report/getData';
-import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
 
 const returnDelayedData = async <T>(data: T | Promise<T>): Promise<T> => {
 	const useData = await data;
@@ -269,18 +268,9 @@ export const reportActions = {
 			}
 
 			const filters = filterNullUndefinedAndDuplicates([
-				...(elementConfig.filter?.filter
-					? await materializedJournalFilterToQuery(db, elementConfig.filter.filter)
-					: []),
-				...(elementConfig.report.filter?.filter
-					? await materializedJournalFilterToQuery(db, elementConfig.report.filter.filter)
-					: []),
-				...(elementConfig.reportElementConfig.filter?.filter
-					? await materializedJournalFilterToQuery(
-							db,
-							elementConfig.reportElementConfig.filter.filter
-						)
-					: [])
+				elementConfig.filter?.filter,
+				elementConfig.report.filter?.filter,
+				elementConfig.reportElementConfig.filter?.filter
 			]);
 
 			const simpleElementConfig = await simpleElementConfigPromise;

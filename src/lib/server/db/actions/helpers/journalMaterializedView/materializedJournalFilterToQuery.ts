@@ -12,7 +12,11 @@ import { journalPayeeToSubquery } from '../journal/journalPayeeToSubquery';
 
 export const materializedJournalFilterToQuery = async (
 	db: DBType,
-	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
+	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	{
+		excludeStart = false,
+		excludeEnd = false
+	}: { excludeStart?: boolean; excludeEnd?: boolean } = {}
 ) => {
 	const where: SQL<unknown>[] = [];
 	if (filter.id) where.push(eq(journalExtendedView.id, filter.id));
@@ -35,9 +39,9 @@ export const materializedJournalFilterToQuery = async (
 		where.push(ilike(journalExtendedView.description, `%${filter.description}%`));
 	if (filter.excludeDescription)
 		where.push(not(ilike(journalExtendedView.description, `%${filter.excludeDescription}%`)));
-	if (filter.dateAfter !== undefined)
+	if (!excludeStart && filter.dateAfter !== undefined)
 		where.push(gte(journalExtendedView.dateText, filter.dateAfter));
-	if (filter.dateBefore !== undefined)
+	if (!excludeEnd && filter.dateBefore !== undefined)
 		where.push(lte(journalExtendedView.dateText, filter.dateBefore));
 	if (filter.transfer !== undefined) where.push(eq(journalExtendedView.transfer, filter.transfer));
 	if (filter.complete !== undefined) where.push(eq(journalExtendedView.complete, filter.complete));

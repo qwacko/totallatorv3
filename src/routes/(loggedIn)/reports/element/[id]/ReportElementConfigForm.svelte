@@ -1,16 +1,18 @@
 <script lang="ts">
 	import ActionButton from '$lib/components/ActionButton.svelte';
-	import BooleanInputForm from '$lib/components/BooleanInputForm.svelte';
-	import LabelWrapper from '$lib/components/LabelWrapper.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import {
 		configTypeDropdownOptions,
 		type ReportElementConfigFormSupertype
 	} from '$lib/schema/reportSchema';
-	import { Heading, NumberInput } from 'flowbite-svelte';
+	import { displaySparklineOptionsDropdown } from '$lib/schema/reportHelpers/displaySparklineOptionsEnum';
+	import { displayTimeOptionsDropdown } from '$lib/schema/reportHelpers/displayTimeOptionsEnum';
+	import { Heading } from 'flowbite-svelte';
 	import type { SuperValidated } from 'sveltekit-superforms';
 	import { superForm } from 'sveltekit-superforms/client';
 	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers';
+	import TextInput from '$lib/components/TextInput.svelte';
+	import { reportItemSizeDropdowns } from '$lib/schema/reportHelpers/reportItemSizeEnum';
 
 	export let formData: SuperValidated<ReportElementConfigFormSupertype>;
 
@@ -43,15 +45,47 @@
 		items={configTypeDropdownOptions}
 	/>
 	{#if $form.type === 'number'}
-		<LabelWrapper title="Decimals" errorMessage={$errors.precision}>
-			<NumberInput bind:value={$form.precision} name="precision" />
-		</LabelWrapper>
-		<BooleanInputForm form={configForm} field="percentage" title="Display Percentage" hideClear />
+		<SelectInput
+			title="Display"
+			items={displayTimeOptionsDropdown}
+			bind:value={$form.numberDisplay}
+			name="numberDisplay"
+			errorMessage={$errors.numberDisplay}
+		/>
+
+		<SelectInput
+			title="Secondary Display"
+			items={displayTimeOptionsDropdown}
+			bind:value={$form.numberSecondaryDisplay}
+			name="numberSecondaryDisplay"
+			errorMessage={$errors.numberSecondaryDisplay}
+		/>
+		{#if $form.numberSecondaryDisplay !== 'none'}
+			<TextInput
+				title="Secondary Display Title"
+				bind:value={$form.numberSecondaryTitle}
+				name="numberSecondaryTitle"
+				errorMessage={$errors.numberSecondaryTitle}
+			/>
+		{/if}
+
+		<SelectInput
+			title="Sparkline"
+			items={displaySparklineOptionsDropdown}
+			bind:value={$form.numberSparkline}
+			name="numberSparkline"
+			errorMessage={$errors.numberSparkline}
+		/>
+		<SelectInput
+			title="Data Size"
+			items={reportItemSizeDropdowns}
+			bind:value={$form.numberSize}
+			name="numberSize"
+			errorMessage={$errors.numberSize}
+		/>
 	{/if}
 
 	<ActionButton type="submit" {loading} message="Update" loadingMessage="Updating Config..." />
 
 	<Heading tag="h4">Display</Heading>
-
-    
 </form>
