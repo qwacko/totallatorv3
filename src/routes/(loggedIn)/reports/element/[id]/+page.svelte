@@ -12,6 +12,11 @@
 	import { onError, onSuccess } from '$lib/stores/notificationHelpers.js';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import { urlGenerator } from '$lib/routes.js';
+	import ReportElementConfigForm from './ReportElementConfigForm.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
+	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
+	import ReportElementContents from './ReportElementContents.svelte';
 
 	export let data;
 
@@ -34,6 +39,10 @@
 			}
 		}
 	});
+
+	let configType = data.elementData.reportElementConfig.configuration?.type;
+	$: if (configType !== data.elementData.reportElementConfig.configuration?.type)
+		console.log('Config Type Changed', configType);
 </script>
 
 <CustomHeader pageTitle={data.elementData.title || 'Report Element'} />
@@ -51,11 +60,12 @@
 		</Button>
 	</svelte:fragment>
 	<Heading tag="h4">Report Information</Heading>
+	<RawDataModal data={data.elementData} dev={data.dev} />
 	<div class="flex flex-row gap-2">
 		<P weight="bold">Title :</P>
 		<P>{data.elementData.report.title}</P>
 	</div>
-	<Heading tag="h4">Report Element Configuration</Heading>
+	<Heading tag="h4">Report Element</Heading>
 
 	<form action="?/update" method="POST" class="flex flex-row items-end gap-2" use:elementEnhance>
 		<input type="hidden" name="id" value={data.elementData.id} />
@@ -142,10 +152,11 @@
 		</form>
 	{/if}
 
-	<pre>
-        {JSON.stringify(data.elementData, null, 2)}
-    </pre>
-	<pre>
-        {JSON.stringify(data.form, null, 2)}
-    </pre>
+	<ReportElementConfigForm formData={data.configForm} />
+
+	<ReportGridWrapper size="xl">
+		<ReportGridItem cols={6} rows={1} highlightOnHover={false} title={data.elementData.title}>
+			<ReportElementContents data={data.elementConfigWithData.data} />
+		</ReportGridItem>
+	</ReportGridWrapper>
 </PageLayout>

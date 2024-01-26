@@ -1,6 +1,7 @@
 import type {
 	CreateReportElementType,
 	CreateReportType,
+	ReportElementConfigType,
 	UpdateReportElementType,
 	UpdateReportLayoutType
 } from '$lib/schema/reportSchema';
@@ -13,7 +14,9 @@ import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/creat
 import { eq, inArray } from 'drizzle-orm';
 import { filter as filterTable } from '../postgres/schema';
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
-import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
+import { journalFilterToQuery, journalFilterToText } from './helpers/journal/journalFilterToQuery';
+import { getData } from './helpers/report/getData';
+import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
 
 const returnDelayedData = async <T>(data: T | Promise<T>): Promise<T> => {
 	const useData = await data;
@@ -220,9 +223,108 @@ export const reportActions = {
 				.execute();
 
 			return reportElementConfigs;
+		},
+		update: async ({ db, id, data }: { db: DBType; id: string; data: ReportElementConfigType }) => {
+			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
+				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id)
+			});
+
+			if (!reportElementConfigData) {
+				throw new Error('Report Element Config not found');
+			}
+
+			await db
+				.update(reportElementConfig)
+				.set({ configuration: data, ...updatedTime() })
+				.where(eq(reportElementConfig.id, id))
+				.execute();
+
+			return;
 		}
 	},
 	reportElement: {
+		getData: async ({ db, id }: { db: DBType; id: string }) => {
+			const elementConfig = await db.query.reportElement.findFirst({
+				where: (reportElement, { eq }) => eq(reportElement.id, id),
+				with: {
+					filter: true,
+					report: {
+						with: {
+							filter: true
+						}
+					},
+					reportElementConfig: {
+						with: {
+							filter: true
+						}
+					}
+				}
+			});
+			const simpleElementConfigPromise = db.query.reportElement.findFirst({
+				where: (reportElement, { eq }) => eq(reportElement.id, id)
+			});
+
+			if (!elementConfig) {
+				throw new Error('Report Element not found');
+			}
+
+			const filters = filterNullUndefinedAndDuplicates([
+				...(elementConfig.filter?.filter
+					? await materializedJournalFilterToQuery(db, elementConfig.filter.filter)
+					: []),
+				...(elementConfig.report.filter?.filter
+					? await materializedJournalFilterToQuery(db, elementConfig.report.filter.filter)
+					: []),
+				...(elementConfig.reportElementConfig.filter?.filter
+					? await materializedJournalFilterToQuery(
+							db,
+							elementConfig.reportElementConfig.filter.filter
+						)
+					: [])
+			]);
+
+			const simpleElementConfig = await simpleElementConfigPromise;
+
+			if (!simpleElementConfig) throw new Error('Report Element Config not found');
+
+			const data = getData({
+				db,
+				config: elementConfig?.reportElementConfig.configuration,
+				filters
+			});
+
+			return { ...simpleElementConfig, data };
+		},
+		updateConfig: async ({
+			db,
+			id,
+			data
+		}: {
+			db: DBType;
+			id: string;
+			data: ReportElementConfigType;
+		}) => {
+			const reportElementData = await db.query.reportElement.findFirst({
+				where: (reportElement, { eq }) => eq(reportElement.id, id),
+				with: {
+					reportElementConfig: true
+				}
+			});
+
+			if (!reportElementData) {
+				throw new Error('Report Element not found');
+			}
+
+			const reportElementConfigId = reportElementData.reportElementConfig.id;
+
+			await reportActions.reportElementConfiguration.update({
+				db,
+				id: reportElementConfigId,
+				data
+			});
+
+			return;
+		},
 		deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
 			const reportElements = await db.query.reportElement.findMany({
 				where: (reportElement, { inArray }) => inArray(reportElement.id, ids)
