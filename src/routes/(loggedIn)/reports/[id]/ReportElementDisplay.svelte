@@ -1,23 +1,18 @@
 <script lang="ts">
-	import type { GetReportElementDataType } from '$lib/server/db/actions/reportActions';
-	import { Badge, Spinner } from 'flowbite-svelte';
+	import ReportElementContents from '$lib/components/report/ReportElementContents.svelte';
+	import type { GetReportConfigResult } from '$lib/server/db/actions/reportActions';
+	import { Badge,  } from 'flowbite-svelte';
 
 	export let id: string;
-	export let data: GetReportElementDataType[];
+	export let data: GetReportConfigResult;
 
-	$: thisData = data.find((d) => d.id === id);
+	$: thisData = data?.reportElementsWithData
+		? data.reportElementsWithData.find((d) => d.id === id)
+		: undefined;
 </script>
 
 {#if !thisData}
 	<Badge color="red">Report element not found</Badge>
 {:else}
-	{#await thisData.data}
-		<Spinner />
-	{:then currentData}
-		{#if currentData}
-			{currentData.id} - {currentData.title}
-		{:else}
-			<Badge color="red">Report element not found</Badge>
-		{/if}
-	{/await}
+	<ReportElementContents data={thisData.data} />
 {/if}

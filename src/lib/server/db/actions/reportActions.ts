@@ -124,7 +124,9 @@ export const reportActions = {
 				reportElements: {
 					with: {
 						filter: true,
-						reportElementConfig: true
+						reportElementConfig: {
+							with: { filter: true }
+						}
 					}
 				}
 			}
@@ -134,9 +136,18 @@ export const reportActions = {
 			return undefined;
 		}
 
-		const reportElementData = reportConfig.reportElements.map((item) =>
-			getReportElementData({ db, id: item.id })
-		);
+		const reportElementData = reportConfig.reportElements.map((item) => ({
+			...item,
+			data: getData({
+				db,
+				config: item.reportElementConfig.configuration,
+				filters: filterNullUndefinedAndDuplicates([
+					item.filter?.filter,
+					reportConfig.filter?.filter,
+					item.reportElementConfig.filter?.filter
+				])
+			})
+		}));
 
 		return { ...reportConfig, reportElementsWithData: reportElementData };
 	},
@@ -539,3 +550,5 @@ export type ReportLayoutConfigType = Exclude<
 >;
 
 export type ReportDropdownType = Awaited<ReturnType<typeof reportActions.listForDropdown>>;
+
+export type GetReportConfigResult = Awaited<ReturnType<typeof reportActions.getReportConfig>>;

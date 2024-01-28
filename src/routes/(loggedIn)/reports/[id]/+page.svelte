@@ -107,7 +107,7 @@
 					</div>
 					<div class="item-stretch flex flex-grow flex-row gap-2">
 						<div class="flex flex-grow content-center self-center">
-							<ReportElementDisplay {id} data={data.report.reportElementsWithData} />
+							<ReportElementDisplay {id} data={data.report} />
 						</div>
 						{#if edit}
 							<div class="flex flex-col gap-2 self-center">

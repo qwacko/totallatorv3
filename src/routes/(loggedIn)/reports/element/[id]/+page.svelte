@@ -12,11 +12,11 @@
 	import { onError, onSuccess } from '$lib/stores/notificationHelpers.js';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import { urlGenerator } from '$lib/routes.js';
-	import ReportElementConfigForm from './ReportElementConfigForm.svelte';
+	import ReportElementConfigForm from '$lib/components/report/ReportElementConfigForm.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
 	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
-	import ReportElementContents from './ReportElementContents.svelte';
+	import ReportElementContents from '$lib/components/report/ReportElementContents.svelte';
 
 	export let data;
 
