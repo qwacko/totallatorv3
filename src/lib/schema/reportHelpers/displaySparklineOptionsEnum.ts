@@ -185,6 +185,8 @@ export const displaySparklineOptionsData = {
 	};
 };
 
+export type DisplaySparklineOptionsDataType = typeof displaySparklineOptionsData;
+
 export const displaySparklineOptionsDropdown = Object.values(displaySparklineOptionsData).map(
 	(option) => {
 		return {

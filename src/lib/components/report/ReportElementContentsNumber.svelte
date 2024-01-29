@@ -66,9 +66,8 @@
 		{#if currentData.timeSeries && sparklineOptions.id !== 'none'}
 			<ReportElementSparkline
 				data={currentData.timeSeries}
-				type={sparklineOptions.graphType}
+				config={sparklineOptions}
 				class="flex"
-				format={sparklineOptions.type === "count" ? "Count" : "USD"} 
 			/>
 		{/if}
 	</div>

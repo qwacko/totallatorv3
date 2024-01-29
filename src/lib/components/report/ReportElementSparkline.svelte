@@ -3,15 +3,20 @@
 	import type { ApexOptions } from 'apexcharts';
 	import type { SingleTimeSeriesData } from '$lib/server/db/actions/helpers/report/getData';
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
-	import { getCurrencyFormatter, type currencyFormatType } from '$lib/schema/userSchema';
+	import { getCurrencyFormatter } from '$lib/schema/userSchema';
+	import type { DisplaySparklineOptionsDataType } from '$lib/schema/reportHelpers/displaySparklineOptionsEnum';
 
 	export let data: Awaited<SingleTimeSeriesData>;
-	export let type: 'area' | 'bar' = 'area';
+	export let config: DisplaySparklineOptionsDataType[keyof DisplaySparklineOptionsDataType];
+
+	$: type = config.id === 'none' ? 'area' : config.graphType;
+	$: typeIsCount = config.id === 'none' || config.type === 'count';
+	$: displayIsRunningTotal = config.id === 'none' || config.runningTotal;
+
 	let width: number | undefined;
 	let height: number | undefined;
 
-	export let format: currencyFormatType | 'Count' = 'USD';
-	$: formatter = format === 'Count' ? undefined : getCurrencyFormatter(format);
+	$: formatter = typeIsCount ? undefined : getCurrencyFormatter('USD');
 
 	const updateOptions = (
 		data: Awaited<SingleTimeSeriesData>,
@@ -77,7 +82,7 @@
 			},
 			series: [
 				{
-					name: format === 'Count' ? 'Count' : 'Amount',
+					name: typeIsCount ? (displayIsRunningTotal ? 'Total Count' : 'Count') : 'Amount',
 					data: data ? filterNullUndefinedAndDuplicates(data.map((d) => Number(d.amount))) : [],
 					color: '#1A56DB'
 				}

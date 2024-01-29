@@ -218,7 +218,12 @@ const getSingleTimeSeriesData = async ({
 	);
 
 	const beforeAmountResult = await db
-		.select({ total: sum(journalExtendedView.amount).mapWith(Number) })
+		.select({
+			total:
+				displayType === 'sum'
+					? sum(journalExtendedView.amount).mapWith(Number)
+					: count(journalExtendedView.id).mapWith(Number)
+		})
 		.from(journalExtendedView)
 		.where(and(...[...filtersAll, lt(journalExtendedView.dateText, earliestDate.toISOString())]))
 		.execute();
