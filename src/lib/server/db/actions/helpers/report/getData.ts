@@ -160,6 +160,8 @@ const getSingleTimeSeriesData = async ({
 
 	const grouping = typeDetail.grouping;
 	const span = typeDetail.span;
+	const useRunningTotal = typeDetail.runningTotal;
+	const displayType = typeDetail.type;
 
 	const sumFromStart = span === 'all' || span === 'upToRange';
 
@@ -168,10 +170,11 @@ const getSingleTimeSeriesData = async ({
 		timeSpan.end.toISOString().slice(0, 7)
 	);
 
-	const seriesToUse =
-		grouping === 'month'
-			? monthSeries
-			: filterNullUndefinedAndDuplicates(monthSeries.map((m) => m.slice(0, 4)));
+	const monthGrouping = grouping === 'month' && monthSeries.length < 40;
+
+	const seriesToUse = monthGrouping
+		? monthSeries
+		: filterNullUndefinedAndDuplicates(monthSeries.map((m) => m.slice(0, 4)));
 
 	const dateSeries = db
 		.$with('date_series')
@@ -181,16 +184,20 @@ const getSingleTimeSeriesData = async ({
 				.from(sql.raw(`(VALUES ('${seriesToUse.join("'), ('")}')) AS date_series(year_month)`))
 		);
 
-	const compareColumn =
-		grouping === 'month' ? journalExtendedView.yearMonth : journalExtendedView.year;
+	const compareColumn = monthGrouping ? journalExtendedView.yearMonth : journalExtendedView.year;
 
 	const data = await db
 		.with(dateSeries)
 		.select({
 			time: compareColumn,
-			amount: sql<number>`COALESCE(SUM(${journalExtendedView.amount}), 0)`
-				.mapWith(Number)
-				.as('total_amount'),
+			amount:
+				displayType === 'sum'
+					? sql<number>`COALESCE(SUM(${journalExtendedView.amount}), 0)`
+							.mapWith(Number)
+							.as('total_amount')
+					: sql<number>`COALESCE(COUNT(${journalExtendedView.id}), 0)`
+							.mapWith(Number)
+							.as('total_amount'),
 			earliestDate: min(journalExtendedView.dateText).as('earliest_date')
 		})
 		.from(dateSeries)
@@ -222,7 +229,7 @@ const getSingleTimeSeriesData = async ({
 		const runningTotal = data.slice(0, i).reduce((acc, cur) => acc + cur.amount, 0);
 		const adder = sumFromStart ? runningTotal + beforeAmount : runningTotal;
 
-		const amount = d.amount + adder;
+		const amount = useRunningTotal ? d.amount + adder : d.amount;
 
 		return {
 			x: d.time,

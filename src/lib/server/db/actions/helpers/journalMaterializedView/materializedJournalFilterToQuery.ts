@@ -39,9 +39,9 @@ export const materializedJournalFilterToQuery = async (
 		where.push(ilike(journalExtendedView.description, `%${filter.description}%`));
 	if (filter.excludeDescription)
 		where.push(not(ilike(journalExtendedView.description, `%${filter.excludeDescription}%`)));
-	if (!excludeStart && filter.dateAfter !== undefined)
+	if (!excludeStart && filter.dateAfter)
 		where.push(gte(journalExtendedView.dateText, filter.dateAfter));
-	if (!excludeEnd && filter.dateBefore !== undefined)
+	if (!excludeEnd && filter.dateBefore)
 		where.push(lte(journalExtendedView.dateText, filter.dateBefore));
 	if (filter.transfer !== undefined) where.push(eq(journalExtendedView.transfer, filter.transfer));
 	if (filter.complete !== undefined) where.push(eq(journalExtendedView.complete, filter.complete));

@@ -12,8 +12,8 @@ export const filtersToDateRange = (filters: JournalFilterSchemaWithoutPagination
 			return acc;
 		},
 		{
-			start: new Date('1000-01-01'),
-			end: new Date('3000-01-01')
+			start: new Date('2000-01-01'),
+			end: new Date()
 		}
 	);
 

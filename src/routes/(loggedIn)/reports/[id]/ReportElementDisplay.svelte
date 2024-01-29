@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ReportElementContents from '$lib/components/report/ReportElementContents.svelte';
 	import type { GetReportConfigResult } from '$lib/server/db/actions/reportActions';
-	import { Badge,  } from 'flowbite-svelte';
+	import { Badge } from 'flowbite-svelte';
 
 	export let id: string;
 	export let data: GetReportConfigResult;

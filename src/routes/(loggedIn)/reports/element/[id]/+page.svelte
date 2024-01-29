@@ -156,7 +156,7 @@
 
 	<ReportGridWrapper size="xl">
 		<ReportGridItem cols={6} rows={1} highlightOnHover={false} title={data.elementData.title}>
-			<ReportElementContents data={data.elementConfigWithData.data} />
+			<ReportElementContents data={data.elementConfigWithData.data} editing={false} />
 		</ReportGridItem>
 	</ReportGridWrapper>
 </PageLayout>

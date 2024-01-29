@@ -13,6 +13,7 @@
 	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { reportItemSizeDropdowns } from '$lib/schema/reportHelpers/reportItemSizeEnum';
+	import CheckboxInput from '../CheckboxInput.svelte';
 
 	export let formData: SuperValidated<ReportElementConfigFormSupertype>;
 
@@ -82,6 +83,12 @@
 			bind:value={$form.numberSize}
 			name="numberSize"
 			errorMessage={$errors.numberSize}
+		/>
+		<CheckboxInput
+			title="Vertical Display"
+			bind:value={$form.numberVertical}
+			name="numberVertical"
+			errorMessage={$errors.numberVertical}
 		/>
 	{/if}
 

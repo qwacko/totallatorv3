@@ -71,7 +71,8 @@ const numberDisplayColumns = {
 	numberSecondaryDisplay: z.enum(displayTimeOptionsEnum).default('countWithinRange'),
 	numberSecondaryTitle: z.string().default('Count'),
 	numberSparkline: z.enum(displaySparklineOptionsEnum).default('none'),
-	numberSize: z.enum(reportItemSizeEnum).default('medium')
+	numberSize: z.enum(reportItemSizeEnum).default('medium'),
+	numberVertical: z.boolean().default(false)
 };
 
 export const reportElementConfigNumber = z.object({

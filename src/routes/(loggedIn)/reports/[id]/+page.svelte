@@ -4,7 +4,7 @@
 	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
 	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import { Badge, Button, Input, Spinner } from 'flowbite-svelte';
+	import { Badge, Button, Heading, Input, Spinner } from 'flowbite-svelte';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import ArrowDownIcon from '$lib/components/icons/ArrowDownIcon.svelte';
 	import ArrowUpIcon from '$lib/components/icons/ArrowUpIcon.svelte';
@@ -84,7 +84,16 @@
 			</Button>
 		{:else}
 			<Button color="primary" outline on:click={() => (edit = true)}><EditIcon /></Button>
-			<Button color="red" outline href={urlGenerator({address: "/(loggedIn)/reports/[id]/delete", paramsValue: {id: $reportData.id}}).url}><DeleteIcon /></Button>
+			<Button
+				color="red"
+				outline
+				href={urlGenerator({
+					address: '/(loggedIn)/reports/[id]/delete',
+					paramsValue: { id: $reportData.id }
+				}).url}
+			>
+				<DeleteIcon />
+			</Button>
 		{/if}
 	</svelte:fragment>
 
@@ -92,21 +101,10 @@
 	<RawDataModal data={$reportLayoutStringStore} dev={data.dev} />
 	<ReportGridWrapper size="xl">
 		{#each $reportData.reportElements as { cols, rows, title, id, order }}
-			<ReportGridItem {cols} {rows} highlightOnHover={false} title={edit ? undefined : title}>
+			<ReportGridItem {cols} {rows} highlightOnHover={false}>
 				<div class="flex h-full w-full flex-col gap-2">
-					<div class="flex flex-row gap-2">
-						<div class="flex">{title}</div>
-						<a
-							href={urlGenerator({
-								address: '/(loggedIn)/reports/element/[id]',
-								paramsValue: { id }
-							}).url}
-						>
-							Edit
-						</a>
-					</div>
 					<div class="item-stretch flex flex-grow flex-row gap-2">
-						<div class="flex flex-grow content-center self-center">
+						<div class="flex flex-grow place-content-center content-center self-stretch">
 							<ReportElementDisplay {id} data={data.report} />
 						</div>
 						{#if edit}
@@ -160,7 +158,9 @@
 
 				<svelte:fragment slot="titleLeft">
 					{#if edit}
-						<Input tag="h3" class="mr-2" bind:value={title} />
+						<Input tag="h4" class="mr-2" bind:value={title} />
+					{:else if title}
+						<Heading tag="h4" class="mr-2">{title}</Heading>
 					{/if}
 				</svelte:fragment>
 				<svelte:fragment slot="titleRight">
@@ -194,6 +194,15 @@
 								<DeleteIcon />
 							</Button>
 						</div>
+					{:else}
+						<a
+							href={urlGenerator({
+								address: '/(loggedIn)/reports/element/[id]',
+								paramsValue: { id }
+							}).url}
+						>
+							<EditIcon />
+						</a>
 					{/if}
 				</svelte:fragment>
 			</ReportGridItem>
