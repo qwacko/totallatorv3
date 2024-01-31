@@ -1,10 +1,6 @@
 import { z } from 'zod';
 import { journalFilterSchemaWithoutPagination } from './journalSchema';
-import type { SelectOptionType } from 'flowbite-svelte';
-import { displaySparklineOptionsEnum } from './reportHelpers/displaySparklineOptionsEnum';
-import { displayTimeOptionsEnum } from './reportHelpers/displayTimeOptionsEnum';
-import { graphGroupingEnum } from './reportHelpers/graphGroupingEnum';
-import { reportItemSizeEnum } from './reportHelpers/reportItemSizeEnum';
+import { reportElementLayoutEnum } from './reportHelpers/reportElementLayoutEnum';
 
 export const reportLayoutOptionsEnum = ['default', 'sixEven', 'wideOnly'] as const;
 
@@ -66,48 +62,12 @@ export const updateReportElementSchema = z.object({
 export type UpdateReportElementType = z.infer<typeof updateReportElementSchema>;
 export type UpdateReportElementSupertype = typeof updateReportElementSchema;
 
-const numberDisplayColumns = {
-	numberDisplay: z.enum(displayTimeOptionsEnum).default('withinRange'),
-	numberSecondaryDisplay: z.enum(displayTimeOptionsEnum).default('countWithinRange'),
-	numberSecondaryTitle: z.string().default('Count'),
-	numberSparkline: z.enum(displaySparklineOptionsEnum).default('none'),
-	numberSize: z.enum(reportItemSizeEnum).default('medium'),
-	numberVertical: z.boolean().default(false)
-};
-
-export const reportElementConfigNumber = z.object({
-	type: z.literal('number'),
-	...numberDisplayColumns
+export const updateReportConfigurationSchema = z.object({
+	id: z.string(),
+	title: z.string().optional(),
+	group: z.string().optional(),
+	layout: z.enum(reportElementLayoutEnum).optional()
 });
 
-export type ReportElementConfigNumberType = z.infer<typeof reportElementConfigNumber>;
-
-export const reportElementConfigGraphTypeEnum = ['bar', 'pie', 'absoluteArea'] as const;
-export const configTypeDropdownOptions: SelectOptionType<string>[] = [
-	{ name: 'Number', value: 'number' },
-	{ name: 'Graph', value: 'graph' }
-] as const;
-
-const graphDisplayColumns = {
-	graphType: z.enum(reportElementConfigGraphTypeEnum).default('bar'),
-	graphgrouping: z.enum(graphGroupingEnum).default('account')
-};
-
-export const reportElementConfigGraph = z.object({
-	type: z.literal('graph'),
-	...graphDisplayColumns
-});
-
-export const reportElementConfigurationSchema = z
-	.union([reportElementConfigNumber, reportElementConfigGraph])
-	.optional();
-export type ReportElementConfigType = z.infer<typeof reportElementConfigurationSchema>;
-
-export const reportElementConfigurationFormSchema = z.object({
-	type: z.enum(['number', 'graph']),
-	...numberDisplayColumns,
-	...graphDisplayColumns
-});
-
-export type ReportElementConfigFormType = z.infer<typeof reportElementConfigurationFormSchema>;
-export type ReportElementConfigFormSupertype = typeof reportElementConfigurationFormSchema;
+export type UpdateReportConfigurationType = z.infer<typeof updateReportConfigurationSchema>;
+export type UpdateReportConfigurationSupertype = typeof updateReportConfigurationSchema;

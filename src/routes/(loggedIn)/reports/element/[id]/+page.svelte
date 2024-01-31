@@ -12,7 +12,6 @@
 	import { onError, onSuccess } from '$lib/stores/notificationHelpers.js';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import { urlGenerator } from '$lib/routes.js';
-	import ReportElementConfigForm from '$lib/components/report/ReportElementConfigForm.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
 	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
@@ -39,10 +38,6 @@
 			}
 		}
 	});
-
-	let configType = data.elementData.reportElementConfig.configuration?.type;
-	$: if (configType !== data.elementData.reportElementConfig.configuration?.type)
-		console.log('Config Type Changed', configType);
 </script>
 
 <CustomHeader pageTitle={data.elementData.title || 'Report Element'} />
@@ -152,11 +147,11 @@
 		</form>
 	{/if}
 
-	<ReportElementConfigForm formData={data.configForm} />
+	<!-- <ReportElementConfigForm formData={data.configForm} /> -->
 
 	<ReportGridWrapper size="xl">
 		<ReportGridItem cols={6} rows={1} highlightOnHover={false} title={data.elementData.title}>
-			<ReportElementContents data={data.elementConfigWithData.data} editing={false} />
+			<ReportElementContents data={data.elementConfigWithData} />
 		</ReportGridItem>
 	</ReportGridWrapper>
 </PageLayout>

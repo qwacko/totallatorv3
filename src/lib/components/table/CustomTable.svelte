@@ -77,7 +77,7 @@
 	export let shownColumns: IDs[];
 	export let hideTopPagination: boolean = false;
 	export let hideBottomPagination: boolean = false;
-	export let highlightText: string = '';
+	export let highlightText: string | null | undefined = '';
 	export let highlightTextColumns: IDs[] = [];
 	export let rowColour: (row: RowData) => undefined | 'grey' = () => undefined;
 	export let bulkSelection: boolean = false;
@@ -125,7 +125,7 @@
 	</div>
 {/if}
 <slot name="filter" />
-<div class="flex flex-row gap-2 items-center">
+<div class="flex flex-row items-center gap-2">
 	{#if $$slots.bulkActions}
 		<slot name="bulkActions" {selectedIds} {updateSelectedIds} />
 	{/if}
@@ -134,7 +134,7 @@
 	{/if}
 	<div class="flex flex-grow items-center" />
 	{#if $$slots.filterModal}
-		<Button size="sm" class="p-2 flex" color="light" on:click={() => (filterOpened = true)}>
+		<Button size="sm" class="flex p-2" color="light" on:click={() => (filterOpened = true)}>
 			<FilterIcon />
 		</Button>
 		<Modal bind:open={filterOpened} size="lg" title={filterModalTitle}>
@@ -160,7 +160,7 @@
 	<Table>
 		<TableHead>
 			{#if bulkSelection}
-				<TableHeadCell class="flex flex-row gap-1 justify-center">
+				<TableHeadCell class="flex flex-row justify-center gap-1">
 					<ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} />
 				</TableHeadCell>
 			{/if}

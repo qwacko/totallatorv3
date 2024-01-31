@@ -1,14 +1,12 @@
 <script lang="ts">
-	import type { ReportElementData } from '$lib/server/db/actions/helpers/report/getData';
-	import ReportElementContentsNumber from './ReportElementContentsNumber.svelte';
+	import type { ReportElementDataForUse } from '$lib/server/db/actions/reportActions';
+	import ReportElementItem from './ReportElementItem.svelte';
 
-	export let data: ReportElementData;
+	export let data: ReportElementDataForUse;
 </script>
 
-{#if data}
-	{#if data.type === 'number'}
-		<ReportElementContentsNumber {data} />
-	{:else}
-		{data.type}
+{#each data.itemData as item}
+	{#if item}
+		<ReportElementItem data={item} />
 	{/if}
-{/if}
+{/each}

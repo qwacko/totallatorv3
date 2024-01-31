@@ -14,5 +14,5 @@
 {#if !thisData}
 	<Badge color="red">Report element not found</Badge>
 {:else}
-	<ReportElementContents data={thisData.data} />
+	<ReportElementContents data={thisData} />
 {/if}

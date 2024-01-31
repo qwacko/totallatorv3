@@ -2,8 +2,24 @@ import type { ReportLayoutConfigType } from '$lib/server/db/actions/reportAction
 import { nanoid } from 'nanoid';
 import { derived, get, writable } from 'svelte/store';
 
+type ReportElementType = ReportLayoutConfigType['reportElements'][number];
+
+type NewReportElementType = {
+	id: string;
+	cols: number;
+	rows: number;
+	order: number;
+	title: string;
+};
+
+type ReportLayoutConfigWithNew = {
+	[K in keyof ReportLayoutConfigType]: K extends 'reportElements'
+		? Array<ReportElementType | NewReportElementType>
+		: ReportLayoutConfigType[K];
+};
+
 export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
-	const reportLayoutStore = writable<ReportLayoutConfigType>({
+	const reportLayoutStore = writable<ReportLayoutConfigWithNew>({
 		...reportData,
 		reportElements: reportData.reportElements.sort((a, b) => a.order - b.order)
 	});
@@ -46,14 +62,7 @@ export const reportLayoutStore = (reportData: ReportLayoutConfigType) => {
 						cols: 1,
 						rows: 1,
 						order: maxOrder + 1,
-						title: 'New',
-						createdAt: new Date(),
-						updatedAt: new Date(),
-						reportId: currentReportData.id,
-						filterId: null,
-						filter: null,
-						reportElementConfig: null,
-						reportElementConfigId: null
+						title: 'New'
 					}
 				]
 			};

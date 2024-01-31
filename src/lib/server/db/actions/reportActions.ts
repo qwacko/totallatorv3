@@ -1,13 +1,19 @@
 import type {
 	CreateReportElementType,
 	CreateReportType,
-	ReportElementConfigType,
+	UpdateReportConfigurationType,
 	UpdateReportElementType,
 	UpdateReportLayoutType
 } from '$lib/schema/reportSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { report, reportElement, reportElementConfig } from '../postgres/schema';
+import {
+	report,
+	reportElement,
+	reportElementConfig,
+	type InsertReportElementConfigType,
+	filtersToReportConfigs
+} from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/create/reportLayoutOptions';
@@ -15,34 +21,21 @@ import { eq, inArray } from 'drizzle-orm';
 import { filter as filterTable } from '../postgres/schema';
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
-import { getData } from './helpers/report/getData';
-
-const returnDelayedData = async <T>(data: T | Promise<T>): Promise<T> => {
-	const useData = await data;
-	//Delay by a random amount between 1 and 10 seconds to simulate a slow database
-	await new Promise((resolve) => setTimeout(resolve, Math.random() * 10000));
-
-	return useData;
-};
-
-const getReportElementData = ({ db, id }: { db: DBType; id: string }) => {
-	//Delay by a random amount between 1 and 10 seconds to simulate a slow database
-	const data = returnDelayedData(
-		db.query.reportElement.findFirst({
-			where: (reportElement, { eq }) => eq(reportElement.id, id)
-		})
-	);
-
-	return { id, data };
-};
-
-export type GetReportElementDataType = ReturnType<typeof getReportElementData>;
+import { getItemData } from './helpers/report/getData';
+import type { ReportConfigPartIndividualSchemaType } from '$lib/schema/reportHelpers/reportConfigPartSchema';
 
 export const reportActions = {
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
 		const reportInfo = await reportActions.getReportConfig({ db, id });
 
 		if (!reportInfo) throw new Error('Report not found');
+
+		console.log('Deleting Reports');
+		console.log(
+			'Report Elements',
+			reportInfo.reportElements.map((item) => item.id)
+		);
+		console.log('Filter', reportInfo.filterId);
 
 		await db.transaction(async (trx) => {
 			await reportActions.reportElement.deleteMany({
@@ -104,10 +97,7 @@ export const reportActions = {
 	},
 	getSimpleReportConfig: async ({ db, id }: { db: DBType; id: string }) => {
 		const reportConfig = await db.query.report.findFirst({
-			where: (report, { eq }) => eq(report.id, id),
-			with: {
-				filter: true
-			}
+			where: (report, { eq }) => eq(report.id, id)
 		});
 
 		if (!reportConfig) {
@@ -121,14 +111,7 @@ export const reportActions = {
 			where: (report, { eq }) => eq(report.id, id),
 			with: {
 				filter: true,
-				reportElements: {
-					with: {
-						filter: true,
-						reportElementConfig: {
-							with: { filter: true }
-						}
-					}
-				}
+				reportElements: true
 			}
 		});
 
@@ -136,18 +119,11 @@ export const reportActions = {
 			return undefined;
 		}
 
-		const reportElementData = reportConfig.reportElements.map((item) => ({
-			...item,
-			data: getData({
-				db,
-				config: item.reportElementConfig.configuration,
-				filters: filterNullUndefinedAndDuplicates([
-					item.filter?.filter,
-					reportConfig.filter?.filter,
-					item.reportElementConfig.filter?.filter
-				])
-			})
-		}));
+		const reportElementData = await Promise.all(
+			reportConfig.reportElements.map(async (item) =>
+				reportActions.reportElement.getWithData({ db, id: item.id })
+			)
+		);
 
 		return { ...reportConfig, reportElementsWithData: reportElementData };
 	},
@@ -224,6 +200,41 @@ export const reportActions = {
 			}
 		});
 	},
+	reportElementConfigItem: {
+		update: async ({
+			db,
+			id,
+			configId,
+			data
+		}: {
+			db: DBType;
+			id: string;
+			configId: string;
+			data: ReportConfigPartIndividualSchemaType;
+		}) => {
+			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
+				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId)
+			});
+
+			if (!reportElementConfigData?.config) {
+				throw new Error('Report Element Config not found');
+			}
+
+			const updatedConfig = reportElementConfigData.config.map((item) => {
+				if (item.id === id) {
+					//ID and Order shouldn't be updated through this means
+					return { ...data, id: item.id, order: item.order };
+				}
+				return item;
+			});
+
+			await db
+				.update(reportElementConfig)
+				.set({ config: updatedConfig, ...updatedTime() })
+				.where(eq(reportElementConfig.id, configId))
+				.execute();
+		}
+	},
 	reportElementConfiguration: {
 		listReusable: async ({ db }: { db: DBType }) => {
 			const reportElementConfigs = await db
@@ -234,7 +245,7 @@ export const reportActions = {
 
 			return reportElementConfigs;
 		},
-		update: async ({ db, id, data }: { db: DBType; id: string; data: ReportElementConfigType }) => {
+		setReusable: async ({ db, id }: { db: DBType; id: string }) => {
 			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
 				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id)
 			});
@@ -245,7 +256,45 @@ export const reportActions = {
 
 			await db
 				.update(reportElementConfig)
-				.set({ configuration: data, ...updatedTime() })
+				.set({ reusable: true })
+				.where(eq(reportElementConfig.id, id))
+				.execute();
+		},
+		clearReusable: async ({ db, id }: { db: DBType; id: string }) => {
+			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
+				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id),
+				with: {
+					reportElements: true
+				}
+			});
+
+			if (!reportElementConfigData) {
+				throw new Error('Report Element Config not found');
+			}
+
+			if (reportElementConfigData.reportElements.length > 1) {
+				throw new Error('Report Element Config is used in multiple reports elements');
+			}
+
+			await db
+				.update(reportElementConfig)
+				.set({ reusable: false })
+				.where(eq(reportElementConfig.id, id))
+				.execute();
+		},
+		update: async ({ db, data }: { db: DBType; data: UpdateReportConfigurationType }) => {
+			const { id, ...otherData } = data;
+			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
+				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id)
+			});
+
+			if (!reportElementConfigData) {
+				throw new Error('Report Element Config not found');
+			}
+
+			await db
+				.update(reportElementConfig)
+				.set({ ...otherData, ...updatedTime() })
 				.where(eq(reportElementConfig.id, id))
 				.execute();
 
@@ -253,7 +302,7 @@ export const reportActions = {
 		}
 	},
 	reportElement: {
-		getData: async ({ db, id }: { db: DBType; id: string }) => {
+		getWithData: async ({ db, id }: { db: DBType; id: string }) => {
 			const elementConfig = await db.query.reportElement.findFirst({
 				where: (reportElement, { eq }) => eq(reportElement.id, id),
 				with: {
@@ -265,67 +314,71 @@ export const reportActions = {
 					},
 					reportElementConfig: {
 						with: {
-							filter: true
+							filters: { with: { filter: true } }
 						}
 					}
 				}
 			});
+
 			const simpleElementConfigPromise = db.query.reportElement.findFirst({
-				where: (reportElement, { eq }) => eq(reportElement.id, id)
+				where: (reportElement, { eq }) => eq(reportElement.id, id),
+				with: { reportElementConfig: true }
 			});
 
 			if (!elementConfig) {
 				throw new Error('Report Element not found');
 			}
 
-			const filters = filterNullUndefinedAndDuplicates([
-				elementConfig.filter?.filter,
-				elementConfig.report.filter?.filter,
-				elementConfig.reportElementConfig.filter?.filter
-			]);
-
 			const simpleElementConfig = await simpleElementConfigPromise;
 
 			if (!simpleElementConfig) throw new Error('Report Element Config not found');
 
-			const data = getData({
-				db,
-				config: elementConfig?.reportElementConfig.configuration,
-				filters
-			});
+			const data = elementConfig?.reportElementConfig.config
+				? elementConfig?.reportElementConfig.config.map((currentConfig) =>
+						getItemData({
+							db,
+							config: currentConfig,
+							commonFilters: filterNullUndefinedAndDuplicates([
+								elementConfig.filter?.filter,
+								elementConfig.report.filter?.filter
+							]),
+							filters: elementConfig.reportElementConfig.filters.map((item) => item.filter?.filter)
+						})
+					)
+				: [];
 
-			return { ...simpleElementConfig, data };
+			return { id: simpleElementConfig.id, elementConfig: simpleElementConfig, itemData: data };
 		},
-		updateConfig: async ({
-			db,
-			id,
-			data
-		}: {
-			db: DBType;
-			id: string;
-			data: ReportElementConfigType;
-		}) => {
-			const reportElementData = await db.query.reportElement.findFirst({
-				where: (reportElement, { eq }) => eq(reportElement.id, id),
-				with: {
-					reportElementConfig: true
-				}
-			});
+		// updateConfig: async ({
+		// 	db,
+		// 	id,
+		// 	data
+		// }: {
+		// 	db: DBType;
+		// 	id: string;
+		// 	data: UpdateReportConfigurationType;
+		// }) => {
+		// 	const reportElementData = await db.query.reportElement.findFirst({
+		// 		where: (reportElement, { eq }) => eq(reportElement.id, id),
+		// 		with: {
+		// 			reportElementConfig: true
+		// 		}
+		// 	});
 
-			if (!reportElementData) {
-				throw new Error('Report Element not found');
-			}
+		// 	if (!reportElementData) {
+		// 		throw new Error('Report Element not found');
+		// 	}
 
-			const reportElementConfigId = reportElementData.reportElementConfig.id;
+		// 	const reportElementConfigId = reportElementData.reportElementConfig.id;
 
-			await reportActions.reportElementConfiguration.update({
-				db,
-				id: reportElementConfigId,
-				data
-			});
+		// 	await reportActions.reportElementConfiguration.update({
+		// 		db,
+		// 		id: reportElementConfigId,
+		// 		data
+		// 	});
 
-			return;
-		},
+		// 	return;
+		// },
 		deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
 			const reportElements = await db.query.reportElement.findMany({
 				where: (reportElement, { inArray }) => inArray(reportElement.id, ids)
@@ -342,6 +395,7 @@ export const reportActions = {
 			});
 
 			const reportElementsToDelete = reportElements.map((item) => item.id);
+
 			const reportConfigsToDelete = filterNullUndefinedAndDuplicates(
 				reportElementConfigs.map((item) => {
 					if (item.locked) return undefined;
@@ -358,6 +412,11 @@ export const reportActions = {
 				})
 			);
 
+			const reportConfigToFiltersToDelete = await db.query.filtersToReportConfigs.findMany({
+				where: (filtersToReportConfigs, { inArray }) =>
+					inArray(filtersToReportConfigs.reportElementConfigId, reportConfigsToDelete)
+			});
+
 			await db.transaction(async (trx) => {
 				if (reportElementsToDelete.length > 0) {
 					await trx
@@ -370,6 +429,28 @@ export const reportActions = {
 					await trx
 						.delete(reportElementConfig)
 						.where(inArray(reportElementConfig.id, reportConfigsToDelete))
+						.execute();
+				}
+
+				if (reportConfigToFiltersToDelete.length > 0) {
+					await trx
+						.delete(filtersToReportConfigs)
+						.where(
+							inArray(
+								filtersToReportConfigs.reportElementConfigId,
+								reportConfigToFiltersToDelete.map((item) => item.id)
+							)
+						)
+						.execute();
+
+					await trx
+						.delete(filterTable)
+						.where(
+							inArray(
+								filterTable.id,
+								reportConfigToFiltersToDelete.map((item) => item.filterId)
+							)
+						)
 						.execute();
 				}
 			});
@@ -388,12 +469,22 @@ export const reportActions = {
 				...item
 			}));
 
-			const reportElementsConfigData = reportElementsData.map((item) => ({
-				id: item.reportElementConfigId,
-				reportElementId: item.id,
-				title: item.title,
-				...updatedTime()
-			}));
+			const reportElementsConfigData: InsertReportElementConfigType[] = reportElementsData.map(
+				(item) => ({
+					id: item.reportElementConfigId,
+					reportElementId: item.id,
+					title: item.title,
+					config: Array(20).map((_, index) => ({
+						id: nanoid(),
+						order: index + 1,
+						type: 'none'
+					})),
+					layout: 'singleItem',
+					locked: false,
+					reusable: false,
+					...updatedTime()
+				})
+			);
 
 			await db.transaction(async (trx) => {
 				await trx.insert(reportElement).values(reportElementsData).execute();
@@ -405,7 +496,7 @@ export const reportActions = {
 				where: (reportElement, { eq }) => eq(reportElement.id, id),
 				with: {
 					filter: true,
-					reportElementConfig: true,
+					reportElementConfig: { with: { filters: { with: { filter: true } } } },
 					report: {
 						with: {
 							filter: true
@@ -552,3 +643,8 @@ export type ReportLayoutConfigType = Exclude<
 export type ReportDropdownType = Awaited<ReturnType<typeof reportActions.listForDropdown>>;
 
 export type GetReportConfigResult = Awaited<ReturnType<typeof reportActions.getReportConfig>>;
+
+export type ReportElementDataForUse = NonNullable<
+	Awaited<ReturnType<typeof reportActions.reportElement.getWithData>>
+>;
+// export type ReportElementDataForUse = GetReportConfigResult["reportElementsWithData"];

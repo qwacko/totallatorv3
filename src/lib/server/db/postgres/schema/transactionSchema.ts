@@ -24,7 +24,8 @@ import {
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
 import type { JournalFilterSchemaWithoutPaginationType } from '../../../../schema/journalSchema';
 import { pageSizeEnum } from '../../../../schema/pageSizeSchema';
-import type { ReportElementConfigType } from '../../../../schema/reportSchema';
+import { reportElementLayoutEnum } from '../../../../schema/reportHelpers/reportElementLayoutEnum';
+import type { ReportConfigPartSchemaType } from '../../../../schema/reportHelpers/reportConfigPartSchema';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -534,6 +535,8 @@ export const filter = pgTable(
 	})
 );
 
+export const reportLayoutEnum = pgEnum('report_layout', reportElementLayoutEnum);
+
 export const reportElementConfig = pgTable(
 	'report_element_config',
 	{
@@ -543,16 +546,36 @@ export const reportElementConfig = pgTable(
 		group: text('group'),
 		locked: boolean('locked').notNull().default(false),
 		reusable: boolean('reusable').notNull().default(false),
-		filterId: text('filter_id'),
-		configuration: jsonb('configuration').$type<ReportElementConfigType>()
+		layout: reportLayoutEnum('layout').notNull().default('singleItem'),
+		config: jsonb('config').$type<ReportConfigPartSchemaType>()
 	},
 	(t) => ({
 		titleIdx: index('report_element_config_title_idx').on(t.title),
 		groupIdx: index('report_element_config_group_idx').on(t.group),
 		reusableIdx: index('report_element_config_reusable_idx').on(t.reusable),
 		titleGroupIdx: index('report_element_config_title_group_idx').on(t.title, t.group),
-		lockedIdx: index('report_element_config_locked_idx').on(t.locked),
-		filterIdx: index('report_element_config_filter_idx').on(t.filterId)
+		lockedIdx: index('report_element_config_locked_idx').on(t.locked)
+	})
+);
+
+export type InsertReportElementConfigType = typeof reportElementConfig.$inferInsert;
+
+export const filtersToReportConfigs = pgTable(
+	'filters_to_report_configs',
+	{
+		...idColumn,
+		...timestampColumns,
+		reportElementConfigId: text('report_element_config_id').notNull(),
+		filterId: text('filter_id').notNull(),
+		order: integer('order').notNull().default(0)
+	},
+	(t) => ({
+		uniqueRelation: unique().on(t.reportElementConfigId, t.filterId),
+		uniqueOrder: unique().on(t.reportElementConfigId, t.order),
+		reportElementConfigIdx: index('report_element_config__from_filter_idx').on(
+			t.reportElementConfigId
+		),
+		filterIdx: index('filter_idx').on(t.filterId)
 	})
 );
 
@@ -602,7 +625,7 @@ export const reportElement = pgTable(
 	})
 );
 
-export const reportElementRelations = relations(reportElement, ({ one }) => ({
+export const reportElementRelations = relations(reportElement, ({ one, many }) => ({
 	reportElementConfig: one(reportElementConfig, {
 		fields: [reportElement.reportElementConfigId],
 		references: [reportElementConfig.id]
@@ -619,16 +642,24 @@ export const reportElementRelations = relations(reportElement, ({ one }) => ({
 
 export const reportElementConfigRelations = relations(reportElementConfig, ({ many, one }) => ({
 	reportElements: many(reportElement),
-	filter: one(filter, {
-		fields: [reportElementConfig.filterId],
-		references: [filter.id]
-	})
+	filters: many(filtersToReportConfigs)
 }));
 
 export const reportRelations = relations(report, ({ many, one }) => ({
 	reportElements: many(reportElement),
 	filter: one(filter, {
 		fields: [report.filterId],
+		references: [filter.id]
+	})
+}));
+
+export const filtersToReportConfigsRelations = relations(filtersToReportConfigs, ({ one }) => ({
+	reportElementConfig: one(reportElementConfig, {
+		fields: [filtersToReportConfigs.reportElementConfigId],
+		references: [reportElementConfig.id]
+	}),
+	filter: one(filter, {
+		fields: [filtersToReportConfigs.filterId],
 		references: [filter.id]
 	})
 }));

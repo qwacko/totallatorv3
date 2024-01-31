@@ -1,25 +1,19 @@
 <script lang="ts">
-	import { Chart } from 'flowbite-svelte';
+	import { Chart, Spinner } from 'flowbite-svelte';
 	import type { ApexOptions } from 'apexcharts';
-	import type { SingleTimeSeriesData } from '$lib/server/db/actions/helpers/report/getData';
+	import type { ReportConfigPartWithData_Sparkline } from '$lib/server/db/actions/helpers/report/getData';
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
-	import { getCurrencyFormatter } from '$lib/schema/userSchema';
-	import type { DisplaySparklineOptionsDataType } from '$lib/schema/reportHelpers/displaySparklineOptionsEnum';
 
-	export let data: Awaited<SingleTimeSeriesData>;
-	export let config: DisplaySparklineOptionsDataType[keyof DisplaySparklineOptionsDataType];
+	export let data: ReportConfigPartWithData_Sparkline;
 
-	$: type = config.id === 'none' ? 'area' : config.graphType;
-	$: typeIsCount = config.id === 'none' || config.type === 'count';
-	$: displayIsRunningTotal = config.id === 'none' || config.runningTotal;
+	const type: 'area' | 'bar' =
+		data.type === 'sparkline' ? 'area' : data.type === 'sparklinebar' ? 'bar' : 'area';
 
 	let width: number | undefined;
 	let height: number | undefined;
 
-	$: formatter = typeIsCount ? undefined : getCurrencyFormatter('USD');
-
 	const updateOptions = (
-		data: Awaited<SingleTimeSeriesData>,
+		resolvedData: Awaited<ReportConfigPartWithData_Sparkline['data']>,
 		width: number,
 		height: number
 	): ApexOptions => {
@@ -52,7 +46,7 @@
 				},
 				y: {
 					formatter: (val) => {
-						return formatter ? formatter.format(val) : val.toString();
+						return resolvedData.data.find((d) => d.value === val)?.text || val.toString();
 					}
 				}
 			},
@@ -82,13 +76,15 @@
 			},
 			series: [
 				{
-					name: typeIsCount ? (displayIsRunningTotal ? 'Total Count' : 'Count') : 'Amount',
-					data: data ? filterNullUndefinedAndDuplicates(data.map((d) => Number(d.amount))) : [],
+					name: resolvedData.title,
+					data: resolvedData.data.map((d) => d.value),
 					color: '#1A56DB'
 				}
 			],
 			xaxis: {
-				categories: data ? filterNullUndefinedAndDuplicates(data.map((d) => d.x)) : [],
+				categories: resolvedData
+					? filterNullUndefinedAndDuplicates(resolvedData.data.map((d) => d.date))
+					: [],
 				labels: {
 					show: false
 				},
@@ -107,12 +103,18 @@
 			}
 		};
 	};
-
-	$: options = updateOptions(data, width || 0, height || 0);
 </script>
 
 <div class="relative flex grow self-stretch" bind:clientWidth={width} bind:clientHeight={height}>
 	{#if width > 0 && height > 0}
-		<Chart {options} class="absolute {$$props.class}" key={`${width}-${height}`} />
+		{#await data.data}
+			<Spinner />
+		{:then retrievedData}
+			<Chart
+				options={updateOptions(retrievedData, width || 0, height || 0)}
+				class="absolute {$$props.class}"
+				key={`${width}-${height}`}
+			/>
+		{/await}
 	{/if}
 </div>
