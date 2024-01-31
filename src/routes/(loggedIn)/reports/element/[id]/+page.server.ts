@@ -4,12 +4,15 @@ import {
 	defaultAllJournalFilter,
 	journalFilterSchemaWithoutPagination
 } from '$lib/schema/journalSchema.js';
-import { updateReportElementSchema } from '$lib/schema/reportSchema.js';
+import {
+	updateReportConfigurationSchema,
+	updateReportElementSchema
+} from '$lib/schema/reportSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { dropdownItems } from '$lib/server/dropdownItems';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms/server';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -49,10 +52,14 @@ export const load = async (data) => {
 		updateReportElementSchema
 	);
 
-	// const configForm = await superValidate(
-	// 	elementData.reportElementConfig.configuration,
-	// 	reportElementConfigurationFormSchema
-	// );
+	const configForm = await superValidate(
+		{
+			title: elementData.reportElementConfig.title || undefined,
+			group: elementData.reportElementConfig.group || undefined,
+			layout: elementData.reportElementConfig.layout || undefined
+		},
+		updateReportConfigurationSchema
+	);
 
 	const elementConfigWithData = await tActions.report.reportElement.getWithData({
 		db,
@@ -63,7 +70,7 @@ export const load = async (data) => {
 		elementData,
 		elementConfigWithData,
 		form,
-		// configForm,
+		configForm,
 		dropdowns: dropdownItems({ db })
 	};
 };
@@ -138,30 +145,27 @@ export const actions = {
 		}
 
 		return;
+	},
+	updateConfig: async (data) => {
+		const formData = await superValidate(data.request, updateReportConfigurationSchema);
+
+		if (!formData.valid) {
+			return formData;
+		}
+
+		const db = data.locals.db;
+		const id = data.params.id;
+
+		try {
+			await tActions.report.reportElementConfiguration.update({
+				db,
+				reportElementId: id,
+				data: formData.data
+			});
+		} catch (e) {
+			logging.error('Error Updating Report Element Config : ', e);
+			return message(formData, 'Error Updating Report Element Config', { status: 400 });
+		}
+		return formData;
 	}
-	// updateConfig: async (data) => {
-	// 	const formData = await superValidate(data.request, reportElementConfigurationFormSchema);
-
-	// 	if (!formData.valid) {
-	// 		return formData;
-	// 	}
-
-	// 	const db = data.locals.db;
-	// 	const id = data.params.id;
-
-	// 	const checkedData = reportElementConfigurationSchema.safeParse(formData.data);
-
-	// 	if (!checkedData.success) {
-	// 		logging.error('Error Processing Config Changed Data : ', formData.data, checkedData.error);
-	// 		return message(formData, 'Error Processing Config Change', { status: 400 });
-	// 	}
-
-	// 	try {
-	// 		await tActions.report.reportElement.updateConfig({ db, id, data: checkedData.data });
-	// 	} catch (e) {
-	// 		logging.error('Error Updating Report Element Config : ', e);
-	// 		return message(formData, 'Error Updating Report Element Config', { status: 400 });
-	// 	}
-	// 	return formData;
-	// }
 };

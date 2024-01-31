@@ -282,20 +282,32 @@ export const reportActions = {
 				.where(eq(reportElementConfig.id, id))
 				.execute();
 		},
-		update: async ({ db, data }: { db: DBType; data: UpdateReportConfigurationType }) => {
-			const { id, ...otherData } = data;
-			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
-				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id)
+		update: async ({
+			db,
+			reportElementId,
+			data
+		}: {
+			db: DBType;
+			reportElementId: string;
+			data: UpdateReportConfigurationType;
+		}) => {
+			const reportElementInfo = await db.query.reportElement.findFirst({
+				where: (reportElement, { eq }) => eq(reportElement.id, reportElementId),
+				with: {
+					reportElementConfig: true
+				}
 			});
-
-			if (!reportElementConfigData) {
+			if (!reportElementInfo?.reportElementConfig) {
 				throw new Error('Report Element Config not found');
+			}
+			if (reportElementInfo.reportElementConfig.locked) {
+				throw new Error('Report Element Config is locked');
 			}
 
 			await db
 				.update(reportElementConfig)
-				.set({ ...otherData, ...updatedTime() })
-				.where(eq(reportElementConfig.id, id))
+				.set({ ...data, ...updatedTime() })
+				.where(eq(reportElementConfig.id, reportElementInfo.reportElementConfig.id))
 				.execute();
 
 			return;

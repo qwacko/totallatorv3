@@ -16,6 +16,7 @@
 	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
 	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
 	import ReportElementContents from '$lib/components/report/ReportElementContents.svelte';
+	import ReportElementConfigForm from '$lib/components/report/ReportElementConfigForm.svelte';
 
 	export let data;
 
@@ -147,7 +148,7 @@
 		</form>
 	{/if}
 
-	<!-- <ReportElementConfigForm formData={data.configForm} /> -->
+	<ReportElementConfigForm formData={data.configForm} reusable={data.elementData.reportElementConfig.reusable} />
 
 	<ReportGridWrapper size="xl">
 		<ReportGridItem cols={6} rows={1} highlightOnHover={false} title={data.elementData.title}>

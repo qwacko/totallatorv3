@@ -63,7 +63,6 @@ export type UpdateReportElementType = z.infer<typeof updateReportElementSchema>;
 export type UpdateReportElementSupertype = typeof updateReportElementSchema;
 
 export const updateReportConfigurationSchema = z.object({
-	id: z.string(),
 	title: z.string().optional(),
 	group: z.string().optional(),
 	layout: z.enum(reportElementLayoutEnum).optional()
