@@ -42,7 +42,7 @@
 					Filter {currentFilter.order}
 				</div>
 				<FilterModal
-					currentFilter={currentFilter.filter}
+					currentFilter={currentFilter.filter.filter}
 					bind:opened={filterOpen[index]}
 					{...dropdowns}
 				>
