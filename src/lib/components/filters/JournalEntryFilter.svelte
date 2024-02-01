@@ -14,6 +14,7 @@
 	import IdFilter from './IDFilter.svelte';
 
 	export let activeFilter: F;
+	export let hideDates = false;
 	let yearMonth: string = '';
 	let excludeYearMonth: string = '';
 </script>
@@ -24,71 +25,73 @@
 	<FilterIdArray title="Transaction IDs" bind:idArray={activeFilter.transactionIdArray} />
 	<FilterIdArray title="Import IDs" bind:idArray={activeFilter.importIdArray} />
 	<FilterIdArray title="Import Detail IDs" bind:idArray={activeFilter.importDetailIdArray} />
-	<div class="flex text-sm font-semibold text-black">Year Month</div>
-	<div class="flex flex-row gap-1">
-		<Input
-			bind:value={yearMonth}
-			class="flex flex-grow"
-			placeholder="year-month (i.e. 2020-12)..."
-		/>
-		<Button
-			on:click={() =>
-				activeFilter.yearMonth
-					? (activeFilter.yearMonth = [...activeFilter.yearMonth, yearMonth])
-					: (activeFilter.yearMonth = [yearMonth])}
-		>
-			Add
-		</Button>
-	</div>
-	{#if activeFilter.yearMonth && activeFilter.yearMonth.length > 0}
-		<div class="flex flex-row flex-wrap gap-2">
-			{#each activeFilter.yearMonth as currentYearMonth}
-				<Button
-					class="whitespace-nowrap"
-					size="xs"
-					color="light"
-					on:click={() =>
-						activeFilter.yearMonth &&
-						(activeFilter.yearMonth = activeFilter.yearMonth.filter(
-							(item) => item !== currentYearMonth
-						))}
-				>
-					{currentYearMonth}
-				</Button>{/each}
+	{#if !hideDates}
+		<div class="flex text-sm font-semibold text-black">Year Month</div>
+		<div class="flex flex-row gap-1">
+			<Input
+				bind:value={yearMonth}
+				class="flex flex-grow"
+				placeholder="year-month (i.e. 2020-12)..."
+			/>
+			<Button
+				on:click={() =>
+					activeFilter.yearMonth
+						? (activeFilter.yearMonth = [...activeFilter.yearMonth, yearMonth])
+						: (activeFilter.yearMonth = [yearMonth])}
+			>
+				Add
+			</Button>
 		</div>
-	{/if}
-	<div class="flex text-sm font-semibold text-black">Exclude Year Month</div>
-	<div class="flex flex-row gap-1">
-		<Input
-			bind:value={excludeYearMonth}
-			class="flex flex-grow"
-			placeholder="year-month (i.e. 2020-12)..."
-		/>
-		<Button
-			on:click={() =>
-				activeFilter.excludeYearMonth
-					? (activeFilter.excludeYearMonth = [...activeFilter.excludeYearMonth, excludeYearMonth])
-					: (activeFilter.excludeYearMonth = [excludeYearMonth])}
-		>
-			Add
-		</Button>
-	</div>
-	{#if activeFilter.excludeYearMonth && activeFilter.excludeYearMonth.length > 0}
-		<div class="flex flex-row flex-wrap gap-2">
-			{#each activeFilter.excludeYearMonth as currentYearMonth}
-				<Button
-					class="whitespace-nowrap"
-					size="xs"
-					color="light"
-					on:click={() =>
-						activeFilter.excludeYearMonth &&
-						(activeFilter.excludeYearMonth = activeFilter.excludeYearMonth.filter(
-							(item) => item !== currentYearMonth
-						))}
-				>
-					{currentYearMonth}
-				</Button>{/each}
+		{#if activeFilter.yearMonth && activeFilter.yearMonth.length > 0}
+			<div class="flex flex-row flex-wrap gap-2">
+				{#each activeFilter.yearMonth as currentYearMonth}
+					<Button
+						class="whitespace-nowrap"
+						size="xs"
+						color="light"
+						on:click={() =>
+							activeFilter.yearMonth &&
+							(activeFilter.yearMonth = activeFilter.yearMonth.filter(
+								(item) => item !== currentYearMonth
+							))}
+					>
+						{currentYearMonth}
+					</Button>{/each}
+			</div>
+		{/if}
+		<div class="flex text-sm font-semibold text-black">Exclude Year Month</div>
+		<div class="flex flex-row gap-1">
+			<Input
+				bind:value={excludeYearMonth}
+				class="flex flex-grow"
+				placeholder="year-month (i.e. 2020-12)..."
+			/>
+			<Button
+				on:click={() =>
+					activeFilter.excludeYearMonth
+						? (activeFilter.excludeYearMonth = [...activeFilter.excludeYearMonth, excludeYearMonth])
+						: (activeFilter.excludeYearMonth = [excludeYearMonth])}
+			>
+				Add
+			</Button>
 		</div>
+		{#if activeFilter.excludeYearMonth && activeFilter.excludeYearMonth.length > 0}
+			<div class="flex flex-row flex-wrap gap-2">
+				{#each activeFilter.excludeYearMonth as currentYearMonth}
+					<Button
+						class="whitespace-nowrap"
+						size="xs"
+						color="light"
+						on:click={() =>
+							activeFilter.excludeYearMonth &&
+							(activeFilter.excludeYearMonth = activeFilter.excludeYearMonth.filter(
+								(item) => item !== currentYearMonth
+							))}
+					>
+						{currentYearMonth}
+					</Button>{/each}
+			</div>
+		{/if}
 	{/if}
 	<TextInput
 		bind:value={activeFilter.description}
@@ -102,18 +105,20 @@
 		title="Exclude Description"
 		errorMessage=""
 	/>
-	<DateInput
-		bind:value={activeFilter.dateAfter}
-		name="dateAfter"
-		title="Start Date"
-		errorMessage=""
-	/>
-	<DateInput
-		bind:value={activeFilter.dateBefore}
-		name="dateBefore"
-		title="End Date"
-		errorMessage=""
-	/>
+	{#if !hideDates}
+		<DateInput
+			bind:value={activeFilter.dateAfter}
+			name="dateAfter"
+			title="Start Date"
+			errorMessage=""
+		/>
+		<DateInput
+			bind:value={activeFilter.dateBefore}
+			name="dateBefore"
+			title="End Date"
+			errorMessage=""
+		/>
+	{/if}
 
 	<div class="flex text-sm font-semibold text-black">Transfer</div>
 	<BooleanFilterButtons

@@ -45,6 +45,7 @@
 					currentFilter={currentFilter.filter.filter}
 					bind:opened={filterOpen[index]}
 					{...dropdowns}
+					hideDates
 				>
 					<svelte:fragment slot="footerContents" let:activeFilter>
 						<Button on:click={() => (filterOpen[index] = false)} outline>Cancel</Button>

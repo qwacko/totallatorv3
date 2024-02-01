@@ -26,6 +26,7 @@
 	export let labelDropdown: Promise<dropdownItemsType[]>;
 	export let urlFromFilter: ((filter: F) => string) | undefined = undefined;
 	export let opened = false;
+	export let hideDates = false;
 
 	let url = '';
 
@@ -45,6 +46,7 @@
 		{tagDropdown}
 		{labelDropdown}
 		{urlFromFilter}
+		{hideDates}
 		bind:url
 		bind:activeFilter
 	/>

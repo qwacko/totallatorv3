@@ -34,6 +34,7 @@
 	export let hideSubmit = false;
 	export let url = '';
 	export let activeFilter: F = currentFilter;
+	export let hideDates = false;
 
 	$: activeFilter = currentFilter;
 	$: url = urlFromFilter ? urlFromFilter(activeFilter) : '';
@@ -43,7 +44,7 @@
 	<Accordion>
 		<AccordionItem>
 			<svelte:fragment slot="header">Journal Entry</svelte:fragment>
-			<JournalEntryFilter bind:activeFilter />
+			<JournalEntryFilter bind:activeFilter {hideDates} />
 		</AccordionItem>
 		<AccordionItem>
 			<svelte:fragment slot="header">Account</svelte:fragment>
