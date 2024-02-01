@@ -9,9 +9,11 @@
 	import type { UpdateReportConfigurationSupertype } from '$lib/schema/reportSchema';
 	import { reportElementLayoutDropdown } from '$lib/schema/reportHelpers/reportElementLayoutEnum';
 	import TextInput from '../TextInput.svelte';
+	import { urlGenerator } from '$lib/routes';
 
 	export let formData: SuperValidated<UpdateReportConfigurationSupertype>;
 	export let reusable: boolean;
+	export let elementId: string;
 
 	let loading = false;
 
@@ -36,7 +38,10 @@
 <form
 	bind:this={formItem}
 	method="post"
-	action="?/updateConfig"
+	action="{urlGenerator({
+		address: '/(loggedIn)/reports/element/[id]',
+		paramsValue: { id: elementId }
+	}).url}?/updateConfig"
 	use:enhance
 	class="flex flex-col gap-2"
 >
@@ -60,9 +65,10 @@
 		on:change={() => {
 			formItem.requestSubmit();
 		}}
+		disabled={loading}
 	/>
 
-	<!-- <ActionButton type="submit" {loading} message="Update" loadingMessage="Updating Config..." /> -->
-
-	<Heading tag="h4">Display</Heading>
+	<ActionButton type="submit" {loading} message="Update" loadingMessage="Updating Config..." />
 </form>
+
+<Heading tag="h4">Display</Heading>

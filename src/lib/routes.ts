@@ -206,6 +206,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/reports/[id]': { paramsValidation: z.object({ id: z.string() }).parse },
 		'/(loggedIn)/reports/[id]/delete': { paramsValidation: z.object({ id: z.string() }).parse },
 		'/(loggedIn)/reports/element/[id]': { paramsValidation: z.object({ id: z.string() }).parse },
+		'/(loggedIn)/reports/element/[id]/[item]': {
+			paramsValidation: z.object({ id: z.string(), item: z.string() }).parse
+		},
 
 		// Users
 		// ----------------------------------------

@@ -190,6 +190,20 @@
       "when": 1706722853931,
       "tag": "0026_smooth_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1706772247812,
+      "tag": "0027_left_thanos",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1706772389770,
+      "tag": "0028_outgoing_solo",
+      "breakpoints": true
     }
   ]
 }

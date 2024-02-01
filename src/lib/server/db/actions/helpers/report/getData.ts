@@ -89,7 +89,7 @@ export const getItemData = ({
 		return getDataDetail.string({ db, filterConfig: filterConfiguration[0], config });
 	}
 
-	if (config.type === 'sparkline') {
+	if (config.type === 'sparkline' || config.type === 'sparklinebar') {
 		return getDataDetail.sparkline({ db, filterConfig: filterConfiguration[0], config });
 	}
 
@@ -117,7 +117,7 @@ const getDataDetail = {
 		config: ReportConfigPartSchemaNumberCurrencyType;
 	}) => {
 		const data = async () => {
-			return 26.54;
+			return Number(config.mathConfig);
 		};
 
 		return { ...config, data: data() };
@@ -132,7 +132,7 @@ const getDataDetail = {
 		config: ReportConfigPartSchemaStringType;
 	}) => {
 		const data = async () => {
-			return 'String Text';
+			return config.stringConfig;
 		};
 
 		return { ...config, data: data() };

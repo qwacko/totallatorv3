@@ -1,78 +1,16 @@
-import { authGuard } from '$lib/authGuard/authGuardConfig.js';
-import { serverPageInfo, urlGenerator } from '$lib/routes';
-import {
-	defaultAllJournalFilter,
-	journalFilterSchemaWithoutPagination
-} from '$lib/schema/journalSchema.js';
+import { authGuard } from '$lib/authGuard/authGuardConfig';
+import { journalFilterSchemaWithoutPagination } from '$lib/schema/journalSchema.js';
 import {
 	updateReportConfigurationSchema,
 	updateReportElementSchema
 } from '$lib/schema/reportSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
-import { dropdownItems } from '$lib/server/dropdownItems';
 import { logging } from '$lib/server/logging';
-import { redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms/server';
 
 export const load = async (data) => {
 	authGuard(data);
-	const db = data.locals.db;
-	const pageInfo = serverPageInfo(data.route.id, data);
-
-	if (!pageInfo.current.params) {
-		redirect(
-			302,
-			urlGenerator({
-				address: '/(loggedIn)/journals',
-				searchParamsValue: defaultAllJournalFilter()
-			}).url
-		);
-	}
-
-	const elementData = await tActions.report.reportElement.get({
-		db,
-		id: pageInfo.current.params.id
-	});
-
-	if (!elementData) {
-		redirect(
-			302,
-			urlGenerator({
-				address: '/(loggedIn)/journals',
-				searchParamsValue: defaultAllJournalFilter()
-			}).url
-		);
-	}
-
-	const form = await superValidate(
-		{
-			id: elementData.id,
-			title: elementData.title || undefined
-		},
-		updateReportElementSchema
-	);
-
-	const configForm = await superValidate(
-		{
-			title: elementData.reportElementConfig.title || undefined,
-			group: elementData.reportElementConfig.group || undefined,
-			layout: elementData.reportElementConfig.layout || undefined
-		},
-		updateReportConfigurationSchema
-	);
-
-	const elementConfigWithData = await tActions.report.reportElement.getWithData({
-		db,
-		id: pageInfo.current.params.id
-	});
-
-	return {
-		elementData,
-		elementConfigWithData,
-		form,
-		configForm,
-		dropdowns: dropdownItems({ db })
-	};
 };
 
 export const actions = {
@@ -167,5 +105,100 @@ export const actions = {
 			return message(formData, 'Error Updating Report Element Config', { status: 400 });
 		}
 		return formData;
+	},
+	addConfigFilter: async (data) => {
+		const id = data.params.id;
+		const db = data.locals.db;
+
+		const reportElement = await tActions.report.reportElement.get({ db, id });
+
+		if (!reportElement) {
+			return fail(400, { message: 'Report Element Not Found' });
+		}
+
+		try {
+			await tActions.report.reportElementConfiguration.addFilter({
+				db,
+				configId: reportElement.reportElementConfigId
+			});
+		} catch (e) {
+			logging.error('Error Adding Filter to Report Element', e);
+			return fail(400, { message: 'Error Adding Filter to Report Element' });
+		}
+
+		return;
+	},
+	updateConfigFilter: async (data) => {
+		const id = data.params.id;
+		const db = data.locals.db;
+
+		const form = await data.request.formData();
+		const filterText = form.get('filterText');
+		const filterId = form.get('filterId');
+
+		const reportElement = await tActions.report.reportElement.get({ db, id });
+
+		if (!reportElement) {
+			return fail(400, { message: 'Report Element Not Found' });
+		}
+
+		try {
+			if (!filterText) {
+				throw new Error('Filter Text not found');
+			}
+			if (!filterId) {
+				throw new Error('Filter Id not found');
+			}
+
+			const transformedFilterText = journalFilterSchemaWithoutPagination.safeParse(
+				JSON.parse(filterText.toString())
+			);
+
+			if (!transformedFilterText.success) {
+				throw new Error(`Filter Text not valid : ${transformedFilterText.error.message}`);
+			}
+
+			await tActions.report.reportElementConfiguration.updateFilter({
+				db,
+				configId: reportElement.reportElementConfigId,
+				filterId: filterId.toString(),
+				filter: transformedFilterText.data
+			});
+		} catch (e) {
+			logging.error('Error Updating Filter on Report Configuration', e);
+			return fail(400, { message: 'Error Updating Filter to Report Element' });
+		}
+
+		return;
+	},
+	removeConfigFilter: async (data) => {
+		const id = data.params.id;
+		const db = data.locals.db;
+
+		const reportElement = await tActions.report.reportElement.get({ db, id });
+
+		if (!reportElement) {
+			return fail(400, { message: 'Report Element Not Found' });
+		}
+
+		const form = await data.request.formData();
+		const filterId = form.get('filterId');
+
+		if (!filterId) {
+			return fail(400, { message: 'Filter Id not found' });
+		}
+
+		try {
+			await tActions.report.reportElementConfiguration.removeFilter({
+				db,
+				configId: reportElement.reportElementConfigId,
+				filterId: filterId.toString()
+			});
+		} catch (e) {
+			logging.error('Error Removing Filter to Report Element', e);
+			return fail(400, { message: 'Error Removing Filter to Report Element' });
+		}
+
+		return;
 	}
 };

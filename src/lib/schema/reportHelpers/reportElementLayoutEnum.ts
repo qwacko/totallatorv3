@@ -2,8 +2,8 @@ export const reportElementLayoutEnum = [
 	'singleItem',
 	'twoItemsHorizontal',
 	'twoItemsVertical',
-	'twoLargeOneSmallVertical',
-	'twoLargeOneSmallHorizontal'
+	'twoSmallOneLargeVertical',
+	'twoSmallOneLargeHorizontal'
 ] as const;
 
 export type ReportElementLayoutType = (typeof reportElementLayoutEnum)[number];
@@ -21,12 +21,12 @@ export const reportElementLayoutInfo = {
 		id: 'twoItemsVertical',
 		name: 'Two Items Vertical'
 	},
-	twoLargeOneSmallVertical: {
-		id: 'twoLargeOneSmallVertical',
+	twoSmallOneLargeVertical: {
+		id: 'twoSmallOneLargeVertical',
 		name: '2 + 1 Vertical'
 	},
-	twoLargeOneSmallHorizontal: {
-		id: 'twoLargeOneSmallHorizontal',
+	twoSmallOneLargeHorizontal: {
+		id: 'twoSmallOneLargeHorizontal',
 		name: '2 + 1 Horizontal'
 	}
 } satisfies {

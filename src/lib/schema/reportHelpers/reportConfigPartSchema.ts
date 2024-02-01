@@ -1,22 +1,43 @@
 import { z } from 'zod';
-
-export const reportConfigPartTypeEnum = [
-	'none',
-	'number',
-	'currency',
-	'string',
-	'sparkline',
-	'sparklinebar',
-	'time_line',
-	'time_stackedArea',
-	'pie',
-	'box',
-	'bar'
-] as const;
-export type ReportConfigPartType = (typeof reportConfigPartTypeEnum)[number];
+import { reportConfigPartTypeEnum } from './reportConfigPartTypeEnum';
 
 export const reportConfigPartTimeGroupingEnum = ['year', 'month', 'quarter', 'week'] as const;
 export type ReportConfigPartTimeGroupingType = (typeof reportConfigPartTimeGroupingEnum)[number];
+
+export const reportConfigPartTimeGroupingInfo = {
+	year: {
+		id: 'year',
+		name: 'Year'
+	},
+	month: {
+		id: 'month',
+		name: 'Month'
+	},
+	quarter: {
+		id: 'quarter',
+		name: 'Quarter'
+	},
+	week: {
+		id: 'week',
+		name: 'Week'
+	}
+} satisfies {
+	[key in ReportConfigPartTimeGroupingType]: {
+		id: key;
+		name: string;
+	};
+};
+
+export type ReportConfigPartTimeGroupingInfoType = typeof reportConfigPartTimeGroupingInfo;
+
+export const reportConfigPartTimeGroupingDropdown = Object.values(
+	reportConfigPartTimeGroupingInfo
+).map((option) => {
+	return {
+		name: option.name,
+		value: option.id
+	};
+});
 
 export const reportConfigPartItemGroupingEnum = [
 	'account',
@@ -26,6 +47,51 @@ export const reportConfigPartItemGroupingEnum = [
 	'bill',
 	'budget'
 ] as const;
+
+export type ReportConfigPartItemGroupingType = (typeof reportConfigPartItemGroupingEnum)[number];
+
+export const reportConfigPartItemGroupingInfo = {
+	account: {
+		id: 'account',
+		name: 'Account'
+	},
+	account_type: {
+		id: 'account_type',
+		name: 'Account Type'
+	},
+	tag: {
+		id: 'tag',
+		name: 'Tag'
+	},
+	category: {
+		id: 'category',
+		name: 'Category'
+	},
+	bill: {
+		id: 'bill',
+		name: 'Bill'
+	},
+	budget: {
+		id: 'budget',
+		name: 'Budget'
+	}
+} satisfies {
+	[key in ReportConfigPartItemGroupingType]: {
+		id: key;
+		name: string;
+	};
+};
+
+export type ReportConfigPartItemGroupingInfoType = typeof reportConfigPartItemGroupingInfo;
+
+export const reportConfigPartItemGroupingDropdown = Object.values(
+	reportConfigPartItemGroupingInfo
+).map((option) => {
+	return {
+		name: option.name,
+		value: option.id
+	};
+});
 
 const reportConfigPartSchema_None = z.object({
 	id: z.string(),
@@ -103,7 +169,6 @@ export const reportConfigPartSchema = z.array(reportConfigPartIndividualSchema);
 export type ReportConfigPartSchemaType = z.infer<typeof reportConfigPartSchema>;
 
 export const reportConfigPartFormSchema = z.object({
-	id: z.string(),
 	order: z.number(),
 	type: z.enum(reportConfigPartTypeEnum),
 	stringConfig: z.string().optional(),

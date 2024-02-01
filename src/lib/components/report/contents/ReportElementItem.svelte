@@ -2,8 +2,9 @@
 	import type { ReportElementItemData } from '$lib/server/db/actions/helpers/report/getData';
 	import ReportElementContentsNumber from './ReportElementContentsNumber.svelte';
 	import ReportElementSparkline from './ReportElementSparkline.svelte';
+	import ReportElementContentsString from './ReportElementContentsString.svelte';
 
-	export let data: ReportElementItemData;
+	export let data: ReportElementItemData | undefined;
 </script>
 
 {#if data}
@@ -12,8 +13,6 @@
 	{:else if data.type === 'sparkline' || data.type === 'sparklinebar'}
 		<ReportElementSparkline {data} />
 	{:else if data.type === 'string'}
-		{data.type}
-	{:else}
-		{data.type}
+		<ReportElementContentsString {data} />
 	{/if}
 {/if}

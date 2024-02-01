@@ -6,12 +6,14 @@
 	export let data: ReportConfigPartWithData_NumberCurrency;
 </script>
 
-{#await data.data}
-	<Spinner />
-{:then currentData}
-	{#if data.type === 'currency'}
-		<DisplayCurrency amount={currentData} format="USD" positiveGreen />
-	{:else}
-		{currentData}
-	{/if}
-{/await}
+<div class="flex h-full w-full items-center justify-center">
+	{#await data.data}
+		<Spinner />
+	{:then currentData}
+		{#if data.type === 'currency'}
+			<DisplayCurrency amount={currentData} format="USD" positiveGreen />
+		{:else}
+			{currentData}
+		{/if}
+	{/await}
+</div>

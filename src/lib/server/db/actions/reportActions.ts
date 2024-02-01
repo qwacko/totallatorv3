@@ -19,10 +19,16 @@ import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefin
 import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/create/reportLayoutOptions';
 import { eq, inArray } from 'drizzle-orm';
 import { filter as filterTable } from '../postgres/schema';
-import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
+import {
+	journalFilterSchemaWithoutPagination,
+	type JournalFilterSchemaWithoutPaginationType
+} from '$lib/schema/journalSchema';
 import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
 import { getItemData } from './helpers/report/getData';
-import type { ReportConfigPartIndividualSchemaType } from '$lib/schema/reportHelpers/reportConfigPartSchema';
+import {
+	reportConfigPartIndividualSchema,
+	type ReportConfigPartFormSchemaType
+} from '$lib/schema/reportHelpers/reportConfigPartSchema';
 
 export const reportActions = {
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
@@ -203,15 +209,24 @@ export const reportActions = {
 	reportElementConfigItem: {
 		update: async ({
 			db,
-			id,
+			itemId,
 			configId,
 			data
 		}: {
 			db: DBType;
-			id: string;
+			itemId: string;
 			configId: string;
-			data: ReportConfigPartIndividualSchemaType;
+			data: ReportConfigPartFormSchemaType;
 		}) => {
+			const configData = reportConfigPartIndividualSchema.safeParse({
+				...data,
+				id: configId
+			});
+
+			if (!configData.success) {
+				throw new Error('Invalid Report Element Config');
+			}
+
 			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
 				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId)
 			});
@@ -221,9 +236,9 @@ export const reportActions = {
 			}
 
 			const updatedConfig = reportElementConfigData.config.map((item) => {
-				if (item.id === id) {
+				if (item.id === itemId) {
 					//ID and Order shouldn't be updated through this means
-					return { ...data, id: item.id, order: item.order };
+					return { ...configData.data, id: item.id, order: item.order };
 				}
 				return item;
 			});
@@ -311,6 +326,179 @@ export const reportActions = {
 				.execute();
 
 			return;
+		},
+		addFilter: async ({ db, configId }: { db: DBType; configId: string }) => {
+			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
+				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
+				with: {
+					filters: true
+				}
+			});
+
+			if (!reportElementConfigData) {
+				throw new Error('Report Element Config not found');
+			}
+
+			if (reportElementConfigData.locked) {
+				throw new Error('Report Element Config is locked');
+			}
+
+			const newFilterOrder =
+				reportElementConfigData.filters
+					.map((item) => item.order)
+					.reduce((a, b) => Math.max(a, b), 0) + 1;
+
+			const newFilterId = nanoid();
+
+			await db.transaction(async (trx) => {
+				await reportActions.filter.create({ db: trx, id: newFilterId });
+
+				await trx
+					.insert(filtersToReportConfigs)
+					.values({
+						id: nanoid(),
+						reportElementConfigId: configId,
+						filterId: newFilterId,
+						order: newFilterOrder,
+						...updatedTime()
+					})
+					.execute();
+			});
+		},
+		updateFilter: async ({
+			db,
+			configId,
+			filterId,
+			filter
+		}: {
+			db: DBType;
+			configId: string;
+			filterId: string;
+			filter: JournalFilterSchemaWithoutPaginationType;
+		}) => {
+			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
+				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
+				with: {
+					filters: true
+				}
+			});
+
+			if (!reportElementConfigData) {
+				throw new Error('Report Element Config not found');
+			}
+
+			if (reportElementConfigData.locked) {
+				throw new Error('Report Element Config is locked');
+			}
+
+			const filterToUpdate = reportElementConfigData.filters.find(
+				(item) => item.filterId === filterId
+			);
+
+			if (!filterToUpdate) {
+				throw new Error('Filter not found on configuration');
+			}
+
+			await db.transaction(async (trx) => {
+				await reportActions.filter.update({
+					db: trx,
+					filterId,
+					filterConfig: filter
+				});
+			});
+
+			return;
+		},
+		removeFilter: async ({
+			db,
+			configId,
+			filterId
+		}: {
+			db: DBType;
+			configId: string;
+			filterId: string;
+		}) => {
+			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
+				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
+				with: {
+					filters: true
+				}
+			});
+
+			if (!reportElementConfigData) {
+				throw new Error('Report Element Config not found');
+			}
+
+			if (reportElementConfigData.locked) {
+				throw new Error('Report Element Config is locked');
+			}
+
+			const filterToRemove = reportElementConfigData.filters.find(
+				(item) => item.filterId === filterId
+			);
+
+			if (!filterToRemove) {
+				throw new Error('Filter not found');
+			}
+
+			await db.transaction(async (trx) => {
+				await trx
+					.delete(filtersToReportConfigs)
+					.where(eq(filtersToReportConfigs.id, filterToRemove.id))
+					.execute();
+
+				await trx.delete(filterTable).where(eq(filterTable.id, filterId)).execute();
+			});
+		}
+	},
+	filter: {
+		create: async ({ db, id }: { db: DBType; id: string }) => {
+			const filterConfig: JournalFilterSchemaWithoutPaginationType = {};
+			const filterText = (await journalFilterToText({ db, filter: filterConfig })).join(' and ');
+
+			await db
+				.insert(filterTable)
+				.values({ id, ...updatedTime(), filter: filterConfig, filterText })
+				.execute();
+		},
+		update: async ({
+			db,
+			filterId,
+			filterConfig
+		}: {
+			db: DBType;
+			filterId: string;
+			filterConfig: JournalFilterSchemaWithoutPaginationType;
+		}) => {
+			const filterFromDB = await db.query.filter.findFirst({
+				where: (filter, { eq }) => eq(filter.id, filterId)
+			});
+
+			if (!filterFromDB) {
+				throw new Error('Filter does not exist');
+			}
+
+			const validatedFilter = journalFilterSchemaWithoutPagination.safeParse(filterConfig);
+
+			if (!validatedFilter.success) {
+				throw new Error('Invalid Filter');
+			}
+
+			const filterText = await journalFilterToText({ db, filter: validatedFilter.data });
+
+			await db.transaction(async (trx) => {
+				await trx
+					.update(filterTable)
+					.set({
+						filter: validatedFilter.data,
+						filterText: filterText.join(' and '),
+						...updatedTime()
+					})
+					.where(eq(filterTable.id, filterId))
+					.execute();
+			});
+
+			return;
 		}
 	},
 	reportElement: {
@@ -361,36 +549,6 @@ export const reportActions = {
 
 			return { id: simpleElementConfig.id, elementConfig: simpleElementConfig, itemData: data };
 		},
-		// updateConfig: async ({
-		// 	db,
-		// 	id,
-		// 	data
-		// }: {
-		// 	db: DBType;
-		// 	id: string;
-		// 	data: UpdateReportConfigurationType;
-		// }) => {
-		// 	const reportElementData = await db.query.reportElement.findFirst({
-		// 		where: (reportElement, { eq }) => eq(reportElement.id, id),
-		// 		with: {
-		// 			reportElementConfig: true
-		// 		}
-		// 	});
-
-		// 	if (!reportElementData) {
-		// 		throw new Error('Report Element not found');
-		// 	}
-
-		// 	const reportElementConfigId = reportElementData.reportElementConfig.id;
-
-		// 	await reportActions.reportElementConfiguration.update({
-		// 		db,
-		// 		id: reportElementConfigId,
-		// 		data
-		// 	});
-
-		// 	return;
-		// },
 		deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
 			const reportElements = await db.query.reportElement.findMany({
 				where: (reportElement, { inArray }) => inArray(reportElement.id, ids)
@@ -486,11 +644,13 @@ export const reportActions = {
 					id: item.reportElementConfigId,
 					reportElementId: item.id,
 					title: item.title,
-					config: Array(20).map((_, index) => ({
-						id: nanoid(),
-						order: index + 1,
-						type: 'none'
-					})),
+					config: Array(20)
+						.fill(1)
+						.map((_, index) => ({
+							id: nanoid(),
+							order: index + 1,
+							type: 'none'
+						})),
 					layout: 'singleItem',
 					locked: false,
 					reusable: false,
@@ -562,14 +722,8 @@ export const reportActions = {
 
 			const filterId = nanoid();
 
-			const filterConfig: JournalFilterSchemaWithoutPaginationType = {};
-			const filterText = (await journalFilterToText({ db, filter: filterConfig })).join(' and ');
-
 			await db.transaction(async (trx) => {
-				await trx
-					.insert(filterTable)
-					.values({ id: filterId, ...updatedTime(), filter: filterConfig, filterText })
-					.execute();
+				await reportActions.filter.create({ db: trx, id: filterId });
 
 				await trx
 					.update(reportElement)
@@ -600,20 +754,15 @@ export const reportActions = {
 			const filterId = reportElementData.filterId;
 
 			if (!filterId) {
-				throw new Error('Report Element Filter does not exist');
+				throw new Error("Report Element Doesn't Have  Filter");
 			}
 
-			const filterText = await journalFilterToText({ db, filter });
-
 			await db.transaction(async (trx) => {
-				await trx
-					.update(filterTable)
-					.set({
-						filter,
-						filterText: filterText.join(' and ')
-					})
-					.where(eq(filterTable.id, filterId))
-					.execute();
+				await reportActions.filter.update({
+					db: trx,
+					filterId,
+					filterConfig: filter
+				});
 			});
 
 			return;
@@ -647,6 +796,9 @@ export const reportActions = {
 		}
 	}
 };
+
+export type ReportElementData = Awaited<ReturnType<typeof reportActions.reportElement.get>>;
+
 export type ReportLayoutConfigType = Exclude<
 	Awaited<ReturnType<typeof reportActions.getReportConfig>>,
 	undefined

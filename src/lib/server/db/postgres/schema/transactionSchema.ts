@@ -24,7 +24,7 @@ import {
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
 import type { JournalFilterSchemaWithoutPaginationType } from '../../../../schema/journalSchema';
 import { pageSizeEnum } from '../../../../schema/pageSizeSchema';
-import { reportElementLayoutEnum } from '../../../../schema/reportHelpers/reportElementLayoutEnum';
+import { type ReportElementLayoutType } from '../../../../schema/reportHelpers/reportElementLayoutEnum';
 import type { ReportConfigPartSchemaType } from '../../../../schema/reportHelpers/reportConfigPartSchema';
 
 const moneyType = customType<{ data: number }>({
@@ -535,8 +535,6 @@ export const filter = pgTable(
 	})
 );
 
-export const reportLayoutEnum = pgEnum('report_layout', reportElementLayoutEnum);
-
 export const reportElementConfig = pgTable(
 	'report_element_config',
 	{
@@ -546,7 +544,7 @@ export const reportElementConfig = pgTable(
 		group: text('group'),
 		locked: boolean('locked').notNull().default(false),
 		reusable: boolean('reusable').notNull().default(false),
-		layout: reportLayoutEnum('layout').notNull().default('singleItem'),
+		layout: text('layout').$type<ReportElementLayoutType>().notNull().default('singleItem'),
 		config: jsonb('config').$type<ReportConfigPartSchemaType>()
 	},
 	(t) => ({
