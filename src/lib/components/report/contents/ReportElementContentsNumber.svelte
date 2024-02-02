@@ -18,7 +18,7 @@
 		{:else if data.numberDisplay === 'percent'}
 			{currentData.value.toFixed(1)}%
 		{:else}
-			{currentData.value}
+			{currentData.value.toFixed(0)}
 		{/if}
 	{/await}
 </div>

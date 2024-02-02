@@ -1,16 +1,8 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import type { DBType } from '$lib/server/db/db';
-// import { journalExtendedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
-import { sum, type SQL, and } from 'drizzle-orm';
+import { sum, type SQL, and, count, min, max, avg } from 'drizzle-orm';
 import { filtersToSQLWithDateRange } from './filtersToSQLWithDateRange';
 import { filtersToDateRange } from './filtersToDateRange';
-// import { displayTimeOptionsData } from '$lib/schema/reportHelpers/displayTimeOptionsEnum';
-// import type { SpanOptionType } from '$lib/schema/reportHelpers/spanOptions';
-// import { generateYearMonthsBetween } from '$lib/helpers/generateYearMonthsBetween';
-// import {
-// 	displaySparklineOptionsData,
-// 	type DisplaySparklineOptionsType
-// } from '$lib/schema/reportHelpers/displaySparklineOptionsEnum';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import type {
 	ReportConfigPartIndividualSchemaType,
@@ -22,6 +14,7 @@ import type {
 } from '$lib/schema/reportHelpers/reportConfigPartSchema';
 import { mathConfigToNumber } from './mathConfigToNumber';
 import { journalExtendedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
+import { stringConfigToString } from './stringConfigToString';
 
 type DateRangeType = ReturnType<typeof filtersToDateRange>;
 
@@ -117,7 +110,20 @@ const getCombinedFilters = ({
 		}
 
 		const dbData = await db
-			.select({ value: sum(journalExtendedView.amount).mapWith(Number) })
+			.select({
+				value:
+					filter.action === 'sum'
+						? sum(journalExtendedView.amount).mapWith(Number)
+						: filter.action === 'count'
+							? count(journalExtendedView.id).mapWith(Number)
+							: filter.action === 'min'
+								? min(journalExtendedView.amount).mapWith(Number)
+								: filter.action === 'max'
+									? max(journalExtendedView.amount).mapWith(Number)
+									: filter.action === 'avg'
+										? avg(journalExtendedView.amount).mapWith(Number)
+										: sum(journalExtendedView.amount).mapWith(Number)
+			})
 			.from(journalExtendedView)
 			.where(and(...filter.filter))
 			.execute();
@@ -183,7 +189,7 @@ export const getItemData = ({
 	}
 
 	if (config.type === 'string') {
-		return getDataDetail.string({ config, ...commonParameters });
+		return getDataDetail.string({ config, ...commonParametersReduced, getNumberFromKey });
 	}
 
 	if (config.type === 'sparkline' || config.type === 'sparklinebar') {
@@ -237,16 +243,24 @@ const getDataDetail = {
 	},
 	string: ({
 		db,
-		config
+		config,
+		allowableFilters,
+		getNumberFromKey
 	}: {
 		db: DBType;
 		dateRange: DateRangeType;
 		config: ReportConfigPartSchemaStringType;
 		allowableFilters: AllowableFilterType;
-		getFilterFromKey: GetFilterFromKeyType;
+		getNumberFromKey: GetNumberFromFilterKeyType;
 	}) => {
 		const data = async () => {
-			return config.stringConfig;
+			return stringConfigToString({
+				db,
+				stringConfig: config.stringConfig,
+				allowableFilters,
+				getNumberFromKey,
+				numberDisplay: config.numberDisplay
+			});
 		};
 
 		return { ...config, data: data() };

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ReportConfigPartWithData_String } from '$lib/server/db/actions/helpers/report/getData';
-	import { Spinner } from 'flowbite-svelte';
+	import { Badge, Spinner, Tooltip } from 'flowbite-svelte';
 
 	export let data: ReportConfigPartWithData_String;
 </script>
@@ -9,6 +9,11 @@
 	{#await data.data}
 		<Spinner />
 	{:then currentData}
-		{currentData}
+		{#if 'errorMessage' in currentData}
+			<Badge color="red">Error</Badge>
+			<Tooltip>{currentData.errorMessage}</Tooltip>
+		{:else}
+			{currentData.value}
+		{/if}
 	{/await}
 </div>
