@@ -1,7 +1,7 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import type { DBType } from '$lib/server/db/db';
 // import { journalExtendedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
-import { type SQL } from 'drizzle-orm';
+import { sum, type SQL, and } from 'drizzle-orm';
 import { filtersToSQLWithDateRange } from './filtersToSQLWithDateRange';
 import { filtersToDateRange } from './filtersToDateRange';
 // import { displayTimeOptionsData } from '$lib/schema/reportHelpers/displayTimeOptionsEnum';
@@ -20,20 +20,117 @@ import type {
 	ReportConfigPartSchemaStringType,
 	ReportConfigPartSchemaTimeGraphType
 } from '$lib/schema/reportHelpers/reportConfigPartSchema';
-
-type FilterSQLType = {
-	all: Promise<SQL<unknown>[]>;
-	withinRange: Promise<SQL<unknown>[]>;
-	upToRangeEnd: Promise<SQL<unknown>[]>;
-	beforeRange: Promise<SQL<unknown>[]>;
-};
+import { mathConfigToNumber } from './mathConfigToNumber';
+import { journalExtendedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
 
 type DateRangeType = ReturnType<typeof filtersToDateRange>;
 
-type FilterInformationType = {
-	filtersSQL: FilterSQLType;
+type ConfigFilters = {
+	id: string;
+	order: number;
+	filter: {
+		id: string;
+		filter: JournalFilterSchemaWithoutPaginationType;
+	};
+}[];
+
+const getCombinedFilters = ({
+	db,
+	commonFilters,
+	configFilters,
+	dateRange
+}: {
+	db: DBType;
 	dateRange: DateRangeType;
+	commonFilters: JournalFilterSchemaWithoutPaginationType[];
+	configFilters: ConfigFilters;
+}) => {
+	const allowCommonFilters = commonFilters.length > 0;
+
+	const allowableFilters = [
+		...(allowCommonFilters
+			? [
+					'FilterAll.all',
+					'FilterAll.withinRange',
+					'FilterAll.upToRangeEnd',
+					'FilterAll.beforeRange'
+				]
+			: []),
+		...configFilters.map((configFilter) => [
+			`Filter${configFilter.order}.all`,
+			`Filter${configFilter.order}.withinRange`,
+			`Filter${configFilter.order}.upToRangeEnd`,
+			`Filter${configFilter.order}.beforeRange`
+		])
+	].flat();
+
+	const allowableFilterOptions = allowableFilters
+		.map((key) => [`${key}.sum`, `${key}.count`, `${key}.min`, `${key}.max`, `${key}.avg`])
+		.flat();
+
+	// console.log('allowableFilterOptions', allowableFilterOptions);
+
+	const getFilterFromKey = async (key: string) => {
+		if (!allowableFilterOptions.includes(key)) {
+			return null;
+		}
+		const [prefix, suffix, action] = key.split('.');
+
+		const useDateRange =
+			suffix === 'withinRange'
+				? {
+						dateBefore: dateRange.end.toISOString(),
+						dateAfter: dateRange.start.toISOString()
+					}
+				: suffix === 'upToRangeEnd'
+					? {
+							dateBefore: dateRange.end.toISOString()
+						}
+					: suffix === 'beforeRange'
+						? {
+								dateBefore: dateRange.start.toISOString()
+							}
+						: {};
+
+		const thisFilter = configFilters.find((x) => x.order === Number(prefix.slice(6)))?.filter
+			.filter;
+
+		const useFilters =
+			prefix === 'FilterAll'
+				? commonFilters
+				: filterNullUndefinedAndDuplicates([...commonFilters, thisFilter]);
+
+		return {
+			filter: await filtersToSQLWithDateRange({
+				db,
+				filters: useFilters,
+				dateRangeFilter: useDateRange
+			}),
+			action: action as 'sum' | 'count' | 'min' | 'max' | 'avg'
+		};
+	};
+
+	const getNumberFromFilterKey = async (key: string) => {
+		const filter = await getFilterFromKey(key);
+		if (!filter) {
+			return { errorMessage: "Couldn't find filter" };
+		}
+
+		const dbData = await db
+			.select({ value: sum(journalExtendedView.amount).mapWith(Number) })
+			.from(journalExtendedView)
+			.where(and(...filter.filter))
+			.execute();
+
+		return { value: dbData[0].value };
+	};
+
+	return { allowableFilterOptions, getFilterFromKey, getNumberFromFilterKey };
 };
+
+export type GetNumberFromFilterKeyType = (
+	key: string
+) => Promise<{ value: number } | { errorMessage: string }>;
 
 export const getItemData = ({
 	db,
@@ -44,92 +141,109 @@ export const getItemData = ({
 	db: DBType;
 	config: ReportConfigPartIndividualSchemaType | null;
 	commonFilters: JournalFilterSchemaWithoutPaginationType[];
-	filters: JournalFilterSchemaWithoutPaginationType[];
+	filters: ConfigFilters;
 }) => {
 	if (!config) return;
 
-	const filterConfiguration = filters.map((currentFilter) => {
-		const combinedFilters = filterNullUndefinedAndDuplicates([currentFilter, ...commonFilters]);
-		const dateRange = filtersToDateRange(combinedFilters);
-
-		const filtersSQL = {
-			all: filtersToSQLWithDateRange({ db, filters: combinedFilters, dateRangeFilter: {} }),
-			withinRange: filtersToSQLWithDateRange({
-				db,
-				filters: combinedFilters,
-				dateRangeFilter: {
-					dateBefore: dateRange.end.toISOString(),
-					dateAfter: dateRange.start.toISOString()
-				}
-			}),
-			upToRangeEnd: filtersToSQLWithDateRange({
-				db,
-				filters: combinedFilters,
-				dateRangeFilter: { dateBefore: dateRange.end.toISOString() }
-			}),
-			beforeRange: filtersToSQLWithDateRange({
-				db,
-				filters: combinedFilters,
-				dateRangeFilter: { dateBefore: dateRange.start.toISOString() }
-			})
-		} satisfies FilterSQLType;
-
-		return { filtersSQL, dateRange };
+	const dateRange = filtersToDateRange(commonFilters);
+	const {
+		allowableFilterOptions: allowableFilters,
+		getFilterFromKey,
+		getNumberFromFilterKey: getNumberFromKey
+	} = getCombinedFilters({
+		commonFilters,
+		configFilters: filters,
+		db,
+		dateRange
 	});
 
 	if (config.type === 'none') {
 		return config;
 	}
 
-	if (config.type === 'number' || config.type === 'currency') {
-		return getDataDetail.numberCurrency({ db, filterConfig: filterConfiguration[0], config });
+	const commonParametersReduced = {
+		db,
+		dateRange,
+		allowableFilters
+	};
+
+	const commonParameters = {
+		db,
+		dateRange,
+		allowableFilters,
+		getFilterFromKey
+	};
+
+	if (config.type === 'number') {
+		return getDataDetail.number({
+			config,
+			...commonParametersReduced,
+			getNumberFromKey
+		});
 	}
 
 	if (config.type === 'string') {
-		return getDataDetail.string({ db, filterConfig: filterConfiguration[0], config });
+		return getDataDetail.string({ config, ...commonParameters });
 	}
 
 	if (config.type === 'sparkline' || config.type === 'sparklinebar') {
-		return getDataDetail.sparkline({ db, filterConfig: filterConfiguration[0], config });
+		return getDataDetail.sparkline({ config, ...commonParameters });
 	}
 
 	if (config.type === 'time_line' || config.type === 'time_stackedArea') {
-		return getDataDetail.timeGraph({ db, filterConfig: filterConfiguration[0], config });
+		return getDataDetail.timeGraph({ config, ...commonParameters });
 	}
 
 	if (config.type === 'pie' || config.type === 'box' || config.type === 'bar') {
-		return getDataDetail.nonTimeGraph({ db, filterConfig: filterConfiguration[0], config });
+		return getDataDetail.nonTimeGraph({ config, ...commonParameters });
 	}
+
+	return config;
 
 	throw Error("Couldn't find Report Element Type");
 };
 
 export type ReportElementItemData = ReturnType<typeof getItemData>;
 
+type AllowableFilterType = string[];
+export type GetFilterFromKeyType = (key: string) => Promise<{
+	filter: SQL<unknown>[];
+	action: 'sum' | 'count' | 'min' | 'max' | 'avg';
+} | null>;
+
 const getDataDetail = {
-	numberCurrency: ({
+	number: ({
 		db,
-		filterConfig,
-		config
+		config,
+		allowableFilters,
+		getNumberFromKey
 	}: {
 		db: DBType;
-		filterConfig: FilterInformationType;
+		dateRange: DateRangeType;
 		config: ReportConfigPartSchemaNumberCurrencyType;
+		allowableFilters: AllowableFilterType;
+		getNumberFromKey: GetNumberFromFilterKeyType;
 	}) => {
 		const data = async () => {
-			return Number(config.mathConfig);
+			return mathConfigToNumber({
+				db,
+				mathConfig: config.mathConfig,
+				allowableFilters,
+				getNumberFromKey
+			});
 		};
 
 		return { ...config, data: data() };
 	},
 	string: ({
 		db,
-		filterConfig,
 		config
 	}: {
 		db: DBType;
-		filterConfig: FilterInformationType;
+		dateRange: DateRangeType;
 		config: ReportConfigPartSchemaStringType;
+		allowableFilters: AllowableFilterType;
+		getFilterFromKey: GetFilterFromKeyType;
 	}) => {
 		const data = async () => {
 			return config.stringConfig;
@@ -139,12 +253,13 @@ const getDataDetail = {
 	},
 	sparkline: ({
 		db,
-		filterConfig,
 		config
 	}: {
 		db: DBType;
-		filterConfig: FilterInformationType;
+		dateRange: DateRangeType;
 		config: ReportConfigPartSchemaSparklineType;
+		allowableFilters: AllowableFilterType;
+		getFilterFromKey: GetFilterFromKeyType;
 	}) => {
 		const data = async () => {
 			return {
@@ -160,12 +275,13 @@ const getDataDetail = {
 	},
 	timeGraph: ({
 		db,
-		filterConfig,
 		config
 	}: {
 		db: DBType;
-		filterConfig: FilterInformationType;
+		dateRange: DateRangeType;
 		config: ReportConfigPartSchemaTimeGraphType;
+		allowableFilters: AllowableFilterType;
+		getFilterFromKey: GetFilterFromKeyType;
 	}) => {
 		const data = async () => {};
 
@@ -173,12 +289,12 @@ const getDataDetail = {
 	},
 	nonTimeGraph: ({
 		db,
-		filterConfig,
 		config
 	}: {
 		db: DBType;
-		filterConfig: FilterInformationType;
 		config: ReportConfigPartSchemaNonTimeGraphType;
+		allowableFilters: AllowableFilterType;
+		getFilterFromKey: GetFilterFromKeyType;
 	}) => {
 		const data = async () => {};
 
@@ -186,9 +302,7 @@ const getDataDetail = {
 	}
 };
 
-export type ReportConfigPartWithData_NumberCurrency = ReturnType<
-	typeof getDataDetail.numberCurrency
->;
+export type ReportConfigPartWithData_NumberCurrency = ReturnType<typeof getDataDetail.number>;
 
 export type ReportConfigPartWithData_String = ReturnType<typeof getDataDetail.string>;
 

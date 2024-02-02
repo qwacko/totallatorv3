@@ -542,7 +542,7 @@ export const reportActions = {
 								elementConfig.filter?.filter,
 								elementConfig.report.filter?.filter
 							]),
-							filters: elementConfig.reportElementConfig.filters.map((item) => item.filter?.filter)
+							filters: elementConfig.reportElementConfig.filters
 						})
 					)
 				: [];

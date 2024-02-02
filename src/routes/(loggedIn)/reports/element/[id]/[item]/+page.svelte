@@ -8,15 +8,14 @@
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { superForm } from 'sveltekit-superforms/client';
+	import { reportConfigPartItemGroupingDropdown } from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum.js';
+	import type { ReportConfigPartFormSchemaSupertype } from '$lib/schema/reportHelpers/reportConfigPartSchema.js';
+	import { reportConfigPartTimeGroupingDropdown } from '$lib/schema/reportHelpers/reportConfigPartTimeGroupingEnum.js';
 	import {
-		reportConfigPartTimeGroupingDropdown,
-		type ReportConfigPartFormSchemaSupertype,
-		reportConfigPartItemGroupingDropdown
-	} from '$lib/schema/reportHelpers/reportConfigPartSchema.js';
-	import {
-		reportConfigPartTypeDropdown,
-		reportConfigPartTypeInfo
+		reportConfigPartTypeInfo,
+		reportConfigPartTypeDropdown
 	} from '$lib/schema/reportHelpers/reportConfigPartTypeEnum.js';
+	import { reportConfigPartNumberDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartNumberDisplayEnum';
 
 	export let data;
 
@@ -70,6 +69,17 @@
 		items={reportConfigPartTypeDropdown}
 	/>
 	{#if itemTypeInfo}
+		{#if itemTypeInfo.showNumberDisplay}
+			<SelectInput
+				bind:value={$formData.numberDisplay}
+				title="Display Numbers As"
+				name="numberDisplay"
+				id="numberDisplay"
+				errorMessage={$errors.numberDisplay}
+				items={reportConfigPartNumberDisplayDropdown}
+			/>
+		{/if}
+
 		{#if itemTypeInfo.showStringConfig}
 			<TextInput
 				bind:value={$formData.stringConfig}

@@ -1,7 +1,6 @@
 export const reportConfigPartTypeEnum = [
 	'none',
 	'number',
-	'currency',
 	'string',
 	'sparkline',
 	'sparklinebar',
@@ -20,7 +19,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: false,
 		showMathConfig: false,
 		showTimeGrouping: false,
-		showItemGrouping: false
+		showItemGrouping: false,
+		showNumberDisplay: false
 	},
 	number: {
 		id: 'number',
@@ -28,15 +28,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: false,
 		showMathConfig: true,
 		showTimeGrouping: false,
-		showItemGrouping: false
-	},
-	currency: {
-		id: 'currency',
-		name: 'Currency',
-		showStringConfig: false,
-		showMathConfig: true,
-		showTimeGrouping: false,
-		showItemGrouping: false
+		showItemGrouping: false,
+		showNumberDisplay: true
 	},
 	string: {
 		id: 'string',
@@ -44,7 +37,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: true,
 		showMathConfig: false,
 		showTimeGrouping: false,
-		showItemGrouping: false
+		showItemGrouping: false,
+		showNumberDisplay: true
 	},
 	sparkline: {
 		id: 'sparkline',
@@ -52,7 +46,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: false,
 		showMathConfig: true,
 		showTimeGrouping: true,
-		showItemGrouping: false
+		showItemGrouping: false,
+		showNumberDisplay: true
 	},
 	sparklinebar: {
 		id: 'sparklinebar',
@@ -60,7 +55,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: false,
 		showMathConfig: true,
 		showTimeGrouping: true,
-		showItemGrouping: false
+		showItemGrouping: false,
+		showNumberDisplay: true
 	},
 	time_line: {
 		id: 'time_line',
@@ -68,7 +64,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: false,
 		showMathConfig: true,
 		showTimeGrouping: true,
-		showItemGrouping: true
+		showItemGrouping: true,
+		showNumberDisplay: true
 	},
 	time_stackedArea: {
 		id: 'time_stackedArea',
@@ -76,7 +73,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: false,
 		showMathConfig: true,
 		showTimeGrouping: true,
-		showItemGrouping: true
+		showItemGrouping: true,
+		showNumberDisplay: true
 	},
 	pie: {
 		id: 'pie',
@@ -84,7 +82,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: false,
 		showMathConfig: true,
 		showTimeGrouping: false,
-		showItemGrouping: true
+		showItemGrouping: true,
+		showNumberDisplay: true
 	},
 	box: {
 		id: 'box',
@@ -92,7 +91,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: false,
 		showMathConfig: true,
 		showTimeGrouping: false,
-		showItemGrouping: true
+		showItemGrouping: true,
+		showNumberDisplay: true
 	},
 	bar: {
 		id: 'bar',
@@ -100,7 +100,8 @@ export const reportConfigPartTypeInfo = {
 		showStringConfig: false,
 		showMathConfig: true,
 		showTimeGrouping: false,
-		showItemGrouping: true
+		showItemGrouping: true,
+		showNumberDisplay: true
 	}
 } satisfies {
 	[key in ReportConfigPartType]: {
@@ -110,6 +111,7 @@ export const reportConfigPartTypeInfo = {
 		showMathConfig: boolean;
 		showTimeGrouping: boolean;
 		showItemGrouping: boolean;
+		showNumberDisplay: boolean;
 	};
 };
 

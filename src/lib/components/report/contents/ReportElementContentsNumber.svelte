@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DisplayCurrency from '$lib/components/DisplayCurrency.svelte';
 	import type { ReportConfigPartWithData_NumberCurrency } from '$lib/server/db/actions/helpers/report/getData';
-	import { Spinner } from 'flowbite-svelte';
+	import { Badge, Spinner, Tooltip } from 'flowbite-svelte';
 
 	export let data: ReportConfigPartWithData_NumberCurrency;
 </script>
@@ -10,10 +10,15 @@
 	{#await data.data}
 		<Spinner />
 	{:then currentData}
-		{#if data.type === 'currency'}
-			<DisplayCurrency amount={currentData} format="USD" positiveGreen />
+		{#if currentData && currentData.error != undefined}
+			<Badge color="red">Error</Badge>
+			<Tooltip>{currentData.errorMessage}</Tooltip>
+		{:else if data.numberDisplay === 'currency'}
+			<DisplayCurrency amount={currentData.value} format="USD" positiveGreen />
+		{:else if data.numberDisplay === 'percent'}
+			{currentData.value.toFixed(1)}%
 		{:else}
-			{currentData}
+			{currentData.value}
 		{/if}
 	{/await}
 </div>
