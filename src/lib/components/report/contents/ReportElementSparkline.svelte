@@ -12,14 +12,19 @@
 	let width: number | undefined;
 	let height: number | undefined;
 
-	const updateOptions = (
-		resolvedData: Awaited<ReportConfigPartWithData_Sparkline['data']>,
+	let options: ApexOptions | undefined = undefined;
+
+	const updateOptions = async (
+		data: ReportConfigPartWithData_Sparkline['data'],
 		width: number,
 		height: number
-	): ApexOptions => {
+	): Promise<void> => {
 		// console.log(`width: ${width}, height: ${height}`);
 
-		return {
+		options = undefined;
+		const resolvedData = await data;
+
+		options = {
 			chart: {
 				height: `${height}px`,
 				width: `${width}px`,
@@ -103,18 +108,16 @@
 			}
 		};
 	};
+
+	$: updateOptions(data.data, width || 0, height || 0);
 </script>
 
 <div class="relative flex grow self-stretch" bind:clientWidth={width} bind:clientHeight={height}>
 	{#if width > 0 && height > 0}
-		{#await data.data}
+		{#if options}
+			<Chart {options} class="absolute {$$props.class}" key={`${width}-${height}`} />
+		{:else}
 			<Spinner />
-		{:then retrievedData}
-			<Chart
-				options={updateOptions(retrievedData, width || 0, height || 0)}
-				class="absolute {$$props.class}"
-				key={`${width}-${height}`}
-			/>
-		{/await}
+		{/if}
 	{/if}
 </div>
