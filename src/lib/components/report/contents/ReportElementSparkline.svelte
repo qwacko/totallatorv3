@@ -13,6 +13,7 @@
 	let height: number | undefined;
 
 	let options: ApexOptions | undefined = undefined;
+	let errorMessage: string | undefined;
 
 	const updateOptions = async (
 		data: ReportConfigPartWithData_Sparkline['data'],
@@ -20,9 +21,17 @@
 		height: number
 	): Promise<void> => {
 		// console.log(`width: ${width}, height: ${height}`);
+		errorMessage = undefined;
 
 		options = undefined;
 		const resolvedData = await data;
+
+		console.log('Resolved data: ', resolvedData);
+
+		if ('errorMessage' in resolvedData) {
+			errorMessage = resolvedData.errorMessage;
+			return;
+		}
 
 		options = {
 			chart: {
@@ -51,7 +60,7 @@
 				},
 				y: {
 					formatter: (val) => {
-						return resolvedData.data.find((d) => d.value === val)?.text || val.toString();
+						return resolvedData.data.find((d) => d.value === val)?.textValue || val.toString();
 					}
 				}
 			},
@@ -88,7 +97,7 @@
 			],
 			xaxis: {
 				categories: resolvedData
-					? filterNullUndefinedAndDuplicates(resolvedData.data.map((d) => d.date))
+					? filterNullUndefinedAndDuplicates(resolvedData.data.map((d) => d.time))
 					: [],
 				labels: {
 					show: false
@@ -113,11 +122,17 @@
 </script>
 
 <div class="relative flex grow self-stretch" bind:clientWidth={width} bind:clientHeight={height}>
-	{#if width > 0 && height > 0}
+	{#if errorMessage}
+		<div class="flex h-full w-full place-content-center place-items-center">
+			<p class="text-red-500">{errorMessage}</p>
+		</div>
+	{:else if width > 0 && height > 0}
 		{#if options}
 			<Chart {options} class="absolute {$$props.class}" key={`${width}-${height}`} />
 		{:else}
-			<Spinner />
+			<div class="flex h-full w-full place-content-center place-items-center">
+				<Spinner />
+			</div>
 		{/if}
 	{/if}
 </div>

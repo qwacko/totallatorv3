@@ -1,18 +1,16 @@
 import type { DBType } from '$lib/server/db/db';
-import type { GetNumberFromFilterKeyType } from './getData';
+import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { mathConfigToNumber } from './mathConfigToNumber';
 
 export const stringConfigToString = async ({
 	db,
 	stringConfig,
-	allowableFilters,
-	getNumberFromKey,
+	getDataFromKey,
 	numberDisplay
 }: {
 	db: DBType;
 	stringConfig: string;
-	allowableFilters: string[];
-	getNumberFromKey: GetNumberFromFilterKeyType;
+	getDataFromKey: GetDataForFilterKeyType;
 	numberDisplay: 'number' | 'currency' | 'percent';
 }) => {
 	let stringConfigInt = stringConfig;
@@ -29,14 +27,13 @@ export const stringConfigToString = async ({
 			const replacementNumber = await mathConfigToNumber({
 				db,
 				mathConfig: replacementKey,
-				allowableFilters,
-				getNumberFromKey
+				getDataFromKey
 			});
 
 			if ('errorMessage' in replacementNumber) {
 				return {
 					error: true,
-					errorMessage: `Error getting number from filter key: ${replacementKey}`
+					errorMessage: replacementNumber.errorMessage
 				};
 			}
 
