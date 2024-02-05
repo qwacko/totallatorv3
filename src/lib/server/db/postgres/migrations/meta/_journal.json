@@ -204,6 +204,13 @@
       "when": 1706772389770,
       "tag": "0028_outgoing_solo",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1707082619096,
+      "tag": "0029_great_zombie",
+      "breakpoints": true
     }
   ]
 }

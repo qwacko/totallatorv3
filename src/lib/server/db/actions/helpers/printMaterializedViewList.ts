@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { SQL, sql } from 'drizzle-orm';
 import {
 	getMaterializedViewConfig,
 	type PgMaterializedViewWithSelection
@@ -12,6 +12,16 @@ const pgDialect = new PgDialect();
 
 const filename = 'materializedViewCombined.sql';
 
+export const sqlToText = (sqlQuery: SQL<unknown>) => {
+	return format(pgDialect.sqlToQuery(sqlQuery).sql, {
+		language: 'postgresql',
+		dataTypeCase: 'upper',
+		identifierCase: 'upper',
+		functionCase: 'upper',
+		keywordCase: 'upper'
+	});
+};
+
 export const printMaterializedViewList = (
 	materializedList: PgMaterializedViewWithSelection<any, any, any>[]
 ) => {
@@ -21,19 +31,10 @@ export const printMaterializedViewList = (
 		const materializedView = materializedList[i];
 
 		outputText +=
-			format(
-				pgDialect.sqlToQuery(
-					sql`create materialized view ${materializedView} as ${
-						getMaterializedViewConfig(materializedView).query
-					}`
-				).sql,
-				{
-					language: 'postgresql',
-					dataTypeCase: 'upper',
-					identifierCase: 'upper',
-					functionCase: 'upper',
-					keywordCase: 'upper'
-				}
+			sqlToText(
+				sql`create materialized view ${materializedView} as ${
+					getMaterializedViewConfig(materializedView).query
+				}`
 			) +
 			';\n----------------------------------------------------------------------------------------------------\n\n';
 	}

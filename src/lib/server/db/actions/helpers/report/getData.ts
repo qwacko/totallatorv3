@@ -1,7 +1,7 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import type { DBType } from '$lib/server/db/db';
 import { type SQL } from 'drizzle-orm';
-import { filtersToDateRange } from './filtersToDateRange';
+import { filtersToDateRange, type DBDateRangeType } from './filtersToDateRange';
 import type {
 	ReportConfigPartIndividualSchemaType,
 	ReportConfigPartSchemaNonTimeGraphType,
@@ -14,6 +14,7 @@ import { mathConfigToNumber } from './mathConfigToNumber';
 import { stringConfigToString } from './stringConfigToString';
 import { getCombinedFilters, type GetDataForFilterKeyType } from './getCombinedFilters';
 import { sparklineConfigToData } from './sparklineConfigToData';
+import type { currencyFormatType } from '$lib/schema/userSchema';
 
 export type DateRangeType = ReturnType<typeof filtersToDateRange>;
 
@@ -30,16 +31,20 @@ export const getItemData = ({
 	db,
 	config,
 	filters,
-	commonFilters
+	commonFilters,
+	dbDateRange,
+	currency
 }: {
 	db: DBType;
 	config: ReportConfigPartIndividualSchemaType | null;
 	commonFilters: JournalFilterSchemaWithoutPaginationType[];
 	filters: ConfigFilters;
+	dbDateRange: DBDateRangeType;
+	currency: currencyFormatType;
 }) => {
 	if (!config) return;
 
-	const dateRange = filtersToDateRange(commonFilters);
+	const dateRange = filtersToDateRange(commonFilters, dbDateRange);
 	const getDataFromKey = getCombinedFilters({
 		commonFilters,
 		configFilters: filters,
@@ -69,11 +74,11 @@ export const getItemData = ({
 	}
 
 	if (config.type === 'string') {
-		return getDataDetail.string({ config, ...commonParametersReduced });
+		return getDataDetail.string({ config, ...commonParametersReduced, currency });
 	}
 
 	if (config.type === 'sparkline' || config.type === 'sparklinebar') {
-		return getDataDetail.sparkline({ config, ...commonParameters });
+		return getDataDetail.sparkline({ config, ...commonParameters, currency });
 	}
 
 	if (config.type === 'time_line' || config.type === 'time_stackedArea') {
@@ -119,18 +124,21 @@ const getDataDetail = {
 	string: ({
 		db,
 		config,
-		getDataFromKey
+		getDataFromKey,
+		currency
 	}: {
 		db: DBType;
 		config: ReportConfigPartSchemaStringType;
 		getDataFromKey: GetDataForFilterKeyType;
+		currency: currencyFormatType;
 	}) => {
 		const data = async () => {
 			return stringConfigToString({
 				db,
 				stringConfig: config.stringConfig,
 				getDataFromKey,
-				numberDisplay: config.numberDisplay
+				numberDisplay: config.numberDisplay,
+				currency
 			});
 		};
 
@@ -139,17 +147,20 @@ const getDataDetail = {
 	sparkline: ({
 		db,
 		config,
-		getDataFromKey
+		getDataFromKey,
+		currency
 	}: {
 		db: DBType;
 		config: ReportConfigPartSchemaSparklineType;
 		getDataFromKey: GetDataForFilterKeyType;
+		currency: currencyFormatType;
 	}) => {
 		const data = async () => {
 			return sparklineConfigToData({
 				db,
 				config,
-				getDataFromKey
+				getDataFromKey,
+				currency
 			});
 		};
 

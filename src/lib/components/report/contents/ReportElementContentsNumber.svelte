@@ -16,9 +16,15 @@
 		{:else if data.numberDisplay === 'currency'}
 			<DisplayCurrency amount={currentData.value} format="USD" positiveGreen />
 		{:else if data.numberDisplay === 'percent'}
-			{currentData.value.toFixed(1)}%
-		{:else}
+			{currentData.value.toFixed(0)}%
+		{:else if data.numberDisplay === 'percent2dp'}
+			{currentData.value.toFixed(2)}%
+		{:else if data.numberDisplay === 'number'}
 			{currentData.value.toFixed(0)}
+		{:else if data.numberDisplay === 'number2dp'}
+			{currentData.value.toFixed(2)}
+		{:else}
+			{currentData.value}
 		{/if}
 	{/await}
 </div>

@@ -29,6 +29,8 @@ import {
 	reportConfigPartIndividualSchema,
 	type ReportConfigPartFormSchemaType
 } from '$lib/schema/reportHelpers/reportConfigPartSchema';
+import { dateRangeMaterializedView } from '../postgres/schema/materializedViewSchema';
+import type { DBDateRangeType } from './helpers/report/filtersToDateRange';
 
 export const reportActions = {
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
@@ -533,6 +535,13 @@ export const reportActions = {
 
 			if (!simpleElementConfig) throw new Error('Report Element Config not found');
 
+			const dateRange = await db.select().from(dateRangeMaterializedView).limit(1).execute();
+
+			const processedDateRange: DBDateRangeType = {
+				min: dateRange[0]?.minDate || new Date('2000-01-01'),
+				max: dateRange[0]?.maxDate || new Date()
+			};
+
 			const data = elementConfig?.reportElementConfig.config
 				? elementConfig?.reportElementConfig.config.map((currentConfig) =>
 						getItemData({
@@ -542,7 +551,9 @@ export const reportActions = {
 								elementConfig.filter?.filter,
 								elementConfig.report.filter?.filter
 							]),
-							filters: elementConfig.reportElementConfig.filters
+							filters: elementConfig.reportElementConfig.filters,
+							dbDateRange: processedDateRange,
+							currency: 'USD'
 						})
 					)
 				: [];

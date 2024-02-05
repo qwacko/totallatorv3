@@ -13,7 +13,8 @@ import {
 	tagMaterializedView,
 	categoryMaterializedView,
 	budgetMaterializedView,
-	labelMaterializedView
+	labelMaterializedView,
+	dateRangeMaterializedView
 } from './postgres/schema/materializedViewSchema';
 import { printMaterializedViewList } from './actions/helpers/printMaterializedViewList';
 
@@ -62,6 +63,7 @@ if (serverEnv.DEV) {
 		billMaterializedView,
 		budgetMaterializedView,
 		categoryMaterializedView,
-		labelMaterializedView
+		labelMaterializedView,
+		dateRangeMaterializedView
 	]);
 }

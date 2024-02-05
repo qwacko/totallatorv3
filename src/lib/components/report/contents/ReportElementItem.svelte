@@ -8,7 +8,7 @@
 </script>
 
 {#if data}
-	{#if data.type === 'number' || data.type === 'currency'}
+	{#if data.type === 'number'}
 		<ReportElementContentsNumber {data} />
 	{:else if data.type === 'sparkline' || data.type === 'sparklinebar'}
 		<ReportElementSparkline {data} />

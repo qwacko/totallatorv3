@@ -32,6 +32,17 @@ const customAliasedTableColumn = <
 	return sql<typeof column>`${column}`.as(alias) as unknown as typeof column;
 };
 
+export const dateRangeMaterializedView = pgMaterializedView('date_range_materialized_view').as(
+	(qb) => {
+		return qb
+			.select({
+				minDate: min(journalEntry.date).as('minDate'),
+				maxDate: max(journalEntry.date).as('maxDate')
+			})
+			.from(journalEntry);
+	}
+);
+
 export const materializedViewTableNames = {
 	journalExtendedView: 'journal_extended_view',
 	accountMaterializedView: 'account_materialized_view',

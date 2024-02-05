@@ -9,8 +9,6 @@ export const getFiltersFromMathConfig = (mathConfig: string) => {
 		return [];
 	}
 
-	console.log('Filters : ', filters);
-
 	return filters.map((filter) => ({
 		targetText: filter,
 		targetFilter: filter.replace(/{|}/g, '').trim()

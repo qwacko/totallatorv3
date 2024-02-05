@@ -6,7 +6,8 @@ import {
 	billMaterializedView,
 	budgetMaterializedView,
 	categoryMaterializedView,
-	labelMaterializedView
+	labelMaterializedView,
+	dateRangeMaterializedView
 } from '../postgres/schema/materializedViewSchema';
 
 import { booleanKeyValueStore } from './helpers/keyValueStore';
@@ -18,6 +19,7 @@ const billRefreshRequiredStore = booleanKeyValueStore('billViewRefresh', true);
 const budgetRefreshRequiredStore = booleanKeyValueStore('budgetViewRefresh', true);
 const categoryRefreshRequiredStore = booleanKeyValueStore('categoryViewRefresh', true);
 const labelRefreshRequiredStore = booleanKeyValueStore('labelViewRefresh', true);
+const dateTimeRefreshRequiredStore = booleanKeyValueStore('dateTimeViewRefresh', true);
 
 const logRefreshTime = false;
 
@@ -91,6 +93,10 @@ export const materializedViewActions = {
 			timePromise('Label View Refresh', items.label, async () => {
 				await db.refreshMaterializedView(labelMaterializedView);
 				await labelRefreshRequiredStore.set(db, false);
+			}),
+			timePromise('Date Time View Refresh', items.label, async () => {
+				await db.refreshMaterializedView(dateRangeMaterializedView);
+				await dateTimeRefreshRequiredStore.set(db, false);
 			})
 		]);
 	},
@@ -132,7 +138,8 @@ export const materializedViewActions = {
 			billRefreshRequiredStore.set(db, true),
 			budgetRefreshRequiredStore.set(db, true),
 			categoryRefreshRequiredStore.set(db, true),
-			labelRefreshRequiredStore.set(db, true)
+			labelRefreshRequiredStore.set(db, true),
+			dateTimeRefreshRequiredStore.set(db, true)
 		]);
 	}
 };

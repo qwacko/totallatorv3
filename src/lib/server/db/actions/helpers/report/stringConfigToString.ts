@@ -1,4 +1,7 @@
+import type { ReportConfigPartNumberDisplayType } from '$lib/schema/reportHelpers/reportConfigPartNumberDisplayEnum';
+import type { currencyFormatType } from '$lib/schema/userSchema';
 import type { DBType } from '$lib/server/db/db';
+import { convertNumberToText } from './convertNumberToText';
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { mathConfigToNumber } from './mathConfigToNumber';
 
@@ -6,12 +9,14 @@ export const stringConfigToString = async ({
 	db,
 	stringConfig,
 	getDataFromKey,
-	numberDisplay
+	numberDisplay,
+	currency
 }: {
 	db: DBType;
 	stringConfig: string;
 	getDataFromKey: GetDataForFilterKeyType;
-	numberDisplay: 'number' | 'currency' | 'percent';
+	numberDisplay: ReportConfigPartNumberDisplayType;
+	currency: currencyFormatType;
 }) => {
 	let stringConfigInt = stringConfig;
 
@@ -37,20 +42,11 @@ export const stringConfigToString = async ({
 				};
 			}
 
-			const replacementNumberString =
-				numberDisplay === 'currency'
-					? replacementNumber.value?.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-					: numberDisplay === 'number'
-						? replacementNumber.value?.toLocaleString('en-US', {
-								style: 'decimal',
-								maximumFractionDigits: 0
-							})
-						: `${replacementNumber.value?.toLocaleString('en-US', {
-								style: 'decimal',
-								maximumFractionDigits: 2
-							})}%`;
-
-			console.log('Replacement Number : ', replacementNumberString);
+			const replacementNumberString = convertNumberToText({
+				value: replacementNumber.value,
+				config: numberDisplay,
+				currency
+			});
 
 			stringConfigInt = stringConfigInt.replace(replacement, replacementNumberString);
 		}

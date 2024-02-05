@@ -3,6 +3,7 @@
 	import type { ApexOptions } from 'apexcharts';
 	import type { ReportConfigPartWithData_Sparkline } from '$lib/server/db/actions/helpers/report/getData';
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
+	import { browser } from '$app/environment';
 
 	export let data: ReportConfigPartWithData_Sparkline;
 
@@ -20,13 +21,15 @@
 		width: number,
 		height: number
 	): Promise<void> => {
-		// console.log(`width: ${width}, height: ${height}`);
+		if (!browser) {
+			return;
+		}
 		errorMessage = undefined;
 
 		options = undefined;
 		const resolvedData = await data;
 
-		console.log('Resolved data: ', resolvedData);
+		// console.log('Resolved data: ', resolvedData);
 
 		if ('errorMessage' in resolvedData) {
 			errorMessage = resolvedData.errorMessage;

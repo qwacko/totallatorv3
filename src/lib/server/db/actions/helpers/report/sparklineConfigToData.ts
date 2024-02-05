@@ -4,15 +4,19 @@ import type { DBType } from '$lib/server/db/db';
 import { evaluate } from 'mathjs';
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { getFiltersFromMathConfig } from './mathConfigToNumber';
+import { type currencyFormatType } from '$lib/schema/userSchema';
+import { convertNumberToText } from './convertNumberToText';
 
 export const sparklineConfigToData = async ({
 	db,
 	config,
-	getDataFromKey
+	getDataFromKey,
+	currency
 }: {
 	db: DBType;
 	config: ReportConfigPartSchemaSparklineType;
 	getDataFromKey: GetDataForFilterKeyType;
+	currency: currencyFormatType;
 }) => {
 	const filters = getFiltersFromMathConfig(config.mathConfig);
 
@@ -27,7 +31,8 @@ export const sparklineConfigToData = async ({
 				db,
 				key: filter,
 				allowSingle: true,
-				allowTime: true
+				allowTime: true,
+				timeGrouping: config.timeGrouping
 			});
 
 			if ('errorMessage' in filterResult) {
@@ -52,8 +57,6 @@ export const sparklineConfigToData = async ({
 	const filterResults = filterNullUndefinedAndDuplicates(filterResultsWithUndefined);
 	const dateSeries = filterNullUndefinedAndDuplicates(dateKeys.flat()).sort();
 
-	console.log('Date Series : ', dateSeries);
-
 	const dateData = dateSeries.map((date) => {
 		const dateData = filterResults.map((filterResult) => {
 			if (filterResult.data.timeSeriesData) {
@@ -64,7 +67,11 @@ export const sparklineConfigToData = async ({
 				return { key: filterResult.key, value: filterResult.data.singleValue };
 			}
 
-			return { key: filterResult.key, value: 0, textValue: '0' };
+			return {
+				key: filterResult.key,
+				value: 0,
+				textValue: convertNumberToText({ value: 0, config: config.numberDisplay, currency })
+			};
 		});
 
 		let currentCalc = config.mathConfig;
@@ -81,7 +88,7 @@ export const sparklineConfigToData = async ({
 			return {
 				time: date,
 				value: calcValue,
-				textValue: calcValue.toFixed(2)
+				textValue: convertNumberToText({ value: calcValue, config: config.numberDisplay, currency })
 			};
 		} catch (err) {
 			console.log('Error in Sparkline Config To Data', err);
@@ -89,7 +96,7 @@ export const sparklineConfigToData = async ({
 			return {
 				time: date,
 				value: 0,
-				textValue: '0'
+				textValue: convertNumberToText({ value: 0, config: config.numberDisplay, currency })
 			};
 		}
 	});

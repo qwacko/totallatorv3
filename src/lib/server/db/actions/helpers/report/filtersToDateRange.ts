@@ -1,6 +1,14 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 
-export const filtersToDateRange = (filters: JournalFilterSchemaWithoutPaginationType[]) => {
+export type DBDateRangeType = {
+	min: Date;
+	max: Date;
+};
+
+export const filtersToDateRange = (
+	filters: JournalFilterSchemaWithoutPaginationType[],
+	startingDateRange: DBDateRangeType
+) => {
 	const dateRange = filters.reduce(
 		(acc, filter) => {
 			if (filter.dateAfter && new Date(filter.dateAfter) > acc.start) {
@@ -12,7 +20,7 @@ export const filtersToDateRange = (filters: JournalFilterSchemaWithoutPagination
 			return acc;
 		},
 		{
-			start: new Date('2000-01-01'),
+			start: startingDateRange.min,
 			end: new Date()
 		}
 	);

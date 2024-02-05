@@ -1,11 +1,12 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import type { DBType } from '$lib/server/db/db';
-import { sum, and, count, min, max, avg, SQL, asc } from 'drizzle-orm';
+import { sum, and, count, min, max, avg, SQL, asc, sql, eq } from 'drizzle-orm';
 import { filtersToSQLWithDateRange } from './filtersToSQLWithDateRange';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { journalExtendedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
 import type { DateRangeType, ConfigFilters } from './getData';
 import type { TimeGroupingType } from '$lib/schema/reportHelpers/timeGroupingEnum';
+import { generateDateItemsBetween } from '$lib/helpers/generateDateItemsBetween';
 
 export const getCombinedFilters = ({
 	db,
@@ -136,9 +137,24 @@ export const getCombinedFilters = ({
 		type: TimeSeriesEnumType;
 		resultType: ResultEnumType;
 	}) => {
+		const dateOptions = generateDateItemsBetween({
+			startDate: dateRange.start.toISOString().slice(0, 10),
+			endDate: dateRange.end.toISOString().slice(0, 10),
+			timeUnit: timeGrouping
+		});
+
+		const dateSeries = db
+			.$with('date_series')
+			.as((qb) =>
+				qb
+					.select({ dateSeries: sql<string>`date_series.date_text`.as('date_text_series') })
+					.from(sql.raw(`(VALUES ('${dateOptions.join("'), ('")}')) AS date_series(date_text)`))
+			);
+
 		const dbData = await db
+			.with(dateSeries)
 			.select({
-				time: timeGrouping === 'year' ? journalExtendedView.year : journalExtendedView.yearMonth,
+				time: dateSeries.dateSeries,
 				value:
 					resultType === 'sum'
 						? sum(journalExtendedView.amount).mapWith(Number)
@@ -152,22 +168,36 @@ export const getCombinedFilters = ({
 										? avg(journalExtendedView.amount).mapWith(Number)
 										: sum(journalExtendedView.amount).mapWith(Number)
 			})
-			.from(journalExtendedView)
-			.orderBy(
-				asc(timeGrouping === 'year' ? journalExtendedView.year : journalExtendedView.yearMonth)
+			.from(dateSeries)
+			.leftJoin(
+				journalExtendedView,
+				and(
+					eq(
+						timeGrouping === 'month'
+							? journalExtendedView.yearMonth
+							: timeGrouping === 'year'
+								? journalExtendedView.year
+								: timeGrouping === 'day'
+									? journalExtendedView.yearMonthDay
+									: timeGrouping === 'quarter'
+										? journalExtendedView.yearQuarter
+										: journalExtendedView.yearWeek,
+						dateSeries.dateSeries
+					),
+					...filters
+				)
 			)
-			.where(and(...filters))
-			.groupBy(timeGrouping === 'year' ? journalExtendedView.year : journalExtendedView.yearMonth)
-
+			.orderBy(asc(dateSeries.dateSeries))
+			.groupBy(dateSeries.dateSeries)
 			.execute();
 
 		if (type === 'single') {
-			return { value: dbData };
+			return { value: dbData.map((item) => ({ ...item, value: item.value || 0 })) };
 		}
 		if (type === 'runningtotal') {
 			let runningTotal = 0;
 			const runningTotalData = dbData.map((data) => {
-				runningTotal += data.value;
+				runningTotal += data.value || 0;
 				return { time: data.time, value: runningTotal };
 			});
 			return { value: runningTotalData };
