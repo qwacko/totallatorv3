@@ -1,7 +1,7 @@
 import type { ReportConfigPartNumberDisplayType } from '$lib/schema/reportHelpers/reportConfigPartNumberDisplayEnum';
 import type { currencyFormatType } from '$lib/schema/userSchema';
 import type { DBType } from '$lib/server/db/db';
-import { convertNumberToText } from './convertNumberToText';
+import { convertNumberToText } from '../../../../../helpers/convertNumberToText';
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { mathConfigToNumber } from './mathConfigToNumber';
 

@@ -1,14 +1,15 @@
 <script lang="ts">
+	import type { ReportConfigPartWithData_TimeGraph } from '$lib/server/db/actions/helpers/report/getData';
 	import { Chart, Spinner, Badge, Tooltip } from 'flowbite-svelte';
 	import type { ApexOptions } from 'apexcharts';
-	import type { ReportConfigPartWithData_Sparkline } from '$lib/server/db/actions/helpers/report/getData';
-	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 	import { browser } from '$app/environment';
+	import { convertNumberToText } from '$lib/helpers/convertNumberToText';
+	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 
-	export let data: ReportConfigPartWithData_Sparkline;
+	export let data: ReportConfigPartWithData_TimeGraph;
 
 	const type: 'area' | 'bar' =
-		data.type === 'sparkline' ? 'area' : data.type === 'sparklinebar' ? 'bar' : 'area';
+		data.type === 'time_line' ? 'area' : data.type === 'time_stackedArea' ? 'area' : 'area';
 
 	let width: number | undefined;
 	let height: number | undefined;
@@ -17,34 +18,28 @@
 	let errorMessage: string | undefined;
 
 	const updateOptions = async (
-		data: ReportConfigPartWithData_Sparkline['data'],
+		readData: ReportConfigPartWithData_TimeGraph['data'],
 		width: number,
 		height: number
 	): Promise<void> => {
 		if (!browser) {
 			return;
 		}
+
 		errorMessage = undefined;
 
 		options = undefined;
-		const resolvedData = await data;
-
-		// console.log('Resolved data: ', resolvedData);
+		const resolvedData = await readData;
 
 		if ('errorMessage' in resolvedData) {
 			errorMessage = resolvedData.errorMessage;
 			return;
 		}
 
-		console.log('Resolved Data : ', resolvedData);
-
 		options = {
 			chart: {
 				height: `${height}px`,
 				width: `${width}px`,
-				sparkline: {
-					enabled: true
-				},
 				type,
 				fontFamily: 'Inter, sans-serif',
 				dropShadow: {
@@ -53,10 +48,14 @@
 				toolbar: {
 					show: false
 				},
-
 				animations: {
 					enabled: false
-				}
+				},
+
+				stacked: true
+			},
+			legend: {
+				show: false
 			},
 			tooltip: {
 				enabled: true,
@@ -65,7 +64,7 @@
 				},
 				y: {
 					formatter: (val) => {
-						return resolvedData.data.find((d) => d.value === val)?.textValue || val.toString();
+						return convertNumberToText({ value: val, config: data.numberDisplay, currency: 'USD' });
 					}
 				}
 			},
@@ -93,16 +92,13 @@
 					top: 0
 				}
 			},
-			series: [
-				{
-					name: resolvedData.title,
-					data: resolvedData.data.map((d) => d.value),
-					color: '#1A56DB'
-				}
-			],
+			series: resolvedData?.data.map((currentGroup) => ({
+				name: currentGroup.group,
+				data: currentGroup.data.map((d) => d.value)
+			})),
 			xaxis: {
-				categories: resolvedData
-					? filterNullUndefinedAndDuplicates(resolvedData.data.map((d) => d.time))
+				categories: resolvedData?.data[0].data
+					? filterNullUndefinedAndDuplicates(resolvedData.data[0].data.map((d) => d.time))
 					: [],
 				labels: {
 					show: false
@@ -124,9 +120,14 @@
 	};
 
 	$: updateOptions(data.data, width || 0, height || 0);
+	$: console.log(`Size : ${width} x ${height}`);
 </script>
 
-<div class="relative flex grow self-stretch" bind:clientWidth={width} bind:clientHeight={height}>
+<div
+	class="relative flex grow self-stretch justify-self-stretch bg-red-200"
+	bind:clientWidth={width}
+	bind:clientHeight={height}
+>
 	{#if errorMessage}
 		<Badge color="red">Error</Badge>
 		<Tooltip>{errorMessage}</Tooltip>

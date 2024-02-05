@@ -5,7 +5,7 @@ import { evaluate } from 'mathjs';
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { getFiltersFromMathConfig } from './mathConfigToNumber';
 import { type currencyFormatType } from '$lib/schema/userSchema';
-import { convertNumberToText } from './convertNumberToText';
+import { convertNumberToText } from '../../../../../helpers/convertNumberToText';
 
 export const sparklineConfigToData = async ({
 	db,
@@ -64,7 +64,7 @@ export const sparklineConfigToData = async ({
 				return { key: filterResult.key, value: timeSeriesData ? timeSeriesData.value : 0 };
 			}
 			if (filterResult.data.singleValue) {
-				return { key: filterResult.key, value: filterResult.data.singleValue };
+				return { key: filterResult.key, value: filterResult.data.singleValue[0].value || 0 };
 			}
 
 			return {

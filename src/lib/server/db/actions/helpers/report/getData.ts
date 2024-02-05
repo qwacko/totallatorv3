@@ -15,6 +15,7 @@ import { stringConfigToString } from './stringConfigToString';
 import { getCombinedFilters, type GetDataForFilterKeyType } from './getCombinedFilters';
 import { sparklineConfigToData } from './sparklineConfigToData';
 import type { currencyFormatType } from '$lib/schema/userSchema';
+import { timelineConfigToData } from './timelineConfigToData';
 
 export type DateRangeType = ReturnType<typeof filtersToDateRange>;
 
@@ -41,7 +42,7 @@ export const getItemData = ({
 	filters: ConfigFilters;
 	dbDateRange: DBDateRangeType;
 	currency: currencyFormatType;
-}) => {
+}): ReportElementItemData => {
 	if (!config) return;
 
 	const dateRange = filtersToDateRange(commonFilters, dbDateRange);
@@ -77,24 +78,23 @@ export const getItemData = ({
 		return getDataDetail.string({ config, ...commonParametersReduced, currency });
 	}
 
-	if (config.type === 'sparkline' || config.type === 'sparklinebar') {
+	if (config.type === 'sparkline') {
+		return getDataDetail.sparkline({ config, ...commonParameters, currency });
+	}
+	if (config.type === 'sparklinebar') {
 		return getDataDetail.sparkline({ config, ...commonParameters, currency });
 	}
 
 	if (config.type === 'time_line' || config.type === 'time_stackedArea') {
-		return getDataDetail.timeGraph({ config, ...commonParameters });
+		return getDataDetail.timeGraph({ config, ...commonParameters, currency });
 	}
 
 	if (config.type === 'pie' || config.type === 'box' || config.type === 'bar') {
 		return getDataDetail.nonTimeGraph({ config, ...commonParameters });
 	}
 
-	return config;
-
-	throw Error("Couldn't find Report Element Type");
+	throw new Error("Couldn't find Report Element Type");
 };
-
-export type ReportElementItemData = ReturnType<typeof getItemData>;
 
 export type GetFilterFromKeyType = (key: string) => Promise<{
 	filter: SQL<unknown>[];
@@ -168,13 +168,23 @@ const getDataDetail = {
 	},
 	timeGraph: ({
 		db,
-		config
+		config,
+		getDataFromKey,
+		currency
 	}: {
 		db: DBType;
 		config: ReportConfigPartSchemaTimeGraphType;
 		getDataFromKey: GetDataForFilterKeyType;
+		currency: currencyFormatType;
 	}) => {
-		const data = async () => {};
+		const data = async () => {
+			return timelineConfigToData({
+				db,
+				config,
+				getDataFromKey,
+				currency
+			});
+		};
 
 		return { ...config, data: data() };
 	},
@@ -192,6 +202,12 @@ const getDataDetail = {
 	}
 };
 
+export type ReportConfigPartNone = {
+	id: string;
+	type: 'none';
+	order: number;
+};
+
 export type ReportConfigPartWithData_NumberCurrency = ReturnType<typeof getDataDetail.number>;
 
 export type ReportConfigPartWithData_String = ReturnType<typeof getDataDetail.string>;
@@ -201,3 +217,12 @@ export type ReportConfigPartWithData_Sparkline = ReturnType<typeof getDataDetail
 export type ReportConfigPartWithData_TimeGraph = ReturnType<typeof getDataDetail.timeGraph>;
 
 export type ReportConfigPartWithData_NonTimeGraph = ReturnType<typeof getDataDetail.nonTimeGraph>;
+
+export type ReportElementItemData =
+	| ReportConfigPartWithData_NonTimeGraph
+	| ReportConfigPartWithData_NumberCurrency
+	| ReportConfigPartWithData_Sparkline
+	| ReportConfigPartWithData_String
+	| ReportConfigPartWithData_TimeGraph
+	| ReportConfigPartNone
+	| undefined;

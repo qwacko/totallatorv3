@@ -3,16 +3,23 @@
 	import ReportElementContentsNumber from './ReportElementContentsNumber.svelte';
 	import ReportElementSparkline from './ReportElementSparkline.svelte';
 	import ReportElementContentsString from './ReportElementContentsString.svelte';
+	import ReportElementContentsTimeline from './ReportElementContentsTimeline.svelte';
 
 	export let data: ReportElementItemData | undefined;
 </script>
 
 {#if data}
 	{#if data.type === 'number'}
-		<ReportElementContentsNumber {data} />
+		{@const test = data}
+		<ReportElementContentsNumber data={test} />
 	{:else if data.type === 'sparkline' || data.type === 'sparklinebar'}
-		<ReportElementSparkline {data} />
+		{@const test = data}
+		<ReportElementSparkline data={test} />
 	{:else if data.type === 'string'}
-		<ReportElementContentsString {data} />
+		{@const test = data}
+		<ReportElementContentsString data={test} />
+	{:else if data.type === 'time_line' || data.type === 'time_stackedArea'}
+		{@const test = data}
+		<ReportElementContentsTimeline data={test} />
 	{/if}
 {/if}

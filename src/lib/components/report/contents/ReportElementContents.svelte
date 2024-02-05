@@ -14,13 +14,15 @@
 </script>
 
 {#if layout === 'singleItem'}
-	<ReportItemWrapperCombined
-		class="h-full w-full"
-		item={items[0]}
-		{itemLinkGenerator}
-		{showLayout}
-		{highlightId}
-	/>
+	<div class="flex h-full w-full items-stretch bg-blue-200">
+		<ReportItemWrapperCombined
+			class="flex flex-grow bg-blue-200"
+			item={items[0]}
+			{itemLinkGenerator}
+			{showLayout}
+			{highlightId}
+		/>
+	</div>
 {:else if layout === 'twoItemsHorizontal' || layout === 'twoItemsVertical'}
 	<div
 		class="flex h-full w-full items-stretch gap-1"

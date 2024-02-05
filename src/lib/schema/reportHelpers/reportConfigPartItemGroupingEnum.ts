@@ -4,7 +4,8 @@ export const reportConfigPartItemGroupingEnum = [
 	'tag',
 	'category',
 	'bill',
-	'budget'
+	'budget',
+	'none'
 ] as const;
 
 export type ReportConfigPartItemGroupingType = (typeof reportConfigPartItemGroupingEnum)[number];
@@ -33,6 +34,10 @@ export const reportConfigPartItemGroupingInfo = {
 	budget: {
 		id: 'budget',
 		name: 'Budget'
+	},
+	none: {
+		id: 'none',
+		name: 'None'
 	}
 } satisfies {
 	[key in ReportConfigPartItemGroupingType]: {

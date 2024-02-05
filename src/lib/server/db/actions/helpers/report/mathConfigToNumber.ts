@@ -49,7 +49,7 @@ export const mathConfigToNumber = async ({
 
 			mathConfigInt = mathConfigInt.replace(
 				filter.targetText,
-				(replacementNumber.singleValue || 0).toString()
+				(replacementNumber.singleValue[0].value || 0).toString()
 			);
 		}
 	}

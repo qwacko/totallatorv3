@@ -7,6 +7,7 @@ import { journalExtendedView } from '$lib/server/db/postgres/schema/materialized
 import type { DateRangeType, ConfigFilters } from './getData';
 import type { TimeGroupingType } from '$lib/schema/reportHelpers/timeGroupingEnum';
 import { generateDateItemsBetween } from '$lib/helpers/generateDateItemsBetween';
+import type { ReportConfigPartItemGroupingType } from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum';
 
 export const getCombinedFilters = ({
 	db,
@@ -89,59 +90,108 @@ export const getCombinedFilters = ({
 		});
 	};
 
+	const getValueColumn = (resultType: ResultEnumType) => {
+		return resultType === 'sum'
+			? sum(journalExtendedView.amount).mapWith(Number)
+			: resultType === 'count'
+				? count(journalExtendedView.id).mapWith(Number)
+				: resultType === 'min'
+					? min(journalExtendedView.amount).mapWith(Number)
+					: resultType === 'max'
+						? max(journalExtendedView.amount).mapWith(Number)
+						: resultType === 'avg'
+							? avg(journalExtendedView.amount).mapWith(Number)
+							: sum(journalExtendedView.amount).mapWith(Number);
+	};
+
 	const getSingleNumber = async ({
 		db,
 		resultType,
-		filters
+		filters,
+		dataGrouping
 	}: {
 		db: DBType;
 		filters: SQL<unknown>[];
 		resultType: ResultEnumType;
+		dataGrouping?: ReportConfigPartItemGroupingType;
 	}) => {
-		const dbData = await db
-			.select({
-				value:
-					resultType === 'sum'
-						? sum(journalExtendedView.amount).mapWith(Number)
-						: resultType === 'count'
-							? count(journalExtendedView.id).mapWith(Number)
-							: resultType === 'min'
-								? min(journalExtendedView.amount).mapWith(Number)
-								: resultType === 'max'
-									? max(journalExtendedView.amount).mapWith(Number)
-									: resultType === 'avg'
-										? avg(journalExtendedView.amount).mapWith(Number)
-										: sum(journalExtendedView.amount).mapWith(Number)
-			})
-			.from(journalExtendedView)
-			.where(and(...filters))
-			.execute();
+		const groupingColumn = getGroupingColumn(dataGrouping || 'none');
+
+		const valueColumn = getValueColumn(resultType);
+
+		const dbData = groupingColumn
+			? await db
+					.select({
+						group: groupingColumn,
+						value: valueColumn
+					})
+					.from(journalExtendedView)
+					.where(and(...filters))
+					.groupBy(groupingColumn ? groupingColumn : sql<null>`null`)
+					.execute()
+			: await db
+					.select({
+						group: sql<null>`null`,
+						value: valueColumn
+					})
+					.from(journalExtendedView)
+					.where(and(...filters))
+					.execute();
 
 		if (!dbData[0]) {
 			return { errorMessage: 'No data found' };
 		}
 
-		return { value: dbData[0].value };
+		return { value: dbData };
 	};
 
-	const getUngroupedTimeSeriesData = async ({
+	const getGroupingColumn = (grouping: ReportConfigPartItemGroupingType) => {
+		if (grouping === 'none') {
+			return null;
+		}
+		if (grouping === 'account') {
+			return journalExtendedView.accountTitleCombined;
+		}
+		if (grouping === 'account_type') {
+			return journalExtendedView.accountType;
+		}
+		if (grouping === 'bill') {
+			return journalExtendedView.billTitle;
+		}
+		if (grouping === 'category') {
+			return journalExtendedView.categoryTitle;
+		}
+		if (grouping === 'tag') {
+			return journalExtendedView.tagTitle;
+		}
+		if (grouping === 'budget') {
+			return journalExtendedView.budgetTitle;
+		}
+		return journalExtendedView.accountTitleCombined;
+	};
+
+	const getGroupedTimeSeriesData = async ({
 		db,
 		filters,
 		timeGrouping,
 		type,
-		resultType
+		resultType,
+		grouping
 	}: {
 		db: DBType;
 		filters: SQL<unknown>[];
 		timeGrouping: TimeGroupingType;
 		type: TimeSeriesEnumType;
 		resultType: ResultEnumType;
+		grouping: ReportConfigPartItemGroupingType;
 	}) => {
 		const dateOptions = generateDateItemsBetween({
 			startDate: dateRange.start.toISOString().slice(0, 10),
 			endDate: dateRange.end.toISOString().slice(0, 10),
 			timeUnit: timeGrouping
 		});
+
+		const groupingColumn = getGroupingColumn(grouping);
 
 		const dateSeries = db
 			.$with('date_series')
@@ -155,18 +205,8 @@ export const getCombinedFilters = ({
 			.with(dateSeries)
 			.select({
 				time: dateSeries.dateSeries,
-				value:
-					resultType === 'sum'
-						? sum(journalExtendedView.amount).mapWith(Number)
-						: resultType === 'count'
-							? count(journalExtendedView.id).mapWith(Number)
-							: resultType === 'min'
-								? min(journalExtendedView.amount).mapWith(Number)
-								: resultType === 'max'
-									? max(journalExtendedView.amount).mapWith(Number)
-									: resultType === 'avg'
-										? avg(journalExtendedView.amount).mapWith(Number)
-										: sum(journalExtendedView.amount).mapWith(Number)
+				group: groupingColumn ? groupingColumn : sql<null>`null`,
+				value: getValueColumn(resultType)
 			})
 			.from(dateSeries)
 			.leftJoin(
@@ -188,7 +228,9 @@ export const getCombinedFilters = ({
 				)
 			)
 			.orderBy(asc(dateSeries.dateSeries))
-			.groupBy(dateSeries.dateSeries)
+			.groupBy(
+				...(groupingColumn ? [dateSeries.dateSeries, groupingColumn] : [dateSeries.dateSeries])
+			)
 			.execute();
 
 		if (type === 'single') {
@@ -198,7 +240,7 @@ export const getCombinedFilters = ({
 			let runningTotal = 0;
 			const runningTotalData = dbData.map((data) => {
 				runningTotal += data.value || 0;
-				return { time: data.time, value: runningTotal };
+				return { ...data, time: data.time, value: runningTotal };
 			});
 			return { value: runningTotalData };
 		}
@@ -211,18 +253,20 @@ export const getCombinedFilters = ({
 		key,
 		allowSingle = true,
 		allowTime = true,
-		timeGrouping = 'month'
+		timeGrouping = 'month',
+		dataGrouping
 	}: {
 		db: DBType;
 		key: string;
 		allowSingle?: boolean;
 		allowTime?: boolean;
 		timeGrouping?: TimeGroupingType;
+		dataGrouping?: ReportConfigPartItemGroupingType;
 	}) => {
-		const [dataGrouping, filterIn, item3, resultIn] = key.toLowerCase().split('.');
+		const [groupingIn, filterIn, item3, resultIn] = key.toLowerCase().split('.');
 
-		const grouping = groupingEnum.includes(dataGrouping as GroupingEnumType)
-			? (dataGrouping as GroupingEnumType)
+		const grouping = groupingEnum.includes(groupingIn as GroupingEnumType)
+			? (groupingIn as GroupingEnumType)
 			: null;
 
 		const filter = filterOptions.includes(filterIn) ? filterIn : null;
@@ -233,7 +277,7 @@ export const getCombinedFilters = ({
 		if (!grouping) {
 			return {
 				error: true,
-				errorMessage: `Data Grouping "${dataGrouping}" not found in ${groupingEnum.join(', ')}`
+				errorMessage: `Data Grouping "${groupingIn}" not found in ${groupingEnum.join(', ')}`
 			};
 		}
 
@@ -310,12 +354,13 @@ export const getCombinedFilters = ({
 			}
 
 			const filtersToUse = await getFilterForTimeSeries(filterIn);
-			const data = await getUngroupedTimeSeriesData({
+			const data = await getGroupedTimeSeriesData({
 				db,
 				filters: filtersToUse,
 				timeGrouping,
 				type: timeSpan,
-				resultType: outputCalc
+				resultType: outputCalc,
+				grouping: dataGrouping || 'none'
 			});
 
 			if ('errorMessage' in data) {
