@@ -51,14 +51,28 @@
 				animations: {
 					enabled: false
 				},
+				sparkline: {
+					enabled: true
+				},
 
 				stacked: true
 			},
 			legend: {
-				show: false
+				show: false,
+				containerMargin: {
+					left: 0,
+					top: 0
+				},
+				floating: true
 			},
 			tooltip: {
 				enabled: true,
+				hideEmptySeries: true,
+				onDatasetHover: {
+					highlightDataSeries: true
+				},
+				inverseOrder: true,
+
 				x: {
 					show: true
 				},
@@ -89,7 +103,8 @@
 				padding: {
 					left: 0,
 					right: 0,
-					top: 0
+					top: 0,
+					bottom: 0
 				}
 			},
 			series: resolvedData?.data.map((currentGroup) => ({
@@ -97,6 +112,8 @@
 				data: currentGroup.data.map((d) => d.value)
 			})),
 			xaxis: {
+				offsetX: 0,
+				offsetY: 0,
 				categories: resolvedData?.data[0].data
 					? filterNullUndefinedAndDuplicates(resolvedData.data[0].data.map((d) => d.time))
 					: [],
@@ -120,11 +137,11 @@
 	};
 
 	$: updateOptions(data.data, width || 0, height || 0);
-	$: console.log(`Size : ${width} x ${height}`);
+	// $: console.log(`Size : ${width} x ${height}`);
 </script>
 
 <div
-	class="relative flex grow self-stretch justify-self-stretch bg-red-200"
+	class="relative flex grow self-stretch justify-self-stretch"
 	bind:clientWidth={width}
 	bind:clientHeight={height}
 >

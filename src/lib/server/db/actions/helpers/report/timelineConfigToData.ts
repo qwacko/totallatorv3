@@ -60,21 +60,21 @@ export const timelineConfigToData = async ({
 
 	const groupTitles = filterNullUndefinedAndDuplicates(
 		filterResults
-			.map((filterResult) => filterResult.data.timeSeriesData?.map((item) => item.group))
+			.map((filterResult) =>
+				filterResult.data.timeSeriesData
+					? filterResult.data.timeSeriesData.map((item) => item.group)
+					: filterResult.data.singleValue.map((item) => item.group)
+			)
 			.flat()
 			.map((item) => item || 'None')
 	);
-
-	console.log('Group Titles : ', groupTitles);
-	console.log('Date Series : ', dateSeries.length);
-	console.log('Grouping : ', config.itemGrouping);
 
 	// Step 1: Preprocess the filterResults into a hash map for faster lookup
 	const filterResultsByGroupAndDate: Record<string, { key: string; value: number }[]> = {};
 	filterResults.forEach((filterResult) => {
 		if (filterResult.data.timeSeriesData) {
 			filterResult.data.timeSeriesData.forEach((item) => {
-				const key = `${item.group}-${item.time}`;
+				const key = `${item.group || 'None'}-${item.time}`;
 				if (!filterResultsByGroupAndDate[key]) {
 					filterResultsByGroupAndDate[key] = [];
 				}
@@ -83,11 +83,13 @@ export const timelineConfigToData = async ({
 		}
 		if (filterResult.data.singleValue) {
 			filterResult.data.singleValue.forEach((item) => {
-				const key = `${item.group}`;
-				if (!filterResultsByGroupAndDate[key]) {
-					filterResultsByGroupAndDate[key] = [];
-				}
-				filterResultsByGroupAndDate[key].push({ key: filterResult.key, value: item.value });
+				dateSeries.map((time) => {
+					const key = `${item.group || 'None'}-${time}`;
+					if (!filterResultsByGroupAndDate[key]) {
+						filterResultsByGroupAndDate[key] = [];
+					}
+					filterResultsByGroupAndDate[key].push({ key: filterResult.key, value: item.value });
+				});
 			});
 		}
 	});
@@ -120,21 +122,25 @@ export const timelineConfigToData = async ({
 
 			return {
 				time: date,
-				value: calcValue,
-				textValue: convertNumberToText({
-					value: calcValue,
-					config: config.numberDisplay,
-					currency
-				})
+				value: calcValue
 			};
 		});
 
-		return { group, data: dateData };
+		const dateDataNonZero = dateData.filter((item) => item.value !== 0).length > 0;
+
+		//Remove traces if theay are zero through teh whole timeline.
+		if (dateDataNonZero) {
+			return { group, data: dateData };
+		}
+
+		return undefined;
 	});
+
+	const groupedDataUsed = filterNullUndefinedAndDuplicates(groupedData);
 
 	if (errorMessage) {
 		return { error: true, errorMessage };
 	}
 
-	return { data: groupedData, title: 'Grouped Data' };
+	return { data: groupedDataUsed, title: 'Grouped Data' };
 };

@@ -208,44 +208,72 @@ export const getCombinedFilters = ({
 				group: groupingColumn ? groupingColumn : sql<null>`null`,
 				value: getValueColumn(resultType)
 			})
-			.from(dateSeries)
+			.from(journalExtendedView)
 			.leftJoin(
-				journalExtendedView,
-				and(
-					eq(
-						timeGrouping === 'month'
-							? journalExtendedView.yearMonth
-							: timeGrouping === 'year'
-								? journalExtendedView.year
-								: timeGrouping === 'day'
-									? journalExtendedView.yearMonthDay
-									: timeGrouping === 'quarter'
-										? journalExtendedView.yearQuarter
-										: journalExtendedView.yearWeek,
-						dateSeries.dateSeries
-					),
-					...filters
+				dateSeries,
+				eq(
+					timeGrouping === 'month'
+						? journalExtendedView.yearMonth
+						: timeGrouping === 'year'
+							? journalExtendedView.year
+							: timeGrouping === 'day'
+								? journalExtendedView.yearMonthDay
+								: timeGrouping === 'quarter'
+									? journalExtendedView.yearQuarter
+									: journalExtendedView.yearWeek,
+					dateSeries.dateSeries
 				)
 			)
 			.orderBy(asc(dateSeries.dateSeries))
+			.where(and(...filters))
 			.groupBy(
 				...(groupingColumn ? [dateSeries.dateSeries, groupingColumn] : [dateSeries.dateSeries])
 			)
 			.execute();
 
-		if (type === 'single') {
-			return { value: dbData.map((item) => ({ ...item, value: item.value || 0 })) };
-		}
-		if (type === 'runningtotal') {
-			let runningTotal = 0;
-			const runningTotalData = dbData.map((data) => {
-				runningTotal += data.value || 0;
-				return { ...data, time: data.time, value: runningTotal };
-			});
-			return { value: runningTotalData };
-		}
+		const hashedData: Record<string, { value: number }> = {};
 
-		return { errorMessage: 'Something Has Gone Wrong' };
+		dbData.forEach((item) => {
+			const key = `${item.group || 'None'}-${item.time}`;
+			if (!hashedData[key]) {
+				hashedData[key] = { value: 0 };
+			}
+			hashedData[key].value += item.value;
+		});
+
+		const groups = filterNullUndefinedAndDuplicates(dbData.map((item) => item.group || 'None'));
+		const returnData = groups
+			.map((currentGroup) => {
+				const groupDateSeries = dateOptions.map((currentDateOption) => {
+					const key = `${currentGroup}-${currentDateOption}`;
+					const matchingData = hashedData[key];
+
+					return {
+						group: currentGroup,
+						time: currentDateOption,
+						value: matchingData?.value || 0
+					};
+				});
+
+				if (type === 'single') {
+					return groupDateSeries;
+				}
+
+				let groupRunningTotal = 0;
+
+				return groupDateSeries.map((item) => {
+					groupRunningTotal += item.value;
+					return {
+						...item,
+						value: groupRunningTotal
+					};
+				});
+			})
+			.flat();
+
+		// console.log('Return Data', returnData);
+
+		return returnData;
 	};
 
 	const getDataForFilterKey = async ({
@@ -319,7 +347,8 @@ export const getCombinedFilters = ({
 			const singleNumber = await getSingleNumber({
 				db,
 				filters: filtersToUse,
-				resultType: outputCalc
+				resultType: outputCalc,
+				dataGrouping
 			});
 
 			if ('errorMessage' in singleNumber) {
@@ -371,7 +400,7 @@ export const getCombinedFilters = ({
 			}
 
 			return {
-				timeSeriesData: data.value
+				timeSeriesData: data
 			};
 		}
 

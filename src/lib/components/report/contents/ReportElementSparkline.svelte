@@ -53,7 +53,6 @@
 				toolbar: {
 					show: false
 				},
-
 				animations: {
 					enabled: false
 				}
@@ -100,6 +99,7 @@
 					color: '#1A56DB'
 				}
 			],
+
 			xaxis: {
 				categories: resolvedData
 					? filterNullUndefinedAndDuplicates(resolvedData.data.map((d) => d.time))
