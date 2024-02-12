@@ -1,160 +1,153 @@
 <script lang="ts">
 	import type { ReportConfigPartWithData_TimeGraph } from '$lib/server/db/actions/helpers/report/getData';
-	import { Chart, Spinner, Badge, Tooltip } from 'flowbite-svelte';
-	import type { ApexOptions } from 'apexcharts';
+	import { Spinner, Badge, Tooltip } from 'flowbite-svelte';
 	import { browser } from '$app/environment';
-	import { convertNumberToText } from '$lib/helpers/convertNumberToText';
+	import Chart from '$lib/components/chart/Chart.svelte';
+	import type { EChartsOptions, EChartsSeries } from '$lib/components/chart/chartable';
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
+	import { convertNumberToText } from '$lib/helpers/convertNumberToText';
 
 	export let data: ReportConfigPartWithData_TimeGraph;
 
-	const type: 'area' | 'bar' =
-		data.type === 'time_line' ? 'area' : data.type === 'time_stackedArea' ? 'area' : 'area';
+	// const type: 'area' | 'bar' =
+	// 	data.type === 'time_line' ? 'area' : data.type === 'time_stackedArea' ? 'area' : 'area';
 
-	let width: number | undefined;
-	let height: number | undefined;
-
-	let options: ApexOptions | undefined = undefined;
-	let errorMessage: string | undefined;
-
-	const updateOptions = async (
-		readData: ReportConfigPartWithData_TimeGraph['data'],
-		width: number,
-		height: number
-	): Promise<void> => {
+	const updateOptions = ({
+		readData
+	}: {
+		readData: Awaited<ReportConfigPartWithData_TimeGraph['data']>;
+	}): { errorMessage?: string; options?: EChartsOptions } => {
 		if (!browser) {
-			return;
+			return {};
 		}
 
-		errorMessage = undefined;
-
-		options = undefined;
-		const resolvedData = await readData;
+		// options = undefined;
+		const resolvedData = readData;
 
 		if ('errorMessage' in resolvedData) {
-			errorMessage = resolvedData.errorMessage;
-			return;
+			return { errorMessage: resolvedData.errorMessage };
 		}
 
-		options = {
-			chart: {
-				height: `${height}px`,
-				width: `${width}px`,
-				type,
-				fontFamily: 'Inter, sans-serif',
-				dropShadow: {
-					enabled: false
-				},
-				toolbar: {
-					show: false
-				},
-				animations: {
-					enabled: false
-				},
-				sparkline: {
-					enabled: true
-				},
-
-				stacked: true
-			},
-			legend: {
-				show: false,
-				containerMargin: {
-					left: 0,
-					top: 0
-				},
-				floating: true
-			},
+		const returnConfig: EChartsOptions = {
+			animation: false,
 			tooltip: {
-				enabled: true,
-				hideEmptySeries: true,
-				onDatasetHover: {
-					highlightDataSeries: true
-				},
-				inverseOrder: true,
-
-				x: {
-					show: true
-				},
-				y: {
-					formatter: (val) => {
-						return convertNumberToText({ value: val, config: data.numberDisplay, currency: 'USD' });
+				trigger: 'axis',
+				order: 'valueDesc',
+				axisPointer: {
+					type: 'cross',
+					label: {
+						backgroundColor: '#6a7985'
 					}
 				}
 			},
-			fill: {
-				type: 'gradient',
-				gradient: {
-					opacityFrom: 0.55,
-					opacityTo: 0,
-					shade: '#1C64F2',
-					gradientToColors: ['#1C64F2']
+			// legend: {
+			// 	data: ['Email', 'Union Ads', 'Video Ads', 'Direct', 'Search Engine']
+			// },
+			toolbox: {
+				feature: {
+					saveAsImage: {},
+					dataView: {},
+					dataZoom: {}
 				}
-			},
-			dataLabels: {
-				enabled: false
-			},
-			stroke: {
-				width: 1
 			},
 			grid: {
-				show: false,
-				strokeDashArray: 4,
-				padding: {
-					left: 0,
-					right: 0,
-					top: 0,
-					bottom: 0
-				}
+				left: '3%',
+				right: '4%',
+				bottom: '3%',
+				containLabel: true
 			},
-			series: resolvedData?.data.map((currentGroup) => ({
-				name: currentGroup.group,
-				data: currentGroup.data.map((d) => d.value)
-			})),
-			xaxis: {
-				offsetX: 0,
-				offsetY: 0,
-				categories: resolvedData?.data[0].data
-					? filterNullUndefinedAndDuplicates(resolvedData.data[0].data.map((d) => d.time))
-					: [],
-				labels: {
-					show: false
-				},
-				axisBorder: {
-					show: false
-				},
-				axisTicks: {
-					show: false
-				},
-				tooltip: {
-					enabled: false
+			xAxis: [
+				{
+					type: 'category',
+					boundaryGap: false,
+					data: resolvedData?.data[0].data
+						? filterNullUndefinedAndDuplicates(resolvedData.data[0].data.map((d) => d.time))
+						: []
 				}
-			},
-			yaxis: {
-				show: false
-			}
+			],
+			yAxis: [
+				{
+					type: 'value',
+					axisLabel: {
+						formatter: (value) => {
+							return convertNumberToText({
+								value: Number(value.valueOf()),
+								config: data.numberDisplay,
+								currency: 'USD'
+							});
+						}
+					}
+				}
+			],
+			series: [
+				...resolvedData?.data.map((currentGroup) => {
+					const returnData: EChartsSeries = {
+						name: currentGroup.group,
+						type: 'line',
+						data: currentGroup.data.map((d) => d.value),
+						stack: 'Total',
+						tooltip: {
+							valueFormatter: (value) => {
+								return convertNumberToText({
+									value: Number(value.valueOf()),
+									config: data.numberDisplay,
+									currency: 'USD'
+								});
+							}
+						},
+						areaStyle: {},
+						emphasis: {
+							focus: 'series'
+						}
+					};
+					return returnData;
+				}),
+				{
+					name: 'Total',
+					type: 'line',
+					lineStyle: {
+						type: 'dotted',
+						width: 4
+					},
+					data: resolvedData?.data[0].data
+						.map((_, i) => i)
+						.map((_, i) =>
+							resolvedData?.data
+								.map((currentGroup) => currentGroup.data[i].value)
+								.reduce((a, b) => a + b)
+						),
+					tooltip: {
+						valueFormatter: (value) => {
+							return convertNumberToText({
+								value: Number(value.valueOf()),
+								config: data.numberDisplay,
+								currency: 'USD'
+							});
+						}
+					}
+				}
+			]
 		};
-	};
 
-	$: updateOptions(data.data, width || 0, height || 0);
-	// $: console.log(`Size : ${width} x ${height}`);
+		return { options: returnConfig };
+	};
 </script>
 
-<div
-	class="relative flex grow self-stretch justify-self-stretch"
-	bind:clientWidth={width}
-	bind:clientHeight={height}
->
-	{#if errorMessage}
-		<Badge color="red">Error</Badge>
-		<Tooltip>{errorMessage}</Tooltip>
-	{:else if width > 0 && height > 0}
-		{#if options}
-			<Chart {options} class="absolute {$$props.class}" key={`${width}-${height}`} />
-		{:else}
-			<div class="flex h-full w-full place-content-center place-items-center">
-				<Spinner />
-			</div>
+<div class="relative flex grow self-stretch justify-self-stretch">
+	{#await data.data}
+		<div class="flex h-full w-full place-content-center place-items-center">
+			<Spinner />
+		</div>
+	{:then resolvedData}
+		{@const config = updateOptions({ readData: resolvedData })}
+		{#if config.errorMessage}
+			<Badge color="red">Error</Badge>
+			<Tooltip>{config.errorMessage}</Tooltip>
+		{:else if config.options}
+			<Chart options={config.options} />
 		{/if}
-	{/if}
+	{:catch error}
+		<Badge color="red">Error</Badge>
+		<Tooltip>{error.message}</Tooltip>
+	{/await}
 </div>

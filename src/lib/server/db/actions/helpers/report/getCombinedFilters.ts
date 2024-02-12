@@ -7,7 +7,10 @@ import { journalExtendedView } from '$lib/server/db/postgres/schema/materialized
 import type { DateRangeType, ConfigFilters } from './getData';
 import type { TimeGroupingType } from '$lib/schema/reportHelpers/timeGroupingEnum';
 import { generateDateItemsBetween } from '$lib/helpers/generateDateItemsBetween';
-import type { ReportConfigPartItemGroupingType } from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum';
+import {
+	reportConfigPartItemGroupingInfo,
+	type ReportConfigPartItemGroupingType
+} from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum';
 
 export const getCombinedFilters = ({
 	db,
@@ -167,6 +170,27 @@ export const getCombinedFilters = ({
 		if (grouping === 'budget') {
 			return journalExtendedView.budgetTitle;
 		}
+		if (grouping === 'account_group') {
+			return journalExtendedView.accountGroup;
+		}
+		if (grouping === 'account_group_2') {
+			return journalExtendedView.accountGroup2;
+		}
+		if (grouping === 'account_group_3') {
+			return journalExtendedView.accountGroup3;
+		}
+		if (grouping === 'account_group_combined') {
+			return journalExtendedView.accountGroupCombined;
+		}
+		if (grouping === 'category_group') {
+			return journalExtendedView.categoryGroup;
+		}
+		if (grouping === 'tag_group') {
+			return journalExtendedView.tagGroup;
+		}
+		if (grouping === 'account_title') {
+			return journalExtendedView.accountTitle;
+		}
 		return journalExtendedView.accountTitleCombined;
 	};
 
@@ -185,6 +209,8 @@ export const getCombinedFilters = ({
 		resultType: ResultEnumType;
 		grouping: ReportConfigPartItemGroupingType;
 	}) => {
+		const nullTitle = reportConfigPartItemGroupingInfo[grouping].emptyTitle;
+
 		const dateOptions = generateDateItemsBetween({
 			startDate: dateRange.start.toISOString().slice(0, 10),
 			endDate: dateRange.end.toISOString().slice(0, 10),
@@ -205,7 +231,7 @@ export const getCombinedFilters = ({
 			.with(dateSeries)
 			.select({
 				time: dateSeries.dateSeries,
-				group: groupingColumn ? groupingColumn : sql<null>`null`,
+				group: groupingColumn ? groupingColumn : sql<string>`${nullTitle}`,
 				value: getValueColumn(resultType)
 			})
 			.from(journalExtendedView)
@@ -234,14 +260,14 @@ export const getCombinedFilters = ({
 		const hashedData: Record<string, { value: number }> = {};
 
 		dbData.forEach((item) => {
-			const key = `${item.group || 'None'}-${item.time}`;
+			const key = `${item.group}-${item.time}`;
 			if (!hashedData[key]) {
 				hashedData[key] = { value: 0 };
 			}
 			hashedData[key].value += item.value;
 		});
 
-		const groups = filterNullUndefinedAndDuplicates(dbData.map((item) => item.group || 'None'));
+		const groups = filterNullUndefinedAndDuplicates(dbData.map((item) => item.group || nullTitle));
 		const returnData = groups
 			.map((currentGroup) => {
 				const groupDateSeries = dateOptions.map((currentDateOption) => {
@@ -270,8 +296,6 @@ export const getCombinedFilters = ({
 				});
 			})
 			.flat();
-
-		// console.log('Return Data', returnData);
 
 		return returnData;
 	};

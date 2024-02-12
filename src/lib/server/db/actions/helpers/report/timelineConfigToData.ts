@@ -4,20 +4,21 @@ import type { DBType } from '$lib/server/db/db';
 import { evaluate } from 'mathjs';
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { getFiltersFromMathConfig } from './mathConfigToNumber';
-import { type currencyFormatType } from '$lib/schema/userSchema';
-import { convertNumberToText } from '../../../../../helpers/convertNumberToText';
+import { reportConfigPartTrendDisplayInfo } from '$lib/schema/reportHelpers/reportConfigPartTrendDisplayOptions';
+import { reportConfigPartItemGroupingInfo } from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum';
 
 export const timelineConfigToData = async ({
 	db,
 	config,
-	getDataFromKey,
-	currency
+	getDataFromKey
 }: {
 	db: DBType;
 	config: ReportConfigPartSchemaTimeGraphType;
 	getDataFromKey: GetDataForFilterKeyType;
-	currency: currencyFormatType;
 }) => {
+	const trendDisplayConfig = reportConfigPartTrendDisplayInfo[config.trendDisplay];
+	const nullGroupingTitle =
+		reportConfigPartItemGroupingInfo[config.itemGrouping || 'none'].emptyTitle;
 	const filters = getFiltersFromMathConfig(config.mathConfig);
 
 	const uniqueFilters = filterNullUndefinedAndDuplicates(filters.map((item) => item.targetFilter));
@@ -36,7 +37,7 @@ export const timelineConfigToData = async ({
 				dataGrouping: config.itemGrouping
 			});
 
-			if ('errorMessage' in filterResult) {
+			if (filterResult.error) {
 				errorMessage = filterResult.errorMessage;
 				return undefined;
 			}
@@ -63,10 +64,12 @@ export const timelineConfigToData = async ({
 			.map((filterResult) =>
 				filterResult.data.timeSeriesData
 					? filterResult.data.timeSeriesData.map((item) => item.group)
-					: filterResult.data.singleValue.map((item) => item.group)
+					: filterResult.data.singleValue
+						? filterResult.data.singleValue.map((item) => item.group)
+						: []
 			)
 			.flat()
-			.map((item) => item || 'None')
+			.map((item) => item || nullGroupingTitle)
 	);
 
 	// Step 1: Preprocess the filterResults into a hash map for faster lookup
@@ -74,7 +77,7 @@ export const timelineConfigToData = async ({
 	filterResults.forEach((filterResult) => {
 		if (filterResult.data.timeSeriesData) {
 			filterResult.data.timeSeriesData.forEach((item) => {
-				const key = `${item.group || 'None'}-${item.time}`;
+				const key = `${item.group || nullGroupingTitle}-${item.time}`;
 				if (!filterResultsByGroupAndDate[key]) {
 					filterResultsByGroupAndDate[key] = [];
 				}
@@ -84,7 +87,7 @@ export const timelineConfigToData = async ({
 		if (filterResult.data.singleValue) {
 			filterResult.data.singleValue.forEach((item) => {
 				dateSeries.map((time) => {
-					const key = `${item.group || 'None'}-${time}`;
+					const key = `${item.group || nullGroupingTitle}-${time}`;
 					if (!filterResultsByGroupAndDate[key]) {
 						filterResultsByGroupAndDate[key] = [];
 					}
@@ -136,11 +139,56 @@ export const timelineConfigToData = async ({
 		return undefined;
 	});
 
-	const groupedDataUsed = filterNullUndefinedAndDuplicates(groupedData);
-
 	if (errorMessage) {
 		return { error: true, errorMessage };
 	}
 
-	return { data: groupedDataUsed, title: 'Grouped Data' };
+	const groupedDataUsed = filterNullUndefinedAndDuplicates(groupedData);
+
+	const groupedDataWithoutNull = trendDisplayConfig.retainBlank
+		? groupedDataUsed
+		: groupedDataUsed.filter((item) => item.group !== nullGroupingTitle);
+
+	if (trendDisplayConfig.retainTop === undefined) {
+		return { data: groupedDataWithoutNull, title: 'Grouped Data' };
+	}
+
+	const groupedDataSorted = groupedDataWithoutNull
+		.map((item) => {
+			const maxAmount = item.data.reduce((acc, item) => Math.max(Math.abs(item.value), acc), 0);
+			return {
+				group: item.group,
+				value: maxAmount
+			};
+		})
+		.sort((a, b) => b.value - a.value)
+		.slice(0, trendDisplayConfig.retainTop)
+		.map((item) => item.group);
+
+	if (groupedDataSorted.length < trendDisplayConfig.retainTop) {
+		return { data: groupedDataWithoutNull, title: 'Grouped Data' };
+	}
+
+	const itemsToGroup = groupedDataWithoutNull.filter(
+		(item) => !groupedDataSorted.includes(item.group)
+	);
+
+	const otherGrouped = {
+		group: 'Other Items',
+		data: dateSeries.map((date) => {
+			let calcValue = 0;
+			itemsToGroup.forEach((item) => {
+				const dateData = item.data.find((item) => item.time === date);
+				calcValue += dateData ? dateData.value : 0;
+			});
+			return {
+				time: date,
+				value: calcValue
+			};
+		})
+	};
+
+	const topItems = groupedDataWithoutNull.filter((item) => groupedDataSorted.includes(item.group));
+
+	return { data: [...topItems, otherGrouped], title: 'Grouped Data' };
 };

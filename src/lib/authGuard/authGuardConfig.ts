@@ -405,7 +405,11 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			}
 		},
 
-		'/(loggedIn)/testFunctions': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowUsers } }
+		'/(loggedIn)/testFunctions': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowUsers } },
+
+		'/(loggedIn)/test': {
+			...adminOnlyConfig
+		}
 	},
 	validationBackend: (data) => {
 		return {

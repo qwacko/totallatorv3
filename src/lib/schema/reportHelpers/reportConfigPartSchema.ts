@@ -3,6 +3,7 @@ import { reportConfigPartTypeEnum } from './reportConfigPartTypeEnum';
 import { reportConfigPartTimeGroupingEnum } from './reportConfigPartTimeGroupingEnum';
 import { reportConfigPartItemGroupingEnum } from './reportConfigPartItemGroupingEnum';
 import { reportConfigPartNumberDisplayEnum } from './reportConfigPartNumberDisplayEnum';
+import { reportConfigPartTrendDisplayEnum } from './reportConfigPartTrendDisplayOptions';
 
 const reportConfigPartSchema_None = z.object({
 	id: z.string(),
@@ -52,7 +53,8 @@ const reportConfigPartSchema_TimeGraph = z.object({
 	mathConfig: z.string(),
 	timeGrouping: z.enum(reportConfigPartTimeGroupingEnum).default('month'),
 	itemGrouping: z.enum(reportConfigPartItemGroupingEnum).optional(),
-	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).default('number')
+	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).default('number'),
+	trendDisplay: z.enum(reportConfigPartTrendDisplayEnum).default('all')
 });
 
 export type ReportConfigPartSchemaTimeGraphType = z.infer<typeof reportConfigPartSchema_TimeGraph>;
@@ -63,7 +65,8 @@ const reportConfigPartSchema_NonTimeGraph = z.object({
 	type: z.literal('pie').or(z.literal('box')).or(z.literal('bar')),
 	mathConfig: z.string(),
 	itemGrouping: z.enum(reportConfigPartItemGroupingEnum),
-	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).default('number')
+	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).default('number'),
+	trendDisplay: z.enum(reportConfigPartTrendDisplayEnum).default('all')
 });
 
 export type ReportConfigPartSchemaNonTimeGraphType = z.infer<
@@ -91,7 +94,8 @@ export const reportConfigPartFormSchema = z.object({
 	mathConfig: z.string().optional(),
 	timeGrouping: z.enum(reportConfigPartTimeGroupingEnum).optional(),
 	itemGrouping: z.enum(reportConfigPartItemGroupingEnum).optional(),
-	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).optional()
+	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).optional(),
+	trendDisplay: z.enum(reportConfigPartTrendDisplayEnum).optional()
 });
 
 export type ReportConfigPartFormSchemaType = z.infer<typeof reportConfigPartFormSchema>;

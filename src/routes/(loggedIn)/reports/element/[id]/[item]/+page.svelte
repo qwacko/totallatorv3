@@ -16,6 +16,7 @@
 		reportConfigPartTypeDropdown
 	} from '$lib/schema/reportHelpers/reportConfigPartTypeEnum.js';
 	import { reportConfigPartNumberDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartNumberDisplayEnum';
+	import { reportConfigPartTrendDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartTrendDisplayOptions';
 
 	export let data;
 
@@ -116,6 +117,16 @@
 				id="itemGrouping"
 				errorMessage={$errors.itemGrouping}
 				items={reportConfigPartItemGroupingDropdown}
+			/>
+		{/if}
+		{#if itemTypeInfo.showTrendDisplay}
+			<SelectInput
+				bind:value={$formData.trendDisplay}
+				title="Trend Data To Show"
+				name="trendDisplay"
+				id="trendDisplay"
+				errorMessage={$errors.trendDisplay}
+				items={reportConfigPartTrendDisplayDropdown}
 			/>
 		{/if}
 	{/if}

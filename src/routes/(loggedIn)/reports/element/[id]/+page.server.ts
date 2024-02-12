@@ -9,6 +9,7 @@ import { logging } from '$lib/server/logging';
 import { fail } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms/server';
 
+
 export const load = async (data) => {
 	authGuard(data);
 };
