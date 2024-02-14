@@ -38,7 +38,7 @@ export const timelineConfigToData = async ({
 			});
 
 			if (filterResult.error) {
-				errorMessage = filterResult.errorMessage;
+				errorMessage = filterResult.errorMessage as string;
 				return undefined;
 			}
 

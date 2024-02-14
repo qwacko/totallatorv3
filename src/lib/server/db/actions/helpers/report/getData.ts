@@ -86,7 +86,7 @@ export const getItemData = ({
 	}
 
 	if (config.type === 'time_line' || config.type === 'time_stackedArea') {
-		return getDataDetail.timeGraph({ config, ...commonParameters, currency });
+		return getDataDetail.timeGraph({ config, ...commonParameters });
 	}
 
 	if (config.type === 'pie' || config.type === 'box' || config.type === 'bar') {
@@ -169,20 +169,17 @@ const getDataDetail = {
 	timeGraph: ({
 		db,
 		config,
-		getDataFromKey,
-		currency
+		getDataFromKey
 	}: {
 		db: DBType;
 		config: ReportConfigPartSchemaTimeGraphType;
 		getDataFromKey: GetDataForFilterKeyType;
-		currency: currencyFormatType;
 	}) => {
 		const data = async () => {
 			return timelineConfigToData({
 				db,
 				config,
-				getDataFromKey,
-				currency
+				getDataFromKey
 			});
 		};
 

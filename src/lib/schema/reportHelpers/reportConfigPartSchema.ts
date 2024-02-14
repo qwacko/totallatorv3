@@ -54,7 +54,8 @@ const reportConfigPartSchema_TimeGraph = z.object({
 	timeGrouping: z.enum(reportConfigPartTimeGroupingEnum).default('month'),
 	itemGrouping: z.enum(reportConfigPartItemGroupingEnum).optional(),
 	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).default('number'),
-	trendDisplay: z.enum(reportConfigPartTrendDisplayEnum).default('all')
+	trendDisplay: z.enum(reportConfigPartTrendDisplayEnum).default('all'),
+	includeTotal: z.boolean().default(false)
 });
 
 export type ReportConfigPartSchemaTimeGraphType = z.infer<typeof reportConfigPartSchema_TimeGraph>;
@@ -95,7 +96,8 @@ export const reportConfigPartFormSchema = z.object({
 	timeGrouping: z.enum(reportConfigPartTimeGroupingEnum).optional(),
 	itemGrouping: z.enum(reportConfigPartItemGroupingEnum).optional(),
 	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).optional(),
-	trendDisplay: z.enum(reportConfigPartTrendDisplayEnum).optional()
+	trendDisplay: z.enum(reportConfigPartTrendDisplayEnum).optional(),
+	includeTotal: z.boolean().default(false)
 });
 
 export type ReportConfigPartFormSchemaType = z.infer<typeof reportConfigPartFormSchema>;

@@ -17,6 +17,7 @@
 	} from '$lib/schema/reportHelpers/reportConfigPartTypeEnum.js';
 	import { reportConfigPartNumberDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartNumberDisplayEnum';
 	import { reportConfigPartTrendDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartTrendDisplayOptions';
+	import BooleanInputForm from '$lib/components/BooleanInputForm.svelte';
 
 	export let data;
 
@@ -127,6 +128,16 @@
 				id="trendDisplay"
 				errorMessage={$errors.trendDisplay}
 				items={reportConfigPartTrendDisplayDropdown}
+			/>
+		{/if}
+		{#if itemTypeInfo.showIncludeTotal}
+			<BooleanInputForm
+				{form}
+				field="includeTotal"
+				title="Include Total"
+				onTitle="Yes"
+				offTitle="No"
+				hideClear
 			/>
 		{/if}
 	{/if}

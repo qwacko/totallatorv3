@@ -21,7 +21,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: false,
 		showItemGrouping: false,
 		showNumberDisplay: false,
-		showTrendDisplay: false
+		showTrendDisplay: false,
+		showIncludeTotal: false
 	},
 	number: {
 		id: 'number',
@@ -31,7 +32,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: false,
 		showItemGrouping: false,
 		showNumberDisplay: true,
-		showTrendDisplay: false
+		showTrendDisplay: false,
+		showIncludeTotal: false
 	},
 	string: {
 		id: 'string',
@@ -41,7 +43,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: false,
 		showItemGrouping: false,
 		showNumberDisplay: true,
-		showTrendDisplay: false
+		showTrendDisplay: false,
+		showIncludeTotal: false
 	},
 	sparkline: {
 		id: 'sparkline',
@@ -51,7 +54,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: true,
 		showItemGrouping: false,
 		showNumberDisplay: true,
-		showTrendDisplay: false
+		showTrendDisplay: false,
+		showIncludeTotal: false
 	},
 	sparklinebar: {
 		id: 'sparklinebar',
@@ -61,7 +65,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: true,
 		showItemGrouping: false,
 		showNumberDisplay: true,
-		showTrendDisplay: false
+		showTrendDisplay: false,
+		showIncludeTotal: false
 	},
 	time_line: {
 		id: 'time_line',
@@ -71,7 +76,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: true,
 		showItemGrouping: true,
 		showNumberDisplay: true,
-		showTrendDisplay: true
+		showTrendDisplay: true,
+		showIncludeTotal: true
 	},
 	time_stackedArea: {
 		id: 'time_stackedArea',
@@ -81,7 +87,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: true,
 		showItemGrouping: true,
 		showNumberDisplay: true,
-		showTrendDisplay: true
+		showTrendDisplay: true,
+		showIncludeTotal: true
 	},
 	pie: {
 		id: 'pie',
@@ -91,7 +98,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: false,
 		showItemGrouping: true,
 		showNumberDisplay: true,
-		showTrendDisplay: true
+		showTrendDisplay: true,
+		showIncludeTotal: false
 	},
 	box: {
 		id: 'box',
@@ -101,7 +109,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: false,
 		showItemGrouping: true,
 		showNumberDisplay: true,
-		showTrendDisplay: true
+		showTrendDisplay: true,
+		showIncludeTotal: false
 	},
 	bar: {
 		id: 'bar',
@@ -111,7 +120,8 @@ export const reportConfigPartTypeInfo = {
 		showTimeGrouping: false,
 		showItemGrouping: true,
 		showNumberDisplay: true,
-		showTrendDisplay: true
+		showTrendDisplay: true,
+		showIncludeTotal: false
 	}
 } satisfies {
 	[key in ReportConfigPartType]: {
@@ -123,6 +133,7 @@ export const reportConfigPartTypeInfo = {
 		showItemGrouping: boolean;
 		showNumberDisplay: boolean;
 		showTrendDisplay: boolean;
+		showIncludeTotal: boolean;
 	};
 };
 

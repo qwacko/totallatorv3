@@ -6,16 +6,33 @@
 	import type { EChartsOptions, EChartsSeries } from '$lib/components/chart/chartable';
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 	import { convertNumberToText } from '$lib/helpers/convertNumberToText';
+	import type { currencyFormatType } from '$lib/schema/userSchema';
 
 	export let data: ReportConfigPartWithData_TimeGraph;
+	export let currency: currencyFormatType = 'USD';
+
+	let width = 0;
+	let height = 0;
 
 	// const type: 'area' | 'bar' =
 	// 	data.type === 'time_line' ? 'area' : data.type === 'time_stackedArea' ? 'area' : 'area';
 
+	$: showXAxis = height > 300;
+	$: showYAxis = width > 800;
+
+	$: dynamicConfig = {
+		showXAxis,
+		showYAxis
+	};
+
 	const updateOptions = ({
-		readData
+		readData,
+		showXAxis = true,
+		showYAxis = true
 	}: {
 		readData: Awaited<ReportConfigPartWithData_TimeGraph['data']>;
+		showXAxis?: boolean;
+		showYAxis?: boolean;
 	}): { errorMessage?: string; options?: EChartsOptions } => {
 		if (!browser) {
 			return {};
@@ -27,6 +44,33 @@
 		if ('errorMessage' in resolvedData) {
 			return { errorMessage: resolvedData.errorMessage };
 		}
+
+		const totalSeries: EChartsSeries = {
+			name: 'Total',
+			type: 'line',
+			color: 'black',
+			lineStyle: {
+				type: 'dotted'
+			},
+			data: resolvedData?.data[0].data
+				.map((_, i) => i)
+				.map((_, i) =>
+					resolvedData?.data
+						.map((currentGroup) => currentGroup.data[i].value)
+						.reduce((a, b) => a + b)
+				),
+			tooltip: {
+				valueFormatter: (value) => {
+					return convertNumberToText({
+						value: Number(value.valueOf()),
+						config: data.numberDisplay,
+						currency: 'USD'
+					});
+				}
+			}
+		};
+
+		const bothAxisVisible = showXAxis && showYAxis;
 
 		const returnConfig: EChartsOptions = {
 			animation: false,
@@ -40,9 +84,6 @@
 					}
 				}
 			},
-			// legend: {
-			// 	data: ['Email', 'Union Ads', 'Video Ads', 'Direct', 'Search Engine']
-			// },
 			toolbox: {
 				feature: {
 					saveAsImage: {},
@@ -51,14 +92,16 @@
 				}
 			},
 			grid: {
-				left: '3%',
-				right: '4%',
-				bottom: '3%',
-				containLabel: true
+				left: bothAxisVisible ? '3%' : showYAxis ? '100' : '0%',
+				right: '10',
+				bottom: bothAxisVisible ? '3%' : showXAxis ? '30' : '0%',
+				top: '10',
+				containLabel: bothAxisVisible
 			},
 			xAxis: [
 				{
 					type: 'category',
+					show: showXAxis,
 					boundaryGap: false,
 					data: resolvedData?.data[0].data
 						? filterNullUndefinedAndDuplicates(resolvedData.data[0].data.map((d) => d.time))
@@ -68,12 +111,13 @@
 			yAxis: [
 				{
 					type: 'value',
+					show: showYAxis,
 					axisLabel: {
 						formatter: (value) => {
 							return convertNumberToText({
 								value: Number(value.valueOf()),
 								config: data.numberDisplay,
-								currency: 'USD'
+								currency
 							});
 						}
 					}
@@ -102,30 +146,7 @@
 					};
 					return returnData;
 				}),
-				{
-					name: 'Total',
-					type: 'line',
-					lineStyle: {
-						type: 'dotted',
-						width: 4
-					},
-					data: resolvedData?.data[0].data
-						.map((_, i) => i)
-						.map((_, i) =>
-							resolvedData?.data
-								.map((currentGroup) => currentGroup.data[i].value)
-								.reduce((a, b) => a + b)
-						),
-					tooltip: {
-						valueFormatter: (value) => {
-							return convertNumberToText({
-								value: Number(value.valueOf()),
-								config: data.numberDisplay,
-								currency: 'USD'
-							});
-						}
-					}
-				}
+				...(data.includeTotal ? [totalSeries] : [])
 			]
 		};
 
@@ -133,13 +154,17 @@
 	};
 </script>
 
-<div class="relative flex grow self-stretch justify-self-stretch">
+<div
+	class="relative flex grow self-stretch justify-self-stretch"
+	bind:clientWidth={width}
+	bind:clientHeight={height}
+>
 	{#await data.data}
 		<div class="flex h-full w-full place-content-center place-items-center">
 			<Spinner />
 		</div>
 	{:then resolvedData}
-		{@const config = updateOptions({ readData: resolvedData })}
+		{@const config = updateOptions({ readData: resolvedData, ...dynamicConfig })}
 		{#if config.errorMessage}
 			<Badge color="red">Error</Badge>
 			<Tooltip>{config.errorMessage}</Tooltip>
