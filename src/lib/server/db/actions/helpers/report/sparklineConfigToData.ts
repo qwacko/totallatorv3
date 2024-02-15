@@ -36,7 +36,7 @@ export const sparklineConfigToData = async ({
 			});
 
 			if ('errorMessage' in filterResult) {
-				errorMessage = filterResult.errorMessage;
+				errorMessage = filterResult.errorMessage as string | undefined;
 				return undefined;
 			}
 

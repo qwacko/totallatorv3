@@ -7,14 +7,16 @@
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 	import { convertNumberToText } from '$lib/helpers/convertNumberToText';
 	import type { currencyFormatType } from '$lib/schema/userSchema';
+	import { currencyFormat } from '$lib/stores/userInfoStore';
 
 	export let data: ReportConfigPartWithData_Sparkline;
-	export let currency: currencyFormatType = 'USD';
 
 	const updateOptions = ({
-		readData
+		readData,
+		currencyFormat
 	}: {
 		readData: Awaited<ReportConfigPartWithData_Sparkline['data']>;
+		currencyFormat: currencyFormatType;
 	}): { errorMessage?: string; options?: EChartsOptions } => {
 		if (!browser) {
 			return {};
@@ -66,7 +68,7 @@
 								return convertNumberToText({
 									value: Number(value.valueOf()),
 									config: data.numberDisplay,
-									currency: 'USD'
+									currency: currencyFormat
 								});
 							}
 						}
@@ -80,7 +82,7 @@
 								return convertNumberToText({
 									value: Number(value.valueOf()),
 									config: data.numberDisplay,
-									currency: 'USD'
+									currency: currencyFormat
 								});
 							}
 						}
@@ -133,7 +135,7 @@
 							return convertNumberToText({
 								value: Number(value.valueOf()),
 								config: data.numberDisplay,
-								currency
+								currency: currencyFormat
 							});
 						}
 					}
@@ -152,7 +154,7 @@
 			<Spinner />
 		</div>
 	{:then resolvedData}
-		{@const config = updateOptions({ readData: resolvedData })}
+		{@const config = updateOptions({ readData: resolvedData, currencyFormat: $currencyFormat })}
 		{#if config.errorMessage}
 			<Badge color="red">Error</Badge>
 			<Tooltip>{config.errorMessage}</Tooltip>

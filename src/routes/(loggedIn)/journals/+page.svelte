@@ -34,6 +34,7 @@
 	import BulkJournalActions from './BulkJournalActions.svelte';
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import { currencyFormat } from '$lib/stores/userInfoStore';
 
 	export let data;
 
@@ -82,7 +83,6 @@
 	{:then summary}
 		<JournalSummaryPopoverContent
 			item={summary}
-			format={data.user?.currencyFormat || 'USD'}
 			summaryFilter={$urlStore.searchParams || defaultJournalFilter()}
 		/>
 	{/await}
@@ -149,7 +149,7 @@
 					customCell: true,
 					rowToCurrency: (row) => ({
 						amount: row.amount,
-						format: data.user?.currencyFormat || 'USD'
+						format: $currencyFormat
 					})
 				},
 				{
@@ -157,7 +157,7 @@
 					title: 'Total',
 					rowToCurrency: (row) => ({
 						amount: row.total,
-						format: data.user?.currencyFormat || 'USD'
+						format: $currencyFormat
 					})
 				},
 				{ id: 'relations', title: 'Relations', customCell: true }

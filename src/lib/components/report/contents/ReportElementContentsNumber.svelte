@@ -14,7 +14,7 @@
 			<Badge color="red">Error</Badge>
 			<Tooltip>{currentData.errorMessage}</Tooltip>
 		{:else if data.numberDisplay === 'currency'}
-			<DisplayCurrency amount={currentData.value} format="USD" positiveGreen />
+			<DisplayCurrency amount={currentData.value} positiveGreen />
 		{:else if data.numberDisplay === 'percent'}
 			{currentData.value.toFixed(0)}%
 		{:else if data.numberDisplay === 'percent2dp'}

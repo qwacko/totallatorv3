@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getCurrencyFormatter, type currencyFormatType } from '$lib/schema/userSchema';
+	import { getCurrencyFormatter, } from '$lib/schema/userSchema';
 
 	import { Chart, Tabs, TabItem, Button } from 'flowbite-svelte';
 	import {
@@ -23,9 +23,9 @@
 	import EyeIcon from './icons/EyeIcon.svelte';
 	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 	import TimeAndTransferButtons from './journalSummary/TimeAndTransferButtons.svelte';
+	import { currencyFormat } from '$lib/stores/userInfoStore';
 
 	export let item: SummaryCacheSchemaDataType;
-	export let format: currencyFormatType = 'USD';
 	export let summaryFilter: DeepPartialWithoutArray<
 		Omit<JournalFilterSchemaInputType, 'orderBy' | 'page' | 'pageSize'>
 	> = {};
@@ -62,7 +62,7 @@
 	$: latestYearMonth = generateYearMonthsBeforeToday(12);
 	$: last12Months = filterTrendData({ data: item.monthlySummary, dates: latestYearMonth });
 
-	$: formatter = getCurrencyFormatter(format);
+	$: formatter = getCurrencyFormatter($currencyFormat);
 
 	$: yearChange = last12Months.reduce((prev, current) => prev + current.sum, 0);
 </script>
@@ -85,11 +85,11 @@
 			{/if}
 			<div class="flex flex-grow flex-col items-end gap-0.5">
 				<div class="flex text-lg">
-					<DisplayCurrency amount={item.sum} {format} />
+					<DisplayCurrency amount={item.sum} />
 				</div>
 
 				<div class="flex text-xs">
-					<DisplayCurrency amount={yearChange} {format} positiveGreen={true} />
+					<DisplayCurrency amount={yearChange} positiveGreen={true} />
 				</div>
 			</div>
 		</div>

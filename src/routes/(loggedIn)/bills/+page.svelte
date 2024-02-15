@@ -61,7 +61,6 @@
 	{:then billSummaryData}
 		<JournalSummaryPopoverContent
 			item={billSummaryData}
-			format={data.user?.currencyFormat || 'USD'}
 			summaryFilter={{ bill: $urlStore.searchParams } || defaultJournalFilter()}
 			showJournalLink
 		/>

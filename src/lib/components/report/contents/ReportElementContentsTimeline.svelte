@@ -11,9 +11,9 @@
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 	import { convertNumberToText } from '$lib/helpers/convertNumberToText';
 	import type { currencyFormatType } from '$lib/schema/userSchema';
+	import { currencyFormat } from '$lib/stores/userInfoStore';
 
 	export let data: ReportConfigPartWithData_TimeGraph;
-	export let currency: currencyFormatType = 'USD';
 
 	let width = 0;
 	let height = 0;
@@ -32,11 +32,13 @@
 	const updateOptions = ({
 		readData,
 		showXAxis = true,
-		showYAxis = true
+		showYAxis = true,
+		currencyFormat
 	}: {
 		readData: Awaited<ReportConfigPartWithData_TimeGraph['data']>;
 		showXAxis?: boolean;
 		showYAxis?: boolean;
+		currencyFormat: currencyFormatType;
 	}): { errorMessage?: string; options?: EChartsOptions } => {
 		if (!browser) {
 			return {};
@@ -56,7 +58,7 @@
 			return convertNumberToText({
 				value: Number(value.valueOf()),
 				config: data.numberDisplay,
-				currency
+				currency: currencyFormat
 			});
 		};
 
@@ -161,7 +163,11 @@
 			<Spinner />
 		</div>
 	{:then resolvedData}
-		{@const config = updateOptions({ readData: resolvedData, ...dynamicConfig })}
+		{@const config = updateOptions({
+			readData: resolvedData,
+			currencyFormat: $currencyFormat,
+			...dynamicConfig
+		})}
 		{#if config.errorMessage}
 			<Badge color="red">Error</Badge>
 			<Tooltip>{config.errorMessage}</Tooltip>

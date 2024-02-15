@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button, Modal, Spinner } from 'flowbite-svelte';
-	import type { currencyFormatType } from '$lib/schema/userSchema';
 	import DisplayCurrency from './DisplayCurrency.svelte';
 	import JournalSummaryPopoverContent from './JournalSummaryPopoverContent.svelte';
 	import type { JournalSummaryPropType } from './helpers/JournalSummaryPropType';
@@ -9,7 +8,6 @@
 
 	export let id: string;
 	export let items: JournalSummaryPropType;
-	export let format: currencyFormatType = 'USD';
 	export let summaryTitle: string = 'Summary';
 	export let summaryFilter: DeepPartialWithoutArray<
 		Omit<JournalFilterSchemaInputType, 'orderBy' | 'page' | 'pageSize'>
@@ -32,7 +30,7 @@
 		color="light"
 		outline
 		size="xs"
-		class="text-xs w-24"
+		class="w-24 text-xs"
 		on:click={() => {
 			showModal = true;
 		}}
@@ -45,7 +43,7 @@
 		{:then matchingItem}
 			{#if matchingItem}
 				<div class="flex flex-row gap-1">
-					<DisplayCurrency amount={matchingItem.sum} {format} />
+					<DisplayCurrency amount={matchingItem.sum} />
 				</div>
 			{:else}
 				Error
@@ -57,7 +55,7 @@
 			<Spinner />
 		{:then matchingItem}
 			{#if matchingItem}
-				<JournalSummaryPopoverContent item={matchingItem} {format} {summaryFilter} />
+				<JournalSummaryPopoverContent item={matchingItem} {summaryFilter} />
 			{:else}
 				Error
 			{/if}

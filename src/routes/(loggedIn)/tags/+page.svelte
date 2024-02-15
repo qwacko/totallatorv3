@@ -61,7 +61,6 @@
 	{:then tagSummaryData}
 		<JournalSummaryPopoverContent
 			item={tagSummaryData}
-			format={data.user?.currencyFormat || 'USD'}
 			summaryFilter={{ tag: $urlStore.searchParams } || defaultJournalFilter()}
 			showJournalLink
 		/>

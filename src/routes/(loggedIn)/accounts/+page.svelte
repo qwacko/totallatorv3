@@ -23,6 +23,7 @@
 	import { enhance } from '$app/forms';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
+	import { currencyFormat } from '$lib/stores/userInfoStore.js';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -64,7 +65,6 @@
 	</svelte:fragment>
 	<JournalSummaryPopoverContent
 		item={data.accountSummary}
-		format={data.user?.currencyFormat || 'USD'}
 		summaryFilter={{ account: $urlStore.searchParams } || defaultJournalFilter}
 		showJournalLink
 	/>
@@ -138,7 +138,7 @@
 				sortKey: 'startDate'
 			},
 			{ id: 'endDate', title: 'End Date', rowToDisplay: (row) => row.endDate, sortKey: 'endDate' },
-			...summaryColumns({ currencyFormat: data.user?.currencyFormat || 'USD' })
+			...summaryColumns({ currencyFormat: $currencyFormat })
 		]}
 		bind:shownColumns={$accountColumnsStore}
 		rowColour={(row) => (row.disabled ? 'grey' : undefined)}

@@ -34,8 +34,8 @@
 	$: errors = form.errors;
 </script>
 
-<CustomHeader pageTitle="User {data ? data.currentUser.name : ''}" />
-<PageLayout title="User {data ? data.currentUser.name : ''}">
+<CustomHeader pageTitle="User - {data ? data.currentUser.name : ''}" />
+<PageLayout title="User - {data ? data.currentUser.name : ''}">
 	{#if data.currentUser}
 		<div class="flex flex-row items-center gap-2">
 			{data.currentUser.username}

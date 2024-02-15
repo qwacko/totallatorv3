@@ -65,7 +65,6 @@
 	{:then budgetSummaryData}
 	<JournalSummaryPopoverContent
 		item={budgetSummaryData}
-		format={data.user?.currencyFormat || 'USD'}
 		summaryFilter={{ budget: $urlStore.searchParams } || defaultJournalFilter}
 		showJournalLink
 	/>
