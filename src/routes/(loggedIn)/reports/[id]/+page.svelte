@@ -4,7 +4,7 @@
 	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
 	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import { Badge, Button, Heading, Input, Spinner } from 'flowbite-svelte';
+	import { Badge, Button, Heading, Input, Select, Spinner } from 'flowbite-svelte';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import ArrowDownIcon from '$lib/components/icons/ArrowDownIcon.svelte';
 	import ArrowUpIcon from '$lib/components/icons/ArrowUpIcon.svelte';
@@ -14,15 +14,39 @@
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import ReportElementDisplay from './ReportElementDisplay.svelte';
-	import { urlGenerator } from '$lib/routes.js';
+	import { pageInfoStore, urlGenerator, pageInfo } from '$lib/routes.js';
+	import { getDateSpanDropdown } from '$lib/schema/dateSpanSchema.js';
+	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
 
 	export let data;
 
 	let edit = false;
 	let saving = false;
 
+	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
+	const urlStore = pageInfoStore({
+		routeId: '/(loggedIn)/reports/[id]',
+		pageInfo: page,
+		onUpdate: (newURL) => {
+			if (browser && newURL !== urlInfo.current.url) {
+				goto(newURL, { keepFocus: true, noScroll: true });
+			}
+		},
+		updateDelay: 500
+	});
+
 	$: reportData = reportLayoutStore(data.report);
 	$: reportLayoutStringStore = reportData.reportLayoutStringStore;
+
+	const updateDateSpan = (event: Event) => {
+		const targetDateSpan = (event.target as HTMLSelectElement).value as DateSpanEnumType;
+		if ($urlStore.searchParams) {
+			$urlStore.searchParams.dateSpan = targetDateSpan;
+		} else {
+			$urlStore.searchParams = { dateSpan: targetDateSpan };
+		}
+	};
 </script>
 
 <CustomHeader pageTitle="Report - {$reportData.title}" />
@@ -83,6 +107,14 @@
 				<PlusIcon />Add Element
 			</Button>
 		{:else}
+			<div class="flex">
+				<Select
+					value={data.dateSpan}
+					items={getDateSpanDropdown()}
+					on:change={updateDateSpan}
+					placeholder="Time Span..."
+				/>
+			</div>
 			<Button color="primary" outline on:click={() => (edit = true)}><EditIcon /></Button>
 			<Button
 				color="red"

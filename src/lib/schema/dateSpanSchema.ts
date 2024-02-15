@@ -1,4 +1,5 @@
 export const dateSpanEnum = [
+	'allTime',
 	'thisWeek',
 	'lastWeek',
 	'thisMonth',
@@ -19,6 +20,16 @@ export const dateSpanEnum = [
 export type DateSpanEnumType = (typeof dateSpanEnum)[number];
 
 export const dateSpanInfo = {
+	allTime: {
+		id: 'allTime',
+		title: 'All Time',
+		getStartDate: () => {
+			return new Date(0);
+		},
+		getEndDate: ({ currentDate }) => {
+			return new Date(currentDate);
+		}
+	},
 	thisWeek: {
 		id: 'thisWeek',
 		title: 'This Week',

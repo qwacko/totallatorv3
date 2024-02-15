@@ -12,11 +12,19 @@ export const load = async (data) => {
 
 	if (!pageInfo.current.params?.id) redirect(302, '/journalEntries');
 
-	const report = await tActions.report.getReportConfig({ db, id: pageInfo.current.params?.id });
+	const dateSpan = pageInfo.current.searchParams?.dateSpan;
+	const pageFilter = dateSpan ? { dateSpan } : undefined;
+
+	const report = await tActions.report.getReportConfig({
+		db,
+		id: pageInfo.current.params?.id,
+		pageFilter
+	});
 	if (!report) redirect(302, '/journalEntries');
 
 	return {
-		report
+		report,
+		dateSpan
 	};
 };
 

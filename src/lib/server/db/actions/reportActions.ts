@@ -114,7 +114,15 @@ export const reportActions = {
 
 		return reportConfig;
 	},
-	getReportConfig: async ({ db, id }: { db: DBType; id: string }) => {
+	getReportConfig: async ({
+		db,
+		id,
+		pageFilter = {}
+	}: {
+		db: DBType;
+		id: string;
+		pageFilter?: JournalFilterSchemaWithoutPaginationType;
+	}) => {
 		const reportConfig = await db.query.report.findFirst({
 			where: (report, { eq }) => eq(report.id, id),
 			with: {
@@ -129,7 +137,7 @@ export const reportActions = {
 
 		const reportElementData = await Promise.all(
 			reportConfig.reportElements.map(async (item) =>
-				reportActions.reportElement.getWithData({ db, id: item.id })
+				reportActions.reportElement.getWithData({ db, id: item.id, pageFilter })
 			)
 		);
 
@@ -504,7 +512,15 @@ export const reportActions = {
 		}
 	},
 	reportElement: {
-		getWithData: async ({ db, id }: { db: DBType; id: string }) => {
+		getWithData: async ({
+			db,
+			id,
+			pageFilter = {}
+		}: {
+			db: DBType;
+			id: string;
+			pageFilter?: JournalFilterSchemaWithoutPaginationType;
+		}) => {
 			const elementConfig = await db.query.reportElement.findFirst({
 				where: (reportElement, { eq }) => eq(reportElement.id, id),
 				with: {
@@ -548,6 +564,7 @@ export const reportActions = {
 							db,
 							config: currentConfig,
 							commonFilters: filterNullUndefinedAndDuplicates([
+								pageFilter,
 								elementConfig.filter?.filter,
 								elementConfig.report.filter?.filter
 							]),

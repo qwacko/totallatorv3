@@ -1,3 +1,4 @@
+import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 
 export type DBDateRangeType = {
@@ -11,6 +12,22 @@ export const filtersToDateRange = (
 ) => {
 	const dateRange = filters.reduce(
 		(acc, filter) => {
+			if (filter.dateSpan) {
+				const dateInformation = dateSpanInfo[filter.dateSpan];
+				const startDate = dateInformation.getStartDate({
+					currentDate: new Date(),
+					firstMonthOfFY: 1
+				});
+				const endDate = dateInformation.getEndDate({ currentDate: new Date(), firstMonthOfFY: 1 });
+
+				if (startDate > acc.start) {
+					acc.start = startDate;
+				}
+				if (endDate < acc.end) {
+					acc.end = endDate;
+				}
+			}
+
 			if (filter.dateAfter && new Date(filter.dateAfter) > acc.start) {
 				acc.start = new Date(filter.dateAfter);
 			}

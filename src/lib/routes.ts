@@ -14,6 +14,7 @@ import {
 	reusableFilterCreationURLParams
 } from './schema/reusableFilterSchema';
 import { importMappingFilterSchema } from './schema/importMappingSchema';
+import { dateSpanEnum } from './schema/dateSpanSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -203,7 +204,13 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// ----------------------------------------
 		'/(loggedIn)/reports': {},
 		'/(loggedIn)/reports/create': {},
-		'/(loggedIn)/reports/[id]': { paramsValidation: z.object({ id: z.string() }).parse },
+		'/(loggedIn)/reports/[id]': {
+			paramsValidation: z.object({ id: z.string() }).parse,
+			searchParamsValidation: z
+				.object({ dateSpan: z.enum(dateSpanEnum).optional() })
+				.optional()
+				.catch({}).parse
+		},
 		'/(loggedIn)/reports/[id]/delete': { paramsValidation: z.object({ id: z.string() }).parse },
 		'/(loggedIn)/reports/element/[id]': { paramsValidation: z.object({ id: z.string() }).parse },
 		'/(loggedIn)/reports/element/[id]/[item]': {
