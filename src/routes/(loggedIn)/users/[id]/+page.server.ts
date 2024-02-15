@@ -1,61 +1,69 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
+import { defaultJournalRedirect } from '$lib/helpers/defaultRedirect.js';
+import { updateUserSchema } from '$lib/schema/userSchema.js';
+import { tActions } from '$lib/server/db/actions/tActions.js';
 import { user } from '$lib/server/db/postgres/schema';
 import { eq } from 'drizzle-orm';
+import { superValidate, message } from 'sveltekit-superforms/server';
 
 export const load = async (data) => {
 	authGuard(data);
 
 	const authUser = data.locals.user;
-	if (!authUser) return;
-	const targetUser = (
-		await data.locals.db.select().from(user).where(eq(user.id, data.params.id)).execute()
-	)[0];
-	if (!targetUser) return;
+	if (!authUser) {
+		return defaultJournalRedirect();
+	}
+	const targetUser = await tActions.user.get({ db: data.locals.db, userId: data.params.id });
+	if (!targetUser) {
+		return defaultJournalRedirect();
+	}
+
+	const form = await superValidate(targetUser, updateUserSchema);
 
 	return {
-		canSetAdmin: authUser.admin && authUser.userId !== targetUser.id && !targetUser.admin,
-		canRemoveAdmin: authUser.admin && authUser.userId !== targetUser.id && targetUser.admin,
-		canUpdateName: authUser.admin || authUser.userId === targetUser.id,
-		canUpdatePassword: authUser.admin || authUser.userId === targetUser.id
+		canSetAdmin: tActions.user.canSetAdmin({ userId: data.params.id, initiatingUser: authUser }),
+		canRemoveAdmin: tActions.user.canClearAdmin({
+			userId: data.params.id,
+			initiatingUser: authUser
+		}),
+		canUpdateName: tActions.user.canUpdateInfo({
+			userId: data.params.id,
+			initiatingUser: authUser
+		}),
+		canUpdatePassword: tActions.user.canUpdatePassword({
+			userId: data.params.id,
+			initiatingUser: authUser
+		}),
+		form
 	};
 };
 
 export const actions = {
-	updateName: async (data) => {
+	updateInfo: async (data) => {
 		const authUser = data.locals.user;
 		if (!authUser) return;
-		const targetUser = (
-			await data.locals.db.select().from(user).where(eq(user.id, data.params.id)).execute()
-		)[0];
-		if (!targetUser) return;
-		const canUpdateName = authUser.admin || authUser.userId === targetUser.id;
 
-		if (!canUpdateName) {
-			return;
+		const form = await superValidate(data.request, updateUserSchema);
+
+		console.log('updateInforForm : ', form);
+
+		if (!form.valid) {
+			return { form };
 		}
 
-		const formData = await data.request.formData();
-		const name = formData.get('name')?.toString();
-
-		if (!name) {
-			return;
+		try {
+			await tActions.user.updateUserInfo({
+				db: data.locals.db,
+				userId: data.params.id,
+				userInfo: form.data,
+				initiatingUser: authUser
+			});
+		} catch (e) {
+			console.log('updateInfoError : ', e);
+			return message(form, 'Error Updating User', { status: 401 });
 		}
 
-		const currentUser = await data.locals.db
-			.select()
-			.from(user)
-			.where(eq(user.id, data.params.id))
-			.execute();
-		if (!currentUser || !(currentUser.length === 1)) {
-			return;
-		}
-		if (currentUser[0].name === name) {
-			return;
-		}
-
-		await data.locals.db.update(user).set({ name }).where(eq(user.id, data.params.id)).execute();
-
-		return;
+		return { form };
 	},
 	setAdmin: async (data) => {
 		const authUser = data.locals.user;

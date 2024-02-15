@@ -372,7 +372,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				setAdmin: POSTAllowAdminOnly,
 				removeAdmin: POSTAllowAdminOnly,
-				updateName: POSTAllowUsers
+				updateInfo: POSTAllowUsers
 			}
 		},
 		'/(loggedIn)/users/[id]/delete': {

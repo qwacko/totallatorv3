@@ -2,6 +2,8 @@
 	lang="ts"
 	generics="F extends JournalFilterSchemaType | JournalFilterSchemaWithoutPaginationType"
 >
+	import { getDateSpanDropdown } from '$lib/schema/dateSpanSchema';
+
 	import type {
 		JournalFilterSchemaType,
 		JournalFilterSchemaWithoutPaginationType
@@ -12,6 +14,7 @@
 	import BooleanFilterButtons from './BooleanFilterButtons.svelte';
 	import FilterIdArray from './FilterIdArray.svelte';
 	import IdFilter from './IDFilter.svelte';
+	import SelectInput from '../SelectInput.svelte';
 
 	export let activeFilter: F;
 	export let hideDates = false;
@@ -117,6 +120,13 @@
 			name="dateBefore"
 			title="End Date"
 			errorMessage=""
+		/>
+		<SelectInput
+			bind:value={activeFilter.dateSpan}
+			title="Fixed Date Span"
+			name="dateSpan"
+			errorMessage=""
+			items={getDateSpanDropdown()}
 		/>
 	{/if}
 

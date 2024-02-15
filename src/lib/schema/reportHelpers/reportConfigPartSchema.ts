@@ -49,7 +49,7 @@ export type ReportConfigPartSchemaSparklineType = z.infer<typeof reportConfigPar
 const reportConfigPartSchema_TimeGraph = z.object({
 	id: z.string(),
 	order: z.number(),
-	type: z.literal('time_line').or(z.literal('time_stackedArea')),
+	type: z.literal('time_line').or(z.literal('time_stackedArea')).or(z.literal('time_bar')),
 	mathConfig: z.string(),
 	timeGrouping: z.enum(reportConfigPartTimeGroupingEnum).default('month'),
 	itemGrouping: z.enum(reportConfigPartItemGroupingEnum).optional(),

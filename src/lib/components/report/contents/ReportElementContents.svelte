@@ -14,9 +14,9 @@
 </script>
 
 {#if layout === 'singleItem'}
-	<div class="flex h-full w-full items-stretch bg-blue-200">
+	<div class="flex h-full w-full items-stretch">
 		<ReportItemWrapperCombined
-			class="flex flex-grow bg-blue-200"
+			class="flex flex-grow"
 			item={items[0]}
 			{itemLinkGenerator}
 			{showLayout}

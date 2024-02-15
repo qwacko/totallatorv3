@@ -7,6 +7,7 @@ import { budgetFilterSchema } from './budgetSchema';
 import { categoryFilterSchema } from './categorySchema';
 import { labelFilterSchema } from './labelSchema';
 import { cloneDeep } from 'lodash-es';
+import { dateSpanEnum } from './dateSpanSchema';
 
 const zodStringBlanking = z
 	.string()
@@ -228,6 +229,7 @@ export const journalFilterSchemaWithoutPagination = z.object({
 	excludeIdArray: z.array(z.string()).optional(),
 	transactionIdArray: z.array(z.string()).optional(),
 	excludeTransactionIdArray: z.array(z.string()).optional(),
+	dateSpan: z.enum(dateSpanEnum).optional(),
 	dateBefore: dateStringSchema.optional().nullable(),
 	dateAfter: dateStringSchema.optional().nullable(),
 	maxAmount: z.number().optional(),

@@ -3,7 +3,11 @@
 	import { Spinner, Badge, Tooltip } from 'flowbite-svelte';
 	import { browser } from '$app/environment';
 	import Chart from '$lib/components/chart/Chart.svelte';
-	import type { EChartsOptions, EChartsSeries } from '$lib/components/chart/chartable';
+	import type {
+		EChartsOptions,
+		EChartsSeries,
+		OptionsDataFormatter
+	} from '$lib/components/chart/chartable';
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 	import { convertNumberToText } from '$lib/helpers/convertNumberToText';
 	import type { currencyFormatType } from '$lib/schema/userSchema';
@@ -45,6 +49,17 @@
 			return { errorMessage: resolvedData.errorMessage };
 		}
 
+		const stackedArea = data.type === 'time_stackedArea';
+		const bar = data.type === 'time_bar';
+
+		const valueFormatter: OptionsDataFormatter = (value) => {
+			return convertNumberToText({
+				value: Number(value.valueOf()),
+				config: data.numberDisplay,
+				currency
+			});
+		};
+
 		const totalSeries: EChartsSeries = {
 			name: 'Total',
 			type: 'line',
@@ -60,13 +75,7 @@
 						.reduce((a, b) => a + b)
 				),
 			tooltip: {
-				valueFormatter: (value) => {
-					return convertNumberToText({
-						value: Number(value.valueOf()),
-						config: data.numberDisplay,
-						currency: 'USD'
-					});
-				}
+				valueFormatter
 			}
 		};
 
@@ -92,9 +101,9 @@
 				}
 			},
 			grid: {
-				left: bothAxisVisible ? '3%' : showYAxis ? '100' : '0%',
+				left: bothAxisVisible ? '3%' : showYAxis ? '100' : '10',
 				right: '10',
-				bottom: bothAxisVisible ? '3%' : showXAxis ? '30' : '0%',
+				bottom: bothAxisVisible ? '3%' : showXAxis ? '30' : '10',
 				top: '10',
 				containLabel: bothAxisVisible
 			},
@@ -113,37 +122,25 @@
 					type: 'value',
 					show: showYAxis,
 					axisLabel: {
-						formatter: (value) => {
-							return convertNumberToText({
-								value: Number(value.valueOf()),
-								config: data.numberDisplay,
-								currency
-							});
-						}
+						formatter: valueFormatter
 					}
 				}
 			],
 			series: [
-				...resolvedData?.data.map((currentGroup) => {
-					const returnData: EChartsSeries = {
+				...resolvedData.data.map((currentGroup) => {
+					const returnData = {
 						name: currentGroup.group,
-						type: 'line',
+						type: bar ? 'bar' : 'line',
 						data: currentGroup.data.map((d) => d.value),
-						stack: 'Total',
+						stack: stackedArea ? 'Total' : undefined,
 						tooltip: {
-							valueFormatter: (value) => {
-								return convertNumberToText({
-									value: Number(value.valueOf()),
-									config: data.numberDisplay,
-									currency: 'USD'
-								});
-							}
+							valueFormatter
 						},
-						areaStyle: {},
+						areaStyle: stackedArea ? {} : undefined,
 						emphasis: {
 							focus: 'series'
 						}
-					};
+					} satisfies EChartsSeries;
 					return returnData;
 				}),
 				...(data.includeTotal ? [totalSeries] : [])

@@ -9,16 +9,19 @@ import { categoryFilterToQuery } from '../category/categoryFilterToQuery';
 import { labelFilterToSubQuery } from '../label/labelFilterToQuery';
 import { type DBType } from '../../../db';
 import { journalPayeeToSubquery } from '../journal/journalPayeeToSubquery';
+import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
 
 export const materializedJournalFilterToQuery = async (
 	db: DBType,
 	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
 	{
 		excludeStart = false,
-		excludeEnd = false
-	}: { excludeStart?: boolean; excludeEnd?: boolean } = {}
+		excludeEnd = false,
+		firstMonthOfFY = 1
+	}: { excludeStart?: boolean; excludeEnd?: boolean; firstMonthOfFY?: number } = {}
 ) => {
 	const where: SQL<unknown>[] = [];
+
 	if (filter.id) where.push(eq(journalExtendedView.id, filter.id));
 	if (filter.excludeId) where.push(not(eq(journalExtendedView.id, filter.excludeId)));
 	if (filter.idArray && filter.idArray.length > 0)
@@ -43,6 +46,14 @@ export const materializedJournalFilterToQuery = async (
 		where.push(gte(journalExtendedView.dateText, filter.dateAfter));
 	if (!excludeEnd && filter.dateBefore)
 		where.push(lte(journalExtendedView.dateText, filter.dateBefore));
+	if (filter.dateSpan) {
+		const dateSpan = dateSpanInfo[filter.dateSpan];
+		const startDate = dateSpan.getStartDate({ currentDate: new Date(), firstMonthOfFY });
+		const endDate = dateSpan.getEndDate({ currentDate: new Date(), firstMonthOfFY });
+
+		where.push(gte(journalExtendedView.date, startDate));
+		where.push(lte(journalExtendedView.date, endDate));
+	}
 	if (filter.transfer !== undefined) where.push(eq(journalExtendedView.transfer, filter.transfer));
 	if (filter.complete !== undefined) where.push(eq(journalExtendedView.complete, filter.complete));
 	if (filter.linked !== undefined) where.push(eq(journalExtendedView.linked, filter.linked));

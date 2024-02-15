@@ -85,7 +85,11 @@ export const getItemData = ({
 		return getDataDetail.sparkline({ config, ...commonParameters, currency });
 	}
 
-	if (config.type === 'time_line' || config.type === 'time_stackedArea') {
+	if (
+		config.type === 'time_line' ||
+		config.type === 'time_stackedArea' ||
+		config.type === 'time_bar'
+	) {
 		return getDataDetail.timeGraph({ config, ...commonParameters });
 	}
 

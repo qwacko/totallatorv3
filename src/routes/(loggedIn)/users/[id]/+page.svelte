@@ -1,18 +1,43 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
+	import SelectInput from '$lib/components/SelectInput.svelte';
+	import TextInputForm from '$lib/components/TextInputForm.svelte';
 	import { urlGenerator } from '$lib/routes';
-	import { Button, Input } from 'flowbite-svelte';
+	import {
+		currencyFormatEnum,
+		dateFormatEnum,
+		formatDate,
+		getCurrencyFormatter,
+		type UpdateUserSchemaSuperType
+	} from '$lib/schema/userSchema.js';
+	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers.js';
+	import { Button } from 'flowbite-svelte';
+	import { superForm } from 'sveltekit-superforms/client';
 
 	export let data;
+
+	let loading = false;
+
+	const form = superForm<UpdateUserSchemaSuperType>(data.form, {
+		...superFormNotificationHelper({
+			errorMessage: 'Failed to update user info',
+			successMessage: 'User info updated',
+			setLoading: (value) => (loading = value),
+			invalidate: true
+		})
+	});
+
+	$: enhance = form.enhance;
+	$: formData = form.form;
+	$: errors = form.errors;
 </script>
 
 <CustomHeader pageTitle="User {data ? data.currentUser.name : ''}" />
 <PageLayout title="User {data ? data.currentUser.name : ''}">
 	{#if data.currentUser}
-		<div class="flex flex-row gap-2 items-center">
+		<div class="flex flex-row items-center gap-2">
 			{data.currentUser.username}
 			{#if data.currentUser.admin}
 				(Admin)
@@ -53,10 +78,34 @@
 				</Button>
 			{/if}
 		</div>
-		<form method="post" action="?/updateName" use:enhance class="flex flex-row gap-2">
-			<Input name="name" value={data.currentUser.name} />
-			<Button type="submit" class="whitespace-nowrap">Update Name</Button>
-		</form>
+		{#if data.canUpdateName}
+			<form method="post" action="?/updateInfo" use:enhance class="flex flex-col gap-2">
+				<TextInputForm {form} field="name" title="Name" disabled={loading} />
+				<SelectInput
+					bind:value={$formData.currencyFormat}
+					title="Currency Format"
+					name="currencyFormat"
+					errorMessage={$errors.currencyFormat}
+					items={currencyFormatEnum.map((currencyFormat) => ({
+						value: currencyFormat,
+						name: `${currencyFormat} (${getCurrencyFormatter(currencyFormat).format(1234.56)})`
+					}))}
+					disabled={loading}
+				/>
+				<SelectInput
+					bind:value={$formData.dateFormat}
+					title="Date Format"
+					name="dateFormat"
+					errorMessage={$errors.dateFormat}
+					items={dateFormatEnum.map((dateFormat) => ({
+						value: dateFormat,
+						name: `${dateFormat} (${formatDate(new Date('2020-01-13'), dateFormat)})`
+					}))}
+					disabled={loading}
+				/>
+				<Button type="submit" class="whitespace-nowrap">Update User Info</Button>
+			</form>
+		{/if}
 	{:else}
 		<ErrorText message="User Not Found" />
 	{/if}

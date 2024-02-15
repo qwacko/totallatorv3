@@ -15,12 +15,15 @@ import { type DBType } from '../../../db';
 import { arrayToText } from '../misc/arrayToText';
 import { importIdsToTitles } from '../import/importIdsToTitles';
 import { journalPayeeToSubquery } from './journalPayeeToSubquery';
+import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
 
 export const journalFilterToQuery = async (
 	db: DBType,
-	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>
+	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	{ firstMonthOfFY }: { firstMonthOfFY: number } = { firstMonthOfFY: 1 }
 ) => {
 	const where: SQL<unknown>[] = [];
+
 	if (filter.id) where.push(eq(journalEntry.id, filter.id));
 	if (filter.excludeId) where.push(not(eq(journalEntry.id, filter.excludeId)));
 	if (filter.idArray && filter.idArray.length > 0)
@@ -40,6 +43,14 @@ export const journalFilterToQuery = async (
 	if (filter.description) where.push(ilike(journalEntry.description, `%${filter.description}%`));
 	if (filter.excludeDescription)
 		where.push(not(ilike(journalEntry.description, `%${filter.excludeDescription}%`)));
+	if (filter.dateSpan) {
+		const dateSpan = dateSpanInfo[filter.dateSpan];
+		const startDate = dateSpan.getStartDate({ currentDate: new Date(), firstMonthOfFY });
+		const endDate = dateSpan.getEndDate({ currentDate: new Date(), firstMonthOfFY });
+
+		where.push(gte(journalEntry.date, startDate));
+		where.push(lte(journalEntry.date, endDate));
+	}
 	if (filter.dateAfter) where.push(gte(journalEntry.dateText, filter.dateAfter));
 	if (filter.dateBefore) where.push(lte(journalEntry.dateText, filter.dateBefore));
 	if (filter.transfer !== undefined) where.push(eq(journalEntry.transfer, filter.transfer));
@@ -187,6 +198,10 @@ export const journalFilterToText = async ({
 		stringArray.push(`Exclude Description contains ${filter.excludeDescription}`);
 	if (filter.dateAfter) stringArray.push(`Date is after ${filter.dateAfter}`);
 	if (filter.dateBefore) stringArray.push(`Date is before ${filter.dateBefore}`);
+	if (filter.dateSpan) {
+		const dateSpan = dateSpanInfo[filter.dateSpan];
+		stringArray.push(`Date is in ${dateSpan.title}`);
+	}
 	if (filter.transfer !== undefined)
 		stringArray.push(`Is ${filter.transfer ? 'Transfer' : 'Not A Transfer'}`);
 	if (filter.complete !== undefined)

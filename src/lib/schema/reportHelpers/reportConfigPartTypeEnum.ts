@@ -6,6 +6,7 @@ export const reportConfigPartTypeEnum = [
 	'sparklinebar',
 	'time_line',
 	'time_stackedArea',
+	'time_bar',
 	'pie',
 	'box',
 	'bar'
@@ -71,6 +72,17 @@ export const reportConfigPartTypeInfo = {
 	time_line: {
 		id: 'time_line',
 		name: 'Time Line',
+		showStringConfig: false,
+		showMathConfig: true,
+		showTimeGrouping: true,
+		showItemGrouping: true,
+		showNumberDisplay: true,
+		showTrendDisplay: true,
+		showIncludeTotal: true
+	},
+	time_bar: {
+		id: 'time_bar',
+		name: 'Time Line (Bar)',
 		showStringConfig: false,
 		showMathConfig: true,
 		showTimeGrouping: true,

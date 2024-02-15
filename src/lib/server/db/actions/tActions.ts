@@ -12,6 +12,7 @@ import { materializedViewActions } from './materializedViewActions';
 import { reportActions } from './reportActions';
 import { reusableFilterActions } from './reusableFilterActions';
 import { tagActions } from './tagActions';
+import { userActions } from './userActions';
 
 export const tActions = {
 	tag: tagActions,
@@ -27,5 +28,6 @@ export const tActions = {
 	backup: backupActions,
 	report: reportActions,
 	journalView: journalMaterializedViewActions,
-	materializedViews: materializedViewActions
+	materializedViews: materializedViewActions,
+	user: userActions
 };

@@ -19,8 +19,11 @@
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import ReportDropdown from '$lib/components/report/ReportDropdown.svelte';
 	import NotificationDisplay from '$lib/components/NotificationDisplay.svelte';
+	import { userInfoUpdateStore } from '$lib/stores/userInfoStore.js';
 
 	export let data;
+
+	$: $userInfoUpdateStore = data.user;
 
 	$: pageIsBills = $page.route.id?.startsWith('/(loggedIn)/bills');
 	$: pageIsTags = $page.route.id?.startsWith('/(loggedIn)/tags');
