@@ -281,7 +281,8 @@ SELECT
   "tag"."active" AS "tag_active",
   "tag"."disabled" AS "tag_disabled",
   "tag"."allow_update" AS "tag_allow_update",
-  "import"."title" AS "import_title"
+  "import"."title" AS "import_title",
+  TRUE AS "all"
 FROM
   "journal_entry"
   LEFT JOIN "transaction" ON "journal_entry"."transaction_id" = "transaction"."id"

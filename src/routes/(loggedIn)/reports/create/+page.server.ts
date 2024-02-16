@@ -34,7 +34,11 @@ export const actions = {
 		}
 		redirect(
 			302,
-			urlGenerator({ address: '/(loggedIn)/reports/[id]', paramsValue: { id: newReportId } }).url
+			urlGenerator({
+				address: '/(loggedIn)/reports/[id]',
+				paramsValue: { id: newReportId },
+				searchParamsValue: {}
+			}).url
 		);
 	}
 };

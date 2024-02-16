@@ -47,7 +47,8 @@
 			outline
 			href={urlGenerator({
 				address: '/(loggedIn)/reports/[id]',
-				paramsValue: { id: data.elementData.reportId }
+				paramsValue: { id: data.elementData.reportId },
+				searchParamsValue: {}
 			}).url}
 		>
 			<ArrowLeftIcon />

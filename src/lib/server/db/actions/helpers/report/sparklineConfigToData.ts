@@ -3,7 +3,7 @@ import type { ReportConfigPartSchemaSparklineType } from '$lib/schema/reportHelp
 import type { DBType } from '$lib/server/db/db';
 import { evaluate } from 'mathjs';
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
-import { getFiltersFromMathConfig } from './mathConfigToNumber';
+import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
 import { type currencyFormatType } from '$lib/schema/userSchema';
 import { convertNumberToText } from '../../../../../helpers/convertNumberToText';
 

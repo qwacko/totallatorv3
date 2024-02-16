@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ReportElementItemData } from '$lib/server/db/actions/helpers/report/getData';
+	import ReportElementContentsNonTimeGraph from './ReportElementContentsNonTimeGraph.svelte';
 	import ReportElementContentsNumber from './ReportElementContentsNumber.svelte';
 	import ReportElementContentsSparkline from './ReportElementContentsSparkline.svelte';
 	import ReportElementContentsString from './ReportElementContentsString.svelte';
@@ -21,5 +22,8 @@
 	{:else if data.type === 'time_line' || data.type === 'time_stackedArea' || data.type === 'time_bar'}
 		{@const test = data}
 		<ReportElementContentsTimeline data={test} />
+	{:else if data.type === 'pie' || data.type === 'box'}
+		{@const test = data}
+		<ReportElementContentsNonTimeGraph data={test} />
 	{/if}
 {/if}

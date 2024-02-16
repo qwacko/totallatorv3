@@ -3,7 +3,7 @@ import type { ReportConfigPartSchemaTimeGraphType } from '$lib/schema/reportHelp
 import type { DBType } from '$lib/server/db/db';
 import { evaluate } from 'mathjs';
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
-import { getFiltersFromMathConfig } from './mathConfigToNumber';
+import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
 import { reportConfigPartTrendDisplayInfo } from '$lib/schema/reportHelpers/reportConfigPartTrendDisplayOptions';
 import { reportConfigPartItemGroupingInfo } from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum';
 
@@ -33,9 +33,15 @@ export const timelineConfigToData = async ({
 				key: filter,
 				allowSingle: true,
 				allowTime: true,
+				allowGrouping: false,
 				timeGrouping: config.timeGrouping,
 				dataGrouping: config.itemGrouping
 			});
+
+			if ('groupedData' in filterResult) {
+				errorMessage = 'Grouped Data not allowed in Time Graph Query';
+				return undefined;
+			}
 
 			if (filterResult.error) {
 				errorMessage = filterResult.errorMessage as string;

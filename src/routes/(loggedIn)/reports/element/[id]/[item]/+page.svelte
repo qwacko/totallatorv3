@@ -18,6 +18,7 @@
 	import { reportConfigPartNumberDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartNumberDisplayEnum';
 	import { reportConfigPartTrendDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartTrendDisplayOptions';
 	import BooleanInputForm from '$lib/components/BooleanInputForm.svelte';
+	import { reportConfigPartNegativeDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartNegativeDisplayEnum';
 
 	export let data;
 
@@ -118,6 +119,48 @@
 				id="itemGrouping"
 				errorMessage={$errors.itemGrouping}
 				items={reportConfigPartItemGroupingDropdown}
+			/>
+		{/if}
+		{#if itemTypeInfo.showAdditionalGroupings}
+			{#if $formData.itemGrouping !== 'none'}
+				<SelectInput
+					bind:value={$formData.itemGrouping2}
+					title="Item Grouping Level 2"
+					name="itemGrouping2"
+					id="itemGrouping2"
+					errorMessage={$errors.itemGrouping2}
+					items={reportConfigPartItemGroupingDropdown}
+				/>
+			{/if}
+			{#if $formData.itemGrouping !== 'none' && $formData.itemGrouping2 !== 'none'}
+				<SelectInput
+					bind:value={$formData.itemGrouping3}
+					title="Item Grouping Level 3"
+					name="itemGrouping3"
+					id="itemGrouping3"
+					errorMessage={$errors.itemGrouping3}
+					items={reportConfigPartItemGroupingDropdown}
+				/>
+			{/if}
+			{#if $formData.itemGrouping !== 'none' && $formData.itemGrouping2 !== 'none' && $formData.itemGrouping3 !== 'none'}
+				<SelectInput
+					bind:value={$formData.itemGrouping4}
+					title="Item Grouping Level 4"
+					name="itemGrouping4"
+					id="itemGrouping4"
+					errorMessage={$errors.itemGrouping4}
+					items={reportConfigPartItemGroupingDropdown}
+				/>
+			{/if}
+		{/if}
+		{#if itemTypeInfo.showNegativeDisplay}
+			<SelectInput
+				bind:value={$formData.negativeDisplay}
+				title="Negative Value Display"
+				name="negativeDisplay"
+				id="negativeDisplay"
+				errorMessage={$errors.negativeDisplay}
+				items={reportConfigPartNegativeDisplayDropdown}
 			/>
 		{/if}
 		{#if itemTypeInfo.showTrendDisplay}

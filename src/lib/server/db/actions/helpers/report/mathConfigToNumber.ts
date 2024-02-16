@@ -1,19 +1,7 @@
 import type { DBType } from '$lib/server/db/db';
 import { evaluate } from 'mathjs';
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
-
-export const getFiltersFromMathConfig = (mathConfig: string) => {
-	const filters = mathConfig.match(/{([^}]+)}/g);
-
-	if (!filters) {
-		return [];
-	}
-
-	return filters.map((filter) => ({
-		targetText: filter,
-		targetFilter: filter.replace(/{|}/g, '').trim()
-	}));
-};
+import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
 
 export const mathConfigToNumber = async ({
 	db,
@@ -45,6 +33,10 @@ export const mathConfigToNumber = async ({
 
 			if ('timeSeriesData' in replacementNumber) {
 				return { error: true, errorMessage: `Time Series Data not allowed in Single Result Query` };
+			}
+
+			if ('groupedData' in replacementNumber) {
+				return { error: true, errorMessage: `Grouped Data not allowed in Single Result Query` };
 			}
 
 			mathConfigInt = mathConfigInt.replace(

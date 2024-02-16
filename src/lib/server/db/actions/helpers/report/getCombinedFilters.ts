@@ -12,6 +12,82 @@ import {
 	type ReportConfigPartItemGroupingType
 } from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum';
 
+const groupingEnum = ['single', 'time', 'grouped'] as const;
+const resultEnum = ['sum', 'count', 'min', 'max', 'avg'] as const;
+const timeSeriesEnum = ['runningtotal', 'single'] as const;
+const singleResultEnum = ['beforerange', 'withinrange', 'uptorangeend'] as const;
+
+type GroupingEnumType = (typeof groupingEnum)[number];
+type ResultEnumType = (typeof resultEnum)[number];
+type TimeSeriesEnumType = (typeof timeSeriesEnum)[number];
+type SingleResultEnumType = (typeof singleResultEnum)[number];
+
+const getGroupingColumn = (grouping: ReportConfigPartItemGroupingType) => {
+	if (grouping === 'none') {
+		return null;
+	}
+	if (grouping === 'account') {
+		return journalExtendedView.accountTitleCombined;
+	}
+	if (grouping === 'account_type') {
+		return journalExtendedView.accountType;
+	}
+	if (grouping === 'bill') {
+		return journalExtendedView.billTitle;
+	}
+	if (grouping === 'category') {
+		return journalExtendedView.categoryTitle;
+	}
+	if (grouping === 'category_group') {
+		return journalExtendedView.categoryGroup;
+	}
+	if (grouping === 'category_single') {
+		return journalExtendedView.categorySingle;
+	}
+	if (grouping === 'tag') {
+		return journalExtendedView.tagTitle;
+	}
+	if (grouping === 'tag_group') {
+		return journalExtendedView.tagGroup;
+	}
+	if (grouping === 'tag_single') {
+		return journalExtendedView.tagSingle;
+	}
+	if (grouping === 'budget') {
+		return journalExtendedView.budgetTitle;
+	}
+	if (grouping === 'account_group') {
+		return journalExtendedView.accountGroup;
+	}
+	if (grouping === 'account_group_2') {
+		return journalExtendedView.accountGroup2;
+	}
+	if (grouping === 'account_group_3') {
+		return journalExtendedView.accountGroup3;
+	}
+	if (grouping === 'account_group_combined') {
+		return journalExtendedView.accountGroupCombined;
+	}
+	if (grouping === 'account_title') {
+		return journalExtendedView.accountTitle;
+	}
+	return journalExtendedView.accountTitleCombined;
+};
+
+const getValueColumn = (resultType: ResultEnumType) => {
+	return resultType === 'sum'
+		? sum(journalExtendedView.amount).mapWith(Number)
+		: resultType === 'count'
+			? count(journalExtendedView.id).mapWith(Number)
+			: resultType === 'min'
+				? min(journalExtendedView.amount).mapWith(Number)
+				: resultType === 'max'
+					? max(journalExtendedView.amount).mapWith(Number)
+					: resultType === 'avg'
+						? avg(journalExtendedView.amount).mapWith(Number)
+						: sum(journalExtendedView.amount).mapWith(Number);
+};
+
 export const getCombinedFilters = ({
 	db,
 	commonFilters,
@@ -31,16 +107,6 @@ export const getCombinedFilters = ({
 			return `filter${configFilter.order}`;
 		})
 	];
-
-	const groupingEnum = ['single', 'time'] as const;
-	const resultEnum = ['sum', 'count', 'min', 'max', 'avg'] as const;
-	const timeSeriesEnum = ['runningtotal', 'single'] as const;
-	const singleResultEnum = ['beforerange', 'withinrange', 'uptorangeend'] as const;
-
-	type GroupingEnumType = (typeof groupingEnum)[number];
-	type ResultEnumType = (typeof resultEnum)[number];
-	type TimeSeriesEnumType = (typeof timeSeriesEnum)[number];
-	type SingleResultEnumType = (typeof singleResultEnum)[number];
 
 	const getFilterForTimeSeries = async (filterType: string) => {
 		const thisFilter = configFilters.find((x) => x.order === Number(filterType.slice(6)))?.filter
@@ -93,18 +159,48 @@ export const getCombinedFilters = ({
 		});
 	};
 
-	const getValueColumn = (resultType: ResultEnumType) => {
-		return resultType === 'sum'
-			? sum(journalExtendedView.amount).mapWith(Number)
-			: resultType === 'count'
-				? count(journalExtendedView.id).mapWith(Number)
-				: resultType === 'min'
-					? min(journalExtendedView.amount).mapWith(Number)
-					: resultType === 'max'
-						? max(journalExtendedView.amount).mapWith(Number)
-						: resultType === 'avg'
-							? avg(journalExtendedView.amount).mapWith(Number)
-							: sum(journalExtendedView.amount).mapWith(Number);
+	const getGroupedNumber = async ({
+		db,
+		resultType,
+		filters,
+		dataGrouping1,
+		dataGrouping2,
+		dataGrouping3,
+		dataGrouping4
+	}: {
+		db: DBType;
+		filters: SQL<unknown>[];
+		resultType: ResultEnumType;
+		dataGrouping1?: ReportConfigPartItemGroupingType;
+		dataGrouping2?: ReportConfigPartItemGroupingType;
+		dataGrouping3?: ReportConfigPartItemGroupingType;
+		dataGrouping4?: ReportConfigPartItemGroupingType;
+	}) => {
+		const groupingColumn1 = getGroupingColumn(dataGrouping1 || 'none') || journalExtendedView.all;
+		const groupingColumn2 = getGroupingColumn(dataGrouping2 || 'none') || journalExtendedView.all;
+		const groupingColumn3 = getGroupingColumn(dataGrouping3 || 'none') || journalExtendedView.all;
+		const groupingColumn4 = getGroupingColumn(dataGrouping4 || 'none') || journalExtendedView.all;
+
+		const valueColumn = getValueColumn(resultType);
+
+		const dbData = await db
+			.select({
+				group1: groupingColumn1,
+				group2: groupingColumn2,
+				group3: groupingColumn3,
+				group4: groupingColumn4,
+				value: valueColumn
+			})
+			.from(journalExtendedView)
+			.where(and(...filters))
+			.groupBy(groupingColumn1, groupingColumn2, groupingColumn3, groupingColumn4)
+			.execute();
+
+		if (!dbData[0]) {
+			return { errorMessage: 'No data found' };
+		}
+
+		return { value: dbData };
 	};
 
 	const getSingleNumber = async ({
@@ -130,7 +226,7 @@ export const getCombinedFilters = ({
 					})
 					.from(journalExtendedView)
 					.where(and(...filters))
-					.groupBy(groupingColumn ? groupingColumn : sql<null>`null`)
+					.groupBy(groupingColumn)
 					.execute()
 			: await db
 					.select({
@@ -146,52 +242,6 @@ export const getCombinedFilters = ({
 		}
 
 		return { value: dbData };
-	};
-
-	const getGroupingColumn = (grouping: ReportConfigPartItemGroupingType) => {
-		if (grouping === 'none') {
-			return null;
-		}
-		if (grouping === 'account') {
-			return journalExtendedView.accountTitleCombined;
-		}
-		if (grouping === 'account_type') {
-			return journalExtendedView.accountType;
-		}
-		if (grouping === 'bill') {
-			return journalExtendedView.billTitle;
-		}
-		if (grouping === 'category') {
-			return journalExtendedView.categoryTitle;
-		}
-		if (grouping === 'tag') {
-			return journalExtendedView.tagTitle;
-		}
-		if (grouping === 'budget') {
-			return journalExtendedView.budgetTitle;
-		}
-		if (grouping === 'account_group') {
-			return journalExtendedView.accountGroup;
-		}
-		if (grouping === 'account_group_2') {
-			return journalExtendedView.accountGroup2;
-		}
-		if (grouping === 'account_group_3') {
-			return journalExtendedView.accountGroup3;
-		}
-		if (grouping === 'account_group_combined') {
-			return journalExtendedView.accountGroupCombined;
-		}
-		if (grouping === 'category_group') {
-			return journalExtendedView.categoryGroup;
-		}
-		if (grouping === 'tag_group') {
-			return journalExtendedView.tagGroup;
-		}
-		if (grouping === 'account_title') {
-			return journalExtendedView.accountTitle;
-		}
-		return journalExtendedView.accountTitleCombined;
 	};
 
 	const getGroupedTimeSeriesData = async ({
@@ -305,15 +355,23 @@ export const getCombinedFilters = ({
 		key,
 		allowSingle = true,
 		allowTime = true,
+		allowGrouping = true,
 		timeGrouping = 'month',
-		dataGrouping
+		dataGrouping,
+		dataGrouping2,
+		dataGrouping3,
+		dataGrouping4
 	}: {
 		db: DBType;
 		key: string;
 		allowSingle?: boolean;
 		allowTime?: boolean;
+		allowGrouping?: boolean;
 		timeGrouping?: TimeGroupingType;
 		dataGrouping?: ReportConfigPartItemGroupingType;
+		dataGrouping2?: ReportConfigPartItemGroupingType;
+		dataGrouping3?: ReportConfigPartItemGroupingType;
+		dataGrouping4?: ReportConfigPartItemGroupingType;
 	}) => {
 		const [groupingIn, filterIn, item3, resultIn] = key.toLowerCase().split('.');
 
@@ -344,6 +402,49 @@ export const getCombinedFilters = ({
 			return {
 				error: true,
 				errorMessage: `Output Calculation "${resultIn}" not found in ${resultEnum.join(', ')}`
+			};
+		}
+
+		if (grouping === 'grouped') {
+			if (!allowGrouping) {
+				return {
+					error: true,
+					errorMessage: `Grouping not allowed`
+				};
+			}
+
+			const timeSpan = singleResultEnum.includes(item3 as SingleResultEnumType)
+				? (item3 as SingleResultEnumType)
+				: null;
+
+			if (!timeSpan) {
+				return {
+					error: true,
+					errorMessage: `Time Span "${item3}" not found in ${singleResultEnum.join(', ')}`
+				};
+			}
+
+			const filtersToUse = await getFilterForSingleResult(timeSpan, filter);
+
+			const groupedData = await getGroupedNumber({
+				db,
+				filters: filtersToUse,
+				resultType: outputCalc,
+				dataGrouping1: dataGrouping,
+				dataGrouping2,
+				dataGrouping3,
+				dataGrouping4
+			});
+
+			if ('errorMessage' in groupedData) {
+				return {
+					error: true,
+					errorMessage: groupedData.errorMessage
+				};
+			}
+
+			return {
+				groupedData: groupedData.value
 			};
 		}
 

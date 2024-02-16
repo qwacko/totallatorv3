@@ -4,6 +4,7 @@ import { reportConfigPartTimeGroupingEnum } from './reportConfigPartTimeGrouping
 import { reportConfigPartItemGroupingEnum } from './reportConfigPartItemGroupingEnum';
 import { reportConfigPartNumberDisplayEnum } from './reportConfigPartNumberDisplayEnum';
 import { reportConfigPartTrendDisplayEnum } from './reportConfigPartTrendDisplayOptions';
+import { reportConfigPartNegativeDisplayEnum } from './reportConfigPartNegativeDisplayEnum';
 
 const reportConfigPartSchema_None = z.object({
 	id: z.string(),
@@ -63,10 +64,14 @@ export type ReportConfigPartSchemaTimeGraphType = z.infer<typeof reportConfigPar
 const reportConfigPartSchema_NonTimeGraph = z.object({
 	id: z.string(),
 	order: z.number(),
-	type: z.literal('pie').or(z.literal('box')).or(z.literal('bar')),
+	type: z.literal('pie').or(z.literal('box')),
 	mathConfig: z.string(),
 	itemGrouping: z.enum(reportConfigPartItemGroupingEnum),
+	itemGrouping2: z.enum(reportConfigPartItemGroupingEnum).default('none'),
+	itemGrouping3: z.enum(reportConfigPartItemGroupingEnum).default('none'),
+	itemGrouping4: z.enum(reportConfigPartItemGroupingEnum).default('none'),
 	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).default('number'),
+	negativeDisplay: z.enum(reportConfigPartNegativeDisplayEnum).default('default'),
 	trendDisplay: z.enum(reportConfigPartTrendDisplayEnum).default('all')
 });
 
@@ -95,7 +100,11 @@ export const reportConfigPartFormSchema = z.object({
 	mathConfig: z.string().optional(),
 	timeGrouping: z.enum(reportConfigPartTimeGroupingEnum).optional(),
 	itemGrouping: z.enum(reportConfigPartItemGroupingEnum).optional(),
+	itemGrouping2: z.enum(reportConfigPartItemGroupingEnum).optional(),
+	itemGrouping3: z.enum(reportConfigPartItemGroupingEnum).optional(),
+	itemGrouping4: z.enum(reportConfigPartItemGroupingEnum).optional(),
 	numberDisplay: z.enum(reportConfigPartNumberDisplayEnum).optional(),
+	negativeDisplay: z.enum(reportConfigPartNegativeDisplayEnum).optional(),
 	trendDisplay: z.enum(reportConfigPartTrendDisplayEnum).optional(),
 	includeTotal: z.boolean().default(false)
 });

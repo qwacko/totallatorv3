@@ -130,9 +130,25 @@
 			],
 			series: [
 				...resolvedData.data.map((currentGroup) => {
+					if (bar) {
+						const returnData = {
+							name: currentGroup.group,
+							type: 'bar',
+							data: currentGroup.data.map((d) => d.value),
+							stack: stackedArea ? 'Total' : undefined,
+							tooltip: {
+								valueFormatter
+							},
+							emphasis: {
+								focus: 'series'
+							}
+						} satisfies EChartsSeries;
+
+						return returnData;
+					}
 					const returnData = {
 						name: currentGroup.group,
-						type: bar ? 'bar' : 'line',
+						type: 'line',
 						data: currentGroup.data.map((d) => d.value),
 						stack: stackedArea ? 'Total' : undefined,
 						tooltip: {

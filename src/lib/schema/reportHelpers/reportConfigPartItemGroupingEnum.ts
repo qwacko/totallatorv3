@@ -8,8 +8,10 @@ export const reportConfigPartItemGroupingEnum = [
 	'account_title',
 	'tag',
 	'tag_group',
+	'tag_single',
 	'category',
 	'category_group',
+	'category_single',
 	'bill',
 	'budget',
 	'none'
@@ -62,7 +64,7 @@ export const reportConfigPartItemGroupingInfo = {
 	},
 	tag: {
 		id: 'tag',
-		name: 'Tag',
+		name: 'Tag Combined',
 		emptyTitle: 'No Tag',
 		groupedOtherTitle: 'Other Tags'
 	},
@@ -71,6 +73,12 @@ export const reportConfigPartItemGroupingInfo = {
 		name: 'Tag Group',
 		emptyTitle: 'No Tag Group',
 		groupedOtherTitle: 'Other Tag Groups'
+	},
+	tag_single: {
+		id: 'tag_single',
+		name: 'Tag Individual',
+		emptyTitle: 'No Individual Tag',
+		groupedOtherTitle: 'Other Individual Tags'
 	},
 	category: {
 		id: 'category',
@@ -83,6 +91,12 @@ export const reportConfigPartItemGroupingInfo = {
 		name: 'Category Group',
 		emptyTitle: 'No Category Group',
 		groupedOtherTitle: 'Other Category Groups'
+	},
+	category_single: {
+		id: 'category_single',
+		name: 'Category Individual',
+		emptyTitle: 'No Individual Category',
+		groupedOtherTitle: 'Other Individual Categories'
 	},
 	bill: {
 		id: 'bill',

@@ -99,7 +99,8 @@ export const journalExtendedView = pgMaterializedView(
 			tagActive: customAliasedTableColumn(tag.active, 'tag_active'),
 			tagDisabled: customAliasedTableColumn(tag.disabled, 'tag_disabled'),
 			tagAllowUpdate: customAliasedTableColumn(tag.allowUpdate, 'tag_allow_update'),
-			importTitle: customAliasedTableColumn(importTable.title, 'import_title')
+			importTitle: customAliasedTableColumn(importTable.title, 'import_title'),
+			all: sql<boolean>`true`.as('all')
 		})
 		.from(journalEntry)
 		.leftJoin(transaction, eq(journalEntry.transactionId, transaction.id))

@@ -19,7 +19,8 @@
 					<DropdownItem
 						href={urlGenerator({
 							address: '/(loggedIn)/reports/[id]',
-							paramsValue: { id: report.id }
+							paramsValue: { id: report.id },
+							searchParamsValue: {}
 						}).url}
 						class="flex flex-row gap-2"
 					>
@@ -31,7 +32,8 @@
 			<DropdownItem
 				href={urlGenerator({
 					address: '/(loggedIn)/reports/[id]',
-					paramsValue: { id: currentItem.id }
+					paramsValue: { id: currentItem.id },
+					searchParamsValue: {}
 				}).url}
 			>
 				{currentItem.title}

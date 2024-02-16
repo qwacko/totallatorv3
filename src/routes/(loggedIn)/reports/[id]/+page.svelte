@@ -15,7 +15,7 @@
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import ReportElementDisplay from './ReportElementDisplay.svelte';
 	import { pageInfoStore, urlGenerator, pageInfo } from '$lib/routes.js';
-	import { getDateSpanDropdown } from '$lib/schema/dateSpanSchema.js';
+	import { getDateSpanDropdown, type DateSpanEnumType } from '$lib/schema/dateSpanSchema.js';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 

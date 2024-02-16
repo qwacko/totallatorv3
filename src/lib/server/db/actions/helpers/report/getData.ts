@@ -16,6 +16,7 @@ import { getCombinedFilters, type GetDataForFilterKeyType } from './getCombinedF
 import { sparklineConfigToData } from './sparklineConfigToData';
 import type { currencyFormatType } from '$lib/schema/userSchema';
 import { timelineConfigToData } from './timelineConfigToData';
+import { groupedMathConfigToNumber } from './groupedMathConfigToNumber';
 
 export type DateRangeType = ReturnType<typeof filtersToDateRange>;
 
@@ -93,7 +94,7 @@ export const getItemData = ({
 		return getDataDetail.timeGraph({ config, ...commonParameters });
 	}
 
-	if (config.type === 'pie' || config.type === 'box' || config.type === 'bar') {
+	if (config.type === 'pie' || config.type === 'box') {
 		return getDataDetail.nonTimeGraph({ config, ...commonParameters });
 	}
 
@@ -191,13 +192,20 @@ const getDataDetail = {
 	},
 	nonTimeGraph: ({
 		db,
-		config
+		config,
+		getDataFromKey
 	}: {
 		db: DBType;
 		config: ReportConfigPartSchemaNonTimeGraphType;
 		getDataFromKey: GetDataForFilterKeyType;
 	}) => {
-		const data = async () => {};
+		const data = async () => {
+			return groupedMathConfigToNumber({
+				db,
+				config,
+				getDataFromKey
+			});
+		};
 
 		return { ...config, data: data() };
 	}
