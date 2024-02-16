@@ -17,7 +17,8 @@ export const filtersToSQLWithDateRange = async ({
 			filters.map(async (filter) => {
 				return materializedJournalFilterToQuery(db, filter, {
 					excludeStart: true,
-					excludeEnd: true
+					excludeEnd: true,
+					excludeSpan: true
 				});
 			})
 		)),

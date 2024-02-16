@@ -17,8 +17,14 @@ export const materializedJournalFilterToQuery = async (
 	{
 		excludeStart = false,
 		excludeEnd = false,
+		excludeSpan = false,
 		firstMonthOfFY = 1
-	}: { excludeStart?: boolean; excludeEnd?: boolean; firstMonthOfFY?: number } = {}
+	}: {
+		excludeStart?: boolean;
+		excludeEnd?: boolean;
+		excludeSpan?: boolean;
+		firstMonthOfFY?: number;
+	} = {}
 ) => {
 	const where: SQL<unknown>[] = [];
 
@@ -46,7 +52,7 @@ export const materializedJournalFilterToQuery = async (
 		where.push(gte(journalExtendedView.dateText, filter.dateAfter));
 	if (!excludeEnd && filter.dateBefore)
 		where.push(lte(journalExtendedView.dateText, filter.dateBefore));
-	if (filter.dateSpan) {
+	if (!excludeSpan && filter.dateSpan) {
 		const dateSpan = dateSpanInfo[filter.dateSpan];
 		const startDate = dateSpan.getStartDate({ currentDate: new Date(), firstMonthOfFY });
 		const endDate = dateSpan.getEndDate({ currentDate: new Date(), firstMonthOfFY });

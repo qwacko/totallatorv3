@@ -109,6 +109,7 @@ export const getCombinedFilters = ({
 	];
 
 	const getFilterForTimeSeries = async (filterType: string) => {
+		//Gets the filter from config filters thet matches the filter number (i.e. Filter1, Filter2, etc...)
 		const thisFilter = configFilters.find((x) => x.order === Number(filterType.slice(6)))?.filter
 			.filter;
 
