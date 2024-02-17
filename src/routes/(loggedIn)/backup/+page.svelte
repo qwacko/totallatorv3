@@ -16,7 +16,7 @@
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import { customEnhance, defaultCustomEnhance } from '../reports/element/[id]/customEnhance.js';
+	import { defaultCustomEnhance } from '../reports/element/[id]/customEnhance.js';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
 	$: urlInfo = pageInfo('/(loggedIn)/backup', $page);
@@ -84,7 +84,7 @@
 		<form
 			action="?/backup"
 			method="post"
-			class="flex flex flex-grow flex-row gap-2"
+			class="flex flex-grow flex-row gap-2"
 			use:enhance={defaultCustomEnhance({
 				updateLoading: (loading) => (creatingBackup = loading),
 				defaultSuccessMessage: 'Successfully Created Backup'
@@ -107,7 +107,7 @@
 		</form>
 		<form
 			action="?/backupUncompressed"
-			class="flex flex flex-row gap-2"
+			class="flex flex-row gap-2"
 			method="post"
 			use:enhance={defaultCustomEnhance({
 				updateLoading: (loading) => (creatingBackup = loading),

@@ -3,7 +3,7 @@ import { serverPageInfo } from '$lib/routes';
 import { updateReportLayoutSchema } from '$lib/schema/reportSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging.js';
-import { fail, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { journalFilterSchemaWithoutPagination } from '$lib/schema/journalSchema.js';
 import { failWrapper } from '../element/[id]/customEnhance.js';
