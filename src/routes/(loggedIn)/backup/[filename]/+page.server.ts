@@ -3,6 +3,7 @@ import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
 import { logging } from '$lib/server/logging.js';
+import { failWrapper } from '../../reports/element/[id]/customEnhance.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -15,11 +16,17 @@ export const load = async (data) => {
 		);
 	}
 
-	try {
-		const backupInformation = await tActions.backup.getBackupDataStrutured({
-			filename: current.params.filename
+	const backupInformation = async (filename: string) => {
+		const data = await tActions.backup.getBackupDataStrutured({
+			filename
 		});
-		return { information: backupInformation.information };
+		return {
+			version: data.version,
+			information: data.information
+		};
+	};
+	try {
+		return { information: backupInformation(current.params.filename) };
 	} catch (error) {
 		logging.error('Error loading backup file: ' + error);
 		redirect(
@@ -33,27 +40,36 @@ export const actions = {
 	restore: async ({ request, params, locals }) => {
 		const filename = params.filename;
 		if (!filename) {
-			throw new Error('No filename provided');
+			return failWrapper('No filename provided');
 		}
 
-		await tActions.backup.restoreBackup({ db: locals.db, filename, includeUsers: false });
-
+		try {
+			await tActions.backup.restoreBackup({ db: locals.db, filename, includeUsers: false });
+		} catch (e) {
+			logging.error('Error Restoring Backup: ' + e);
+			return failWrapper('Error Restoring Backup');
+		}
 		redirect(
 			302,
-			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 1 } }).url
+			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } }).url
 		);
 	},
 	delete: async ({ request, params }) => {
 		const filename = params.filename;
 		if (!filename) {
-			throw new Error('No filename provided');
+			return failWrapper('No filename provided');
 		}
 
-		await tActions.backup.deleteBackup(filename);
+		try {
+			await tActions.backup.deleteBackup(filename);
+		} catch (e) {
+			logging.error('Error Deleting Backup: ' + e);
+			return failWrapper('Error Deleting Backup');
+		}
 
 		redirect(
 			302,
-			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 1 } }).url
+			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } }).url
 		);
 	}
 };

@@ -16,6 +16,8 @@
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
+	import { customEnhance, defaultCustomEnhance } from '../reports/element/[id]/customEnhance.js';
+	import ActionButton from '$lib/components/ActionButton.svelte';
 
 	$: urlInfo = pageInfo('/(loggedIn)/backup', $page);
 
@@ -24,6 +26,8 @@
 	let backupName: undefined | string = undefined;
 
 	$: displayFiles = data.backupFiles;
+
+	let creatingBackup = false;
 </script>
 
 <CustomHeader pageTitle="Backups" numPages={data.numPages} pageNumber={data.page} />
@@ -77,18 +81,47 @@
 		<Badge color="blue" class="p-4">No Backups Present</Badge>
 	{/if}
 	<div class="flex flex-row gap-2">
-		<form action="?/backup" method="post" class="flex flex flex-row gap-2 flex-grow" use:enhance>
+		<form
+			action="?/backup"
+			method="post"
+			class="flex flex flex-grow flex-row gap-2"
+			use:enhance={defaultCustomEnhance({
+				updateLoading: (loading) => (creatingBackup = loading),
+				defaultSuccessMessage: 'Successfully Created Backup'
+			})}
+		>
 			<Input
 				bind:value={backupName}
 				name="backupName"
 				placeholder="Backup Name"
 				class="flex flex-grow"
+				disabled={creatingBackup}
 			/>
-			<Button type="submit" class="whitespace-nowrap">Create New Backup</Button>
+			<ActionButton
+				type="submit"
+				class="whitespace-nowrap"
+				loading={creatingBackup}
+				loadingMessage="Creating..."
+				message="Create Backup"
+			/>
 		</form>
-		<form action="?/backupUncompressed" class="flex flex flex-row gap-2" method="post" use:enhance>
+		<form
+			action="?/backupUncompressed"
+			class="flex flex flex-row gap-2"
+			method="post"
+			use:enhance={defaultCustomEnhance({
+				updateLoading: (loading) => (creatingBackup = loading),
+				defaultSuccessMessage: 'Successfully Created Backup'
+			})}
+		>
 			<input type="hidden" name="backupName" value={backupName} />
-			<Button type="submit" class="whitespace-nowrap">Create New Uncompressed Backup</Button>
+			<ActionButton
+				type="submit"
+				class="whitespace-nowrap"
+				loading={creatingBackup}
+				message="Create Uncompressed Backup"
+				loadingMessage="Creating..."
+			/>
 		</form>
 	</div>
 </PageLayout>

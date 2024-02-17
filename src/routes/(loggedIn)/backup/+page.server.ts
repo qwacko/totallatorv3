@@ -2,6 +2,7 @@ import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
+import { failWrapper } from '../reports/element/[id]/customEnhance.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -40,33 +41,47 @@ export const load = async (data) => {
 
 export const actions = {
 	backup: async ({ request, locals }) => {
-		const db = locals.db;
-		const formData = await request.formData();
-		const backupName = formData.get('backupName')?.toString();
+		try {
+			const db = locals.db;
+			const formData = await request.formData();
+			const backupName = formData.get('backupName')?.toString();
 
-		const backupNameValidated = backupName && backupName.length > 0 ? backupName : 'Manual Backup';
+			const backupNameValidated =
+				backupName && backupName.length > 0 ? backupName : 'Manual Backup';
 
-		await tActions.backup.storeBackup({
-			db: db,
-			title: backupNameValidated,
-			compress: true,
-			createdBy: 'User',
-			creationReason: 'Manual Backup'
-		});
+			await tActions.backup.storeBackup({
+				db: db,
+				title: backupNameValidated,
+				compress: true,
+				createdBy: 'User',
+				creationReason: 'Manual Backup'
+			});
+		} catch (e) {
+			console.error('Error creating backup: ' + e);
+			return failWrapper('Error creating backup');
+		}
+		return;
 	},
 	backupUncompressed: async ({ request, locals }) => {
-		const db = locals.db;
-		const formData = await request.formData();
-		const backupName = formData.get('backupName')?.toString();
+		try {
+			const db = locals.db;
+			const formData = await request.formData();
+			const backupName = formData.get('backupName')?.toString();
 
-		const backupNameValidated = backupName && backupName.length > 0 ? backupName : 'Manual Backup';
+			const backupNameValidated =
+				backupName && backupName.length > 0 ? backupName : 'Manual Backup';
 
-		await tActions.backup.storeBackup({
-			db: db,
-			title: backupNameValidated,
-			compress: false,
-			createdBy: 'User',
-			creationReason: 'Manual Backup'
-		});
+			await tActions.backup.storeBackup({
+				db: db,
+				title: backupNameValidated,
+				compress: false,
+				createdBy: 'User',
+				creationReason: 'Manual Backup'
+			});
+		} catch (e) {
+			console.error('Error creating backup: ' + e);
+			return failWrapper('Error creating backup');
+		}
+		return;
 	}
 };
