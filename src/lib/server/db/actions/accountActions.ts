@@ -6,8 +6,8 @@ import {
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, summaryTable } from '../postgres/schema';
-import { and, asc, count, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
+import { account } from '../postgres/schema';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -22,12 +22,12 @@ import {
 import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
 import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
 import { accountTitleSplit } from './helpers/account/accountTitleSplit';
-import { summaryActions, summaryTableColumnsToGroupBy, summaryTableColumnsToSelect } from './summaryActions';
-import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm'
+import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { materializedViewActions } from './materializedViewActions';
+import { accountMaterializedView } from '../postgres/schema/materializedViewSchema';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -36,29 +36,24 @@ export const accountActions = {
 	count: async (db: DBType, filter?: AccountFilterSchemaType) => {
 		const count = await db
 			.select({ count: drizzleCount(account.id) })
-			.from(account)
-			.where(and(...(filter ? accountFilterToQuery(filter) : [])))
+			.from(accountMaterializedView)
+			.where(and(...(filter ? accountFilterToQuery({ filter, target: 'account' }) : [])))
 			.execute();
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
+		await materializedViewActions.conditionalRefresh({ db });
+
 		const items = db
-			.select({ id: account.id, journalCount: count(journalEntry.id) })
-			.from(account)
-			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
-			.groupBy(account.id)
+			.select({ id: accountMaterializedView.id, journalCount: accountMaterializedView.count })
+			.from(accountMaterializedView)
 			.execute();
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter?: AccountFilterSchemaType }) => {
-		await summaryActions.updateAndCreateMany({
-			db,
-			ids: undefined,
-			needsUpdateOnly: true,
-			allowCreation: true
-		});
+		await materializedViewActions.conditionalRefresh({ db });
 		const {
 			page = 0,
 			pageSize = 10,
@@ -66,39 +61,34 @@ export const accountActions = {
 			...restFilter
 		} = filter || { page: 10, pageSize: 10 };
 
-		const where = accountFilterToQuery(restFilter, true);
-		const defaultOrderBy = [asc(account.title), desc(account.createdAt)];
+		const where = accountFilterToQuery({ filter: restFilter, target: 'accountWithSummary' });
+		const defaultOrderBy = [
+			asc(accountMaterializedView.title),
+			desc(accountMaterializedView.createdAt)
+		];
 		const orderByResult = orderBy
 			? [
-				...orderBy.map((currentOrder) =>
-					summaryOrderBy(currentOrder, (remainingOrder) => {
-						return remainingOrder.direction === 'asc'
-							? asc(account[remainingOrder.field])
-							: desc(account[remainingOrder.field]);
-					})
-				),
-				...defaultOrderBy
-			]
+					...orderBy.map((currentOrder) =>
+						currentOrder.direction === 'asc'
+							? asc(accountMaterializedView[currentOrder.field])
+							: desc(accountMaterializedView[currentOrder.field])
+					),
+					...defaultOrderBy
+				]
 			: defaultOrderBy;
 
 		const results = await db
-			.select({
-				...getTableColumns(account),
-				...summaryTableColumnsToSelect
-			})
-			.from(account)
+			.select()
+			.from(accountMaterializedView)
 			.where(and(...where))
 			.limit(pageSize)
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
-			.leftJoin(journalEntry, eq(journalEntry.accountId, account.id))
-			.leftJoin(summaryTable, eq(summaryTable.relationId, account.id))
-			.groupBy(account.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
 			.select({ count: drizzleCount(account.id) })
-			.from(account)
+			.from(accountMaterializedView)
 			.where(and(...where))
 			.execute();
 
@@ -160,10 +150,9 @@ export const accountActions = {
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
 
-		await db.transaction(async (db) => {
-			await db.insert(account).values(accountCreateInsertionData(data, id));
-			await summaryActions.createMissing({ db });
-		});
+		await db.insert(account).values(accountCreateInsertionData(data, id));
+
+		await materializedViewActions.setRefreshRequired(db);
 
 		return id;
 	},
@@ -182,12 +171,12 @@ export const accountActions = {
 		title?: string;
 		id?: string;
 		requireActive?: boolean;
-		cachedData?: { id: string, title: string, status: StatusEnumType }[]
+		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
 		if (id) {
-			const currentAccount = cachedData ? cachedData.find(item => item.id === id) : await db.query.account
-				.findFirst({ where: eq(account.id, id) })
-				.execute();
+			const currentAccount = cachedData
+				? cachedData.find((item) => item.id === id)
+				: await db.query.account.findFirst({ where: eq(account.id, id) }).execute();
 
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
@@ -201,9 +190,11 @@ export const accountActions = {
 
 			const isExpense = accountTitleInfo.accountGroupCombined === '';
 
-			const currentAccount = cachedData ? cachedData.find(item => item.title === title) : await db.query.account
-				.findFirst({ where: eq(account.accountTitleCombined, title) })
-				.execute();
+			const currentAccount = cachedData
+				? cachedData.find((item) => item.title === title)
+				: await db.query.account
+						.findFirst({ where: eq(account.accountTitleCombined, title) })
+						.execute();
 
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
@@ -279,6 +270,7 @@ export const accountActions = {
 			throw new Error(`Account ${id} not found`);
 		}
 
+		await materializedViewActions.setRefreshRequired(db);
 		const changingToExpenseOrIncome =
 			type && (type === 'expense' || type === 'income') && type !== currentAccount.type;
 
@@ -293,7 +285,6 @@ export const accountActions = {
 				changingToExpenseOrIncome) &&
 			!changingToAssetOrLiability
 		) {
-
 			//Limit what can be updated for an income or expense account
 			await db
 				.update(account)
@@ -314,15 +305,14 @@ export const accountActions = {
 				: accountGroupCombined && accountGroupCombined !== ''
 					? accountGroupCombined
 					: [
-						accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
-						accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
-						accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
-					]
-						.filter((item) => item)
-						.join(':');
+							accountGroupClear ? undefined : accountGroup || currentAccount.accountGroup,
+							accountGroup2Clear ? undefined : accountGroup2 || currentAccount.accountGroup2,
+							accountGroup3Clear ? undefined : accountGroup3 || currentAccount.accountGroup3
+						]
+							.filter((item) => item)
+							.join(':');
 
 			const { startDate, endDate, isCash, isNetWorth } = restData;
-
 
 			await db
 				.update(account)
@@ -343,7 +333,7 @@ export const accountActions = {
 				.execute();
 
 			const matchingAccount = await db.select().from(account).where(eq(account.id, id)).execute();
-			console.log("New Update Time = ", matchingAccount[0].updatedAt)
+			console.log('New Update Time = ', matchingAccount[0].updatedAt);
 		}
 		return id;
 	},
@@ -369,6 +359,7 @@ export const accountActions = {
 			await db.delete(account).where(eq(account.id, data.id)).execute();
 		}
 
+		await materializedViewActions.setRefreshRequired(db);
 		return data.id;
 	},
 	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
@@ -388,6 +379,7 @@ export const accountActions = {
 				)
 				.execute();
 			return true;
+			await materializedViewActions.setRefreshRequired(db);
 		}
 		return false;
 	},
@@ -399,9 +391,9 @@ export const accountActions = {
 
 		await db.transaction(async (db) => {
 			await db.insert(account).values(dataForInsertion);
-			await summaryActions.createMissing({ db });
 		});
 
+		await materializedViewActions.setRefreshRequired(db);
 		return dataForInsertion.map((item) => item.id);
 	},
 	seed: async (
@@ -445,5 +437,6 @@ export const accountActions = {
 		];
 
 		await accountActions.createMany(db, itemsToCreate);
+		await materializedViewActions.setRefreshRequired(db);
 	}
 };

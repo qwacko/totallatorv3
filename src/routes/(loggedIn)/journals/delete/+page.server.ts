@@ -7,13 +7,14 @@ import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/server';
 import { urlGenerator } from '$lib/routes.js';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates.js';
 
 export const load = async (data) => {
 	authGuard(data);
 	const db = data.locals.db;
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	const journalData = await tActions.journal.list({
+	const journalData = await tActions.journalView.list({
 		db: db,
 		filter: pageInfo.current.searchParams || defaultJournalFilter()
 	});
@@ -37,9 +38,11 @@ export const actions = {
 		}
 
 		try {
-			const journals = await tActions.journal.list({ db, filter: parsedFilter.data });
+			const journals = await tActions.journalView.list({ db, filter: parsedFilter.data });
 
-			const transactionIds = [...new Set(journals.data.map((item) => item.transactionId))];
+			const transactionIds = filterNullUndefinedAndDuplicates(
+				journals.data.map((item) => item.transactionId)
+			);
 
 			await tActions.journal.hardDeleteTransactions({ db, transactionIds });
 		} catch (e) {

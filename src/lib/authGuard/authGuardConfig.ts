@@ -309,6 +309,53 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: { default: POSTAllowAdminOnly }
 		},
 
+		// Reports
+		// ---------------------------------------
+		'/(loggedIn)/reports': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				update: POSTAllowAdminOnly
+			}
+		},
+		'/(loggedIn)/reports/[id]': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				updateLayout: POSTAllowAdminOnly,
+				updateFilter: POSTAllowAdminOnly
+			}
+		},
+		'/(loggedIn)/reports/[id]/delete': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/reports/create': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/reports/element/[id]': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				addFilter: POSTAllowAdminOnly,
+				updateFilter: POSTAllowAdminOnly,
+				removeFilter: POSTAllowAdminOnly,
+				update: POSTAllowAdminOnly,
+				createConfig: POSTAllowAdminOnly,
+				updateConfig: POSTAllowAdminOnly,
+				updateConfigFilter: POSTAllowAdminOnly,
+				addConfigFilter: POSTAllowAdminOnly,
+				removeConfigFilter: POSTAllowAdminOnly
+			}
+		},
+		'/(loggedIn)/reports/element/[id]/[item]': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				update: POSTAllowAdminOnly
+			}
+		},
+
+		// Users
+		// ----------------------------------------
+
 		'/(loggedIn)/users': {
 			...userOnlyConfig,
 			POSTCheck: {
@@ -326,7 +373,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				setAdmin: POSTAllowAdminOnly,
 				removeAdmin: POSTAllowAdminOnly,
-				updateName: POSTAllowUsers
+				updateInfo: POSTAllowUsers
 			}
 		},
 		'/(loggedIn)/users/[id]/delete': {
@@ -359,7 +406,11 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			}
 		},
 
-		'/(loggedIn)/testFunctions': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowUsers } }
+		'/(loggedIn)/testFunctions': { ...adminOnlyConfig, POSTCheck: { default: POSTAllowUsers } },
+
+		'/(loggedIn)/test': {
+			...adminOnlyConfig
+		}
 	},
 	validationBackend: (data) => {
 		return {

@@ -20,7 +20,13 @@ import {
 	importItemDetail,
 	importTable,
 	importMapping,
-	reusableFilter
+	reusableFilter,
+	filter,
+	report,
+	filtersToReportConfigs,
+	keyValueTable,
+	reportElement,
+	reportElementConfig
 } from '../postgres/schema';
 import fs from 'fs/promises';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
@@ -29,6 +35,7 @@ import { serverEnv } from '$lib/server/serverEnv';
 import superjson from 'superjson';
 import zlib from 'zlib';
 import { backupSchemaMigrate_01to02 } from '$lib/server/backups/backupSchemaMigrate_01to02';
+import { backupSchemaMigrate_02to03 } from '$lib/server/backups/backupSchemaMigrate_02to03';
 
 async function writeToMsgPackFile(data: unknown, filePath: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -71,7 +78,7 @@ export const backupActions = {
 		}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 2,
+			version: 3,
 			data: {
 				user: await db.select().from(user).execute(),
 				session: await db.select().from(session).execute(),
@@ -88,7 +95,13 @@ export const backupActions = {
 				importItemDetail: await db.select().from(importItemDetail).execute(),
 				importTable: await db.select().from(importTable).execute(),
 				importMapping: await db.select().from(importMapping).execute(),
-				reusableFilter: await db.select().from(reusableFilter).execute()
+				reusableFilter: await db.select().from(reusableFilter).execute(),
+				filter: await db.select().from(filter).execute(),
+				report: await db.select().from(report).execute(),
+				filtersToReportConfigs: await db.select().from(filtersToReportConfigs).execute(),
+				keyValueTable: await db.select().from(keyValueTable).execute(),
+				reportElement: await db.select().from(reportElement).execute(),
+				reportElementConfig: await db.select().from(reportElementConfig).execute()
 			}
 		};
 
@@ -112,7 +125,12 @@ export const backupActions = {
 					numberImportItemDetails: backupDataDB.data.importItemDetail.length,
 					numberImportTables: backupDataDB.data.importTable.length,
 					numberImportMappings: backupDataDB.data.importMapping.length,
-					numberReusableFilters: backupDataDB.data.reusableFilter.length
+					numberReusableFilters: backupDataDB.data.reusableFilter.length,
+					numberKeyValues: backupDataDB.data.keyValueTable.length,
+					numberReports: backupDataDB.data.report.length,
+					numberReportElements: backupDataDB.data.reportElement.length,
+					numberReportFilters: backupDataDB.data.filter.length,
+					numberReportItems: backupDataDB.data.reportElementConfig.length
 				}
 			}
 		};
@@ -159,13 +177,16 @@ export const backupActions = {
 		const backupDataParsed = combinedBackupSchema.parse(backupData);
 
 		const backupDataParsed02 =
-			backupDataParsed.version === 2
+			backupDataParsed.version === 2 || backupDataParsed.version === 3
 				? backupDataParsed
 				: backupSchemaMigrate_01to02(backupDataParsed);
 
-		console.log('Backup Data Parsed and Updated');
+		const backupDataParsed03 =
+			backupDataParsed02.version === 3
+				? backupDataParsed02
+				: backupSchemaMigrate_02to03(backupDataParsed02);
 
-		return backupDataParsed02;
+		return backupDataParsed03;
 	},
 	deleteBackup: async (backupName: string) => {
 		const targetDir = serverEnv.BACKUP_DIR;
@@ -223,6 +244,12 @@ export const backupActions = {
 			await trx.delete(importTable).execute();
 			await trx.delete(importItemDetail).execute();
 			await trx.delete(reusableFilter).execute();
+			await db.delete(filter).execute();
+			await db.delete(report).execute();
+			await db.delete(filtersToReportConfigs).execute();
+			await db.delete(keyValueTable).execute();
+			await db.delete(reportElement).execute();
+			await db.delete(reportElementConfig).execute();
 			console.log(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			//Update Database from Backup
@@ -290,6 +317,40 @@ export const backupActions = {
 				trx.insert(reusableFilter).values(data).execute()
 			);
 			console.log(`Reusable Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+			await chunker(checkedBackupData.data.filter, 1000, async (data) =>
+				trx.insert(filter).values(data).execute()
+			);
+			console.log(`Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+			await chunker(checkedBackupData.data.report, 1000, async (data) =>
+				trx.insert(report).values(data).execute()
+			);
+			console.log(`Report Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+			await chunker(checkedBackupData.data.filtersToReportConfigs, 1000, async (data) =>
+				trx.insert(filtersToReportConfigs).values(data).execute()
+			);
+			console.log(
+				`Filters To Report Configs Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+			);
+
+			await chunker(checkedBackupData.data.reportElement, 1000, async (data) =>
+				trx.insert(reportElement).values(data).execute()
+			);
+			console.log(`Report Element Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+			await chunker(checkedBackupData.data.reportElementConfig, 1000, async (data) =>
+				trx.insert(reportElementConfig).values(data).execute()
+			);
+			console.log(
+				`Report Element Config Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+			);
+
+			await chunker(checkedBackupData.data.keyValueTable, 1000, async (data) =>
+				trx.insert(keyValueTable).values(data).execute()
+			);
+			console.log(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 		});
 	},
 	list: async () => {

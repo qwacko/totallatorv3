@@ -1,5 +1,11 @@
-<script lang="ts">
-	import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
+<script
+	lang="ts"
+	generics="F extends JournalFilterSchemaType | JournalFilterSchemaWithoutPaginationType"
+>
+	import type {
+		JournalFilterSchemaType,
+		JournalFilterSchemaWithoutPaginationType
+	} from '$lib/schema/journalSchema';
 	import { Button, Accordion, AccordionItem } from 'flowbite-svelte';
 	import JournalEntryFilter from './filters/JournalEntryFilter.svelte';
 	import AccountFilter from './filters/AccountFilter.svelte';
@@ -17,26 +23,28 @@
 		group?: string;
 	};
 
-	export let currentFilter: JournalFilterSchemaType;
+	export let currentFilter: F;
 	export let accountDropdown: Promise<dropdownItemsType[]>;
 	export let billDropdown: Promise<dropdownItemsType[]>;
 	export let budgetDropdown: Promise<dropdownItemsType[]>;
 	export let categoryDropdown: Promise<dropdownItemsType[]>;
 	export let tagDropdown: Promise<dropdownItemsType[]>;
 	export let labelDropdown: Promise<dropdownItemsType[]>;
-	export let urlFromFilter: (filter: JournalFilterSchemaType) => string;
+	export let urlFromFilter: ((filter: F) => string) | undefined = undefined;
 	export let hideSubmit = false;
 	export let url = '';
+	export let activeFilter: F = currentFilter;
+	export let hideDates = false;
 
 	$: activeFilter = currentFilter;
-	$: url = urlFromFilter(activeFilter);
+	$: url = urlFromFilter ? urlFromFilter(activeFilter) : '';
 </script>
 
 <div class="flex flex-col gap-6">
 	<Accordion>
 		<AccordionItem>
 			<svelte:fragment slot="header">Journal Entry</svelte:fragment>
-			<JournalEntryFilter bind:activeFilter />
+			<JournalEntryFilter bind:activeFilter {hideDates} />
 		</AccordionItem>
 		<AccordionItem>
 			<svelte:fragment slot="header">Account</svelte:fragment>
@@ -144,7 +152,7 @@
 			<pre>{JSON.stringify(activeFilter, null, 2)}</pre>
 		</AccordionItem>
 	</Accordion>
-	{#if !hideSubmit}
+	{#if !hideSubmit && urlFromFilter}
 		<Button href={urlFromFilter(activeFilter)}>Apply</Button>
 	{/if}
 </div>

@@ -1,40 +1,114 @@
 import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
 import type { DBType } from '$lib/server/db/db';
 import { account } from '$lib/server/db/postgres/schema';
+import {
+	accountMaterializedView,
+	journalExtendedView
+} from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { SQL, eq, gt, inArray, ilike, lt } from 'drizzle-orm';
-import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
-import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { statusFilterToQuery, statusFilterToText } from '../misc/filterToQueryStatusCore';
-import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
+import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
+import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import {
+	importFilterToQueryMaterialized,
+	importFilterToText
+} from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 
-export const accountFilterToQuery = (
-	filter: Omit<AccountFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,
-	includeSummary: boolean = false
-) => {
+export const accountFilterToQuery = ({
+	filter,
+	target
+}: {
+	filter: Omit<AccountFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>;
+
+	target?: 'materializedJournals' | 'account' | 'accountWithSummary';
+}) => {
 	const where: SQL<unknown>[] = [];
-	idTitleFilterToQuery(where, filter, 'account');
-	if (filter.accountGroup) where.push(ilike(account.accountGroup, `%${filter.accountGroup}%`));
-	if (filter.accountGroup2) where.push(ilike(account.accountGroup2, `%${filter.accountGroup2}%`));
-	if (filter.accountGroup3) where.push(ilike(account.accountGroup3, `%${filter.accountGroup3}%`));
+
+	const materializedJournals = target === 'materializedJournals';
+	const includeSummary = target === 'accountWithSummary';
+
+	const selectedTable = materializedJournals
+		? {
+				id: journalExtendedView.accountId,
+				title: journalExtendedView.accountTitle,
+				accountGroup: journalExtendedView.accountGroup,
+				accountGroup2: journalExtendedView.accountGroup2,
+				accountGroup3: journalExtendedView.accountGroup3,
+				accountGroupCombined: journalExtendedView.accountGroupCombined,
+				accountTitleCombined: journalExtendedView.accountTitleCombined,
+				startDate: journalExtendedView.accountStartDate,
+				endDate: journalExtendedView.accountEndDate,
+				type: journalExtendedView.accountType,
+				isCash: journalExtendedView.accountIsCash,
+				isNetWorth: journalExtendedView.accountIsNetWorth,
+				status: journalExtendedView.accountStatus,
+				disabled: journalExtendedView.accountDisabled,
+				allowUpdate: journalExtendedView.accountAllowUpdate,
+				active: journalExtendedView.accountActive
+			}
+		: accountMaterializedView;
+
+	idTitleFilterToQueryMapped({
+		where,
+		filter,
+		idColumn: selectedTable.id,
+		titleColumn: selectedTable.title
+	});
+	if (filter.accountGroup)
+		where.push(ilike(selectedTable.accountGroup, `%${filter.accountGroup}%`));
+	if (filter.accountGroup2)
+		where.push(ilike(selectedTable.accountGroup2, `%${filter.accountGroup2}%`));
+	if (filter.accountGroup3)
+		where.push(ilike(selectedTable.accountGroup3, `%${filter.accountGroup3}%`));
 	if (filter.accountGroupCombined)
-		where.push(ilike(account.accountGroupCombined, `%${filter.accountGroupCombined}%`));
+		where.push(ilike(selectedTable.accountGroupCombined, `%${filter.accountGroupCombined}%`));
 	if (filter.accountTitleCombined)
-		where.push(ilike(account.accountTitleCombined, `%${filter.accountTitleCombined}%`));
-	statusFilterToQuery(where, filter, 'account');
-	if (filter.isCash !== undefined) where.push(eq(account.isCash, filter.isCash));
-	if (filter.isNetWorth !== undefined) where.push(eq(account.isNetWorth, filter.isNetWorth));
-	if (filter.startDateAfter !== undefined) where.push(gt(account.startDate, filter.startDateAfter));
+		where.push(ilike(selectedTable.accountTitleCombined, `%${filter.accountTitleCombined}%`));
+	statusFilterToQueryMapped({
+		where,
+		filter,
+		statusColumn: selectedTable.status,
+		disabledColumn: selectedTable.disabled,
+		allowUpdateColumn: selectedTable.allowUpdate,
+		activeColumn: selectedTable.active
+	});
+	if (filter.isCash !== undefined) where.push(eq(selectedTable.isCash, filter.isCash));
+	if (filter.isNetWorth !== undefined) where.push(eq(selectedTable.isNetWorth, filter.isNetWorth));
+	if (filter.startDateAfter !== undefined)
+		where.push(gt(selectedTable.startDate, filter.startDateAfter));
 	if (filter.startDateBefore !== undefined)
-		where.push(lt(account.startDate, filter.startDateBefore));
-	if (filter.endDateAfter !== undefined) where.push(gt(account.endDate, filter.endDateAfter));
-	if (filter.endDateBefore !== undefined) where.push(lt(account.endDate, filter.endDateBefore));
-	importFilterToQuery(where, filter, 'account');
+		where.push(lt(selectedTable.startDate, filter.startDateBefore));
+	if (filter.endDateAfter !== undefined) where.push(gt(selectedTable.endDate, filter.endDateAfter));
+	if (filter.endDateBefore !== undefined)
+		where.push(lt(selectedTable.endDate, filter.endDateBefore));
+	if (!materializedJournals) {
+		importFilterToQueryMaterialized({
+			where,
+			filter,
+			table: {
+				importId: accountMaterializedView.importId,
+				importDetailId: accountMaterializedView.importDetailId
+			}
+		});
+	}
 	if (filter.type !== undefined && filter.type.length > 0)
-		where.push(inArray(account.type, filter.type));
+		where.push(inArray(selectedTable.type, filter.type));
 
 	if (includeSummary) {
-		summaryFilterToQuery({ where, filter });
+		summaryFilterToQueryMaterialized({
+			filter,
+			where,
+			table: {
+				count: accountMaterializedView.count,
+				sum: accountMaterializedView.sum,
+				firstDate: accountMaterializedView.firstDate,
+				lastDate: accountMaterializedView.lastDate
+			}
+		});
 	}
 
 	return where;

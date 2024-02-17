@@ -1,28 +1,83 @@
 import type { LabelFilterSchemaType } from '$lib/schema/labelSchema';
 
-import { label } from '../../../postgres/schema';
-import { SQL, eq } from 'drizzle-orm';
-import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
-import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { statusFilterToQuery, statusFilterToText } from '../misc/filterToQueryStatusCore';
-import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import { journalEntry, label, labelsToJournals } from '../../../postgres/schema';
+import { SQL, and, eq } from 'drizzle-orm';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
+import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
+import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import {
+	importFilterToQueryMaterialized,
+	importFilterToText
+} from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
+import { labelMaterializedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
 
 export const labelFilterToQuery = (
 	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,
 	includeSummary: boolean = false
 ) => {
 	const where: SQL<unknown>[] = [];
-	idTitleFilterToQuery(where, filter, 'label');
-	statusFilterToQuery(where, filter, 'label');
-	importFilterToQuery(where, filter, 'label');
+	idTitleFilterToQueryMapped({
+		where,
+		filter,
+		idColumn: labelMaterializedView.id,
+		titleColumn: labelMaterializedView.title
+	});
+	statusFilterToQueryMapped({
+		where,
+		filter,
+		statusColumn: labelMaterializedView.status,
+		disabledColumn: labelMaterializedView.disabled,
+		activeColumn: labelMaterializedView.active,
+		allowUpdateColumn: labelMaterializedView.allowUpdate
+	});
+	importFilterToQueryMaterialized({
+		where,
+		filter,
+		table: {
+			importId: labelMaterializedView.importId,
+			importDetailId: labelMaterializedView.importDetailId
+		}
+	});
 
 	if (includeSummary) {
-		summaryFilterToQuery({ where, filter });
+		summaryFilterToQueryMaterialized({
+			where,
+			filter,
+			table: {
+				count: labelMaterializedView.count,
+				sum: labelMaterializedView.sum,
+				firstDate: labelMaterializedView.firstDate,
+				lastDate: labelMaterializedView.lastDate
+			}
+		});
 	}
 
 	return where;
+};
+
+export const labelFilterToSubQuery = ({
+	filter,
+	includeSummary = false,
+	db
+}: {
+	db: DBType;
+	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>;
+	includeSummary?: boolean;
+}) => {
+	const labelFilter = labelFilterToQuery(filter, includeSummary);
+	const labelIdsSubquery = db
+		.select({ id: journalEntry.id })
+		.from(labelsToJournals)
+		.leftJoin(labelMaterializedView, eq(labelMaterializedView.id, labelsToJournals.labelId))
+		.leftJoin(journalEntry, eq(journalEntry.id, labelsToJournals.journalId))
+		.where(and(...labelFilter));
+
+	return labelIdsSubquery;
 };
 
 export const labelIdToTitle = async (db: DBType, id: string) => {

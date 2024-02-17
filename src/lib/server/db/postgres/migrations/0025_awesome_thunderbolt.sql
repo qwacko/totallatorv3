@@ -1,0 +1,1 @@
+ALTER TABLE "report_element_config" ALTER COLUMN "title" DROP NOT NULL;

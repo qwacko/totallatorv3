@@ -7,7 +7,7 @@ describe('expandDate', () => {
 		const expandedDate = expandDate(date);
 
 		expect(expandedDate.yearMonthDay).toBe('2022-01-01');
-		expect(expandedDate.yearWeek).toBe('2022-W01');
+		expect(expandedDate.yearWeek).toBe('2021-W52');
 		expect(expandedDate.yearMonth).toBe('2022-01');
 		expect(expandedDate.yearQuarter).toBe('2022-Q01');
 		expect(expandedDate.year).toBe('2022');
@@ -33,12 +33,25 @@ describe('expandDate', () => {
 		const expandedDate = expandDate(date);
 
 		expect(expandedDate.yearMonthDay).toBe('2020-02-29');
-		expect(expandedDate.yearWeek).toBe('2020-W10');
+		expect(expandedDate.yearWeek).toBe('2020-W09');
 		expect(expandedDate.yearMonth).toBe('2020-02');
 		expect(expandedDate.yearQuarter).toBe('2020-Q01');
 		expect(expandedDate.year).toBe('2020');
 		expect(expandedDate.date).toEqual(new Date(date));
 		expect(expandedDate.dateText).toBe('2020-02-29');
+	});
+
+	it('Date In First Day Of New Year Should Have Correct Year Week (from previous year)', () => {
+		const date = '2023-01-01';
+		const expandedDate = expandDate(date);
+
+		expect(expandedDate.yearMonthDay).toBe('2023-01-01');
+		expect(expandedDate.yearWeek).toBe('2022-W52');
+		expect(expandedDate.yearMonth).toBe('2023-01');
+		expect(expandedDate.yearQuarter).toBe('2023-Q01');
+		expect(expandedDate.year).toBe('2023');
+		expect(expandedDate.date).toEqual(new Date(date));
+		expect(expandedDate.dateText).toBe('2023-01-01');
 	});
 
 	// Add more test cases here to cover different scenarios

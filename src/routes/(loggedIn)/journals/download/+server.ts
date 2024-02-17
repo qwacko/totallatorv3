@@ -12,7 +12,7 @@ export const GET = async (data) => {
 		current: { searchParams }
 	} = serverPageInfo(data.route.id, data);
 
-	const journalData = await tActions.journal.list({
+	const journalData = await tActions.journalView.list({
 		db: data.locals.db,
 		filter: { ...searchParams, page: 0, pageSize: 100000 }
 	});

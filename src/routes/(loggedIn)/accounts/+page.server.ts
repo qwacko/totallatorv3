@@ -40,7 +40,7 @@ export const load = async (data) => {
 		}
 	} satisfies JournalFilterSchemaInputType;
 
-	const accountSummary = await tActions.journal.summary({
+	const accountSummary = await tActions.journalView.summary({
 		db,
 		filter: filteredItems
 	});

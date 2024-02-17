@@ -1,0 +1,1 @@
+ALTER TABLE "report_element_config" RENAME COLUMN "configuration_json" TO "configuration";

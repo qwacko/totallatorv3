@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/billSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, bill, journalEntry, summaryTable } from '../postgres/schema';
-import { and, asc, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
+import { bill } from '../postgres/schema';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -15,84 +15,66 @@ import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData'
 import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
 import { createBill } from './helpers/seed/seedBillData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import {
-	summaryActions,
-	summaryTableColumnsToGroupBy,
-	summaryTableColumnsToSelect
-} from './summaryActions';
-import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { materializedViewActions } from './materializedViewActions';
+import { billMaterializedView } from '../postgres/schema/materializedViewSchema';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
 	},
 	count: async (db: DBType, filter?: BillFilterSchemaType) => {
+		await materializedViewActions.conditionalRefresh({ db });
 		const count = await db
 			.select({ count: drizzleCount(bill.id) })
-			.from(bill)
-			.where(and(...(filter ? billFilterToQuery(filter) : [])))
+			.from(billMaterializedView)
+			.where(and(...(filter ? billFilterToQuery({ filter, target: 'billWithSummary' }) : [])))
 			.execute();
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
+		await materializedViewActions.conditionalRefresh({ db });
 		const items = db
-			.select({ id: bill.id, journalCount: drizzleCount(journalEntry.id) })
-			.from(bill)
-			.leftJoin(journalEntry, eq(journalEntry.billId, bill.id))
-			.groupBy(bill.id)
+			.select({ id: billMaterializedView.id, journalCount: billMaterializedView.count })
+			.from(billMaterializedView)
 			.execute();
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: BillFilterSchemaType }) => {
-		await summaryActions.updateAndCreateMany({
-			db,
-			ids: undefined,
-			needsUpdateOnly: true,
-			allowCreation: true
-		});
+		await materializedViewActions.conditionalRefresh({ db, items: { bill: true } });
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = billFilterToQuery(restFilter, true);
+		const where = billFilterToQuery({ filter: restFilter, target: 'billWithSummary' });
 
-		const defaultOrderBy = [asc(bill.title), desc(bill.createdAt)];
+		const defaultOrderBy = [asc(billMaterializedView.title), desc(billMaterializedView.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(bill[remainingOrder.field])
-								: desc(bill[remainingOrder.field]);
-						})
+						currentOrder.direction === 'asc'
+							? asc(billMaterializedView[currentOrder.field])
+							: desc(billMaterializedView[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
 			: defaultOrderBy;
 
 		const results = await db
-			.select({
-				...getTableColumns(bill),
-				...summaryTableColumnsToSelect
-			})
-			.from(bill)
+			.select()
+			.from(billMaterializedView)
 			.where(and(...where))
 			.limit(pageSize)
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
-			.leftJoin(journalEntry, eq(journalEntry.billId, bill.id))
-			.leftJoin(account, eq(account.id, journalEntry.accountId))
-			.leftJoin(summaryTable, eq(summaryTable.relationId, bill.id))
-			.groupBy(bill.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
 			.select({ count: drizzleCount(bill.id) })
-			.from(bill)
+			.from(billMaterializedView)
 			.where(and(...where))
 			.execute();
 
@@ -124,6 +106,7 @@ export const billActions = {
 		requireActive?: boolean;
 		cachedData?: { id: string; title: string; status: StatusEnumType }[];
 	}) => {
+		await materializedViewActions.setRefreshRequired(db);
 		if (id) {
 			const currentBill = cachedData
 				? cachedData.find((item) => item.id === id)
@@ -161,11 +144,9 @@ export const billActions = {
 	},
 	create: async (db: DBType, data: CreateBillSchemaType) => {
 		const id = nanoid();
-		await db.transaction(async (db) => {
-			await db.insert(bill).values(billCreateInsertionData(data, id)).execute();
-			await summaryActions.createMissing({ db });
-		});
+		await db.insert(bill).values(billCreateInsertionData(data, id)).execute();
 
+		await materializedViewActions.setRefreshRequired(db);
 		return id;
 	},
 	createMany: async (db: DBType, data: CreateBillSchemaType[]) => {
@@ -173,11 +154,9 @@ export const billActions = {
 		const insertData = data.map((currentData, index) =>
 			billCreateInsertionData(currentData, ids[index])
 		);
-		await db.transaction(async (db) => {
-			await db.insert(bill).values(insertData).execute();
-			await summaryActions.createMissing({ db });
-		});
+		await db.insert(bill).values(insertData).execute();
 
+		await materializedViewActions.setRefreshRequired(db);
 		return ids;
 	},
 	update: async (db: DBType, data: UpdateBillSchemaType) => {
@@ -199,6 +178,7 @@ export const billActions = {
 			.where(eq(bill.id, id))
 			.execute();
 
+		await materializedViewActions.setRefreshRequired(db);
 		return id;
 	},
 
@@ -222,6 +202,7 @@ export const billActions = {
 	delete: async (db: DBType, data: IdSchemaType) => {
 		if (await billActions.canDelete(db, data)) {
 			await db.delete(bill).where(eq(bill.id, data.id)).execute();
+			await materializedViewActions.setRefreshRequired(db);
 		}
 
 		return data.id;
@@ -243,6 +224,7 @@ export const billActions = {
 					)
 				)
 				.execute();
+			await materializedViewActions.setRefreshRequired(db);
 			return true;
 		}
 		return false;

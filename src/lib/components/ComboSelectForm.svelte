@@ -25,7 +25,7 @@
 	export let createDesc = 'Create';
 	export let clearable = false;
 
-	export let items: Promise<U[]>;
+	export let items: Promise<U[]> | U[];
 	export let itemToOption: OptionFunction<U>;
 	export let itemToDisplay: DisplayFunction<U>;
 

@@ -5,8 +5,8 @@ import type {
 } from '$lib/schema/tagSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account, journalEntry, summaryTable, tag } from '../postgres/schema';
-import { and, asc, count, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
+import { journalEntry, tag } from '../postgres/schema';
+import { and, asc, count, desc, eq, inArray } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -16,26 +16,23 @@ import { tagCreateInsertionData } from './helpers/tag/tagCreateInsertionData';
 import { tagFilterToQuery } from './helpers/tag/tagFilterToQuery';
 import { createTag } from './helpers/seed/seedTagData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import {
-	summaryActions,
-	summaryTableColumnsToGroupBy,
-	summaryTableColumnsToSelect
-} from './summaryActions';
-import { summaryOrderBy } from './helpers/summary/summaryOrderBy';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { materializedViewActions } from './materializedViewActions';
+import { tagMaterializedView } from '../postgres/schema/materializedViewSchema';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
 		return db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
 	},
 	count: async (db: DBType, filter?: TagFilterSchemaType) => {
-		const where = filter ? tagFilterToQuery(filter) : [];
+		materializedViewActions.conditionalRefresh({ db });
+		const where = filter ? tagFilterToQuery({ filter, target: 'tag' }) : [];
 
 		const result = await db
-			.select({ count: drizzleCount(tag.id) })
-			.from(tag)
+			.select({ count: drizzleCount(tagMaterializedView.id) })
+			.from(tagMaterializedView)
 			.where(and(...where))
 			.execute();
 
@@ -52,51 +49,41 @@ export const tagActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: TagFilterSchemaType }) => {
-		await summaryActions.updateAndCreateMany({
-			db,
-			ids: undefined,
-			needsUpdateOnly: true,
-			allowCreation: true
-		});
+		materializedViewActions.conditionalRefresh({ db });
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = tagFilterToQuery(restFilter, true);
+		const where = tagFilterToQuery({ filter: restFilter, target: 'tagWithSummary' });
 
-		const defaultOrderBy = [asc(tag.group), asc(tag.single), desc(tag.createdAt)];
+		const defaultOrderBy = [
+			asc(tagMaterializedView.group),
+			asc(tagMaterializedView.single),
+			desc(tagMaterializedView.createdAt)
+		];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
-						summaryOrderBy(currentOrder, (remainingOrder) => {
-							return remainingOrder.direction === 'asc'
-								? asc(tag[remainingOrder.field])
-								: desc(tag[remainingOrder.field]);
-						})
+						currentOrder.direction === 'asc'
+							? asc(tagMaterializedView[currentOrder.field])
+							: desc(tagMaterializedView[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
 			: defaultOrderBy;
 
 		const results = await db
-			.select({
-				...getTableColumns(tag),
-				...summaryTableColumnsToSelect
-			})
-			.from(tag)
+			.select()
+			.from(tagMaterializedView)
 			.where(and(...where))
 			.limit(pageSize)
 			.offset(page * pageSize)
 			.orderBy(...orderByResult)
-			.leftJoin(journalEntry, eq(journalEntry.tagId, tag.id))
-			.leftJoin(account, eq(account.id, journalEntry.accountId))
-			.leftJoin(summaryTable, eq(summaryTable.relationId, tag.id))
-			.groupBy(tag.id, ...summaryTableColumnsToGroupBy)
 			.execute();
 
 		const resultCount = await db
 			.select({ count: drizzleCount(tag.id) })
-			.from(tag)
+			.from(tagMaterializedView)
 			.where(and(...where))
 			.execute();
 
@@ -165,11 +152,9 @@ export const tagActions = {
 	},
 	create: async (db: DBType, data: CreateTagSchemaType) => {
 		const id = nanoid();
-		await db.transaction(async (db) => {
-			await db.insert(tag).values(tagCreateInsertionData(data, id)).execute();
-			await summaryActions.createMissing({ db });
-		});
+		await db.insert(tag).values(tagCreateInsertionData(data, id)).execute();
 
+		await materializedViewActions.setRefreshRequired(db);
 		return id;
 	},
 	createMany: async (db: DBType, data: CreateTagSchemaType[]) => {
@@ -177,11 +162,9 @@ export const tagActions = {
 		const insertData = data.map((currentData, index) =>
 			tagCreateInsertionData(currentData, ids[index])
 		);
-		await db.transaction(async (db) => {
-			await db.insert(tag).values(insertData).execute();
-			await summaryActions.createMissing({ db });
-		});
+		await db.insert(tag).values(insertData).execute();
 
+		await materializedViewActions.setRefreshRequired(db);
 		return ids;
 	},
 	update: async (db: DBType, data: UpdateTagSchemaType) => {
@@ -203,6 +186,7 @@ export const tagActions = {
 			.where(eq(tag.id, id))
 			.execute();
 
+		await materializedViewActions.setRefreshRequired(db);
 		return id;
 	},
 	canDeleteMany: async (db: DBType, ids: string[]) => {
@@ -229,6 +213,7 @@ export const tagActions = {
 			await db.delete(tag).where(eq(tag.id, data.id)).execute();
 		}
 
+		await materializedViewActions.setRefreshRequired(db);
 		return data.id;
 	},
 	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
@@ -248,6 +233,7 @@ export const tagActions = {
 					)
 				)
 				.execute();
+			await materializedViewActions.setRefreshRequired(db);
 			return true;
 		}
 		return false;

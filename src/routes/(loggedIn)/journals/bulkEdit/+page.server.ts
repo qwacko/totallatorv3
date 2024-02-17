@@ -17,7 +17,7 @@ export const load = async (data) => {
 	const db = data.locals.db;
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	const journalData = await tActions.journal.listWithCommonData({
+	const journalData = await tActions.journalView.listWithCommonData({
 		db: db,
 		filter: pageInfo.current.searchParams || defaultJournalFilter()
 	});

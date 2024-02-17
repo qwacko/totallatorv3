@@ -1,27 +1,15 @@
 <script lang="ts">
-	import { Label, Select } from 'flowbite-svelte';
-	import ErrorText from './ErrorText.svelte';
+	import { Select } from 'flowbite-svelte';
+	import LabelWrapper from './LabelWrapper.svelte';
 
 	export let errorMessage: string | string[] | null | undefined;
 	export let title: string | null;
 	export let name: string;
 	export let required: boolean | undefined | null = undefined;
-	export let value: string | undefined;
+	export let value: string | undefined | null;
 	export let wrapperClass: string | undefined = undefined;
 </script>
 
-<Label class="space-y-2 {wrapperClass}">
-	{#if title}
-		<span class="flex flex-row gap-1">
-			<div>
-				{title}
-			</div>
-			<div>
-				{#if required}
-					*{/if}
-			</div>
-		</span>
-	{/if}
-	<Select bind:value {...$$restProps} {name} {required} class={$$props.class} />
-	<ErrorText message={errorMessage} />
-</Label>
+<LabelWrapper {title} {errorMessage} {required} {wrapperClass}>
+	<Select bind:value {...$$restProps} {name} {required} class={$$props.class} on:change on:input />
+</LabelWrapper>

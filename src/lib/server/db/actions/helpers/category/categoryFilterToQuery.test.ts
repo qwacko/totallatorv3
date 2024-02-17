@@ -13,8 +13,8 @@ import {
 describe('categoryFilterToQuery', () => {
 	const qb = new QueryBuilder();
 	it('Filter Returns A Good Value', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				id: 'id',
 				idArray: ['idArray1', 'idArray2'],
 				title: 'title',
@@ -28,8 +28,8 @@ describe('categoryFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			true
-		);
+			target: 'categoryWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -38,66 +38,66 @@ describe('categoryFilterToQuery', () => {
 			.toSQL();
 
 		//Id
-		expect(query.sql).toContain('"category"."id" = $');
+		expect(query.sql).toContain('"category_materialized_view"."id" = $');
 		expect(query.params).toHaveProperty('0', 'id');
 
 		//Id Array
-		expect(query.sql).toContain('"category"."id" in ($');
+		expect(query.sql).toContain('"category_materialized_view"."id" in ($');
 		expect(query.params).toHaveProperty('1', 'idArray1');
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"category"."title" ilike $');
+		expect(query.sql).toContain('"category_materialized_view"."title" ilike $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Group
-		expect(query.sql).toContain('"category"."group" ilike $');
+		expect(query.sql).toContain('"category_materialized_view"."group" ilike $');
 		expect(query.params).toHaveProperty('4', '%group%');
 
 		//Single
-		expect(query.sql).toContain('"category"."single" ilike $');
+		expect(query.sql).toContain('"category_materialized_view"."single" ilike $');
 		expect(query.params).toHaveProperty('5', '%single%');
 
 		//Status
-		expect(query.sql).toContain('"category"."status" = $');
+		expect(query.sql).toContain('"category_materialized_view"."status" = $');
 		expect(query.params).toHaveProperty('6', 'active');
 
 		//Disabled
-		expect(query.sql).toContain('"category"."disabled" = $');
+		expect(query.sql).toContain('"category_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('7', false);
 
 		//Allow Update
-		expect(query.sql).toContain('"category"."allow_update" = $');
+		expect(query.sql).toContain('"category_materialized_view"."allow_update" = $');
 		expect(query.params).toHaveProperty('8', true);
 
 		//Active
-		expect(query.sql).toContain('"category"."active" = $');
+		expect(query.sql).toContain('"category_materialized_view"."active" = $');
 		expect(query.params).toHaveProperty('9', false);
 
 		//Import Id Array
-		expect(query.sql).toContain('"category"."import_id" in ($');
+		expect(query.sql).toContain('"category_materialized_view"."import_id" in ($');
 		expect(query.params).toHaveProperty('10', 'importId1');
 		expect(query.params).toHaveProperty('11', 'importId2');
 
 		//Import Detail Id Array
-		expect(query.sql).toContain('"category"."category_import_detail_id" in ($');
+		expect(query.sql).toContain('"category_materialized_view"."category_import_detail_id" in ($');
 		expect(query.params).toHaveProperty('12', 'importDetailId1');
 		expect(query.params).toHaveProperty('13', 'importDetailId2');
 
 		//Count Max
-		expect(query.sql).toContain('"summary"."count" <= $');
-		expect(query.params).toHaveProperty('14', '10.0000');
+		expect(query.sql).toContain('"count" <= $');
+		expect(query.params).toHaveProperty('14', 10);
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				disabled: true,
 				allowUpdate: false,
 				active: true
 			},
-			true
-		);
+			target: 'categoryWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -106,20 +106,20 @@ describe('categoryFilterToQuery', () => {
 			.toSQL();
 
 		//Disabled
-		expect(query.sql).toContain('"category"."disabled" = $');
+		expect(query.sql).toContain('"category_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('0', true);
 
 		//Allow Update
-		expect(query.sql).toContain('"category"."allow_update" = $');
+		expect(query.sql).toContain('"category_materialized_view"."allow_update" = $');
 		expect(query.params).toHaveProperty('1', false);
 
 		//Active
-		expect(query.sql).toContain('"category"."active" = $');
+		expect(query.sql).toContain('"category_materialized_view"."active" = $');
 		expect(query.params).toHaveProperty('2', true);
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = categoryFilterToQuery({}, true);
+		const returnValue = categoryFilterToQuery({ filter: {}, target: 'categoryWithSummary' });
 
 		const query = qb
 			.select()
@@ -131,13 +131,13 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Blank Title and ID Return A Blank Value', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				id: '',
 				title: ''
 			},
-			true
-		);
+			target: 'categoryWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -149,12 +149,12 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it("If include summary is turned off, then count max doesn't have impact", () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				countMax: 10
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()
@@ -166,12 +166,12 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Id Array is not used if the array is empty', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				idArray: []
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()
@@ -179,16 +179,16 @@ describe('categoryFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"category"."id" in ($');
+		expect(query.sql).not.toContain('"category_materialized_view"."id" in ($');
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				importIdArray: []
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()
@@ -196,16 +196,16 @@ describe('categoryFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"category"."import_id" in ($');
+		expect(query.sql).not.toContain('"category_materialized_view"."import_id" in ($');
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				importDetailIdArray: []
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()
@@ -213,16 +213,18 @@ describe('categoryFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"category"."category_import_detail_id" in ($');
+		expect(query.sql).not.toContain(
+			'"category_materialized_view"."category_import_detail_id" in ($'
+		);
 	});
 
 	it('Filtering for disabled items works correctly', () => {
-		const returnValue = categoryFilterToQuery(
-			{
+		const returnValue = categoryFilterToQuery({
+			filter: {
 				disabled: true
 			},
-			false
-		);
+			target: 'category'
+		});
 
 		const query = qb
 			.select()
@@ -230,7 +232,7 @@ describe('categoryFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).toContain('"category"."disabled" = $');
+		expect(query.sql).toContain('"category_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('0', true);
 	});
 });

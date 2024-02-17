@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { getCurrencyFormatter, type currencyFormatType } from '$lib/schema/userSchema';
+	import { getCurrencyFormatter } from '$lib/schema/userSchema';
+	import { currencyFormat } from '$lib/stores/userInfoStore';
 
-	export let format: currencyFormatType = 'USD';
 	export let amount: number | undefined;
 	export let positiveGreen = false;
 
-	$: formatter = getCurrencyFormatter(format);
+	$: formatter = getCurrencyFormatter($currencyFormat);
 	$: negative = amount && amount < 0;
 	$: positive = !negative && positiveGreen;
 </script>

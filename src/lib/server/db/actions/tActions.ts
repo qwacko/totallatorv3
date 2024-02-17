@@ -6,9 +6,13 @@ import { categoryActions } from './categoryActions';
 import { importActions } from './importActions';
 import { importMappingActions } from './importMappingActions';
 import { journalActions } from './journalActions';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { labelActions } from './labelActions';
+import { materializedViewActions } from './materializedViewActions';
+import { reportActions } from './reportActions';
 import { reusableFilterActions } from './reusableFilterActions';
 import { tagActions } from './tagActions';
+import { userActions } from './userActions';
 
 export const tActions = {
 	tag: tagActions,
@@ -21,5 +25,9 @@ export const tActions = {
 	import: importActions,
 	reusableFitler: reusableFilterActions,
 	importMapping: importMappingActions,
-	backup: backupActions
+	backup: backupActions,
+	report: reportActions,
+	journalView: journalMaterializedViewActions,
+	materializedViews: materializedViewActions,
+	user: userActions
 };

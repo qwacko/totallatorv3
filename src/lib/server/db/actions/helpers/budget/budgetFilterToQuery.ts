@@ -1,26 +1,82 @@
 import type { BudgetFilterSchemaType } from '$lib/schema/budgetSchema';
 import type { DBType } from '../../../db';
 import { budget } from '../../../postgres/schema';
+import {
+	budgetMaterializedView,
+	journalExtendedView
+} from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
-import { summaryFilterToQuery, summaryFilterToText } from '../summary/summaryFilterToQuery';
-import { idTitleFilterToQuery, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { statusFilterToQuery, statusFilterToText } from '../misc/filterToQueryStatusCore';
-import { importFilterToQuery, importFilterToText } from '../misc/filterToQueryImportCore';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
+import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
+import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import {
+	importFilterToQueryMaterialized,
+	importFilterToText
+} from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 
-export const budgetFilterToQuery = (
-	filter: Omit<BudgetFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
-	includeSummary: boolean = false
-) => {
+export const budgetFilterToQuery = ({
+	filter,
+	target = 'budget'
+}: {
+	filter: Omit<BudgetFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	target?: 'budget' | 'budgetWithSummary' | 'materializedJournals';
+}) => {
 	const restFilter = filter;
+	const includeSummary = target === 'budgetWithSummary';
+	const materializedJournals = target === 'materializedJournals';
 
 	const where: SQL<unknown>[] = [];
-	idTitleFilterToQuery(where, filter, 'budget');
-	statusFilterToQuery(where, filter, 'budget');
-	importFilterToQuery(where, filter, 'budget');
+	idTitleFilterToQueryMapped({
+		where,
+		filter,
+		idColumn: materializedJournals ? journalExtendedView.budgetId : budgetMaterializedView.id,
+		titleColumn: materializedJournals
+			? journalExtendedView.budgetTitle
+			: budgetMaterializedView.title
+	});
+	statusFilterToQueryMapped({
+		where,
+		filter,
+		statusColumn: materializedJournals
+			? journalExtendedView.budgetStatus
+			: budgetMaterializedView.status,
+		disabledColumn: materializedJournals
+			? journalExtendedView.budgetDisabled
+			: budgetMaterializedView.disabled,
+		activeColumn: materializedJournals
+			? journalExtendedView.budgetActive
+			: budgetMaterializedView.active,
+		allowUpdateColumn: materializedJournals
+			? journalExtendedView.budgetAllowUpdate
+			: budgetMaterializedView.allowUpdate
+	});
+
+	if (!materializedJournals) {
+		importFilterToQueryMaterialized({
+			where,
+			filter,
+			table: {
+				importId: budgetMaterializedView.importId,
+				importDetailId: budgetMaterializedView.importDetailId
+			}
+		});
+	}
 
 	if (includeSummary) {
-		summaryFilterToQuery({ where, filter: restFilter });
+		summaryFilterToQueryMaterialized({
+			where,
+			filter: restFilter,
+			table: {
+				count: budgetMaterializedView.count,
+				sum: budgetMaterializedView.sum,
+				firstDate: budgetMaterializedView.firstDate,
+				lastDate: budgetMaterializedView.lastDate
+			}
+		});
 	}
 
 	return where;

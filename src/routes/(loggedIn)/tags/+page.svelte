@@ -20,6 +20,7 @@
 	import { enhance } from '$app/forms';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -55,12 +56,15 @@
 			Create
 		</Button>
 	</svelte:fragment>
-	<JournalSummaryPopoverContent
-		item={data.tagSummary}
-		format={data.user?.currencyFormat || 'USD'}
-		summaryFilter={{ tag: $urlStore.searchParams } || defaultJournalFilter()}
-		showJournalLink
-	/>
+	{#await data.tagSummary}
+		<LoadingSpinner />
+	{:then tagSummaryData}
+		<JournalSummaryPopoverContent
+			item={tagSummaryData}
+			summaryFilter={{ tag: $urlStore.searchParams } || defaultJournalFilter()}
+			showJournalLink
+		/>
+	{/await}
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.title}

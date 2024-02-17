@@ -13,8 +13,8 @@ import {
 describe('budgetFilterToQuery', () => {
 	const qb = new QueryBuilder();
 	it('Filter Returns A Good Value', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				id: 'id',
 				idArray: ['idArray1', 'idArray2'],
 				title: 'title',
@@ -26,8 +26,8 @@ describe('budgetFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			true
-		);
+			target: 'budgetWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -36,58 +36,58 @@ describe('budgetFilterToQuery', () => {
 			.toSQL();
 
 		//Id
-		expect(query.sql).toContain('"budget"."id" = $');
+		expect(query.sql).toContain('"budget_materialized_view"."id" = $');
 		expect(query.params).toHaveProperty('0', 'id');
 
 		//Id Array
-		expect(query.sql).toContain('"budget"."id" in ($');
+		expect(query.sql).toContain('"budget_materialized_view"."id" in ($');
 		expect(query.params).toHaveProperty('1', 'idArray1');
 		expect(query.params).toHaveProperty('2', 'idArray2');
 
 		//Title
-		expect(query.sql).toContain('"budget"."title" ilike $');
+		expect(query.sql).toContain('"budget_materialized_view"."title" ilike $');
 		expect(query.params).toHaveProperty('3', '%title%');
 
 		//Status
-		expect(query.sql).toContain('"budget"."status" = $');
+		expect(query.sql).toContain('"budget_materialized_view"."status" = $');
 		expect(query.params).toHaveProperty('4', 'active');
 
 		//Disabled
-		expect(query.sql).toContain('"budget"."disabled" = $');
+		expect(query.sql).toContain('"budget_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('5', false);
 
 		//Allow Update
-		expect(query.sql).toContain('"budget"."allow_update" = $');
+		expect(query.sql).toContain('"budget_materialized_view"."allow_update" = $');
 		expect(query.params).toHaveProperty('6', true);
 
 		//Active
-		expect(query.sql).toContain('"budget"."active" = $');
+		expect(query.sql).toContain('"budget_materialized_view"."active" = $');
 		expect(query.params).toHaveProperty('7', false);
 
 		//Import Id Array
-		expect(query.sql).toContain('"budget"."import_id" in ($');
+		expect(query.sql).toContain('"budget_materialized_view"."import_id" in ($');
 		expect(query.params).toHaveProperty('8', 'importId1');
 		expect(query.params).toHaveProperty('9', 'importId2');
 
 		//Import Detail Id Array
-		expect(query.sql).toContain('"budget"."budget_import_detail_id" in ($');
+		expect(query.sql).toContain('"budget_materialized_view"."budget_import_detail_id" in ($');
 		expect(query.params).toHaveProperty('10', 'importDetailId1');
 		expect(query.params).toHaveProperty('11', 'importDetailId2');
 
 		//Count Max
-		expect(query.sql).toContain('"summary"."count" <= $');
-		expect(query.params).toHaveProperty('12', '10.0000');
+		expect(query.sql).toContain('"count" <= $');
+		expect(query.params).toHaveProperty('12', 10.0);
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				disabled: true,
 				allowUpdate: false,
 				active: true
 			},
-			true
-		);
+			target: 'budgetWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -96,20 +96,20 @@ describe('budgetFilterToQuery', () => {
 			.toSQL();
 
 		//Disabled
-		expect(query.sql).toContain('"budget"."disabled" = $');
+		expect(query.sql).toContain('"budget_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('0', true);
 
 		//Allow Update
-		expect(query.sql).toContain('"budget"."allow_update" = $');
+		expect(query.sql).toContain('"budget_materialized_view"."allow_update" = $');
 		expect(query.params).toHaveProperty('1', false);
 
 		//Active
-		expect(query.sql).toContain('"budget"."active" = $');
+		expect(query.sql).toContain('"budget_materialized_view"."active" = $');
 		expect(query.params).toHaveProperty('2', true);
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = budgetFilterToQuery({}, true);
+		const returnValue = budgetFilterToQuery({ filter: {}, target: 'budgetWithSummary' });
 
 		const query = qb
 			.select()
@@ -121,13 +121,13 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Blank Title and ID Return A Blank Value', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				id: '',
 				title: ''
 			},
-			true
-		);
+			target: 'budgetWithSummary'
+		});
 
 		const query = qb
 			.select()
@@ -139,12 +139,12 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it("If include summary is turned off, then count max doesn't have impact", () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				countMax: 10
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()
@@ -156,12 +156,12 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Id Array is not used if the array is empty', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				idArray: []
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()
@@ -169,16 +169,16 @@ describe('budgetFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"budget"."id" in ($');
+		expect(query.sql).not.toContain('"budget_materialized_view"."id" in ($');
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				importIdArray: []
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()
@@ -186,16 +186,16 @@ describe('budgetFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"budget"."import_id" in ($');
+		expect(query.sql).not.toContain('"budget_materialized_view"."import_id" in ($');
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				importDetailIdArray: []
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()
@@ -203,16 +203,16 @@ describe('budgetFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"budget"."budget_import_detail_id" in ($');
+		expect(query.sql).not.toContain('"budget_materialized_view"."budget_import_detail_id" in ($');
 	});
 
 	it('Filtering for disabled items works correctly', () => {
-		const returnValue = budgetFilterToQuery(
-			{
+		const returnValue = budgetFilterToQuery({
+			filter: {
 				disabled: true
 			},
-			false
-		);
+			target: 'budget'
+		});
 
 		const query = qb
 			.select()
@@ -220,7 +220,7 @@ describe('budgetFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).toContain('"budget"."disabled" = $');
+		expect(query.sql).toContain('"budget_materialized_view"."disabled" = $');
 		expect(query.params).toHaveProperty('0', true);
 	});
 });

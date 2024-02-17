@@ -11,7 +11,9 @@ import {
 	timestamp,
 	json,
 	varchar,
-	customType
+	customType,
+	jsonb,
+	pgEnum
 } from 'drizzle-orm/pg-core';
 import {
 	importDetailStatusEnum,
@@ -20,6 +22,10 @@ import {
 	importTypeEnum
 } from '../../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
+import type { JournalFilterSchemaWithoutPaginationType } from '../../../../schema/journalSchema';
+import { pageSizeEnum } from '../../../../schema/pageSizeSchema';
+import { type ReportElementLayoutType } from '../../../../schema/reportHelpers/reportElementLayoutEnum';
+import type { ReportConfigPartSchemaType } from '../../../../schema/reportHelpers/reportConfigPartSchema';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -72,7 +78,6 @@ export const account = pgTable(
 		accountTitleCombined: text('account_title_combined').notNull().unique(),
 		startDate: varchar('start_date', { length: 10 }),
 		endDate: varchar('end_date', { length: 10 }),
-		summaryId: text('summary_id'),
 		...statusColumns,
 		...timestampColumns
 	},
@@ -97,10 +102,6 @@ export const accountRelations = relations(account, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [account.importId],
 		references: [importTable.id]
-	}),
-	summary: one(summaryTable, {
-		fields: [account.summaryId],
-		references: [summaryTable.id]
 	})
 }));
 
@@ -112,15 +113,13 @@ export const tag = pgTable(
 		title: text('title').notNull().unique(),
 		group: text('group').notNull(),
 		single: text('single').notNull(),
-		summaryId: text('summary_id'),
 		...statusColumns,
 		...timestampColumns
 	},
 	(t) => ({
 		title: index('tag_title_idx').on(t.title),
 		group: index('tag_group_idx').on(t.group),
-		single: index('tag_single_idx').on(t.single),
-		summaryId: index('tag_summary_id_idx').on(t.summaryId)
+		single: index('tag_single_idx').on(t.single)
 	})
 );
 
@@ -133,10 +132,6 @@ export const tagRelations = relations(tag, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [tag.importId],
 		references: [importTable.id]
-	}),
-	summary: one(summaryTable, {
-		fields: [tag.summaryId],
-		references: [summaryTable.id]
 	})
 }));
 
@@ -148,15 +143,13 @@ export const category = pgTable(
 		title: text('title').notNull().unique(),
 		group: text('group').notNull(),
 		single: text('single').notNull(),
-		summaryId: text('summary_id'),
 		...statusColumns,
 		...timestampColumns
 	},
 	(t) => ({
 		title: index('category_title_idx').on(t.title),
 		group: index('category_group_idx').on(t.group),
-		single: index('category_single_idx').on(t.single),
-		summaryId: index('category_summary_id_idx').on(t.summaryId)
+		single: index('category_single_idx').on(t.single)
 	})
 );
 
@@ -169,10 +162,6 @@ export const categoryRelations = relations(category, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [category.importId],
 		references: [importTable.id]
-	}),
-	summary: one(summaryTable, {
-		fields: [category.summaryId],
-		references: [summaryTable.id]
 	})
 }));
 
@@ -182,13 +171,11 @@ export const bill = pgTable(
 		...idColumn,
 		...importColumns('bill'),
 		title: text('title').unique().notNull(),
-		summaryId: text('summary_id'),
 		...statusColumns,
 		...timestampColumns
 	},
 	(t) => ({
-		title: index('bill_title_idx').on(t.title),
-		summaryId: index('bill_summary_id_idx').on(t.summaryId)
+		title: index('bill_title_idx').on(t.title)
 	})
 );
 
@@ -201,10 +188,6 @@ export const billRelations = relations(bill, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [bill.importId],
 		references: [importTable.id]
-	}),
-	summary: one(summaryTable, {
-		fields: [bill.summaryId],
-		references: [summaryTable.id]
 	})
 }));
 
@@ -214,13 +197,11 @@ export const budget = pgTable(
 		...idColumn,
 		...importColumns('budget'),
 		title: text('title').unique().notNull(),
-		summaryId: text('summary_id'),
 		...statusColumns,
 		...timestampColumns
 	},
 	(t) => ({
-		title: index('budget_title_idx').on(t.title),
-		summaryId: index('budget_summary_id_idx').on(t.summaryId)
+		title: index('budget_title_idx').on(t.title)
 	})
 );
 
@@ -233,10 +214,6 @@ export const budgetRelations = relations(budget, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [budget.importId],
 		references: [importTable.id]
-	}),
-	summary: one(summaryTable, {
-		fields: [budget.summaryId],
-		references: [summaryTable.id]
 	})
 }));
 
@@ -244,7 +221,6 @@ export const label = pgTable('label', {
 	...idColumn,
 	...importColumns('label'),
 	title: text('title').unique().notNull(),
-	summaryId: text('summary_id'),
 	...statusColumns,
 	...timestampColumns
 });
@@ -258,10 +234,6 @@ export const labelRelations = relations(label, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [label.importId],
 		references: [importTable.id]
-	}),
-	summary: one(summaryTable, {
-		fields: [label.summaryId],
-		references: [summaryTable.id]
 	})
 }));
 
@@ -503,55 +475,6 @@ export const importTableRelations = relations(importTable, ({ many, one }) => ({
 	})
 }));
 
-export const summaryTable = pgTable(
-	'summary',
-	{
-		...idColumn,
-		...timestampColumns,
-		type: text('type', {
-			enum: ['account', 'bill', 'budget', 'category', 'tag', 'label']
-		}).notNull(),
-		needsUpdate: boolean('needs_update').notNull().default(true),
-		relationId: text('relation_id').notNull(),
-		sum: moneyType('sum').default(0),
-		count: moneyType('count').default(0),
-		firstDate: timestamp('first_date'),
-		lastDate: timestamp('last_date')
-	},
-	(t) => ({
-		typeIdx: index('summary_type_idx').on(t.type),
-		relationIdx: index('summary_relation_idx').on(t.relationId),
-		needsUpdateIdx: index('summary_needs_update_idx').on(t.needsUpdate)
-	})
-);
-
-export const summaryTableRelations = relations(summaryTable, ({ one }) => ({
-	account: one(account, {
-		fields: [summaryTable.relationId],
-		references: [account.id]
-	}),
-	bill: one(bill, {
-		fields: [summaryTable.relationId],
-		references: [bill.id]
-	}),
-	budget: one(budget, {
-		fields: [summaryTable.relationId],
-		references: [budget.id]
-	}),
-	category: one(category, {
-		fields: [summaryTable.relationId],
-		references: [category.id]
-	}),
-	tag: one(tag, {
-		fields: [summaryTable.relationId],
-		references: [tag.id]
-	}),
-	label: one(label, {
-		fields: [summaryTable.relationId],
-		references: [label.id]
-	})
-}));
-
 export const reusableFilter = pgTable(
 	'filter',
 	{
@@ -598,3 +521,148 @@ export type ImportMappingType = typeof importMapping.$inferSelect;
 export const importMappingRelations = relations(importMapping, ({ many }) => ({
 	imports: many(importTable)
 }));
+
+export const filter = pgTable(
+	'single_filter',
+	{
+		...idColumn,
+		...timestampColumns,
+		filter: jsonb('filter').notNull().$type<JournalFilterSchemaWithoutPaginationType>(),
+		filterText: text('filter_text').notNull()
+	},
+	(t) => ({
+		filterTextIdx: index('filter_filter_text_idx').on(t.filterText)
+	})
+);
+
+export const reportElementConfig = pgTable(
+	'report_element_config',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title'),
+		group: text('group'),
+		locked: boolean('locked').notNull().default(false),
+		reusable: boolean('reusable').notNull().default(false),
+		layout: text('layout').$type<ReportElementLayoutType>().notNull().default('singleItem'),
+		config: jsonb('config').$type<ReportConfigPartSchemaType>()
+	},
+	(t) => ({
+		titleIdx: index('report_element_config_title_idx').on(t.title),
+		groupIdx: index('report_element_config_group_idx').on(t.group),
+		reusableIdx: index('report_element_config_reusable_idx').on(t.reusable),
+		titleGroupIdx: index('report_element_config_title_group_idx').on(t.title, t.group),
+		lockedIdx: index('report_element_config_locked_idx').on(t.locked)
+	})
+);
+
+export type InsertReportElementConfigType = typeof reportElementConfig.$inferInsert;
+
+export const filtersToReportConfigs = pgTable(
+	'filters_to_report_configs',
+	{
+		...idColumn,
+		...timestampColumns,
+		reportElementConfigId: text('report_element_config_id').notNull(),
+		filterId: text('filter_id').notNull(),
+		order: integer('order').notNull().default(0)
+	},
+	(t) => ({
+		uniqueRelation: unique().on(t.reportElementConfigId, t.filterId),
+		uniqueOrder: unique().on(t.reportElementConfigId, t.order),
+		reportElementConfigIdx: index('report_element_config__from_filter_idx').on(
+			t.reportElementConfigId
+		),
+		filterIdx: index('filter_idx').on(t.filterId)
+	})
+);
+
+export const reportSizeEnum = pgEnum('report_size', pageSizeEnum);
+
+export const report = pgTable(
+	'report',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title').notNull(),
+		group: text('group'),
+		size: reportSizeEnum('size').notNull().default('xl'),
+		locked: boolean('locked').notNull().default(false),
+		filterId: text('filter_id')
+	},
+	(t) => ({
+		titleIdx: index('report_title_idx').on(t.title),
+		groupIdx: index('report_group_idx').on(t.group),
+		titleGroupIdx: index('report_title_group_idx').on(t.title, t.group),
+		lockedIdx: index('report_locked_idx').on(t.locked),
+		filterIdx: index('report_filter_idx').on(t.filterId)
+	})
+);
+
+export const reportElement = pgTable(
+	'report_element',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title'),
+		reportId: text('report_id').notNull(),
+
+		//Position Information
+		rows: integer('rows').notNull().default(0),
+		cols: integer('cols').notNull().default(0),
+		order: integer('order').notNull().default(0),
+
+		//View Configuration
+		reportElementConfigId: text('report_element_config_id').notNull(),
+		filterId: text('filter_id')
+	},
+	(t) => ({
+		reportElementConfigIdx: index('report_element_config_idx').on(t.reportElementConfigId),
+		reportIdx: index('report_idx').on(t.reportId),
+		filterIdx: index('report_element_filter_idx').on(t.filterId)
+	})
+);
+
+export const reportElementRelations = relations(reportElement, ({ one, many }) => ({
+	reportElementConfig: one(reportElementConfig, {
+		fields: [reportElement.reportElementConfigId],
+		references: [reportElementConfig.id]
+	}),
+	report: one(report, {
+		fields: [reportElement.reportId],
+		references: [report.id]
+	}),
+	filter: one(filter, {
+		fields: [reportElement.filterId],
+		references: [filter.id]
+	})
+}));
+
+export const reportElementConfigRelations = relations(reportElementConfig, ({ many, one }) => ({
+	reportElements: many(reportElement),
+	filters: many(filtersToReportConfigs)
+}));
+
+export const reportRelations = relations(report, ({ many, one }) => ({
+	reportElements: many(reportElement),
+	filter: one(filter, {
+		fields: [report.filterId],
+		references: [filter.id]
+	})
+}));
+
+export const filtersToReportConfigsRelations = relations(filtersToReportConfigs, ({ one }) => ({
+	reportElementConfig: one(reportElementConfig, {
+		fields: [filtersToReportConfigs.reportElementConfigId],
+		references: [reportElementConfig.id]
+	}),
+	filter: one(filter, {
+		fields: [filtersToReportConfigs.filterId],
+		references: [filter.id]
+	})
+}));
+
+export const keyValueTable = pgTable('key_value_table', {
+	key: text('key').notNull().unique(),
+	value: text('value').notNull()
+});

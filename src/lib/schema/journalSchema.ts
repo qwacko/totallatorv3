@@ -7,6 +7,7 @@ import { budgetFilterSchema } from './budgetSchema';
 import { categoryFilterSchema } from './categorySchema';
 import { labelFilterSchema } from './labelSchema';
 import { cloneDeep } from 'lodash-es';
+import { dateSpanEnum } from './dateSpanSchema';
 
 const zodStringBlanking = z
 	.string()
@@ -221,20 +222,21 @@ export const journalOrderByEnum = [
 	'accountName'
 ] as const;
 
-export const journalFilterSchema = z.object({
+export const journalFilterSchemaWithoutPagination = z.object({
 	id: z.coerce.string().optional(),
 	excludeId: z.coerce.string().optional(),
 	idArray: z.array(z.string()).optional(),
 	excludeIdArray: z.array(z.string()).optional(),
 	transactionIdArray: z.array(z.string()).optional(),
 	excludeTransactionIdArray: z.array(z.string()).optional(),
-	dateBefore: dateStringSchema.optional(),
-	dateAfter: dateStringSchema.optional(),
+	dateSpan: z.enum(dateSpanEnum).optional().nullable(),
+	dateBefore: dateStringSchema.optional().nullable(),
+	dateAfter: dateStringSchema.optional().nullable(),
 	maxAmount: z.number().optional(),
 	minAmount: z.number().optional(),
 	yearMonth: z.array(z.string()).optional(),
 	excludeYearMonth: z.array(z.string()).optional(),
-	description: z.coerce.string().optional(),
+	description: z.coerce.string().optional().nullable(),
 	excludeDescription: z.coerce.string().optional(),
 	transfer: z.coerce.boolean().optional(),
 	linked: z.coerce.boolean().optional(),
@@ -276,17 +278,29 @@ export const journalFilterSchema = z.object({
 		.omit({ page: true, pageSize: true, orderBy: true })
 		.optional(),
 	label: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	excludeLabel: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	page: z.coerce.number().optional().default(0),
-	pageSize: z.coerce.number().optional().default(10),
-	orderBy: z
-		.array(z.object({ field: z.enum(journalOrderByEnum), direction: z.enum(['asc', 'desc']) }))
-		.optional()
-		.default([
-			{ direction: 'desc', field: 'date' },
-			{ direction: 'desc', field: 'amount' }
-		])
+	excludeLabel: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional()
 });
+
+export type JournalFilterSchemaWithoutPaginationInputType = z.input<
+	typeof journalFilterSchemaWithoutPagination
+>;
+export type JournalFilterSchemaWithoutPaginationType = z.infer<
+	typeof journalFilterSchemaWithoutPagination
+>;
+
+export const journalFilterSchema = journalFilterSchemaWithoutPagination.merge(
+	z.object({
+		page: z.coerce.number().optional().default(0),
+		pageSize: z.coerce.number().optional().default(10),
+		orderBy: z
+			.array(z.object({ field: z.enum(journalOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+			.optional()
+			.default([
+				{ direction: 'desc', field: 'date' },
+				{ direction: 'desc', field: 'amount' }
+			])
+	})
+);
 
 export type JournalFilterSchemaInputType = z.input<typeof journalFilterSchema>;
 

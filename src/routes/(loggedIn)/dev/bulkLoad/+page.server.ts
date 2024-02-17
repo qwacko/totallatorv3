@@ -1,3 +1,4 @@
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { reusableFilter } from '$lib/server/db/postgres/schema';
 import { logging } from '$lib/server/logging.js';
@@ -42,7 +43,7 @@ export const load = async ({ locals }) => {
 
 	const reusableFilterCount = await tActions.reusableFitler.count(locals.db);
 
-	const journalCount = await tActions.journal.count(locals.db);
+	const journalCount = await tActions.journalView.count(locals.db);
 	const deletableJournalCount = journalCount;
 
 	return {
@@ -167,11 +168,13 @@ export const actions = {
 	},
 	deleteUnusedJournals: async (data) => {
 		try {
-			const journals = await tActions.journal.list({
+			const journals = await tActions.journalView.list({
 				db: data.locals.db,
 				filter: { pageSize: 10000 }
 			});
-			const transactionIds = journals.data.map((item) => item.transactionId);
+			const transactionIds = filterNullUndefinedAndDuplicates(
+				journals.data.map((item) => item.transactionId)
+			);
 			await tActions.journal.hardDeleteTransactions({ db: data.locals.db, transactionIds });
 		} catch (e) {
 			logging.error('Error Deleting Unused Journals : ', e);
