@@ -18,6 +18,7 @@
 	import { getDateSpanDropdown, type DateSpanEnumType } from '$lib/schema/dateSpanSchema.js';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
+	import ReportFilterModal from './ReportFilterModal.svelte';
 
 	export let data;
 
@@ -107,6 +108,15 @@
 				<PlusIcon />Add Element
 			</Button>
 		{:else}
+			{#if data.report.filter}
+				<div class="flex self-center text-gray-400">
+					{data.report.filter.filterText}
+				</div>
+			{/if}
+			<ReportFilterModal
+				dropdownInfo={data.streamed.dropdownInfo}
+				filter={data.report.filter?.filter}
+			/>
 			<div class="flex">
 				<Select
 					value={data.dateSpan}

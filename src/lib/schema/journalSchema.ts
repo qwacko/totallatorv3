@@ -229,7 +229,7 @@ export const journalFilterSchemaWithoutPagination = z.object({
 	excludeIdArray: z.array(z.string()).optional(),
 	transactionIdArray: z.array(z.string()).optional(),
 	excludeTransactionIdArray: z.array(z.string()).optional(),
-	dateSpan: z.enum(dateSpanEnum).optional(),
+	dateSpan: z.enum(dateSpanEnum).optional().nullable(),
 	dateBefore: dateStringSchema.optional().nullable(),
 	dateAfter: dateStringSchema.optional().nullable(),
 	maxAmount: z.number().optional(),

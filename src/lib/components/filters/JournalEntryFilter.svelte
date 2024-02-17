@@ -121,13 +121,32 @@
 			title="End Date"
 			errorMessage=""
 		/>
-		<SelectInput
-			bind:value={activeFilter.dateSpan}
-			title="Fixed Date Span"
-			name="dateSpan"
-			errorMessage=""
-			items={getDateSpanDropdown()}
-		/>
+		{#if activeFilter.dateSpan === undefined}
+			<Button on:click={() => (activeFilter.dateSpan = 'allTime')} color="light" size="xs">
+				Add Date Span
+			</Button>
+		{:else}
+			<div class="flex flex-row gap-2">
+				<div class="flex flex-grow">
+					<SelectInput
+						bind:value={activeFilter.dateSpan}
+						title="Fixed Date Span"
+						name="dateSpan"
+						errorMessage=""
+						items={getDateSpanDropdown()}
+						wrapperClass="w-full"
+					/>
+				</div>
+				<Button
+					on:click={() => (activeFilter.dateSpan = undefined)}
+					color="light"
+					size="sm"
+					class="flex self-end"
+				>
+					Clear
+				</Button>
+			</div>
+		{/if}
 	{/if}
 
 	<div class="flex text-sm font-semibold text-black">Transfer</div>

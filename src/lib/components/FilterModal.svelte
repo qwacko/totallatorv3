@@ -27,6 +27,7 @@
 	export let urlFromFilter: ((filter: F) => string) | undefined = undefined;
 	export let opened = false;
 	export let hideDates = false;
+	export let modalTitle = 'Journal Filter';
 
 	let url = '';
 
@@ -36,7 +37,7 @@
 <Button color="light" on:click={() => (opened = true)}>
 	<FilterIcon />
 </Button>
-<Modal bind:open={opened} size="lg" title="Journal Filter">
+<Modal bind:open={opened} size="lg" title={modalTitle}>
 	<FilterModalContent
 		{currentFilter}
 		{accountDropdown}

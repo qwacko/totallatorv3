@@ -3,17 +3,18 @@ import { notificationStore } from './notificationStore';
 
 import type { FormResult } from 'sveltekit-superforms/client';
 
-export const onSuccess = (notification: string) => {
+export const onSuccess = (notification: string, action?: () => void) => {
 	return () => {
 		notificationStore.send({
 			message: notification,
 			type: 'success',
 			duration: 2000
 		});
+		action && action();
 	};
 };
 
-export const onError = (notification: string) => {
+export const onError = (notification: string, action?: () => void) => {
 	return () => {
 		notificationStore.send({
 			message: notification,
@@ -21,6 +22,7 @@ export const onError = (notification: string) => {
 			duration: 8000,
 			dismissable: true
 		});
+		action && action();
 	};
 };
 

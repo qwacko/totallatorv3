@@ -216,6 +216,89 @@ export const reportActions = {
 			}
 		});
 	},
+	addFilter: async ({ db, id }: { db: DBType; id: string }) => {
+		const reportConfig = await reportActions.getSimpleReportConfig({ db, id });
+
+		if (!reportConfig) {
+			throw new Error('Report not found');
+		}
+
+		if (reportConfig.filterId) {
+			throw new Error('Report Filter Exists');
+		}
+
+		const filterId = nanoid();
+
+		await db.transaction(async (trx) => {
+			await reportActions.filter.create({ db: trx, id: filterId });
+
+			await trx
+				.update(report)
+				.set({
+					filterId
+				})
+				.where(eq(report.id, id))
+				.execute();
+		});
+
+		return;
+	},
+	updateFilter: async ({
+		db,
+		id,
+		filter
+	}: {
+		db: DBType;
+		id: string;
+		filter: JournalFilterSchemaWithoutPaginationType;
+	}) => {
+		const reportConfig = await reportActions.getSimpleReportConfig({ db, id });
+
+		if (!reportConfig) {
+			throw new Error('Report not found');
+		}
+
+		const filterId = reportConfig.filterId;
+
+		if (!filterId) {
+			throw new Error("Report Doesn't Have  Filter");
+		}
+
+		await db.transaction(async (trx) => {
+			await reportActions.filter.update({
+				db: trx,
+				filterId,
+				filterConfig: filter
+			});
+		});
+
+		return;
+	},
+	upsertFilter: async ({
+		db,
+		id,
+		filter
+	}: {
+		db: DBType;
+		id: string;
+		filter: JournalFilterSchemaWithoutPaginationType;
+	}) => {
+		console.log('Upserting Filter', filter);
+
+		const reportConfig = await reportActions.getSimpleReportConfig({ db, id });
+
+		if (!reportConfig) {
+			throw new Error('Report not found');
+		}
+
+		const filterId = reportConfig.filterId;
+
+		if (!filterId) {
+			await reportActions.addFilter({ db, id });
+		}
+
+		await reportActions.updateFilter({ db, id, filter });
+	},
 	reportElementConfigItem: {
 		update: async ({
 			db,

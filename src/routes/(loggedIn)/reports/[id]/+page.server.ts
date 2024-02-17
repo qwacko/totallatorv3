@@ -3,7 +3,10 @@ import { serverPageInfo } from '$lib/routes';
 import { updateReportLayoutSchema } from '$lib/schema/reportSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging.js';
-import { redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
+import { dropdownItems } from '$lib/server/dropdownItems.js';
+import { journalFilterSchemaWithoutPagination } from '$lib/schema/journalSchema.js';
+import { failWrapper } from '../element/[id]/customEnhance.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -22,9 +25,14 @@ export const load = async (data) => {
 	});
 	if (!report) redirect(302, '/journalEntries');
 
+	const dropdownInfo = dropdownItems({ db });
+
 	return {
 		report,
-		dateSpan
+		dateSpan,
+		streamed: {
+			dropdownInfo
+		}
 	};
 };
 
@@ -48,6 +56,31 @@ export const actions = {
 		} catch (e) {
 			logging.error('Error updating report layout', e);
 			return;
+		}
+
+		return;
+	},
+	updateFilter: async ({ request, locals, params }) => {
+		const form = await request.formData();
+		const id = params.id;
+		const filter = form.get('filter');
+
+		if (!id || !filter) return;
+
+		const data = journalFilterSchemaWithoutPagination.safeParse(JSON.parse(filter.toString()));
+
+		// console.log('data', data);
+
+		if (!data.success) {
+			console.log('Update Filter Parsing Error : ', data.error.message);
+			return failWrapper('Invalid Filter');
+		}
+
+		try {
+			await tActions.report.upsertFilter({ db: locals.db, id, filter: data.data });
+		} catch (e) {
+			logging.error('Error updating report filter', e);
+			return failWrapper('Error updating report filter');
 		}
 
 		return;

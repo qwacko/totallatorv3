@@ -6,7 +6,7 @@
 	export let title: string | null;
 	export let name: string;
 	export let required: boolean | undefined | null = undefined;
-	export let value: string | undefined;
+	export let value: string | undefined | null;
 	export let wrapperClass: string | undefined = undefined;
 </script>
 

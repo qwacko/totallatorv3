@@ -1,5 +1,6 @@
 import { goto } from '$app/navigation';
-import type { SubmitFunction } from '@sveltejs/kit';
+import { onSuccess, onError } from '$lib/stores/notificationHelpers';
+import { fail, type SubmitFunction } from '@sveltejs/kit';
 
 type ResultType = Record<string, unknown> | undefined;
 type DefaultResult = Record<string, any>;
@@ -108,6 +109,33 @@ export function customEnhance<
 		};
 	};
 }
+export const defaultCustomEnhance = <SuccessType extends ResultType = DefaultResult>({
+	updateLoading,
+	onSuccess: onSuccessInternal,
+	onFailure: onFailureInternal,
+	defaultSuccessMessage = 'Success',
+	defaultFailureMessage = 'Failure'
+}: {
+	updateLoading?: (newValue: boolean) => void;
+	onSuccess?: () => void;
+	onFailure?: (message: string) => void;
+	defaultSuccessMessage?: string;
+	defaultFailureMessage?: string;
+}) =>
+	customEnhance<SuccessType, { message: string }>({
+		onFailure: ({ data, defaultAction }) => {
+			onError(data?.message || defaultFailureMessage)();
+			onFailureInternal && onFailureInternal(data?.message || defaultFailureMessage);
+			defaultAction();
+		},
+		onSuccess: () => {
+			onSuccess(defaultSuccessMessage)();
+			onSuccessInternal && onSuccessInternal();
+		},
+		updateLoading
+	});
+
+export const failWrapper = (message: string) => fail(402, { message });
 
 // Usage
 // const mySubmitFunction = createSubmitFunction<MySuccessType, MyFailureType>();
