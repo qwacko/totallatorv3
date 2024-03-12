@@ -9,7 +9,6 @@ export const createLabelSchema = z.object({
 	importDetailId: z.coerce.string().optional()
 });
 
-export type CreateLabelSchemaSuperType = typeof createLabelSchema;
 export type CreateLabelSchemaType = z.infer<typeof createLabelSchema>;
 
 export const updateLabelSchema = z.object({
@@ -18,7 +17,6 @@ export const updateLabelSchema = z.object({
 	status: z.enum(statusEnum).optional()
 });
 
-export type UpdateLabelSchemaSuperType = typeof updateLabelSchema;
 export type UpdateLabelSchemaType = z.infer<typeof updateLabelSchema>;
 
 const orderByEnum = [

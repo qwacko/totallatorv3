@@ -110,4 +110,3 @@ export const reportConfigPartFormSchema = z.object({
 });
 
 export type ReportConfigPartFormSchemaType = z.infer<typeof reportConfigPartFormSchema>;
-export type ReportConfigPartFormSchemaSupertype = typeof reportConfigPartFormSchema;

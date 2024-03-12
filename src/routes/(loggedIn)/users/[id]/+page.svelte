@@ -10,17 +10,16 @@
 		dateFormatEnum,
 		formatDate,
 		getCurrencyFormatter,
-		type UpdateUserSchemaSuperType
 	} from '$lib/schema/userSchema.js';
 	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers.js';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 
 	export let data;
 
 	let loading = false;
 
-	const form = superForm<UpdateUserSchemaSuperType>(data.form, {
+	const form = superForm(data.form, {
 		...superFormNotificationHelper({
 			errorMessage: 'Failed to update user info',
 			successMessage: 'User info updated',

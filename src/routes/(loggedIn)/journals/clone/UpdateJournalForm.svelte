@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type { UpdateJournalSchemaSuperType } from '$lib/schema/journalSchema';
+	import type { UpdateJournalSchemaType } from '$lib/schema/journalSchema';
 	import TextInputForm from '$lib/components/TextInputForm.svelte';
 
-	import type { SuperForm } from 'sveltekit-superforms/client';
+	import type { SuperForm } from 'sveltekit-superforms';
 	import DateInputForm from '$lib/components/DateInputForm.svelte';
 	import CurrencyInputForm from '$lib/components/CurrencyInputForm.svelte';
 	import BooleanSetClearForm from '$lib/components/BooleanSetClearForm.svelte';
 
-	export let form: SuperForm<UpdateJournalSchemaSuperType>;
+	export let form: SuperForm<UpdateJournalSchemaType>;
 </script>
 
 <TextInputForm title="Description" {form} field="description" />

@@ -10,7 +10,8 @@ import { tActions } from '$lib/server/db/actions/tActions';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { logging } from '$lib/server/logging';
 import { fail, redirect } from '@sveltejs/kit';
-import { setError, superValidate } from 'sveltekit-superforms/client';
+import { setError, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 
 export const load = async (data) => {
@@ -19,18 +20,22 @@ export const load = async (data) => {
 	serverPageInfo(data.route.id, data);
 	bufferingHelper(data);
 
-	const form = await superValidate({ title: '', configuration: '' }, importMappingCreateFormSchema);
-	const detailForm = await superValidate({}, importMappingDetailSchema);
+	const form = await superValidate(
+		{ title: '', configuration: '' },
+		zod(importMappingCreateFormSchema)
+	);
+	const detailForm = await superValidate({}, zod(importMappingDetailSchema));
 
 	return { form, detailForm, dropdowns: dropdownItems({ db }) };
 };
 
+const importMappingCreateFormSchemaWithPrevPage = importMappingCreateFormSchema.merge(
+	z.object({ prevPage: z.string().optional() })
+);
+
 export const actions = {
 	default: async (data) => {
-		const form = await superValidate(
-			data.request,
-			importMappingCreateFormSchema.merge(z.object({ prevPage: z.string().optional() }))
-		);
+		const form = await superValidate(data.request, zod(importMappingCreateFormSchemaWithPrevPage));
 
 		if (!form.valid) {
 			return { form };

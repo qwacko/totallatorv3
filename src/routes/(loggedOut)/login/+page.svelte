@@ -2,15 +2,12 @@
 	import { Button } from 'flowbite-svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { superForm } from 'sveltekit-superforms/client';
-	import type { loginSchemaType } from '$lib/schema/loginSchema';
+	import { superForm } from 'sveltekit-superforms';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
-	const { form, errors, constraints, message, enhance } = superForm<loginSchemaType>(data.form, {
-		taintedMessage: null
-	});
+	const { form, errors, constraints, message, enhance } = superForm(data.form);
 </script>
 
 <CustomHeader pageTitle="Login" />

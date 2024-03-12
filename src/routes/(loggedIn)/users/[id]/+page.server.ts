@@ -4,7 +4,8 @@ import { updateUserSchema } from '$lib/schema/userSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { user } from '$lib/server/db/postgres/schema';
 import { eq } from 'drizzle-orm';
-import { superValidate, message } from 'sveltekit-superforms/server';
+import { superValidate, message } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -18,7 +19,7 @@ export const load = async (data) => {
 		return defaultJournalRedirect();
 	}
 
-	const form = await superValidate(targetUser, updateUserSchema);
+	const form = await superValidate(targetUser, zod(updateUserSchema));
 
 	return {
 		canSetAdmin: tActions.user.canSetAdmin({ userId: data.params.id, initiatingUser: authUser }),
@@ -43,7 +44,7 @@ export const actions = {
 		const authUser = data.locals.user;
 		if (!authUser) return;
 
-		const form = await superValidate(data.request, updateUserSchema);
+		const form = await superValidate(data.request, zod(updateUserSchema));
 
 		console.log('updateInforForm : ', form);
 

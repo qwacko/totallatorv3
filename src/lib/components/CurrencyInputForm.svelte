@@ -1,18 +1,13 @@
-<script lang="ts" context="module">
-	import type { AnyZodObject } from 'zod';
-</script>
-
-<script lang="ts" generics="T extends AnyZodObject">
+<script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
 	import CurrencyInput from './CurrencyInput.svelte';
 
 	import type { Writable } from 'svelte/store';
 
-	import type { z } from 'zod';
-	import type { ZodValidation, FormPathLeaves } from 'sveltekit-superforms';
-	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms/client';
+	import type { FormPathLeaves } from 'sveltekit-superforms';
+	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<ZodValidation<T>, unknown>;
-	export let field: FormPathLeaves<z.infer<T>>;
+	export let form: SuperForm<T, unknown>;
+	export let field: FormPathLeaves<T>;
 	export let wrapperClass: string | undefined = undefined;
 	export let title: string | null;
 	export let highlightTainted: boolean | undefined = true;

@@ -9,7 +9,6 @@ export const createCategorySchema = z.object({
 	importDetailId: z.coerce.string().optional()
 });
 
-export type CreateCategorySchemaSuperType = typeof createCategorySchema;
 export type CreateCategorySchemaType = z.infer<typeof createCategorySchema>;
 
 export const updateCategorySchema = z.object({
@@ -18,7 +17,6 @@ export const updateCategorySchema = z.object({
 	status: z.enum(statusEnum).optional()
 });
 
-export type UpdateCategorySchemaSuperType = typeof updateCategorySchema;
 export type UpdateCategorySchemaType = z.infer<typeof updateCategorySchema>;
 
 const orderByEnum = [

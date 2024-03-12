@@ -4,20 +4,23 @@ import { billPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/client';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
 
-	const form = await superValidate(createBillSchema);
+	const form = await superValidate(zod(createBillSchema));
 
 	return { form };
 };
 
+const createBillSchemaWithPageAndFilter = createBillSchema.merge(billPageAndFilterValidation);
+
 export const actions = {
 	default: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, createBillSchema.merge(billPageAndFilterValidation));
+		const form = await superValidate(request, zod(createBillSchemaWithPageAndFilter));
 
 		if (!form.valid) {
 			return { form };

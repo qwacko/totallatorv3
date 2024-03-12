@@ -4,11 +4,8 @@
 	import BulkEditState from './BulkEditState.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo } from '$lib/routes';
-	import { superForm } from 'sveltekit-superforms/client';
-	import {
-		updateJournalSchema,
-		type UpdateJournalSchemaSuperType
-	} from '$lib/schema/journalSchema';
+	import { superForm } from 'sveltekit-superforms';
+	import { updateJournalSchema } from '$lib/schema/journalSchema';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import UpdateJournalForm from '../clone/UpdateJournalForm.svelte';
@@ -18,14 +15,14 @@
 	import UpdateJournalLabelsForm from '../clone/UpdateJournalLabelsForm.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import { zodClient } from 'sveltekit-superforms/adapters';
 
 	export let data;
 
 	$: urlInfo = pageInfo('/(loggedIn)/journals/bulkEdit', $page);
 
-	const form = superForm<UpdateJournalSchemaSuperType>(data.form, {
-		taintedMessage: null,
-		validators: updateJournalSchema
+	const form = superForm(data.form, {
+		validators: zodClient(updateJournalSchema)
 	});
 
 	$: enhance = form.enhance;
@@ -55,7 +52,7 @@
 			title="Complete Journals Present"
 		/>
 	{:else}
-		<form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-2" action="?/update" use:enhance>
+		<form method="post" class="grid grid-cols-1 gap-2 md:grid-cols-2" action="?/update" use:enhance>
 			<PreviousUrlInput name="prevPage" />
 			<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
 			<input type="hidden" name="currentPage" value={urlInfo.current.url} />

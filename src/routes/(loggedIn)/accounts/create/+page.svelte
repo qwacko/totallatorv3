@@ -7,9 +7,8 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { pageInfo } from '$lib/routes';
-	import type { CreateAccountSchemaSuperType } from '$lib/schema/accountSchema.js';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import { accountTypeEnumSelection } from '$lib/schema/accountTypeSchema.js';
 	import DateInputForm from '$lib/components/DateInputForm.svelte';
@@ -17,7 +16,7 @@
 
 	export let data;
 
-	const form = superForm<CreateAccountSchemaSuperType>(data.form);
+	const form = superForm(data.form);
 
 	$: urlInfo = pageInfo('/(loggedIn)/accounts/create', $page);
 	$: formData = form.form;

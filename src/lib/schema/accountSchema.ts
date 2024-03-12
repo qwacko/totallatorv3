@@ -17,7 +17,6 @@ export const createAccountSchema = z.object({
 	importDetailId: z.coerce.string().optional()
 });
 
-export type CreateAccountSchemaSuperType = typeof createAccountSchema;
 export type CreateAccountSchemaType = z.infer<typeof createAccountSchema>;
 
 export const updateAccountSchema = z.object({
@@ -69,7 +68,6 @@ export const updateAccountSchemaRefined = updateAccountSchema.refine(refineAccou
 });
 
 export type UpdateAccountSchemaType = z.infer<typeof updateAccountSchema>;
-export type UpdateAccountSchemaSuperType = typeof updateAccountSchema;
 
 export const accountOrderByEnum = [
 	'title',

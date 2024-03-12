@@ -7,8 +7,8 @@ import {
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { logging } from '$lib/server/logging';
 import { fail } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
-
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -18,7 +18,7 @@ export const actions = {
 	update: async (data) => {
 		const db = data.locals.db;
 		const id = data.params.id;
-		const form = await superValidate(data.request, updateReportElementSchema);
+		const form = await superValidate(data.request, zod(updateReportElementSchema));
 
 		if (!form.valid) {
 			return form;
@@ -86,7 +86,7 @@ export const actions = {
 		return;
 	},
 	updateConfig: async (data) => {
-		const formData = await superValidate(data.request, updateReportConfigurationSchema);
+		const formData = await superValidate(data.request, zod(updateReportConfigurationSchema));
 
 		if (!formData.valid) {
 			return formData;

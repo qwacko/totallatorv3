@@ -4,22 +4,21 @@
 
 	import { Heading } from 'flowbite-svelte';
 	import type { SuperValidated } from 'sveltekit-superforms';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers';
-	import type { UpdateReportConfigurationSupertype } from '$lib/schema/reportSchema';
+	import type { UpdateReportConfigurationType } from '$lib/schema/reportSchema';
 	import { reportElementLayoutDropdown } from '$lib/schema/reportHelpers/reportElementLayoutEnum';
 	import TextInput from '../TextInput.svelte';
 	import { urlGenerator } from '$lib/routes';
 
-	export let formData: SuperValidated<UpdateReportConfigurationSupertype>;
+	export let formData: SuperValidated<UpdateReportConfigurationType>;
 	export let reusable: boolean;
 	export let elementId: string;
 
 	let loading = false;
 
-	const configForm = superForm<UpdateReportConfigurationSupertype>(formData, {
+	const configForm = superForm(formData, {
 		timeoutMs: 500,
-		taintedMessage: null,
 		...superFormNotificationHelper({
 			setLoading: (value) => (loading = value),
 			successMessage: 'Report Element Config Updated Successfully',

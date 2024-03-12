@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { CloneJournalUpdateSchemaSuperType } from '$lib/schema/journalSchema';
+	import type { CloneJournalUpdateSchemaType } from '$lib/schema/journalSchema';
 	import TextInputForm from '$lib/components/TextInputForm.svelte';
 
-	import type { SuperForm } from 'sveltekit-superforms/client';
+	import type { SuperForm } from 'sveltekit-superforms';
 	import DateInputForm from '$lib/components/DateInputForm.svelte';
 	import CurrencyInputForm from '$lib/components/CurrencyInputForm.svelte';
 
-	export let form: SuperForm<CloneJournalUpdateSchemaSuperType>;
+	export let form: SuperForm<CloneJournalUpdateSchemaType>;
 </script>
 
 <TextInputForm title="Description" {form} field="description" />

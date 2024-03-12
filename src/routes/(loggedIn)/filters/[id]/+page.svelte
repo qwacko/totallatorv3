@@ -6,19 +6,13 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { pageInfo, urlGenerator } from '$lib/routes.js';
-	import {
-		defaultJournalFilter,
-		type UpdateJournalSchemaSuperType
-	} from '$lib/schema/journalSchema.js';
+	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import { Button, Modal, P } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 	import UpdateJournalForm from '../../journals/clone/UpdateJournalForm.svelte';
 	import UpdateJournalLinksForm from '../../journals/clone/UpdateJournalLinksForm.svelte';
 	import UpdateJournalLabelsForm from '../../journals/clone/UpdateJournalLabelsForm.svelte';
-	import {
-		reusableFilterModifcationTypeItems,
-		type UpdateReusableFilterFormSuperSchema
-	} from '$lib/schema/reusableFilterSchema';
+	import { reusableFilterModifcationTypeItems } from '$lib/schema/reusableFilterSchema';
 	import BooleanFilterButtons from '$lib/components/filters/BooleanFilterButtons.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
@@ -34,11 +28,9 @@
 		filterModal = false;
 	});
 
-	$: form = superForm<UpdateReusableFilterFormSuperSchema>(data.form, { taintedMessage: null });
+	$: form = superForm(data.form);
 
-	$: modificationForm = superForm<UpdateJournalSchemaSuperType>(data.modificationForm, {
-		taintedMessage: null
-	});
+	$: modificationForm = superForm(data.modificationForm);
 
 	let changeModal = false;
 	let filterModal = false;
@@ -57,13 +49,13 @@
 <PageLayout title="Update Reusable Filter" size="lg" routeBasedBack>
 	<RawDataModal {data} dev={data.dev} />
 	<form use:enhance method="POST" class="flex flex-col gap-4">
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 			<PreviousUrlInput name="prevPage" routeBased />
 			<input type="hidden" name="filter" value={$formData.filter} />
 			{#if $formData.change}<input type="hidden" name="change" value={$formData.change} />{/if}
 			<input type="hidden" name="id" value={$formData.id} />
 
-			<div class="flex col-span-1 md:col-span-2 flex-row gap-2">
+			<div class="col-span-1 flex flex-row gap-2 md:col-span-2">
 				<div class="flex-grow">
 					<TextInput
 						name="title"
@@ -79,14 +71,14 @@
 						const newTitle = data.filterText.join(' and ');
 						updateTitle(newTitle);
 					}}
-					class="whitespace-nowrap self-end"
+					class="self-end whitespace-nowrap"
 					disabled={$formData.title === data.filterText.join(' and ')}
 					outline
 				>
 					Reset
 				</Button>
 			</div>
-			<div class="flex col-span-1 md:col-span-2 flex-row gap-2">
+			<div class="col-span-1 flex flex-row gap-2 md:col-span-2">
 				<div class="flex-grow">
 					<TextInput
 						name="group"
@@ -131,10 +123,10 @@
 				hideClear
 			/>
 		</div>
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 			<div class="flex flex-col gap-2">
 				<P class="self-center" weight="semibold">Filter</P>
-				<div class="flex flex-row gap-6 items-center self-center">
+				<div class="flex flex-row items-center gap-6 self-center">
 					<div class="flex flex-col gap-1">
 						<FilterModal
 							currentFilter={data.filter.filter || defaultJournalFilter()}
@@ -191,7 +183,7 @@
 
 			<div class="flex flex-col gap-2">
 				<P class="self-center" weight="semibold">Related Change</P>
-				<div class="flex flex-row gap-6 items-center self-center">
+				<div class="flex flex-row items-center gap-6 self-center">
 					<div class="flex flex-col gap-1">
 						<Button color="light" outline on:click={() => (changeModal = true)}>Changes</Button>
 						{#if changeModal}

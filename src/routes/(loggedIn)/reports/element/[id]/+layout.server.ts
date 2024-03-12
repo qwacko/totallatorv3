@@ -8,7 +8,8 @@ import {
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { dropdownItems } from '$lib/server/dropdownItems';
 import { redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms/server';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -46,7 +47,7 @@ export const load = async (data) => {
 			id: elementData.id,
 			title: elementData.title || undefined
 		},
-		updateReportElementSchema
+		zod(updateReportElementSchema)
 	);
 
 	const configForm = await superValidate(
@@ -55,7 +56,7 @@ export const load = async (data) => {
 			group: elementData.reportElementConfig.group || undefined,
 			layout: elementData.reportElementConfig.layout || undefined
 		},
-		updateReportConfigurationSchema
+		zod(updateReportConfigurationSchema)
 	);
 
 	const elementConfigWithData = await tActions.report.reportElement.getWithData({

@@ -7,14 +7,14 @@ import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/client';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
 
 	const form = await superValidate(
 		{
-			//@ts-expect-error There Is An Unknown Error Here
 			date: new Date().toISOString().slice(0, 10),
 			description: '',
 			amount: 0,
@@ -37,7 +37,7 @@ export const load = async (data) => {
 			toAccountTitle: null,
 			toAccountId: undefined
 		},
-		createSimpleTransactionSchemaCore
+		zod(createSimpleTransactionSchemaCore)
 	);
 
 	return { form };
@@ -48,7 +48,7 @@ const createValidation = createSimpleTransactionSchemaCore.merge(pageAndFilterVa
 export const actions = {
 	default: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, createValidation);
+		const form = await superValidate(request, zod(createValidation));
 
 		if (!form.valid) {
 			logging.error('Update Form Is Not Valid', form.errors);

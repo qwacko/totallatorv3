@@ -1,18 +1,18 @@
 <script lang="ts">
 	import TextInputForm from '$lib/components/TextInputForm.svelte';
 	import type {
-		ImportMappingDetailSuperSchema,
-		ImportMappingCreateFormSuperSchema
+		ImportMappingCreateFormSchema,
+		ImportMappingDetailSchema
 	} from '$lib/schema/importMappingSchema.js';
 	import { Alert, Button, Heading, NumberInput, P, TabItem, Tabs } from 'flowbite-svelte';
-	import type { SuperForm } from 'sveltekit-superforms/client';
+	import type { SuperForm } from 'sveltekit-superforms';
 	import DisplaySampleMappedData from './DisplaySampleMappedData.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
 	import type { DropdownItems } from '$lib/server/dropdownItems';
 
-	export let form: SuperForm<ImportMappingCreateFormSuperSchema>;
-	export let detailForm: SuperForm<ImportMappingDetailSuperSchema>;
+	export let form: SuperForm<ImportMappingCreateFormSchema>;
+	export let detailForm: SuperForm<ImportMappingDetailSchema>;
 	export let dropdowns: DropdownItems;
 	export let submitButtonText: string;
 
@@ -56,7 +56,7 @@
 			/>
 		</TabItem>
 		<TabItem title="Transaction Info" open>
-			<div class="flex flex-col gap-4 items-stretch">
+			<div class="flex flex-col items-stretch gap-4">
 				<TextInputForm form={detailForm} title="Date" field="date" placeholder="Date Mapping" />
 				<TextInputForm
 					form={detailForm}
@@ -73,7 +73,7 @@
 			</div>
 		</TabItem>
 		<TabItem title="Account Info">
-			<div class="flex flex-col gap-4 items-stretch">
+			<div class="flex flex-col items-stretch gap-4">
 				<ComboSelectForm
 					form={detailForm}
 					title="From Account"
@@ -119,7 +119,7 @@
 			</div>
 		</TabItem>
 		<TabItem title="Category">
-			<div class="flex flex-col gap-4 items-stretch">
+			<div class="flex flex-col items-stretch gap-4">
 				<ComboSelectForm
 					form={detailForm}
 					title="Category"
@@ -144,7 +144,7 @@
 			</div>
 		</TabItem>
 		<TabItem title="Tag">
-			<div class="flex flex-col gap-4 items-stretch">
+			<div class="flex flex-col items-stretch gap-4">
 				<ComboSelectForm
 					form={detailForm}
 					title="Tag"
@@ -169,7 +169,7 @@
 			</div>
 		</TabItem>
 		<TabItem title="Bill">
-			<div class="flex flex-col gap-4 items-stretch">
+			<div class="flex flex-col items-stretch gap-4">
 				<ComboSelectForm
 					form={detailForm}
 					title="Bill"
@@ -193,7 +193,7 @@
 			</div>
 		</TabItem>
 		<TabItem title="Budget">
-			<div class="flex flex-col gap-4 items-stretch">
+			<div class="flex flex-col items-stretch gap-4">
 				<ComboSelectForm
 					form={detailForm}
 					title="Budget"
@@ -217,7 +217,7 @@
 			</div>
 		</TabItem>
 		<TabItem title="Labels">
-			<div class="flex flex-col gap-4 items-stretch">
+			<div class="flex flex-col items-stretch gap-4">
 				<TextInputForm
 					form={detailForm}
 					title="Label Titles"

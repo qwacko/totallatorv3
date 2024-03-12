@@ -9,7 +9,6 @@ export const createBillSchema = z.object({
 	importDetailId: z.coerce.string().optional()
 });
 
-export type CreateBillSchemaSuperType = typeof createBillSchema;
 export type CreateBillSchemaType = z.infer<typeof createBillSchema>;
 
 export const updateBillSchema = z.object({
@@ -18,7 +17,6 @@ export const updateBillSchema = z.object({
 	status: z.enum(statusEnum).optional()
 });
 
-export type UpdateBillSchemaSuperType = typeof updateBillSchema;
 export type UpdateBillSchemaType = z.infer<typeof updateBillSchema>;
 
 const orderByEnum = [

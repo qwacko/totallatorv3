@@ -3,12 +3,11 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import { page } from '$app/stores';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import { pageInfo } from '$lib/routes';
-	import type { CreateReportSupertype } from '$lib/schema/reportSchema.js';
 	import ReportLayoutOptionDisplay from './ReportLayoutOptionDisplay.svelte';
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
 	import {
@@ -22,7 +21,7 @@
 
 	export let data;
 
-	const formAll = superForm<CreateReportSupertype>(data.form, {
+	const formAll = superForm(data.form, {
 		onSubmit: () => (loading = true),
 		onResult: () => (loading = false)
 	});

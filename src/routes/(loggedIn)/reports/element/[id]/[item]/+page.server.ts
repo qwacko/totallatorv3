@@ -5,7 +5,8 @@ import { reportConfigPartFormSchema } from '$lib/schema/reportHelpers/reportConf
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -32,7 +33,7 @@ export const load = async (data) => {
 		);
 	}
 
-	const itemForm = await superValidate(itemData, reportConfigPartFormSchema);
+	const itemForm = await superValidate(itemData, zod(reportConfigPartFormSchema));
 
 	return { itemData, itemForm };
 };
@@ -43,7 +44,7 @@ export const actions = {
 		const id = data.params.id;
 		const item = data.params.item;
 
-		const form = await superValidate(data.request, reportConfigPartFormSchema);
+		const form = await superValidate(data.request, zod(reportConfigPartFormSchema));
 
 		if (!form.valid) {
 			return form;

@@ -9,7 +9,6 @@ export const createTagSchema = z.object({
 	importDetailId: z.coerce.string().optional()
 });
 
-export type CreateTagSchemaSuperType = typeof createTagSchema;
 export type CreateTagSchemaType = z.infer<typeof createTagSchema>;
 
 export const updateTagSchema = z.object({
@@ -18,7 +17,6 @@ export const updateTagSchema = z.object({
 	status: z.enum(statusEnum).optional()
 });
 
-export type UpdateTagSchemaSuperType = typeof updateTagSchema;
 export type UpdateTagSchemaType = z.infer<typeof updateTagSchema>;
 
 const orderByEnum = [
