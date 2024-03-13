@@ -12,7 +12,7 @@
 	import UserAccountIcon from '$lib/components/icons/UserAccountIcon.svelte';
 	import TagIcon from '$lib/components/icons/TagIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
-	import { Button, Dropdown, DropdownItem } from 'flowbite-svelte';
+	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 	import DevIcon from '$lib/components/icons/DevIcon.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
@@ -36,9 +36,7 @@
 	$: pageIsImportMapping = $page.route.id?.startsWith('/(loggedIn)/importMapping');
 	$: pageIsImport = $page.route.id?.startsWith('/(loggedIn)/import') && !pageIsImportMapping;
 	$: pageIsBackup = $page.route.id?.startsWith('/(loggedIn)/backup');
-	$: pageIsCurrentUser = data.user?.userId
-		? $page.url.toString().includes(data.user.userId)
-		: false;
+	$: pageIsCurrentUser = data.user?.id ? $page.url.toString().includes(data.user.id) : false;
 	$: pageIsUsers = $page.route.id?.startsWith('/(loggedIn)/users') && !pageIsCurrentUser;
 	$: pageIsFilters = $page.route.id?.startsWith('/(loggedIn)/filters');
 
@@ -120,7 +118,7 @@
 						icon: UserAccountIcon,
 						href: urlGenerator({
 							address: '/(loggedIn)/users/[id]',
-							paramsValue: { id: data.user?.userId }
+							paramsValue: { id: data.user?.id }
 						})
 					}
 				]
@@ -183,18 +181,9 @@
 					</div>
 				</DropdownItem>
 			{/each}
+			<DropdownDivider />
+			<DropdownItem href={urlGenerator({ address: '/(loggedIn)/logout' }).url}>Logout</DropdownItem>
 		</Dropdown>
-		<!-- {#each pageMap as currentPage}
-			<Button
-				id={currentPage.label}
-				class="flex border-0"
-				outline={!currentPage.active}
-				href={currentPage.href.url}
-			>
-				<svelte:component this={currentPage.icon} />
-			</Button>
-			<Tooltip triggeredBy="[id^='{currentPage.label}']">{currentPage.label}</Tooltip>
-		{/each} -->
 	</div>
 	<slot />
 	<NotificationDisplay />

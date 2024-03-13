@@ -84,14 +84,14 @@ export const getToFromAccountAmountData = <T extends journalsWithOtherJournalTyp
 					toAmount: data[0].amount,
 					fromAmount: data[0].otherJournals[0].amount,
 					direction: true
-			  }
+				}
 			: {
 					fromAccountId: data[0].accountId,
 					toAccountId: data[0].otherJournals[0].accountId,
 					fromAmount: data[0].amount,
 					toAmount: data[0].otherJournals[0].amount,
 					direction: false
-			  };
+				};
 
 	const returnData = data.reduce((prev, current) => {
 		if (current.amount > 0) {

@@ -1,21 +1,16 @@
-<script lang="ts" context="module">
-	import type { AnyZodObject } from 'zod';
-</script>
-
-<script lang="ts" generics="T extends AnyZodObject">
+<script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
 	import { onMount } from 'svelte';
 
 	import BooleanButtons from './BooleanButtons.svelte';
 
 	import type { Writable } from 'svelte/store';
 
-	import type { z } from 'zod';
-	import type { ZodValidation, FormPathLeaves } from 'sveltekit-superforms';
-	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms/client';
+	import type { FormPathLeaves } from 'sveltekit-superforms';
+	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<ZodValidation<T>, unknown>;
-	export let setField: FormPathLeaves<z.infer<T>>;
-	export let clearField: FormPathLeaves<z.infer<T>>;
+	export let form: SuperForm<T, unknown>;
+	export let setField: FormPathLeaves<T>;
+	export let clearField: FormPathLeaves<T>;
 	export let wrapperClass: string | undefined = undefined;
 	export let title: string | null;
 
@@ -61,7 +56,7 @@
 
 <div class="flex flex-col gap-2 {wrapperClass}">
 	{#if title}
-		<div class="flex text-primary-900 font-semibold text-sm">
+		<div class="flex text-sm font-semibold text-primary-900">
 			{title}
 		</div>
 	{/if}

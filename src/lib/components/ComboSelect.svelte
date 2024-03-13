@@ -132,7 +132,7 @@
 		<Label {...$label}>{title}</Label>
 	{/if}
 
-	<div class="flex @md:flex-row flex-col w-full gap-2">
+	<div class="flex w-full flex-col gap-2 @md:flex-row">
 		{#if createValue !== undefined}
 			<P size="sm" class="self-center whitespace-nowrap">{createDesc}</P>
 			<Input bind:value={createValue} />
@@ -142,16 +142,16 @@
 				<input
 					{...$input}
 					use:input
-					class="block w-full disabled:cursor-not-allowed disabled:opacity-50 p-2.5 focus:border-primary-500
-            focus:ring-primary-500 dark:focus:border-primary-500 dark:focus:ring-primary-500
-            bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400
-            border-gray-300 dark:border-gray-600 text-sm rounded-lg border {tainted &&
+					class="block w-full rounded-lg border border-gray-300 bg-gray-50
+            p-2.5 text-sm text-gray-900
+            focus:border-primary-500 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600
+            dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500 {tainted &&
 					highlightTainted
 						? 'ring-2'
 						: ''}"
 					{placeholder}
 				/>
-				<div class="absolute right-2 top-1/2 z-10 -translate-y-1/2 text-magnum-900">
+				<div class="text-magnum-900 absolute right-2 top-1/2 z-10 -translate-y-1/2">
 					{#if $open}
 						<ChevronUp class="square-4" />
 					{:else}
@@ -163,7 +163,7 @@
 				{#if creatable && createValue === undefined}
 					<Button
 						on:click={setCreate}
-						class="flex @md:flex-grow-0 flex-grow basis-0 @md:whitespace-nowrap"
+						class="flex flex-grow basis-0 @md:flex-grow-0 @md:whitespace-nowrap"
 						color="light"
 					>
 						{createDesc}
@@ -201,12 +201,12 @@
 				<li
 					{...$option(currentItemOption)}
 					use:option
-					class="relative cursor-pointer scroll-my-2 rounded-md py-2 pl-4 pr-4
-        data-[highlighted]:bg-magnum-200 data-[highlighted]:text-magnum-900
+					class="data-[highlighted]:bg-magnum-200 data-[highlighted]:text-magnum-900 relative cursor-pointer scroll-my-2 rounded-md py-2
+        pl-4 pr-4
           data-[disabled]:opacity-50 {currentHighlighted ? 'bg-gray-200' : ''}"
 				>
 					{#if currentSelected}
-						<div class="check absolute left-2 top-1/2 z-10 text-magnum-900">
+						<div class="check text-magnum-900 absolute left-2 top-1/2 z-10">
 							<Check class="square-4" />
 						</div>
 					{/if}

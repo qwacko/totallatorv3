@@ -14,7 +14,6 @@ export const createReportSchema = z.object({
 });
 
 export type CreateReportType = z.infer<typeof createReportSchema>;
-export type CreateReportSupertype = typeof createReportSchema;
 
 export const updateReportSchema = z.object({
 	id: z.string(),
@@ -25,7 +24,6 @@ export const updateReportSchema = z.object({
 });
 
 export type UpdateReportType = z.infer<typeof updateReportSchema>;
-export type UpdateReportSupertype = typeof updateReportSchema;
 
 export const createReportElementSchema = z.object({
 	reportId: z.string(),
@@ -51,7 +49,6 @@ export const updateReportLayoutSchema = z.object({
 });
 
 export type UpdateReportLayoutType = z.infer<typeof updateReportLayoutSchema>;
-export type UpdateReportLayoutSupertype = typeof updateReportLayoutSchema;
 
 export const updateReportElementSchema = z.object({
 	id: z.string(),
@@ -60,7 +57,6 @@ export const updateReportElementSchema = z.object({
 });
 
 export type UpdateReportElementType = z.infer<typeof updateReportElementSchema>;
-export type UpdateReportElementSupertype = typeof updateReportElementSchema;
 
 export const updateReportConfigurationSchema = z.object({
 	title: z.string().optional(),
@@ -69,4 +65,3 @@ export const updateReportConfigurationSchema = z.object({
 });
 
 export type UpdateReportConfigurationType = z.infer<typeof updateReportConfigurationSchema>;
-export type UpdateReportConfigurationSupertype = typeof updateReportConfigurationSchema;

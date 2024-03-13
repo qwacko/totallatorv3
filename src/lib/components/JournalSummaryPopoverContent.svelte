@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getCurrencyFormatter, } from '$lib/schema/userSchema';
+	import { getCurrencyFormatter } from '$lib/schema/userSchema';
 
 	import { Chart, Tabs, TabItem, Button } from 'flowbite-svelte';
 	import {

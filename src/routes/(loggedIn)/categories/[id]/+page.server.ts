@@ -5,7 +5,8 @@ import { categoryPageAndFilterValidation } from '$lib/schema/pageAndFilterValida
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -18,7 +19,7 @@ export const load = async (data) => {
 	if (!category) redirect(302, '/categories');
 	const form = await superValidate(
 		{ id: category.id, title: category.title, status: category.status },
-		updateCategorySchema
+		zod(updateCategorySchema)
 	);
 
 	return {
@@ -27,13 +28,14 @@ export const load = async (data) => {
 	};
 };
 
+const updateCategorySchemaWithPageAndFilter = updateCategorySchema.merge(
+	categoryPageAndFilterValidation
+);
+
 export const actions = {
 	default: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(
-			request,
-			updateCategorySchema.merge(categoryPageAndFilterValidation)
-		);
+		const form = await superValidate(request, zod(updateCategorySchemaWithPageAndFilter));
 
 		if (!form.valid) {
 			return { form };

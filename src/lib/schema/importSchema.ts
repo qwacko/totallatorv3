@@ -12,7 +12,7 @@ export const importTypeEnum = [
 
 export type importTypeType = (typeof importTypeEnum)[number];
 
-export const importTypeToTitle = (type: (typeof importTypeEnum)[number], single = false) => {
+export const importTypeToTitle = (type: importTypeType, single = false) => {
 	if (type === 'transaction') {
 		return single ? 'Transaction' : 'Transactions';
 	}

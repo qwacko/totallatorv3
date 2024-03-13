@@ -4,23 +4,25 @@ import { categoryPageAndFilterValidation } from '$lib/schema/pageAndFilterValida
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/client';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
 
-	const form = await superValidate(createCategorySchema);
+	const form = await superValidate(zod(createCategorySchema));
 
 	return { form };
 };
 
+const createCategorySchemaWithPageAndFilter = createCategorySchema.merge(
+	categoryPageAndFilterValidation
+);
+
 export const actions = {
 	default: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(
-			request,
-			createCategorySchema.merge(categoryPageAndFilterValidation)
-		);
+		const form = await superValidate(request, zod(createCategorySchemaWithPageAndFilter));
 
 		if (!form.valid) {
 			return { form };

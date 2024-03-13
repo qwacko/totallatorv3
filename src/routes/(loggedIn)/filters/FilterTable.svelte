@@ -207,8 +207,8 @@
 							{row.modificationType === 'modify'
 								? 'Modify'
 								: row.modificationType === 'replace'
-								? 'Replace'
-								: "'"}
+									? 'Replace'
+									: "'"}
 						</div>
 					</div>
 				{/if}

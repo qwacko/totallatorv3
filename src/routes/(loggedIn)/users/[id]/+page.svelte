@@ -9,18 +9,17 @@
 		currencyFormatEnum,
 		dateFormatEnum,
 		formatDate,
-		getCurrencyFormatter,
-		type UpdateUserSchemaSuperType
+		getCurrencyFormatter
 	} from '$lib/schema/userSchema.js';
 	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers.js';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 
 	export let data;
 
 	let loading = false;
 
-	const form = superForm<UpdateUserSchemaSuperType>(data.form, {
+	const form = superForm(data.form, {
 		...superFormNotificationHelper({
 			errorMessage: 'Failed to update user info',
 			successMessage: 'User info updated',
@@ -65,7 +64,7 @@
 					Edit Password
 				</Button>
 			{/if}
-			{#if data.user?.admin && data.user.userId !== data.currentUser.id}
+			{#if data.user?.admin && data.user.id !== data.currentUser.id}
 				<Button
 					href={urlGenerator({
 						address: '/(loggedIn)/users/[id]/delete',

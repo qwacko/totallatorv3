@@ -5,7 +5,8 @@ import { billFilterToText } from '$lib/server/db/actions/helpers/bill/billFilter
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { error, redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms/server';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 
 export const load = async (data) => {
@@ -53,7 +54,7 @@ const submitValidation = z.object({
 export const actions = {
 	update: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, submitValidation);
+		const form = await superValidate(request, zod(submitValidation));
 
 		if (!form.valid) {
 			return error(400, 'Invalid form data');

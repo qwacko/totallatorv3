@@ -12,7 +12,7 @@ type GroupedJournals = {
 			type: AccountTypeEnumType;
 		};
 	}[];
-}[]
+}[];
 
 const doManyTransferUpdate = async ({
 	db,
@@ -96,11 +96,10 @@ export const updateManyTransferInfo = async ({
 				},
 				columns: {
 					id: true,
-					transfer: true,
+					transfer: true
 				}
 			}
-		}
-		,
+		},
 		columns: {
 			id: true
 		}

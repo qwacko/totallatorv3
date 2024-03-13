@@ -2,7 +2,8 @@ import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms/server';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 import { accountFilterSchema, updateAccountSchema } from '$lib/schema/accountSchema';
 import { accountFilterToText } from '$lib/server/db/actions/helpers/account/accountFilterToQuery';
 import { accountPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
@@ -25,7 +26,7 @@ export const load = async (data) => {
 
 	if (!commonData) redirect(302, '/accounts');
 
-	const form = await superValidate(commonData, updateAccountSchema);
+	const form = await superValidate(commonData, zod(updateAccountSchema));
 	const filterText = await accountFilterToText({ filter, db });
 
 	const titles = accounts.data.map((item) => item.title);
@@ -46,7 +47,7 @@ const submitValidation = updateAccountSchema.merge(accountPageAndFilterValidatio
 export const actions = {
 	default: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, submitValidation);
+		const form = await superValidate(request, zod(submitValidation));
 		if (!form.valid) {
 			redirect(302, form.data.currentPage);
 		}

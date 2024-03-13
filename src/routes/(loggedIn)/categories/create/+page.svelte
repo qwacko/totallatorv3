@@ -5,9 +5,8 @@
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { statusEnumSelectionWithoutDeleted } from '$lib/schema/statusSchema.js';
-	import type { CreateCategorySchemaSuperType } from '$lib/schema/categorySchema.js';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import { page } from '$app/stores';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
@@ -15,9 +14,7 @@
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance } = superForm<CreateCategorySchemaSuperType>(
-		data.form
-	);
+	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
 	$: urlInfo = pageInfo('/(loggedIn)/categories/create', $page);
 </script>

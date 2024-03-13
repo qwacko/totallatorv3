@@ -8,18 +8,25 @@ import { categoryActions } from '../../categoryActions';
 import { labelActions } from '../../labelActions';
 import { tagActions } from '../../tagActions';
 
-
-export const journalGetOrCreateLinkedItems = async ({ db, journalEntry, cachedAccounts, cachedBills, cachedBudgets, cachedCategories, cachedLabels, cachedTags }: {
-	db: DBType,
-	journalEntry: CreateJournalSchemaType
-	cachedAccounts?: { id: string, title: string, status: StatusEnumType }[]
-	cachedBills?: { id: string, title: string, status: StatusEnumType }[]
-	cachedBudgets?: { id: string, title: string, status: StatusEnumType }[]
-	cachedTags?: { id: string, title: string, status: StatusEnumType }[]
-	cachedCategories?: { id: string, title: string, status: StatusEnumType }[]
-	cachedLabels?: { id: string, title: string, status: StatusEnumType }[]
-}
-) => {
+export const journalGetOrCreateLinkedItems = async ({
+	db,
+	journalEntry,
+	cachedAccounts,
+	cachedBills,
+	cachedBudgets,
+	cachedCategories,
+	cachedLabels,
+	cachedTags
+}: {
+	db: DBType;
+	journalEntry: CreateJournalSchemaType;
+	cachedAccounts?: { id: string; title: string; status: StatusEnumType }[];
+	cachedBills?: { id: string; title: string; status: StatusEnumType }[];
+	cachedBudgets?: { id: string; title: string; status: StatusEnumType }[];
+	cachedTags?: { id: string; title: string; status: StatusEnumType }[];
+	cachedCategories?: { id: string; title: string; status: StatusEnumType }[];
+	cachedLabels?: { id: string; title: string; status: StatusEnumType }[];
+}) => {
 	const {
 		categoryId,
 		categoryTitle,
@@ -69,26 +76,26 @@ export const journalGetOrCreateLinkedItems = async ({ db, journalEntry, cachedAc
 
 	const targetLabelIds = labels
 		? await Promise.all(
-			labels.map(async (label) => {
-				return await labelActions.createOrGet({
-					db,
-					id: label,
-					cachedData: cachedLabels
-				});
-			})
-		)
+				labels.map(async (label) => {
+					return await labelActions.createOrGet({
+						db,
+						id: label,
+						cachedData: cachedLabels
+					});
+				})
+			)
 		: [];
 
 	const targetLabelTitles = labelTitles
 		? await Promise.all(
-			labelTitles.map(async (labelTitle) => {
-				return await labelActions.createOrGet({
-					db,
-					title: labelTitle,
-					cachedData: cachedLabels
-				});
-			})
-		)
+				labelTitles.map(async (labelTitle) => {
+					return await labelActions.createOrGet({
+						db,
+						title: labelTitle,
+						cachedData: cachedLabels
+					});
+				})
+			)
 		: [];
 
 	const targetLabels = filterUndefinedFromArray([...targetLabelIds, ...targetLabelTitles]);

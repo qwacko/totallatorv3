@@ -16,7 +16,7 @@
 		{pageTitle}{pageNumber !== undefined && numPages !== undefined
 			? ` (${pageNumber + 1}/${numPages})`
 			: pageNumber !== undefined
-			? ` Page ${pageNumber}`
-			: ''}{filterTextJoined && filterTextJoined !== '' ? ` : ${filterTextJoined}` : ''}
+				? ` Page ${pageNumber}`
+				: ''}{filterTextJoined && filterTextJoined !== '' ? ` : ${filterTextJoined}` : ''}
 	</title>
 </svelte:head>

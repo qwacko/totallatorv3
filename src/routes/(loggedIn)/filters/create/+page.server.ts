@@ -11,7 +11,8 @@ import {
 } from '$lib/schema/reusableFilterSchema.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { setError, superValidate } from 'sveltekit-superforms/server';
+import { setError, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 import { journalUpdateToText } from '$lib/server/db/actions/helpers/journal/journalUpdateToText.js';
 import { reusableFilterPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { redirect } from '@sveltejs/kit';
@@ -41,10 +42,10 @@ export const load = async (data) => {
 			listed: current.searchParams?.listed,
 			modificationType: current.searchParams?.modificationType
 		},
-		createReusableFilterFormSchema
+		zod(createReusableFilterFormSchema)
 	);
 
-	const modificationForm = await superValidate(change || {}, updateJournalSchema);
+	const modificationForm = await superValidate(change || {}, zod(updateJournalSchema));
 
 	const numberResults = await tActions.journalView.count(db, filter);
 
@@ -65,7 +66,7 @@ const filterFormSchemaWithPage = createReusableFilterFormSchema.merge(
 
 export const actions = {
 	default: async (data) => {
-		const form = await superValidate(data.request, filterFormSchemaWithPage);
+		const form = await superValidate(data.request, zod(filterFormSchemaWithPage));
 
 		if (!form.valid) {
 			return form;

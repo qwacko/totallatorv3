@@ -62,7 +62,7 @@
 					{importStatusToTest(currentImport.status)}
 				</Badge>
 
-				<div class="flex flex-row flex-wrap items-center self-center gap-2">
+				<div class="flex flex-row flex-wrap items-center gap-2 self-center">
 					<Badge color={importStatusToColour('processed')}>
 						{currentImport.numProcessed} Processed
 					</Badge>

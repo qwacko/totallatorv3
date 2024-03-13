@@ -81,4 +81,3 @@ export const updateUserSchema = z.object({
 });
 
 export type updateUserSchemaType = z.infer<typeof updateUserSchema>;
-export type UpdateUserSchemaSuperType = typeof updateUserSchema;

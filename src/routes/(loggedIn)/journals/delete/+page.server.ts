@@ -5,7 +5,8 @@ import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js'
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms/server';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 import { urlGenerator } from '$lib/routes.js';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates.js';
 
@@ -25,7 +26,7 @@ export const load = async (data) => {
 export const actions = {
 	delete: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, pageAndFilterValidation);
+		const form = await superValidate(request, zod(pageAndFilterValidation));
 
 		if (!form.valid) {
 			redirect(302, form.data.currentPage);

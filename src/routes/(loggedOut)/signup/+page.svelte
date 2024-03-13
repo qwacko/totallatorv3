@@ -2,16 +2,13 @@
 	import { Button } from 'flowbite-svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { superForm } from 'sveltekit-superforms/client';
-	import type { signupSchemaType } from '$lib/schema/signupSchema.js';
+	import { superForm } from 'sveltekit-superforms';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { urlGenerator } from '$lib/routes.js';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
 	export let data;
-	const { form, errors, constraints, message, enhance } = superForm<signupSchemaType>(data.form, {
-		taintedMessage: null
-	});
+	const { form, errors, constraints, message, enhance } = superForm(data.form);
 </script>
 
 <CustomHeader pageTitle="Sign Up" />
@@ -59,7 +56,7 @@
 			{...$constraints.confirmPassword}
 		/>
 		<ErrorText message={$message} />
-		<div class="flex flex-row gap-2 justify-between">
+		<div class="flex flex-row justify-between gap-2">
 			<Button type="submit">Sign Up</Button>
 			<Button href={urlGenerator({ address: '/(loggedOut)/login' }).url}>Login</Button>
 		</div>

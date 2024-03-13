@@ -45,6 +45,7 @@
 		// console.log('treeData', treeData);
 
 		const valueFormatter: OptionsDataFormatter = (value) => {
+			if (!value) return '';
 			return convertNumberToText({
 				value: Number(value.valueOf()),
 				config: data.numberDisplay,

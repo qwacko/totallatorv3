@@ -2,9 +2,8 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import type { UpdateReportElementSupertype } from '$lib/schema/reportSchema.js';
 	import { Button, Heading, P } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 	import FilterModal from '$lib/components/FilterModal.svelte';
 	import { enhance } from '$app/forms';
 	import { customEnhance } from './customEnhance.js';
@@ -25,7 +24,7 @@
 		constraints,
 		errors,
 		enhance: elementEnhance
-	} = superForm<UpdateReportElementSupertype>(data.form, {
+	} = superForm(data.form, {
 		onError: onError('Error updating report element'),
 		onResult: ({ result }) => {
 			if (result.type === 'success') {

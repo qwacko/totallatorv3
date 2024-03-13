@@ -2,7 +2,8 @@ import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
-import { setError, superValidate } from 'sveltekit-superforms/server';
+import { setError, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 import {
 	importMappingDetailSchema,
 	importMappingDetailWithRefinementSchema,
@@ -39,10 +40,13 @@ export const load = async (data) => {
 
 	const form = await superValidate(
 		{ title: importMapping.title, configuration: JSON.stringify(importMapping.configuration) },
-		importMappingUpdateFormSchema
+		zod(importMappingUpdateFormSchema)
 	);
 
-	const detailForm = await superValidate(importMapping.configuration, importMappingDetailSchema);
+	const detailForm = await superValidate(
+		importMapping.configuration,
+		zod(importMappingDetailSchema)
+	);
 
 	return {
 		importMapping,
@@ -52,13 +56,14 @@ export const load = async (data) => {
 	};
 };
 
+const importMappingUpdateFormSchemaWithPrevPage = importMappingUpdateFormSchema.merge(
+	z.object({ prevPage: z.string().optional() })
+);
+
 export const actions = {
 	default: async (data) => {
 		const id = data.params.id;
-		const form = await superValidate(
-			data.request,
-			importMappingUpdateFormSchema.merge(z.object({ prevPage: z.string().optional() }))
-		);
+		const form = await superValidate(data.request, zod(importMappingUpdateFormSchemaWithPrevPage));
 
 		if (!form.valid) {
 			return form;

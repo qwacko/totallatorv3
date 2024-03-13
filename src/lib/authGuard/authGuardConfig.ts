@@ -356,6 +356,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// Users
 		// ----------------------------------------
 
+		'/(loggedIn)/logout': {
+			...userOnlyConfig,
+			POSTCheck: {
+				default: POSTAllowUsers
+			}
+		},
 		'/(loggedIn)/users': {
 			...userOnlyConfig,
 			POSTCheck: {

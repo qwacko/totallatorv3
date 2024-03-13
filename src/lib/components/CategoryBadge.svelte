@@ -36,7 +36,7 @@
 		<CategoryIcon />
 		{data.categoryTitle}
 	</Badge>
-	<Dropdown bind:open={opened} class="p-2 w-52" border>
+	<Dropdown bind:open={opened} class="w-52 p-2" border>
 		<div class="flex flex-col gap-1">
 			{#if data.categoryTitle}
 				<div class="flex">

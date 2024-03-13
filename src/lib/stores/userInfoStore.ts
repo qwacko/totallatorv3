@@ -6,7 +6,7 @@ export const userInfoUpdateStore = writable<User | undefined>();
 export const userInfoStore = derived(userInfoUpdateStore, ($userInfoStore) => {
 	if (!$userInfoStore) {
 		const returnData: User = {
-			userId: '',
+			id: '',
 			admin: false,
 			currencyFormat: 'USD',
 			dateFormat: 'YYYY-MM-DD',

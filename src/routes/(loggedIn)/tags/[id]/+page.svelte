@@ -10,15 +10,12 @@
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { pageInfo, urlGenerator } from '$lib/routes.js';
 	import { statusEnumSelectionWithoutDeleted } from '$lib/schema/statusSchema.js';
-	import type { UpdateTagSchemaSuperType } from '$lib/schema/tagSchema.js';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance } = superForm<UpdateTagSchemaSuperType>(
-		data.form
-	);
+	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
 	$: urlInfo = pageInfo('/(loggedIn)/tags/[id]', $page);
 

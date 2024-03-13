@@ -94,8 +94,6 @@ export const createSimpleTransactionSchemaCore = createJournalSchemaCore
 		toAccountTitle: zodStringBlanking
 	});
 
-export type CreateSimpleTransactionSuperType = typeof createSimpleTransactionSchemaCore;
-
 export const createSimpleTransactionSchema = createSimpleTransactionSchemaCore
 	.refine((data) => !(data.tagId && data.tagTitle), {
 		path: ['tagId'],
@@ -148,7 +146,6 @@ export const createCombinedTransactionSchema = z
 export type CreateCombinedTransactionType = z.infer<typeof createCombinedTransactionSchema>;
 export type CreateSimpleTransactionType = z.infer<typeof createSimpleTransactionSchema>;
 
-export type CreateJournalSchemaSuperType = typeof createJournalSchema;
 export type CreateJournalSchemaType = z.infer<typeof createJournalSchema>;
 
 export const updateJournalSchema = z.object({
@@ -205,11 +202,9 @@ export const cloneJournalUpdateSchema = updateJournalSchema
 		toAmount: z.number().optional()
 	});
 
-export type UpdateJournalSchemaSuperType = typeof updateJournalSchema;
 export type UpdateJournalSchemaType = z.infer<typeof updateJournalSchema>;
 export type UpdateJournalSchemaInputType = z.input<typeof updateJournalSchema>;
-export type CloneJournalUpdateSchemaType = z.input<typeof cloneJournalUpdateSchema>;
-export type CloneJournalUpdateSchemaSuperType = typeof cloneJournalUpdateSchema;
+export type CloneJournalUpdateSchemaType = z.infer<typeof cloneJournalUpdateSchema>;
 
 export const journalOrderByEnum = [
 	'date',

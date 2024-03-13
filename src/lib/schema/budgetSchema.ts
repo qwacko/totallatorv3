@@ -9,7 +9,6 @@ export const createBudgetSchema = z.object({
 	importDetailId: z.coerce.string().optional()
 });
 
-export type CreateBudgetSchemaSuperType = typeof createBudgetSchema;
 export type CreateBudgetSchemaType = z.infer<typeof createBudgetSchema>;
 
 export const updateBudgetSchema = z.object({
@@ -18,7 +17,6 @@ export const updateBudgetSchema = z.object({
 	status: z.enum(statusEnum).optional()
 });
 
-export type UpdateBudgetSchemaSuperType = typeof updateBudgetSchema;
 export type UpdateBudgetSchemaType = z.infer<typeof updateBudgetSchema>;
 
 const orderByEnum = [

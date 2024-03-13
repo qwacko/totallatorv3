@@ -1,10 +1,10 @@
 <script lang="ts">
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
-	import type { CloneJournalUpdateSchemaSuperType } from '$lib/schema/journalSchema';
+	import type { CloneJournalUpdateSchemaType } from '$lib/schema/journalSchema';
 
-	import type { SuperForm } from 'sveltekit-superforms/client';
+	import type { SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<CloneJournalUpdateSchemaSuperType>;
+	export let form: SuperForm<CloneJournalUpdateSchemaType>;
 	export let hideAccount: boolean = false;
 
 	type DDI = { id: string; title: string; group: string; enabled: boolean };

@@ -1,7 +1,7 @@
 import { invalidateAll } from '$app/navigation';
 import { notificationStore } from './notificationStore';
 
-import type { FormResult } from 'sveltekit-superforms/client';
+import type { FormResult } from 'sveltekit-superforms';
 
 export const onSuccess = (notification: string, action?: () => void) => {
 	return () => {

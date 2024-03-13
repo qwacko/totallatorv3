@@ -19,7 +19,7 @@
 <PageLayout subtitle={data.info.importInfo.title} title="Import Detail">
 	{#await data.streaming.data}
 		<Badge color="blue">
-			<div class="flex flex-row gap-2 items-center p-4"><Spinner />Loading / Processing...</div>
+			<div class="flex flex-row items-center gap-2 p-4"><Spinner />Loading / Processing...</div>
 		</Badge>
 	{:then importData}
 		{#if !importData.detail}
@@ -41,7 +41,7 @@
 				(d) => d.status === 'duplicate'
 			).length}
 
-			<div class="flex self-center flex-row gap-4 items-center">
+			<div class="flex flex-row items-center gap-4 self-center">
 				<i>Type :</i>
 				{importTypeToTitle(importData.detail.type)}
 				<Button outline color="light" size="sm"><EditIcon /></Button>
@@ -57,7 +57,7 @@
 					{/each}
 				</Dropdown>
 			</div>
-			<div class="flex self-center flex-row gap-1">
+			<div class="flex flex-row gap-1 self-center">
 				<i>Duplicate Checking :</i>
 				{#if importData.detail.checkImportedOnly}
 					Only Imported Items
@@ -65,15 +65,15 @@
 					All Items
 				{/if}
 			</div>
-			<div class="flex self-center flex-row gap-1">
+			<div class="flex flex-row gap-1 self-center">
 				<i>Created :</i>
 				{importData.detail.createdAt.toISOString().slice(0, 19)}
 			</div>
-			<div class="flex self-center flex-row gap-1">
+			<div class="flex flex-row gap-1 self-center">
 				<i>Last Modification :</i>
 				{new Date(importData.detail.updatedAt).toISOString().slice(0, 19)}
 			</div>
-			<div class="flex self-center flex-row gap-1">
+			<div class="flex flex-row gap-1 self-center">
 				{#if importCount > 0}
 					<Button
 						href={linkToImportItems({
@@ -150,7 +150,7 @@
 					</div>
 				</Badge>
 			{:else}
-				<div class="self-center flex flex-row gap-2">
+				<div class="flex flex-row gap-2 self-center">
 					<Badge color="blue">Processed: {processCount}</Badge>
 					<Badge color="red">Error: {errorCount}</Badge>
 					<Badge color="red">Import Error: {importErrorCount}</Badge>
@@ -158,7 +158,7 @@
 					<Badge color="green">Imported: {importCount}</Badge>
 					<RawDataModal data={importData.detail} dev={data.dev} buttonText="Import Data" outline />
 				</div>
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+				<div class="grid grid-cols-1 gap-2 md:grid-cols-3">
 					{#each importData.detail.importDetails as currentImportDetail, i}
 						{#if currentImportDetail.status === 'imported'}
 							<Card size="xl" padding="md" class="flex flex-col gap-2" color="green">

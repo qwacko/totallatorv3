@@ -1,10 +1,11 @@
 import { updatePasswordSchema } from '$lib/schema/updatePasswordSchema.js';
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { user } from '$lib/server/db/postgres/schema';
-import { auth } from '$lib/server/lucia.js';
 import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { userActions } from '$lib/server/db/actions/userActions.js';
 
 const passwordSchema = updatePasswordSchema;
 
@@ -13,20 +14,22 @@ export type passwordSchemaType = typeof passwordSchema;
 export const load = async (requestData) => {
 	authGuard(requestData);
 
-	const form = await superValidate(passwordSchema);
+	const form = await superValidate(zod(passwordSchema));
 
 	return { form };
 };
 
+const passwordSchemaRefined = passwordSchema.refine(
+	(data) => data.password === data.confirmPassword,
+	{
+		message: 'Passwords do not match',
+		path: ['confirmPassword']
+	}
+);
+
 export const actions = {
 	default: async ({ locals, params, request }) => {
-		const form = await superValidate(
-			request,
-			passwordSchema.refine((data) => data.password === data.confirmPassword, {
-				message: 'Passwords do not match',
-				path: ['confirmPassword']
-			})
-		);
+		const form = await superValidate(request, zod(passwordSchemaRefined));
 		const currentUser = locals.user;
 		const targetUserId = params.id;
 
@@ -39,7 +42,7 @@ export const actions = {
 			return message(form, "You're not logged in");
 		}
 
-		if (!(currentUser.userId === targetUserId) && !currentUser.admin) {
+		if (!(currentUser.id === targetUserId) && !currentUser.admin) {
 			return message(form, "You're not allowed to do this");
 		}
 
@@ -52,11 +55,11 @@ export const actions = {
 		}
 
 		try {
-			await auth.updateKeyPassword(
-				'username',
-				targetUser.username.toLowerCase(),
-				form.data.password
-			);
+			await userActions.updatePassword({
+				db: locals.db,
+				userId: targetUserId,
+				password: form.data.password
+			});
 		} catch (e) {
 			return message(form, 'Error Updating Password', { status: 400 });
 		}

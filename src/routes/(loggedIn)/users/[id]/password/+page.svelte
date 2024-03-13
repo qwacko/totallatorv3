@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { superForm } from 'sveltekit-superforms/client';
-	import type { passwordSchemaType } from './+page.server.js';
+	import { superForm } from 'sveltekit-superforms';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import ErrorText from '$lib/components/ErrorText.svelte';
 	import { page } from '$app/stores';
@@ -11,9 +10,7 @@
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance } = superForm<passwordSchemaType>(data.form, {
-		taintedMessage: null
-	});
+	const { form, errors, constraints, message, enhance } = superForm(data.form);
 </script>
 
 <CustomHeader pageTitle="Update Password" filterText={data.currentUser.username} />

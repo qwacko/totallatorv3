@@ -5,7 +5,8 @@ import { updateTagSchema } from '$lib/schema/tagSchema';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -18,7 +19,7 @@ export const load = async (data) => {
 	if (!tag) redirect(302, '/tags');
 	const form = await superValidate(
 		{ id: tag.id, title: tag.title, status: tag.status },
-		updateTagSchema
+		zod(updateTagSchema)
 	);
 
 	return {
@@ -27,10 +28,12 @@ export const load = async (data) => {
 	};
 };
 
+const updateTagSchemaWithPageAndFilter = updateTagSchema.merge(tagPageAndFilterValidation);
+
 export const actions = {
 	default: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, updateTagSchema.merge(tagPageAndFilterValidation));
+		const form = await superValidate(request, zod(updateTagSchemaWithPageAndFilter));
 
 		if (!form.valid) {
 			return { form };

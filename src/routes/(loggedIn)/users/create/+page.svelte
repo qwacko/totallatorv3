@@ -5,14 +5,12 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { urlGenerator } from '$lib/routes.js';
-	import type { signupSchemaType } from '$lib/schema/signupSchema.js';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance } = superForm<signupSchemaType>(data.form, {
-		taintedMessage: null,
+	const { form, errors, constraints, message, enhance } = superForm(data.form, {
 		onResult: async ({ result }) => {
 			if (result.type === 'success') {
 				await goto('/users');

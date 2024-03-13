@@ -6,15 +6,12 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { pageInfo } from '$lib/routes';
-	import type { CreateLabelSchemaSuperType } from '$lib/schema/labelSchema.js';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance } = superForm<CreateLabelSchemaSuperType>(
-		data.form
-	);
+	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
 	$: urlInfo = pageInfo('/(loggedIn)/labels/create', $page);
 </script>

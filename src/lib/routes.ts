@@ -219,6 +219,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 
 		// Users
 		// ----------------------------------------
+		'/(loggedIn)/logout': {},
 		'/(loggedIn)/users': {
 			searchParamsValidation: z
 				.object({ page: z.coerce.number().optional().default(0) })

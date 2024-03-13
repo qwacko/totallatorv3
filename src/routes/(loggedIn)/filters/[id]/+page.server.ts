@@ -13,7 +13,8 @@ import { tActions } from '$lib/server/db/actions/tActions';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { setError, superValidate } from 'sveltekit-superforms/server';
+import { setError, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -51,10 +52,10 @@ export const load = async (data) => {
 			modificationType:
 				current.searchParams?.modificationType || reusableFilter.modificationType || undefined
 		},
-		updateReusableFilterFormSchema
+		zod(updateReusableFilterFormSchema)
 	);
 
-	const modificationForm = await superValidate(change || {}, updateJournalSchema);
+	const modificationForm = await superValidate(change || {}, zod(updateJournalSchema));
 
 	const numberResults = await tActions.journalView.count(db, filter);
 
@@ -77,7 +78,7 @@ const filterFormSchemaWithPage = updateReusableFilterFormSchema.merge(
 
 export const actions = {
 	default: async (data) => {
-		const form = await superValidate(data.request, filterFormSchemaWithPage);
+		const form = await superValidate(data.request, zod(filterFormSchemaWithPage));
 
 		if (!form.valid) {
 			return form;

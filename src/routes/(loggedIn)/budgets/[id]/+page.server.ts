@@ -5,7 +5,8 @@ import { labelPageAndFilterValidation } from '$lib/schema/pageAndFilterValidatio
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -18,7 +19,7 @@ export const load = async (data) => {
 	if (!budget) redirect(302, '/budgets');
 	const form = await superValidate(
 		{ id: budget.id, title: budget.title, status: budget.status },
-		updateBudgetSchema
+		zod(updateBudgetSchema)
 	);
 
 	return {
@@ -27,13 +28,12 @@ export const load = async (data) => {
 	};
 };
 
+const updateBudgetSchemaWithPageAndFilter = updateBudgetSchema.merge(labelPageAndFilterValidation);
+
 export const actions = {
 	default: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(
-			request,
-			updateBudgetSchema.merge(labelPageAndFilterValidation)
-		);
+		const form = await superValidate(request, zod(updateBudgetSchemaWithPageAndFilter));
 
 		if (!form.valid) {
 			return { form };

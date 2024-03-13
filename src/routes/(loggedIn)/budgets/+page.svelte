@@ -63,11 +63,11 @@
 	{#await data.budgetSummary}
 		<LoadingSpinner />
 	{:then budgetSummaryData}
-	<JournalSummaryPopoverContent
-		item={budgetSummaryData}
-		summaryFilter={{ budget: $urlStore.searchParams } || defaultJournalFilter}
-		showJournalLink
-	/>
+		<JournalSummaryPopoverContent
+			item={budgetSummaryData}
+			summaryFilter={{ budget: $urlStore.searchParams } || defaultJournalFilter}
+			showJournalLink
+		/>
 	{/await}
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable

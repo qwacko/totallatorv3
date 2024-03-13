@@ -8,7 +8,8 @@ import {
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 
@@ -44,7 +45,7 @@ export const load = async (data) => {
 			setLinked: linked === true ? true : undefined,
 			clearLinked: linked === false ? true : undefined
 		},
-		updateJournalSchema
+		zod(updateJournalSchema)
 	);
 
 	return {
@@ -78,7 +79,7 @@ const updateValidation = updateJournalSchema.merge(pageAndFilterValidation);
 export const actions = {
 	updateState: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, updateStateActionValidation);
+		const form = await superValidate(request, zod(updateStateActionValidation));
 
 		if (!form.valid) {
 			redirect(302, form.data.currentPage);
@@ -134,7 +135,7 @@ export const actions = {
 	},
 	update: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, updateValidation);
+		const form = await superValidate(request, zod(updateValidation));
 
 		if (!form.valid) {
 			logging.error('Update Form Is Not Valid');

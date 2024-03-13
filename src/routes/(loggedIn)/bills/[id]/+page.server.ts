@@ -5,7 +5,8 @@ import { billPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -18,7 +19,7 @@ export const load = async (data) => {
 	if (!bill) redirect(302, '/bills');
 	const form = await superValidate(
 		{ id: bill.id, title: bill.title, status: bill.status },
-		updateBillSchema
+		zod(updateBillSchema)
 	);
 
 	return {
@@ -27,10 +28,12 @@ export const load = async (data) => {
 	};
 };
 
+const updateBillSchemaWithPageAndFilter = updateBillSchema.merge(billPageAndFilterValidation);
+
 export const actions = {
 	default: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, updateBillSchema.merge(billPageAndFilterValidation));
+		const form = await superValidate(request, zod(updateBillSchemaWithPageAndFilter));
 
 		if (!form.valid) {
 			return { form };

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import ComboSelect from '$lib/components/ComboSelect.svelte';
-	import type { CreateSimpleTransactionSuperType } from '$lib/schema/journalSchema';
+	import type { CreateSimpleTransactionType } from '$lib/schema/journalSchema';
 	import { Button, P } from 'flowbite-svelte';
 
-	import type { SuperForm } from 'sveltekit-superforms/client';
+	import type { SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<CreateSimpleTransactionSuperType>;
+	export let form: SuperForm<CreateSimpleTransactionType>;
 
 	type DDINoGroup = { id: string; title: string; enabled: boolean };
 	export let dropdownInfo: {

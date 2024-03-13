@@ -6,15 +6,12 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { pageInfo } from '$lib/routes';
-	import type { CreateBudgetSchemaSuperType } from '$lib/schema/budgetSchema.js';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance } = superForm<CreateBudgetSchemaSuperType>(
-		data.form
-	);
+	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
 	$: urlInfo = pageInfo('/(loggedIn)/budgets/create', $page);
 </script>

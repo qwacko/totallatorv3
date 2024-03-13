@@ -7,9 +7,8 @@
 	import ActionButton from '$lib/components/ActionButton.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 	import { reportConfigPartItemGroupingDropdown } from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum.js';
-	import type { ReportConfigPartFormSchemaSupertype } from '$lib/schema/reportHelpers/reportConfigPartSchema.js';
 	import { reportConfigPartTimeGroupingDropdown } from '$lib/schema/reportHelpers/reportConfigPartTimeGroupingEnum.js';
 	import {
 		reportConfigPartTypeInfo,
@@ -24,7 +23,7 @@
 
 	let loading = false;
 
-	const form = superForm<ReportConfigPartFormSchemaSupertype>(data.itemForm, {
+	const form = superForm(data.itemForm, {
 		...superFormNotificationHelper({
 			errorMessage: 'Error Updating Report Element Item',
 			successMessage: 'Report Element Item Updated Successfully',

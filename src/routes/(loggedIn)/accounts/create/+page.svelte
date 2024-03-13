@@ -7,9 +7,8 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { pageInfo } from '$lib/routes';
-	import type { CreateAccountSchemaSuperType } from '$lib/schema/accountSchema.js';
 	import { Button } from 'flowbite-svelte';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm } from 'sveltekit-superforms';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import { accountTypeEnumSelection } from '$lib/schema/accountTypeSchema.js';
 	import DateInputForm from '$lib/components/DateInputForm.svelte';
@@ -17,7 +16,7 @@
 
 	export let data;
 
-	const form = superForm<CreateAccountSchemaSuperType>(data.form);
+	const form = superForm(data.form);
 
 	$: urlInfo = pageInfo('/(loggedIn)/accounts/create', $page);
 	$: formData = form.form;
@@ -30,7 +29,7 @@
 <CustomHeader pageTitle="New Account" />
 
 <PageLayout title="Create Account" size="lg">
-	<form method="POST" use:enhance class="grid gap-2 grid-cols-1 md:grid-cols-2">
+	<form method="POST" use:enhance class="grid grid-cols-1 gap-2 md:grid-cols-2">
 		<PreviousUrlInput name="prevPage" />
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<TextInput

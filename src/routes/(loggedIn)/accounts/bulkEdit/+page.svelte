@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { pageInfo } from '$lib/routes.js';
 	import { page } from '$app/stores';
-	import { superForm } from 'sveltekit-superforms/client';
-	import type { UpdateAccountSchemaSuperType } from '$lib/schema/accountSchema.js';
+	import { superForm } from 'sveltekit-superforms';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
@@ -10,8 +9,6 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import TextInputForm from '$lib/components/TextInputForm.svelte';
 	import DateInputForm from '$lib/components/DateInputForm.svelte';
-	import type { SuperValidated } from 'sveltekit-superforms';
-	import type { AnyZodObject } from 'zod';
 	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
 	import SelectInput from '$lib/components/SelectInput.svelte';
 	import { accountTypeEnumSelection } from '$lib/schema/accountTypeSchema.js';
@@ -22,12 +19,7 @@
 
 	$: urlInfo = pageInfo('/(loggedIn)/accounts/bulkEdit', $page);
 
-	const form = superForm<UpdateAccountSchemaSuperType>(
-		data.form as SuperValidated<AnyZodObject, any>,
-		{
-			taintedMessage: null
-		}
-	);
+	const form = superForm(data.form, {});
 
 	let updateAccountGrouping = false;
 
@@ -42,7 +34,7 @@
 <PageLayout title={titleText}>
 	<FilterTextDisplay text={data.filterText} />
 	<Heading tag="h3">Set Journal State</Heading>
-	<form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4" use:enhance>
+	<form method="post" class="grid grid-cols-1 gap-4 md:grid-cols-2" use:enhance>
 		<PreviousUrlInput name="prevPage" />
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />

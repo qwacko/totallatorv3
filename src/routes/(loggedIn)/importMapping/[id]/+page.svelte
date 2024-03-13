@@ -1,20 +1,16 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import {
-		type ImportMappingDetailSuperSchema,
-		type ImportMappingUpdateFormSuperSchema,
-		importMappingDetailWithRefinementSchema
-	} from '$lib/schema/importMappingSchema.js';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { importMappingDetailWithRefinementSchema } from '$lib/schema/importMappingSchema.js';
+	import { superForm } from 'sveltekit-superforms';
 	import ImportMappingForm from '../create/ImportMappingForm.svelte';
+	import { zodClient } from 'sveltekit-superforms/adapters';
 
 	export let data;
 
-	const form = superForm<ImportMappingUpdateFormSuperSchema>(data.form);
-	const detailForm = superForm<ImportMappingDetailSuperSchema>(data.detailForm, {
-		//@ts-expect-error Doesn't work with refinement
-		validators: importMappingDetailWithRefinementSchema,
+	const form = superForm(data.form);
+	const detailForm = superForm(data.detailForm, {
+		validators: zodClient(importMappingDetailWithRefinementSchema),
 		validationMethod: 'oninput'
 	});
 </script>

@@ -12,6 +12,9 @@
 	export let data;
 
 	let importType: importTypeType = importTypeEnum[0];
+
+	//@ts-ignore This gives a weird typescript error in svelte check, but not in the editor.
+	$: isMappedImport = importType === 'mappedImport';
 </script>
 
 <CustomHeader pageTitle="New Import" />
@@ -53,16 +56,16 @@
 			required
 			bind:value={importType}
 		/>
-		{#if importType !== 'transaction'}
-			<Checkbox name="checkImportedOnly">Check Only Imported Items For Duplicates</Checkbox>
-		{/if}
-		{#if importType === 'mappedImport'}
+		{#if isMappedImport}
 			<Select
 				name="importMappingId"
 				items={data.importMappingDropdown.map((t) => ({ name: t.title, value: t.id }))}
 				placeholder="Select Import Mapping..."
 				required
 			/>
+		{/if}
+		{#if importType !== 'transaction'}
+			<Checkbox name="checkImportedOnly">Check Only Imported Items For Duplicates</Checkbox>
 		{/if}
 		<Fileupload name="csvFile" accept=".csv" required />
 		<Button type="submit">Upload</Button>

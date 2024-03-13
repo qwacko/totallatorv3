@@ -6,22 +6,10 @@ import 'unplugin-icons/types/svelte';
 declare global {
 	namespace App {
 		interface Locals {
-			auth: import('lucia').AuthRequest;
+			session: import('lucia').Session | undefined;
 			user: import('lucia').User | undefined;
 			db: import('$lib/server/db/db').DBType;
 		}
-	}
-
-	namespace Lucia {
-		type Auth = import('$lib/server/lucia').Auth;
-		type DatabaseUserAttributes = {
-			username: string;
-			admin: boolean;
-			name: string;
-			dateFormat: import('$lib/schema/userSchema').dateFormatType;
-			currencyFormat: import('$lib/schema/userSchema').currencyFormatType;
-		};
-		type DatabaseSessionAttributes = Record<string, never>;
 	}
 }
 

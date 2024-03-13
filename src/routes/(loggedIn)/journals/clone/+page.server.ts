@@ -8,7 +8,8 @@ import {
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 
 import { pageAndFilterValidation } from '$lib/schema/pageAndFilterValidation';
 
@@ -24,7 +25,7 @@ export const load = async (data) => {
 
 	const { allLabelIds, commonLabelIds, ...journalDataForForm } = journalData.common;
 
-	const form = await superValidate(journalDataForForm, cloneJournalUpdateSchema);
+	const form = await superValidate(journalDataForForm, zod(cloneJournalUpdateSchema));
 
 	return {
 		selectedJournals: {
@@ -45,7 +46,7 @@ const cloneValidation = cloneJournalUpdateSchema.merge(pageAndFilterValidation);
 export const actions = {
 	clone: async ({ request, locals }) => {
 		const db = locals.db;
-		const form = await superValidate(request, cloneValidation);
+		const form = await superValidate(request, zod(cloneValidation));
 
 		if (!form.valid) {
 			logging.error('Clone Form Is Not Valid');

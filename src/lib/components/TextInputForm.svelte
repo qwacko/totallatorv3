@@ -1,27 +1,22 @@
-<script lang="ts" context="module">
-	import type { AnyZodObject } from 'zod';
-</script>
-
-<script lang="ts" generics="T extends AnyZodObject">
+<script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
 	import { Button } from 'flowbite-svelte';
 
 	import type { Writable } from 'svelte/store';
 
-	import type { z } from 'zod';
-	import type { ZodValidation, FormPathLeaves } from 'sveltekit-superforms';
-	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms/client';
+	import type { FormPathLeaves } from 'sveltekit-superforms';
+	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
 
 	import TextInput from './TextInput.svelte';
 	import CancelIcon from './icons/CancelIcon.svelte';
 
-	export let form: SuperForm<ZodValidation<T>, unknown>;
-	export let field: FormPathLeaves<z.infer<T>>;
+	export let form: SuperForm<T, unknown>;
+	export let field: FormPathLeaves<T>;
 	export let wrapperClass: string | undefined = undefined;
 	export let outerWrapperClass: string | undefined = undefined;
 	export let title: string | null;
 	export let highlightTainted: boolean | undefined = true;
 	export let clearable: boolean = false;
-	export let clearField: FormPathLeaves<z.infer<T>> = field;
+	export let clearField: FormPathLeaves<T> = field;
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
 	const { value: clearValueOriginal } = formFieldProxy(form, clearField);
@@ -44,7 +39,7 @@
 	$: clearable && updateStringValue($stringValue);
 </script>
 
-<div class="flex flex-row gap-2 w-full {outerWrapperClass ? outerWrapperClass : ''}">
+<div class="flex w-full flex-row gap-2 {outerWrapperClass ? outerWrapperClass : ''}">
 	<TextInput
 		{title}
 		name={field}

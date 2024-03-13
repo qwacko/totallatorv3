@@ -18,9 +18,6 @@
 	let width = 0;
 	let height = 0;
 
-	// const type: 'area' | 'bar' =
-	// 	data.type === 'time_line' ? 'area' : data.type === 'time_stackedArea' ? 'area' : 'area';
-
 	$: showXAxis = height > 300;
 	$: showYAxis = width > 800;
 
@@ -55,11 +52,14 @@
 		const bar = data.type === 'time_bar';
 
 		const valueFormatter: OptionsDataFormatter = (value) => {
-			return convertNumberToText({
-				value: Number(value.valueOf()),
-				config: data.numberDisplay,
-				currency: currencyFormat
-			});
+			if (value) {
+				return convertNumberToText({
+					value: Number(value.valueOf()),
+					config: data.numberDisplay,
+					currency: currencyFormat
+				});
+			}
+			return '';
 		};
 
 		const totalSeries: EChartsSeries = {

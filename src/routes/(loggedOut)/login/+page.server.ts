@@ -1,54 +1,51 @@
 import { auth } from '$lib/server/lucia';
-import { LuciaError } from 'lucia';
 import { fail, redirect } from '@sveltejs/kit';
 
 import type { Actions } from './$types';
-import { setMessage, superValidate } from 'sveltekit-superforms/server';
+import { setMessage, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 import { loginSchema } from '$lib/schema/loginSchema';
 import { serverEnv } from '$lib/server/serverEnv';
 import { authGuard } from '$lib/authGuard/authGuardConfig';
+import { userActions } from '$lib/server/db/actions/userActions';
+import { logging } from '$lib/server/logging';
 
 export const load = async (data) => {
 	authGuard(data);
-	const form = await superValidate(loginSchema);
+	const form = await superValidate(zod(loginSchema));
 
 	return { form, enableSignup: serverEnv.ALLOW_SIGNUP };
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals }) => {
-		const form = await superValidate(request, loginSchema);
+	default: async ({ request, locals, cookies }) => {
+		const form = await superValidate(request, zod(loginSchema));
 
-		// Convenient validation check:
 		if (!form.valid) {
-			// Again, always return { form } and things will just work.
 			return fail(400, { form });
 		}
 		try {
-			// find user by key
-			// and validate password
-			const user = await auth.useKey(
-				'username',
-				form.data.username.toLowerCase(),
-				form.data.password
-			);
-			const session = await auth.createSession({
-				userId: user.userId,
-				attributes: {}
+			const user = await userActions.checkLogin({
+				db: locals.db,
+				username: form.data.username.toLowerCase(),
+				password: form.data.password
 			});
-			locals.auth.setSession(session); // set session cookie
-		} catch (e) {
-			if (
-				e instanceof LuciaError &&
-				(e.message === 'AUTH_INVALID_KEY_ID' || e.message === 'AUTH_INVALID_PASSWORD')
-			) {
-				return setMessage(form, 'Incorrect username or password', { status: 400 });
+
+			if (!user) {
+				throw new Error('User not found');
 			}
 
-			return setMessage(form, 'An unknown error occurred', { status: 500 });
+			const session = await auth.createSession(user.id, {});
+			const sessionCookie = auth.createSessionCookie(session.id);
+
+			cookies.set(sessionCookie.name, sessionCookie.value, {
+				path: '.',
+				...sessionCookie.attributes
+			});
+		} catch (e) {
+			logging.error('Error Logging In', e);
+			return setMessage(form, 'Incorrect username or password', { status: 400 });
 		}
-		// redirect to
-		// make sure you don't throw inside a try/catch block!
 		redirect(302, '/');
 	}
 };

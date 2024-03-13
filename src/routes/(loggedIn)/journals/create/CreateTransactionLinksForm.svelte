@@ -1,10 +1,10 @@
 <script lang="ts">
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
-	import type { CreateSimpleTransactionSuperType } from '$lib/schema/journalSchema';
+	import type { CreateSimpleTransactionType } from '$lib/schema/journalSchema';
 
-	import type { SuperForm } from 'sveltekit-superforms/client';
+	import type { SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<CreateSimpleTransactionSuperType>;
+	export let form: SuperForm<CreateSimpleTransactionType>;
 
 	type DDI = { id: string; title: string; group: string; enabled: boolean };
 	type DDINoGroup = { id: string; title: string; enabled: boolean };
