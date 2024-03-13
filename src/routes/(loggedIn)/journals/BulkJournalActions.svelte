@@ -18,7 +18,7 @@
 	export let allCount: number;
 </script>
 
-<div class="flex flex-row gap-2 items-center">
+<div class="flex flex-row items-center gap-2">
 	<P size="sm" weight="semibold" class="w-max whitespace-nowrap">
 		Selected ({selectedIds.length})
 	</P>
@@ -84,7 +84,7 @@
 	<Button outline color="light" size="xs">All Journal Actions ({allCount})</Button>
 	<Dropdown>
 		<DropdownItem>
-			<div class="flex flex-row gap-1 items-center justify-between">All<ArrowRightIcon /></div>
+			<div class="flex flex-row items-center justify-between gap-1">All<ArrowRightIcon /></div>
 		</DropdownItem>
 		<Dropdown>
 			<DropdownItem
@@ -95,7 +95,7 @@
 						: undefined
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><EditIcon />Edit</div>
+				<div class="flex flex-row items-center gap-1"><EditIcon />Edit</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -105,7 +105,7 @@
 						: undefined
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><CloneIcon />Clone</div>
+				<div class="flex flex-row items-center gap-1"><CloneIcon />Clone</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -115,11 +115,11 @@
 						: undefined
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><DeleteIcon />Delete</div>
+				<div class="flex flex-row items-center gap-1"><DeleteIcon />Delete</div>
 			</DropdownItem>
 		</Dropdown>
 		<DropdownItem>
-			<div class="flex flex-row gap-1 items-center justify-between">
+			<div class="flex flex-row items-center justify-between gap-1">
 				Incomplete<ArrowRightIcon />
 			</div>
 		</DropdownItem>
@@ -132,7 +132,7 @@
 						: { ...defaultAllJournalFilter(), complete: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><EditIcon />Edit</div>
+				<div class="flex flex-row items-center gap-1"><EditIcon />Edit</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -142,7 +142,7 @@
 						: { ...defaultAllJournalFilter(), complete: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><CloneIcon />Clone</div>
+				<div class="flex flex-row items-center gap-1"><CloneIcon />Clone</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -152,7 +152,7 @@
 						: { ...defaultAllJournalFilter(), complete: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><DeleteIcon />Delete</div>
+				<div class="flex flex-row items-center gap-1"><DeleteIcon />Delete</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -162,11 +162,11 @@
 						: { ...defaultJournalFilter(), complete: false }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><FilterIcon />View</div>
+				<div class="flex flex-row items-center gap-1"><FilterIcon />View</div>
 			</DropdownItem>
 		</Dropdown>
 		<DropdownItem>
-			<div class="flex flex-row gap-1 items-center justify-between">
+			<div class="flex flex-row items-center justify-between gap-1">
 				Data Unchecked<ArrowRightIcon />
 			</div>
 		</DropdownItem>
@@ -179,7 +179,7 @@
 						: { ...defaultAllJournalFilter(), dataChecked: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><EditIcon />Edit</div>
+				<div class="flex flex-row items-center gap-1"><EditIcon />Edit</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -189,7 +189,7 @@
 						: { ...defaultAllJournalFilter(), dataChecked: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><CloneIcon />Clone</div>
+				<div class="flex flex-row items-center gap-1"><CloneIcon />Clone</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -199,7 +199,7 @@
 						: { ...defaultAllJournalFilter(), dataChecked: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><DeleteIcon />Delete</div>
+				<div class="flex flex-row items-center gap-1"><DeleteIcon />Delete</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -209,11 +209,11 @@
 						: { ...defaultJournalFilter(), dataChecked: false }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><FilterIcon />View</div>
+				<div class="flex flex-row items-center gap-1"><FilterIcon />View</div>
 			</DropdownItem>
 		</Dropdown>
 		<DropdownItem>
-			<div class="flex flex-row gap-1 items-center justify-between">
+			<div class="flex flex-row items-center justify-between gap-1">
 				Unreconciled<ArrowRightIcon />
 			</div>
 		</DropdownItem>
@@ -226,7 +226,7 @@
 						: { ...defaultAllJournalFilter(), reconciled: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><EditIcon />Edit</div>
+				<div class="flex flex-row items-center gap-1"><EditIcon />Edit</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -236,7 +236,7 @@
 						: { ...defaultAllJournalFilter(), reconciled: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><CloneIcon />Clone</div>
+				<div class="flex flex-row items-center gap-1"><CloneIcon />Clone</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -246,7 +246,7 @@
 						: { ...defaultAllJournalFilter(), reconciled: false, pageSize: 100000, page: 0 }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><DeleteIcon />Delete</div>
+				<div class="flex flex-row items-center gap-1"><DeleteIcon />Delete</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -256,11 +256,11 @@
 						: { ...defaultJournalFilter(), reconciled: false }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><FilterIcon />View</div>
+				<div class="flex flex-row items-center gap-1"><FilterIcon />View</div>
 			</DropdownItem>
 		</Dropdown>
 		<DropdownItem>
-			<div class="flex flex-row gap-2 items-center justify-between">
+			<div class="flex flex-row items-center justify-between gap-2">
 				Unchecked and Incomplete<ArrowRightIcon />
 			</div>
 		</DropdownItem>
@@ -276,10 +276,10 @@
 								dataChecked: false,
 								pageSize: 100000,
 								page: 0
-						  }
+							}
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><EditIcon />Edit</div>
+				<div class="flex flex-row items-center gap-1"><EditIcon />Edit</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -292,10 +292,10 @@
 								dataChecked: false,
 								pageSize: 100000,
 								page: 0
-						  }
+							}
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><CloneIcon />Clone</div>
+				<div class="flex flex-row items-center gap-1"><CloneIcon />Clone</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -308,10 +308,10 @@
 								dataChecked: false,
 								pageSize: 100000,
 								page: 0
-						  }
+							}
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><DeleteIcon />Delete</div>
+				<div class="flex flex-row items-center gap-1"><DeleteIcon />Delete</div>
 			</DropdownItem>
 			<DropdownItem
 				href={urlGenerator({
@@ -321,7 +321,7 @@
 						: { ...defaultJournalFilter(), reconciled: false, dataChecked: false }
 				}).url}
 			>
-				<div class="flex flex-row gap-1 items-center"><FilterIcon />View</div>
+				<div class="flex flex-row items-center gap-1"><FilterIcon />View</div>
 			</DropdownItem>
 		</Dropdown>
 	</Dropdown>

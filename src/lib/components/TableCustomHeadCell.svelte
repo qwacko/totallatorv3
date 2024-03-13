@@ -10,12 +10,12 @@
 </script>
 
 <TableHeadCell>
-	<div class="flex flex-row gap-2 items-center">
+	<div class="flex flex-row items-center gap-2">
 		<div class="flex">{title}</div>
 		<div class="flex">
 			<Button
 				href={updateOrderByToURL(modifyOrderBy(currentOrder, orderKey))}
-				class="p-1 border-0"
+				class="border-0 p-1"
 				outline
 				data-sveltekit-noscroll
 			>

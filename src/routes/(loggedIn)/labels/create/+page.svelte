@@ -11,9 +11,7 @@
 
 	export let data;
 
-	const { form, errors, constraints, message, enhance } = superForm(
-		data.form
-	);
+	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
 	$: urlInfo = pageInfo('/(loggedIn)/labels/create', $page);
 </script>

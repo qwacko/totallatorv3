@@ -33,7 +33,7 @@
 							id: accountInfo.id || undefined,
 							type: [...accountTypeEnum]
 						}
-				  })
+					})
 		}
 	}).url;
 
@@ -48,7 +48,7 @@
 							id: accountInfo.id || undefined,
 							type: [...accountTypeEnum]
 						}
-				  })
+					})
 		}
 	}).url;
 </script>
@@ -66,7 +66,7 @@
 		{/if}
 		{accountInfo.title}
 	</Badge>
-	<Dropdown bind:open={opened} class="p-2 w-52" border>
+	<Dropdown bind:open={opened} class="w-52 p-2" border>
 		<div class="flex flex-col gap-1">
 			<div class="flex flex-row items-center gap-2 font-normal italic">
 				{#if accountInfo.type === 'asset'}

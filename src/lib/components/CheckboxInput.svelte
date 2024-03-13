@@ -12,18 +12,18 @@
 
 <Label class="space-y-2">
 	{#if title}
-		<span class="flex flex-row gap-1"
-			><div>
+		<span class="flex flex-row gap-1">
+			<div>
 				{title}
 			</div>
 			<div>
 				{#if required}
 					*{/if}
-			</div></span
-		>
+			</div>
+		</span>
 	{/if}
-	<Checkbox checked={value} {...$$restProps} {name} {required} on:change={() => (value = !value)}
-		>{displayText ? displayText : ''}</Checkbox
-	>
+	<Checkbox checked={value} {...$$restProps} {name} {required} on:change={() => (value = !value)}>
+		{displayText ? displayText : ''}
+	</Checkbox>
 	<ErrorText message={errorMessage} />
 </Label>

@@ -17,9 +17,9 @@
 </script>
 
 {#if (idArray && idArray.length > 0) || (lookupItems && lookupItems.length > 0)}
-	<div class="flex font-semibold text-black text-sm">{title}</div>
+	<div class="flex text-sm font-semibold text-black">{title}</div>
 	{#if idArray}
-		<div class="flex flex-row gap-2 flex-wrap">
+		<div class="flex flex-row flex-wrap gap-2">
 			{#each idArray as currentId}
 				<Button
 					class="whitespace-nowrap"

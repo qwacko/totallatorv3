@@ -17,7 +17,7 @@
 		{color}
 		{outline}
 		on:click={() => (open = true)}
-		class="content-center p-2 flex flex-row gap-2"
+		class="flex flex-row content-center gap-2 p-2"
 	>
 		<CodeIcon />
 		{#if buttonText}

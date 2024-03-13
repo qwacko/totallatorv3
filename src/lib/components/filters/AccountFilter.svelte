@@ -110,7 +110,7 @@
 			onTitle="Cash"
 			offTitle="Not Cash"
 		/>
-		<div class="text-primary-900 text-sm font-semibold flex">Account Start Date</div>
+		<div class="flex text-sm font-semibold text-primary-900">Account Start Date</div>
 		<div class="flex flex-row gap-1">
 			<DateInput
 				bind:value={filter.startDateAfter}
@@ -128,7 +128,7 @@
 				flexGrow
 			/>
 		</div>
-		<div class="text-primary-900 text-sm font-semibold flex">Account End Date</div>
+		<div class="flex text-sm font-semibold text-primary-900">Account End Date</div>
 		<div class="flex flex-row gap-1">
 			<DateInput
 				bind:value={filter.endDateAfter}

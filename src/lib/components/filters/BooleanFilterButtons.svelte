@@ -20,7 +20,7 @@
 		<input type="hidden" {name} bind:value />
 	{/if}
 	{#if title}
-		<div class="flex text-primary-900 font-semibold text-sm">
+		<div class="flex text-sm font-semibold text-primary-900">
 			{title}
 		</div>
 	{/if}

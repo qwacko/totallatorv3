@@ -22,11 +22,11 @@
 		<DropdownItem
 			href={onSortURL(modifyOrderBy(currentSort, sort.field, 'toggleOnly'))}
 			data-sveltekit-keepfocus
-			class="flex flex-row flex-nowrap  gap-2 items-center"
+			class="flex flex-row flex-nowrap  items-center gap-2"
 			id="dropdown-item{sort.field}"
 		>
 			<SortIcon direction={sort.direction} />
-			<div class="flex whitespace-nowrap flex-grow">{optionToTitle(sort.field)}</div>
+			<div class="flex flex-grow whitespace-nowrap">{optionToTitle(sort.field)}</div>
 			<Button
 				color="none"
 				href={onSortURL(modifyOrderBy(currentSort, sort.field, 'remove'))}
@@ -42,7 +42,7 @@
 			href={onSortURL(modifyOrderBy(currentSort, sort, 'add'))}
 			data-sveltekit-keepfocus
 			id="dropdown-item{sort}"
-			class="flex flex-row flex-nowrap gap-2 items-center"
+			class="flex flex-row flex-nowrap items-center gap-2"
 		>
 			<div class="flex whitespace-nowrap">{optionToTitle(sort)}</div>
 		</DropdownItem>

@@ -9,7 +9,7 @@
 		currencyFormatEnum,
 		dateFormatEnum,
 		formatDate,
-		getCurrencyFormatter,
+		getCurrencyFormatter
 	} from '$lib/schema/userSchema.js';
 	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers.js';
 	import { Button } from 'flowbite-svelte';

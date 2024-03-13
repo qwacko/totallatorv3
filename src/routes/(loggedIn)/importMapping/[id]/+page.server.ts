@@ -43,7 +43,10 @@ export const load = async (data) => {
 		zod(importMappingUpdateFormSchema)
 	);
 
-	const detailForm = await superValidate(importMapping.configuration, zod(importMappingDetailSchema));
+	const detailForm = await superValidate(
+		importMapping.configuration,
+		zod(importMappingDetailSchema)
+	);
 
 	return {
 		importMapping,
@@ -60,10 +63,7 @@ const importMappingUpdateFormSchemaWithPrevPage = importMappingUpdateFormSchema.
 export const actions = {
 	default: async (data) => {
 		const id = data.params.id;
-		const form = await superValidate(
-			data.request,
-			zod(importMappingUpdateFormSchemaWithPrevPage)
-		);
+		const form = await superValidate(data.request, zod(importMappingUpdateFormSchemaWithPrevPage));
 
 		if (!form.valid) {
 			return form;

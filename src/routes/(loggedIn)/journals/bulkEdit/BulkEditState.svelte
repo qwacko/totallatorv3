@@ -20,13 +20,13 @@
 		<input type="hidden" name="filter" value={JSON.stringify(filter)} />
 		<input type="hidden" name="prevPage" value={$pageStore.prevURL} />
 		<input type="hidden" name="currentPage" value={currentPage} />
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+		<div class="grid grid-cols-1 gap-2 md:grid-cols-2">
 			<ButtonGroup class="flex flex-row">
 				<Button
 					type="submit"
 					name="action"
 					value="incomplete"
-					class="flex-row gap-2 flex-grow basis-0"
+					class="flex-grow basis-0 flex-row gap-2"
 					disabled={complete === false}
 				>
 					<CompleteIcon />Incomplete
@@ -35,7 +35,7 @@
 					type="submit"
 					name="action"
 					value="complete"
-					class="flex-row gap-2 flex-grow basis-0"
+					class="flex-grow basis-0 flex-row gap-2"
 					disabled={complete === true}
 				>
 					<CompleteIcon />Complete
@@ -46,7 +46,7 @@
 					type="submit"
 					name="action"
 					value="unreconciled"
-					class="flex-row gap-2 flex-grow basis-0"
+					class="flex-grow basis-0 flex-row gap-2"
 					disabled={reconciled === false || !canEdit}
 				>
 					<ReconciledIcon />Unreconciled
@@ -55,7 +55,7 @@
 					type="submit"
 					name="action"
 					value="reconciled"
-					class="flex-row gap-2 flex-grow basis-0"
+					class="flex-grow basis-0 flex-row gap-2"
 					disabled={reconciled === true || !canEdit}
 				>
 					<ReconciledIcon />Reconciled
@@ -66,7 +66,7 @@
 					type="submit"
 					name="action"
 					value="dataNotChecked"
-					class="flex-row gap-2 flex-grow basis-0"
+					class="flex-grow basis-0 flex-row gap-2"
 					disabled={dataChecked === false || !canEdit}
 				>
 					<DataCheckedIcon />Data Not Checked
@@ -75,7 +75,7 @@
 					type="submit"
 					name="action"
 					value="dataChecked"
-					class="flex-row gap-2 flex-grow basis-0"
+					class="flex-grow basis-0 flex-row gap-2"
 					disabled={dataChecked === true || !canEdit}
 				>
 					<DataCheckedIcon />Data Checked

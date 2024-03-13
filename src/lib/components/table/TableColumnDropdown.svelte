@@ -57,14 +57,14 @@
 		<DropdownItem>
 			<div class="flex flex-row gap-2">
 				<div class="flex flex-grow pr-8">{columnIdToTitle(currentColumn)}</div>
-				<Button class="p-1 border-0" outline on:click={() => moveColumnUp(currentColumn)}>
+				<Button class="border-0 p-1" outline on:click={() => moveColumnUp(currentColumn)}>
 					<ArrowKeyUp />
 				</Button>
-				<Button class="p-1 border-0" outline on:click={() => moveColumnDown(currentColumn)}>
+				<Button class="border-0 p-1" outline on:click={() => moveColumnDown(currentColumn)}>
 					<ArrowKeyDown />
 				</Button>
 				<Button
-					class="p-1 border-0"
+					class="border-0 p-1"
 					outline
 					on:click={() => removeColumnFromShownColumns(currentColumn)}
 				>

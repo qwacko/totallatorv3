@@ -70,5 +70,5 @@ export const seedTestAccounts = async (db: DBType, id: string) => {
 			},
 			`Account6`
 		)
-	])
+	]);
 };

@@ -7,7 +7,7 @@
 	$: textJoined = text.join(' and ');
 </script>
 
-<div class="flex flex-row text-gray-200 gap-4">
+<div class="flex flex-row gap-4 text-gray-200">
 	<FilterIcon />
 	<P size="sm" color="text-gray-300 hover:text-gray-800">
 		{textJoined}

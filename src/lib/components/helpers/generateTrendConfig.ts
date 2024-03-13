@@ -31,9 +31,9 @@ const filterData = ({
 			? filterTrendData({ data, dates: generateYearMonthsBeforeToday(12) })
 			: config.dateRange === 'toNow'
 				? filterTrendData({
-					data,
-					dates: generateYearMonthsBetween(earliestDataDate, new Date().toISOString().slice(0, 7))
-				})
+						data,
+						dates: generateYearMonthsBetween(earliestDataDate, new Date().toISOString().slice(0, 7))
+					})
 				: data;
 };
 

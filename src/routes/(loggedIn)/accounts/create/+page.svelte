@@ -29,7 +29,7 @@
 <CustomHeader pageTitle="New Account" />
 
 <PageLayout title="Create Account" size="lg">
-	<form method="POST" use:enhance class="grid gap-2 grid-cols-1 md:grid-cols-2">
+	<form method="POST" use:enhance class="grid grid-cols-1 gap-2 md:grid-cols-2">
 		<PreviousUrlInput name="prevPage" />
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<TextInput

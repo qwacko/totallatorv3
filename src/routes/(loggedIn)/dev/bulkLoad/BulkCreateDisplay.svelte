@@ -19,7 +19,7 @@
 					{ title: '+ 1000', count: 1000 },
 					{ title: '+ 5000', count: 5000 },
 					{ title: '+ 10000', count: 10000 }
-			  ]
+				]
 			: [])
 	];
 </script>

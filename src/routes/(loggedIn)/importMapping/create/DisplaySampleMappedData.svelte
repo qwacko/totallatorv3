@@ -61,7 +61,7 @@
 
 <Fileupload on:change={updateFileValue} accept=".csv" />
 {#if csvData}
-	<div class="flex flex-row gap-10 items-center self-center">
+	<div class="flex flex-row items-center gap-10 self-center">
 		<Button
 			color="light"
 			outline
