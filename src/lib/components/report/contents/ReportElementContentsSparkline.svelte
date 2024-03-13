@@ -65,6 +65,7 @@
 						data: resolvedData?.data.map((d) => d.value),
 						tooltip: {
 							valueFormatter: (value) => {
+								if(!value) return '';
 								return convertNumberToText({
 									value: Number(value.valueOf()),
 									config: data.numberDisplay,
@@ -79,6 +80,7 @@
 						data: resolvedData?.data.map((d) => d.value),
 						tooltip: {
 							valueFormatter: (value) => {
+								if(!value) return '';
 								return convertNumberToText({
 									value: Number(value.valueOf()),
 									config: data.numberDisplay,

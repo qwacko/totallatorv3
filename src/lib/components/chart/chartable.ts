@@ -6,7 +6,8 @@ export type EChartsSeries = EChartsOption['series'];
 export type EChartsTheme = string | object;
 export type EChartsRenderer = 'canvas' | 'svg';
 export type OptionsDataFormatter = (
-	value: string | number | Date | (string | number | Date)[]
+	value: null | undefined | string | number | Date | (null | undefined | string | number | Date)[],
+	dataIndex: number
 ) => string;
 
 export type ChartOptions = {
