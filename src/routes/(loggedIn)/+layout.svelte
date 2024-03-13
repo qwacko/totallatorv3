@@ -36,8 +36,8 @@
 	$: pageIsImportMapping = $page.route.id?.startsWith('/(loggedIn)/importMapping');
 	$: pageIsImport = $page.route.id?.startsWith('/(loggedIn)/import') && !pageIsImportMapping;
 	$: pageIsBackup = $page.route.id?.startsWith('/(loggedIn)/backup');
-	$: pageIsCurrentUser = data.user?.userId
-		? $page.url.toString().includes(data.user.userId)
+	$: pageIsCurrentUser = data.user?.id
+		? $page.url.toString().includes(data.user.id)
 		: false;
 	$: pageIsUsers = $page.route.id?.startsWith('/(loggedIn)/users') && !pageIsCurrentUser;
 	$: pageIsFilters = $page.route.id?.startsWith('/(loggedIn)/filters');
@@ -120,7 +120,7 @@
 						icon: UserAccountIcon,
 						href: urlGenerator({
 							address: '/(loggedIn)/users/[id]',
-							paramsValue: { id: data.user?.userId }
+							paramsValue: { id: data.user?.id }
 						})
 					}
 				]

@@ -64,7 +64,7 @@
 					Edit Password
 				</Button>
 			{/if}
-			{#if data.user?.admin && data.user.userId !== data.currentUser.id}
+			{#if data.user?.admin && data.user.id !== data.currentUser.id}
 				<Button
 					href={urlGenerator({
 						address: '/(loggedIn)/users/[id]/delete',

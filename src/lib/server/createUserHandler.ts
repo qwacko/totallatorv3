@@ -1,20 +1,23 @@
 import { auth } from '$lib/server/lucia';
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, redirect, type Cookies } from '@sveltejs/kit';
 import { setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupSchema } from '$lib/schema/signupSchema';
 import { logging } from '$lib/server/logging';
+import { userActions } from './db/actions/userActions';
 
 export const createUserHandler = async ({
 	request,
 	locals,
 	admin,
-	setSession = false
+	setSession = false,
+	cookies
 }: {
 	request: Request;
 	locals: App.Locals;
 	admin: boolean;
 	setSession?: boolean;
+	cookies: Cookies;
 }) => {
 	const form = await superValidate(request, zod(signupSchema));
 
@@ -23,31 +26,25 @@ export const createUserHandler = async ({
 	}
 
 	try {
-		const user = await auth.createUser({
-			key: {
-				providerId: 'username',
-				providerUserId: form.data.username.toLowerCase(),
-				password: form.data.password // hashed by Lucia
-			},
-			attributes: {
-				username: form.data.username,
-				admin: admin ? true : false,
-				currencyFormat: 'USD',
-				dateFormat: 'YYYY-MM-DD',
-				name: form.data.name
-			}
+		const user = await userActions.createUser({
+			db: locals.db,
+			username: form.data.username.toLowerCase(),
+			password: form.data.password,
+			admin
 		});
 
+		if (!user) {
+			throw new Error('User not created');
+		}
+
 		if (setSession) {
-			const session = await auth.createSession({
-				userId: user.userId,
-				attributes: {}
+			const session = await auth.createSession(user.id, {});
+			const sessionCookie = auth.createSessionCookie(session.id);
+
+			cookies.set(sessionCookie.name, sessionCookie.value, {
+				path: '.',
+				...sessionCookie.attributes
 			});
-			locals.auth.setSession(session); // set session cookie}
-		} else {
-			//Returns a new form to reset the form
-			const newForm = await superValidate(zod(signupSchema));
-			return { form: newForm };
 		}
 	} catch (e) {
 		logging.error('Error creating user', e);

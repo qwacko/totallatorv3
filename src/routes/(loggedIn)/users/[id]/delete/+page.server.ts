@@ -1,6 +1,6 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { urlGenerator } from '$lib/routes.js';
-import { auth } from '$lib/server/lucia.js';
+import { userActions } from '$lib/server/db/actions/userActions.js';
 import { redirect } from '@sveltejs/kit';
 
 export const load = (requestData) => {
@@ -13,15 +13,15 @@ export const actions = {
 		if (!authUser) {
 			return;
 		}
-		if (!authUser.admin || authUser.userId === params.id) {
+		if (!authUser.admin || authUser.id === params.id) {
 			return;
 		}
 
-		await auth.deleteUser(params.id);
+		await userActions.deleteUser({ db: locals.db, userId: params.id });
 
 		redirect(
-        			302,
-        			urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } }).url
-        		);
+			302,
+			urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } }).url
+		);
 	}
 };

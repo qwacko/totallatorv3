@@ -73,7 +73,7 @@ export const actions = {
 			await data.locals.db.select().from(user).where(eq(user.id, data.params.id)).execute()
 		)[0];
 		if (!targetUser) return;
-		const canSetAdmin = authUser.admin && authUser.userId !== targetUser.id && !targetUser.admin;
+		const canSetAdmin = authUser.admin && authUser.id !== targetUser.id && !targetUser.admin;
 
 		if (!canSetAdmin) {
 			return;
@@ -94,7 +94,7 @@ export const actions = {
 			await data.locals.db.select().from(user).where(eq(user.id, data.params.id)).execute()
 		)[0];
 		if (!targetUser) return;
-		const canRemoveAdmin = authUser.admin && authUser.userId !== targetUser.id && targetUser.admin;
+		const canRemoveAdmin = authUser.admin && authUser.id !== targetUser.id && targetUser.admin;
 		if (!canRemoveAdmin) {
 			return;
 		}

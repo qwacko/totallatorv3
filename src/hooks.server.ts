@@ -5,13 +5,42 @@ import { logging } from '$lib/server/logging';
 
 import { auth } from '$lib/server/lucia';
 import { redirect, type Handle } from '@sveltejs/kit';
-import { db } from '$lib/server/db/db';
+
 import { serverEnv } from '$lib/server/serverEnv';
+import { sequence } from '@sveltejs/kit/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 initateCronJobs();
 
-export const handle: Handle = async ({ event, resolve }) => {
+const handleAuth: Handle = async ({ event, resolve }) => {
+	const sessionId = event.cookies.get(auth.sessionCookieName);
+	if (!sessionId) {
+		event.locals.user = undefined;
+		event.locals.session = undefined;
+		return resolve(event);
+	}
+
+	const { session, user } = await auth.validateSession(sessionId);
+	if (session && session.fresh) {
+		const sessionCookie = auth.createSessionCookie(session.id);
+		event.cookies.set(sessionCookie.name, sessionCookie.value, {
+			path: '.',
+			...sessionCookie.attributes
+		});
+	}
+	if (!session) {
+		const sessionCookie = auth.createBlankSessionCookie();
+		event.cookies.set(sessionCookie.name, sessionCookie.value, {
+			path: '.',
+			...sessionCookie.attributes
+		});
+	}
+	event.locals.user = user || undefined;
+	event.locals.session = session || undefined;
+	return resolve(event);
+};
+
+const handleRoute: Handle = async ({ event, resolve }) => {
 	const start = Date.now();
 	const timeLimit = serverEnv.PAGE_TIMEOUT_MS;
 	const timeout = setTimeout(() => {
@@ -22,15 +51,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		});
 	}, timeLimit);
 
-	event.locals.auth = auth.handleRequest(event);
-	event.locals.db = db;
-
-	const [user, noAdmin] = await Promise.all([
-		event.locals.auth.validate(),
-		dbNoAdmins(event.locals.db)
-	]);
-
-	event.locals.user = user?.user;
+	const noAdmin = await dbNoAdmins(event.locals.db);
 
 	if (!event.route.id) {
 		redirect(302, '/login');
@@ -38,7 +59,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	if (event.route.id === '/(loggedOut)/firstUser' && !noAdmin) {
 		logging.info('Redirecting from firstUser');
-		if (user) {
+		if (event.locals.user) {
 			redirect(302, '/users');
 		} else {
 			redirect(302, '/login');
@@ -59,3 +80,5 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	return result;
 };
+
+export const handle = sequence(handleAuth, handleRoute);

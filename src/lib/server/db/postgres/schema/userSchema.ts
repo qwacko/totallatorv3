@@ -1,8 +1,9 @@
+import { relations } from 'drizzle-orm';
 import { currencyFormatEnum, dateFormatEnum } from '../../../../schema/userSchema';
-import { pgTable, text, boolean, varchar, bigint } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, varchar, timestamp } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
-	id: varchar('id', { length: 60 }).primaryKey(),
+	id: varchar('id', { length: 60 }).notNull().primaryKey(),
 	name: text('name').notNull().default('New User'),
 	username: text('username').notNull().unique(),
 	admin: boolean('admin').notNull().default(false),
@@ -10,16 +11,20 @@ export const user = pgTable('user', {
 	dateFormat: text('dateFormat', { enum: dateFormatEnum }).notNull().default('YYYY-MM-DD')
 });
 
+export type UserDBType = typeof user.$inferSelect;
+
+export const userRelations = relations(user, ({ many, one }) => ({
+	keys: one(key)
+}));
+
 export const session = pgTable('user_session', {
 	id: varchar('id', { length: 128 }).primaryKey(),
 	userId: varchar('user_id', { length: 61 })
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
-	activeExpires: bigint('active_expires', {
-		mode: 'number'
-	}).notNull(),
-	idleExpires: bigint('idle_expires', {
-		mode: 'number'
+	expiresAt: timestamp('expires_at', {
+		withTimezone: true,
+		mode: 'date'
 	}).notNull()
 });
 
@@ -27,6 +32,14 @@ export const key = pgTable('user_key', {
 	id: varchar('id', { length: 255 }).primaryKey(),
 	userId: varchar('user_id', { length: 62 })
 		.notNull()
+		.unique()
 		.references(() => user.id, { onDelete: 'cascade' }),
 	hashedPassword: varchar('hashed_password', { length: 255 })
 });
+
+export const keyRelations = relations(key, ({ one }) => ({
+	user: one(user, {
+		fields: [key.userId],
+		references: [user.id]
+	})
+}));

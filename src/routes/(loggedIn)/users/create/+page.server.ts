@@ -14,7 +14,7 @@ export const load = async (data) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals }) => {
+	default: async ({ request, locals, cookies }) => {
 		const admin = locals.user?.admin;
 
 		//Admin Cannot Do This
@@ -22,6 +22,6 @@ export const actions: Actions = {
 			return {};
 		}
 
-		return createUserHandler({ request, locals, admin: false, setSession: false });
+		return createUserHandler({ request, locals, admin: false, setSession: false, cookies });
 	}
 };
