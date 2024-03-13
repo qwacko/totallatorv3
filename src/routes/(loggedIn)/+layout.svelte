@@ -12,7 +12,7 @@
 	import UserAccountIcon from '$lib/components/icons/UserAccountIcon.svelte';
 	import TagIcon from '$lib/components/icons/TagIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
-	import { Button, Dropdown, DropdownItem } from 'flowbite-svelte';
+	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 	import DevIcon from '$lib/components/icons/DevIcon.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
@@ -181,18 +181,9 @@
 					</div>
 				</DropdownItem>
 			{/each}
+			<DropdownDivider />
+			<DropdownItem href={urlGenerator({ address: '/(loggedIn)/logout' }).url}>Logout</DropdownItem>
 		</Dropdown>
-		<!-- {#each pageMap as currentPage}
-			<Button
-				id={currentPage.label}
-				class="flex border-0"
-				outline={!currentPage.active}
-				href={currentPage.href.url}
-			>
-				<svelte:component this={currentPage.icon} />
-			</Button>
-			<Tooltip triggeredBy="[id^='{currentPage.label}']">{currentPage.label}</Tooltip>
-		{/each} -->
 	</div>
 	<slot />
 	<NotificationDisplay />

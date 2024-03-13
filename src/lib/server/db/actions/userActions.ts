@@ -2,9 +2,10 @@ import { updateUserSchema, type updateUserSchemaType } from '$lib/schema/userSch
 import { eq } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { key, user } from '../postgres/schema/userSchema';
-import type { User } from 'lucia';
+import { type User } from 'lucia';
 import { nanoid } from 'nanoid';
-import { Argon2id } from 'oslo/password';
+import { fixedDelay } from '$lib/server/testingDelay';
+import { hashPassword, checkHashedPassword } from './helpers/hashPassword';
 
 export const userActions = {
 	createUser: async ({
@@ -29,7 +30,7 @@ export const userActions = {
 		}
 
 		const userId = nanoid();
-		const hashedPassword = await new Argon2id().hash(password);
+		const hashedPassword = await hashPassword(password);
 
 		await db.transaction(async (trx) => {
 			await trx
@@ -62,7 +63,7 @@ export const userActions = {
 		userId: string;
 		password: string;
 	}): Promise<void> => {
-		const hashedPassword = await new Argon2id().hash(password);
+		const hashedPassword = await hashPassword(password);
 
 		await db.update(key).set({ hashedPassword }).where(eq(key.userId, userId)).execute();
 	},
@@ -83,25 +84,54 @@ export const userActions = {
 		});
 
 		if (!foundUser) {
-			//Delay to avoid timing attacks
-			await new Argon2id().hash(password);
+			//Add 200ms delay
+			await fixedDelay(200);
 			return undefined;
 		}
 
+		//This isn't pretty but it works. If for some reason there isn't a key then this creates a new one.
+		//There shouldn't be a time that there isn't a key, but this covers that risk.
 		if (!foundUser.keys) {
-			//Delay to avoid timing attacks
-			await new Argon2id().hash(password);
+			await db
+				.insert(key)
+				.values({
+					id: nanoid(),
+					userId: foundUser.id,
+					hashedPassword: await hashPassword(password)
+				})
+				.execute();
+		}
+
+		const foundUser2 = await db.query.user.findFirst({
+			where: (user, { eq }) => eq(user.username, username.toLowerCase()),
+			with: {
+				keys: true
+			}
+		});
+
+		if (!foundUser2) {
+			//Add 200ms delay
+			await fixedDelay(200);
 			return undefined;
 		}
 
-		const validPassword = foundUser.keys?.hashedPassword
-			? await new Argon2id().verify(password, foundUser.keys.hashedPassword)
-			: false;
-
-		if (!validPassword) {
-			//Delay to avoid timing attacks
-			await new Argon2id().hash(password);
+		if (!foundUser2.keys) {
+			//Add 200ms delay
+			await fixedDelay(200);
 			return undefined;
+		}
+
+		const validPassword = await checkHashedPassword(foundUser2.keys.hashedPassword, password);
+
+		if (!validPassword.valid) {
+			//Add 200ms delay
+			await fixedDelay(200);
+			return undefined;
+		}
+
+		//Updates the password to the latest format if it needs to be updated.
+		if (validPassword.needsRefresh) {
+			await userActions.updatePassword({ db, userId: foundUser.id, password });
 		}
 
 		return userActions.get({ db, userId: foundUser.id });

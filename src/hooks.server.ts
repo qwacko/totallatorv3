@@ -9,6 +9,8 @@ import { redirect, type Handle } from '@sveltejs/kit';
 import { serverEnv } from '$lib/server/serverEnv';
 import { sequence } from '@sveltejs/kit/hooks';
 
+import { db } from '$lib/server/db/db';
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 initateCronJobs();
 
@@ -41,6 +43,9 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 };
 
 const handleRoute: Handle = async ({ event, resolve }) => {
+	//Update the locals to have the DB
+	event.locals.db = db;
+
 	const start = Date.now();
 	const timeLimit = serverEnv.PAGE_TIMEOUT_MS;
 	const timeout = setTimeout(() => {
