@@ -3,7 +3,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
-	import { customEnhance } from '../../element/[id]/customEnhance.js';
+	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
 	export let data;

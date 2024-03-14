@@ -26,7 +26,7 @@ export const load = async (data) => {
 		info,
 		canDelete,
 		streaming: {
-			data: tActions.import.getDetail({ db, id: pageInfo.params.id })
+			data: await tActions.import.getDetail({ db, id: pageInfo.params.id })
 		}
 	};
 };

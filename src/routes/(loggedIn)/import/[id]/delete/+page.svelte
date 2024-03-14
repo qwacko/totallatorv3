@@ -4,8 +4,12 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { urlGenerator } from '$lib/routes.js';
 	import { P, Button } from 'flowbite-svelte';
+	import { customEnhance } from '$lib/helpers/customEnhance';
+	import ActionButton from '$lib/components/ActionButton.svelte';
 
 	export let data;
+
+	export let loading = false;
 </script>
 
 <CustomHeader pageTitle="Delete Import" filterText={data.info.importInfo.title} />
@@ -20,7 +24,17 @@
 	>
 		Cancel
 	</Button>
-	<form method="post" use:enhance class="flex w-full">
-		<Button color="red" type="submit" class="flex w-full">Forget Import</Button>
+	<form
+		method="post"
+		use:enhance={customEnhance({ updateLoading: (newLoading) => (loading = newLoading) })}
+		class="flex w-full"
+	>
+		<ActionButton
+			color="red"
+			type="submit"
+			class="flex w-full"
+			message="Forget Import"
+			loadingMessage="Forgetting..."
+		/>
 	</form>
 </PageLayout>

@@ -13,11 +13,11 @@ export const actions = {
 			logging.error('Reprocess Import Error', JSON.stringify(e, null, 2));
 		}
 	},
-	doImport: async ({ params, locals }) => {
+	triggerImport: async ({ params, locals }) => {
 		try {
-			await tActions.import.doImport({ db: locals.db, id: params.id });
+			await tActions.import.triggerImport({ db: locals.db, id: params.id });
 		} catch (e) {
-			logging.error('Do Import Error: ', JSON.stringify(e, null, 2));
+			logging.error('Import Trigger Error: ', JSON.stringify(e, null, 2));
 			await locals.db
 				.update(importTable)
 				.set({ status: 'error', errorInfo: e })

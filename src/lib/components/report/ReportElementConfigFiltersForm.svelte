@@ -4,7 +4,7 @@
 	import { urlGenerator } from '$lib/routes';
 	import type { ReportElementData } from '$lib/server/db/actions/reportActions';
 	import FilterModal from '../FilterModal.svelte';
-	import { customEnhance } from '../../../routes/(loggedIn)/reports/element/[id]/customEnhance';
+	import { customEnhance } from '$lib/helpers/customEnhance';
 	import { notificationStore } from '$lib/stores/notificationStore';
 	import { enhance } from '$app/forms';
 	import ActionButton from '../ActionButton.svelte';

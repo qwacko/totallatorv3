@@ -6,7 +6,7 @@ import { logging } from '$lib/server/logging.js';
 import { redirect } from '@sveltejs/kit';
 import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { journalFilterSchemaWithoutPagination } from '$lib/schema/journalSchema.js';
-import { failWrapper } from '../element/[id]/customEnhance.js';
+import { failWrapper } from '$lib/helpers/customEnhance';
 
 export const load = async (data) => {
 	authGuard(data);

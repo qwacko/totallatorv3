@@ -9,6 +9,11 @@ type ActionOptions<
 	SuccessType extends ResultType = DefaultResult,
 	FailureType extends ResultType = DefaultResult
 > = {
+	onSubmit?: (data: {
+		action: URL;
+		formData: FormData;
+		cancel: () => void;
+	}) => void | Promise<void>;
 	onSuccess?: (data: {
 		action: URL;
 		formData: FormData;
@@ -48,13 +53,15 @@ export function customEnhance<
 	onFailure,
 	onError,
 	onRedirect,
+	onSubmit,
 	disableDefaultAction,
 	disableInvalidate,
 	disableReset,
 	updateLoading
 }: ActionOptions<SuccessType, FailureType> = {}): SubmitFunction<SuccessType, FailureType> {
-	return () => {
+	return ({ action, formData, cancel }) => {
 		updateLoading && updateLoading(true);
+		onSubmit && onSubmit({ action, formData, cancel });
 
 		return async ({ result, action, formData, update, formElement }) => {
 			// `result` is an `ActionResult` object

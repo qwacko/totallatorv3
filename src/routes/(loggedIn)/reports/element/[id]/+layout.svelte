@@ -6,7 +6,7 @@
 	import { superForm } from 'sveltekit-superforms';
 	import FilterModal from '$lib/components/FilterModal.svelte';
 	import { enhance } from '$app/forms';
-	import { customEnhance } from './customEnhance.js';
+	import { customEnhance } from '$lib/helpers/customEnhance';
 	import { notificationStore } from '$lib/stores/notificationStore.js';
 	import { onError, onSuccess } from '$lib/stores/notificationHelpers.js';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';

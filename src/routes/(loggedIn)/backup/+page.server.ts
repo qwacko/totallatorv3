@@ -2,7 +2,7 @@ import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
-import { failWrapper } from '../reports/element/[id]/customEnhance.js';
+import { failWrapper } from '$lib/helpers/customEnhance';
 
 export const load = async (data) => {
 	authGuard(data);

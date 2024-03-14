@@ -114,7 +114,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			...adminOnlyConfig,
 			POSTCheck: {
 				reprocess: POSTAllowAdminOnly,
-				doImport: POSTAllowAdminOnly,
+				triggerImport: POSTAllowAdminOnly,
 				updateImportType: POSTAllowAdminOnly
 			}
 		},

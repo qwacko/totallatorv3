@@ -48,7 +48,14 @@ export const importDetailStatusEnum = [
 	'imported',
 	'importError'
 ] as const;
-export const importStatusEnum = ['created', 'error', 'processed', 'imported', 'complete'] as const;
+export const importStatusEnum = [
+	'created',
+	'error',
+	'processed',
+	'importing',
+	'awaitingImport',
+	'complete'
+] as const;
 
 export type ImportStatusType = (typeof importStatusEnum)[number];
 export type ImportDetailStatusEnum = (typeof importDetailStatusEnum)[number];
@@ -66,7 +73,7 @@ export const importStatusToColour = (status: ImportStatusType | ImportDetailStat
 	if (status === 'imported') {
 		return 'green';
 	}
-	if (status === 'processed') {
+	if (status === 'processed' || status === 'awaitingImport' || status === 'importing') {
 		return 'blue';
 	}
 	if (status === 'duplicate') {
@@ -86,8 +93,11 @@ export const importStatusToTest = (status: ImportStatusType) => {
 	if (status === 'error') {
 		return 'Error';
 	}
-	if (status === 'imported') {
-		return 'Imported';
+	if (status === 'awaitingImport') {
+		return 'Awaiting Import...';
+	}
+	if (status === 'importing') {
+		return 'Importing...';
 	}
 	if (status === 'processed') {
 		return 'Processed';
