@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const importSourceEnum = ['csv'] as const;
 export const importTypeEnum = [
 	'transaction',
@@ -105,3 +107,66 @@ export const importStatusToTest = (status: ImportStatusType) => {
 
 	return 'primary';
 };
+
+const orderByEnum = [
+	'createdAt',
+	'title',
+	'filename',
+	'status',
+	'source',
+	'type',
+	'numErrors',
+	'numImportErrors',
+	'numProcessed',
+	'numDuplicate',
+	'numImport',
+	'numImportError'
+] as const;
+
+type OrderByEnumType = (typeof orderByEnum)[number];
+
+export type ImportOrderByEnum = OrderByEnumType;
+
+type OrderByEnumTitles = {
+	[K in OrderByEnumType]: string;
+};
+
+// This will be valid for demonstration purposes
+const enumTitles = {
+	createdAt: 'Date',
+	title: 'Title',
+	filename: 'Filename',
+	status: 'Status',
+	source: 'Source',
+	type: 'Type',
+	numErrors: 'Number Errors',
+	numImportErrors: 'Number Import Errors',
+	numProcessed: 'Number Processed',
+	numDuplicate: 'Number Duplicate',
+	numImport: 'Number Imported',
+	numImportError: 'Number Import Errors'
+} satisfies OrderByEnumTitles;
+
+export const importOrderByEnumToText = (input: OrderByEnumType) => {
+	return enumTitles[input];
+};
+
+export const importFilterSchema = z.object({
+	id: z.string().optional(),
+	idArray: z.array(z.string()).optional(),
+	title: z.coerce.string().optional(),
+	filename: z.coerce.string().optional(),
+	source: z.array(z.enum(importSourceEnum)).optional(),
+	type: z.array(z.enum(importTypeEnum)).optional(),
+	status: z.array(z.enum(importStatusEnum)).optional(),
+
+	//Page Information
+	page: z.number().default(0).optional(),
+	pageSize: z.number().default(10).optional(),
+	orderBy: z
+		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.default([{ direction: 'desc', field: 'createdAt' }])
+		.optional()
+});
+
+export type ImportFilterSchemaType = z.infer<typeof importFilterSchema>;

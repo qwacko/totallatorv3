@@ -8,18 +8,21 @@ import {
 	budget,
 	category,
 	importItemDetail,
-	importMapping,
 	importTable,
 	journalEntry,
 	label,
 	tag
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
+import { eq, and, count as drizzleCount, inArray } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import type { ZodSchema } from 'zod';
-import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema';
+import {
+	importTypeEnum,
+	type ImportFilterSchemaType,
+	type importTypeType
+} from '$lib/schema/importSchema';
 import {
 	importTransaction,
 	importAccount,
@@ -33,47 +36,46 @@ import {
 import { getImportDetail } from './helpers/import/getImportDetail';
 import { processCreatedImport } from './helpers/import/processImport';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { importListSubquery } from './helpers/import/importListSubquery';
+import { importToOrderByToSQL } from './helpers/import/importOrderByToSQL';
+import { importFilterToQuery } from './helpers/import/importFilterToQuery';
 
 export const importActions = {
-	list: async ({ db }: { db: DBType }) => {
-		const imports = await db
-			.select({
-				...getTableColumns(importTable),
-				importMappingId: importMapping.id,
-				importMappingTitle: importMapping.title,
-				numErrors:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'error' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numImportErrors:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'importError' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numProcessed:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'processed' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numDuplicate:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'duplicate' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numImport:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'imported' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numImportError:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'importError' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					)
-			})
+	numberActive: async (db: DBType) => {
+		const result = await db
+			.select({ count: drizzleCount(importTable.id) })
 			.from(importTable)
-			.leftJoin(importItemDetail, eq(importItemDetail.importId, importTable.id))
-			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
-			.groupBy(importTable.id, importMapping.id, importMapping.title)
-			.orderBy(desc(importTable.createdAt))
+			.where(inArray(importTable.status, ['importing', 'awaitingImport']))
 			.execute();
 
-		return imports;
+		return result[0].count;
+	},
+	list: async ({ db, filter }: { db: DBType; filter: ImportFilterSchemaType }) => {
+		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
+
+		const internalQuery = importListSubquery(db);
+
+		const where = importFilterToQuery({ filter: restFilter, query: internalQuery });
+
+		const results = await db
+			.select()
+			.from(internalQuery)
+			.where(and(...where))
+			.limit(pageSize)
+			.offset(page * pageSize)
+			.orderBy(...importToOrderByToSQL({ query: internalQuery, orderBy }))
+			.execute();
+
+		const resultCount = await db
+			.select({ count: drizzleCount(internalQuery.id) })
+			.from(internalQuery)
+			.where(and(...where))
+			.execute();
+
+		const count = resultCount[0].count;
+		const pageCount = Math.max(1, Math.ceil(count / pageSize));
+
+		return { count, data: results, pageCount, page, pageSize };
 	},
 	storeCSV: async ({
 		newFile,

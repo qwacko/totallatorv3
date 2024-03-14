@@ -35,6 +35,22 @@ export const reusableFilterColumnsStore = writable([
 	'filterText',
 	'changeText'
 ]);
+export const importColumnsStore = writable([
+	'actions',
+	'title',
+	'status',
+	'type',
+	'filename',
+	'source',
+	'created',
+	'updated',
+	'imported',
+	'error',
+	'processed',
+	'importing',
+	'awaitingImport',
+	'complete'
+]);
 
 export const importMappingColumnStore = writable(['actions', 'title']);
 
