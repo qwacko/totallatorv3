@@ -37,6 +37,7 @@ import zlib from 'zlib';
 import { backupSchemaMigrate_01to02 } from '$lib/server/backups/backupSchemaMigrate_01to02';
 import { backupSchemaMigrate_02to03 } from '$lib/server/backups/backupSchemaMigrate_02to03';
 import { backupSchemaMigrate_03to04 } from '$lib/server/backups/backupSchemaMigrate_03to04';
+import { backupSchemaMigrate_04to05 } from '$lib/server/backups/backupSchemaMigrate_04to05';
 
 async function writeToMsgPackFile(data: unknown, filePath: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -79,7 +80,7 @@ export const backupActions = {
 		}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 4,
+			version: 5,
 			data: {
 				user: await db.select().from(user).execute(),
 				session: await db.select().from(session).execute(),
@@ -192,7 +193,12 @@ export const backupActions = {
 				? backupDataParsed03
 				: backupSchemaMigrate_03to04(backupDataParsed03);
 
-		return backupDataParsed04;
+		const backupDataParsed05 =
+			backupDataParsed04.version !== 4
+				? backupDataParsed04
+				: backupSchemaMigrate_04to05(backupDataParsed04);
+
+		return backupDataParsed05;
 	},
 	deleteBackup: async (backupName: string) => {
 		const targetDir = serverEnv.BACKUP_DIR;
