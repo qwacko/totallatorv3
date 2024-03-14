@@ -96,7 +96,7 @@
 			label: 'Import',
 			active: pageIsImport,
 			icon: ImportIcon,
-			href: urlGenerator({ address: '/(loggedIn)/import' })
+			href: urlGenerator({ address: '/(loggedIn)/import', searchParamsValue: {} })
 		},
 		{
 			label: 'Import Mapping',
