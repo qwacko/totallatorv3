@@ -30,6 +30,7 @@
 		class="flex w-full"
 	>
 		<ActionButton
+			{loading}
 			color="red"
 			type="submit"
 			class="flex w-full"

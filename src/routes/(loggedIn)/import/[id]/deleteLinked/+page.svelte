@@ -31,6 +31,7 @@
 	>
 		<ActionButton
 			color="red"
+			{loading}
 			type="submit"
 			class="flex w-full"
 			message="Delete Linked Items"

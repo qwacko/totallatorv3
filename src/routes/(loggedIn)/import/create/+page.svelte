@@ -19,6 +19,9 @@
 
 	//@ts-ignore This gives a weird typescript error in svelte check, but not in the editor.
 	$: isMappedImport = importType === 'mappedImport';
+
+	//@ts-ignore This gives a weird typescript error in svelte check, but not in the editor.
+	$: isTransactionImport = importType === 'transaction';
 </script>
 
 <CustomHeader pageTitle="New Import" />
@@ -70,7 +73,7 @@
 				required
 			/>
 		{/if}
-		{#if importType !== 'transaction'}
+		{#if isTransactionImport}
 			<Checkbox name="checkImportedOnly">Check Only Imported Items For Duplicates</Checkbox>
 		{/if}
 		<Fileupload name="csvFile" accept=".csv" required />
