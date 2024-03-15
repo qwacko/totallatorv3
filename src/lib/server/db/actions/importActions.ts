@@ -124,6 +124,8 @@ export const importActions = {
 			})
 			.execute();
 
+		await processCreatedImport({ db, id });
+
 		return id;
 	},
 	processItems: async <S extends Record<string, unknown>>({
@@ -241,7 +243,7 @@ export const importActions = {
 		const importData = data[0];
 
 		if (importData.status === 'created') {
-			await processCreatedImport({ db, id, importData });
+			await processCreatedImport({ db, id });
 		}
 
 		return getImportDetail({ db, id });
