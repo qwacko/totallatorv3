@@ -115,6 +115,7 @@ const orderByEnum = [
 	'status',
 	'source',
 	'type',
+	'mapping',
 	'numErrors',
 	'numImportErrors',
 	'numProcessed',
@@ -139,6 +140,7 @@ const enumTitles = {
 	status: 'Status',
 	source: 'Source',
 	type: 'Type',
+	mapping: 'Import Mapping',
 	numErrors: 'Number Errors',
 	numImportErrors: 'Number Import Errors',
 	numProcessed: 'Number Processed',
@@ -154,10 +156,12 @@ export const importOrderByEnumToText = (input: OrderByEnumType) => {
 export const importFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
+	textFilter: z.string().optional(),
 	title: z.coerce.string().optional(),
 	filename: z.coerce.string().optional(),
 	source: z.array(z.enum(importSourceEnum)).optional(),
 	type: z.array(z.enum(importTypeEnum)).optional(),
+	mapping: z.string().optional(),
 	status: z.array(z.enum(importStatusEnum)).optional(),
 
 	//Page Information

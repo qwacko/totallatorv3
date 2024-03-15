@@ -8,6 +8,7 @@ import {
 	budget,
 	category,
 	importItemDetail,
+	importMapping,
 	importTable,
 	journalEntry,
 	label,
@@ -18,11 +19,7 @@ import { eq, and, count as drizzleCount, inArray } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import type { ZodSchema } from 'zod';
-import {
-	importTypeEnum,
-	type ImportFilterSchemaType,
-	type importTypeType
-} from '$lib/schema/importSchema';
+import { type ImportFilterSchemaType, type importTypeType } from '$lib/schema/importSchema';
 import {
 	importTransaction,
 	importAccount,
@@ -225,7 +222,11 @@ export const importActions = {
 		);
 	},
 	get: async ({ id, db }: { db: DBType; id: string }) => {
-		const data = await db.select().from(importTable).where(eq(importTable.id, id));
+		const data = await db
+			.select()
+			.from(importTable)
+			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
+			.where(eq(importTable.id, id));
 
 		return { importInfo: data[0] };
 	},
@@ -244,28 +245,6 @@ export const importActions = {
 		}
 
 		return getImportDetail({ db, id });
-	},
-	changeType: async ({ db, id, newType }: { db: DBType; id: string; newType: importTypeType }) => {
-		const targetItems = await db.select().from(importTable).where(eq(importTable.id, id)).execute();
-
-		if (!targetItems || targetItems.length === 0) {
-			throw new Error('Import Not Found');
-		}
-		if (!importTypeEnum.includes(newType)) {
-			throw new Error('Target Import Type Incorrect');
-		}
-		if (targetItems[0].status !== 'processed' && targetItems[0].status !== 'created') {
-			throw new Error('Target Import Must Be Processed or Created only to change type');
-		}
-
-		await db.transaction(async (db) => {
-			await db
-				.update(importTable)
-				.set({ type: newType, ...updatedTime() })
-				.where(eq(importTable.id, id))
-				.execute();
-			await importActions.reprocess({ db, id });
-		});
 	},
 	reprocess: async ({ db, id }: { db: DBType; id: string }) => {
 		const item = await db.select().from(importTable).where(eq(importTable.id, id));

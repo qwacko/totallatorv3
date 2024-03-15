@@ -6,10 +6,9 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
-	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { urlGenerator } from '$lib/routes.js';
-	import { importTypeEnum, importTypeToTitle } from '$lib/schema/importSchema';
+	import { importTypeToTitle } from '$lib/schema/importSchema';
 	import { linkToImportItems } from './linkToImportItems';
 	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
 
@@ -28,9 +27,9 @@
 	}
 </script>
 
-<CustomHeader pageTitle="Import" filterText={data.info.importInfo.title} />
+<CustomHeader pageTitle="Import" filterText={data.info.importInfo.import.title} />
 
-<PageLayout subtitle={data.info.importInfo.title} title="Import Detail">
+<PageLayout subtitle={data.info.importInfo.import.title} title="Import Detail">
 	{@const importData = data.streaming.data}
 
 	{#if !importData.detail}
@@ -53,18 +52,8 @@
 		<div class="flex flex-row items-center gap-4 self-center">
 			<i>Type :</i>
 			{importTypeToTitle(importData.detail.type)}
-			<Button outline color="light" size="sm"><EditIcon /></Button>
-			<Dropdown>
-				{#each importTypeEnum as currentImportType}
-					<DropdownItem>
-						<form use:enhance method="post" action="?/updateImportType">
-							<button color="none" type="submit" name="type" value={currentImportType}>
-								{importTypeToTitle(currentImportType)}
-							</button>
-						</form>
-					</DropdownItem>
-				{/each}
-			</Dropdown>
+			{#if data.info.importInfo.import_mapping?.title}
+				- {data.info.importInfo.import_mapping.title}{/if}
 		</div>
 		<div class="flex flex-row gap-1 self-center">
 			<i>Duplicate Checking :</i>

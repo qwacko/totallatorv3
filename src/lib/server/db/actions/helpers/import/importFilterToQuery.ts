@@ -3,7 +3,7 @@ import {
 	type ImportFilterSchemaType,
 	importTypeToTitle
 } from '$lib/schema/importSchema';
-import { SQL, eq, ilike, inArray } from 'drizzle-orm';
+import { SQL, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 import type { ImportSubqueryType } from './importListSubquery';
 import { idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { importTable } from '$lib/server/db/postgres/schema';
@@ -38,6 +38,22 @@ export const importFilterToQuery = ({
 	}
 	if (filter.type && filter.type.length > 0) {
 		where.push(inArray(query.type, filter.type));
+	}
+	if (filter.mapping) {
+		const useFilterText = `%${filter.textFilter}%`;
+		where.push(sql`${query.importMappingTitle} ILIKE ${useFilterText}`);
+	}
+	if (filter.textFilter) {
+		const useFilterText = `%${filter.textFilter}%`;
+
+		const orFilter = or(
+			sql`${query.importMappingTitle} ILIKE ${useFilterText}`,
+			ilike(query.title, `%${filter.textFilter}%`)
+		);
+
+		if (orFilter) {
+			where.push(orFilter);
+		}
 	}
 
 	return where;
@@ -79,6 +95,16 @@ export const importFilterToText = async ({
 	}
 	if (filter.type && filter.type.length > 0) {
 		stringArray.push(`Source is ${filter.type.map((item) => importTypeToTitle(item)).join(', ')}`);
+	}
+	if (filter.mapping) {
+		stringArray.push(`Mapping contains ${filter.mapping}`);
+	}
+	if (filter.textFilter) {
+		stringArray.push(`Title or Import Mapping contains ${filter.textFilter}`);
+	}
+
+	if (stringArray.length === 0) {
+		return ['Showing All Imports'];
 	}
 
 	return stringArray;
