@@ -1,20 +1,27 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { importTypeEnum, importTypeToTitle, type importTypeType } from '$lib/schema/importSchema';
-	import { Badge, Button, Checkbox, Fileupload, Select } from 'flowbite-svelte';
+	import { Badge, Checkbox, Fileupload, Select } from 'flowbite-svelte';
 	import { z } from 'zod';
+	import { customEnhance } from '$lib/helpers/customEnhance';
+	import { onError, onSuccess } from '$lib/stores/notificationHelpers.js';
+	import ActionButton from '$lib/components/ActionButton.svelte';
 
 	let errorMessage: string | undefined = '';
 
 	export let data;
 
-	let importType: importTypeType = importTypeEnum[0];
+	let importType: importTypeType = 'mappedImport';
+	let importing = false;
+	let redirecting = false;
 
 	//@ts-ignore This gives a weird typescript error in svelte check, but not in the editor.
 	$: isMappedImport = importType === 'mappedImport';
+
+	//@ts-ignore This gives a weird typescript error in svelte check, but not in the editor.
+	$: isTransactionImport = importType === 'transaction';
 </script>
 
 <CustomHeader pageTitle="New Import" />
@@ -24,25 +31,27 @@
 		<Badge>Error : {errorMessage}</Badge>
 	{/if}
 	<form
-		use:enhance={({ formElement, formData, action, cancel }) => {
-			return async ({ result }) => {
-				// `result` is an `ActionResult` object
-
-				if (result.type === 'redirect') {
-					goto(result.location);
-				} else if (result.type === 'error') {
-					console.log('Result Error : ', result);
-					errorMessage = result.error.message;
-				} else if (result.type === 'failure') {
-					console.log('Result Error : ', result);
-
-					errorMessage = z.object({ message: z.string() }).parse(result.data).message;
-				} else if (result.type === 'success') {
-					errorMessage = '';
-					console.log('Result Success : ', result);
-				}
-			};
-		}}
+		use:enhance={customEnhance({
+			updateLoading: (loading) => {
+				importing = loading;
+			},
+			onSuccess: () => {
+				errorMessage = '';
+				onSuccess('Imported Successfully. Redirecting To Import Detail');
+			},
+			onFailure: ({ data }) => {
+				errorMessage = z.object({ message: z.string() }).parse(data).message;
+			},
+			onError: ({ error }) => {
+				errorMessage = error.message;
+				onError('Import Failed');
+			},
+			onRedirect: () => {
+				errorMessage = '';
+				onSuccess('Imported Successfully. Redirecting To Import Detail');
+				redirecting = true;
+			}
+		})}
 		action="?/create"
 		method="post"
 		enctype="multipart/form-data"
@@ -64,10 +73,16 @@
 				required
 			/>
 		{/if}
-		{#if importType !== 'transaction'}
+		{#if isTransactionImport}
 			<Checkbox name="checkImportedOnly">Check Only Imported Items For Duplicates</Checkbox>
 		{/if}
 		<Fileupload name="csvFile" accept=".csv" required />
-		<Button type="submit">Upload</Button>
+		<ActionButton
+			type="submit"
+			loading={importing || redirecting}
+			text="Upload"
+			message="Upload"
+			loadingMessage={importing ? 'Uploading...' : 'Redirecting...'}
+		/>
 	</form>
 </PageLayout>

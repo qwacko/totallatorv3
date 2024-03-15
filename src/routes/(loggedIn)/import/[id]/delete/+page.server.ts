@@ -28,7 +28,7 @@ export const actions = {
 		}
 
 		if (deleted) {
-			redirect(302, urlGenerator({ address: '/(loggedIn)/import' }).url);
+			redirect(302, urlGenerator({ address: '/(loggedIn)/import', searchParamsValue: {} }).url);
 		}
 	}
 };

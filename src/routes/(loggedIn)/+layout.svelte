@@ -5,7 +5,6 @@
 	import BudgetIcon from '$lib/components/icons/BudgetIcon.svelte';
 	import BackupIcon from '$lib/components/icons/BackupIcon.svelte';
 	import CategoryIcon from '$lib/components/icons/CategoryIcon.svelte';
-	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import LabelIcon from '$lib/components/icons/LabelIcon.svelte';
 	import ReusableFilterIcon from '$lib/components/icons/ReusableFilterIcon.svelte';
 	import UsersIcon from '$lib/components/icons/UsersIcon.svelte';
@@ -14,7 +13,6 @@
 	import { urlGenerator } from '$lib/routes';
 	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 	import DevIcon from '$lib/components/icons/DevIcon.svelte';
-	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import ReportDropdown from '$lib/components/report/ReportDropdown.svelte';
@@ -30,7 +28,6 @@
 	$: pageIsLabels = $page.route.id?.startsWith('/(loggedIn)/labels');
 	$: pageIsBudgets = $page.route.id?.startsWith('/(loggedIn)/budgets');
 	$: pageIsCategories = $page.route.id?.startsWith('/(loggedIn)/categories');
-	$: pageIsJournalEntries = $page.route.id?.startsWith('/(loggedIn)/journal-entries');
 	$: pageIsAccounts = $page.route.id?.startsWith('/(loggedIn)/accounts');
 	$: pageIsDev = $page.route.id?.startsWith('/(loggedIn)/dev');
 	$: pageIsImportMapping = $page.route.id?.startsWith('/(loggedIn)/importMapping');
@@ -41,15 +38,6 @@
 	$: pageIsFilters = $page.route.id?.startsWith('/(loggedIn)/filters');
 
 	$: pageMap = [
-		{
-			label: 'Journal Entries',
-			active: pageIsJournalEntries,
-			icon: JournalEntryIcon,
-			href: urlGenerator({
-				address: '/(loggedIn)/journals',
-				searchParamsValue: defaultJournalFilter()
-			})
-		},
 		{
 			label: 'Bills',
 			active: pageIsBills,
@@ -96,7 +84,7 @@
 			label: 'Import',
 			active: pageIsImport,
 			icon: ImportIcon,
-			href: urlGenerator({ address: '/(loggedIn)/import' })
+			href: urlGenerator({ address: '/(loggedIn)/import', searchParamsValue: {} })
 		},
 		{
 			label: 'Import Mapping',
@@ -144,8 +132,6 @@
 				]
 			: [])
 	];
-
-	$: pageMapWithoutJournals = pageMap.filter((page) => page.label !== 'Journal Entries');
 </script>
 
 <div class="flex flex-col justify-stretch p-2">
@@ -174,7 +160,7 @@
 		/>
 		<Button outline color="light">Config</Button>
 		<Dropdown>
-			{#each pageMapWithoutJournals as currentPage}
+			{#each pageMap as currentPage}
 				<DropdownItem href={currentPage.href.url}>
 					<div class="flex flex-row items-center gap-2">
 						<svelte:component this={currentPage.icon} />{currentPage.label}

@@ -15,6 +15,7 @@ import {
 } from './schema/reusableFilterSchema';
 import { importMappingFilterSchema } from './schema/importMappingSchema';
 import { dateSpanEnum } from './schema/dateSpanSchema';
+import { importFilterSchema } from './schema/importSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -40,7 +41,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 
 		// Imports
 		// ----------------------------------------
-		'/(loggedIn)/import': {},
+		'/(loggedIn)/import': { searchParamsValidation: importFilterSchema.optional().catch({}).parse },
 		'/(loggedIn)/import/create': {},
 		'/(loggedIn)/import/[id]': { paramsValidation: idSchema.parse },
 		'/(loggedIn)/import/[id]/forget': { paramsValidation: idSchema.parse },

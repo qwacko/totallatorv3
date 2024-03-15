@@ -1,4 +1,4 @@
-import { eq, inArray, type InferSelectModel } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { DBType } from '../../../db';
 import {
 	account,
@@ -32,15 +32,14 @@ import { tActions } from '../../tActions';
 import { getImportDetail } from './getImportDetail';
 import type { ImportStatusType } from '$lib/schema/importSchema';
 
-export const processCreatedImport = async ({
-	db,
-	id,
-	importData
-}: {
-	db: DBType;
-	id: string;
-	importData: InferSelectModel<typeof importTable>;
-}) => {
+export const processCreatedImport = async ({ db, id }: { db: DBType; id: string }) => {
+	const data = await db.select().from(importTable).where(eq(importTable.id, id));
+	if (data.length === 0) {
+		throw new Error('Import Not Found');
+	}
+
+	const importData = data[0];
+
 	const importMappingInformation = importData.importMappingId
 		? await tActions.importMapping.getById({ db, id: importData.importMappingId })
 		: undefined;

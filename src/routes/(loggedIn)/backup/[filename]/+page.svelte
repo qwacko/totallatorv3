@@ -5,7 +5,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import { enhance } from '$app/forms';
 	import { Button, Badge, Spinner } from 'flowbite-svelte';
-	import { defaultCustomEnhance } from '../../reports/element/[id]/customEnhance.js';
+	import { defaultCustomEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
 	$: urlInfo = pageInfo('/(loggedIn)/backup/[filename]', $page);

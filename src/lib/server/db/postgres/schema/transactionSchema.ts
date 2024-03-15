@@ -369,6 +369,7 @@ export const importItemDetail = pgTable(
 		...idColumn,
 		importId: text('import_id').notNull(),
 		status: text('status', { enum: importDetailStatusEnum }).notNull().default('error'),
+		statusText: text('status_text'),
 		duplicateId: text('duplicate_id'),
 		uniqueId: text('unique_id'),
 		relationId: text('relation_id'),

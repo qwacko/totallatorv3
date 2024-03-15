@@ -11,7 +11,6 @@ export const actions = {
 		const formData = Object.fromEntries(await request.formData());
 
 		let newId: undefined | string = undefined;
-		console.log('Create Form Data', formData);
 		const checkImportedOnly = formData.checkImportedOnly === 'on';
 
 		try {

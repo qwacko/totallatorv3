@@ -67,5 +67,14 @@ export const cronJobs: CronJob[] = [
 		job: async () => {
 			await auth.deleteExpiredSessions();
 		}
+	},
+	{
+		name: 'Automatic Import Processing',
+		schedule: '* * * * * ',
+		job: async () => {
+			//This Runs Every Mintue, but doesn't allow for multiple imports to
+			//occur at the same time within the function which is called.
+			await tActions.import.doRequiredImports({ db });
+		}
 	}
 ];

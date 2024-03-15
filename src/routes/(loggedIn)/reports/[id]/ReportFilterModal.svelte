@@ -4,7 +4,7 @@
 	import type { DropdownItems } from '$lib/server/dropdownItems';
 	import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 	import { enhance } from '$app/forms';
-	import { defaultCustomEnhance } from '../element/[id]/customEnhance';
+	import { defaultCustomEnhance } from '$lib/helpers/customEnhance';
 
 	export let dropdownInfo: DropdownItems;
 	export let filter: JournalFilterSchemaWithoutPaginationType | undefined;

@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const importSourceEnum = ['csv'] as const;
 export const importTypeEnum = [
 	'transaction',
@@ -48,7 +50,14 @@ export const importDetailStatusEnum = [
 	'imported',
 	'importError'
 ] as const;
-export const importStatusEnum = ['created', 'error', 'processed', 'imported', 'complete'] as const;
+export const importStatusEnum = [
+	'created',
+	'error',
+	'processed',
+	'importing',
+	'awaitingImport',
+	'complete'
+] as const;
 
 export type ImportStatusType = (typeof importStatusEnum)[number];
 export type ImportDetailStatusEnum = (typeof importDetailStatusEnum)[number];
@@ -66,7 +75,7 @@ export const importStatusToColour = (status: ImportStatusType | ImportDetailStat
 	if (status === 'imported') {
 		return 'green';
 	}
-	if (status === 'processed') {
+	if (status === 'processed' || status === 'awaitingImport' || status === 'importing') {
 		return 'blue';
 	}
 	if (status === 'duplicate') {
@@ -86,8 +95,11 @@ export const importStatusToTest = (status: ImportStatusType) => {
 	if (status === 'error') {
 		return 'Error';
 	}
-	if (status === 'imported') {
-		return 'Imported';
+	if (status === 'awaitingImport') {
+		return 'Awaiting Import...';
+	}
+	if (status === 'importing') {
+		return 'Importing...';
 	}
 	if (status === 'processed') {
 		return 'Processed';
@@ -95,3 +107,70 @@ export const importStatusToTest = (status: ImportStatusType) => {
 
 	return 'primary';
 };
+
+const orderByEnum = [
+	'createdAt',
+	'title',
+	'filename',
+	'status',
+	'source',
+	'type',
+	'importMappingTitle',
+	'numErrors',
+	'numImportErrors',
+	'numProcessed',
+	'numDuplicate',
+	'numImport',
+	'numImportError'
+] as const;
+
+type OrderByEnumType = (typeof orderByEnum)[number];
+
+export type ImportOrderByEnum = OrderByEnumType;
+
+type OrderByEnumTitles = {
+	[K in OrderByEnumType]: string;
+};
+
+// This will be valid for demonstration purposes
+const enumTitles = {
+	createdAt: 'Date',
+	title: 'Title',
+	filename: 'Filename',
+	status: 'Status',
+	source: 'Source',
+	type: 'Type',
+	importMappingTitle: 'Import Mapping',
+	numErrors: 'Number Errors',
+	numImportErrors: 'Number Import Errors',
+	numProcessed: 'Number Processed',
+	numDuplicate: 'Number Duplicate',
+	numImport: 'Number Imported',
+	numImportError: 'Number Import Errors'
+} satisfies OrderByEnumTitles;
+
+export const importOrderByEnumToText = (input: OrderByEnumType) => {
+	return enumTitles[input];
+};
+
+export const importFilterSchema = z.object({
+	id: z.string().optional(),
+	idArray: z.array(z.string()).optional(),
+	textFilter: z.string().optional(),
+	title: z.coerce.string().optional(),
+	filename: z.coerce.string().optional(),
+	source: z.array(z.enum(importSourceEnum)).optional(),
+	type: z.array(z.enum(importTypeEnum)).optional(),
+	mapping: z.string().optional(),
+	status: z.array(z.enum(importStatusEnum)).optional(),
+
+	//Page Information
+	page: z.number().default(0).optional(),
+	pageSize: z.number().default(10).optional(),
+	orderBy: z
+		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.default([{ direction: 'desc', field: 'createdAt' }])
+		.optional()
+});
+
+export type ImportFilterSchemaType = z.infer<typeof importFilterSchema>;

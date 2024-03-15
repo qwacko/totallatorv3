@@ -15,11 +15,11 @@ import {
 	tag
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, getTableColumns, desc, sql } from 'drizzle-orm';
+import { eq, and, count as drizzleCount, inArray } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import type { ZodSchema } from 'zod';
-import { importTypeEnum, type importTypeType } from '$lib/schema/importSchema';
+import { type ImportFilterSchemaType, type importTypeType } from '$lib/schema/importSchema';
 import {
 	importTransaction,
 	importAccount,
@@ -33,47 +33,46 @@ import {
 import { getImportDetail } from './helpers/import/getImportDetail';
 import { processCreatedImport } from './helpers/import/processImport';
 import { streamingDelay } from '$lib/server/testingDelay';
+import { importListSubquery } from './helpers/import/importListSubquery';
+import { importToOrderByToSQL } from './helpers/import/importOrderByToSQL';
+import { importFilterToQuery } from './helpers/import/importFilterToQuery';
 
 export const importActions = {
-	list: async ({ db }: { db: DBType }) => {
-		const imports = await db
-			.select({
-				...getTableColumns(importTable),
-				importMappingId: importMapping.id,
-				importMappingTitle: importMapping.title,
-				numErrors:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'error' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numImportErrors:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'importError' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numProcessed:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'processed' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numDuplicate:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'duplicate' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numImport:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'imported' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					),
-				numImportError:
-					sql`count(CASE WHEN ${importItemDetail.status} = 'importError' THEN 1 ELSE NULL END)`.mapWith(
-						Number
-					)
-			})
+	numberActive: async (db: DBType) => {
+		const result = await db
+			.select({ count: drizzleCount(importTable.id) })
 			.from(importTable)
-			.leftJoin(importItemDetail, eq(importItemDetail.importId, importTable.id))
-			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
-			.groupBy(importTable.id, importMapping.id, importMapping.title)
-			.orderBy(desc(importTable.createdAt))
+			.where(inArray(importTable.status, ['importing', 'awaitingImport']))
 			.execute();
 
-		return imports;
+		return result[0].count;
+	},
+	list: async ({ db, filter }: { db: DBType; filter: ImportFilterSchemaType }) => {
+		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
+
+		const internalQuery = importListSubquery(db);
+
+		const where = importFilterToQuery({ filter: restFilter, query: internalQuery });
+
+		const results = await db
+			.select()
+			.from(internalQuery)
+			.where(and(...where))
+			.limit(pageSize)
+			.offset(page * pageSize)
+			.orderBy(...importToOrderByToSQL({ query: internalQuery, orderBy }))
+			.execute();
+
+		const resultCount = await db
+			.select({ count: drizzleCount(internalQuery.id) })
+			.from(internalQuery)
+			.where(and(...where))
+			.execute();
+
+		const count = resultCount[0].count;
+		const pageCount = Math.max(1, Math.ceil(count / pageSize));
+
+		return { count, data: results, pageCount, page, pageSize };
 	},
 	storeCSV: async ({
 		newFile,
@@ -124,6 +123,8 @@ export const importActions = {
 				checkImportedOnly
 			})
 			.execute();
+
+		await processCreatedImport({ db, id });
 
 		return id;
 	},
@@ -223,7 +224,11 @@ export const importActions = {
 		);
 	},
 	get: async ({ id, db }: { db: DBType; id: string }) => {
-		const data = await db.select().from(importTable).where(eq(importTable.id, id));
+		const data = await db
+			.select()
+			.from(importTable)
+			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
+			.where(eq(importTable.id, id));
 
 		return { importInfo: data[0] };
 	},
@@ -238,32 +243,10 @@ export const importActions = {
 		const importData = data[0];
 
 		if (importData.status === 'created') {
-			await processCreatedImport({ db, id, importData });
+			await processCreatedImport({ db, id });
 		}
 
 		return getImportDetail({ db, id });
-	},
-	changeType: async ({ db, id, newType }: { db: DBType; id: string; newType: importTypeType }) => {
-		const targetItems = await db.select().from(importTable).where(eq(importTable.id, id)).execute();
-
-		if (!targetItems || targetItems.length === 0) {
-			throw new Error('Import Not Found');
-		}
-		if (!importTypeEnum.includes(newType)) {
-			throw new Error('Target Import Type Incorrect');
-		}
-		if (targetItems[0].status !== 'processed' && targetItems[0].status !== 'created') {
-			throw new Error('Target Import Must Be Processed or Created only to change type');
-		}
-
-		await db.transaction(async (db) => {
-			await db
-				.update(importTable)
-				.set({ type: newType, ...updatedTime() })
-				.where(eq(importTable.id, id))
-				.execute();
-			await importActions.reprocess({ db, id });
-		});
 	},
 	reprocess: async ({ db, id }: { db: DBType; id: string }) => {
 		const item = await db.select().from(importTable).where(eq(importTable.id, id));
@@ -284,6 +267,10 @@ export const importActions = {
 			throw new Error('Import Complete. Cannot Reprocess');
 		}
 
+		if (importData.status === 'importing' || importData.status === 'awaitingImport') {
+			throw new Error('Import Currently Importing. Cannot Reprocess');
+		}
+
 		const numImported = itemDetails.filter((item) => item.status === 'imported').length;
 
 		if (numImported > 0) {
@@ -302,7 +289,7 @@ export const importActions = {
 			await trx.delete(importItemDetail).where(eq(importItemDetail.importId, id)).execute();
 		});
 	},
-	doImport: async ({ db, id }: { db: DBType; id: string }) => {
+	triggerImport: async ({ db, id }: { db: DBType; id: string }) => {
 		const importInfoList = await db
 			.select()
 			.from(importTable)
@@ -314,43 +301,118 @@ export const importActions = {
 			throw new Error('Import Not Found');
 		}
 		if (importInfo.status !== 'processed') {
-			throw new Error('Import is not in state Processed. Cannot import.');
+			throw new Error('Import is not in state Processed. Cannot trigger import.');
+		}
+
+		await db
+			.update(importTable)
+			.set({ status: 'awaitingImport', ...updatedTime() })
+			.where(eq(importTable.id, id))
+			.execute();
+	},
+	doRequiredImports: async ({ db }: { db: DBType }) => {
+		const numberImporting = await db
+			.select()
+			.from(importTable)
+			.where(eq(importTable.status, 'importing'))
+			.execute();
+
+		//Only One Import Should Be Executing At A Time
+		if (numberImporting.length > 0) {
+			return;
 		}
 
 		const importDetails = await db
 			.select()
-			.from(importItemDetail)
-			.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'processed')));
+			.from(importTable)
+			.where(eq(importTable.status, 'awaitingImport'))
+			.limit(1)
+			.execute();
 
-		await db.transaction(async (trx) => {
-			await Promise.all(
-				importDetails.map(async (item) => {
-					if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
-						await importTransaction({ item, trx });
-					} else if (importInfo.type === 'account') {
-						await importAccount({ item, trx });
-					} else if (importInfo.type === 'bill') {
-						await importBill({ item, trx });
-					} else if (importInfo.type === 'budget') {
-						await importBudget({ item, trx });
-					} else if (importInfo.type === 'category') {
-						await importCategory({ item, trx });
-					} else if (importInfo.type === 'tag') {
-						await importTag({ item, trx });
-					} else if (importInfo.type === 'label') {
-						await importLabel({ item, trx });
-					}
-				})
-			);
+		await Promise.all(
+			importDetails.map(async (item) => {
+				await importActions.doImport({ db, id: item.id });
+			})
+		);
+	},
+	doImport: async ({ db, id }: { db: DBType; id: string }) => {
+		const importInfoList = await db
+			.select()
+			.from(importTable)
+			.where(eq(importTable.id, id))
+			.execute();
 
-			await db
-				.update(importTable)
-				.set({ status: 'complete', ...updatedTime() })
+		const importInfo = importInfoList[0];
+		if (!importInfo) {
+			throw new Error('Import Not Found');
+		}
+		if (importInfo.status !== 'awaitingImport') {
+			throw new Error('Import is not in state Awaiting Import. Cannot import.');
+		}
+
+		//Mark as importing
+		await db
+			.update(importTable)
+			.set({ status: 'importing', ...updatedTime() })
+			.where(eq(importTable.id, id))
+			.execute();
+
+		try {
+			const importDetails = await db
+				.select()
+				.from(importItemDetail)
+				.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'processed')));
+
+			await db.transaction(async (trx) => {
+				await Promise.all(
+					importDetails.map(async (item) => {
+						if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
+							await importTransaction({ item, trx });
+						} else if (importInfo.type === 'account') {
+							await importAccount({ item, trx });
+						} else if (importInfo.type === 'bill') {
+							await importBill({ item, trx });
+						} else if (importInfo.type === 'budget') {
+							await importBudget({ item, trx });
+						} else if (importInfo.type === 'category') {
+							await importCategory({ item, trx });
+						} else if (importInfo.type === 'tag') {
+							await importTag({ item, trx });
+						} else if (importInfo.type === 'label') {
+							await importLabel({ item, trx });
+						}
+					})
+				);
+
+				await trx
+					.update(importTable)
+					.set({ status: 'complete', ...updatedTime() })
+					.where(eq(importTable.id, id))
+					.execute();
+
+				await tActions.reusableFitler.applyFollowingImport({ db: trx, importId: id });
+			});
+		} catch (e) {
+			//Check if the import is still in the importing state
+			const importInfoList = await db
+				.select()
+				.from(importTable)
 				.where(eq(importTable.id, id))
+				.limit(1)
 				.execute();
 
-			await tActions.reusableFitler.applyFollowingImport({ db: trx, importId: id });
-		});
+			const importInfo = importInfoList[0];
+
+			if (importInfo && importInfo.status === 'importing') {
+				//Mark as error
+
+				await db
+					.update(importTable)
+					.set({ status: 'error', errorInfo: e, ...updatedTime() })
+					.where(eq(importTable.id, id))
+					.execute();
+			}
+		}
 	},
 	forgetImport: async ({ db, id }: { db: DBType; id: string }) => {
 		await db.transaction(async (db) => {
@@ -412,7 +474,11 @@ export const importActions = {
 
 		const importInfo = importDetails[0];
 
-		if (importInfo.status !== 'complete' && importInfo.status !== 'imported') {
+		if (
+			importInfo.status !== 'complete' &&
+			importInfo.status !== 'importing' &&
+			importInfo.status !== 'awaitingImport'
+		) {
 			return true;
 		}
 

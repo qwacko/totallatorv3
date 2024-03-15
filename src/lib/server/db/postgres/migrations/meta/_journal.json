@@ -232,6 +232,13 @@
       "when": 1710350799283,
       "tag": "0032_pale_scalphunter",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1710388204738,
+      "tag": "0033_brief_gorilla_man",
+      "breakpoints": true
     }
   ]
 }
