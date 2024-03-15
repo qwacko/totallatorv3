@@ -12,12 +12,12 @@
 	export let loading = false;
 </script>
 
-<CustomHeader pageTitle="Delete Import" filterText={data.info.importInfo.title} />
+<CustomHeader pageTitle="Delete Import" filterText={data.info.importInfo.import.title} />
 
-<PageLayout title="Delete Import" subtitle={data.info.importInfo.title}>
+<PageLayout title="Delete Import" subtitle={data.info.importInfo.import.title}>
 	<P>
-		Delete import {data.info.importInfo.title}? This will remove references to the import and any
-		linked items.
+		Delete import {data.info.importInfo.import.title}? This will remove references to the import and
+		any linked items.
 	</P>
 	<Button
 		href={urlGenerator({ address: '/(loggedIn)/import/[id]', paramsValue: { id: data.id } }).url}

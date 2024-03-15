@@ -12,11 +12,11 @@
 	let loading = false;
 </script>
 
-<CustomHeader pageTitle="Forget Import" filterText={data.info.importInfo.title} />
+<CustomHeader pageTitle="Forget Import" filterText={data.info.importInfo.import.title} />
 
-<PageLayout title="Forget Import" subtitle={data.info.importInfo.title}>
+<PageLayout title="Forget Import" subtitle={data.info.importInfo.import.title}>
 	<P>
-		Forget import {data.info.importInfo.title}? This will remove references to the import, but leave
+		Forget import {data.info.importInfo.import.title}? This will remove references to the import, but leave
 		all linked items.
 	</P>
 	<Button

@@ -12,11 +12,11 @@
 	let loading = false;
 </script>
 
-<CustomHeader pageTitle="Delete Import Linked Items" filterText={data.info.importInfo.title} />
+<CustomHeader pageTitle="Delete Import Linked Items" filterText={data.info.importInfo.import.title} />
 
-<PageLayout title="Delete Import Linked Items" subtitle={data.info.importInfo.title}>
+<PageLayout title="Delete Import Linked Items" subtitle={data.info.importInfo.import.title}>
 	<P>
-		Delete items linked to import {data.info.importInfo.title}? This will leave the import for
+		Delete items linked to import {data.info.importInfo.import.title}? This will leave the import for
 		future reuse.
 	</P>
 	<Button

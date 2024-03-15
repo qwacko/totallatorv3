@@ -92,7 +92,8 @@
 				{
 					id: 'mapping',
 					title: 'Mapping',
-					rowToDisplay: (row) => row.importMappingTitle
+					rowToDisplay: (row) => row.importMappingTitle,
+					sortKey: 'importMappingTitle'
 				},
 				{
 					id: 'status',
