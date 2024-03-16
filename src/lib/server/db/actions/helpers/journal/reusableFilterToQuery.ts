@@ -1,6 +1,6 @@
 import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
 import { reusableFilter } from '$lib/server/db/postgres/schema';
-import { SQL, eq, inArray, ilike, or } from 'drizzle-orm';
+import { SQL, eq, inArray, ilike, or, not } from 'drizzle-orm';
 
 export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) => {
 	const restFilter = filter;
@@ -10,7 +10,9 @@ export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) =>
 	if (restFilter.idArray && restFilter.idArray.length > 0)
 		where.push(inArray(reusableFilter.id, restFilter.idArray));
 	if (restFilter.title) where.push(ilike(reusableFilter.title, `%${restFilter.title}%`));
+	if (restFilter.titleNot) where.push(not(ilike(reusableFilter.title, `%${restFilter.titleNot}%`)));
 	if (restFilter.group) where.push(ilike(reusableFilter.group, `%${restFilter.group}%`));
+	if (restFilter.groupNot) where.push(not(ilike(reusableFilter.group, `%${restFilter.groupNot}%`)));
 	if (restFilter.multipleText) {
 		const orValue = or(
 			ilike(reusableFilter.title, `%${restFilter.multipleText}%`),
@@ -31,8 +33,12 @@ export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) =>
 		where.push(eq(reusableFilter.modificationType, restFilter.modificationType));
 	if (restFilter.filterText)
 		where.push(ilike(reusableFilter.filterText, `%${restFilter.filterText}%`));
+	if (restFilter.filterTextNot)
+		where.push(not(ilike(reusableFilter.filterText, `%${restFilter.filterTextNot}%`)));
 	if (restFilter.changeText)
 		where.push(ilike(reusableFilter.changeText, `%${restFilter.changeText}%`));
+	if (restFilter.changeTextNot)
+		where.push(not(ilike(reusableFilter.changeText, `%${restFilter.changeTextNot}%`)));
 
 	return where;
 };
@@ -47,16 +53,20 @@ export const reusableFilterToText = (filter: ReusableFilterFilterSchemaType) => 
 	if (restFilter.multipleText) {
 		text.push(`Group / Title / Filter / Change like ${restFilter.multipleText}`);
 	}
-	if (restFilter.title) text.push(`title like ${restFilter.title}`);
-	if (restFilter.group) text.push(`group like ${restFilter.group}`);
+	if (restFilter.title) text.push(`title contains ${restFilter.title}`);
+	if (restFilter.titleNot) text.push(`title doesn't contain ${restFilter.titleNot}`);
+	if (restFilter.group) text.push(`group contains ${restFilter.group}`);
+	if (restFilter.groupNot) text.push(`group doesn't contain ${restFilter.groupNot}`);
 	if (restFilter.applyAutomatically !== undefined)
 		text.push(`Automatic = ${restFilter.applyAutomatically}`);
 	if (restFilter.applyFollowingImport !== undefined)
 		text.push(`Import = ${restFilter.applyFollowingImport}`);
 	if (restFilter.listed !== undefined) text.push(`In Dropdown = ${restFilter.listed}`);
 	if (restFilter.modificationType) text.push(`modificationType = ${restFilter.modificationType}`);
-	if (restFilter.filterText) text.push(`filterText like ${restFilter.filterText}`);
-	if (restFilter.changeText) text.push(`changeText like ${restFilter.changeText}`);
+	if (restFilter.filterText) text.push(`filterText contains ${restFilter.filterText}`);
+	if (restFilter.filterTextNot) text.push(`filterText doesn't contain ${restFilter.filterTextNot}`);
+	if (restFilter.changeText) text.push(`changeText contains ${restFilter.changeText}`);
+	if (restFilter.changeTextNot) text.push(`changeText doesn't contain ${restFilter.changeTextNot}`);
 
 	if (text.length === 0) {
 		text.push('No Filters Applied');
