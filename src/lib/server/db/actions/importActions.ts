@@ -15,7 +15,7 @@ import {
 	tag
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, count as drizzleCount, inArray } from 'drizzle-orm';
+import { eq, and, count as drizzleCount, inArray, lt } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import type { ZodSchema } from 'zod';
@@ -311,6 +311,25 @@ export const importActions = {
 			.execute();
 	},
 	doRequiredImports: async ({ db }: { db: DBType }) => {
+		const importTimeoutms = serverEnv.IMPORT_TIMEOUT_MIN * 60 * 1000;
+		const earliestUpdatedAt = new Date(Date.now() - importTimeoutms);
+
+		const numberImportingTooLong = await db
+			.select()
+			.from(importTable)
+			.where(and(eq(importTable.status, 'importing'), lt(importTable.updatedAt, earliestUpdatedAt)))
+			.execute();
+
+		await Promise.all(
+			numberImportingTooLong.map(async (item) => {
+				await db
+					.update(importTable)
+					.set({ status: 'error', errorInfo: 'Import Timed Out', ...updatedTime() })
+					.where(eq(importTable.id, item.id))
+					.execute();
+			})
+		);
+
 		const numberImporting = await db
 			.select()
 			.from(importTable)
@@ -363,9 +382,12 @@ export const importActions = {
 				.from(importItemDetail)
 				.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'processed')));
 
+			const startTime = new Date();
+			const maxTime = new Date(startTime.getTime() + serverEnv.IMPORT_TIMEOUT_MIN * 60 * 1000);
+
 			await db.transaction(async (trx) => {
 				await Promise.all(
-					importDetails.map(async (item) => {
+					importDetails.map(async (item, index) => {
 						if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
 							await importTransaction({ item, trx });
 						} else if (importInfo.type === 'account') {
@@ -381,16 +403,28 @@ export const importActions = {
 						} else if (importInfo.type === 'label') {
 							await importLabel({ item, trx });
 						}
+
+						console.log(
+							`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
+						);
+
+						if (new Date() > maxTime) {
+							trx.rollback();
+							throw new Error('Import Timed Out');
+						}
 					})
 				);
+				await tActions.reusableFitler.applyFollowingImport({
+					db: trx,
+					importId: id,
+					timeout: maxTime
+				});
 
 				await trx
 					.update(importTable)
 					.set({ status: 'complete', ...updatedTime() })
 					.where(eq(importTable.id, id))
 					.execute();
-
-				await tActions.reusableFitler.applyFollowingImport({ db: trx, importId: id });
 			});
 		} catch (e) {
 			//Check if the import is still in the importing state
