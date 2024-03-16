@@ -247,18 +247,34 @@ export const reusableFilterActions = {
 
 		return;
 	},
-	applyFollowingImport: async ({ db, importId }: { db: DBType; importId: string }) => {
+	applyFollowingImport: async ({
+		db,
+		importId,
+		timeout
+	}: {
+		db: DBType;
+		importId: string;
+		timeout?: Date;
+	}) => {
 		const items = await db
 			.select({ id: reusableFilter.id })
 			.from(reusableFilter)
 			.where(eq(reusableFilter.applyFollowingImport, true))
 			.execute();
 
-		await Promise.all(
-			items.map(async (currentItem) => {
-				await reusableFilterActions.applyById({ db, id: currentItem.id, importId });
-			})
-		);
+		let index = 1;
+
+		for (const currentItem of items) {
+			await reusableFilterActions.applyById({ db, id: currentItem.id, importId });
+
+
+			if (timeout && new Date() > timeout) {
+				logging.error(`Filter Application Timeout. Reached ${index} of ${items.length} filters.`);
+				throw new Error('Filter Application Timeout');
+			}
+
+			index++;
+		}
 	},
 	applyAllAutomatic: async ({ db }: { db: DBType }) => {
 		const items = await db
