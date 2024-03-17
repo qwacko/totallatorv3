@@ -69,10 +69,10 @@
 		setNew={updateValue}
 	/>
 
-	{#if $booleanSetValue === 'true'}
-		<input type="hidden" name={setField} value={$booleanSetValue} />
+	{#if $booleanSetValue === 'true' || $booleanSetValue === true}
+		<input type="hidden" name={setField} value={true} />
 	{/if}
-	{#if $booleanClearValue === 'true'}
-		<input type="hidden" name={clearField} value={$booleanClearValue} />
+	{#if $booleanClearValue === 'true' || $booleanClearValue === true}
+		<input type="hidden" name={clearField} value={true} />
 	{/if}
 </div>
