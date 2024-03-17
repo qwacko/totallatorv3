@@ -103,14 +103,18 @@ export const reusableFilterFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
 	title: z.coerce.string().optional(),
+	titleNot: z.coerce.string().optional(),
 	group: z.coerce.string().optional(),
+	groupNot: z.coerce.string().optional(),
 	multipleText: z.coerce.string().optional(),
 	applyAutomatically: z.boolean().optional(),
 	applyFollowingImport: z.boolean().optional(),
 	listed: z.boolean().optional(),
 	modificationType: z.enum(reusableFilterModifcationType).optional(),
 	filterText: z.coerce.string().optional(),
+	filterTextNot: z.coerce.string().optional(),
 	changeText: z.coerce.string().optional(),
+	changeTextNot: z.coerce.string().optional(),
 
 	//Page Information
 	page: z.number().default(0).optional(),
