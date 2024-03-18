@@ -6,6 +6,7 @@
 	import {
 		Badge,
 		Button,
+		ButtonGroup,
 		Input,
 		Table,
 		TableBody,
@@ -18,6 +19,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import { defaultCustomEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	$: urlInfo = pageInfo('/(loggedIn)/backup', $page);
 
@@ -59,20 +61,25 @@
 					<TableBodyRow>
 						<TableBodyCell>
 							<div class="flex flex-row gap-2">
-								<Button
-									href={urlGenerator({
-										address: '/(loggedIn)/backup/[filename]',
-										paramsValue: { filename: backup.filename }
-									}).url}
-									outline
-									color="blue"
-								>
-									View
-								</Button>
+								<ButtonGroup>
+									<Button
+										href={urlGenerator({
+											address: '/(loggedIn)/backup/[filename]',
+											paramsValue: { filename: backup.path }
+										}).url}
+										outline
+										color="blue"
+									>
+										View
+									</Button>
+									<RawDataModal data={backup} dev={data.dev} outline />
+								</ButtonGroup>
 							</div>
 						</TableBodyCell>
-						<TableBodyCell>{backup.filename}</TableBodyCell>
-						<TableBodyCell>{backup.createdAt.toLocaleString()}</TableBodyCell>
+						<TableBodyCell>{backup.path}</TableBodyCell>
+						<TableBodyCell>
+							{backup.lastModifiedMs ? new Date(backup.lastModifiedMs).toISOString() : ''}
+						</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

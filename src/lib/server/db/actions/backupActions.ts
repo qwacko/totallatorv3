@@ -28,24 +28,22 @@ import {
 	reportElement,
 	reportElementConfig
 } from '../postgres/schema';
-import fs from 'fs/promises';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
-
-import { serverEnv } from '$lib/server/serverEnv';
 import superjson from 'superjson';
 import zlib from 'zlib';
 import { backupSchemaMigrate_01to02 } from '$lib/server/backups/backupSchemaMigrate_01to02';
 import { backupSchemaMigrate_02to03 } from '$lib/server/backups/backupSchemaMigrate_02to03';
 import { backupSchemaMigrate_03to04 } from '$lib/server/backups/backupSchemaMigrate_03to04';
 import { backupSchemaMigrate_04to05 } from '$lib/server/backups/backupSchemaMigrate_04to05';
+import { backupFileHandler } from '$lib/server/files/fileHandler';
 
-async function writeToMsgPackFile(data: unknown, filePath: string) {
+async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
-	await fs.writeFile(filePath, compressedConvertedData);
+	await backupFileHandler.write(fileName, compressedConvertedData);
 }
 
-async function readFromMsgPackFile(filePath: string) {
-	const fileData = await fs.readFile(filePath);
+async function readFromMsgPackFile(filename: string) {
+	const fileData = await backupFileHandler.readToBuffer(filename);
 	const decompressedFileData = zlib.gunzipSync(fileData);
 	return superjson.parse(decompressedFileData.toString());
 }
@@ -75,9 +73,7 @@ export const backupActions = {
 		createdBy: string;
 	}) => {
 		const date = new Date();
-		const filenameUse = `${serverEnv.BACKUP_DIR}/${date.toISOString()}-${title}.${
-			compress ? 'data' : 'json'
-		}`;
+		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
 			version: 5,
@@ -142,30 +138,27 @@ export const backupActions = {
 		if (compress) {
 			await writeToMsgPackFile(checkedBackupData, filenameUse);
 		} else {
-			await fs.writeFile(filenameUse, superjson.stringify(checkedBackupData));
+			await backupFileHandler.write(filenameUse, superjson.stringify(checkedBackupData));
 		}
 	},
 	getBackupData: async ({ returnRaw, filename }: { filename: string; returnRaw: boolean }) => {
-		const targetDir = serverEnv.BACKUP_DIR;
-		const targetFile = `${targetDir}/${filename}`;
-
 		const backupList = await backupActions.list();
 
-		const backupFile = backupList.find((file) => file.filename === filename);
+		const backupFile = backupList.find((file) => file.path === filename);
 
 		if (!backupFile) {
 			throw new Error('Backup File Not Found');
 		}
 
 		if (returnRaw) {
-			return await fs.readFile(targetFile);
+			return await backupFileHandler.readToBuffer(filename);
 		}
 
 		const isCompressed = filename.endsWith('.data');
 
 		const loadedBackupData = isCompressed
-			? await readFromMsgPackFile(targetFile)
-			: superjson.parse((await fs.readFile(targetFile)).toString());
+			? await readFromMsgPackFile(filename)
+			: superjson.parse((await backupFileHandler.readToString(filename)).toString());
 
 		return loadedBackupData;
 	},
@@ -201,17 +194,13 @@ export const backupActions = {
 		return backupDataParsed05;
 	},
 	deleteBackup: async (backupName: string) => {
-		const targetDir = serverEnv.BACKUP_DIR;
+		const backupExists = await backupFileHandler.fileExists(backupName);
 
-		const backupFile = (await fs.readdir(targetDir, { recursive: true })).find(
-			(file) => file === backupName
-		);
-
-		if (!backupFile) {
+		if (!backupExists) {
 			throw new Error('Backup File Not Found');
 		}
 
-		await fs.unlink(`${targetDir}/${backupFile}`);
+		await backupFileHandler.deleteFile(backupName);
 
 		return;
 	},
@@ -366,30 +355,20 @@ export const backupActions = {
 		});
 	},
 	list: async () => {
-		const targetDir = serverEnv.BACKUP_DIR;
+		const files = backupFileHandler.list('');
 
-		const files = await fs.readdir(targetDir, { recursive: true });
+		const backupData = (await files.toArray())
+			.filter((item) => item.type === 'file')
+			.map((item) => ({
+				...item,
+				compressed: item.path.endsWith('.data')
+			}));
 
-		const backupData = await Promise.all(
-			files.map(async (file) => {
-				const filePath = `${targetDir}/${file}`;
-				const stats = await fs.stat(filePath);
-
-				const createdAt = new Date(stats.birthtimeMs);
-				const updatedAt = new Date(stats.mtimeMs);
-				const createdAtNumber = stats.birthtimeMs;
-
-				return {
-					filename: file,
-					compressed: file.endsWith('.data'),
-					createdAt,
-					updatedAt,
-					createdAtNumber
-				};
-			})
+		const sortedBackupData = backupData.sort((a, b) =>
+			a.lastModifiedMs && b.lastModifiedMs
+				? a.lastModifiedMs - b.lastModifiedMs
+				: a.path.localeCompare(b.path)
 		);
-
-		const sortedBackupData = backupData.sort((a, b) => b.createdAtNumber - a.createdAtNumber);
 
 		return sortedBackupData;
 	}

@@ -65,6 +65,10 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.535.0",
+		"@flystorage/aws-s3": "^0.1.1",
+		"@flystorage/file-storage": "^0.1.1",
+		"@flystorage/local-fs": "^0.1.2",
 		"@lucia-auth/adapter-drizzle": "^1.0.3",
 		"@melt-ui/svelte": "^0.76.0",
 		"@sveltejs/adapter-node": "^5.0.1",
