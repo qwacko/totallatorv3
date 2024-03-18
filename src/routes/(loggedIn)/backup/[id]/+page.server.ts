@@ -9,7 +9,7 @@ export const load = async (data) => {
 	authGuard(data);
 	const { current } = serverPageInfo(data.route.id, data);
 
-	if (!current.params?.filename) {
+	if (!current.params?.id) {
 		redirect(
 			302,
 			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 1 } }).url
@@ -18,7 +18,7 @@ export const load = async (data) => {
 
 	const backupInformation = await tActions.backup.getBackupInfo({
 		db: data.locals.db,
-		filename: current.params.filename
+		id: current.params.id
 	});
 
 	if (!backupInformation) {
@@ -29,19 +29,20 @@ export const load = async (data) => {
 	}
 
 	return {
-		information: backupInformation.information
+		information: backupInformation.information,
+		backupInformation
 	};
 };
 
 export const actions = {
 	restore: async ({ request, params, locals }) => {
-		const filename = params.filename;
-		if (!filename) {
-			return failWrapper('No filename provided');
+		const id = params.id;
+		if (!id) {
+			return failWrapper('No ID provided');
 		}
 
 		try {
-			await tActions.backup.restoreBackup({ db: locals.db, filename, includeUsers: false });
+			await tActions.backup.restoreBackup({ db: locals.db, id, includeUsers: false });
 		} catch (e) {
 			logging.error('Error Restoring Backup: ' + e);
 			return failWrapper('Error Restoring Backup');
@@ -52,13 +53,13 @@ export const actions = {
 		);
 	},
 	delete: async ({ request, params, locals }) => {
-		const filename = params.filename;
-		if (!filename) {
+		const id = params.id;
+		if (!id) {
 			return failWrapper('No filename provided');
 		}
 
 		try {
-			await tActions.backup.deleteBackup({ filename, db: locals.db });
+			await tActions.backup.deleteBackup({ id, db: locals.db });
 		} catch (e) {
 			logging.error('Error Deleting Backup: ' + e);
 			return failWrapper('Error Deleting Backup');

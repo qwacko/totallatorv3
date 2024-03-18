@@ -86,8 +86,8 @@
 								<ButtonGroup>
 									<Button
 										href={urlGenerator({
-											address: '/(loggedIn)/backup/[filename]',
-											paramsValue: { filename: backup.filename }
+											address: '/(loggedIn)/backup/[id]',
+											paramsValue: { id: backup.id }
 										}).url}
 										outline
 										color="blue"

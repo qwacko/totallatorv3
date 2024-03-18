@@ -1,24 +1,19 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import { pageInfo, urlGenerator } from '$lib/routes.js';
-	import { page } from '$app/stores';
+	import { urlGenerator } from '$lib/routes.js';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import { enhance } from '$app/forms';
 	import { Button, Badge, Spinner } from 'flowbite-svelte';
 	import { defaultCustomEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	$: urlInfo = pageInfo('/(loggedIn)/backup/[filename]', $page);
-
 	export let data;
 
-	$: filename = urlInfo.current.params?.filename || '';
-	$: title = `Backup - ${filename}`;
+	$: filename = data.backupInformation.filename;
+	$: title = `Backup - ${data.backupInformation.title}`;
 
 	let restoring = false;
 	let deleting = false;
-
-	$: console.log('Information = ', data.information.information);
 </script>
 
 <CustomHeader pageTitle={title} />
@@ -31,13 +26,15 @@
 	{:then information}
 		<div class="grid grid-cols-2 gap-2">
 			<div class="grid justify-self-end font-bold">Title</div>
-			<div class="grid">{information.information.title}</div>
+			<div class="grid">{data.backupInformation.title}</div>
+			<div class="grid justify-self-end font-bold">Filename</div>
+			<div class="grid">{data.backupInformation.filename}</div>
 			<div class="grid justify-self-end font-bold">Created By</div>
-			<div class="grid">{information.information.createdBy}</div>
+			<div class="grid">{data.backupInformation.createdBy}</div>
 			<div class="grid justify-self-end font-bold">Created At</div>
-			<div class="grid">{information.information.createdAt}</div>
+			<div class="grid">{new Date(data.backupInformation.createdAt).toISOString()}</div>
 			<div class="grid justify-self-end font-bold">Creation Reason</div>
-			<div class="grid">{information.information.creationReason}</div>
+			<div class="grid">{data.backupInformation.creationReason}</div>
 			<div class="grid justify-self-end font-bold">Journal Count</div>
 			<div class="grid">{information.information.itemCount.numberJournalEntries}</div>
 			<div class="grid justify-self-end font-bold">Other Items Count</div>
@@ -106,7 +103,7 @@
 			<Button
 				href={urlGenerator({
 					address: '/(loggedIn)/backup/download/[filename]',
-					paramsValue: { filename: filename }
+					paramsValue: { filename }
 				}).url}
 				outline
 				color="blue"

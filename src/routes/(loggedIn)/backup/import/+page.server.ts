@@ -1,40 +1,24 @@
 import { urlGenerator } from '$lib/routes.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { backupFileHandler } from '$lib/server/files/fileHandler.js';
 import { logging } from '$lib/server/logging.js';
 import { redirect } from '@sveltejs/kit';
+import { nanoid } from 'nanoid';
 
 export const actions = {
 	import: async ({ request, locals }) => {
 		const formData = await request.formData();
 		const backupFile = formData.get('backupFile') as File;
 
-		//Store backup file into target folder, making sure to rename backup file if there is an existing file with the same name
-		let backupFileName = backupFile.name;
-		const backupFileExists = await backupFileHandler.fileExists(backupFileName);
-		if (backupFileExists) {
-			const backupFileExtension = backupFileName.split('.').pop();
-			const backupFileNameWithoutExtension = backupFileExtension
-				? backupFileName.substring(0, backupFileName.length - backupFileExtension.length - 1)
-				: backupFileName;
-			const backupFileNameNew = `${backupFileNameWithoutExtension}-ImportDuplicate-${new Date().toISOString()}.${backupFileExtension}`;
-			backupFileName = backupFileNameNew;
-		}
-
-		await backupFileHandler.write(backupFileName, Buffer.from(await backupFile.arrayBuffer()));
+		const id = nanoid();
 
 		try {
-			await tActions.backup.getBackupDataStrutured({ filename: backupFileName, db: locals.db });
+			await tActions.backup.importFile({ db: locals.db, backupFile, id });
 		} catch (e) {
-			logging.error(`Backup Import Failed. Incorrect Contents - ${backupFileName}`);
+			logging.error(`Backup Import Failed. Incorrect Contents - ${backupFile.name}`);
 			logging.error('Error', e);
-			await backupFileHandler.deleteFile(backupFileName);
 			return;
 		}
 
-		redirect(
-			302,
-			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } }).url
-		);
+		redirect(302, urlGenerator({ address: '/(loggedIn)/backup/[id]', paramsValue: { id } }).url);
 	}
 };

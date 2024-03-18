@@ -63,6 +63,67 @@ const chunker = async <D, R>(
 };
 
 export const backupActions = {
+	importFile: async ({ db, backupFile, id }: { db: DBType; backupFile: File; id: string }) => {
+		const getFilenameInfo = (filename: string) => {
+			const extension = filename.split('.').pop();
+			const withoutExtension = extension
+				? filename.substring(0, filename.length - extension.length - 1)
+				: filename;
+
+			return { extension, withoutExtension, filename };
+		};
+
+		//Store backup file into target folder, making sure to rename backup file if there is an existing file with the same name
+		let backupFileName = backupFile.name;
+		const backupFileExists = await backupFileHandler.fileExists(backupFileName);
+
+		console.log('Backup File Exists', backupFileExists, backupFileName);
+
+		if (backupFileExists) {
+			const fileInfo = getFilenameInfo(backupFileName);
+			backupFileName = `${fileInfo.withoutExtension}-ImportDuplicate-${new Date().toISOString()}.${fileInfo.extension}`;
+		}
+
+		await backupFileHandler.write(backupFileName, Buffer.from(await backupFile.arrayBuffer()));
+		const backupFileExistsAfterCreation = await backupFileHandler.fileExists(backupFileName);
+
+		console.log('Backup File Exists After Creation', backupFileExistsAfterCreation, backupFileName);
+
+		try {
+			const data = await getBackupStructuredData({ filename: backupFileName });
+
+			const information = {
+				version: data.latest.version,
+				information: data.latest.information
+			};
+
+			const fileInfo = getFilenameInfo(backupFileName);
+
+			await db
+				.insert(backupTable)
+				.values({
+					id,
+					title: fileInfo.withoutExtension,
+					filename: fileInfo.filename,
+					fileExists: true,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+					compressed: backupFileName.endsWith('.data'),
+					version: data.originalVersion,
+					creationReason: 'Import',
+					createdBy: 'User',
+					information
+				})
+				.execute();
+		} catch (e) {
+			logging.error(`Backup Import Failed. Incorrect Contents - ${backupFileName}`);
+			logging.error('Error', e);
+			await backupFileHandler.deleteFile(backupFileName);
+			return;
+		}
+
+		return id;
+	},
 	storeBackup: async ({
 		db,
 		title = 'Backup',
@@ -164,20 +225,8 @@ export const backupActions = {
 			information
 		});
 	},
-	getBackupData: async ({
-		returnRaw,
-		filename,
-		db
-	}: {
-		filename: string;
-		returnRaw: boolean;
-		db: DBType;
-	}) => {
-		const backupFiles = await db
-			.select()
-			.from(backupTable)
-			.where(eq(backupTable.filename, filename))
-			.execute();
+	getBackupData: async ({ returnRaw, id, db }: { id: string; returnRaw: boolean; db: DBType }) => {
+		const backupFiles = await db.select().from(backupTable).where(eq(backupTable.id, id)).execute();
 
 		if (backupFiles.length === 0) {
 			throw new Error('Backup File Not Found In DB');
@@ -185,13 +234,13 @@ export const backupActions = {
 
 		const backupFile = backupFiles[0];
 
-		const fileExists = await backupFileHandler.fileExists(filename);
+		const fileExists = await backupFileHandler.fileExists(backupFile.filename);
 
 		if (!fileExists) {
 			await db
 				.update(backupTable)
 				.set({ fileExists: false })
-				.where(eq(backupTable.id, backupFile.id))
+				.where(eq(backupTable.id, id))
 				.execute();
 			throw new Error('Backup File Not Found On Disk');
 		}
@@ -199,68 +248,77 @@ export const backupActions = {
 			await db
 				.update(backupTable)
 				.set({ fileExists: true })
-				.where(eq(backupTable.id, backupFile.id))
+				.where(eq(backupTable.id, id))
 				.execute();
 		}
 
 		if (returnRaw) {
-			return await backupFileHandler.readToBuffer(filename);
+			return await backupFileHandler.readToBuffer(backupFile.filename);
 		}
 
 		const isCompressed = backupFile.compressed;
 
 		const loadedBackupData = isCompressed
-			? await readFromMsgPackFile(filename)
-			: superjson.parse((await backupFileHandler.readToString(filename)).toString());
+			? await readFromMsgPackFile(backupFile.filename)
+			: superjson.parse((await backupFileHandler.readToString(backupFile.filename)).toString());
 
 		return loadedBackupData;
 	},
 	getBackupDataStrutured: async ({
-		filename,
+		id,
 		db
 	}: {
-		filename: string;
+		id: string;
 		db: DBType;
 	}): Promise<CurrentBackupSchemaType> => {
-		const backupData = await backupActions.getBackupData({ filename, returnRaw: false, db });
+		const backupData = await backupActions.getBackupData({ id, returnRaw: false, db });
 
 		const backupDataParsed = combinedBackupSchema.parse(backupData);
 
 		return backupSchemaToLatest(backupDataParsed);
 	},
-	deleteBackup: async ({ filename, db }: { filename: string; db: DBType }) => {
+	deleteBackup: async ({ id, db }: { id: string; db: DBType }) => {
 		const backupFilesInDB = await db
 			.select()
 			.from(backupTable)
-			.where(eq(backupTable.filename, filename))
+			.where(eq(backupTable.id, id))
 			.execute();
-		const backupExists = await backupFileHandler.fileExists(filename);
+
+		const backupFileInDB = backupFilesInDB[0];
+
+		const backupExists = await backupFileHandler.fileExists(backupFileInDB.filename);
 
 		if (backupExists) {
-			await backupFileHandler.deleteFile(filename);
+			await backupFileHandler.deleteFile(backupFileInDB.filename);
 		}
 
 		if (backupFilesInDB.length === 1) {
-			await db.delete(backupTable).where(eq(backupTable.filename, filename)).execute();
+			await db.delete(backupTable).where(eq(backupTable.id, id)).execute();
 		}
 
 		return;
 	},
 	restoreBackup: async ({
 		db,
-		filename,
+		id,
 		includeUsers = false
 	}: {
 		db: DBType;
-		filename: string;
+		id: string;
 		includeUsers?: boolean;
 	}) => {
-		const checkedBackupData = await backupActions.getBackupDataStrutured({ filename, db });
+		const backups = await db.select().from(backupTable).where(eq(backupTable.id, id)).execute();
+		if (backups.length === 0) {
+			throw new Error('Backup Not Found');
+		}
+		const backup = backups[0];
+
+		const checkedBackupData = await backupActions.getBackupDataStrutured({ id, db });
 
 		//Produce a new backup prior to any restore.
 		await backupActions.storeBackup({
 			db,
-			title: `Pre-Restore - ${filename}`,
+			title: `Pre-Restore - ${backup.createdAt.toISOString().substring(0, 10)} - ${backup.title}`,
 			compress: true,
 			createdBy: 'System',
 			creationReason: 'Pre-Restore'
@@ -399,7 +457,7 @@ export const backupActions = {
 			await trx
 				.update(backupTable)
 				.set({ restoreDate: new Date(), ...updatedTime() })
-				.where(eq(backupTable.filename, filename))
+				.where(eq(backupTable.id, id))
 				.execute();
 		});
 	},
@@ -500,7 +558,15 @@ export const backupActions = {
 			information: backupSchemaInfoToLatest(data.information)
 		}));
 	},
-	getBackupInfo: async ({ db, filename }: { db: DBType; filename: string }) => {
+	getBackupInfo: async ({ db, id }: { db: DBType; id: string }) => {
+		const data = await db.select().from(backupTable).where(eq(backupTable.id, id)).execute();
+		if (data.length === 0) {
+			return undefined;
+		}
+
+		return { ...data[0], information: backupSchemaInfoToLatest(data[0].information) };
+	},
+	getBackupInfoByFilename: async ({ db, filename }: { db: DBType; filename: string }) => {
 		const data = await db
 			.select()
 			.from(backupTable)
@@ -510,7 +576,7 @@ export const backupActions = {
 			return undefined;
 		}
 
-		return { ...data[0], information: backupSchemaInfoToLatest(data[0].information) };
+		return backupActions.getBackupInfo({ db, id: data[0].id });
 	}
 };
 
