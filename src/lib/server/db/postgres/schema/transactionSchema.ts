@@ -26,6 +26,7 @@ import type { JournalFilterSchemaWithoutPaginationType } from '../../../../schem
 import { pageSizeEnum } from '../../../../schema/pageSizeSchema';
 import { type ReportElementLayoutType } from '../../../../schema/reportHelpers/reportElementLayoutEnum';
 import type { ReportConfigPartSchemaType } from '../../../../schema/reportHelpers/reportConfigPartSchema';
+import type { CombinedBackupSchemaInfoType } from '$lib/server/backups/backupSchema';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -40,8 +41,8 @@ const moneyType = customType<{ data: number }>({
 });
 
 const timestampColumns = {
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at', { precision: 6, withTimezone: true }).notNull()
+	createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { precision: 6, withTimezone: true, mode: 'date' }).notNull()
 };
 
 const importColumns = (identifier?: string) => ({
@@ -666,4 +667,18 @@ export const filtersToReportConfigsRelations = relations(filtersToReportConfigs,
 export const keyValueTable = pgTable('key_value_table', {
 	key: text('key').notNull().unique(),
 	value: text('value').notNull()
+});
+
+export const backupTable = pgTable('backup_table', {
+	...idColumn,
+	...timestampColumns,
+	title: text('title').notNull(),
+	filename: text('filename').notNull().unique(),
+	fileExists: boolean('file_exists').notNull(),
+	version: integer('version').notNull(),
+	restoreDate: timestamp('restore_date'),
+	compressed: boolean('compressed').notNull(),
+	creationReason: text('creation_reason').notNull(),
+	createdBy: text('created_by').notNull(),
+	information: jsonb('information').$type<CombinedBackupSchemaInfoType>().notNull()
 });

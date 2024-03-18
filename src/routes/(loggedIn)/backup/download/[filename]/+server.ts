@@ -14,7 +14,8 @@ export const GET = async (data) => {
 
 	const fileData = (await tActions.backup.getBackupData({
 		filename: params.filename,
-		returnRaw: true
+		returnRaw: true,
+		db: data.locals.db
 	})) as Buffer;
 
 	return new Response(fileData, {

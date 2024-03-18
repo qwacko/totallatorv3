@@ -7,7 +7,7 @@ import { failWrapper } from '$lib/helpers/customEnhance';
 export const load = async (data) => {
 	authGuard(data);
 	const { current } = serverPageInfo(data.route.id, data);
-	const allBackupFiles = await tActions.backup.list();
+	const allBackupFiles = await tActions.backup.list({ db: data.locals.db });
 
 	const perPage = 20;
 	const page = current.searchParams ? current.searchParams.page : 0;
@@ -40,6 +40,10 @@ export const load = async (data) => {
 };
 
 export const actions = {
+	refresh: async ({ request, locals }) => {
+		const db = locals.db;
+		await tActions.backup.refreshList({ db });
+	},
 	backup: async ({ request, locals }) => {
 		try {
 			const db = locals.db;

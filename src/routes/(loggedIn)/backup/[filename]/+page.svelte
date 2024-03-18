@@ -17,6 +17,8 @@
 
 	let restoring = false;
 	let deleting = false;
+
+	$: console.log('Information = ', data.information.information);
 </script>
 
 <CustomHeader pageTitle={title} />
@@ -33,7 +35,7 @@
 			<div class="grid justify-self-end font-bold">Created By</div>
 			<div class="grid">{information.information.createdBy}</div>
 			<div class="grid justify-self-end font-bold">Created At</div>
-			<div class="grid">{information.information.createdAt.toISOString()}</div>
+			<div class="grid">{information.information.createdAt}</div>
 			<div class="grid justify-self-end font-bold">Creation Reason</div>
 			<div class="grid">{information.information.creationReason}</div>
 			<div class="grid justify-self-end font-bold">Journal Count</div>

@@ -16,24 +16,21 @@ export const load = async (data) => {
 		);
 	}
 
-	const backupInformation = async (filename: string) => {
-		const data = await tActions.backup.getBackupDataStrutured({
-			filename
-		});
-		return {
-			version: data.version,
-			information: data.information
-		};
-	};
-	try {
-		return { information: backupInformation(current.params.filename) };
-	} catch (error) {
-		logging.error('Error loading backup file: ' + error);
+	const backupInformation = await tActions.backup.getBackupInfo({
+		db: data.locals.db,
+		filename: current.params.filename
+	});
+
+	if (!backupInformation) {
 		redirect(
 			302,
 			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 1 } }).url
 		);
 	}
+
+	return {
+		information: backupInformation.information
+	};
 };
 
 export const actions = {
@@ -54,14 +51,14 @@ export const actions = {
 			urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } }).url
 		);
 	},
-	delete: async ({ request, params }) => {
+	delete: async ({ request, params, locals }) => {
 		const filename = params.filename;
 		if (!filename) {
 			return failWrapper('No filename provided');
 		}
 
 		try {
-			await tActions.backup.deleteBackup(filename);
+			await tActions.backup.deleteBackup({ filename, db: locals.db });
 		} catch (e) {
 			logging.error('Error Deleting Backup: ' + e);
 			return failWrapper('Error Deleting Backup');

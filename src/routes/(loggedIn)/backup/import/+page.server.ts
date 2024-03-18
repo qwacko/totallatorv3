@@ -5,7 +5,7 @@ import { logging } from '$lib/server/logging.js';
 import { redirect } from '@sveltejs/kit';
 
 export const actions = {
-	import: async ({ request }) => {
+	import: async ({ request, locals }) => {
 		const formData = await request.formData();
 		const backupFile = formData.get('backupFile') as File;
 
@@ -24,7 +24,7 @@ export const actions = {
 		await backupFileHandler.write(backupFileName, Buffer.from(await backupFile.arrayBuffer()));
 
 		try {
-			await tActions.backup.getBackupDataStrutured({ filename: backupFileName });
+			await tActions.backup.getBackupDataStrutured({ filename: backupFileName, db: locals.db });
 		} catch (e) {
 			logging.error(`Backup Import Failed. Incorrect Contents - ${backupFileName}`);
 			logging.error('Error', e);

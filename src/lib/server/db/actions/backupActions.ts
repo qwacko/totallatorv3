@@ -1,8 +1,12 @@
 import {
+	backupSchemaToLatest,
+	backupSchemaInfoToLatest,
 	combinedBackupSchema,
 	currentBackupSchema,
-	type CurrentBackupSchemaType
+	type CurrentBackupSchemaType,
+	type CombinedBackupSchemaType
 } from '$lib/server/backups/backupSchema';
+import { desc, eq } from 'drizzle-orm';
 import type { DBType } from '../db';
 import {
 	user,
@@ -26,16 +30,16 @@ import {
 	filtersToReportConfigs,
 	keyValueTable,
 	reportElement,
-	reportElementConfig
+	reportElementConfig,
+	backupTable
 } from '../postgres/schema';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
 import superjson from 'superjson';
 import zlib from 'zlib';
-import { backupSchemaMigrate_01to02 } from '$lib/server/backups/backupSchemaMigrate_01to02';
-import { backupSchemaMigrate_02to03 } from '$lib/server/backups/backupSchemaMigrate_02to03';
-import { backupSchemaMigrate_03to04 } from '$lib/server/backups/backupSchemaMigrate_03to04';
-import { backupSchemaMigrate_04to05 } from '$lib/server/backups/backupSchemaMigrate_04to05';
 import { backupFileHandler } from '$lib/server/files/fileHandler';
+import { nanoid } from 'nanoid';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { logging } from '$lib/server/logging';
 
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -140,21 +144,70 @@ export const backupActions = {
 		} else {
 			await backupFileHandler.write(filenameUse, superjson.stringify(checkedBackupData));
 		}
+
+		const information = {
+			version: checkedBackupData.version,
+			information: checkedBackupData.information
+		};
+
+		await db.insert(backupTable).values({
+			id: nanoid(),
+			title,
+			filename: filenameUse,
+			fileExists: true,
+			updatedAt: date,
+			createdAt: date,
+			compressed: compress,
+			version: checkedBackupData.version,
+			creationReason,
+			createdBy,
+			information
+		});
 	},
-	getBackupData: async ({ returnRaw, filename }: { filename: string; returnRaw: boolean }) => {
-		const backupList = await backupActions.list();
+	getBackupData: async ({
+		returnRaw,
+		filename,
+		db
+	}: {
+		filename: string;
+		returnRaw: boolean;
+		db: DBType;
+	}) => {
+		const backupFiles = await db
+			.select()
+			.from(backupTable)
+			.where(eq(backupTable.filename, filename))
+			.execute();
 
-		const backupFile = backupList.find((file) => file.path === filename);
+		if (backupFiles.length === 0) {
+			throw new Error('Backup File Not Found In DB');
+		}
 
-		if (!backupFile) {
-			throw new Error('Backup File Not Found');
+		const backupFile = backupFiles[0];
+
+		const fileExists = await backupFileHandler.fileExists(filename);
+
+		if (!fileExists) {
+			await db
+				.update(backupTable)
+				.set({ fileExists: false })
+				.where(eq(backupTable.id, backupFile.id))
+				.execute();
+			throw new Error('Backup File Not Found On Disk');
+		}
+		if (fileExists && backupFile.fileExists === false) {
+			await db
+				.update(backupTable)
+				.set({ fileExists: true })
+				.where(eq(backupTable.id, backupFile.id))
+				.execute();
 		}
 
 		if (returnRaw) {
 			return await backupFileHandler.readToBuffer(filename);
 		}
 
-		const isCompressed = filename.endsWith('.data');
+		const isCompressed = backupFile.compressed;
 
 		const loadedBackupData = isCompressed
 			? await readFromMsgPackFile(filename)
@@ -163,44 +216,33 @@ export const backupActions = {
 		return loadedBackupData;
 	},
 	getBackupDataStrutured: async ({
-		filename
+		filename,
+		db
 	}: {
 		filename: string;
+		db: DBType;
 	}): Promise<CurrentBackupSchemaType> => {
-		const backupData = await backupActions.getBackupData({ filename, returnRaw: false });
+		const backupData = await backupActions.getBackupData({ filename, returnRaw: false, db });
 
 		const backupDataParsed = combinedBackupSchema.parse(backupData);
 
-		const backupDataParsed02 =
-			backupDataParsed.version !== 1
-				? backupDataParsed
-				: backupSchemaMigrate_01to02(backupDataParsed);
-
-		const backupDataParsed03 =
-			backupDataParsed02.version !== 2
-				? backupDataParsed02
-				: backupSchemaMigrate_02to03(backupDataParsed02);
-
-		const backupDataParsed04 =
-			backupDataParsed03.version !== 3
-				? backupDataParsed03
-				: backupSchemaMigrate_03to04(backupDataParsed03);
-
-		const backupDataParsed05 =
-			backupDataParsed04.version !== 4
-				? backupDataParsed04
-				: backupSchemaMigrate_04to05(backupDataParsed04);
-
-		return backupDataParsed05;
+		return backupSchemaToLatest(backupDataParsed);
 	},
-	deleteBackup: async (backupName: string) => {
-		const backupExists = await backupFileHandler.fileExists(backupName);
+	deleteBackup: async ({ filename, db }: { filename: string; db: DBType }) => {
+		const backupFilesInDB = await db
+			.select()
+			.from(backupTable)
+			.where(eq(backupTable.filename, filename))
+			.execute();
+		const backupExists = await backupFileHandler.fileExists(filename);
 
-		if (!backupExists) {
-			throw new Error('Backup File Not Found');
+		if (backupExists) {
+			await backupFileHandler.deleteFile(filename);
 		}
 
-		await backupFileHandler.deleteFile(backupName);
+		if (backupFilesInDB.length === 1) {
+			await db.delete(backupTable).where(eq(backupTable.filename, filename)).execute();
+		}
 
 		return;
 	},
@@ -213,7 +255,7 @@ export const backupActions = {
 		filename: string;
 		includeUsers?: boolean;
 	}) => {
-		const checkedBackupData = await backupActions.getBackupDataStrutured({ filename });
+		const checkedBackupData = await backupActions.getBackupDataStrutured({ filename, db });
 
 		//Produce a new backup prior to any restore.
 		await backupActions.storeBackup({
@@ -245,12 +287,12 @@ export const backupActions = {
 			await trx.delete(importTable).execute();
 			await trx.delete(importItemDetail).execute();
 			await trx.delete(reusableFilter).execute();
-			await db.delete(filter).execute();
-			await db.delete(report).execute();
-			await db.delete(filtersToReportConfigs).execute();
-			await db.delete(keyValueTable).execute();
-			await db.delete(reportElement).execute();
-			await db.delete(reportElementConfig).execute();
+			await trx.delete(filter).execute();
+			await trx.delete(report).execute();
+			await trx.delete(filtersToReportConfigs).execute();
+			await trx.delete(keyValueTable).execute();
+			await trx.delete(reportElement).execute();
+			await trx.delete(reportElementConfig).execute();
 			console.log(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			//Update Database from Backup
@@ -352,24 +394,146 @@ export const backupActions = {
 				trx.insert(keyValueTable).values(data).execute()
 			);
 			console.log(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+			//Mark the backup as having a restored date.
+			await trx
+				.update(backupTable)
+				.set({ restoreDate: new Date(), ...updatedTime() })
+				.where(eq(backupTable.filename, filename))
+				.execute();
 		});
 	},
-	list: async () => {
-		const files = backupFileHandler.list('');
+	refreshList: async ({ db }: { db: DBType }) => {
+		const [backupsInDB, backupFiles] = await Promise.all([
+			db.select().from(backupTable).execute(),
+			backupFileHandler.list('')
+		]);
 
-		const backupData = (await files.toArray())
-			.filter((item) => item.type === 'file')
-			.map((item) => ({
-				...item,
-				compressed: item.path.endsWith('.data')
-			}));
+		const DBFilenames = backupsInDB.map((backup) => backup.filename);
+		const DBFilenamesWithoutFiles = backupsInDB
+			.filter((backup) => !backup.fileExists)
+			.map((backup) => backup.filename);
+		const DBFilenamesWithFiles = backupsInDB
+			.filter((backup) => backup.fileExists)
+			.map((backup) => backup.filename);
+		const fileFilenames = (await backupFiles.toArray()).map((file) => file.path);
 
-		const sortedBackupData = backupData.sort((a, b) =>
-			a.lastModifiedMs && b.lastModifiedMs
-				? a.lastModifiedMs - b.lastModifiedMs
-				: a.path.localeCompare(b.path)
+		const filesInDBButNotInFiles = DBFilenamesWithFiles.filter(
+			(filename) => !fileFilenames.includes(filename)
+		);
+		const filesNotExistInDBButExistInFiles = DBFilenamesWithoutFiles.filter((filename) =>
+			fileFilenames.includes(filename)
+		);
+		const filesNotInDB = fileFilenames.filter((filename) => !DBFilenames.includes(filename));
+
+		//Mark Files In DB But Not In Files AS Not File Exists
+		await Promise.all(
+			filesInDBButNotInFiles.map((filename) =>
+				db
+					.update(backupTable)
+					.set({ fileExists: false })
+					.where(eq(backupTable.filename, filename))
+					.execute()
+			)
 		);
 
-		return sortedBackupData;
+		//Mark Files in DB BUt Not Exists that do exist as file exists
+		await Promise.all(
+			filesNotExistInDBButExistInFiles.map((filename) =>
+				db
+					.update(backupTable)
+					.set({ fileExists: true })
+					.where(eq(backupTable.filename, filename))
+					.execute()
+			)
+		);
+
+		//Create Files In DB That Are Missing In DB
+		for (const filename of filesNotInDB) {
+			const index = fileFilenames.indexOf(filename);
+
+			const start = new Date();
+
+			const backupInfo = await getBackupStructuredData({ filename });
+
+			const version = backupInfo.originalVersion;
+
+			const information = {
+				version: backupInfo.latest.version,
+				information: backupInfo.latest.information
+			};
+
+			const filenameDate = filename.substring(0, 10);
+			const filenameTitle = filename.substring(11);
+
+			await db
+				.insert(backupTable)
+				.values({
+					id: nanoid(),
+					title: filenameTitle,
+					filename,
+					fileExists: true,
+					createdAt: new Date(filenameDate),
+					updatedAt: new Date(filenameDate),
+					compressed: filename.endsWith('.data'),
+					version,
+					creationReason: 'Appears In File System',
+					createdBy: 'Automatically',
+					information
+				})
+				.execute();
+			const end = new Date();
+			logging.info(
+				`File ${index + 1} of ${filesNotInDB.length} took ${end.getTime() - start.getTime()}ms`
+			);
+		}
+	},
+	list: async ({ db }: { db: DBType }) => {
+		const listData = await db
+			.select()
+			.from(backupTable)
+			.orderBy(desc(backupTable.createdAt))
+			.execute();
+
+		return listData.map((data) => ({
+			...data,
+			information: backupSchemaInfoToLatest(data.information)
+		}));
+	},
+	getBackupInfo: async ({ db, filename }: { db: DBType; filename: string }) => {
+		const data = await db
+			.select()
+			.from(backupTable)
+			.where(eq(backupTable.filename, filename))
+			.execute();
+		if (data.length === 0) {
+			return undefined;
+		}
+
+		return { ...data[0], information: backupSchemaInfoToLatest(data[0].information) };
 	}
+};
+
+const getBackupStructuredData = async ({ filename }: { filename: string }) => {
+	const backupExists = await backupFileHandler.fileExists(filename);
+
+	if (!backupExists) {
+		throw new Error('Backup File Not Found On Disk');
+	}
+
+	const isCompressed = filename.endsWith('.data');
+
+	const loadedBackupData = isCompressed
+		? ((await readFromMsgPackFile(filename)) as CombinedBackupSchemaType)
+		: (superjson.parse(
+				(await backupFileHandler.readToString(filename)).toString()
+			) as CombinedBackupSchemaType);
+
+	const backupDataParsed = combinedBackupSchema.parse(loadedBackupData);
+
+	return {
+		latest: backupSchemaToLatest(backupDataParsed),
+		original: loadedBackupData,
+		originalVersion: loadedBackupData.version
+	};
 };
