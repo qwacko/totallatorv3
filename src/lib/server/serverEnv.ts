@@ -44,7 +44,8 @@ const serverEnvValidation = z.object({
 	TESTING_DELAY: z.coerce.number().optional().default(0),
 	DISABLE_BUFFERING: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
 	TEST_ENV: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
-	IMPORT_TIMEOUT_MIN: z.coerce.number().optional().default(30)
+	IMPORT_TIMEOUT_MIN: z.coerce.number().optional().default(30),
+	RETENTION_MONTHS: z.coerce.number().optional().default(1)
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -65,5 +66,6 @@ export const serverEnv = serverEnvValidation.parse({
 	TEST_ENV: env.TEST_ENV,
 	POSTGRES_URL: env.POSTGRES_URL,
 	POSTGRES_TEST_URL: env.POSTGRES_TEST_URL,
-	IMPORT_TIMEOUT_MIN: env.IMPORT_TIMEOUT_MIN
+	IMPORT_TIMEOUT_MIN: env.IMPORT_TIMEOUT_MIN,
+	RETENTION_MONTHS: env.RETENTION_MONTHS
 });

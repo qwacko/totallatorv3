@@ -31,6 +31,7 @@
 
 	let creatingBackup = false;
 	let refreshing = false;
+	let tidyingBackups = false;
 </script>
 
 <CustomHeader pageTitle="Backups" numPages={data.numPages} pageNumber={data.page} />
@@ -55,6 +56,21 @@
 				outline
 			/>
 		</form>
+		<form
+			use:enhance={customEnhance({
+				updateLoading: (loading) => (tidyingBackups = loading)
+			})}
+			method="post"
+			action="?/tidyBackups"
+		>
+			<ActionButton
+				loading={tidyingBackups}
+				message="Cleanse"
+				loadingMessage="Cleansing..."
+				type="submit"
+				outline
+			/>
+		</form>
 	</svelte:fragment>
 	{#if data.numberOfBackups > 0}
 		<div class="flex flex-row justify-center">
@@ -70,6 +86,7 @@
 			<TableHead>
 				<TableHeadCell>Actions</TableHeadCell>
 				<TableHeadCell>Creation Date</TableHeadCell>
+				<TableHeadCell>Locked</TableHeadCell>
 				<TableHeadCell>Backup Name</TableHeadCell>
 				<TableHeadCell>Version</TableHeadCell>
 				<TableHeadCell>Created By</TableHeadCell>
@@ -97,8 +114,12 @@
 									<RawDataModal data={backup} dev={data.dev} outline />
 								</ButtonGroup>
 							</div>
-						</TableBodyCell><TableBodyCell>
+						</TableBodyCell>
+						<TableBodyCell>
 							{new Date(backup.createdAt).toISOString().substring(0, 10)}
+						</TableBodyCell>
+						<TableBodyCell>
+							{#if backup.locked}<Badge color="red">Locked</Badge>{/if}
 						</TableBodyCell>
 						<TableBodyCell>{backup.title}</TableBodyCell>
 						<TableBodyCell>{backup.version}</TableBodyCell>

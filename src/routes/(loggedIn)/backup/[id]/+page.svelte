@@ -6,6 +6,10 @@
 	import { Button, Badge, Spinner } from 'flowbite-svelte';
 	import { defaultCustomEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
+	import EditIcon from '$lib/components/icons/EditIcon.svelte';
+	import CancelIcon from '$lib/components/icons/CancelIcon.svelte';
+	import TextInput from '$lib/components/TextInput.svelte';
+	import { back } from '@melt-ui/svelte/internal/helpers';
 
 	export let data;
 
@@ -14,6 +18,9 @@
 
 	let restoring = false;
 	let deleting = false;
+	let editingTitle = false;
+	let editSubmission = false;
+	let updatingLocked = false;
 </script>
 
 <CustomHeader pageTitle={title} />
@@ -25,8 +32,68 @@
 		</Badge>
 	{:then information}
 		<div class="grid grid-cols-2 gap-2">
-			<div class="grid justify-self-end font-bold">Title</div>
-			<div class="grid">{data.backupInformation.title}</div>
+			<div class="grid content-center justify-self-end font-bold">Title</div>
+			<div class="flex flex-row items-center gap-2">
+				{#if editingTitle}
+					<form
+						class="flex flex-row gap-2"
+						action="?/updateTitle"
+						method="post"
+						use:enhance={defaultCustomEnhance({
+							updateLoading: (loading) => (editSubmission = loading),
+							defaultSuccessMessage: 'Successfully Updated Title',
+							onSuccess: () => (editingTitle = false)
+						})}
+					>
+						<TextInput
+							type="text"
+							name="title"
+							class="input"
+							disabled={editSubmission}
+							value={data.backupInformation.title}
+						/>
+						<ActionButton
+							type="submit"
+							size="xs"
+							outline
+							loading={editSubmission}
+							message="Update"
+							loadingMessage="...Updating"
+						/>
+					</form>
+					<Button on:click={() => (editingTitle = false)} size="sm" outline>
+						<CancelIcon />
+					</Button>
+				{:else}
+					{data.backupInformation.title}<Button
+						on:click={() => (editingTitle = true)}
+						size="xs"
+						outline
+					>
+						<EditIcon />
+					</Button>
+				{/if}
+			</div>
+			<div class="grid content-center justify-self-end font-bold">Locked</div>
+			<div class="grid flex-row gap-2">
+				<form
+					class="flex"
+					action={data.backupInformation.locked ? '?/unlock' : '?/lock'}
+					method="post"
+					use:enhance={defaultCustomEnhance({
+						updateLoading: (loading) => (updatingLocked = loading),
+						defaultSuccessMessage: 'Successfully Updated Lock Status'
+					})}
+				>
+					<ActionButton
+						type="submit"
+						color={data.backupInformation.locked ? 'red' : 'green'}
+						loading={updatingLocked}
+						loadingMessage="Updating..."
+						message={data.backupInformation.locked ? 'Locked' : 'Unlocked'}
+					/>
+				</form>
+			</div>
 			<div class="grid justify-self-end font-bold">Filename</div>
 			<div class="grid">{data.backupInformation.filename}</div>
 			<div class="grid justify-self-end font-bold">Created By</div>

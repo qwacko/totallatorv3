@@ -35,6 +35,47 @@ export const load = async (data) => {
 };
 
 export const actions = {
+	lock: async ({ request, params, locals }) => {
+		const id = params.id;
+		if (!id) {
+			return;
+		}
+		try {
+			await tActions.backup.lock({ db: locals.db, id });
+		} catch (e) {
+			logging.error('Error Locking Backup: ' + e);
+		}
+		return;
+	},
+	unlock: async ({ request, params, locals }) => {
+		const id = params.id;
+		if (!id) {
+			return;
+		}
+		try {
+			await tActions.backup.unlock({ db: locals.db, id });
+		} catch (e) {
+			logging.error('Error Unlocking Backup: ' + e);
+		}
+		return;
+	},
+	updateTitle: async ({ request, params, locals }) => {
+		const id = params.id;
+		if (!id) {
+			return;
+		}
+		const formData = await request.formData();
+		const title = formData.get('title') as string;
+		if (!title) {
+			return;
+		}
+		try {
+			await tActions.backup.updateTitle({ db: locals.db, id, title });
+		} catch (e) {
+			logging.error('Error Updating Backup Title: ' + e);
+		}
+		return;
+	},
 	restore: async ({ request, params, locals }) => {
 		const id = params.id;
 		if (!id) {

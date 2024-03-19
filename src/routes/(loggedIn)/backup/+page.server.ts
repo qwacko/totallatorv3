@@ -44,6 +44,10 @@ export const actions = {
 		const db = locals.db;
 		await tActions.backup.refreshList({ db });
 	},
+	tidyBackups: async ({ request, locals }) => {
+		const db = locals.db;
+		await tActions.backup.trimBackups({ db });
+	},
 	backup: async ({ request, locals }) => {
 		try {
 			const db = locals.db;

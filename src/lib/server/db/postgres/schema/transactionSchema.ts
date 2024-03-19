@@ -680,5 +680,6 @@ export const backupTable = pgTable('backup_table', {
 	compressed: boolean('compressed').notNull(),
 	creationReason: text('creation_reason').notNull(),
 	createdBy: text('created_by').notNull(),
+	locked: boolean('locked').notNull().default(false),
 	information: jsonb('information').$type<CombinedBackupSchemaInfoType>().notNull()
 });

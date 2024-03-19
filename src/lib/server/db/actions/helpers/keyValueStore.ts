@@ -48,3 +48,22 @@ export const booleanKeyValueStore = (key: string, defaultValue: boolean = false)
 		}
 	};
 };
+
+export const enumKeyValueStore = <T extends string>(key: string, defaultValue: T) => {
+	const store = keyValueStore(key);
+
+	return {
+		get: async (db: DBType) => {
+			const value = await store.get(db);
+
+			if (value === undefined) {
+				return defaultValue;
+			}
+
+			return value as T;
+		},
+		set: async (db: DBType, value: T) => {
+			await store.set(db, value);
+		}
+	};
+};

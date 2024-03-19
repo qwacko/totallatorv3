@@ -76,5 +76,13 @@ export const cronJobs: CronJob[] = [
 			//occur at the same time within the function which is called.
 			await tActions.import.doRequiredImports({ db });
 		}
+	},
+	{
+		name: 'Regular Update And Cleansing Of Backups',
+		schedule: '0 0 * * *',
+		job: async () => {
+			await tActions.backup.refreshList({ db });
+			await tActions.backup.trimBackups({ db });
+		}
 	}
 ];
