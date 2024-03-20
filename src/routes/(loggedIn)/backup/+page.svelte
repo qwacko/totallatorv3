@@ -6,6 +6,7 @@
 	import {
 		Badge,
 		Button,
+		ButtonGroup,
 		Input,
 		Table,
 		TableBody,
@@ -16,8 +17,9 @@
 	} from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import { defaultCustomEnhance } from '$lib/helpers/customEnhance';
+	import { customEnhance, defaultCustomEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
+	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
 	$: urlInfo = pageInfo('/(loggedIn)/backup', $page);
 
@@ -28,6 +30,8 @@
 	$: displayFiles = data.backupFiles;
 
 	let creatingBackup = false;
+	let refreshing = false;
+	let tidyingBackups = false;
 </script>
 
 <CustomHeader pageTitle="Backups" numPages={data.numPages} pageNumber={data.page} />
@@ -37,6 +41,36 @@
 		<Button href={urlGenerator({ address: '/(loggedIn)/backup/import' }).url} outline color="green">
 			Import
 		</Button>
+		<form
+			use:enhance={customEnhance({
+				updateLoading: (loading) => (refreshing = loading)
+			})}
+			method="post"
+			action="?/refresh"
+		>
+			<ActionButton
+				loading={refreshing}
+				message="Refresh"
+				loadingMessage="Refreshing..."
+				type="submit"
+				outline
+			/>
+		</form>
+		<form
+			use:enhance={customEnhance({
+				updateLoading: (loading) => (tidyingBackups = loading)
+			})}
+			method="post"
+			action="?/tidyBackups"
+		>
+			<ActionButton
+				loading={tidyingBackups}
+				message="Cleanse"
+				loadingMessage="Cleansing..."
+				type="submit"
+				outline
+			/>
+		</form>
 	</svelte:fragment>
 	{#if data.numberOfBackups > 0}
 		<div class="flex flex-row justify-center">
@@ -51,28 +85,63 @@
 		<Table>
 			<TableHead>
 				<TableHeadCell>Actions</TableHeadCell>
+				<TableHeadCell>Creation Date</TableHeadCell>
+				<TableHeadCell>Locked</TableHeadCell>
 				<TableHeadCell>Backup Name</TableHeadCell>
-				<TableHeadCell>Created At</TableHeadCell>
+				<TableHeadCell>Version</TableHeadCell>
+				<TableHeadCell>Created By</TableHeadCell>
+				<TableHeadCell>Created Reason</TableHeadCell>
+				<TableHeadCell>Type</TableHeadCell>
+				<TableHeadCell>File Exists</TableHeadCell>
+				<TableHeadCell>Restored Date</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each displayFiles as backup}
 					<TableBodyRow>
 						<TableBodyCell>
 							<div class="flex flex-row gap-2">
-								<Button
-									href={urlGenerator({
-										address: '/(loggedIn)/backup/[filename]',
-										paramsValue: { filename: backup.filename }
-									}).url}
-									outline
-									color="blue"
-								>
-									View
-								</Button>
+								<ButtonGroup>
+									<Button
+										href={urlGenerator({
+											address: '/(loggedIn)/backup/[id]',
+											paramsValue: { id: backup.id }
+										}).url}
+										outline
+										color="blue"
+									>
+										View
+									</Button>
+									<RawDataModal data={backup} dev={data.dev} outline />
+								</ButtonGroup>
 							</div>
 						</TableBodyCell>
-						<TableBodyCell>{backup.filename}</TableBodyCell>
-						<TableBodyCell>{backup.createdAt.toLocaleString()}</TableBodyCell>
+						<TableBodyCell>
+							{new Date(backup.createdAt).toISOString().substring(0, 10)}
+						</TableBodyCell>
+						<TableBodyCell>
+							{#if backup.locked}<Badge color="red">Locked</Badge>{/if}
+						</TableBodyCell>
+						<TableBodyCell>{backup.title}</TableBodyCell>
+						<TableBodyCell>{backup.version}</TableBodyCell>
+						<TableBodyCell>{backup.createdBy}</TableBodyCell>
+						<TableBodyCell>{backup.creationReason}</TableBodyCell>
+						<TableBodyCell>
+							{#if backup.compressed}<Badge color="blue">Compressed JSON</Badge>{:else}<Badge
+									color="green"
+								>
+									JSON
+								</Badge>{/if}
+						</TableBodyCell>
+						<TableBodyCell>
+							{#if backup.fileExists}<Badge>Exists</Badge>{:else}<Badge color="red">
+									Missing
+								</Badge>{/if}
+						</TableBodyCell>
+						<TableBodyCell>
+							{#if backup.restoreDate}{new Date(backup.restoreDate)
+									.toISOString()
+									.substring(0, 10)}{/if}
+						</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

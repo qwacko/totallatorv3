@@ -27,8 +27,8 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 				.optional()
 				.catch({ page: 0 }).parse
 		},
-		'/(loggedIn)/backup/[filename]': {
-			paramsValidation: z.object({ filename: z.string() }).parse
+		'/(loggedIn)/backup/[id]': {
+			paramsValidation: z.object({ id: z.string() }).parse
 		},
 		'/(loggedIn)/backup/download/[filename]': {
 			paramsValidation: z.object({ filename: z.string() }).parse

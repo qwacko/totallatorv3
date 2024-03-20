@@ -1,8 +1,13 @@
 import {
+	backupSchemaToLatest,
+	backupSchemaInfoToLatest,
 	combinedBackupSchema,
 	currentBackupSchema,
-	type CurrentBackupSchemaType
+	type CurrentBackupSchemaType,
+	type CombinedBackupSchemaType,
+	combinedBackupInfoSchema
 } from '$lib/server/backups/backupSchema';
+import { desc, eq, inArray } from 'drizzle-orm';
 import type { DBType } from '../db';
 import {
 	user,
@@ -26,26 +31,25 @@ import {
 	filtersToReportConfigs,
 	keyValueTable,
 	reportElement,
-	reportElementConfig
+	reportElementConfig,
+	backupTable
 } from '../postgres/schema';
-import fs from 'fs/promises';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
-
-import { serverEnv } from '$lib/server/serverEnv';
 import superjson from 'superjson';
 import zlib from 'zlib';
-import { backupSchemaMigrate_01to02 } from '$lib/server/backups/backupSchemaMigrate_01to02';
-import { backupSchemaMigrate_02to03 } from '$lib/server/backups/backupSchemaMigrate_02to03';
-import { backupSchemaMigrate_03to04 } from '$lib/server/backups/backupSchemaMigrate_03to04';
-import { backupSchemaMigrate_04to05 } from '$lib/server/backups/backupSchemaMigrate_04to05';
+import { backupFileHandler } from '$lib/server/files/fileHandler';
+import { nanoid } from 'nanoid';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { logging } from '$lib/server/logging';
+import { serverEnv } from '$lib/server/serverEnv';
 
-async function writeToMsgPackFile(data: unknown, filePath: string) {
+async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
-	await fs.writeFile(filePath, compressedConvertedData);
+	await backupFileHandler.write(fileName, compressedConvertedData);
 }
 
-async function readFromMsgPackFile(filePath: string) {
-	const fileData = await fs.readFile(filePath);
+async function readFromMsgPackFile(filename: string) {
+	const fileData = await backupFileHandler.readToBuffer(filename);
 	const decompressedFileData = zlib.gunzipSync(fileData);
 	return superjson.parse(decompressedFileData.toString());
 }
@@ -61,26 +65,206 @@ const chunker = async <D, R>(
 };
 
 export const backupActions = {
+	trimBackups: async ({ db }: { db: DBType }) => {
+		const firstBackup = await db.query.backupTable.findFirst({
+			orderBy: ({ createdAt }, { asc }) => asc(createdAt)
+		});
+
+		if (!firstBackup) {
+			return;
+		}
+
+		const latestDate = new Date();
+
+		const earliestDate = firstBackup.createdAt;
+
+		function getPreviousSunday(date: Date) {
+			const dayOfWeek = date.getDay(); // Sunday - 0, Monday - 1, ..., Saturday - 6
+			const difference = dayOfWeek; // Since Sunday is 0, the difference is the same as the dayOfWeek
+
+			// Create a new Date object to avoid mutating the original date
+			const previousSunday = new Date(date);
+			// Subtract the difference to get the previous Sunday
+			previousSunday.setDate(date.getDate() - difference);
+
+			return previousSunday;
+		}
+
+		const sundayBeforeEarliestDate = getPreviousSunday(earliestDate);
+		const sundayBeforeLatestDate = getPreviousSunday(latestDate);
+		//One day earlier to allow for minor differences. All the logic is working in weeks, so a day doesn't impact the outcome.
+		sundayBeforeLatestDate.setDate(sundayBeforeLatestDate.getDate() - 1);
+		let currentDate = new Date(sundayBeforeEarliestDate);
+		const dateOptions: { startDate: Date; endDate: Date }[] = [];
+
+		//Build an array of date ranges to retain at least one back within
+		while (currentDate <= sundayBeforeLatestDate) {
+			const activeDate = new Date(currentDate);
+			const activeDateEnd = new Date(currentDate);
+			activeDateEnd.setDate(activeDateEnd.getDate() + 6);
+
+			dateOptions.push({
+				startDate: activeDate,
+				endDate: activeDateEnd
+			});
+
+			currentDate.setDate(currentDate.getDate() + 7);
+		}
+
+		const lockedBackups = await db
+			.select({ id: backupTable.id, createdAt: backupTable.createdAt })
+			.from(backupTable)
+			.where(eq(backupTable.locked, true))
+			.execute();
+
+		const unlockedBackups = await db
+			.select({ id: backupTable.id, createdAt: backupTable.createdAt })
+			.from(backupTable)
+			.where(eq(backupTable.locked, false))
+			.execute();
+
+		const backupsToLock: string[] = [];
+
+		for (const index in dateOptions) {
+			const currentDateRange = dateOptions[index];
+
+			const lockedBackupsInDateRange = lockedBackups.filter((backup) => {
+				const backupDate = new Date(backup.createdAt);
+				return backupDate >= currentDateRange.startDate && backupDate <= currentDateRange.endDate;
+			});
+
+			const unlockedBackupsInDateRange = unlockedBackups.filter((backup) => {
+				const backupDate = new Date(backup.createdAt);
+				return backupDate >= currentDateRange.startDate && backupDate <= currentDateRange.endDate;
+			});
+
+			if (lockedBackupsInDateRange.length === 0) {
+				if (unlockedBackupsInDateRange.length > 0) {
+					const latestUnlockedBackup = unlockedBackupsInDateRange.sort(
+						(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+					)[0];
+
+					backupsToLock.push(latestUnlockedBackup.id);
+				}
+			}
+		}
+
+		if (backupsToLock.length > 0) {
+			await db
+				.update(backupTable)
+				.set({ locked: true })
+				.where(inArray(backupTable.id, backupsToLock))
+				.execute();
+		}
+
+		const retentionMonths = serverEnv.RETENTION_MONTHS;
+		const retentionDate = new Date();
+		retentionDate.setMonth(retentionDate.getMonth() - retentionMonths);
+
+		const backupsToDelete = await db.query.backupTable.findMany({
+			where: ({ createdAt, locked }, { lte, eq, and }) =>
+				and(eq(locked, false), lte(createdAt, retentionDate))
+		});
+
+		const numberOfBackups = lockedBackups.length + unlockedBackups.length;
+
+		//Make sure that you are never deleting more than 80% of the backups. If so then don't delete any.
+		const percentageToDelete = backupsToDelete.length / numberOfBackups;
+		const maxPercentageToDelete = 0.8;
+
+		if (percentageToDelete > maxPercentageToDelete) {
+			logging.info(
+				`Retention Policy Not Met. Percentage To Delete: ${percentageToDelete}. Max Percentage To Delete: ${maxPercentageToDelete}`
+			);
+		} else if (backupsToDelete.length > 0) {
+			await db.transaction(async (trx) => {
+				await Promise.all(
+					backupsToDelete.map(async (backup) => {
+						await backupActions.deleteBackup({ db: trx, id: backup.id });
+					})
+				);
+			});
+
+			logging.info(`Deleted ${backupsToDelete.length} backups`);
+		}
+	},
+	importFile: async ({ db, backupFile, id }: { db: DBType; backupFile: File; id: string }) => {
+		const getFilenameInfo = (filename: string) => {
+			const extension = filename.split('.').pop();
+			const withoutExtension = extension
+				? filename.substring(0, filename.length - extension.length - 1)
+				: filename;
+
+			return { extension, withoutExtension, filename };
+		};
+
+		//Store backup file into target folder, making sure to rename backup file if there is an existing file with the same name
+		let backupFileName = backupFile.name;
+		const backupFileExists = await backupFileHandler.fileExists(backupFileName);
+
+		if (backupFileExists) {
+			const fileInfo = getFilenameInfo(backupFileName);
+			backupFileName = `${fileInfo.withoutExtension}-ImportDuplicate-${new Date().toISOString()}.${fileInfo.extension}`;
+		}
+
+		await backupFileHandler.write(backupFileName, Buffer.from(await backupFile.arrayBuffer()));
+
+		try {
+			const data = await getBackupStructuredData({ filename: backupFileName });
+
+			const information = {
+				version: data.latest.version,
+				information: data.latest.information
+			};
+
+			const fileInfo = getFilenameInfo(backupFileName);
+
+			await db
+				.insert(backupTable)
+				.values({
+					id,
+					title: fileInfo.withoutExtension,
+					filename: fileInfo.filename,
+					fileExists: true,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+					compressed: backupFileName.endsWith('.data'),
+					version: data.originalVersion,
+					creationReason: 'Import',
+					createdBy: 'User',
+					locked: true,
+					information
+				})
+				.execute();
+		} catch (e) {
+			logging.error(`Backup Import Failed. Incorrect Contents - ${backupFileName}`);
+			logging.error('Error', e);
+			await backupFileHandler.deleteFile(backupFileName);
+			return;
+		}
+
+		return id;
+	},
 	storeBackup: async ({
 		db,
 		title = 'Backup',
 		compress = true,
 		creationReason,
-		createdBy
+		createdBy,
+		locked = false
 	}: {
 		db: DBType;
 		title?: string;
 		compress?: boolean;
 		creationReason: string;
 		createdBy: string;
+		locked?: boolean;
 	}) => {
 		const date = new Date();
-		const filenameUse = `${serverEnv.BACKUP_DIR}/${date.toISOString()}-${title}.${
-			compress ? 'data' : 'json'
-		}`;
+		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 5,
+			version: 6,
 			data: {
 				user: await db.select().from(user).execute(),
 				session: await db.select().from(session).execute(),
@@ -103,7 +287,11 @@ export const backupActions = {
 				filtersToReportConfigs: await db.select().from(filtersToReportConfigs).execute(),
 				keyValueTable: await db.select().from(keyValueTable).execute(),
 				reportElement: await db.select().from(reportElement).execute(),
-				reportElementConfig: await db.select().from(reportElementConfig).execute()
+				reportElementConfig: await db.select().from(reportElementConfig).execute(),
+				backup: (await db.select().from(backupTable).execute()).map((item) => ({
+					...item,
+					information: superjson.stringify(item.information)
+				}))
 			}
 		};
 
@@ -132,7 +320,8 @@ export const backupActions = {
 					numberReports: backupDataDB.data.report.length,
 					numberReportElements: backupDataDB.data.reportElement.length,
 					numberReportFilters: backupDataDB.data.filter.length,
-					numberReportItems: backupDataDB.data.reportElementConfig.length
+					numberReportItems: backupDataDB.data.reportElementConfig.length,
+					numberBackups: backupDataDB.data.backup.length
 				}
 			}
 		};
@@ -142,94 +331,149 @@ export const backupActions = {
 		if (compress) {
 			await writeToMsgPackFile(checkedBackupData, filenameUse);
 		} else {
-			await fs.writeFile(filenameUse, superjson.stringify(checkedBackupData));
+			await backupFileHandler.write(filenameUse, superjson.stringify(checkedBackupData));
 		}
+
+		const information = {
+			version: checkedBackupData.version,
+			information: checkedBackupData.information
+		};
+
+		await db.insert(backupTable).values({
+			id: nanoid(),
+			title,
+			filename: filenameUse,
+			fileExists: true,
+			updatedAt: date,
+			createdAt: date,
+			compressed: compress,
+			version: checkedBackupData.version,
+			creationReason,
+			createdBy,
+			locked,
+			information
+		});
 	},
-	getBackupData: async ({ returnRaw, filename }: { filename: string; returnRaw: boolean }) => {
-		const targetDir = serverEnv.BACKUP_DIR;
-		const targetFile = `${targetDir}/${filename}`;
+	getBackupData: async ({ returnRaw, id, db }: { id: string; returnRaw: boolean; db: DBType }) => {
+		const backupFiles = await db.select().from(backupTable).where(eq(backupTable.id, id)).execute();
 
-		const backupList = await backupActions.list();
+		if (backupFiles.length === 0) {
+			throw new Error('Backup File Not Found In DB');
+		}
 
-		const backupFile = backupList.find((file) => file.filename === filename);
+		const backupFile = backupFiles[0];
 
-		if (!backupFile) {
-			throw new Error('Backup File Not Found');
+		const fileExists = await backupFileHandler.fileExists(backupFile.filename);
+
+		if (!fileExists) {
+			await db
+				.update(backupTable)
+				.set({ fileExists: false })
+				.where(eq(backupTable.id, id))
+				.execute();
+			throw new Error('Backup File Not Found On Disk');
+		}
+		if (fileExists && backupFile.fileExists === false) {
+			await db
+				.update(backupTable)
+				.set({ fileExists: true })
+				.where(eq(backupTable.id, id))
+				.execute();
 		}
 
 		if (returnRaw) {
-			return await fs.readFile(targetFile);
+			return await backupFileHandler.readToBuffer(backupFile.filename);
 		}
 
-		const isCompressed = filename.endsWith('.data');
+		const isCompressed = backupFile.compressed;
 
 		const loadedBackupData = isCompressed
-			? await readFromMsgPackFile(targetFile)
-			: superjson.parse((await fs.readFile(targetFile)).toString());
+			? await readFromMsgPackFile(backupFile.filename)
+			: superjson.parse((await backupFileHandler.readToString(backupFile.filename)).toString());
 
 		return loadedBackupData;
 	},
 	getBackupDataStrutured: async ({
-		filename
+		id,
+		db
 	}: {
-		filename: string;
+		id: string;
+		db: DBType;
 	}): Promise<CurrentBackupSchemaType> => {
-		const backupData = await backupActions.getBackupData({ filename, returnRaw: false });
+		const backupData = await backupActions.getBackupData({ id, returnRaw: false, db });
 
 		const backupDataParsed = combinedBackupSchema.parse(backupData);
 
-		const backupDataParsed02 =
-			backupDataParsed.version !== 1
-				? backupDataParsed
-				: backupSchemaMigrate_01to02(backupDataParsed);
-
-		const backupDataParsed03 =
-			backupDataParsed02.version !== 2
-				? backupDataParsed02
-				: backupSchemaMigrate_02to03(backupDataParsed02);
-
-		const backupDataParsed04 =
-			backupDataParsed03.version !== 3
-				? backupDataParsed03
-				: backupSchemaMigrate_03to04(backupDataParsed03);
-
-		const backupDataParsed05 =
-			backupDataParsed04.version !== 4
-				? backupDataParsed04
-				: backupSchemaMigrate_04to05(backupDataParsed04);
-
-		return backupDataParsed05;
+		return backupSchemaToLatest(backupDataParsed);
 	},
-	deleteBackup: async (backupName: string) => {
-		const targetDir = serverEnv.BACKUP_DIR;
+	lock: async ({ id, db }: { id: string; db: DBType }) => {
+		await db
+			.update(backupTable)
+			.set({ locked: true, ...updatedTime() })
+			.where(eq(backupTable.id, id))
+			.execute();
+	},
+	unlock: async ({ id, db }: { id: string; db: DBType }) => {
+		await db
+			.update(backupTable)
+			.set({ locked: false, ...updatedTime() })
+			.where(eq(backupTable.id, id))
+			.execute();
+	},
+	updateTitle: async ({ id, title, db }: { id: string; title: string; db: DBType }) => {
+		await db
+			.update(backupTable)
+			.set({ title, ...updatedTime() })
+			.where(eq(backupTable.id, id))
+			.execute();
+	},
+	deleteBackup: async ({ id, db }: { id: string; db: DBType }) => {
+		const backupFilesInDB = await db
+			.select()
+			.from(backupTable)
+			.where(eq(backupTable.id, id))
+			.execute();
 
-		const backupFile = (await fs.readdir(targetDir, { recursive: true })).find(
-			(file) => file === backupName
-		);
+		const backupFileInDB = backupFilesInDB[0];
 
-		if (!backupFile) {
-			throw new Error('Backup File Not Found');
+		const backupExists = await backupFileHandler.fileExists(backupFileInDB.filename);
+
+		if (backupFileInDB && backupFileInDB.locked) {
+			logging.info(`Cannot Delete Backup as it is locked - ${backupFileInDB.filename}`);
+			return;
 		}
 
-		await fs.unlink(`${targetDir}/${backupFile}`);
+		if (backupExists) {
+			await backupFileHandler.deleteFile(backupFileInDB.filename);
+		}
+
+		if (backupFilesInDB.length === 1) {
+			await db.delete(backupTable).where(eq(backupTable.id, id)).execute();
+		}
 
 		return;
 	},
 	restoreBackup: async ({
 		db,
-		filename,
+		id,
 		includeUsers = false
 	}: {
 		db: DBType;
-		filename: string;
+		id: string;
 		includeUsers?: boolean;
 	}) => {
-		const checkedBackupData = await backupActions.getBackupDataStrutured({ filename });
+		const backups = await db.select().from(backupTable).where(eq(backupTable.id, id)).execute();
+		if (backups.length === 0) {
+			throw new Error('Backup Not Found');
+		}
+		const backup = backups[0];
+
+		const checkedBackupData = await backupActions.getBackupDataStrutured({ id, db });
 
 		//Produce a new backup prior to any restore.
 		await backupActions.storeBackup({
 			db,
-			title: `Pre-Restore - ${filename}`,
+			title: `Pre-Restore - ${backup.createdAt.toISOString().substring(0, 10)} - ${backup.title}`,
 			compress: true,
 			createdBy: 'System',
 			creationReason: 'Pre-Restore'
@@ -256,13 +500,14 @@ export const backupActions = {
 			await trx.delete(importTable).execute();
 			await trx.delete(importItemDetail).execute();
 			await trx.delete(reusableFilter).execute();
-			await db.delete(filter).execute();
-			await db.delete(report).execute();
-			await db.delete(filtersToReportConfigs).execute();
-			await db.delete(keyValueTable).execute();
-			await db.delete(reportElement).execute();
-			await db.delete(reportElementConfig).execute();
-			console.log(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
+			await trx.delete(filter).execute();
+			await trx.delete(report).execute();
+			await trx.delete(filtersToReportConfigs).execute();
+			await trx.delete(keyValueTable).execute();
+			await trx.delete(reportElement).execute();
+			await trx.delete(reportElementConfig).execute();
+			await trx.delete(backupTable).execute();
+			logging.info(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			//Update Database from Backup
 			if (includeUsers) {
@@ -280,117 +525,251 @@ export const backupActions = {
 			await chunker(checkedBackupData.data.account, 1000, async (data) =>
 				trx.insert(account).values(data).execute()
 			);
-			console.log(`Account Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Account Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.bill, 1000, async (data) =>
 				trx.insert(bill).values(data).execute()
 			);
-			console.log(`Bill Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Bill Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.budget, 1000, async (data) =>
 				trx.insert(budget).values(data).execute()
 			);
-			console.log(`Budget Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Budget Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.category, 1000, async (data) =>
 				trx.insert(category).values(data).execute()
 			);
-			console.log(`Category Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Category Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.tag, 1000, async (data) =>
 				trx.insert(tag).values(data).execute()
 			);
-			console.log(`Tag Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Tag Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.label, 1000, async (data) =>
 				trx.insert(label).values(data).execute()
 			);
-			console.log(`Label Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Label Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.transaction, 1000, async (data) =>
 				trx.insert(transaction).values(data).execute()
 			);
-			console.log(`Transaction Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Transaction Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.journalEntry, 1000, async (data) =>
 				trx.insert(journalEntry).values(data).execute()
 			);
-			console.log(`Journal Entry Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Journal Entry Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.labelsToJournals, 1000, async (data) =>
 				trx.insert(labelsToJournals).values(data).execute()
 			);
-			console.log(`Labels to Journals Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Labels to Journals Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.importMapping, 1000, async (data) =>
 				trx.insert(importMapping).values(data).execute()
 			);
-			console.log(`Import Mapping Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Import Mapping Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.importTable, 1000, async (data) =>
 				trx.insert(importTable).values(data).execute()
 			);
-			console.log(`Import Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Import Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.importItemDetail, 1000, async (data) =>
 				trx.insert(importItemDetail).values(data).execute()
 			);
-			console.log(`Import Item Detail Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Import Item Detail Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.reusableFilter, 1000, async (data) =>
 				trx.insert(reusableFilter).values(data).execute()
 			);
-			console.log(`Reusable Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Reusable Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			await chunker(checkedBackupData.data.filter, 1000, async (data) =>
 				trx.insert(filter).values(data).execute()
 			);
-			console.log(`Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			await chunker(checkedBackupData.data.report, 1000, async (data) =>
 				trx.insert(report).values(data).execute()
 			);
-			console.log(`Report Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Report Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			await chunker(checkedBackupData.data.filtersToReportConfigs, 1000, async (data) =>
 				trx.insert(filtersToReportConfigs).values(data).execute()
 			);
-			console.log(
+			logging.info(
 				`Filters To Report Configs Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 			);
 
 			await chunker(checkedBackupData.data.reportElement, 1000, async (data) =>
 				trx.insert(reportElement).values(data).execute()
 			);
-			console.log(`Report Element Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Report Element Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			await chunker(checkedBackupData.data.reportElementConfig, 1000, async (data) =>
 				trx.insert(reportElementConfig).values(data).execute()
 			);
-			console.log(
+			logging.info(
 				`Report Element Config Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 			);
 
 			await chunker(checkedBackupData.data.keyValueTable, 1000, async (data) =>
 				trx.insert(keyValueTable).values(data).execute()
 			);
-			console.log(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			logging.info(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+			await chunker(checkedBackupData.data.backup, 1000, async (data) =>
+				trx
+					.insert(backupTable)
+					.values(
+						data.map((item) => ({
+							...item,
+							information: combinedBackupInfoSchema.parse(superjson.parse(item.information))
+						}))
+					)
+					.execute()
+			);
+			logging.info(`Backup Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+			//Mark the backup as having a restored date.
+			await trx
+				.update(backupTable)
+				.set({ restoreDate: new Date(), ...updatedTime() })
+				.where(eq(backupTable.id, id))
+				.execute();
 		});
 	},
-	list: async () => {
-		const targetDir = serverEnv.BACKUP_DIR;
+	refreshList: async ({ db }: { db: DBType }) => {
+		const [backupsInDB, backupFiles] = await Promise.all([
+			db.select().from(backupTable).execute(),
+			backupFileHandler.list('')
+		]);
 
-		const files = await fs.readdir(targetDir, { recursive: true });
+		const DBFilenames = backupsInDB.map((backup) => backup.filename);
+		const DBFilenamesWithoutFiles = backupsInDB
+			.filter((backup) => !backup.fileExists)
+			.map((backup) => backup.filename);
+		const DBFilenamesWithFiles = backupsInDB
+			.filter((backup) => backup.fileExists)
+			.map((backup) => backup.filename);
+		const fileFilenames = (await backupFiles.toArray()).map((file) => file.path);
 
-		const backupData = await Promise.all(
-			files.map(async (file) => {
-				const filePath = `${targetDir}/${file}`;
-				const stats = await fs.stat(filePath);
+		const filesInDBButNotInFiles = DBFilenamesWithFiles.filter(
+			(filename) => !fileFilenames.includes(filename)
+		);
+		const filesNotExistInDBButExistInFiles = DBFilenamesWithoutFiles.filter((filename) =>
+			fileFilenames.includes(filename)
+		);
+		const filesNotInDB = fileFilenames.filter((filename) => !DBFilenames.includes(filename));
 
-				const createdAt = new Date(stats.birthtimeMs);
-				const updatedAt = new Date(stats.mtimeMs);
-				const createdAtNumber = stats.birthtimeMs;
-
-				return {
-					filename: file,
-					compressed: file.endsWith('.data'),
-					createdAt,
-					updatedAt,
-					createdAtNumber
-				};
-			})
+		//Mark Files In DB But Not In Files AS Not File Exists
+		await Promise.all(
+			filesInDBButNotInFiles.map((filename) =>
+				db
+					.update(backupTable)
+					.set({ fileExists: false })
+					.where(eq(backupTable.filename, filename))
+					.execute()
+			)
 		);
 
-		const sortedBackupData = backupData.sort((a, b) => b.createdAtNumber - a.createdAtNumber);
+		//Mark Files in DB BUt Not Exists that do exist as file exists
+		await Promise.all(
+			filesNotExistInDBButExistInFiles.map((filename) =>
+				db
+					.update(backupTable)
+					.set({ fileExists: true })
+					.where(eq(backupTable.filename, filename))
+					.execute()
+			)
+		);
 
-		return sortedBackupData;
+		//Create Files In DB That Are Missing In DB
+		for (const filename of filesNotInDB) {
+			const index = fileFilenames.indexOf(filename);
+
+			const start = new Date();
+
+			const backupInfo = await getBackupStructuredData({ filename });
+
+			const version = backupInfo.originalVersion;
+
+			const information = {
+				version: backupInfo.latest.version,
+				information: backupInfo.latest.information
+			};
+
+			const filenameDate = filename.substring(0, 10);
+			const filenameTitle = filename.substring(11);
+
+			await db
+				.insert(backupTable)
+				.values({
+					id: nanoid(),
+					title: filenameTitle,
+					filename,
+					fileExists: true,
+					createdAt: new Date(filenameDate),
+					updatedAt: new Date(filenameDate),
+					compressed: filename.endsWith('.data'),
+					version,
+					creationReason: 'Appears In File System',
+					createdBy: 'Automatically',
+					locked: false,
+					information
+				})
+				.execute();
+			const end = new Date();
+			logging.info(
+				`File ${index + 1} of ${filesNotInDB.length} took ${end.getTime() - start.getTime()}ms`
+			);
+		}
+	},
+	list: async ({ db }: { db: DBType }) => {
+		const listData = await db
+			.select()
+			.from(backupTable)
+			.orderBy(desc(backupTable.createdAt))
+			.execute();
+
+		return listData.map((data) => ({
+			...data,
+			information: backupSchemaInfoToLatest(data.information)
+		}));
+	},
+	getBackupInfo: async ({ db, id }: { db: DBType; id: string }) => {
+		const data = await db.select().from(backupTable).where(eq(backupTable.id, id)).execute();
+		if (data.length === 0) {
+			return undefined;
+		}
+
+		return { ...data[0], information: backupSchemaInfoToLatest(data[0].information) };
+	},
+	getBackupInfoByFilename: async ({ db, filename }: { db: DBType; filename: string }) => {
+		const data = await db
+			.select()
+			.from(backupTable)
+			.where(eq(backupTable.filename, filename))
+			.execute();
+		if (data.length === 0) {
+			return undefined;
+		}
+
+		return backupActions.getBackupInfo({ db, id: data[0].id });
 	}
+};
+
+const getBackupStructuredData = async ({ filename }: { filename: string }) => {
+	const backupExists = await backupFileHandler.fileExists(filename);
+
+	if (!backupExists) {
+		throw new Error('Backup File Not Found On Disk');
+	}
+
+	const isCompressed = filename.endsWith('.data');
+
+	const loadedBackupData = isCompressed
+		? ((await readFromMsgPackFile(filename)) as CombinedBackupSchemaType)
+		: (superjson.parse(
+				(await backupFileHandler.readToString(filename)).toString()
+			) as CombinedBackupSchemaType);
+
+	const backupDataParsed = combinedBackupSchema.parse(loadedBackupData);
+
+	return {
+		latest: backupSchemaToLatest(backupDataParsed),
+		original: loadedBackupData,
+		originalVersion: loadedBackupData.version
+	};
 };
