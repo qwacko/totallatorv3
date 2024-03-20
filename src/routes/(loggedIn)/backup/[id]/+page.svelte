@@ -127,6 +127,7 @@
 					<Badge>Report Filters : {information.information.itemCount.numberReportFilters}</Badge>
 					<Badge>Report Items : {information.information.itemCount.numberReportItems}</Badge>
 					<Badge>Reports : {information.information.itemCount.numberReports}</Badge>
+					<Badge>Backups : {information.information.itemCount.numberBackups}</Badge>
 				</div>
 			</div>
 		</div>

@@ -4,7 +4,8 @@ import {
 	combinedBackupSchema,
 	currentBackupSchema,
 	type CurrentBackupSchemaType,
-	type CombinedBackupSchemaType
+	type CombinedBackupSchemaType,
+	combinedBackupInfoSchema
 } from '$lib/server/backups/backupSchema';
 import { desc, eq, inArray } from 'drizzle-orm';
 import type { DBType } from '../db';
@@ -263,7 +264,7 @@ export const backupActions = {
 		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 5,
+			version: 6,
 			data: {
 				user: await db.select().from(user).execute(),
 				session: await db.select().from(session).execute(),
@@ -286,7 +287,11 @@ export const backupActions = {
 				filtersToReportConfigs: await db.select().from(filtersToReportConfigs).execute(),
 				keyValueTable: await db.select().from(keyValueTable).execute(),
 				reportElement: await db.select().from(reportElement).execute(),
-				reportElementConfig: await db.select().from(reportElementConfig).execute()
+				reportElementConfig: await db.select().from(reportElementConfig).execute(),
+				backup: (await db.select().from(backupTable).execute()).map((item) => ({
+					...item,
+					information: superjson.stringify(item.information)
+				}))
 			}
 		};
 
@@ -315,7 +320,8 @@ export const backupActions = {
 					numberReports: backupDataDB.data.report.length,
 					numberReportElements: backupDataDB.data.reportElement.length,
 					numberReportFilters: backupDataDB.data.filter.length,
-					numberReportItems: backupDataDB.data.reportElementConfig.length
+					numberReportItems: backupDataDB.data.reportElementConfig.length,
+					numberBackups: backupDataDB.data.backup.length
 				}
 			}
 		};
@@ -500,6 +506,7 @@ export const backupActions = {
 			await trx.delete(keyValueTable).execute();
 			await trx.delete(reportElement).execute();
 			await trx.delete(reportElementConfig).execute();
+			await trx.delete(backupTable).execute();
 			logging.info(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			//Update Database from Backup
@@ -601,6 +608,19 @@ export const backupActions = {
 				trx.insert(keyValueTable).values(data).execute()
 			);
 			logging.info(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+			await chunker(checkedBackupData.data.backup, 1000, async (data) =>
+				trx
+					.insert(backupTable)
+					.values(
+						data.map((item) => ({
+							...item,
+							information: combinedBackupInfoSchema.parse(superjson.parse(item.information))
+						}))
+					)
+					.execute()
+			);
+			logging.info(`Backup Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			//Mark the backup as having a restored date.
 			await trx
