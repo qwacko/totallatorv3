@@ -9,7 +9,6 @@
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import CancelIcon from '$lib/components/icons/CancelIcon.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { back } from '@melt-ui/svelte/internal/helpers';
 
 	export let data;
 
@@ -51,6 +50,8 @@
 							class="input"
 							disabled={editSubmission}
 							value={data.backupInformation.title}
+							errorMessage=""
+							title=""
 						/>
 						<ActionButton
 							type="submit"
@@ -162,6 +163,7 @@
 					type="submit"
 					outline
 					color="red"
+					disabled={data.backupInformation.locked}
 					loading={deleting}
 					loadingMessage="Deleting..."
 					message="Delete"

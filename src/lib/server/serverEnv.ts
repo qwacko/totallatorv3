@@ -45,7 +45,11 @@ const serverEnvValidation = z.object({
 	DISABLE_BUFFERING: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
 	TEST_ENV: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	IMPORT_TIMEOUT_MIN: z.coerce.number().optional().default(30),
-	RETENTION_MONTHS: z.coerce.number().optional().default(1)
+	RETENTION_MONTHS: z.coerce.number().optional().default(1),
+	S3_ACCESS_KEY_ID: z.string().optional(),
+	S3_SECRET_ACCESS_KEY: z.string().optional(),
+	S3_ACCESS_URL: z.string().optional(),
+	S3_REGION: z.string().optional()
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -67,5 +71,9 @@ export const serverEnv = serverEnvValidation.parse({
 	POSTGRES_URL: env.POSTGRES_URL,
 	POSTGRES_TEST_URL: env.POSTGRES_TEST_URL,
 	IMPORT_TIMEOUT_MIN: env.IMPORT_TIMEOUT_MIN,
-	RETENTION_MONTHS: env.RETENTION_MONTHS
+	RETENTION_MONTHS: env.RETENTION_MONTHS,
+	S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID,
+	S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY,
+	S3_ACCESS_URL: env.S3_ACCESS_URL,
+	S3_REGION: env.S3_REGION
 });
