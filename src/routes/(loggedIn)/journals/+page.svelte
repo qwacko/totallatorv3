@@ -349,7 +349,7 @@
 									<DataCheckedIcon height="15" width="15" />
 								</Button>
 							{/if}
-							<RawDataModal data={currentJournal} dev={data.dev} title="Raw Journal Data" />
+							<RawDataModal data={currentJournal} dev={true} title="Journal Data" icon="more" />
 						</ButtonGroup>
 					</form>
 				{:else if currentColumn.id === 'account'}
