@@ -245,6 +245,9 @@ export const reusableFilterActions = {
 			});
 		}
 
+		//This is called to refresh the filter summary after running the action, as the journal count should almost certainly change.
+		await reusableFilterActions.getById({ db, id });
+
 		return;
 	},
 	applyFollowingImport: async ({
@@ -266,7 +269,6 @@ export const reusableFilterActions = {
 
 		for (const currentItem of items) {
 			await reusableFilterActions.applyById({ db, id: currentItem.id, importId });
-
 
 			if (timeout && new Date() > timeout) {
 				logging.error(`Filter Application Timeout. Reached ${index} of ${items.length} filters.`);

@@ -1,4 +1,6 @@
+import { eq } from 'drizzle-orm';
 import type { DBType } from '../db';
+import { reusableFilter } from '../postgres/schema';
 import {
 	journalExtendedView,
 	accountMaterializedView,
@@ -139,7 +141,12 @@ export const materializedViewActions = {
 			budgetRefreshRequiredStore.set(db, true),
 			categoryRefreshRequiredStore.set(db, true),
 			labelRefreshRequiredStore.set(db, true),
-			dateTimeRefreshRequiredStore.set(db, true)
+			dateTimeRefreshRequiredStore.set(db, true),
+			db
+				.update(reusableFilter)
+				.set({ needsUpdate: true })
+				.where(eq(reusableFilter.needsUpdate, false))
+				.execute()
 		]);
 	}
 };
