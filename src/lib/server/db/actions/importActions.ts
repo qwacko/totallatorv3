@@ -15,7 +15,7 @@ import {
 	tag
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, count as drizzleCount, inArray, lt } from 'drizzle-orm';
+import { eq, and, count as drizzleCount, lt } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import type { ZodSchema } from 'zod';
@@ -36,13 +36,14 @@ import { streamingDelay } from '$lib/server/testingDelay';
 import { importListSubquery } from './helpers/import/importListSubquery';
 import { importToOrderByToSQL } from './helpers/import/importOrderByToSQL';
 import { importFilterToQuery } from './helpers/import/importFilterToQuery';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 export const importActions = {
 	numberActive: async (db: DBType) => {
 		const result = await db
 			.select({ count: drizzleCount(importTable.id) })
 			.from(importTable)
-			.where(inArray(importTable.status, ['importing', 'awaitingImport']))
+			.where(inArrayWrapped(importTable.status, ['importing', 'awaitingImport']))
 			.execute();
 
 		return result[0].count;

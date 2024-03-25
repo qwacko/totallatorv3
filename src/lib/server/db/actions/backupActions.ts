@@ -7,7 +7,7 @@ import {
 	type CombinedBackupSchemaType,
 	combinedBackupInfoSchema
 } from '$lib/server/backups/backupSchema';
-import { desc, eq, inArray } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import type { DBType } from '../db';
 import {
 	user,
@@ -42,6 +42,7 @@ import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { logging } from '$lib/server/logging';
 import { serverEnv } from '$lib/server/serverEnv';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -153,7 +154,7 @@ export const backupActions = {
 			await db
 				.update(backupTable)
 				.set({ locked: true })
-				.where(inArray(backupTable.id, backupsToLock))
+				.where(inArrayWrapped(backupTable.id, backupsToLock))
 				.execute();
 		}
 

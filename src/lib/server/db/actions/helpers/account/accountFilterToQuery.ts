@@ -5,7 +5,7 @@ import {
 	accountMaterializedView,
 	journalExtendedView
 } from '$lib/server/db/postgres/schema/materializedViewSchema';
-import { SQL, eq, gt, inArray, ilike, lt } from 'drizzle-orm';
+import { SQL, eq, gt, ilike, lt } from 'drizzle-orm';
 import {
 	summaryFilterToQueryMaterialized,
 	summaryFilterToText
@@ -17,6 +17,7 @@ import {
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 export const accountFilterToQuery = ({
 	filter,
@@ -96,7 +97,7 @@ export const accountFilterToQuery = ({
 		});
 	}
 	if (filter.type !== undefined && filter.type.length > 0)
-		where.push(inArray(selectedTable.type, filter.type));
+		where.push(inArrayWrapped(selectedTable.type, filter.type));
 
 	if (includeSummary) {
 		summaryFilterToQueryMaterialized({

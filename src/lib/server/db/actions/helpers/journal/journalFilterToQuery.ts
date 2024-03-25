@@ -16,6 +16,7 @@ import { arrayToText } from '../misc/arrayToText';
 import { importIdsToTitles } from '../import/importIdsToTitles';
 import { journalPayeeToSubquery } from './journalPayeeToSubquery';
 import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
+import { inArrayWrapped, notInArrayWrapped } from '../misc/inArrayWrapped';
 
 export const journalFilterToQuery = async (
 	db: DBType,
@@ -27,19 +28,19 @@ export const journalFilterToQuery = async (
 	if (filter.id) where.push(eq(journalEntry.id, filter.id));
 	if (filter.excludeId) where.push(not(eq(journalEntry.id, filter.excludeId)));
 	if (filter.idArray && filter.idArray.length > 0)
-		where.push(inArray(journalEntry.id, filter.idArray));
+		where.push(inArrayWrapped(journalEntry.id, filter.idArray));
 	if (filter.excludeIdArray && filter.excludeIdArray.length > 0)
-		where.push(notInArray(journalEntry.id, filter.excludeIdArray));
+		where.push(notInArrayWrapped(journalEntry.id, filter.excludeIdArray));
 	if (filter.maxAmount !== undefined) where.push(lte(journalEntry.amount, filter.maxAmount));
 	if (filter.minAmount !== undefined) where.push(gte(journalEntry.amount, filter.minAmount));
 	if (filter.yearMonth && filter.yearMonth.length > 0)
-		where.push(inArray(journalEntry.yearMonth, filter.yearMonth));
+		where.push(inArrayWrapped(journalEntry.yearMonth, filter.yearMonth));
 	if (filter.excludeYearMonth && filter.excludeYearMonth.length > 0)
-		where.push(notInArray(journalEntry.yearMonth, filter.excludeYearMonth));
+		where.push(notInArrayWrapped(journalEntry.yearMonth, filter.excludeYearMonth));
 	if (filter.transactionIdArray && filter.transactionIdArray.length > 0)
-		where.push(inArray(journalEntry.transactionId, filter.transactionIdArray));
+		where.push(inArrayWrapped(journalEntry.transactionId, filter.transactionIdArray));
 	if (filter.excludeTransactionIdArray && filter.excludeTransactionIdArray.length > 0)
-		where.push(notInArray(journalEntry.transactionId, filter.excludeTransactionIdArray));
+		where.push(notInArrayWrapped(journalEntry.transactionId, filter.excludeTransactionIdArray));
 	if (filter.description) where.push(ilike(journalEntry.description, `%${filter.description}%`));
 	if (filter.excludeDescription)
 		where.push(not(ilike(journalEntry.description, `%${filter.excludeDescription}%`)));
@@ -60,9 +61,9 @@ export const journalFilterToQuery = async (
 		where.push(eq(journalEntry.dataChecked, filter.dataChecked));
 	if (filter.reconciled !== undefined) where.push(eq(journalEntry.reconciled, filter.reconciled));
 	if (filter.importIdArray && filter.importIdArray.length > 0)
-		where.push(inArray(journalEntry.importId, filter.importIdArray));
+		where.push(inArrayWrapped(journalEntry.importId, filter.importIdArray));
 	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
-		where.push(inArray(journalEntry.importDetailId, filter.importDetailIdArray));
+		where.push(inArrayWrapped(journalEntry.importDetailId, filter.importDetailIdArray));
 
 	if (filter.account) {
 		const accountFilter = accountFilterToQuery({

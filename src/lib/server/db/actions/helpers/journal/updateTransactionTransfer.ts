@@ -1,7 +1,8 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { DBType } from '../../../db';
 import { journalEntry } from '../../../postgres/schema';
 import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 type GroupedJournals = {
 	id: string;
@@ -44,7 +45,7 @@ const doManyTransferUpdate = async ({
 			.set({ transfer: true })
 			.where(
 				and(
-					inArray(journalEntry.transactionId, transferTransactions),
+					inArrayWrapped(journalEntry.transactionId, transferTransactions),
 					eq(journalEntry.transfer, false)
 				)
 			)
@@ -57,7 +58,7 @@ const doManyTransferUpdate = async ({
 			.set({ transfer: false })
 			.where(
 				and(
-					inArray(journalEntry.transactionId, nonTransferTransactions),
+					inArrayWrapped(journalEntry.transactionId, nonTransferTransactions),
 					eq(journalEntry.transfer, true)
 				)
 			)
@@ -84,7 +85,7 @@ export const updateManyTransferInfo = async ({
 }) => {
 	const journals2 = await db.query.transaction.findMany({
 		where: (transaction, { inArray }) =>
-			transactionIds ? inArray(transaction.id, transactionIds) : undefined,
+			transactionIds ? inArrayWrapped(transaction.id, transactionIds) : undefined,
 		with: {
 			journals: {
 				with: {

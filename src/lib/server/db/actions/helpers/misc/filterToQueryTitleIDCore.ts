@@ -1,8 +1,9 @@
 import { budget, bill, category, tag, label, account } from '../../../postgres/schema';
-import { SQL, eq, ilike, inArray, type ColumnBaseConfig } from 'drizzle-orm';
+import { SQL, eq, ilike, type ColumnBaseConfig } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import type { DBType } from '$lib/server/db/db';
 import type { PgColumn } from 'drizzle-orm/pg-core';
+import { inArrayWrapped } from './inArrayWrapped';
 
 type FilterCoreType = {
 	id?: string;
@@ -31,7 +32,7 @@ export const idTitleFilterToQueryMapped = ({
 
 	if (restFilter.id) where.push(eq(idColumn, restFilter.id));
 	if (restFilter.idArray && restFilter.idArray.length > 0)
-		where.push(inArray(idColumn, restFilter.idArray));
+		where.push(inArrayWrapped(idColumn, restFilter.idArray));
 	if (restFilter.title) where.push(ilike(titleColumn, `%${restFilter.title}%`));
 	if (groupColumn && restFilter.group) where.push(ilike(groupColumn, `%${restFilter.group}%`));
 	if (singleColumn && restFilter.single) where.push(ilike(singleColumn, `%${restFilter.single}%`));
@@ -61,7 +62,7 @@ export const idTitleFilterToQuery = (
 
 	if (restFilter.id) where.push(eq(usedTable.id, restFilter.id));
 	if (restFilter.idArray && restFilter.idArray.length > 0)
-		where.push(inArray(usedTable.id, restFilter.idArray));
+		where.push(inArrayWrapped(usedTable.id, restFilter.idArray));
 	if (restFilter.title) where.push(ilike(usedTable.title, `%${restFilter.title}%`));
 	if ('group' in usedTable && 'single' in usedTable) {
 		if (restFilter.group) where.push(ilike(usedTable.group, `%${restFilter.group}%`));

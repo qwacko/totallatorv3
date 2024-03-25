@@ -1,6 +1,7 @@
 import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
 import { reusableFilter } from '$lib/server/db/postgres/schema';
-import { SQL, eq, inArray, ilike, or, not } from 'drizzle-orm';
+import { SQL, eq, ilike, or, not } from 'drizzle-orm';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) => {
 	const restFilter = filter;
@@ -8,7 +9,7 @@ export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) =>
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(reusableFilter.id, restFilter.id));
 	if (restFilter.idArray && restFilter.idArray.length > 0)
-		where.push(inArray(reusableFilter.id, restFilter.idArray));
+		where.push(inArrayWrapped(reusableFilter.id, restFilter.idArray));
 	if (restFilter.title) where.push(ilike(reusableFilter.title, `%${restFilter.title}%`));
 	if (restFilter.titleNot) where.push(not(ilike(reusableFilter.title, `%${restFilter.titleNot}%`)));
 	if (restFilter.group) where.push(ilike(reusableFilter.group, `%${restFilter.group}%`));

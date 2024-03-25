@@ -5,7 +5,7 @@ import {
 	type ReusableFilterFilterSchemaType,
 	type updateReusableFilterSchemaType
 } from '$lib/schema/reusableFilterSchema';
-import { and, asc, desc, eq, type InferSelectModel, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, type InferSelectModel } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { reusableFilter } from '$lib/server/db/postgres/schema';
 import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
@@ -20,6 +20,7 @@ import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { logging } from '$lib/server/logging';
 import { count as drizzleCount } from 'drizzle-orm';
 import { seedReusableFilterData } from './helpers/seed/seedReusableFilterData';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 export const reusableFilterActions = {
 	count: async (db: DBType) => {
@@ -399,7 +400,7 @@ export const reusableFilterActions = {
 	},
 	deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
 		if (ids.length > 0) {
-			await db.delete(reusableFilter).where(inArray(reusableFilter.id, ids)).execute();
+			await db.delete(reusableFilter).where(inArrayWrapped(reusableFilter.id, ids)).execute();
 		}
 	},
 	seed: async ({ db, count }: { db: DBType; count: number }) => {

@@ -3,11 +3,12 @@ import {
 	type ImportFilterSchemaType,
 	importTypeToTitle
 } from '$lib/schema/importSchema';
-import { SQL, eq, ilike, inArray, or, sql } from 'drizzle-orm';
+import { SQL, eq, ilike, or, sql } from 'drizzle-orm';
 import type { ImportSubqueryType } from './importListSubquery';
 import { idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { importTable } from '$lib/server/db/postgres/schema';
 import type { DBType } from '$lib/server/db/db';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 export const importFilterToQuery = ({
 	filter,
@@ -25,19 +26,19 @@ export const importFilterToQuery = ({
 		where.push(ilike(query.title, `%${filter.title}%`));
 	}
 	if (filter.idArray && filter.idArray.length > 0) {
-		where.push(inArray(query.id, filter.idArray));
+		where.push(inArrayWrapped(query.id, filter.idArray));
 	}
 	if (filter.filename) {
 		where.push(eq(query.filename, filter.filename));
 	}
 	if (filter.source && filter.source.length > 0) {
-		where.push(inArray(query.source, filter.source));
+		where.push(inArrayWrapped(query.source, filter.source));
 	}
 	if (filter.status && filter.status.length > 0) {
-		where.push(inArray(query.status, filter.status));
+		where.push(inArrayWrapped(query.status, filter.status));
 	}
 	if (filter.type && filter.type.length > 0) {
-		where.push(inArray(query.type, filter.type));
+		where.push(inArrayWrapped(query.type, filter.type));
 	}
 	if (filter.mapping) {
 		const useFilterText = `%${filter.textFilter}%`;
