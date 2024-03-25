@@ -41,18 +41,39 @@ export const cronJobs: CronJob[] = [
 		}
 	},
 	{
-		name: 'Update Reusable Filters (Every 2 Minutes)',
-		schedule: '*/2 * * * *',
+		name: 'Update All Resuable Filters (Every Day)',
+		schedule: '11 0 * * *',
 		job: async () => {
 			const startTime = new Date().getTime();
-			const numberModified = await tActions.reusableFitler.refresh({
+			const numberModified = await tActions.reusableFitler.refreshAll({
 				db,
-				maximumTime: 10000
+				maximumTime: 60000
 			});
 
 			if (numberModified > 0) {
 				logging.debug(
-					'CRON: Updating Reusable Filters - Took ' +
+					'CRON: Updating All Reusable Filters - Took ' +
+						(new Date().getTime() - startTime) +
+						'ms - Updated ' +
+						numberModified +
+						' filters'
+				);
+			}
+		}
+	},
+	{
+		name: 'Update Reusable Filters (Every hour)',
+		schedule: '3 * * * *',
+		job: async () => {
+			const startTime = new Date().getTime();
+			const numberModified = await tActions.reusableFitler.refresh({
+				db,
+				maximumTime: 60000
+			});
+
+			if (numberModified > 0) {
+				logging.debug(
+					'CRON: Updating Reusable Filters Needing Update - Took ' +
 						(new Date().getTime() - startTime) +
 						'ms - Updated ' +
 						numberModified +
