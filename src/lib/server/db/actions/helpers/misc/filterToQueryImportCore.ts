@@ -1,9 +1,10 @@
 import { category, bill, budget, tag, label, account } from '../../../postgres/schema';
-import { SQL, inArray, type ColumnBaseConfig } from 'drizzle-orm';
+import { SQL, type ColumnBaseConfig } from 'drizzle-orm';
 import { arrayToText } from './arrayToText';
 import { importIdsToTitles } from '../import/importIdsToTitles';
 import type { DBType } from '$lib/server/db/db';
 import type { PgColumn } from 'drizzle-orm/pg-core';
+import { inArrayWrapped } from './inArrayWrapped';
 
 type FilterCoreType = { importIdArray?: string[]; importDetailIdArray?: string[] };
 
@@ -28,9 +29,9 @@ export const importFilterToQuery = (
 							: account;
 
 	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
-		where.push(inArray(usedTable.importId, restFilter.importIdArray));
+		where.push(inArrayWrapped(usedTable.importId, restFilter.importIdArray));
 	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
-		where.push(inArray(usedTable.importDetailId, restFilter.importDetailIdArray));
+		where.push(inArrayWrapped(usedTable.importDetailId, restFilter.importDetailIdArray));
 
 	return where;
 };
@@ -50,9 +51,9 @@ export const importFilterToQueryMaterialized = ({
 	const restFilter = filter;
 
 	if (restFilter.importIdArray && restFilter.importIdArray.length > 0)
-		where.push(inArray(table.importId, restFilter.importIdArray));
+		where.push(inArrayWrapped(table.importId, restFilter.importIdArray));
 	if (restFilter.importDetailIdArray && restFilter.importDetailIdArray.length > 0)
-		where.push(inArray(table.importDetailId, restFilter.importDetailIdArray));
+		where.push(inArrayWrapped(table.importDetailId, restFilter.importDetailIdArray));
 
 	return where;
 };

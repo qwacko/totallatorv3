@@ -1,6 +1,6 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
-import { SQL, eq, gte, lte, inArray, ilike, not, notInArray } from 'drizzle-orm';
+import { SQL, eq, gte, lte, ilike, not, inArray, notInArray } from 'drizzle-orm';
 import { accountFilterToQuery } from '../account/accountFilterToQuery';
 import { billFilterToQuery } from '../bill/billFilterToQuery';
 import { budgetFilterToQuery } from '../budget/budgetFilterToQuery';
@@ -10,6 +10,7 @@ import { labelFilterToSubQuery } from '../label/labelFilterToQuery';
 import { type DBType } from '../../../db';
 import { journalPayeeToSubquery } from '../journal/journalPayeeToSubquery';
 import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
+import { inArrayWrapped, notInArrayWrapped } from '../misc/inArrayWrapped';
 
 export const materializedJournalFilterToQuery = async (
 	db: DBType,
@@ -31,19 +32,21 @@ export const materializedJournalFilterToQuery = async (
 	if (filter.id) where.push(eq(journalExtendedView.id, filter.id));
 	if (filter.excludeId) where.push(not(eq(journalExtendedView.id, filter.excludeId)));
 	if (filter.idArray && filter.idArray.length > 0)
-		where.push(inArray(journalExtendedView.id, filter.idArray));
+		where.push(inArrayWrapped(journalExtendedView.id, filter.idArray));
 	if (filter.excludeIdArray && filter.excludeIdArray.length > 0)
-		where.push(notInArray(journalExtendedView.id, filter.excludeIdArray));
+		where.push(notInArrayWrapped(journalExtendedView.id, filter.excludeIdArray));
 	if (filter.maxAmount !== undefined) where.push(lte(journalExtendedView.amount, filter.maxAmount));
 	if (filter.minAmount !== undefined) where.push(gte(journalExtendedView.amount, filter.minAmount));
 	if (filter.yearMonth && filter.yearMonth.length > 0)
-		where.push(inArray(journalExtendedView.yearMonth, filter.yearMonth));
+		where.push(inArrayWrapped(journalExtendedView.yearMonth, filter.yearMonth));
 	if (filter.excludeYearMonth && filter.excludeYearMonth.length > 0)
-		where.push(notInArray(journalExtendedView.yearMonth, filter.excludeYearMonth));
+		where.push(notInArrayWrapped(journalExtendedView.yearMonth, filter.excludeYearMonth));
 	if (filter.transactionIdArray && filter.transactionIdArray.length > 0)
-		where.push(inArray(journalExtendedView.transactionId, filter.transactionIdArray));
+		where.push(inArrayWrapped(journalExtendedView.transactionId, filter.transactionIdArray));
 	if (filter.excludeTransactionIdArray && filter.excludeTransactionIdArray.length > 0)
-		where.push(notInArray(journalExtendedView.transactionId, filter.excludeTransactionIdArray));
+		where.push(
+			notInArrayWrapped(journalExtendedView.transactionId, filter.excludeTransactionIdArray)
+		);
 	if (filter.description)
 		where.push(ilike(journalExtendedView.description, `%${filter.description}%`));
 	if (filter.excludeDescription)
@@ -68,16 +71,16 @@ export const materializedJournalFilterToQuery = async (
 	if (filter.reconciled !== undefined)
 		where.push(eq(journalExtendedView.reconciled, filter.reconciled));
 	if (filter.importIdArray && filter.importIdArray.length > 0)
-		where.push(inArray(journalExtendedView.importId, filter.importIdArray));
+		where.push(inArrayWrapped(journalExtendedView.importId, filter.importIdArray));
 	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
-		where.push(inArray(journalExtendedView.importDetailId, filter.importDetailIdArray));
+		where.push(inArrayWrapped(journalExtendedView.importDetailId, filter.importDetailIdArray));
 
 	if (filter.account) {
 		if (filter.account.id) {
 			where.push(eq(journalExtendedView.accountId, filter.account.id));
 		}
 		if (filter.account.idArray && filter.account.idArray.length > 0) {
-			where.push(inArray(journalExtendedView.accountId, filter.account.idArray));
+			where.push(inArrayWrapped(journalExtendedView.accountId, filter.account.idArray));
 		}
 	}
 

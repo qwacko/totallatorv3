@@ -7,7 +7,7 @@ import {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account } from '../postgres/schema';
-import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -28,6 +28,7 @@ import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { accountMaterializedView } from '../postgres/schema/materializedViewSchema';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
@@ -372,14 +373,14 @@ export const accountActions = {
 			await db
 				.delete(account)
 				.where(
-					inArray(
+					inArrayWrapped(
 						account.id,
 						itemsForDeletion.map((item) => item.id)
 					)
 				)
 				.execute();
-			return true;
 			await materializedViewActions.setRefreshRequired(db);
+			return true;
 		}
 		return false;
 	},

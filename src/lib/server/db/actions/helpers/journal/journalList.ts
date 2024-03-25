@@ -3,7 +3,7 @@ import {
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType
 } from '$lib/schema/journalSchema';
-import { getTableColumns, eq, and, inArray, sum, sql, not, or } from 'drizzle-orm';
+import { getTableColumns, eq, and, sum, sql, not, or } from 'drizzle-orm';
 import type { DBType } from '../../../db';
 import {
 	account,
@@ -25,6 +25,7 @@ import { materializedJournalFilterToQuery } from '../journalMaterializedView/mat
 import { materializedJournalFilterToOrderBy } from '../journalMaterializedView/materializedJournalFilterToOrderBy';
 import { alias } from 'drizzle-orm/pg-core';
 import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -49,7 +50,7 @@ const getOtherJournalInfo = async (db: DBType, journalIds: string[]) => {
 			})
 			.from(labelsToJournals)
 			.leftJoin(label, eq(labelsToJournals.labelId, label.id))
-			.where(journalIds.length > 0 ? inArray(labelsToJournals.journalId, journalIds) : sql`FALSE`)
+			.where(inArrayWrapped(labelsToJournals.journalId, journalIds))
 			.groupBy(labelsToJournals.journalId)
 	);
 
@@ -68,10 +69,7 @@ const getOtherJournalInfo = async (db: DBType, journalIds: string[]) => {
 			.leftJoin(otherJournals, eq(otherJournals.transactionId, journalEntry.transactionId))
 			.leftJoin(account, eq(otherJournals.accountId, account.id))
 			.where(
-				and(
-					not(eq(otherJournals.id, journalEntry.id)),
-					journalIds.length > 0 ? inArray(journalEntry.id, journalIds) : sql`FALSE`
-				)
+				and(not(eq(otherJournals.id, journalEntry.id)), inArrayWrapped(journalEntry.id, journalIds))
 			)
 			.groupBy(journalEntry.id)
 	);
@@ -87,7 +85,7 @@ const getOtherJournalInfo = async (db: DBType, journalIds: string[]) => {
 				)
 		})
 		.from(journalEntry)
-		.where(journalIds.length > 0 ? inArray(journalEntry.id, journalIds) : sql`FALSE`)
+		.where(inArrayWrapped(journalEntry.id, journalIds))
 		.leftJoin(labelsq, eq(journalEntry.id, labelsq.journalId))
 		.leftJoin(journalsq, eq(journalEntry.id, journalsq.journalId))
 		.execute();
@@ -153,8 +151,8 @@ export const journalMaterialisedList = async ({
 		.from(importItemDetail)
 		.where(
 			or(
-				inArray(importItemDetail.relationId, journalIds),
-				inArray(importItemDetail.relation2Id, journalIds)
+				inArrayWrapped(importItemDetail.relationId, journalIds),
+				inArrayWrapped(importItemDetail.relation2Id, journalIds)
 			)
 		)
 		.execute();
@@ -271,9 +269,7 @@ export const journalList = async ({
 		.from(journalEntry)
 		.leftJoin(labelsToJournals, eq(labelsToJournals.journalId, journalEntry.id))
 		.leftJoin(label, eq(label.id, labelsToJournals.labelId))
-		.where(
-			journalIds.length > 0 ? inArray(journalEntry.id, journalIds) : eq(journalEntry.id, 'None')
-		)
+		.where(inArrayWrapped(journalEntry.id, journalIds))
 		.execute();
 
 	const runningTotal = (await runningTotalPromise)[0].sum;
@@ -294,7 +290,7 @@ export const journalList = async ({
 					})
 					.from(journalEntry)
 					.leftJoin(account, eq(journalEntry.accountId, account.id))
-					.where(inArray(journalEntry.transactionId, transactionIds))
+					.where(inArrayWrapped(journalEntry.transactionId, transactionIds))
 					.execute()
 			: [];
 

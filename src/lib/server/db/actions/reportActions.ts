@@ -17,7 +17,7 @@ import {
 import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { reportLayoutOptions } from '../../../../routes/(loggedIn)/reports/create/reportLayoutOptions';
-import { eq, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { filter as filterTable } from '../postgres/schema';
 import {
 	journalFilterSchemaWithoutPagination,
@@ -31,6 +31,7 @@ import {
 } from '$lib/schema/reportHelpers/reportConfigPartSchema';
 import { dateRangeMaterializedView } from '../postgres/schema/materializedViewSchema';
 import type { DBDateRangeType } from './helpers/report/filtersToDateRange';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 export const reportActions = {
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
@@ -662,14 +663,14 @@ export const reportActions = {
 		},
 		deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
 			const reportElements = await db.query.reportElement.findMany({
-				where: (reportElement, { inArray }) => inArray(reportElement.id, ids)
+				where: (reportElement) => inArrayWrapped(reportElement.id, ids)
 			});
 
 			const reportElementConfigIds = reportElements.map((item) => item.reportElementConfigId);
 
 			const reportElementConfigs = await db.query.reportElementConfig.findMany({
-				where: (reportElementConfig, { inArray }) =>
-					inArray(reportElementConfig.id, reportElementConfigIds),
+				where: (reportElementConfig) =>
+					inArrayWrapped(reportElementConfig.id, reportElementConfigIds),
 				with: {
 					reportElements: true
 				}
@@ -694,22 +695,22 @@ export const reportActions = {
 			);
 
 			const reportConfigToFiltersToDelete = await db.query.filtersToReportConfigs.findMany({
-				where: (filtersToReportConfigs, { inArray }) =>
-					inArray(filtersToReportConfigs.reportElementConfigId, reportConfigsToDelete)
+				where: (filtersToReportConfigs) =>
+					inArrayWrapped(filtersToReportConfigs.reportElementConfigId, reportConfigsToDelete)
 			});
 
 			await db.transaction(async (trx) => {
 				if (reportElementsToDelete.length > 0) {
 					await trx
 						.delete(reportElement)
-						.where(inArray(reportElement.id, reportElementsToDelete))
+						.where(inArrayWrapped(reportElement.id, reportElementsToDelete))
 						.execute();
 				}
 
 				if (reportConfigsToDelete.length > 0) {
 					await trx
 						.delete(reportElementConfig)
-						.where(inArray(reportElementConfig.id, reportConfigsToDelete))
+						.where(inArrayWrapped(reportElementConfig.id, reportConfigsToDelete))
 						.execute();
 				}
 
@@ -717,7 +718,7 @@ export const reportActions = {
 					await trx
 						.delete(filtersToReportConfigs)
 						.where(
-							inArray(
+							inArrayWrapped(
 								filtersToReportConfigs.reportElementConfigId,
 								reportConfigToFiltersToDelete.map((item) => item.id)
 							)
@@ -727,7 +728,7 @@ export const reportActions = {
 					await trx
 						.delete(filterTable)
 						.where(
-							inArray(
+							inArrayWrapped(
 								filterTable.id,
 								reportConfigToFiltersToDelete.map((item) => item.filterId)
 							)

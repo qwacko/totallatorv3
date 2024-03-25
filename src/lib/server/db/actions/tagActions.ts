@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { journalEntry, tag } from '../postgres/schema';
-import { and, asc, count, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, count, desc, eq } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -21,6 +21,7 @@ import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { tagMaterializedView } from '../postgres/schema/materializedViewSchema';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
@@ -227,7 +228,7 @@ export const tagActions = {
 			await db
 				.delete(tag)
 				.where(
-					inArray(
+					inArrayWrapped(
 						tag.id,
 						itemsForDeletion.map((item) => item.id)
 					)

@@ -10,7 +10,7 @@ import {
 	type CloneJournalUpdateSchemaType,
 	cloneJournalUpdateSchema
 } from '$lib/schema/journalSchema';
-import { eq, and, inArray, not, or } from 'drizzle-orm';
+import { eq, and,  not, or } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { journalEntry, transaction, labelsToJournals } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -30,6 +30,7 @@ import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCo
 import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
 import { materializedViewActions } from './materializedViewActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 export const journalActions = {
 	createFromSimpleTransaction: async ({
@@ -121,18 +122,18 @@ export const journalActions = {
 					const journalsForDeletion = await db
 						.select()
 						.from(journalEntry)
-						.where(inArray(journalEntry.transactionId, currentTransactionIds))
+						.where(inArrayWrapped(journalEntry.transactionId, currentTransactionIds))
 						.execute();
 					await db
 						.delete(journalEntry)
-						.where(inArray(journalEntry.transactionId, currentTransactionIds))
+						.where(inArrayWrapped(journalEntry.transactionId, currentTransactionIds))
 						.execute();
 					await db
 						.delete(transaction)
-						.where(inArray(transaction.id, currentTransactionIds))
+						.where(inArrayWrapped(transaction.id, currentTransactionIds))
 						.execute();
 					await db.delete(labelsToJournals).where(
-						inArray(
+						inArrayWrapped(
 							labelsToJournals.journalId,
 							journalsForDeletion.map((item) => item.id)
 						)
@@ -303,12 +304,8 @@ export const journalActions = {
 				.from(journalEntry)
 				.where(
 					or(
-						journalIds.length > 0
-							? inArray(journalEntry.id, journalIds)
-							: eq(journalEntry.id, 'empty'),
-						linkedTransactionIds.length > 0
-							? inArray(journalEntry.transactionId, linkedTransactionIds)
-							: eq(journalEntry.id, 'empty')
+						inArrayWrapped(journalEntry.id, journalIds),
+						inArrayWrapped(journalEntry.transactionId, linkedTransactionIds)
 					)
 				)
 				.execute()
@@ -406,7 +403,7 @@ export const journalActions = {
 						...targetDate,
 						...updatedTime()
 					})
-					.where(inArray(journalEntry.transactionId, linkedTransactionIds))
+					.where(inArrayWrapped(journalEntry.transactionId, linkedTransactionIds))
 					.execute();
 			}
 
@@ -425,7 +422,7 @@ export const journalActions = {
 						...targetDate,
 						...updatedTime()
 					})
-					.where(inArray(journalEntry.id, journalIds));
+					.where(inArrayWrapped(journalEntry.id, journalIds));
 			}
 			if (accountId) {
 				const journalIds = journals.data.map((journal) => journal.id);
@@ -433,7 +430,7 @@ export const journalActions = {
 				await db
 					.update(journalEntry)
 					.set({ accountId })
-					.where(inArray(journalEntry.id, journalIds))
+					.where(inArrayWrapped(journalEntry.id, journalIds))
 					.execute();
 			}
 			if (otherAccountId) {
@@ -453,7 +450,7 @@ export const journalActions = {
 				await db
 					.update(journalEntry)
 					.set({ accountId: otherAccountId })
-					.where(inArray(journalEntry.id, updatingJournalIds))
+					.where(inArrayWrapped(journalEntry.id, updatingJournalIds))
 					.execute();
 			}
 
@@ -465,7 +462,7 @@ export const journalActions = {
 					.set({ amount: journalData.amount, ...updatedTime() })
 					.where(
 						and(
-							inArray(journalEntry.id, journalIds),
+							inArrayWrapped(journalEntry.id, journalIds),
 							not(eq(journalEntry.amount, journalData.amount))
 						)
 					)
@@ -477,7 +474,7 @@ export const journalActions = {
 				);
 
 				const transactionJournals = await db.query.transaction.findMany({
-					where: inArray(transaction.id, transactionIds),
+					where: inArrayWrapped(transaction.id, transactionIds),
 					columns: {
 						id: true
 					},
@@ -577,8 +574,8 @@ export const journalActions = {
 					.delete(labelsToJournals)
 					.where(
 						and(
-							inArray(labelsToJournals.labelId, journalData.removeLabels),
-							inArray(labelsToJournals.journalId, targetJournals)
+							inArrayWrapped(labelsToJournals.labelId, journalData.removeLabels),
+							inArrayWrapped(labelsToJournals.journalId, targetJournals)
 						)
 					);
 			}
@@ -589,8 +586,8 @@ export const journalActions = {
 					.delete(labelsToJournals)
 					.where(
 						and(
-							inArray(labelsToJournals.journalId, targetJournals),
-							not(inArray(labelsToJournals.labelId, labelSettingIds))
+							inArrayWrapped(labelsToJournals.journalId, targetJournals),
+							not(inArrayWrapped(labelsToJournals.labelId, labelSettingIds))
 						)
 					)
 					.execute();
@@ -629,7 +626,7 @@ export const journalActions = {
 
 		const transactions = await db.query.transaction
 			.findMany({
-				where: inArray(transaction.id, originalTransactionIds),
+				where: inArrayWrapped(transaction.id, originalTransactionIds),
 				with: {
 					journals: { with: { labels: true } }
 				}

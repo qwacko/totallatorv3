@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { label, labelsToJournals } from '../postgres/schema';
-import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -20,6 +20,7 @@ import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { labelMaterializedView } from '../postgres/schema/materializedViewSchema';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
@@ -238,10 +239,10 @@ export const labelActions = {
 		return await db.transaction(async (transDb) => {
 			await transDb
 				.delete(labelsToJournals)
-				.where(inArray(labelsToJournals.labelId, idList))
+				.where(inArrayWrapped(labelsToJournals.labelId, idList))
 				.execute();
 
-			await transDb.delete(label).where(inArray(label.id, idList)).execute();
+			await transDb.delete(label).where(inArrayWrapped(label.id, idList)).execute();
 		});
 		await materializedViewActions.setRefreshRequired(db);
 	},

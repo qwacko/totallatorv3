@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { DBType } from '../../../db';
 import {
 	account,
@@ -31,6 +31,7 @@ import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefin
 import { tActions } from '../../tActions';
 import { getImportDetail } from './getImportDetail';
 import type { ImportStatusType } from '$lib/schema/importSchema';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 export const processCreatedImport = async ({ db, id }: { db: DBType; id: string }) => {
 	const data = await db.select().from(importTable).where(eq(importTable.id, id));
@@ -72,7 +73,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 					const existingImports = await db
 						.select()
 						.from(importItemDetail)
-						.where(inArray(importItemDetail.uniqueId, data))
+						.where(inArrayWrapped(importItemDetail.uniqueId, data))
 						.execute();
 
 					if (existingImports.length > 0) {
@@ -113,7 +114,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 						const existingAccounts = await db
 							.select()
 							.from(account)
-							.where(inArray(account.accountTitleCombined, data))
+							.where(inArrayWrapped(account.accountTitleCombined, data))
 							.execute();
 						return existingAccounts.map((item) => item.accountTitleCombined);
 					})
@@ -129,7 +130,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 						const existingBills = await db
 							.select()
 							.from(bill)
-							.where(inArray(bill.title, data))
+							.where(inArrayWrapped(bill.title, data))
 							.execute();
 						return existingBills.map((item) => item.title);
 					})
@@ -145,7 +146,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 						const existingBudgets = await db
 							.select()
 							.from(budget)
-							.where(inArray(budget.title, data))
+							.where(inArrayWrapped(budget.title, data))
 							.execute();
 						return existingBudgets.map((item) => item.title);
 					})
@@ -161,7 +162,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 						const existingCategories = await db
 							.select()
 							.from(category)
-							.where(inArray(category.title, data))
+							.where(inArrayWrapped(category.title, data))
 							.execute();
 						return existingCategories.map((item) => item.title);
 					})
@@ -177,7 +178,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 						const existingTags = await db
 							.select()
 							.from(tag)
-							.where(inArray(tag.title, data))
+							.where(inArrayWrapped(tag.title, data))
 							.execute();
 						return existingTags.map((item) => item.title);
 					})
@@ -193,7 +194,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 						const existingLabels = await db
 							.select()
 							.from(label)
-							.where(inArray(label.title, data))
+							.where(inArrayWrapped(label.title, data))
 							.execute();
 						return existingLabels.map((item) => item.title);
 					})
@@ -235,7 +236,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 									const existingTransactions = await db
 										.select()
 										.from(journalEntry)
-										.where(inArray(journalEntry.uniqueId, data))
+										.where(inArrayWrapped(journalEntry.uniqueId, data))
 										.execute();
 									return filterNullUndefinedAndDuplicates(
 										existingTransactions.map((item) => item.uniqueId)

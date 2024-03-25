@@ -1,8 +1,9 @@
 import type { ImportMappingFilterSchema } from '$lib/schema/importMappingSchema';
 import type { DBType } from '../../../db';
 import { importMapping } from '../../../postgres/schema';
-import { SQL, eq, ilike, inArray, or } from 'drizzle-orm';
+import { SQL, eq, ilike, or } from 'drizzle-orm';
 import { arrayToText } from '../misc/arrayToText';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 export const importMappingFilterToQuery = (
 	filter: Omit<ImportMappingFilterSchema, 'page' | 'pageSize' | 'orderBy'>
@@ -12,7 +13,7 @@ export const importMappingFilterToQuery = (
 	const where: SQL<unknown>[] = [];
 	if (restFilter.id) where.push(eq(importMapping.id, restFilter.id));
 	if (restFilter.idArray && restFilter.idArray.length > 0)
-		where.push(inArray(importMapping.id, restFilter.idArray));
+		where.push(inArrayWrapped(importMapping.id, restFilter.idArray));
 	if (restFilter.title) where.push(ilike(importMapping.title, `%${restFilter.title}%`));
 	if (restFilter.configuration)
 		where.push(ilike(importMapping.title, `%${restFilter.configuration}%`));
