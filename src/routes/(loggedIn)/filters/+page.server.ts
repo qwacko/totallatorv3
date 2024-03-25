@@ -3,6 +3,7 @@ import { serverPageInfo } from '$lib/routes.js';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { reusableFilterToText } from '$lib/server/db/actions/helpers/journal/reusableFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
+import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
@@ -35,4 +36,28 @@ export const load = async (data) => {
 			})
 		}
 	};
+};
+
+export let actions = {
+	refreshAll: async ({ locals }) => {
+		const db = locals.db;
+
+		await tActions.reusableFitler.refreshAll({ db, maximumTime: 60000 });
+	},
+	refreshSome: async ({ locals, params, request }) => {
+		const db = locals.db;
+
+		const form = await request.formData();
+		const ids = form.getAll('id');
+
+		const idsArray = ids.map((id) => id.toString());
+
+		console.log(`Target IDs : ${idsArray}`);
+
+		try {
+			await tActions.reusableFitler.refreshSome({ db, ids: idsArray });
+		} catch (e) {
+			logging.error('Error Refreshing Some Filters', e);
+		}
+	}
 };

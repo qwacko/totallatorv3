@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { Button } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { page } from '$app/stores';
@@ -8,6 +9,8 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import FilterTable from './FilterTable.svelte';
 	import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
+	import { customEnhance } from '$lib/helpers/customEnhance';
+	import ActionButton from '$lib/components/ActionButton.svelte';
 
 	export let data;
 
@@ -31,6 +34,19 @@
 		urlForSort: (newSort: ReusableFilterFilterSchemaType['orderBy']) =>
 			urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url
 	};
+
+	let refreshingSome = false;
+	let refreshingAll = false;
+	let refreshTime = new Date();
+	let now = new Date(); // This will be updated every second
+
+	// Reactive statement to calculate time since refresh
+	$: timeSinceRefreshSeconds = Math.floor((now.getTime() - refreshTime.getTime()) / 1000);
+
+	// Set an interval to update 'now' every second
+	setInterval(() => {
+		now = new Date();
+	}, 1000);
 </script>
 
 <CustomHeader
@@ -44,11 +60,61 @@
 	<svelte:fragment slot="right">
 		<Button
 			href={urlGenerator({ address: '/(loggedIn)/filters/create', searchParamsValue: {} }).url}
-			color="light"
 			outline
 		>
 			Create
 		</Button>
+		<form
+			class="flex"
+			action="?/refreshAll"
+			method="post"
+			use:enhance={customEnhance({
+				updateLoading(loading) {
+					refreshingAll = loading;
+					if (loading) {
+						now = new Date();
+						refreshTime = new Date();
+					}
+				}
+			})}
+		>
+			<ActionButton
+				type="submit"
+				message="Refresh All"
+				loadingMessage="Refreshing All ({timeSinceRefreshSeconds}s)..."
+				loading={refreshingAll}
+				disabled={refreshingSome}
+				outline
+			/>
+		</form>
+		<form
+			class="flex"
+			action="?/refreshSome"
+			method="post"
+			use:enhance={customEnhance({
+				updateLoading(loading) {
+					refreshingSome = loading;
+					if (loading) {
+						now = new Date();
+						refreshTime = new Date();
+					}
+				}
+			})}
+		>
+			{#await data.streamed.filters then filters}
+				{#each filters.data as filter}
+					<input type="hidden" name="id" value={filter.id} />
+				{/each}
+				<ActionButton
+					type="submit"
+					message="Refresh Displayed"
+					loadingMessage="Refreshing Displayed ({timeSinceRefreshSeconds}s)..."
+					outline
+					disabled={refreshingAll}
+					loading={refreshingSome}
+				/>
+			{/await}
+		</form>
 	</svelte:fragment>
 
 	{#if $urlStore.searchParams}

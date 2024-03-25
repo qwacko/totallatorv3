@@ -158,7 +158,7 @@
 				}).url}
 			currentFilter={{ page: 0, pageSize: 10, orderBy: [{ field: 'date', direction: 'desc' }] }}
 		/>
-		<Button outline color="light">Config</Button>
+		<Button outline>Config</Button>
 		<Dropdown>
 			{#each pageMap as currentPage}
 				<DropdownItem href={currentPage.href.url}>

@@ -85,12 +85,20 @@ export const reusableFilterActions = {
 
 		return updatedFilter;
 	},
+	refreshAll: async ({ db, maximumTime }: { db: DBType; maximumTime: number }) => {
+		await db.update(reusableFilter).set({ needsUpdate: true }).execute();
+		await reusableFilterActions.refresh({ db, maximumTime });
+	},
+	refreshSome: async ({ db, ids }: { db: DBType; ids: string[] }) => {
+		await Promise.all(ids.map((id) => reusableFilterActions.getById({ db, id })));
+	},
 	refresh: async ({ db, maximumTime }: { db: DBType; maximumTime: number }) => {
 		const startTime = Date.now();
 
 		let numberModified = 0;
 
 		while (Date.now() - startTime < maximumTime) {
+
 			const filter = await db
 				.select()
 				.from(reusableFilter)
@@ -103,16 +111,19 @@ export const reusableFilterActions = {
 			const currentFilter = filter[0];
 
 			await reusableFilterActions.refreshFilterSummary({ db, currentFilter });
+
 			numberModified++;
 		}
 
-		if (numberModified > 0) {
-			logging.debug(
+
+		if (numberModified > -1) {
+			logging.info(
 				`Updated ${numberModified} reusable filters, took ${
 					Date.now() - startTime
 				}ms (limit = ${maximumTime}s))`
 			);
 		}
+
 
 		return numberModified;
 	},
