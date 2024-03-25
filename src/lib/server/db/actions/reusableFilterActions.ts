@@ -85,6 +85,13 @@ export const reusableFilterActions = {
 
 		return updatedFilter;
 	},
+	refreshAll: async ({ db, maximumTime }: { db: DBType; maximumTime: number }) => {
+		await db.update(reusableFilter).set({ needsUpdate: true }).execute();
+		return reusableFilterActions.refresh({ db, maximumTime });
+	},
+	refreshSome: async ({ db, ids }: { db: DBType; ids: string[] }) => {
+		await Promise.all(ids.map((id) => reusableFilterActions.getById({ db, id })));
+	},
 	refresh: async ({ db, maximumTime }: { db: DBType; maximumTime: number }) => {
 		const startTime = Date.now();
 
@@ -103,10 +110,11 @@ export const reusableFilterActions = {
 			const currentFilter = filter[0];
 
 			await reusableFilterActions.refreshFilterSummary({ db, currentFilter });
+
 			numberModified++;
 		}
 
-		if (numberModified > 0) {
+		if (numberModified > -1) {
 			logging.debug(
 				`Updated ${numberModified} reusable filters, took ${
 					Date.now() - startTime
@@ -245,6 +253,9 @@ export const reusableFilterActions = {
 			});
 		}
 
+		//This is called to refresh the filter summary after running the action, as the journal count should almost certainly change.
+		await reusableFilterActions.getById({ db, id });
+
 		return;
 	},
 	applyFollowingImport: async ({
@@ -266,7 +277,6 @@ export const reusableFilterActions = {
 
 		for (const currentItem of items) {
 			await reusableFilterActions.applyById({ db, id: currentItem.id, importId });
-
 
 			if (timeout && new Date() > timeout) {
 				logging.error(`Filter Application Timeout. Reached ${index} of ${items.length} filters.`);

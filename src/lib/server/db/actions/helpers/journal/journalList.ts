@@ -3,7 +3,7 @@ import {
 	defaultJournalFilter,
 	type JournalFilterSchemaInputType
 } from '$lib/schema/journalSchema';
-import { getTableColumns, eq, and, inArray, sum, sql, not } from 'drizzle-orm';
+import { getTableColumns, eq, and, inArray, sum, sql, not, or } from 'drizzle-orm';
 import type { DBType } from '../../../db';
 import {
 	account,
@@ -14,7 +14,8 @@ import {
 	tag,
 	label,
 	labelsToJournals,
-	importTable
+	importTable,
+	importItemDetail
 } from '../../../postgres/schema';
 import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
 import { journalFilterToQuery } from './journalFilterToQuery';
@@ -147,17 +148,31 @@ export const journalMaterialisedList = async ({
 	const runningTotal = (await runningTotalPromise)[0].sum;
 
 	const otherJournalData = await getOtherJournalInfo(db, journalIds);
+	const importDetails = await db
+		.select()
+		.from(importItemDetail)
+		.where(
+			or(
+				inArray(importItemDetail.relationId, journalIds),
+				inArray(importItemDetail.relation2Id, journalIds)
+			)
+		)
+		.execute();
 
 	const journalsMerged = journals.map((journal, index) => {
 		const priorJournals = journals.filter((_, i) => i < index);
 		const priorJournalTotal = priorJournals.reduce((prev, current) => prev + current.amount, 0);
 		const thisOtherJournalData = otherJournalData.find((x) => x.id === journal.id);
+		const thisImportDetail = importDetails.find(
+			(x) => x.relationId === journal.id || x.relation2Id === journal.id
+		);
 		const total = runningTotal - priorJournalTotal;
 
 		return {
 			...journal,
 			total,
 			otherJournals: thisOtherJournalData?.otherJournals ?? [],
+			importDetail: thisImportDetail?.processedInfo,
 			labels: thisOtherJournalData?.labels ?? []
 		};
 	});
