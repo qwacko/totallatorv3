@@ -8,6 +8,7 @@
 	export let offTitle: string = 'False';
 	export let clearTitle: string = 'Clear';
 	export let hideClear: boolean = false;
+	export let disabled: boolean = false;
 </script>
 
 <ButtonGroup>
@@ -16,6 +17,7 @@
 		color="primary"
 		on:click={() => setNew(true)}
 		class="flex flex-grow basis-0"
+		{disabled}
 	>
 		{onTitle}
 	</Button>
@@ -24,6 +26,7 @@
 		color="primary"
 		on:click={() => setNew(false)}
 		class="flex flex-grow basis-0"
+		{disabled}
 	>
 		{offTitle}
 	</Button>
@@ -33,6 +36,7 @@
 			color="primary"
 			on:click={() => setNew(undefined)}
 			class="flex flex-grow basis-0"
+			{disabled}
 		>
 			{clearTitle}
 		</Button>

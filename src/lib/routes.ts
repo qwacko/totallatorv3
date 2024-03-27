@@ -16,6 +16,7 @@ import {
 import { importMappingFilterSchema } from './schema/importMappingSchema';
 import { dateSpanEnum } from './schema/dateSpanSchema';
 import { importFilterSchema } from './schema/importSchema';
+import { autoImportFilterSchema } from './schema/autoImportSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -84,6 +85,16 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse,
 			paramsValidation: z.object({ id: z.string() }).parse
 		},
+
+		// Automatic Imports
+		// ----------------------------------------
+
+		'/(loggedIn)/autoImport': {
+			searchParamsValidation: autoImportFilterSchema.optional().catch({}).parse
+		},
+		'/(loggedIn)/autoImport/create': {},
+		'/(loggedIn)/autoImport/[id]': { paramsValidation: idSchema.parse },
+		'/(loggedIn)/autoImport/[id]/delete': { paramsValidation: idSchema.parse },
 
 		// Filters
 		// ----------------------------------------

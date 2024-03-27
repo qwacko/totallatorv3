@@ -13,6 +13,7 @@ import { reportActions } from './reportActions';
 import { reusableFilterActions } from './reusableFilterActions';
 import { tagActions } from './tagActions';
 import { userActions } from './userActions';
+import { autoImportActions } from './autoImportActions';
 
 export const tActions = {
 	tag: tagActions,
@@ -29,5 +30,6 @@ export const tActions = {
 	report: reportActions,
 	journalView: journalMaterializedViewActions,
 	materializedViews: materializedViewActions,
-	user: userActions
+	user: userActions,
+	autoImport: autoImportActions
 };

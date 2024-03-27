@@ -167,6 +167,32 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: { clone: POSTAllowAdminOnly }
 		},
 
+		// Automatic Imports
+		// ----------------------------------------
+		'/(loggedIn)/autoImport': {
+			...adminOnlyConfig
+		},
+		'/(loggedIn)/autoImport/create': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/autoImport/[id]': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				updateSampleData: POSTAllowAdminOnly,
+				testConnection: POSTAllowAdminOnly,
+				update: POSTAllowAdminOnly,
+				enableDisable: POSTAllowAdminOnly,
+				getData: POSTAllowAdminOnly
+			}
+		},
+		'/(loggedIn)/autoImport/[id]/delete': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				default: POSTAllowAdminOnly
+			}
+		},
+
 		// Filters
 		// ----------------------------------------
 		'/(loggedIn)/filters': {

@@ -9,6 +9,7 @@ import { idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { importTable } from '$lib/server/db/postgres/schema';
 import type { DBType } from '$lib/server/db/db';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { autoImportIdToTitle } from '../autoImport/autoImportFilterToQuery';
 
 export const importFilterToQuery = ({
 	filter,
@@ -57,6 +58,10 @@ export const importFilterToQuery = ({
 		}
 	}
 
+	if (filter.autoImportId) {
+		where.push(eq(query.autoImportId, filter.autoImportId));
+	}
+
 	return where;
 };
 
@@ -102,6 +107,9 @@ export const importFilterToText = async ({
 	}
 	if (filter.textFilter) {
 		stringArray.push(`Title or Import Mapping contains ${filter.textFilter}`);
+	}
+	if (filter.autoImportId) {
+		stringArray.push(`Auto Import is ${await autoImportIdToTitle(db, filter.autoImportId)}`);
 	}
 
 	if (stringArray.length === 0) {

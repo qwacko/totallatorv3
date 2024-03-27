@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const importSourceEnum = ['csv'] as const;
+export const importSourceEnum = ['csv', 'json'] as const;
 export const importTypeEnum = [
 	'transaction',
 	'account',
@@ -163,6 +163,7 @@ export const importFilterSchema = z.object({
 	type: z.array(z.enum(importTypeEnum)).optional(),
 	mapping: z.string().optional(),
 	status: z.array(z.enum(importStatusEnum)).optional(),
+	autoImportId: z.string().optional(),
 
 	//Page Information
 	page: z.number().default(0).optional(),

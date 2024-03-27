@@ -48,6 +48,15 @@ export const importColumnsStore = writable([
 	'numErrors'
 ]);
 
+export const autoImportColumnsStore = writable([
+	'actions',
+	'enabled',
+	'title',
+	'type',
+	'frequency',
+	'importMapping'
+]);
+
 export const importMappingColumnStore = writable(['actions', 'title']);
 
 export const journalColumnsStore = writable([

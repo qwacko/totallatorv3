@@ -23,6 +23,11 @@ import {
 } from '../../../../schema/importSchema';
 import { reusableFilterModifcationType } from '../../../../schema/reusableFilterSchema';
 import type { JournalFilterSchemaWithoutPaginationType } from '../../../../schema/journalSchema';
+import {
+	autoImportFrequencyEnum,
+	type AutoImportCombinedSchemaType,
+	autoImportTypes
+} from '../../../../schema/autoImportSchema';
 import { pageSizeEnum } from '../../../../schema/pageSizeSchema';
 import { type ReportElementLayoutType } from '../../../../schema/reportHelpers/reportElementLayoutEnum';
 import type { ReportConfigPartSchemaType } from '../../../../schema/reportHelpers/reportConfigPartSchema';
@@ -453,13 +458,15 @@ export const importTable = pgTable(
 		source: text('source', { enum: importSourceEnum }).notNull().default('csv'),
 		type: text('type', { enum: importTypeEnum }).notNull().default('transaction'),
 		importMappingId: text('mapped_import_id'),
+		autoImportId: text('auto_import_id'),
 		errorInfo: json('error_info')
 	},
 	(t) => ({
 		statusIdx: index('label_status_idx').on(t.status),
 		sourceIdx: index('label_source_idx').on(t.source),
 		typeIdx: index('label_type_idx').on(t.type),
-		mappedImportIdx: index('label_mapped_import_idx').on(t.importMappingId)
+		mappedImportIdx: index('label_mapped_import_idx').on(t.importMappingId),
+		autoImportIdx: index('import_auto_import_idx').on(t.autoImportId)
 	})
 );
 
@@ -474,7 +481,40 @@ export const importTableRelations = relations(importTable, ({ many, one }) => ({
 	importMapping: one(importMapping, {
 		fields: [importTable.importMappingId],
 		references: [importMapping.id]
+	}),
+	autoImport: one(autoImportTable, {
+		fields: [importTable.autoImportId],
+		references: [autoImportTable.id]
 	})
+}));
+
+export const autoImportTable = pgTable(
+	'auto_import',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title').notNull(),
+		enabled: boolean('enabled').notNull().default(false),
+		importMappingId: text('mapped_import_id').notNull(),
+		frequency: text('frequency', { enum: autoImportFrequencyEnum }).notNull(),
+		type: text('type', { enum: autoImportTypes }).notNull(),
+		lastTransactionDate: timestamp('last_transaction_date'),
+		config: jsonb('config').$type<AutoImportCombinedSchemaType>().notNull()
+	},
+	(t) => ({
+		mappedImportIdx: index('auto_import_mapped_import_idx').on(t.importMappingId),
+		frequencyIdx: index('auto_import_frequency_idx').on(t.frequency),
+		titleIdx: index('auto_import_title_idx').on(t.title),
+		typeIdx: index('auto_import_type_idx').on(t.type)
+	})
+);
+
+export const autoImportTableRelations = relations(autoImportTable, ({ one, many }) => ({
+	importMapping: one(importMapping, {
+		fields: [autoImportTable.importMappingId],
+		references: [importMapping.id]
+	}),
+	imports: many(importTable)
 }));
 
 export const reusableFilter = pgTable(

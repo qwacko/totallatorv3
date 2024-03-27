@@ -16,6 +16,8 @@
 	export let clearTitle: string = 'Clear';
 	export let hideClear: boolean = false;
 
+	export let disabled: boolean = false;
+
 	const { value } = formFieldProxy(form, field);
 
 	$: booleanValue = value as Writable<boolean | undefined>;
@@ -29,5 +31,6 @@
 	{clearTitle}
 	{hideClear}
 	{wrapperClass}
+	{disabled}
 />
 <input type="hidden" name={field} value={$booleanValue} />
