@@ -27,8 +27,9 @@
 			}
 		},
 		onError: (newErrors) => {
-			errors = newErrors;
-		}
+			errors = newErrors.error;
+		},
+		disableDefaultAction: true
 	})}
 	method="post"
 	action="?/getData"

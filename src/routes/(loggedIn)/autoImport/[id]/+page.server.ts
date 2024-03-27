@@ -86,6 +86,12 @@ export const actions = {
 	getData: async (request) => {
 		console.log('Getting Data');
 
-		return { data: [{ name: 'test' }] };
+		const transactions = await tActions.autoImport.getData({
+			db: request.locals.db,
+			id: request.params.id
+		});
+
+		console.log('Transactions Received Count = ', transactions.length);
+		return { data: transactions };
 	}
 };
