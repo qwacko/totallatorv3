@@ -3,7 +3,7 @@
 	import { processObject } from '$lib/helpers/importTransformation';
 	import type { ImportMappingDetailSchema } from '$lib/schema/importMappingSchema';
 
-	import { Button, Fileupload } from 'flowbite-svelte';
+	import { Badge, Button, Fileupload } from 'flowbite-svelte';
 	import Papa from 'papaparse';
 
 	export let mappingConfig: ImportMappingDetailSchema;
@@ -14,10 +14,19 @@
 
 	let rowNumber = 1;
 	let currentFile: File | undefined = undefined;
+	let importErrorMessage: string | undefined = undefined;
 
 	$: numberRows = csvData?.length ?? 1;
 
 	const processFile = (file: File, numRows: number) => {
+		importErrorMessage = undefined;
+		console.log('File Type : ', file.type);
+
+		if (file.type !== 'text/csv') {
+			importErrorMessage = 'Invalid File Type';
+			console.log('Invalid File Type');
+			return;
+		}
 		Papa.parse(file, {
 			header: true,
 			beforeFirstChunk: function (chunk) {
@@ -33,6 +42,7 @@
 				rowNumber = 1;
 			},
 			error: function (error) {
+				importErrorMessage = 'CSV Data Error';
 				console.log('CSV Data Error', error);
 				csvData = undefined;
 				rowNumber = 1;
@@ -59,6 +69,9 @@
 	};
 </script>
 
+{#if importErrorMessage}
+	<Badge color="red">{importErrorMessage}</Badge>
+{/if}
 <Fileupload on:change={updateFileValue} accept=".csv" />
 {#if csvData}
 	<div class="flex flex-row items-center gap-10 self-center">
@@ -80,10 +93,9 @@
 			Next
 		</Button>
 	</div>
+	{@const processedData = processObject(csvData[rowNumber - 1], mappingConfig)}
+	<ObjectTable data={processedData} />
 	<pre class="self-center">
         {JSON.stringify(csvData[rowNumber - 1], null, 2)}
     </pre>
-	{@const processedData = processObject(csvData[rowNumber - 1], mappingConfig)}
-
-	<ObjectTable data={processedData} />
 {/if}

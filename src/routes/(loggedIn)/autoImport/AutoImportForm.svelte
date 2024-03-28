@@ -16,6 +16,7 @@
 	export let disabled = false;
 	export let lockType = false;
 	export let hideEnabled = false;
+	export let closeAccordian = false;
 
 	const { value: typeValue, errors: typeErrors } = proxyForm.type;
 	const { value: titleValue, errors: titleErrors } = proxyForm.title;
@@ -71,7 +72,7 @@
 	/>
 </div>
 <Accordion>
-	<AccordionItem open={true}>
+	<AccordionItem open={!closeAccordian}>
 		<span slot="header">Source Details</span>
 		<div class="flex flex-col gap-2">
 			<SelectInput

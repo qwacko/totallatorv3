@@ -12,6 +12,7 @@ import { eq, and, getTableColumns, count as drizzleCount } from 'drizzle-orm';
 import { autoImportFilterToQuery } from './helpers/autoImport/autoImportFilterToQuery';
 import { autoImportToOrderByToSQL } from './helpers/autoImport/autoImportOrderByToSQL';
 import { getData_Common } from './helpers/autoImport/getData_Common';
+import { tActions } from './tActions';
 
 export const autoImportActions = {
 	list: async ({ db, filter }: { db: DBType; filter: AutoImportFilterSchemaType }) => {
@@ -122,5 +123,22 @@ export const autoImportActions = {
 		}
 
 		return getData_Common({ config: autoImport.config });
+	},
+	updateSampleData: async ({ db, id }: { db: DBType; id: string }) => {
+		const autoImport = await autoImportActions.getById({ db, id });
+
+		if (!autoImport) {
+			throw new Error(`AutoImport with id ${id} not found`);
+		}
+
+		const data = await autoImportActions.getData({ db, id });
+
+		if (data.length > 0) {
+			await tActions.importMapping.update({
+				db,
+				id: autoImport.importMappingId,
+				data: { sampleData: JSON.stringify(data.slice(0, 5)) }
+			});
+		}
 	}
 };

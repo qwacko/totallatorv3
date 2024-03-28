@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import { ButtonGroup, Badge } from 'flowbite-svelte';
+	import { ButtonGroup, Badge, Button } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
@@ -9,6 +9,9 @@
 	import AutoImportForm from '../AutoImportForm.svelte';
 	import type { AutoImportFormProxy } from '../autoImportFormProxy';
 	import GetData from './GetData.svelte';
+	import UpdateSampleData from './UpdateSampleData.svelte';
+	import { urlGenerator } from '$lib/routes';
+	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
 
 	export let data;
 
@@ -43,8 +46,6 @@
 	let errorMessage: string | undefined = undefined;
 
 	$: enhanceForm = form.enhance;
-
-	
 </script>
 
 <CustomHeader pageTitle={title} />
@@ -92,7 +93,13 @@
 	{#if errorMessage}
 		<Badge color="red" title="Error">{errorMessage}</Badge>
 	{/if}
-	<GetData />
+	<div class="flex flex-row gap-2">
+		<GetData
+			id={data.autoImportDetail.id}
+			filename="{new Date().toISOString().slice(0, 10)}-{data.autoImportDetail.title}.data"
+		/>
+		<UpdateSampleData importMappingId={data.autoImportDetail.importMappingId} />
+	</div>
 	<form use:enhanceForm method="post" action="?/update" class="flex flex-col gap-2">
 		<input type="hidden" name="id" value={data.autoImportDetail.id} />
 		<AutoImportForm
@@ -101,6 +108,7 @@
 			disabled={updatingEnabled}
 			lockType
 			hideEnabled
+			closeAccordian
 		/>
 		<ActionButton
 			type="submit"

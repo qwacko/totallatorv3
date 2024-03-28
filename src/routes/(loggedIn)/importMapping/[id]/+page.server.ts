@@ -43,6 +43,11 @@ export const load = async (data) => {
 		zod(importMappingUpdateFormSchema)
 	);
 
+	const autoImports = await tActions.autoImport.list({
+		db,
+		filter: { importMappingId: importMapping.id, pageSize: 100 }
+	});
+
 	const detailForm = await superValidate(
 		importMapping.configuration,
 		zod(importMappingDetailSchema)
@@ -52,7 +57,8 @@ export const load = async (data) => {
 		importMapping,
 		form,
 		detailForm,
-		dropdowns: dropdownItems({ db })
+		dropdowns: dropdownItems({ db }),
+		autoImports
 	};
 };
 

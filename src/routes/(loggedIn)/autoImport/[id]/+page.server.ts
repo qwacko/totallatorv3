@@ -93,5 +93,11 @@ export const actions = {
 
 		console.log('Transactions Received Count = ', transactions.length);
 		return { data: transactions };
+	},
+	updateSampleData: async (request) => {
+		await tActions.autoImport.updateSampleData({
+			db: request.locals.db,
+			id: request.params.id
+		});
 	}
 };

@@ -95,6 +95,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/autoImport/create': {},
 		'/(loggedIn)/autoImport/[id]': { paramsValidation: idSchema.parse },
 		'/(loggedIn)/autoImport/[id]/delete': { paramsValidation: idSchema.parse },
+		'/(loggedIn)/autoImport/[id]/[filename]': {
+			paramsValidation: z.object({ id: z.string(), filename: z.string() }).parse
+		},
 
 		// Filters
 		// ----------------------------------------

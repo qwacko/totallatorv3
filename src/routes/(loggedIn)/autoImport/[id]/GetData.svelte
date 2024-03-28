@@ -2,8 +2,13 @@
 	import { enhance } from '$app/forms';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
 	import { customEnhance } from '$lib/helpers/customEnhance';
-	import { ButtonGroup } from 'flowbite-svelte';
+	import { urlGenerator } from '$lib/routes';
+	import { Button, ButtonGroup } from 'flowbite-svelte';
+
+	export let id: string;
+	export let filename: string;
 
 	const getDataEnhance = customEnhance<{ data: Record<string, any>[] }>;
 
@@ -62,5 +67,13 @@
 			loadingMessage="Getting Data..."
 			{loading}
 		/>
+		<Button
+			href={urlGenerator({
+				address: '/(loggedIn)/autoImport/[id]/[filename]',
+				paramsValue: { id, filename }
+			}).url}
+		>
+			<DownloadIcon />
+		</Button>
 	</ButtonGroup>
 </form>
