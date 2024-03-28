@@ -5,6 +5,7 @@
 
 	import { Badge, Button, Fileupload } from 'flowbite-svelte';
 	import Papa from 'papaparse';
+	import { z } from 'zod';
 
 	export let mappingConfig: ImportMappingDetailSchema;
 
@@ -22,34 +23,55 @@
 		importErrorMessage = undefined;
 		console.log('File Type : ', file.type);
 
-		if (file.type !== 'text/csv') {
-			importErrorMessage = 'Invalid File Type';
-			console.log('Invalid File Type');
-			return;
+		if (file.type === 'text/csv') {
+			Papa.parse(file, {
+				header: true,
+				beforeFirstChunk: function (chunk) {
+					// Split the chunk into lines
+					let lines = chunk.split(/\r\n|\r|\n/);
+					// Skip the specified number of lines
+					lines.splice(0, rowsToSkip);
+					// Rejoin the remaining lines and return the modified chunk
+					return lines.join('\n');
+				},
+				complete: function (results) {
+					csvData = results.data as Record<string, unknown>[];
+					rowNumber = 1;
+				},
+				error: function (error) {
+					importErrorMessage = 'CSV Data Error';
+					console.log('CSV Data Error', error);
+					csvData = undefined;
+					rowNumber = 1;
+					numberRows = 1;
+				},
+				skipEmptyLines: true
+			});
+		} else {
+			try {
+				file.text().then((text) => {
+					const newJsonData = JSON.parse(text) as Record<string, unknown>[];
+
+					const dataSchema = z.array(z.record(z.any()));
+
+					const parsedData = dataSchema.safeParse(newJsonData);
+
+					if (parsedData.success === false) {
+						importErrorMessage = 'Invalid JSON Data';
+						console.log('Invalid JSON Data', parsedData.error);
+					} else {
+						csvData = parsedData.data;
+						rowNumber = 1;
+					}
+				});
+			} catch (e) {
+				console.log('Error parsing JSON', e);
+				importErrorMessage = 'Import Error';
+			}
+
+			// importErrorMessage = 'Invalid File Type';
+			// console.log('Invalid File Type');
 		}
-		Papa.parse(file, {
-			header: true,
-			beforeFirstChunk: function (chunk) {
-				// Split the chunk into lines
-				let lines = chunk.split(/\r\n|\r|\n/);
-				// Skip the specified number of lines
-				lines.splice(0, rowsToSkip);
-				// Rejoin the remaining lines and return the modified chunk
-				return lines.join('\n');
-			},
-			complete: function (results) {
-				csvData = results.data as Record<string, unknown>[];
-				rowNumber = 1;
-			},
-			error: function (error) {
-				importErrorMessage = 'CSV Data Error';
-				console.log('CSV Data Error', error);
-				csvData = undefined;
-				rowNumber = 1;
-				numberRows = 1;
-			},
-			skipEmptyLines: true
-		});
 	};
 
 	$: currentFile && processFile(currentFile, rowsToSkip);
@@ -72,7 +94,7 @@
 {#if importErrorMessage}
 	<Badge color="red">{importErrorMessage}</Badge>
 {/if}
-<Fileupload on:change={updateFileValue} accept=".csv" />
+<Fileupload on:change={updateFileValue} accept=".csv,.data,.json" />
 {#if csvData}
 	<div class="flex flex-row items-center gap-10 self-center">
 		<Button
