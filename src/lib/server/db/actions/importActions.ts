@@ -18,7 +18,7 @@ import { updatedTime } from './helpers/misc/updatedTime';
 import { eq, and, count as drizzleCount, lt } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
-import type { ZodSchema } from 'zod';
+import { z, type ZodSchema } from 'zod';
 import { type ImportFilterSchemaType, type importTypeType } from '$lib/schema/importSchema';
 import {
 	importTransaction,
@@ -88,9 +88,34 @@ export const importActions = {
 		importMapping: string | undefined;
 		checkImportedOnly?: boolean;
 	}) => {
+		console.log(
+			'Storing CSV - New File = ',
+			newFile,
+			'Type = ',
+			type,
+			'Import Mapping = ',
+			importMapping,
+			'Check Imported Only = ',
+			checkImportedOnly
+		);
+
 		if (newFile.type !== 'text/csv') {
-			throw new Error('Incorrect FileType');
+			if (type !== 'mappedImport') {
+				throw new Error('Filetype must be CSV except for mapped imports');
+			}
+
+			const fileString = await newFile.text();
+			const jsonFile = JSON.parse(fileString);
+			const schemaValidation = z.array(z.record(z.any()));
+			const parsedData = schemaValidation.safeParse(jsonFile);
+
+			if (!parsedData.success) {
+				throw new Error('Filetype must be CSV or JSON Array of Objects');
+			}
 		}
+
+		const fileType = newFile.type === 'text/csv' ? 'csv' : 'json';
+
 		if (type === 'mappedImport' && !importMapping) {
 			throw new Error('No Mapping Selected');
 		}
@@ -119,7 +144,7 @@ export const importActions = {
 				importMappingId: importMapping,
 				...updatedTime(),
 				status: 'created',
-				source: 'csv',
+				source: fileType,
 				type,
 				checkImportedOnly
 			})
@@ -140,7 +165,7 @@ export const importActions = {
 	}: {
 		db: DBType;
 		id: string;
-		data: Papa.ParseResult<unknown>;
+		data: Papa.ParseResult<unknown> | { data: Record<string, any>[] };
 		schema: ZodSchema<S>;
 		importDataToSchema?: (data: unknown) => { data: S } | { errors: string[] };
 		getUniqueIdentifier?: ((data: S) => string | null | undefined) | undefined;

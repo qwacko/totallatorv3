@@ -76,7 +76,7 @@
 		{#if isTransactionImport}
 			<Checkbox name="checkImportedOnly">Check Only Imported Items For Duplicates</Checkbox>
 		{/if}
-		<Fileupload name="csvFile" accept=".csv" required />
+		<Fileupload name="csvFile" accept=".csv,.json,.data" required />
 		<ActionButton
 			type="submit"
 			loading={importing || redirecting}
