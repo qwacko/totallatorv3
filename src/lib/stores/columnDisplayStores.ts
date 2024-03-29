@@ -38,6 +38,8 @@ export const reusableFilterColumnsStore = writable([
 export const importColumnsStore = writable([
 	'actions',
 	'createdAt',
+	'autoProcess',
+	'autoClean',
 	'title',
 	'status',
 	'type',

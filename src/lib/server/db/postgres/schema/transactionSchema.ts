@@ -457,6 +457,8 @@ export const importTable = pgTable(
 		status: text('status', { enum: importStatusEnum }).notNull().default('error'),
 		source: text('source', { enum: importSourceEnum }).notNull().default('csv'),
 		type: text('type', { enum: importTypeEnum }).notNull().default('transaction'),
+		autoProcess: boolean('auto_process').notNull().default(false),
+		autoClean: boolean('auto_clean').notNull().default(false),
 		importMappingId: text('mapped_import_id'),
 		autoImportId: text('auto_import_id'),
 		errorInfo: json('error_info')

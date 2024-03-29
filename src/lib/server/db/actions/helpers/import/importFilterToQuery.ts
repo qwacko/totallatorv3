@@ -26,6 +26,12 @@ export const importFilterToQuery = ({
 	if (filter.title) {
 		where.push(ilike(query.title, `%${filter.title}%`));
 	}
+	if (filter.autoProcess !== undefined) {
+		where.push(eq(query.autoProcess, filter.autoProcess));
+	}
+	if (filter.autoClean !== undefined) {
+		where.push(eq(query.autoClean, filter.autoClean));
+	}
 	if (filter.idArray && filter.idArray.length > 0) {
 		where.push(inArrayWrapped(query.id, filter.idArray));
 	}
@@ -98,6 +104,12 @@ export const importFilterToText = async ({
 		stringArray.push(
 			`Status is ${filter.status.map((item) => importStatusToTest(item)).join(', ')}`
 		);
+	}
+	if (filter.autoProcess !== undefined) {
+		stringArray.push(`Processing is ${filter.autoProcess ? 'Automatic' : 'Manual'}`);
+	}
+	if (filter.autoClean !== undefined) {
+		stringArray.push(`Cleaning is ${filter.autoClean ? 'Automatic' : 'Manual'}`);
 	}
 	if (filter.type && filter.type.length > 0) {
 		stringArray.push(`Source is ${filter.type.map((item) => importTypeToTitle(item)).join(', ')}`);

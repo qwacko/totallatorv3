@@ -1,82 +1,99 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import { importTypeEnum, importTypeToTitle, type importTypeType } from '$lib/schema/importSchema';
-	import { Badge, Checkbox, Fileupload, Select } from 'flowbite-svelte';
-	import { z } from 'zod';
-	import { customEnhance } from '$lib/helpers/customEnhance';
-	import { onError, onSuccess } from '$lib/stores/notificationHelpers.js';
+	import { importTypeEnum, importTypeToTitle } from '$lib/schema/importSchema';
+	import {  Fileupload } from 'flowbite-svelte';
 	import ActionButton from '$lib/components/ActionButton.svelte';
-
-	let errorMessage: string | undefined = '';
+	import { superForm } from 'sveltekit-superforms';
+	import BooleanInputForm from '$lib/components/BooleanInputForm.svelte';
+	import SelectInput from '$lib/components/SelectInput.svelte';
+	import LabelWrapper from '$lib/components/LabelWrapper.svelte';
+	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers';
 
 	export let data;
 
-	let importType: importTypeType = 'mappedImport';
+	const form = superForm(data.form, {
+		...superFormNotificationHelper({
+			setLoading: (newLoading) => (importing = newLoading),
+			errorMessage: 'Error Creating Import',
+			successMessage: 'Import Created Successfully',
+			invalidate: true
+		})
+	});
+	$: formData = form.form;
+	$: enhance = form.enhance;
+	$: errors = form.errors;
+
+	const updateFile = (e: CustomEvent<any>) => {
+		if ((e?.currentTarget as HTMLInputElement)?.files) {
+			$formData.file = (e?.currentTarget as HTMLInputElement)?.files?.item(0) as File;
+		}
+	};
+
 	let importing = false;
 	let redirecting = false;
 
-	//@ts-ignore This gives a weird typescript error in svelte check, but not in the editor.
-	$: isMappedImport = importType === 'mappedImport';
-
-	//@ts-ignore This gives a weird typescript error in svelte check, but not in the editor.
-	$: isTransactionImport = importType === 'transaction';
+	$: isMappedImport = $formData.importType === 'mappedImport';
+	$: isTransactionImport = $formData.importType === 'transaction';
 </script>
 
 <CustomHeader pageTitle="New Import" />
 
 <PageLayout title="New Import">
-	{#if errorMessage && errorMessage.length > 0}
-		<Badge>Error : {errorMessage}</Badge>
-	{/if}
 	<form
-		use:enhance={customEnhance({
-			updateLoading: (loading) => {
-				importing = loading;
-			},
-			onSuccess: () => {
-				errorMessage = '';
-				onSuccess('Imported Successfully. Redirecting To Import Detail');
-			},
-			onFailure: ({ data }) => {
-				errorMessage = z.object({ message: z.string() }).parse(data).message;
-			},
-			onError: ({ error }) => {
-				errorMessage = error.message;
-				onError('Import Failed');
-			},
-			onRedirect: () => {
-				errorMessage = '';
-				onSuccess('Imported Successfully. Redirecting To Import Detail');
-				redirecting = true;
-			}
-		})}
+		use:enhance
 		action="?/create"
 		method="post"
 		enctype="multipart/form-data"
 		class="flex flex-col gap-2"
 	>
 		<input class="flex" name="test" type="hidden" value="test" />
-		<Select
+		<SelectInput
 			name="importType"
 			items={importTypeEnum.map((t) => ({ name: importTypeToTitle(t, true), value: t }))}
 			placeholder="Select Import Type..."
+			title="Import Type"
 			required
-			bind:value={importType}
+			bind:value={$formData.importType}
+			errorMessage={$errors.importType}
 		/>
 		{#if isMappedImport}
-			<Select
+			<SelectInput
+				errorMessage={$errors.importMappingId}
+				bind:value={$formData.importMappingId}
 				name="importMappingId"
+				title="Import Mapping"
 				items={data.importMappingDropdown.map((t) => ({ name: t.title, value: t.id }))}
 				placeholder="Select Import Mapping..."
 				required
 			/>
 		{/if}
-		{#if isTransactionImport}
-			<Checkbox name="checkImportedOnly">Check Only Imported Items For Duplicates</Checkbox>
+		{#if isTransactionImport || isMappedImport}
+			<BooleanInputForm
+				{form}
+				field="checkImportedOnly"
+				title="Duplicate Checking"
+				onTitle="Journals Only"
+				offTitle="Imports Only"
+			/>
 		{/if}
-		<Fileupload name="csvFile" accept=".csv,.json,.data" required />
+		<LabelWrapper errorMessage={$errors.file} title="File (CSV or JSON)" required>
+			<Fileupload name="file" accept=".csv,.json,.data" required on:input={updateFile} />
+		</LabelWrapper>
+		<BooleanInputForm
+			{form}
+			field="autoProcess"
+			title="Processing"
+			onTitle="Automatic"
+			offTitle="Manual"
+		/>
+		<BooleanInputForm
+			{form}
+			field="autoClean"
+			title="Tidy Up"
+			onTitle="Automatic"
+			offTitle="Manual"
+		/>
 		<ActionButton
 			type="submit"
 			loading={importing || redirecting}

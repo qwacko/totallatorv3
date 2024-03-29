@@ -49,21 +49,27 @@
 			});
 		} else {
 			try {
-				file.text().then((text) => {
-					const newJsonData = JSON.parse(text) as Record<string, unknown>[];
+				file
+					.text()
+					.then((text) => {
+						const newJsonData = JSON.parse(text) as Record<string, unknown>[];
 
-					const dataSchema = z.array(z.record(z.any()));
+						const dataSchema = z.array(z.record(z.any()));
 
-					const parsedData = dataSchema.safeParse(newJsonData);
+						const parsedData = dataSchema.safeParse(newJsonData);
 
-					if (parsedData.success === false) {
-						importErrorMessage = 'Invalid JSON Data';
-						console.log('Invalid JSON Data', parsedData.error);
-					} else {
-						csvData = parsedData.data;
-						rowNumber = 1;
-					}
-				});
+						if (parsedData.success === false) {
+							importErrorMessage = 'Invalid JSON Data';
+							console.log('Invalid JSON Data', parsedData.error);
+						} else {
+							csvData = parsedData.data;
+							rowNumber = 1;
+						}
+					})
+					.catch((e) => {
+						importErrorMessage = 'Import Error';
+						console.log('Error reading file', e);
+					});
 			} catch (e) {
 				console.log('Error parsing JSON', e);
 				importErrorMessage = 'Import Error';

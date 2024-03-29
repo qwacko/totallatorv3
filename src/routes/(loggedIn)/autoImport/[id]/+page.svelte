@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import { ButtonGroup, Badge, Button } from 'flowbite-svelte';
+	import { ButtonGroup, Badge, } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
@@ -10,8 +10,6 @@
 	import type { AutoImportFormProxy } from '../autoImportFormProxy';
 	import GetData from './GetData.svelte';
 	import UpdateSampleData from './UpdateSampleData.svelte';
-	import { urlGenerator } from '$lib/routes';
-	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
 
 	export let data;
 

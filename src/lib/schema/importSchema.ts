@@ -116,6 +116,8 @@ const orderByEnum = [
 	'source',
 	'type',
 	'importMappingTitle',
+	'autoProcess',
+	'autoClean',
 	'numErrors',
 	'numImportErrors',
 	'numProcessed',
@@ -135,6 +137,8 @@ type OrderByEnumTitles = {
 // This will be valid for demonstration purposes
 const enumTitles = {
 	createdAt: 'Date',
+	autoProcess: 'Auto Process',
+	autoClean: 'Auto Clean',
 	title: 'Title',
 	filename: 'Filename',
 	status: 'Status',
@@ -153,12 +157,44 @@ export const importOrderByEnumToText = (input: OrderByEnumType) => {
 	return enumTitles[input];
 };
 
+export const createImportSchema = z
+	.object({
+		importType: z.enum(importTypeEnum).default('mappedImport'),
+		importMappingId: z.string().optional(),
+		autoProcess: z.boolean().default(false),
+		autoClean: z.boolean().default(false),
+		checkImportedOnly: z.boolean().default(false),
+		file: z.instanceof(File, { message: 'Please Upload A File' })
+	})
+	.refine(
+		(data) => {
+			if (data.importType === 'mappedImport' && !data.importMappingId) {
+				return false;
+			}
+			return true;
+		},
+		{ message: 'A mapping is reqruired for a mapped import', path: ['importMappingId'] }
+	);
+
+export type UpdateImportSchemaType = z.infer<typeof createImportSchema>;
+
+export const updateImportSchema = z.object({
+	id: z.string(),
+	autoProces: z.boolean().optional(),
+	autoClean: z.boolean().optional(),
+	checkImportedOnly: z.boolean().optional()
+});
+
+export type CreateImportSchemaType = z.infer<typeof createImportSchema>;
+
 export const importFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
 	textFilter: z.string().optional(),
 	title: z.coerce.string().optional(),
 	filename: z.coerce.string().optional(),
+	autoProcess: z.boolean().optional(),
+	autoClean: z.boolean().optional(),
 	source: z.array(z.enum(importSourceEnum)).optional(),
 	type: z.array(z.enum(importTypeEnum)).optional(),
 	mapping: z.string().optional(),

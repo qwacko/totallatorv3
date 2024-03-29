@@ -19,7 +19,7 @@ import { eq, and, count as drizzleCount, lt } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { z, type ZodSchema } from 'zod';
-import { type ImportFilterSchemaType, type importTypeType } from '$lib/schema/importSchema';
+import { type CreateImportSchemaType, type ImportFilterSchemaType } from '$lib/schema/importSchema';
 import {
 	importTransaction,
 	importAccount,
@@ -75,29 +75,8 @@ export const importActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	storeCSV: async ({
-		newFile,
-		db,
-		type,
-		importMapping,
-		checkImportedOnly = false
-	}: {
-		db: DBType;
-		newFile: File;
-		type: importTypeType;
-		importMapping: string | undefined;
-		checkImportedOnly?: boolean;
-	}) => {
-		console.log(
-			'Storing CSV - New File = ',
-			newFile,
-			'Type = ',
-			type,
-			'Import Mapping = ',
-			importMapping,
-			'Check Imported Only = ',
-			checkImportedOnly
-		);
+	store: async ({ db, data }: { db: DBType; data: CreateImportSchemaType }) => {
+		const { file: newFile, importType: type, ...restData } = data;
 
 		if (newFile.type !== 'text/csv') {
 			if (type !== 'mappedImport') {
@@ -119,8 +98,8 @@ export const importActions = {
 		if (type === 'mappedImport' && !importMapping) {
 			throw new Error('No Mapping Selected');
 		}
-		if (importMapping) {
-			const result = await tActions.importMapping.getById({ db, id: importMapping });
+		if (restData.importMappingId) {
+			const result = await tActions.importMapping.getById({ db, id: restData.importMappingId });
 			if (!result) {
 				throw new Error(`Mapping ${importMapping} Not Found`);
 			}
@@ -141,12 +120,10 @@ export const importActions = {
 				id,
 				filename: combinedFilename,
 				title: originalFilename,
-				importMappingId: importMapping,
 				...updatedTime(),
 				status: 'created',
 				source: fileType,
-				type,
-				checkImportedOnly
+				...restData
 			})
 			.execute();
 
