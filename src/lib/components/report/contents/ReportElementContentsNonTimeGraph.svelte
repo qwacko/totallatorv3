@@ -42,7 +42,6 @@
 			negativeDisplay: data.negativeDisplay
 		});
 
-		// console.log('treeData', treeData);
 
 		const valueFormatter: OptionsDataFormatter = (value) => {
 			if (!value) return '';

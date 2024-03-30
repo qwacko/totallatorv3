@@ -39,6 +39,9 @@ export const autoImportFilterToQuery = ({
 	if (filter.autoClean !== undefined) {
 		where.push(eq(autoImportTable.autoClean, filter.autoClean));
 	}
+	if (filter.enabled !== undefined) {
+		where.push(eq(autoImportTable.enabled, filter.enabled));
+	}
 
 	return where;
 };
@@ -87,6 +90,9 @@ export const autoImportFilterToText = async ({
 
 	if (filter.autoClean !== undefined) {
 		stringArray.push(`Auto Clean is ${filter.autoClean ? 'Enabled' : 'Disabled'}`);
+	}
+	if (filter.enabled !== undefined) {
+		stringArray.push(`${filter.enabled ? 'Enabled' : 'Disabled'}`);
 	}
 
 	if (stringArray.length === 0) {

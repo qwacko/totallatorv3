@@ -2,7 +2,8 @@ import {
 	updateAutoImportSchema,
 	type AutoImportFilterSchemaType,
 	type CreateAutoImportSchemaType,
-	type UpdateAutoImportFormSchemaType
+	type UpdateAutoImportFormSchemaType,
+	type AutoImportFrequencyType
 } from '$lib/schema/autoImportSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
@@ -151,6 +152,15 @@ export const autoImportActions = {
 				id: autoImport.importMappingId,
 				data: { sampleData: JSON.stringify(data.slice(0, 5)) }
 			});
+		}
+	},
+	triggerMany: async ({ db, frequency }: { db: DBType; frequency: AutoImportFrequencyType }) => {
+		const autoImports = await tActions.autoImport.list({
+			db,
+			filter: { frequency: [frequency], enabled: true, pageSize: 1000 }
+		});
+		for (const currentAutoImport of autoImports.data) {
+			await tActions.autoImport.trigger({ db, id: currentAutoImport.id });
 		}
 	},
 	trigger: async ({ db, id }: { db: DBType; id: string }) => {

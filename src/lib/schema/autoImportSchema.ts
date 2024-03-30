@@ -169,6 +169,7 @@ export const autoImportFilterSchema = z.object({
 	title: z.string().optional(),
 	autoProcess: z.boolean().optional(),
 	autoClean: z.boolean().optional(),
+	enabled: z.boolean().optional(),
 	importMappingId: z.string().optional(),
 	frequency: z.array(z.enum(autoImportFrequencyEnum)).optional(),
 	type: z.array(z.enum(autoImportTypes)).optional(),

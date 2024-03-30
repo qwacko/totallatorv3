@@ -112,5 +112,26 @@ export const cronJobs: CronJob[] = [
 		job: async () => {
 			await tActions.import.autoCleanAll({ db, retainDays: 30 });
 		}
+	},
+	{
+		name: 'Run Auto Imports - Daily',
+		schedule: '0 2 * * *',
+		job: async () => {
+			await tActions.autoImport.triggerMany({ db, frequency: 'daily' });
+		}
+	},
+	{
+		name: 'Run Auto Imports - Weekly',
+		schedule: '0 3 * * 0',
+		job: async () => {
+			await tActions.autoImport.triggerMany({ db, frequency: 'weekly' });
+		}
+	},
+	{
+		name: 'Run Auto Imports - Monthly',
+		schedule: '0 4 1 * *',
+		job: async () => {
+			await tActions.autoImport.triggerMany({ db, frequency: 'monthly' });
+		}
 	}
 ];
