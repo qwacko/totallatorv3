@@ -187,7 +187,8 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 				testConnection: POSTAllowAdminOnly,
 				update: POSTAllowAdminOnly,
 				enableDisable: POSTAllowAdminOnly,
-				getData: POSTAllowAdminOnly
+				getData: POSTAllowAdminOnly,
+				trigger: POSTAllowAdminOnly
 			}
 		},
 		'/(loggedIn)/autoImport/[id]/delete': {

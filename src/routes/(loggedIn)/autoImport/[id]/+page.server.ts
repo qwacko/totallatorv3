@@ -96,5 +96,11 @@ export const actions = {
 			db: request.locals.db,
 			id: request.params.id
 		});
+	},
+	trigger: async (request) => {
+		await tActions.autoImport.trigger({
+			db: request.locals.db,
+			id: request.params.id
+		});
 	}
 };

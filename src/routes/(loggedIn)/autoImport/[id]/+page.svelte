@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import { ButtonGroup, Badge, Button, } from 'flowbite-svelte';
+	import { ButtonGroup, Badge, Button } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
@@ -12,6 +12,8 @@
 	import UpdateSampleData from './UpdateSampleData.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
+	import SingleButtonForm from '$lib/components/SingleButtonForm.svelte';
+	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
 
 	export let data;
 
@@ -101,6 +103,23 @@
 			filename="{new Date().toISOString().slice(0, 10)}-{data.autoImportDetail.title}.data"
 		/>
 		<UpdateSampleData importMappingId={data.autoImportDetail.importMappingId} />
+		<div class="flex flex-grow" />
+		<SingleButtonForm
+			action="?/trigger"
+			message="Execute"
+			loadingMessage="Executing..."
+			outline
+			color="blue"
+		/>
+		<Button
+			outline
+			href={urlGenerator({
+				address: '/(loggedIn)/import',
+				searchParamsValue: { autoImportId: data.autoImportDetail.id, pageSize: 10 }
+			}).url}
+		>
+			<ImportIcon />
+		</Button>
 	</div>
 	<form use:enhanceForm method="post" action="?/update" class="flex flex-col gap-2">
 		<input type="hidden" name="id" value={data.autoImportDetail.id} />
@@ -119,7 +138,13 @@
 			loadingMessage="Updating..."
 		/>
 	</form>
-	<Button color="red" href={urlGenerator({address:"/(loggedIn)/autoImport/[id]/delete", paramsValue: {id: data.autoImportDetail.id}}).url}>
+	<Button
+		color="red"
+		href={urlGenerator({
+			address: '/(loggedIn)/autoImport/[id]/delete',
+			paramsValue: { id: data.autoImportDetail.id }
+		}).url}
+	>
 		<DeleteIcon />Delete
 	</Button>
 </PageLayout>

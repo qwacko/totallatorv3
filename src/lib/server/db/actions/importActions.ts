@@ -84,7 +84,15 @@ export const importActions = {
 
 		await db.update(importTable).set(restData).where(eq(importTable.id, id)).execute();
 	},
-	store: async ({ db, data }: { db: DBType; data: CreateImportSchemaType }) => {
+	store: async ({
+		db,
+		data,
+		autoImportId
+	}: {
+		db: DBType;
+		data: CreateImportSchemaType;
+		autoImportId?: string;
+	}) => {
 		const { file: newFile, importType: type, ...restData } = data;
 
 		if (newFile.type !== 'text/csv') {
@@ -132,6 +140,8 @@ export const importActions = {
 				...updatedTime(),
 				status: 'created',
 				source: fileType,
+				autoImportId,
+				type,
 				...restData
 			})
 			.execute();

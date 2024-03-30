@@ -152,5 +152,35 @@ export const autoImportActions = {
 				data: { sampleData: JSON.stringify(data.slice(0, 5)) }
 			});
 		}
+	},
+	trigger: async ({ db, id }: { db: DBType; id: string }) => {
+		const autoImport = await autoImportActions.getById({ db, id });
+
+		if (!autoImport) {
+			throw new Error(`AutoImport with id ${id} not found`);
+		}
+
+		const data = await autoImportActions.getData({ db, id });
+
+		console.log('Triggering Import', data.length, autoImport.title);
+
+		const dateString = new Date().toISOString().slice(0, 10);
+
+		const file = new File([JSON.stringify(data)], `${dateString}-${autoImport.title}.json`, {
+			type: 'application/json'
+		});
+
+		await tActions.import.store({
+			db,
+			autoImportId: id,
+			data: {
+				autoClean: autoImport.autoClean,
+				autoProcess: autoImport.autoProcess,
+				checkImportedOnly: false,
+				importType: 'mappedImport',
+				importMappingId: autoImport.importMappingId,
+				file
+			}
+		});
 	}
 };
