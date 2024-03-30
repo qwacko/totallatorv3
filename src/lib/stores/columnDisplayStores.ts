@@ -53,6 +53,8 @@ export const importColumnsStore = writable([
 export const autoImportColumnsStore = writable([
 	'actions',
 	'enabled',
+	'autoProcess',
+	'autoClean',
 	'title',
 	'type',
 	'frequency',

@@ -103,7 +103,9 @@ export const createAutoImportSchema = z.object({
 	importMappingId: z.string(),
 	frequency: z.enum(autoImportFrequencyEnum).optional().default('daily'),
 	type: z.enum(autoImportTypes),
-	config: autoImportCombinedSchema
+	config: autoImportCombinedSchema,
+	autoProcess: z.boolean().optional().default(true),
+	autoClean: z.boolean().optional().default(true)
 });
 
 export const createAutoImportFormSchema = z.object({
@@ -122,7 +124,9 @@ export const createAutoImportFormSchema = z.object({
 	secret: z.string().optional(),
 	lookbackDays: z.number().optional().default(5),
 	userAccessToken: z.string().optional(),
-	appAccessToken: z.string().optional()
+	appAccessToken: z.string().optional(),
+	autoProcess: z.boolean().optional(),
+	autoClean: z.boolean().optional()
 });
 
 export type CreateAutoImportSchemaType = z.infer<typeof createAutoImportSchema>;
@@ -133,7 +137,9 @@ export const updateAutoImportSchema = z.object({
 	enabled: z.boolean().optional(),
 	importMappingId: z.string().optional(),
 	frequency: z.enum(autoImportFrequencyEnum).optional(),
-	config: autoImportCombinedSchema.optional()
+	config: autoImportCombinedSchema.optional(),
+	autoProcess: z.boolean().optional(),
+	autoClean: z.boolean().optional()
 });
 
 export const updateAutoImportFormSchema = createAutoImportFormSchema
@@ -148,6 +154,8 @@ export const autoImportOrderByOptions = [
 	'createdAt',
 	'updatedAt',
 	'title',
+	'autoProcess',
+	'autoClean',
 	'type',
 	'frequency',
 	'importMapping',
@@ -159,6 +167,8 @@ export type AutoImportOrderByOptionsType = (typeof autoImportOrderByOptions)[num
 export const autoImportFilterSchema = z.object({
 	id: z.string().optional(),
 	title: z.string().optional(),
+	autoProcess: z.boolean().optional(),
+	autoClean: z.boolean().optional(),
 	importMappingId: z.string().optional(),
 	frequency: z.array(z.enum(autoImportFrequencyEnum)).optional(),
 	type: z.array(z.enum(autoImportTypes)).optional(),

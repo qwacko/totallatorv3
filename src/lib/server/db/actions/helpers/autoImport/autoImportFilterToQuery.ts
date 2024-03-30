@@ -32,6 +32,13 @@ export const autoImportFilterToQuery = ({
 	if (filter.type && filter.type.length > 0) {
 		where.push(inArrayWrapped(autoImportTable.type, filter.type));
 	}
+	if (filter.autoProcess !== undefined) {
+		where.push(eq(autoImportTable.autoProcess, filter.autoProcess));
+	}
+
+	if (filter.autoClean !== undefined) {
+		where.push(eq(autoImportTable.autoClean, filter.autoClean));
+	}
 
 	return where;
 };
@@ -72,6 +79,14 @@ export const autoImportFilterToText = async ({
 	}
 	if (filter.importMappingId) {
 		stringArray.push(`Import Mapping is ${importMappingIdToTitle(db, filter.importMappingId)}`);
+	}
+
+	if (filter.autoProcess !== undefined) {
+		stringArray.push(`Auto Process is ${filter.autoProcess ? 'Enabled' : 'Disabled'}`);
+	}
+
+	if (filter.autoClean !== undefined) {
+		stringArray.push(`Auto Clean is ${filter.autoClean ? 'Enabled' : 'Disabled'}`);
 	}
 
 	if (stringArray.length === 0) {

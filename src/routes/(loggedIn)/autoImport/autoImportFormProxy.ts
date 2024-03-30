@@ -32,4 +32,6 @@ export type AutoImportFormProxy = {
 	lookbackDays: FormFieldProxy<number | undefined, 'lookbackDays'>;
 	userAccessToken: FormFieldProxy<string | undefined, 'userAccessToken'>;
 	appAccessToken: FormFieldProxy<string | undefined, 'appAccessToken'>;
+	autoProcess: FormFieldProxy<boolean | undefined, 'autoProcess'>;
+	autoClean: FormFieldProxy<boolean | undefined, 'autoClean'>;
 };

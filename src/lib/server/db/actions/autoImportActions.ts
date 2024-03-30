@@ -86,7 +86,17 @@ export const autoImportActions = {
 			throw new Error(`AutoImport with id ${data.id} not found`);
 		}
 
-		const { id, title, enabled, importMappingId, frequency, type, ...config } = data;
+		const {
+			id,
+			title,
+			enabled,
+			importMappingId,
+			frequency,
+			type,
+			autoProcess,
+			autoClean,
+			...config
+		} = data;
 
 		const newData = {
 			title: title ?? matchingAutoImport.title,
@@ -94,6 +104,8 @@ export const autoImportActions = {
 			importMappingId: importMappingId ?? matchingAutoImport.importMappingId,
 			frequency: frequency ?? matchingAutoImport.frequency,
 			type: type ?? matchingAutoImport.type,
+			autoProcess: autoProcess ?? matchingAutoImport.autoProcess,
+			autoClean: autoClean ?? matchingAutoImport.autoClean,
 			config: {
 				...matchingAutoImport.config,
 				...config

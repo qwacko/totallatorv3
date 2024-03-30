@@ -24,7 +24,9 @@
 		lookbackDays: formFieldProxy(form, 'lookbackDays'),
 		secret: formFieldProxy(form, 'secret'),
 		startDate: formFieldProxy(form, 'startDate'),
-		userAccessToken: formFieldProxy(form, 'userAccessToken')
+		userAccessToken: formFieldProxy(form, 'userAccessToken'),
+		autoProcess: formFieldProxy(form, 'autoProcess'),
+		autoClean: formFieldProxy(form, 'autoClean')
 	};
 
 	$: message = form.message;

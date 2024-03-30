@@ -501,6 +501,8 @@ export const autoImportTable = pgTable(
 		frequency: text('frequency', { enum: autoImportFrequencyEnum }).notNull(),
 		type: text('type', { enum: autoImportTypes }).notNull(),
 		lastTransactionDate: timestamp('last_transaction_date'),
+		autoProcess: boolean('auto_process').notNull().default(true),
+		autoClean: boolean('auto_clean').notNull().default(true),
 		config: jsonb('config').$type<AutoImportCombinedSchemaType>().notNull()
 	},
 	(t) => ({

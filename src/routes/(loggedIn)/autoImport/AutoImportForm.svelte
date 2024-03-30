@@ -31,6 +31,8 @@
 	const { value: userAccessTokenValue, errors: userAccessTokenErrors } = proxyForm.userAccessToken;
 	const { value: lookbackDaysValue, errors: lookbackDaysErrors } = proxyForm.lookbackDays;
 	const { value: startDateValue, errors: startDateErrors } = proxyForm.startDate;
+	const { value: autoProcessValue, errors: autoProcessErrors } = proxyForm.autoProcess;
+	const { value: autoCleanValue, errors: autoCleanErrors } = proxyForm.autoClean;
 
 	$: formElements = autoImportFormItemDisplay[$typeValue];
 </script>
@@ -69,6 +71,22 @@
 		required
 		errorMessage={$frequencyErrors}
 		{disabled}
+	/>
+	<BooleanFilterButtons
+		value={$autoProcessValue}
+		name="autoProcess"
+		title="Processing"
+		onTitle="Auto"
+		offTitle="Manual"
+		hideClear
+	/>
+	<BooleanFilterButtons
+		value={$autoCleanValue}
+		name="autoClean"
+		title="Cleaning"
+		onTitle="Auto"
+		offTitle="Manual"
+		hideClear
 	/>
 </div>
 <Accordion>

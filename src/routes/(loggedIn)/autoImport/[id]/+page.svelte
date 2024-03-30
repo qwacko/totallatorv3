@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
-	import { ButtonGroup, Badge, } from 'flowbite-svelte';
+	import { ButtonGroup, Badge, Button, } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
@@ -10,6 +10,8 @@
 	import type { AutoImportFormProxy } from '../autoImportFormProxy';
 	import GetData from './GetData.svelte';
 	import UpdateSampleData from './UpdateSampleData.svelte';
+	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
+	import { urlGenerator } from '$lib/routes';
 
 	export let data;
 
@@ -35,7 +37,9 @@
 		lookbackDays: formFieldProxy(form, 'lookbackDays'),
 		secret: formFieldProxy(form, 'secret'),
 		startDate: formFieldProxy(form, 'startDate'),
-		userAccessToken: formFieldProxy(form, 'userAccessToken')
+		userAccessToken: formFieldProxy(form, 'userAccessToken'),
+		autoProcess: formFieldProxy(form, 'autoProcess'),
+		autoClean: formFieldProxy(form, 'autoClean')
 	};
 
 	$: title = data.autoImportDetail.title;
@@ -115,4 +119,7 @@
 			loadingMessage="Updating..."
 		/>
 	</form>
+	<Button color="red" href={urlGenerator({address:"/(loggedIn)/autoImport/[id]/delete", paramsValue: {id: data.autoImportDetail.id}}).url}>
+		<DeleteIcon />Delete
+	</Button>
 </PageLayout>

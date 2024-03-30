@@ -48,9 +48,6 @@ export const actions = {
 		const enable = form.get('enable');
 		const disable = form.get('disable');
 
-		console.log('enabled', enable);
-		console.log('disabled', disable);
-
 		try {
 			if (enable && enable.toString() === 'true') {
 				await tActions.autoImport.update({
