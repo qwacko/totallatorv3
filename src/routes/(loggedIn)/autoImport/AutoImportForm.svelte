@@ -31,8 +31,8 @@
 	const { value: userAccessTokenValue, errors: userAccessTokenErrors } = proxyForm.userAccessToken;
 	const { value: lookbackDaysValue, errors: lookbackDaysErrors } = proxyForm.lookbackDays;
 	const { value: startDateValue, errors: startDateErrors } = proxyForm.startDate;
-	const { value: autoProcessValue, errors: autoProcessErrors } = proxyForm.autoProcess;
-	const { value: autoCleanValue, errors: autoCleanErrors } = proxyForm.autoClean;
+	const { value: autoProcessValue } = proxyForm.autoProcess;
+	const { value: autoCleanValue } = proxyForm.autoClean;
 
 	$: formElements = autoImportFormItemDisplay[$typeValue];
 </script>
