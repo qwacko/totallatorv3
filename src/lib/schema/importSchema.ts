@@ -176,16 +176,16 @@ export const createImportSchema = z
 		{ message: 'A mapping is reqruired for a mapped import', path: ['importMappingId'] }
 	);
 
-export type UpdateImportSchemaType = z.infer<typeof createImportSchema>;
+export type CreateImportSchemaType = z.infer<typeof createImportSchema>;
 
 export const updateImportSchema = z.object({
 	id: z.string(),
-	autoProces: z.boolean().optional(),
+	autoProcess: z.boolean().optional(),
 	autoClean: z.boolean().optional(),
 	checkImportedOnly: z.boolean().optional()
 });
 
-export type CreateImportSchemaType = z.infer<typeof createImportSchema>;
+export type UpdateImportSchemaType = z.infer<typeof updateImportSchema>;
 
 export const importFilterSchema = z.object({
 	id: z.string().optional(),

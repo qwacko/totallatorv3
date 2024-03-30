@@ -105,5 +105,12 @@ export const cronJobs: CronJob[] = [
 			await tActions.backup.refreshList({ db });
 			await tActions.backup.trimBackups({ db });
 		}
+	},
+	{
+		name: 'Clean Old Imports',
+		schedule: '0 1 * * *',
+		job: async () => {
+			await tActions.import.autoCleanAll({ db, retainDays: 30 });
+		}
 	}
 ];

@@ -9,6 +9,8 @@
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { urlGenerator } from '$lib/routes.js';
 	import { importTypeToTitle } from '$lib/schema/importSchema';
+	import ImportCleanButton from './ImportCleanButton.svelte';
+	import ToggleInputForm from './ToggleInputForm.svelte';
 	import { linkToImportItems } from './linkToImportItems';
 	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
 
@@ -71,6 +73,26 @@
 			<i>Last Modification :</i>
 			{new Date(importData.detail.updatedAt).toISOString().slice(0, 19)}
 		</div>
+		<div class="flex flex-row items-center gap-1 self-center">
+			<i>Processing :</i>
+			<ToggleInputForm
+				currentValue={importData.detail.autoProcess}
+				onTitle="Auto"
+				offTitle="Manual"
+				action="?/toggleAutoProcess"
+				color="green"
+			/>
+		</div>
+		<div class="flex flex-row items-center gap-1 self-center">
+			<i>Cleaning :</i>
+			<ToggleInputForm
+				currentValue={importData.detail.autoClean}
+				onTitle="Auto"
+				offTitle="Manual"
+				action="?/toggleAutoClean"
+				color="green"
+			/>
+		</div>
 		<div class="flex flex-row gap-1 self-center">
 			{#if importCount > 0}
 				<Button
@@ -93,6 +115,9 @@
 				<form method="post" action="?/triggerImport" use:enhance class="flex self-center">
 					<Button color="green" type="submit" disabled={processCount === 0}>Import</Button>
 				</form>
+			{/if}
+			{#if importData.detail.status === 'complete'}
+				<ImportCleanButton />
 			{/if}
 			{#if importData.detail.status !== 'awaitingImport' && importData.detail.status !== 'importing'}
 				<Button color="red" outline><DeleteIcon /></Button>

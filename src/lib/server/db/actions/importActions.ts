@@ -15,11 +15,15 @@ import {
 	tag
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, count as drizzleCount, lt } from 'drizzle-orm';
+import { eq, and, not, count as drizzleCount, lt } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { z, type ZodSchema } from 'zod';
-import { type CreateImportSchemaType, type ImportFilterSchemaType } from '$lib/schema/importSchema';
+import {
+	type CreateImportSchemaType,
+	type ImportFilterSchemaType,
+	type UpdateImportSchemaType
+} from '$lib/schema/importSchema';
 import {
 	importTransaction,
 	importAccount,
@@ -74,6 +78,11 @@ export const importActions = {
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: results, pageCount, page, pageSize };
+	},
+	update: async ({ db, data }: { db: DBType; data: UpdateImportSchemaType }) => {
+		const { id, ...restData } = data;
+
+		await db.update(importTable).set(restData).where(eq(importTable.id, id)).execute();
 	},
 	store: async ({ db, data }: { db: DBType; data: CreateImportSchemaType }) => {
 		const { file: newFile, importType: type, ...restData } = data;
@@ -233,6 +242,10 @@ export const importActions = {
 			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
 			.where(eq(importTable.id, id));
 
+		if (data.length === 0) {
+			return { importInfo: undefined };
+		}
+
 		return { importInfo: data[0] };
 	},
 	getDetail: async ({ db, id }: { db: DBType; id: string }) => {
@@ -316,6 +329,13 @@ export const importActions = {
 	doRequiredImports: async ({ db }: { db: DBType }) => {
 		const importTimeoutms = serverEnv.IMPORT_TIMEOUT_MIN * 60 * 1000;
 		const earliestUpdatedAt = new Date(Date.now() - importTimeoutms);
+
+		//Upate All Imports That Are Set To Auto Process to Awaiting Import
+		await db
+			.update(importTable)
+			.set({ status: 'awaitingImport', ...updatedTime() })
+			.where(and(eq(importTable.status, 'processed'), eq(importTable.autoProcess, true)))
+			.execute();
 
 		const numberImportingTooLong = await db
 			.select()
@@ -625,6 +645,79 @@ export const importActions = {
 				await importActions.deleteLinked({ db, id });
 				await db.delete(importTable).where(eq(importTable.id, id)).execute();
 			});
+		}
+	},
+	autoCleanAll: async ({ db, retainDays }: { db: DBType; retainDays: number }) => {
+		const importsToClean = await db
+			.select({ id: importTable.id })
+			.from(importTable)
+			.where(
+				and(
+					eq(importTable.status, 'complete'),
+					lt(importTable.createdAt, new Date(Date.now() - retainDays * 24 * 60 * 60 * 1000)),
+					eq(importTable.autoClean, true)
+				)
+			)
+			.execute();
+
+		for (const importToClean of importsToClean) {
+			const numberNotImported = await db
+				.select({ count: drizzleCount(importItemDetail.id) })
+				.from(importItemDetail)
+				.where(
+					and(
+						eq(importItemDetail.importId, importToClean.id),
+						not(eq(importItemDetail.status, 'imported'))
+					)
+				)
+				.execute();
+			const numberImported = await db
+				.select({ count: drizzleCount(importItemDetail.id) })
+				.from(importItemDetail)
+				.where(
+					and(
+						eq(importItemDetail.importId, importToClean.id),
+						eq(importItemDetail.status, 'imported')
+					)
+				)
+				.execute();
+
+			if (numberNotImported[0].count > 0 || numberImported[0].count === 0) {
+				await importActions.clean({ db, id: importToClean.id });
+			}
+		}
+	},
+	clean: async ({ db, id }: { db: DBType; id: string }) => {
+		const foundImports = await db
+			.select()
+			.from(importTable)
+			.where(eq(importTable.id, id))
+			.execute();
+
+		if (foundImports.length === 0) {
+			return;
+		}
+
+		const importToClean = foundImports[0];
+
+		if (importToClean.status !== 'complete') {
+			return;
+		}
+
+		const numberImported = await db
+			.select()
+			.from(importItemDetail)
+			.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'imported')))
+			.execute();
+
+		//When there is no imported items, delete the entire import, when there is some imported, then remove everything that is not "imported"
+		if (numberImported.length === 0) {
+			await importActions.forgetImport({ db, id });
+		} else {
+			await db
+				.delete(importItemDetail)
+				.where(and(eq(importItemDetail.importId, id), not(eq(importItemDetail.status, 'imported'))))
+				.execute();
 		}
 	}
 };
