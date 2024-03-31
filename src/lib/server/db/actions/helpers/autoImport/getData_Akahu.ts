@@ -1,6 +1,6 @@
 import type { AutoImportAkahuSchemaType } from '$lib/schema/autoImportSchema';
 import { logging } from '$lib/server/logging';
-import { AkahuClient, type Transaction } from 'akahu';
+import { AkahuClient, type Account, type Transaction } from 'akahu';
 
 export const getData_Akahu = async ({
 	config
@@ -31,16 +31,27 @@ export const getData_Akahu = async ({
 	let counter = 0;
 
 	const transactions: Transaction[] = [];
+	let account: Account | undefined = undefined;
+	try {
+		const accounts = await akahu.accounts.list(userToken);
+		account = accounts.find((item) => item.name === config.accountId);
+	} catch (e) {
+		logging.error('Error fetching accounts', e);
+	}
 
-	while (cursor !== null && counter < 20) {
-		const currentTransactions = await akahu.transactions.list(userToken, {
-			start,
-			cursor
-		});
+	try {
+		while (cursor !== null && counter < 20) {
+			const currentTransactions = await akahu.transactions.list(userToken, {
+				start,
+				cursor
+			});
 
-		transactions.push(...currentTransactions.items);
-		cursor = currentTransactions.cursor.next;
-		counter++;
+			transactions.push(...currentTransactions.items);
+			cursor = currentTransactions.cursor.next;
+			counter++;
+		}
+	} catch (e) {
+		logging.error('Error fetching transactions', e);
 	}
 
 	if (counter >= 20) {
@@ -49,7 +60,9 @@ export const getData_Akahu = async ({
 		);
 	}
 
-	const modifiedTransactions = transactions.filter((item) => item._account === config.accountId);
+	const modifiedTransactions = transactions.filter((item) =>
+		account ? item._account === account._id : item._account === config.accountId
+	);
 
 	return modifiedTransactions;
 };
