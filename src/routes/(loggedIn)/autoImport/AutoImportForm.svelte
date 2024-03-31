@@ -107,7 +107,7 @@
 				{#if formElements.accountId}
 					<TextInput
 						bind:value={$accountIdValue}
-						title="Account ID"
+						title={$typeValue === 'akahu' ? 'Account ID / Name' : 'Account ID'}
 						name="accountId"
 						required
 						errorMessage={$accountIdErrors}
