@@ -102,24 +102,12 @@
 			id={data.autoImportDetail.id}
 			filename="{new Date().toISOString().slice(0, 10)}-{data.autoImportDetail.title}.data"
 		/>
-		<UpdateSampleData importMappingId={data.autoImportDetail.importMappingId} />
-		<div class="flex flex-grow" />
-		<SingleButtonForm
-			action="?/trigger"
-			message="Execute"
-			loadingMessage="Executing..."
-			outline
-			color="blue"
+		<UpdateSampleData
+			filename="{new Date().toISOString().slice(0, 10)}-{data.autoImportDetail.title}.data"
+			autoImportId={data.autoImportDetail.id}
+			importMappingId={data.autoImportDetail.importMappingId}
 		/>
-		<Button
-			outline
-			href={urlGenerator({
-				address: '/(loggedIn)/import',
-				searchParamsValue: { autoImportId: data.autoImportDetail.id, pageSize: 10 }
-			}).url}
-		>
-			<ImportIcon />
-		</Button>
+		
 	</div>
 	<form use:enhanceForm method="post" action="?/update" class="flex flex-col gap-2">
 		<input type="hidden" name="id" value={data.autoImportDetail.id} />

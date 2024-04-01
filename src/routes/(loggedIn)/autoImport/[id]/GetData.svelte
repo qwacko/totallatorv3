@@ -67,13 +67,5 @@
 			loadingMessage="Getting Data..."
 			{loading}
 		/>
-		<Button
-			href={urlGenerator({
-				address: '/(loggedIn)/autoImport/[id]/[filename]',
-				paramsValue: { id, filename }
-			}).url}
-		>
-			<DownloadIcon />
-		</Button>
 	</ButtonGroup>
 </form>

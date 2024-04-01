@@ -75,8 +75,6 @@ export const getData_SaltEdge = async ({
 	const accountId =
 		accountResult.data.data.find((item) => item.name === accountIdOrName)?.id || accountIdOrName;
 
-	console.log('Account Name:', accountResult.data.data, accountId, accountIdOrName);
-
 	const transactions: SaltEdgeTransaction[] = [];
 
 	//Now we will get the transactions for the account
