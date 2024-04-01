@@ -2,13 +2,8 @@
 	import { enhance } from '$app/forms';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import DownloadIcon from '$lib/components/icons/DownloadIcon.svelte';
 	import { customEnhance } from '$lib/helpers/customEnhance';
-	import { urlGenerator } from '$lib/routes';
-	import { Button, ButtonGroup } from 'flowbite-svelte';
-
-	export let id: string;
-	export let filename: string;
+	import { ButtonGroup } from 'flowbite-svelte';
 
 	const getDataEnhance = customEnhance<{ data: Record<string, any>[] }>;
 

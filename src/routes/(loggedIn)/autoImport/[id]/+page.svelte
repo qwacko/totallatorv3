@@ -12,8 +12,6 @@
 	import UpdateSampleData from './UpdateSampleData.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
-	import SingleButtonForm from '$lib/components/SingleButtonForm.svelte';
-	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
 
 	export let data;
 
@@ -98,16 +96,12 @@
 		<Badge color="red" title="Error">{errorMessage}</Badge>
 	{/if}
 	<div class="flex flex-row gap-2">
-		<GetData
-			id={data.autoImportDetail.id}
-			filename="{new Date().toISOString().slice(0, 10)}-{data.autoImportDetail.title}.data"
-		/>
+		<GetData />
 		<UpdateSampleData
 			filename="{new Date().toISOString().slice(0, 10)}-{data.autoImportDetail.title}.data"
 			autoImportId={data.autoImportDetail.id}
 			importMappingId={data.autoImportDetail.importMappingId}
 		/>
-		
 	</div>
 	<form use:enhanceForm method="post" action="?/update" class="flex flex-col gap-2">
 		<input type="hidden" name="id" value={data.autoImportDetail.id} />
