@@ -1,6 +1,7 @@
 import type { AutoImportAkahuSchemaType } from '$lib/schema/autoImportSchema';
 import { logging } from '$lib/server/logging';
 import { AkahuClient, type Account, type Transaction } from 'akahu';
+import { getStartDateToUse } from './getStartDateToUse';
 
 export const getData_Akahu = async ({
 	config
@@ -10,16 +11,10 @@ export const getData_Akahu = async ({
 	const appToken = config.appAccessToken;
 	const userToken = config.userAccessToken;
 
-	const configStartDate = config.startDate ? new Date(config.startDate) : undefined;
-	const offsetStartDate = new Date();
-	const lookbackDays = config.lookbackDays || 30;
-	offsetStartDate.setDate(offsetStartDate.getDate() - lookbackDays);
-
-	const useStartDate = !configStartDate
-		? offsetStartDate
-		: configStartDate > offsetStartDate
-			? configStartDate
-			: offsetStartDate;
+	const useStartDate = getStartDateToUse({
+		startDate: config.startDate,
+		lookbackDays: config.lookbackDays
+	});
 
 	const start = useStartDate.toISOString();
 
