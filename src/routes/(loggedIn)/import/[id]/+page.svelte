@@ -3,14 +3,15 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
+	import ImportCountBadges from '$lib/components/ImportCountBadges.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
+	import SingleButtonForm from '$lib/components/SingleButtonForm.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { urlGenerator } from '$lib/routes.js';
 	import { importTypeToTitle } from '$lib/schema/importSchema';
-	import ImportCleanButton from './ImportCleanButton.svelte';
-	import ToggleInputForm from './ToggleInputForm.svelte';
+	import ToggleInputForm from '$lib/components/ToggleInputForm.svelte';
 	import { linkToImportItems } from './linkToImportItems';
 	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
 
@@ -33,22 +34,16 @@
 
 <PageLayout subtitle={data.info.importInfo.import.title} title="Import Detail">
 	{@const importData = data.streaming.data}
-
+	{@const importMapping = data.info.importInfo.import_mapping}
+	{@const autoImport = data.info.importInfo.auto_import}
 	{#if !importData.detail}
 		<Badge color="red">Unknown Data Load Error</Badge>
 	{:else}
-		{@const errorCount = importData.detail.importDetails.filter((d) => d.status === 'error').length}
-		{@const importErrorCount = importData.detail.importDetails.filter(
-			(d) => d.status === 'importError'
-		).length}
 		{@const processCount = importData.detail.importDetails.filter(
 			(d) => d.status === 'processed'
 		).length}
 		{@const importCount = importData.detail.importDetails.filter(
 			(d) => d.status === 'imported'
-		).length}
-		{@const duplicateCount = importData.detail.importDetails.filter(
-			(d) => d.status === 'duplicate'
 		).length}
 
 		<div class="flex flex-row items-center gap-4 self-center">
@@ -93,6 +88,35 @@
 				color="green"
 			/>
 		</div>
+		{#if importMapping}
+			<div class="flex flex-row items-center gap-1 self-center">
+				<i>Import Mapping :</i>
+				<Button
+					color="light"
+					href={urlGenerator({
+						address: '/(loggedIn)/importMapping/[id]',
+						paramsValue: { id: importMapping.id }
+					}).url}
+				>
+					{importMapping.title}
+				</Button>
+			</div>
+		{/if}
+
+		{#if autoImport}
+			<div class="flex flex-row items-center gap-1 self-center">
+				<i>Auto Import :</i>
+				<Button
+					color="light"
+					href={urlGenerator({
+						address: '/(loggedIn)/autoImport/[id]',
+						paramsValue: { id: autoImport.id }
+					}).url}
+				>
+					{autoImport.title}
+				</Button>
+			</div>
+		{/if}
 		<div class="flex flex-row gap-1 self-center">
 			{#if importCount > 0}
 				<Button
@@ -117,7 +141,12 @@
 				</form>
 			{/if}
 			{#if importData.detail.status === 'complete'}
-				<ImportCleanButton />
+				<SingleButtonForm
+					action="?/clean"
+					color="green"
+					message="Clean"
+					loadingMessage="Cleaning..."
+				/>
 			{/if}
 			{#if importData.detail.status !== 'awaitingImport' && importData.detail.status !== 'importing'}
 				<Button color="red" outline><DeleteIcon /></Button>
@@ -185,11 +214,7 @@
 			</Badge>
 		{:else}
 			<div class="flex flex-row gap-2 self-center">
-				<Badge color="blue">Processed: {processCount}</Badge>
-				<Badge color="red">Error: {errorCount}</Badge>
-				<Badge color="red">Import Error: {importErrorCount}</Badge>
-				<Badge color="dark">Duplicate: {duplicateCount}</Badge>
-				<Badge color="green">Imported: {importCount}</Badge>
+				<ImportCountBadges {importData} hideZero={false} />
 				<RawDataModal data={importData.detail} dev={data.dev} buttonText="Import Data" outline />
 			</div>
 			<div class="grid grid-cols-1 gap-2 md:grid-cols-3">

@@ -7,6 +7,7 @@
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { Button, Heading, P } from 'flowbite-svelte';
 	import { urlGenerator } from '$lib/routes';
+	import ImportLinkList from '$lib/components/ImportLinkList.svelte';
 
 	export let data;
 
@@ -45,4 +46,11 @@
 		submitButtonText="Update Import Mapping"
 		csvData={data.importMapping.sampleData ? JSON.parse(data.importMapping.sampleData) : undefined}
 	/>
+	{#await data.imports then importList}
+		<ImportLinkList
+			title="Last {data.importFilter.pageSize} Imports"
+			data={importList.details}
+			filter={data.importFilter}
+		/>
+	{/await}
 </PageLayout>

@@ -30,7 +30,7 @@
 >
 	<DropdownItem disabled={loading} type="submit" class="flex flex-row gap-2" {...$$restProps}>
 		{#if loading}
-			<slot name="loading"><Spinner />Loadiing...</slot>
+			<slot name="loading"><Spinner />Loading...</slot>
 		{:else}
 			<slot>Action</slot>
 		{/if}

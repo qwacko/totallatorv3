@@ -4,6 +4,7 @@ import { writeFileSync } from 'fs';
 import type { DBType } from '../db';
 import {
 	account,
+	autoImportTable,
 	bill,
 	budget,
 	category,
@@ -78,6 +79,17 @@ export const importActions = {
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: results, pageCount, page, pageSize };
+	},
+	listDetails: async ({ db, filter }: { db: DBType; filter: ImportFilterSchemaType }) => {
+		const imports = await importActions.list({ db, filter });
+
+		const importDetails = await Promise.all(
+			imports.data.map(async (item) => {
+				return getImportDetail({ db, id: item.id });
+			})
+		);
+
+		return { ...imports, details: importDetails };
 	},
 	update: async ({ db, data }: { db: DBType; data: UpdateImportSchemaType }) => {
 		const { id, ...restData } = data;
@@ -250,6 +262,7 @@ export const importActions = {
 			.select()
 			.from(importTable)
 			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
+			.leftJoin(autoImportTable, eq(autoImportTable.id, importTable.autoImportId))
 			.where(eq(importTable.id, id));
 
 		if (data.length === 0) {
@@ -731,3 +744,9 @@ export const importActions = {
 		}
 	}
 };
+
+export type ImportList = Awaited<ReturnType<(typeof importActions)['list']>>['data'];
+export type ImportDetailList = Awaited<
+	ReturnType<(typeof importActions)['listDetails']>
+>['details'];
+export type ImportDetail = Awaited<ReturnType<(typeof importActions)['getDetail']>>;

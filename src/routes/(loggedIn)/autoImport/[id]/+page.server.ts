@@ -6,6 +6,7 @@ import { urlGenerator } from '$lib/routes';
 import { superValidate } from 'sveltekit-superforms';
 import { updateAutoImportFormSchema } from '$lib/schema/autoImportSchema.js';
 import { zod } from 'sveltekit-superforms/adapters';
+import type { ImportFilterSchemaType } from '$lib/schema/importSchema.js';
 
 export const load = async (request) => {
 	authGuard(request);
@@ -33,9 +34,23 @@ export const load = async (request) => {
 		zod(updateAutoImportFormSchema)
 	);
 
+	const importListFilter: ImportFilterSchemaType = {
+		autoImportId: current.params.id,
+		page: 0,
+		pageSize: 5,
+		orderBy: [{ direction: 'desc', field: 'createdAt' }]
+	};
+
+	const imports = tActions.import.listDetails({
+		db: request.locals.db,
+		filter: importListFilter
+	});
+
 	return {
 		autoImportDetail,
-		form
+		form,
+		imports,
+		importListFilter
 	};
 };
 

@@ -48,8 +48,7 @@ export const importFilterToQuery = ({
 		where.push(inArrayWrapped(query.type, filter.type));
 	}
 	if (filter.mapping) {
-		const useFilterText = `%${filter.textFilter}%`;
-		where.push(sql`${query.importMappingTitle} ILIKE ${useFilterText}`);
+		where.push(eq(query.importMappingId, filter.mapping));
 	}
 	if (filter.textFilter) {
 		const useFilterText = `%${filter.textFilter}%`;

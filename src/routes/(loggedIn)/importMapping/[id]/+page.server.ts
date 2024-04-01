@@ -12,6 +12,7 @@ import {
 import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { z } from 'zod';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
+import type { ImportFilterSchemaType } from '$lib/schema/importSchema.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -53,12 +54,26 @@ export const load = async (data) => {
 		zod(importMappingDetailSchema)
 	);
 
+	const importFilter: ImportFilterSchemaType = {
+		mapping: importMapping.id,
+		page: 0,
+		pageSize: 5,
+		orderBy: [{ direction: 'desc', field: 'createdAt' }]
+	};
+
+	const imports = tActions.import.listDetails({
+		db,
+		filter: importFilter
+	});
+
 	return {
 		importMapping,
 		form,
 		detailForm,
 		dropdowns: dropdownItems({ db }),
-		autoImports
+		autoImports,
+		importFilter,
+		imports
 	};
 };
 

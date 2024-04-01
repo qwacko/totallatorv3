@@ -5,7 +5,7 @@
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 	import { Button, Dropdown, DropdownDivider, DropdownItem, Spinner } from 'flowbite-svelte';
-	import DropdownItemForm from './DropdownItemForm.svelte';
+	import DropdownItemForm from '$lib/components/DropdownItemForm.svelte';
 
 	export let importMappingId: string;
 	export let autoImportId: string;

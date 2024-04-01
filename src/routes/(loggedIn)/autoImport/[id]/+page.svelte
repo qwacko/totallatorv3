@@ -12,6 +12,7 @@
 	import UpdateSampleData from './UpdateSampleData.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
+	import ImportLinkList from '$lib/components/ImportLinkList.svelte';
 
 	export let data;
 
@@ -129,4 +130,11 @@
 	>
 		<DeleteIcon />Delete
 	</Button>
+	{#await data.imports then importList}
+		<ImportLinkList
+			title="Last {data.importListFilter.pageSize} Imports"
+			data={importList.details}
+			filter={data.importListFilter}
+		/>
+	{/await}
 </PageLayout>
