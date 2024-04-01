@@ -5,7 +5,7 @@
 	import { superForm } from 'sveltekit-superforms';
 	import ImportMappingForm from '../create/ImportMappingForm.svelte';
 	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { Button, Heading, P } from 'flowbite-svelte';
+	import { Button, P } from 'flowbite-svelte';
 	import { urlGenerator } from '$lib/routes';
 	import ImportLinkList from '$lib/components/ImportLinkList.svelte';
 
