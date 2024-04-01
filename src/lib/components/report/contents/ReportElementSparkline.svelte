@@ -29,8 +29,6 @@
 		options = undefined;
 		const resolvedData = await data;
 
-		// console.log('Resolved data: ', resolvedData);
-
 		if ('errorMessage' in resolvedData) {
 			errorMessage = resolvedData.errorMessage;
 			return;

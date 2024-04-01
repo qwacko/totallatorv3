@@ -26,10 +26,6 @@
 	$: booleanClearValue = clearValue as Writable<string | boolean | undefined>;
 
 	onMount(() => {
-		console.log('RUnning After Mout Function', {
-			setValue: $booleanSetValue,
-			clearValue: $booleanClearValue
-		});
 		if ($booleanSetValue === true || $booleanSetValue === 'true') {
 			booleanValue = true;
 		} else if ($booleanClearValue === 'true' || $booleanClearValue === true) {

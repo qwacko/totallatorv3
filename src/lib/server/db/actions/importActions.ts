@@ -4,6 +4,7 @@ import { writeFileSync } from 'fs';
 import type { DBType } from '../db';
 import {
 	account,
+	autoImportTable,
 	bill,
 	budget,
 	category,
@@ -15,11 +16,15 @@ import {
 	tag
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, count as drizzleCount, lt } from 'drizzle-orm';
+import { eq, and, not, count as drizzleCount, lt } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
-import type { ZodSchema } from 'zod';
-import { type ImportFilterSchemaType, type importTypeType } from '$lib/schema/importSchema';
+import { z, type ZodSchema } from 'zod';
+import {
+	type CreateImportSchemaType,
+	type ImportFilterSchemaType,
+	type UpdateImportSchemaType
+} from '$lib/schema/importSchema';
 import {
 	importTransaction,
 	importAccount,
@@ -75,27 +80,55 @@ export const importActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	storeCSV: async ({
-		newFile,
+	listDetails: async ({ db, filter }: { db: DBType; filter: ImportFilterSchemaType }) => {
+		const imports = await importActions.list({ db, filter });
+
+		const importDetails = await Promise.all(
+			imports.data.map(async (item) => {
+				return getImportDetail({ db, id: item.id });
+			})
+		);
+
+		return { ...imports, details: importDetails };
+	},
+	update: async ({ db, data }: { db: DBType; data: UpdateImportSchemaType }) => {
+		const { id, ...restData } = data;
+
+		await db.update(importTable).set(restData).where(eq(importTable.id, id)).execute();
+	},
+	store: async ({
 		db,
-		type,
-		importMapping,
-		checkImportedOnly = false
+		data,
+		autoImportId
 	}: {
 		db: DBType;
-		newFile: File;
-		type: importTypeType;
-		importMapping: string | undefined;
-		checkImportedOnly?: boolean;
+		data: CreateImportSchemaType;
+		autoImportId?: string;
 	}) => {
+		const { file: newFile, importType: type, ...restData } = data;
+
 		if (newFile.type !== 'text/csv') {
-			throw new Error('Incorrect FileType');
+			if (type !== 'mappedImport') {
+				throw new Error('Filetype must be CSV except for mapped imports');
+			}
+
+			const fileString = await newFile.text();
+			const jsonFile = JSON.parse(fileString);
+			const schemaValidation = z.array(z.record(z.any()));
+			const parsedData = schemaValidation.safeParse(jsonFile);
+
+			if (!parsedData.success) {
+				throw new Error('Filetype must be CSV or JSON Array of Objects');
+			}
 		}
+
+		const fileType = newFile.type === 'text/csv' ? 'csv' : 'json';
+
 		if (type === 'mappedImport' && !importMapping) {
 			throw new Error('No Mapping Selected');
 		}
-		if (importMapping) {
-			const result = await tActions.importMapping.getById({ db, id: importMapping });
+		if (restData.importMappingId) {
+			const result = await tActions.importMapping.getById({ db, id: restData.importMappingId });
 			if (!result) {
 				throw new Error(`Mapping ${importMapping} Not Found`);
 			}
@@ -116,12 +149,12 @@ export const importActions = {
 				id,
 				filename: combinedFilename,
 				title: originalFilename,
-				importMappingId: importMapping,
 				...updatedTime(),
 				status: 'created',
-				source: 'csv',
+				source: fileType,
+				autoImportId,
 				type,
-				checkImportedOnly
+				...restData
 			})
 			.execute();
 
@@ -140,7 +173,7 @@ export const importActions = {
 	}: {
 		db: DBType;
 		id: string;
-		data: Papa.ParseResult<unknown>;
+		data: Papa.ParseResult<unknown> | { data: Record<string, any>[] };
 		schema: ZodSchema<S>;
 		importDataToSchema?: (data: unknown) => { data: S } | { errors: string[] };
 		getUniqueIdentifier?: ((data: S) => string | null | undefined) | undefined;
@@ -229,7 +262,12 @@ export const importActions = {
 			.select()
 			.from(importTable)
 			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
+			.leftJoin(autoImportTable, eq(autoImportTable.id, importTable.autoImportId))
 			.where(eq(importTable.id, id));
+
+		if (data.length === 0) {
+			return { importInfo: undefined };
+		}
 
 		return { importInfo: data[0] };
 	},
@@ -314,6 +352,13 @@ export const importActions = {
 	doRequiredImports: async ({ db }: { db: DBType }) => {
 		const importTimeoutms = serverEnv.IMPORT_TIMEOUT_MIN * 60 * 1000;
 		const earliestUpdatedAt = new Date(Date.now() - importTimeoutms);
+
+		//Upate All Imports That Are Set To Auto Process to Awaiting Import
+		await db
+			.update(importTable)
+			.set({ status: 'awaitingImport', ...updatedTime() })
+			.where(and(eq(importTable.status, 'processed'), eq(importTable.autoProcess, true)))
+			.execute();
 
 		const numberImportingTooLong = await db
 			.select()
@@ -624,5 +669,84 @@ export const importActions = {
 				await db.delete(importTable).where(eq(importTable.id, id)).execute();
 			});
 		}
+	},
+	autoCleanAll: async ({ db, retainDays }: { db: DBType; retainDays: number }) => {
+		const importsToClean = await db
+			.select({ id: importTable.id })
+			.from(importTable)
+			.where(
+				and(
+					eq(importTable.status, 'complete'),
+					lt(importTable.createdAt, new Date(Date.now() - retainDays * 24 * 60 * 60 * 1000)),
+					eq(importTable.autoClean, true)
+				)
+			)
+			.execute();
+
+		for (const importToClean of importsToClean) {
+			const numberNotImported = await db
+				.select({ count: drizzleCount(importItemDetail.id) })
+				.from(importItemDetail)
+				.where(
+					and(
+						eq(importItemDetail.importId, importToClean.id),
+						not(eq(importItemDetail.status, 'imported'))
+					)
+				)
+				.execute();
+			const numberImported = await db
+				.select({ count: drizzleCount(importItemDetail.id) })
+				.from(importItemDetail)
+				.where(
+					and(
+						eq(importItemDetail.importId, importToClean.id),
+						eq(importItemDetail.status, 'imported')
+					)
+				)
+				.execute();
+
+			if (numberNotImported[0].count > 0 || numberImported[0].count === 0) {
+				await importActions.clean({ db, id: importToClean.id });
+			}
+		}
+	},
+	clean: async ({ db, id }: { db: DBType; id: string }) => {
+		const foundImports = await db
+			.select()
+			.from(importTable)
+			.where(eq(importTable.id, id))
+			.execute();
+
+		if (foundImports.length === 0) {
+			return;
+		}
+
+		const importToClean = foundImports[0];
+
+		if (importToClean.status !== 'complete') {
+			return;
+		}
+
+		const numberImported = await db
+			.select()
+			.from(importItemDetail)
+			.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'imported')))
+			.execute();
+
+		//When there is no imported items, delete the entire import, when there is some imported, then remove everything that is not "imported"
+		if (numberImported.length === 0) {
+			await importActions.forgetImport({ db, id });
+		} else {
+			await db
+				.delete(importItemDetail)
+				.where(and(eq(importItemDetail.importId, id), not(eq(importItemDetail.status, 'imported'))))
+				.execute();
+		}
 	}
 };
+
+export type ImportList = Awaited<ReturnType<(typeof importActions)['list']>>['data'];
+export type ImportDetailList = Awaited<
+	ReturnType<(typeof importActions)['listDetails']>
+>['details'];
+export type ImportDetail = Awaited<ReturnType<(typeof importActions)['getDetail']>>;

@@ -82,7 +82,16 @@
 					rowToDisplay: (row) => row.title,
 					sortKey: 'title'
 				},
-
+				{
+					id: 'autoProcess',
+					title: 'Auto Process',
+					sortKey: 'autoProcess'
+				},
+				{
+					id: 'autoClean',
+					title: 'Auto Clean',
+					sortKey: 'autoClean'
+				},
 				{
 					id: 'type',
 					title: 'Type',
@@ -175,6 +184,18 @@
 							{importStatusToTest(currentRow.status)}
 						</div>
 					</Badge>
+				{:else if currentColumn.id === 'autoProcess'}
+					{#if currentRow.autoProcess === true}
+						<Badge color="green">Auto</Badge>
+					{:else}
+						<Badge color="yellow">Manual</Badge>
+					{/if}
+				{:else if currentColumn.id === 'autoClean'}
+					{#if currentRow.autoClean === true}
+						<Badge color="green">Auto</Badge>
+					{:else}
+						<Badge color="yellow">Manual</Badge>
+					{/if}
 				{/if}
 			</svelte:fragment>
 			<svelte:fragment slot="filter">

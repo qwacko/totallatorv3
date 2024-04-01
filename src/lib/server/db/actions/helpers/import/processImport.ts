@@ -26,7 +26,7 @@ import { createBudgetSchema } from '$lib/schema/budgetSchema';
 import { createCategorySchema } from '$lib/schema/categorySchema';
 import { createLabelSchema } from '$lib/schema/labelSchema';
 import { createTagSchema } from '$lib/schema/tagSchema';
-import type { ZodSchema } from 'zod';
+import { z, type ZodSchema } from 'zod';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { tActions } from '../../tActions';
 import { getImportDetail } from './getImportDetail';
@@ -46,11 +46,28 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 		: undefined;
 
 	if (importData.status !== 'created') return;
+	if (!importData.filename) {
+		throw new Error('Import File Not Found');
+	}
+	const file = readFileSync(importData.filename);
+	const checkImportDuplicates =
+		(innerFunc: (data: string[]) => Promise<string[]>) => async (data: string[]) => {
+			if (!importData.checkImportedOnly) {
+				const existingImports = await db
+					.select()
+					.from(importItemDetail)
+					.where(inArrayWrapped(importItemDetail.uniqueId, data))
+					.execute();
+
+				if (existingImports.length > 0) {
+					return filterNullUndefinedAndDuplicates(existingImports.map((item) => item.uniqueId));
+				}
+			}
+
+			return await innerFunc(data);
+		};
+
 	if (importData.source === 'csv') {
-		if (!importData.filename) {
-			throw new Error('Import File Not Found');
-		}
-		const file = readFileSync(importData.filename);
 		const rowsToSkip = importMappingInformation?.configuration
 			? importMappingInformation.configuration.rowsToSkip
 			: 0;
@@ -66,23 +83,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 				return lines.join('\n');
 			}
 		});
-
-		const checkImportDuplicates =
-			(innerFunc: (data: string[]) => Promise<string[]>) => async (data: string[]) => {
-				if (!importData.checkImportedOnly) {
-					const existingImports = await db
-						.select()
-						.from(importItemDetail)
-						.where(inArrayWrapped(importItemDetail.uniqueId, data))
-						.execute();
-
-					if (existingImports.length > 0) {
-						return filterNullUndefinedAndDuplicates(existingImports.map((item) => item.uniqueId));
-					}
-				}
-
-				return await innerFunc(data);
-			};
 
 		if (processedData.errors && processedData.errors.length > 0) {
 			await db
@@ -248,6 +248,80 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 				}
 			}
 		}
+	} else if (
+		importData.type === 'mappedImport' &&
+		importData.source === 'json' &&
+		importData.importMappingId
+	) {
+		const importMappingDetail = await tActions.importMapping.getById({
+			db,
+			id: importData.importMappingId
+		});
+
+		const config = importMappingDetail?.configuration;
+		if (!importMappingDetail || !config) {
+			await db
+				.update(importTable)
+				.set({
+					status: 'error',
+					errorInfo: 'Import Mapping Not Found',
+					...updatedTime()
+				})
+				.where(eq(importTable.id, id))
+				.execute();
+			return;
+		}
+
+		const jsonData = JSON.parse(file.toString());
+		const schema = z.array(z.record(z.any()));
+		const parsedData = schema.safeParse(jsonData);
+
+		if (!parsedData.success) {
+			await db
+				.update(importTable)
+				.set({
+					status: 'error',
+					errorInfo: parsedData.error.errors,
+					...updatedTime()
+				})
+				.where(eq(importTable.id, id))
+				.execute();
+			return;
+		}
+
+		const processedData = parsedData.data;
+
+		await importActions.processItems<CreateSimpleTransactionType>({
+			db,
+			id,
+			data: { data: processedData },
+			schema: createSimpleTransactionSchema as ZodSchema<CreateSimpleTransactionType>,
+			importDataToSchema: (data) => {
+				const currentRow = data as Record<string, unknown>;
+				const currentProcessedRow = processObjectReturnTransaction(currentRow, config);
+				if (currentProcessedRow.errors) {
+					return { errors: currentProcessedRow.errors.map((item) => item.error) };
+				} else {
+					const validatedData = createSimpleTransactionSchema.safeParse(
+						currentProcessedRow.transaction
+					);
+					if (!validatedData.success) {
+						return { errors: [validatedData.error.message] };
+					} else {
+						return { data: validatedData.data };
+					}
+				}
+			},
+			getUniqueIdentifier: (data) => data.uniqueId,
+			checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
+				const existingTransactions = await db
+					.select()
+					.from(journalEntry)
+					.where(inArrayWrapped(journalEntry.uniqueId, data))
+					.execute();
+				return filterNullUndefinedAndDuplicates(existingTransactions.map((item) => item.uniqueId));
+			})
+		});
 	}
 
 	const importFinalDetail = await getImportDetail({ db, id });

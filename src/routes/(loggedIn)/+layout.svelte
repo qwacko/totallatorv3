@@ -14,6 +14,7 @@
 	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 	import DevIcon from '$lib/components/icons/DevIcon.svelte';
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
+	import AutoImportIcon from '$lib/components/icons/AutoImportIcon.svelte';
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import ReportDropdown from '$lib/components/report/ReportDropdown.svelte';
 	import NotificationDisplay from '$lib/components/NotificationDisplay.svelte';
@@ -31,6 +32,7 @@
 	$: pageIsAccounts = $page.route.id?.startsWith('/(loggedIn)/accounts');
 	$: pageIsDev = $page.route.id?.startsWith('/(loggedIn)/dev');
 	$: pageIsImportMapping = $page.route.id?.startsWith('/(loggedIn)/importMapping');
+	$: pageIsAutoImport = $page.route.id?.startsWith('/(loggedIn)/autoImport');
 	$: pageIsImport = $page.route.id?.startsWith('/(loggedIn)/import') && !pageIsImportMapping;
 	$: pageIsBackup = $page.route.id?.startsWith('/(loggedIn)/backup');
 	$: pageIsCurrentUser = data.user?.id ? $page.url.toString().includes(data.user.id) : false;
@@ -91,6 +93,12 @@
 			active: pageIsImportMapping,
 			icon: ImportIcon,
 			href: urlGenerator({ address: '/(loggedIn)/importMapping', searchParamsValue: {} })
+		},
+		{
+			label: 'Auto Import',
+			active: pageIsAutoImport,
+			icon: AutoImportIcon,
+			href: urlGenerator({ address: '/(loggedIn)/autoImport', searchParamsValue: {} })
 		},
 		{
 			label: 'Backup',

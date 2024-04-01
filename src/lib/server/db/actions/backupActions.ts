@@ -32,7 +32,8 @@ import {
 	keyValueTable,
 	reportElement,
 	reportElementConfig,
-	backupTable
+	backupTable,
+	autoImportTable
 } from '../postgres/schema';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
 import superjson from 'superjson';
@@ -265,7 +266,7 @@ export const backupActions = {
 		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 6,
+			version: 7,
 			data: {
 				user: await db.select().from(user).execute(),
 				session: await db.select().from(session).execute(),
@@ -281,6 +282,7 @@ export const backupActions = {
 				journalEntry: await db.select().from(journalEntry).execute(),
 				importItemDetail: await db.select().from(importItemDetail).execute(),
 				importTable: await db.select().from(importTable).execute(),
+				autoImportTable: await db.select().from(autoImportTable).execute(),
 				importMapping: await db.select().from(importMapping).execute(),
 				reusableFilter: await db.select().from(reusableFilter).execute(),
 				filter: await db.select().from(filter).execute(),
@@ -315,6 +317,7 @@ export const backupActions = {
 					numberTags: backupDataDB.data.tag.length,
 					numberImportItemDetails: backupDataDB.data.importItemDetail.length,
 					numberImportTables: backupDataDB.data.importTable.length,
+					numberAutoImport: backupDataDB.data.autoImportTable.length,
 					numberImportMappings: backupDataDB.data.importMapping.length,
 					numberReusableFilters: backupDataDB.data.reusableFilter.length,
 					numberKeyValues: backupDataDB.data.keyValueTable.length,

@@ -122,6 +122,7 @@
 					<Badge>Imports : {information.information.itemCount.numberImportTables}</Badge>
 					<Badge>Import Items : {information.information.itemCount.numberImportItemDetails}</Badge>
 					<Badge>Import Mappings : {information.information.itemCount.numberImportMappings}</Badge>
+					<Badge>Auto Imports : {information.information.itemCount.numberAutoImport}</Badge>
 					<Badge>Key Values : {information.information.itemCount.numberKeyValues}</Badge>
 					<Badge>Report Elements : {information.information.itemCount.numberReportElements}</Badge>
 					<Badge>Report Filters : {information.information.itemCount.numberReportFilters}</Badge>

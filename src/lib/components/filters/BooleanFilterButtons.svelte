@@ -9,6 +9,7 @@
 	export let name: string | undefined = undefined;
 	export let hideClear: boolean = false;
 	export let wrapperClass = '';
+	export let disabled: boolean = false;
 
 	const updateValue = (newValue: boolean | undefined) => {
 		value = newValue;
@@ -24,5 +25,13 @@
 			{title}
 		</div>
 	{/if}
-	<BooleanButtons {value} {onTitle} {offTitle} {clearTitle} {hideClear} setNew={updateValue} />
+	<BooleanButtons
+		{value}
+		{onTitle}
+		{offTitle}
+		{clearTitle}
+		{hideClear}
+		setNew={updateValue}
+		{disabled}
+	/>
 </div>

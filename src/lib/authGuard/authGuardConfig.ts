@@ -119,7 +119,10 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			...adminOnlyConfig,
 			POSTCheck: {
 				reprocess: POSTAllowAdminOnly,
-				triggerImport: POSTAllowAdminOnly
+				triggerImport: POSTAllowAdminOnly,
+				clean: POSTAllowAdminOnly,
+				toggleAutoProcess: POSTAllowAdminOnly,
+				toggleAutoClean: POSTAllowAdminOnly
 			}
 		},
 		'/(loggedIn)/import/[id]/forget': {
@@ -165,6 +168,34 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		'/(loggedIn)/journals/clone': {
 			...adminOnlyConfig,
 			POSTCheck: { clone: POSTAllowAdminOnly }
+		},
+
+		// Automatic Imports
+		// ----------------------------------------
+		'/(loggedIn)/autoImport': {
+			...adminOnlyConfig
+		},
+		'/(loggedIn)/autoImport/[id]/[filename]': { ...adminOnlyConfig },
+		'/(loggedIn)/autoImport/create': {
+			...adminOnlyConfig,
+			POSTCheck: { default: POSTAllowAdminOnly }
+		},
+		'/(loggedIn)/autoImport/[id]': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				updateSampleData: POSTAllowAdminOnly,
+				testConnection: POSTAllowAdminOnly,
+				update: POSTAllowAdminOnly,
+				enableDisable: POSTAllowAdminOnly,
+				getData: POSTAllowAdminOnly,
+				trigger: POSTAllowAdminOnly
+			}
+		},
+		'/(loggedIn)/autoImport/[id]/delete': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				default: POSTAllowAdminOnly
+			}
 		},
 
 		// Filters

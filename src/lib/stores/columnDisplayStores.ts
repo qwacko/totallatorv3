@@ -38,6 +38,8 @@ export const reusableFilterColumnsStore = writable([
 export const importColumnsStore = writable([
 	'actions',
 	'createdAt',
+	'autoProcess',
+	'autoClean',
 	'title',
 	'status',
 	'type',
@@ -46,6 +48,17 @@ export const importColumnsStore = writable([
 	'numDuplicate',
 	'numImport',
 	'numErrors'
+]);
+
+export const autoImportColumnsStore = writable([
+	'actions',
+	'enabled',
+	'autoProcess',
+	'autoClean',
+	'title',
+	'type',
+	'frequency',
+	'importMapping'
 ]);
 
 export const importMappingColumnStore = writable(['actions', 'title']);
