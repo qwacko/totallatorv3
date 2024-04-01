@@ -35,8 +35,6 @@
 					{autoImport.title}
 				</Button>
 			{/each}
-		{:else}
-			<Heading tag="h3">No Auto Imports found</Heading>
 		{/if}
 	</div>
 	<ImportMappingForm
