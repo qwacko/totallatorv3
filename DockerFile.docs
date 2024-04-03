@@ -14,7 +14,7 @@ RUN npm install -g pnpm
 RUN pnpm install --shamefully-hoist 
 
 # Copy the rest of the application code
-COPY . .
+COPY docs docs
 
 # Build the project
 RUN pnpm docs:build
