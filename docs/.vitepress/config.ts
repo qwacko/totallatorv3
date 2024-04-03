@@ -1,7 +1,12 @@
-import { defineConfig } from 'vitepress';
+// import { defineConfig } from 'vitepress';
+import { withMermaid } from 'vitepress-plugin-mermaid';
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+export default withMermaid({
+	// your existing vitepress config...
+	mermaid: {
+		//mermaidConfig !theme here works for ligth mode since dark theme is forced in dark mode
+	},
 	title: 'Totallator',
 	description: 'Financial Recordkeeping',
 	themeConfig: {
@@ -49,7 +54,8 @@ export default defineConfig({
 				text: 'Developers 🚧',
 				link: '/development',
 				items: [
-					{ text: 'Contribution 🚧', link: '/contribution' },
+					{ text: 'Contributing 🚧', link: '/contribution' },
+					{ text: 'Database 🚧', link: '/database' },
 					{ text: 'Auto Import Development 🚧', link: '/develop-auto-import' }
 				]
 			}
