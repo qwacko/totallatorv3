@@ -12,10 +12,24 @@ export default defineConfig({
 		// https://vitepress.dev/reference/default-theme-config
 		nav: [
 			{ text: 'Home', link: '/' },
-			{ text: 'Examples', link: '/markdown-examples' }
+			{ text: 'Installation 🚧', link: '/installation' }
 		],
 
 		sidebar: [
+			{
+				text: 'Install / Config 🚧',
+				link: '/installation',
+				items: [
+					{
+						text: 'Environment Variables 🚧',
+						link: '/environment-variables'
+					},
+					{
+						text: 'Docker 🚧',
+						link: '/docker'
+					}
+				]
+			},
 			{
 				text: 'Advanced',
 				items: [
@@ -27,14 +41,16 @@ export default defineConfig({
 							{ text: 'Salt Edge', link: '/salt-edge' },
 							{ text: 'Akahu', link: '/akahu' }
 						]
-					}
+					},
+					{ text: 'Recurring Functions 🚧', link: '/recurring-functions' }
 				]
 			},
 			{
-				text: 'Examples',
+				text: 'Developers 🚧',
+				link: '/development',
 				items: [
-					{ text: 'Markdown Examples', link: '/markdown-examples' },
-					{ text: 'Runtime API Examples', link: '/api-examples' }
+					{ text: 'Contribution 🚧', link: '/contribution' },
+					{ text: 'Auto Import Development 🚧', link: '/develop-auto-import' }
 				]
 			}
 		],

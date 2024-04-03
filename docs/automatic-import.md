@@ -21,14 +21,14 @@ Currently supported import sources are:
 
 Automatic importing follows the following sequence:
 
-- _User Preparation_
+- **_User Preparation_**
   - User creates necessary accounts with providers.
   - Retrieve and input necessary credentials into auto import.
-- _Built In Functionality_
+- **_Built In Functionality_**
   - Reach out to provider and retrieve the latest transactions (using user provided credentials)
   - Process and filter data based on user configuration (i.e. start date, target account etc..)
   - Create a new import with all the transactions added (applying import mapping configuration).
-- _Normal Import Functionality (If Auto Process is true)_
+- **_Normal Import Functionality (If Auto Process is true)_**
   - Identify and mark duplicate transactions.
   - Import all new transactions.
   - Run post-import modifications on new transactions.
