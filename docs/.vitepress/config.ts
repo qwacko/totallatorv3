@@ -4,14 +4,12 @@ import { withMermaid } from 'vitepress-plugin-mermaid';
 // https://vitepress.dev/reference/site-config
 export default withMermaid({
 	// your existing vitepress config...
-	mermaid: {
-		//mermaidConfig !theme here works for ligth mode since dark theme is forced in dark mode
-	},
+	mermaid: {},
 	base: process.env.VITEPRESS_BASE,
 	title: 'Totallator',
-	description: 'Financial Recordkeeping',
+	description: 'Totallator',
 	themeConfig: {
-		editLink: 'https://github.com/qwacko/totallatorv3/edit/master/docs/:path',
+		editLink: { pattern: 'https://github.com/qwacko/totallatorv3/edit/master/docs/:path' },
 		search: {
 			provider: 'local'
 		},
