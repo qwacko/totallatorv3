@@ -11,16 +11,15 @@ export default withMermaid({
 	title: 'Totallator',
 	description: 'Financial Recordkeeping',
 	themeConfig: {
+		editLink: 'https://github.com/qwacko/totallatorv3/edit/master/docs/:path',
 		search: {
 			provider: 'local'
 		},
-
 		// https://vitepress.dev/reference/default-theme-config
 		nav: [
 			{ text: 'Home', link: '/' },
 			{ text: 'Installation 🚧', link: '/installation' }
 		],
-
 		sidebar: [
 			{
 				text: 'Install / Config 🚧',
@@ -61,7 +60,6 @@ export default withMermaid({
 				]
 			}
 		],
-
 		socialLinks: [{ icon: 'github', link: 'https://github.com/qwacko/totallatorv3' }]
 	}
 });
