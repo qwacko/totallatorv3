@@ -24,7 +24,7 @@ export default withMermaid({
 				link: '/installation',
 				items: [
 					{
-						text: 'Environment Variables 🚧',
+						text: 'Environment Variables',
 						link: '/environment-variables'
 					},
 					{
@@ -45,7 +45,9 @@ export default withMermaid({
 							{ text: 'Akahu', link: '/akahu' }
 						]
 					},
-					{ text: 'Recurring Functions 🚧', link: '/recurring-functions' }
+					{ text: 'Recurring Functions 🚧', link: '/recurring-functions' },
+					{ text: 'Backups 🚧', link: '/backup' },
+					{ text: 'Imports 🚧', link: '/import' }
 				]
 			},
 			{
