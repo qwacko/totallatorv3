@@ -7,6 +7,7 @@ export default withMermaid({
 	mermaid: {
 		//mermaidConfig !theme here works for ligth mode since dark theme is forced in dark mode
 	},
+	base: process.env.VITEPRESS_BASE || '/',
 	title: 'Totallator',
 	description: 'Financial Recordkeeping',
 	themeConfig: {
