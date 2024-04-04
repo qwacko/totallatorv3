@@ -34,7 +34,7 @@ Creation of connections will require you to input authorization details.
 
 ## Configuration
 
-In addition to the [generic configuration](./automatic-import.md#common-configuration), Akahu requires the following configuration items.
+In addition to the [generic configuration](/advanced/automatic-import.md#common-configuration), Akahu requires the following configuration items.
 
 ### App Accesss Token
 

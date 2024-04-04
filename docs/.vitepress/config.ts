@@ -4,64 +4,101 @@ import { withMermaid } from 'vitepress-plugin-mermaid';
 // https://vitepress.dev/reference/site-config
 export default withMermaid({
 	// your existing vitepress config...
-	mermaid: {
-		//mermaidConfig !theme here works for ligth mode since dark theme is forced in dark mode
-	},
+	mermaid: {},
 	base: process.env.VITEPRESS_BASE,
 	title: 'Totallator',
-	description: 'Financial Recordkeeping',
+	description: 'Totallator',
 	themeConfig: {
+		editLink: { pattern: 'https://github.com/qwacko/totallatorv3/edit/master/docs/:path' },
 		search: {
 			provider: 'local'
 		},
-
 		// https://vitepress.dev/reference/default-theme-config
 		nav: [
 			{ text: 'Home', link: '/' },
-			{ text: 'Installation 🚧', link: '/installation' }
+			{ text: 'Installation 🚧', link: 'install/installation' }
 		],
-
 		sidebar: [
 			{
-				text: 'Install / Config 🚧',
-				link: '/installation',
+				text: 'Installation 🚧',
+				link: 'install/installation',
 				items: [
 					{
-						text: 'Environment Variables 🚧',
-						link: '/environment-variables'
+						text: 'Docker 🚧',
+						link: 'install/docker'
 					},
 					{
-						text: 'Docker 🚧',
-						link: '/docker'
+						text: 'Initial Setup 🚧',
+						link: 'install/initial-setup'
+					},
+					{
+						text: 'Environment Variables',
+						link: 'install/environment-variables'
 					}
+				]
+			},
+			{
+				text: 'Users 🚧',
+				link: 'users/users'
+			},
+			{
+				text: 'Configuration 🚧',
+				link: 'configuration/configuration',
+				items: [
+					{ text: 'Transactions 🚧', link: 'configuration/transactions' },
+					{ text: 'Journal 🚧', link: 'configuration/journals' },
+					{
+						text: 'Related Items 🚧',
+						link: 'configuration/related-items',
+						collapsed: true,
+						items: [
+							{ text: 'Accounts 🚧', link: 'configuration/accounts' },
+							{ text: 'Tags 🚧', link: 'configuration/tags' },
+							{ text: 'Labels 🚧', link: 'configuration/labels' },
+							{ text: 'Categories 🚧', link: 'configuration/categories' },
+							{ text: 'Bills 🚧', link: 'configuration/bills' },
+							{ text: 'Budgets 🚧', link: 'configuration/budgets' }
+						]
+					},
+					{
+						text: 'Filters 🚧',
+						link: 'configuration/filters',
+						collapsed: true,
+						items: [
+							{ text: 'Text Filters 🚧', link: 'configuration/text-filters' },
+							{ text: 'Reusable Filters 🚧', link: 'configuration/reusable-filters' }
+						]
+					},
+					{ text: 'Reports 🚧', link: 'configuration/reports' }
 				]
 			},
 			{
 				text: 'Advanced',
 				items: [
+					{ text: 'Recurring Functions 🚧', link: 'advanced/recurring-functions' },
+					{ text: 'Backups 🚧', link: 'advanced/backup' },
+					{ text: 'Imports 🚧', link: 'advanced/import' },
 					{
-						text: 'Automatic Import',
-						link: '/automatic-import',
+						text: 'Automatic Imports',
+						link: 'advanced/automatic-import',
 						collapsed: true,
 						items: [
 							{ text: 'Salt Edge', link: '/salt-edge' },
 							{ text: 'Akahu', link: '/akahu' }
 						]
-					},
-					{ text: 'Recurring Functions 🚧', link: '/recurring-functions' }
+					}
 				]
 			},
 			{
 				text: 'Developers 🚧',
-				link: '/development',
+				link: 'development/development',
 				items: [
-					{ text: 'Contributing 🚧', link: '/contribution' },
-					{ text: 'Database 🚧', link: '/database' },
-					{ text: 'Auto Import Development 🚧', link: '/develop-auto-import' }
+					{ text: 'Contributing 🚧', link: 'development/contribution' },
+					{ text: 'Database 🚧', link: 'development/database' },
+					{ text: 'Auto Import Development 🚧', link: 'development/develop-auto-import' }
 				]
 			}
 		],
-
 		socialLinks: [{ icon: 'github', link: 'https://github.com/qwacko/totallatorv3' }]
 	}
 });

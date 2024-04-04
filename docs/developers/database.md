@@ -8,6 +8,8 @@ title: 'Database 🚧'
 Work In Progress
 :::
 
+<center>
+
 ```mermaid
 erDiagram
     ACCOUNT {
@@ -46,4 +48,7 @@ erDiagram
     ACCOUNT ||--o{ JOURNAL_ENTRY : has
     JOURNAL_ENTRY }|--|| TRANSACTION : logs
     JOURNAL_ENTRY }|--o{ IMPORT_TABLE : triggers
+
 ```
+
+</center>

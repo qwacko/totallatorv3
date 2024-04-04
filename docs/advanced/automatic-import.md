@@ -14,8 +14,8 @@ It is best to make a separate automatic import for each account, even if the con
 
 Currently supported import sources are:
 
-- [SaltEdge](https://www.saltedge.com/) - Global coverage of differnt banks. Requires you to setup a developers account and add your bank accounts manually. [More Info](./salt-edge.md)
-- [Akahu](https://www.akahu.nz/) - A New Zealand focused bank integration service. Requires the setup of an account. [More Info](./akahu.md)
+- [SaltEdge](https://www.saltedge.com/) - Global coverage of differnt banks. Requires you to setup a developers account and add your bank accounts manually. [More Info](/advanced/salt-edge)
+- [Akahu](https://www.akahu.nz/) - A New Zealand focused bank integration service. Requires the setup of an account. [More Info](/advanced/akahu)
 
 ## Behaviour / Process
 
