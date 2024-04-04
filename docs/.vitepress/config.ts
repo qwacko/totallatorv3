@@ -20,7 +20,7 @@ export default withMermaid({
 		],
 		sidebar: [
 			{
-				text: 'Install / Config 🚧',
+				text: 'Installation 🚧',
 				link: 'install/installation',
 				items: [
 					{
@@ -38,20 +38,55 @@ export default withMermaid({
 				]
 			},
 			{
+				text: 'Users 🚧',
+				link: 'users/users'
+			},
+			{
+				text: 'Configuration 🚧',
+				link: 'configuration/configuration',
+				items: [
+					{ text: 'Transactions 🚧', link: 'configuration/transactions' },
+					{ text: 'Journal 🚧', link: 'configuration/journals' },
+					{
+						text: 'Related Items 🚧',
+						link: 'configuration/related-items',
+						collapsed: true,
+						items: [
+							{ text: 'Accounts 🚧', link: 'configuration/accounts' },
+							{ text: 'Tags 🚧', link: 'configuration/tags' },
+							{ text: 'Labels 🚧', link: 'configuration/labels' },
+							{ text: 'Categories 🚧', link: 'configuration/categories' },
+							{ text: 'Bills 🚧', link: 'configuration/bills' },
+							{ text: 'Budgets 🚧', link: 'configuration/budgets' }
+						]
+					},
+					{
+						text: 'Filters 🚧',
+						link: 'configuration/filters',
+						collapsed: true,
+						items: [
+							{ text: 'Text Filters 🚧', link: 'configuration/text-filters' },
+							{ text: 'Reusable Filters 🚧', link: 'configuration/reusable-filters' }
+						]
+					},
+					{ text: 'Reports 🚧', link: 'configuration/reports' }
+				]
+			},
+			{
 				text: 'Advanced',
 				items: [
+					{ text: 'Recurring Functions 🚧', link: 'advanced/recurring-functions' },
+					{ text: 'Backups 🚧', link: 'advanced/backup' },
+					{ text: 'Imports 🚧', link: 'advanced/import' },
 					{
-						text: 'Automatic Import',
+						text: 'Automatic Imports',
 						link: 'advanced/automatic-import',
 						collapsed: true,
 						items: [
 							{ text: 'Salt Edge', link: '/salt-edge' },
 							{ text: 'Akahu', link: '/akahu' }
 						]
-					},
-					{ text: 'Recurring Functions 🚧', link: 'advanced/recurring-functions' },
-					{ text: 'Backups 🚧', link: 'advanced/backup' },
-					{ text: 'Imports 🚧', link: 'advanced/import' }
+					}
 				]
 			},
 			{
