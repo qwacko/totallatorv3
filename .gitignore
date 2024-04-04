@@ -17,3 +17,5 @@ db.db*
 *.sqlite3*
 docker-compose.yml
 core
+docs/.vitepress/dist
+docs/.vitepress/cache

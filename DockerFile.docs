@@ -1,0 +1,33 @@
+# Build stage
+FROM node:latest as build-stage
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy package.json and pnpm-lock.yaml to work directory
+COPY package.json pnpm-lock.yaml ./
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Install dependencies
+RUN pnpm install --shamefully-hoist 
+
+# Copy the rest of the application code
+COPY docs docs
+
+# Build the project
+RUN pnpm docs:build
+
+# Serve stage
+FROM nginx:alpine as serve-stage
+
+# Copy built assets from build-stage to nginx server
+COPY --from=build-stage /app/docs/.vitepress/dist /usr/share/nginx/html
+
+# Expose port 80 to the Docker host, so we can access it 
+# from the outside.
+EXPOSE 80
+
+# The command to run when the container starts
+CMD ["nginx", "-g", "daemon off;"]
