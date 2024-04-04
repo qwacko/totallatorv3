@@ -54,7 +54,7 @@ const serverEnvValidation = z.object({
 export const serverEnv = serverEnvValidation.parse({
 	DEV: dev,
 	LOGGING: env.LOGGING,
-	LOOGGING_CLASSES: env.DEBUG_CLASSES,
+	LOGGING_CLASSES: env.DEBUG_CLASSES,
 	PAGE_TIMEOUT_MS: env.PAGE_TIMEOUT_MS,
 	BACKUP_DIR: env.BACKUP_DIR,
 	BACKUP_SCHEDULE: env.BACKUP_SCHEDULE,
