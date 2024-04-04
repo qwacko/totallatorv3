@@ -16,20 +16,24 @@ export default withMermaid({
 		// https://vitepress.dev/reference/default-theme-config
 		nav: [
 			{ text: 'Home', link: '/' },
-			{ text: 'Installation 🚧', link: '/installation' }
+			{ text: 'Installation 🚧', link: 'install/installation' }
 		],
 		sidebar: [
 			{
 				text: 'Install / Config 🚧',
-				link: '/installation',
+				link: 'install/installation',
 				items: [
 					{
-						text: 'Environment Variables',
-						link: '/environment-variables'
+						text: 'Docker 🚧',
+						link: 'install/docker'
 					},
 					{
-						text: 'Docker 🚧',
-						link: '/docker'
+						text: 'Initial Setup 🚧',
+						link: 'install/initial-setup'
+					},
+					{
+						text: 'Environment Variables',
+						link: 'install/environment-variables'
 					}
 				]
 			},
@@ -38,25 +42,25 @@ export default withMermaid({
 				items: [
 					{
 						text: 'Automatic Import',
-						link: '/automatic-import',
+						link: 'advanced/automatic-import',
 						collapsed: true,
 						items: [
 							{ text: 'Salt Edge', link: '/salt-edge' },
 							{ text: 'Akahu', link: '/akahu' }
 						]
 					},
-					{ text: 'Recurring Functions 🚧', link: '/recurring-functions' },
-					{ text: 'Backups 🚧', link: '/backup' },
-					{ text: 'Imports 🚧', link: '/import' }
+					{ text: 'Recurring Functions 🚧', link: 'advanced/recurring-functions' },
+					{ text: 'Backups 🚧', link: 'advanced/backup' },
+					{ text: 'Imports 🚧', link: 'advanced/import' }
 				]
 			},
 			{
 				text: 'Developers 🚧',
-				link: '/development',
+				link: 'development/development',
 				items: [
-					{ text: 'Contributing 🚧', link: '/contribution' },
-					{ text: 'Database 🚧', link: '/database' },
-					{ text: 'Auto Import Development 🚧', link: '/develop-auto-import' }
+					{ text: 'Contributing 🚧', link: 'development/contribution' },
+					{ text: 'Database 🚧', link: 'development/database' },
+					{ text: 'Auto Import Development 🚧', link: 'development/develop-auto-import' }
 				]
 			}
 		],

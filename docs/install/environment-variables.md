@@ -67,14 +67,14 @@ Number of milliseconds for a page to take to fulfill a request before generating
 - Type: `string`
 - Default: `./backup`
 
-Directory to store backups. Note that this same environemnt variable can refer to an `s3://...` address to backup to a S3 (or compatible) bucket further details available [here](backup)
+Directory to store backups. Note that this same environemnt variable can refer to an `s3://...` address to backup to a S3 (or compatible) bucket further details available [here](/advanced/backup)
 
 ### `IMPORT_DIR`
 
 - Type: `string`
 - Default: `./import`
 
-Directory to store imports. Note that this same environemnt variable can refer to an `s3://...` address to store imports in a S3 (or compatible) bucket further details available [here](import)
+Directory to store imports. Note that this same environemnt variable can refer to an `s3://...` address to store imports in a S3 (or compatible) bucket further details available [here](/advanced/import)
 
 ## Scheduled Tasks
 

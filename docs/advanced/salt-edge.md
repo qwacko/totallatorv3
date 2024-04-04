@@ -38,7 +38,7 @@ Once the connection is made and accounts are listed, the **Connection ID** and *
 
 ## Configuration
 
-In addition to the [generic configuration](./automatic-import.md#common-configuration), Salt Edge requires the following configuration items.
+In addition to the [generic configuration](advanced/automatic-import.md#common-configuration), Salt Edge requires the following configuration items.
 
 ### App ID
 
