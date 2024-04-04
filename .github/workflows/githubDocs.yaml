@@ -47,6 +47,8 @@ jobs:
         run: pnpm install --shamefully-hoist 
       - name: Build with VitePress
         run: pnpm docs:build
+        env:
+          VITEPRESS_BASE: "/totallatorv3" # Set the base path as an environment variable        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
