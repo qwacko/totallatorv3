@@ -131,6 +131,7 @@ export const accountFilterSchema = z.object({
 	accountGroup2: z.coerce.string().optional(),
 	accountGroup3: z.coerce.string().optional(),
 	accountGroupCombined: z.coerce.string().optional(),
+	accountGroupCombinedArray: z.array(z.string()).optional(),
 	accountTitleCombined: z.coerce.string().optional(),
 	status: z.enum(statusEnum).optional(),
 	disabled: z.boolean().optional(),

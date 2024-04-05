@@ -74,6 +74,8 @@ const handleNested = <
 		| 'excludeAccount'
 		| 'label'
 		| 'excludeLabel'
+		| 'payee'
+		| 'excludePayee'
 >(
 	search: string,
 	key: U
@@ -92,6 +94,68 @@ const handleNested = <
 });
 
 const filterArray = [
+	{
+		key: '!group:',
+		update: (filter, newFilter) => {
+			if (newFilter.length === 0) return;
+			if (filter.excludeAccount === undefined) {
+				filter.excludeAccount = {};
+			}
+			if (filter.excludeAccount.accountGroupCombinedArray === undefined) {
+				filter.excludeAccount.accountGroupCombinedArray = [];
+			}
+			filter.excludeAccount.accountGroupCombinedArray.push(newFilter);
+		}
+	},
+	{
+		key: 'group:',
+		update: (filter, newFilter) => {
+			if (newFilter.length === 0) return;
+			if (filter.account === undefined) {
+				filter.account = {};
+			}
+			if (filter.account.accountGroupCombinedArray === undefined) {
+				filter.account.accountGroupCombinedArray = [];
+			}
+			filter.account.accountGroupCombinedArray.push(newFilter);
+		}
+	},
+	{
+		key: 'networth:',
+		update: (filter) => {
+			if (filter.account === undefined) {
+				filter.account = {};
+			}
+			filter.account.isNetWorth = true;
+		}
+	},
+	{
+		key: '!networth:',
+		update: (filter) => {
+			if (filter.account === undefined) {
+				filter.account = {};
+			}
+			filter.account.isNetWorth = false;
+		}
+	},
+	{
+		key: 'cash:',
+		update: (filter) => {
+			if (filter.account === undefined) {
+				filter.account = {};
+			}
+			filter.account.isCash = true;
+		}
+	},
+	{
+		key: '!cash:',
+		update: (filter) => {
+			if (filter.account === undefined) {
+				filter.account = {};
+			}
+			filter.account.isCash = false;
+		}
+	},
 	{
 		key: '!type:',
 		update: (filter, newFilter) => {
@@ -130,6 +194,7 @@ const filterArray = [
 			}
 		}
 	},
+	handleNested('!payee:', 'excludePayee'),
 	handleNested('!label:', 'excludeLabel'),
 	handleNested('!tag:', 'excludeTag'),
 	handleNested('!account:', 'excludeAccount'),
@@ -137,6 +202,7 @@ const filterArray = [
 	handleNested('!bill:', 'excludeBill'),
 	handleNested('!budget:', 'excludeBudget'),
 	handleNested('label:', 'label'),
+	handleNested('payee:', 'payee'),
 	handleNested('tag:', 'tag'),
 	handleNested('account:', 'account'),
 	handleNested('category:', 'category'),

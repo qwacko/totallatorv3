@@ -17,14 +17,13 @@ import {
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
-import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 
 export const accountFilterToQuery = ({
 	filter,
 	target
 }: {
 	filter: Omit<AccountFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>;
-
 	target?: 'materializedJournals' | 'account' | 'accountWithSummary';
 }) => {
 	const where: SQL<unknown>[] = [];
@@ -69,6 +68,11 @@ export const accountFilterToQuery = ({
 		where.push(ilike(selectedTable.accountGroupCombined, `%${filter.accountGroupCombined}%`));
 	if (filter.accountTitleCombined)
 		where.push(ilike(selectedTable.accountTitleCombined, `%${filter.accountTitleCombined}%`));
+	if (filter.accountGroupCombinedArray && filter.accountGroupCombinedArray.length > 0) {
+		where.push(
+			ilikeArrayWrapped(selectedTable.accountGroupCombined, filter.accountGroupCombinedArray)
+		);
+	}
 	statusFilterToQueryMapped({
 		where,
 		filter,

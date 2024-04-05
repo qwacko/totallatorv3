@@ -376,10 +376,10 @@ describe('processJournalTextFilter', () => {
 			});
 		});
 	});
-	describe('Boolean Filtering (transfer: checked: reconciled: complete:', () => {
+	describe('Boolean Filtering (transfer: checked: reconciled: complete: cash:  networth: ', () => {
 		it('basic filters work correct (true state)', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
-				textFilter: 'transfer: checked: reconciled: complete:'
+				textFilter: 'transfer: checked: reconciled: complete: cash: networth:'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -394,13 +394,17 @@ describe('processJournalTextFilter', () => {
 				dataChecked: true,
 				reconciled: true,
 				complete: true,
+				account: {
+					isCash: true,
+					isNetWorth: true
+				},
 				textFilter: undefined
 			});
 		});
 
 		it('basic filters work correct (false state)', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
-				textFilter: '!transfer: !checked: !reconciled: !complete:'
+				textFilter: '!transfer: !checked: !reconciled: !complete: !cash: !networth:'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -415,13 +419,18 @@ describe('processJournalTextFilter', () => {
 				dataChecked: false,
 				reconciled: false,
 				complete: false,
+				account: {
+					isCash: false,
+					isNetWorth: false
+				},
 				textFilter: undefined
 			});
 		});
 
 		it('text after the : in boolean filters is ignored', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
-				textFilter: 'transfer:true checked:false reconciled:sdfsdlkjvs complete:"sdfd"'
+				textFilter:
+					'transfer:true checked:false reconciled:sdfsdlkjvs complete:"sdfd" cash:gggg !networth:5t3ssdf'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -436,6 +445,10 @@ describe('processJournalTextFilter', () => {
 				dataChecked: true,
 				reconciled: true,
 				complete: true,
+				account: {
+					isCash: true,
+					isNetWorth: false
+				},
 				textFilter: undefined
 			});
 		});
@@ -443,7 +456,7 @@ describe('processJournalTextFilter', () => {
 		it('for multiple instances of a boolean flag, the last one is used', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
-					'transfer: !transfer:  !checked: checked: reconciled: !reconciled: !complete: complete: '
+					'transfer: !transfer:  !checked: checked: reconciled: !reconciled: !complete: complete: cash: !cash: !networth: networth:'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -458,6 +471,10 @@ describe('processJournalTextFilter', () => {
 				dataChecked: true,
 				reconciled: false,
 				complete: true,
+				account: {
+					isCash: false,
+					isNetWorth: true
+				},
 				textFilter: undefined
 			});
 		});
@@ -468,7 +485,11 @@ describe('processJournalTextFilter', () => {
 				dataChecked: false,
 				complete: true,
 				reconciled: true,
-				textFilter: 'transfer: checked: !complete: !reconciled:'
+				account: {
+					isCash: true,
+					isNetWorth: false
+				},
+				textFilter: 'transfer: checked: !complete: !reconciled: !cash: networth:'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -483,6 +504,10 @@ describe('processJournalTextFilter', () => {
 				dataChecked: true,
 				reconciled: false,
 				complete: false,
+				account: {
+					isCash: false,
+					isNetWorth: true
+				},
 				textFilter: undefined
 			});
 		});
@@ -811,10 +836,28 @@ describe('processJournalTextFilter', () => {
 			});
 		});
 
-		it('!tag: !bill: !budget: !category: !account: !label: function correctly', () => {
+		it('payee: adds a filter.', () => {
+			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
+				textFilter: 'payee:payeeFilter'
+			};
+
+			// JSON Parse and Stringify to deep clone the object
+			const processedFilter = processJournalTextFilter(
+				JSON.parse(JSON.stringify(inputFilter)),
+				false
+			);
+
+			expect(processedFilter).toEqual({
+				...inputFilter,
+				payee: { titleArray: ['payeeFilter'] },
+				textFilter: undefined
+			});
+		});
+
+		it('!tag: !bill: !budget: !category: !account: !label: !payee: function correctly', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
-					'!tag:tagFilter !bill:billFilter !budget:budgetFilter !category:categoryFilter !account:accountFilter !label:labelFilter'
+					'!tag:tagFilter !bill:billFilter !budget:budgetFilter !category:categoryFilter !account:accountFilter !label:labelFilter !payee:payeeFilter'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -831,14 +874,15 @@ describe('processJournalTextFilter', () => {
 				excludeCategory: { titleArray: ['categoryFilter'] },
 				excludeAccount: { titleArray: ['accountFilter'] },
 				excludeLabel: { titleArray: ['labelFilter'] },
+				excludePayee: { titleArray: ['payeeFilter'] },
 				textFilter: undefined
 			});
 		});
 
-		it('tag: bill: budget: category: account: label: Work With quoted strings', () => {
+		it('tag: bill: budget: category: account: label: payee: Work With quoted strings', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
-					'tag:"tag Filter" bill:"bill Filter" budget:"budget Filter" category:"category Filter" account:"account Filter" label:"label Filter"'
+					'tag:"tag Filter" bill:"bill Filter" budget:"budget Filter" category:"category Filter" account:"account Filter" label:"label Filter" payee:"payee Filter"'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -855,14 +899,15 @@ describe('processJournalTextFilter', () => {
 				category: { titleArray: ['category Filter'] },
 				account: { titleArray: ['account Filter'] },
 				label: { titleArray: ['label Filter'] },
+				payee: { titleArray: ['payee Filter'] },
 				textFilter: undefined
 			});
 		});
 
-		it('tag: bill: budget: category: account: are ored together if multiple are used', () => {
+		it('tag: bill: budget: category: account: payee: are ored together if multiple are used', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
-					'tag:"tag Filter" tag:"tag Filter 2" bill:"bill Filter" bill:"bill Filter 2" budget:"budget Filter" budget:"budget Filter 2" category:"category Filter" category:"category Filter 2" account:"account Filter" account:"account Filter 2" label:"label Filter" label:"label Filter 2"'
+					'tag:"tag Filter" tag:"tag Filter 2" bill:"bill Filter" bill:"bill Filter 2" budget:"budget Filter" budget:"budget Filter 2" category:"category Filter" category:"category Filter 2" account:"account Filter" account:"account Filter 2" label:"label Filter" label:"label Filter 2" payee:"payee Filter" payee:"payee Filter 2"'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -879,14 +924,15 @@ describe('processJournalTextFilter', () => {
 				category: { titleArray: ['category Filter', 'category Filter 2'] },
 				account: { titleArray: ['account Filter', 'account Filter 2'] },
 				label: { titleArray: ['label Filter', 'label Filter 2'] },
+				payee: { titleArray: ['payee Filter', 'payee Filter 2'] },
 				textFilter: undefined
 			});
 		});
 
-		it('!tag: !bill: !budget: !category: !account: !label: are ored together if multiple are used', () => {
+		it('!tag: !bill: !budget: !category: !account: !label: !payee: are ored together if multiple are used', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
-					'!tag:"tag Filter" !tag:"tag Filter 2" !bill:"bill Filter" !bill:"bill Filter 2" !budget:"budget Filter" !budget:"budget Filter 2" !category:"category Filter" !category:"category Filter 2" !account:"account Filter" !account:"account Filter 2" !label:"label Filter" !label:"label Filter 2"'
+					'!tag:"tag Filter" !tag:"tag Filter 2" !bill:"bill Filter" !bill:"bill Filter 2" !budget:"budget Filter" !budget:"budget Filter 2" !category:"category Filter" !category:"category Filter 2" !account:"account Filter" !account:"account Filter 2" !label:"label Filter" !label:"label Filter 2" !payee:"payee Filter" !payee:"payee Filter 2"'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -903,6 +949,7 @@ describe('processJournalTextFilter', () => {
 				excludeCategory: { titleArray: ['category Filter', 'category Filter 2'] },
 				excludeAccount: { titleArray: ['account Filter', 'account Filter 2'] },
 				excludeLabel: { titleArray: ['label Filter', 'label Filter 2'] },
+				excludePayee: { titleArray: ['payee Filter', 'payee Filter 2'] },
 				textFilter: undefined
 			});
 		});
@@ -993,6 +1040,46 @@ describe('processJournalTextFilter', () => {
 			expect(processedFilter).toEqual({
 				...inputFilter,
 				excludeAccount: { type: ['asset', 'liability'] },
+				textFilter: undefined
+			});
+		});
+
+		it('group: adds an account group filter', () => {
+			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
+				textFilter: 'group:mortgage'
+			};
+
+			// JSON Parse and Stringify to deep clone the object
+			const processedFilter = processJournalTextFilter(
+				JSON.parse(JSON.stringify(inputFilter)),
+				false
+			);
+
+			expect(processedFilter).toEqual({
+				...inputFilter,
+				account: {
+					accountGroupCombinedArray: ['mortgage']
+				},
+				textFilter: undefined
+			});
+		});
+
+		it('!group: adds an account group filter', () => {
+			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
+				textFilter: '!group:mortgage'
+			};
+
+			// JSON Parse and Stringify to deep clone the object
+			const processedFilter = processJournalTextFilter(
+				JSON.parse(JSON.stringify(inputFilter)),
+				false
+			);
+
+			expect(processedFilter).toEqual({
+				...inputFilter,
+				excludeAccount: {
+					accountGroupCombinedArray: ['mortgage']
+				},
 				textFilter: undefined
 			});
 		});

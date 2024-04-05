@@ -2,14 +2,14 @@ import { account, journalEntry, transaction } from '../../../postgres/schema';
 import { SQL, and, eq, ilike, not } from 'drizzle-orm';
 import { type DBType } from '../../../db';
 import { alias } from 'drizzle-orm/pg-core';
-import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 
 export function journalPayeeToSubquery({
 	db,
 	payee
 }: {
 	db: DBType;
-	payee: { id?: string; idArray?: string[]; title?: string };
+	payee: { id?: string; idArray?: string[]; title?: string; titleArray?: string[] };
 }) {
 	const otherJournal = alias(journalEntry, 'otherJournal');
 
@@ -20,6 +20,9 @@ export function journalPayeeToSubquery({
 	}
 	if (payee.title) {
 		payeeFilter.push(ilike(account.title, `%${payee.title}%`));
+	}
+	if (payee.titleArray && payee.titleArray.length > 0) {
+		payeeFilter.push(ilikeArrayWrapped(account.title, payee.titleArray));
 	}
 
 	if (payee.idArray && payee.idArray.length > 0) {
