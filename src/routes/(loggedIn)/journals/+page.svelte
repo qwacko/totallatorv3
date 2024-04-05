@@ -48,13 +48,13 @@
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/journals',
-		pageInfo: page,
+		pageInfo: page,		
 		onUpdate: (newURL) => {
 			if (browser && newURL !== urlInfo.current.url) {
 				goto(newURL, { keepFocus: true, noScroll: true });
 			}
 		},
-		updateDelay: 500
+		updateDelay: 1000
 	});
 </script>
 
