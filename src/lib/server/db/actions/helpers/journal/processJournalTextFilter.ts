@@ -2,10 +2,6 @@ import { accountTypeEnum, type AccountTypeEnumType } from '$lib/schema/accountTy
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 
 function splitInput(inputString: string): string[] {
-	// Regular expression to match quoted strings, xxx: prefixed words (possibly quoted),
-	// and any sequence of non-whitespace characters as fallback.
-
-	// const pattern = /\b[!\w]+:"[^"]*"|\b[!\w]+:[^\s]*|"[^"]*"|\S+/g;
 	const pattern = /\S+:"[^"]*"\s|\S+:\S+\s|("|!")[^"]*"\s|\S+/g;
 
 	// Find all matches in the input string according to the pattern
@@ -38,6 +34,7 @@ const unpackText = (inputText: string, excludeStart?: string | undefined): strin
 };
 
 const dateRegex = /(\d{2,4})-(\d{1,2})-(\d{1,2})/;
+const monthRegex = /(\d{2,4})-(\d{1,2})/;
 
 function isValidDate(year: string, month: string, day: string) {
 	const intYearPre = parseInt(year);
@@ -63,8 +60,6 @@ function isValidDate(year: string, month: string, day: string) {
 	return `${stringYear}-${stringMonth}-${stringDay}`;
 }
 
-const monthRegex = /(\d{2,4})-(\d{1,2})/;
-
 const handleNested = <
 	U extends
 		| 'tag'
@@ -77,6 +72,8 @@ const handleNested = <
 		| 'excludeCategory'
 		| 'account'
 		| 'excludeAccount'
+		| 'label'
+		| 'excludeLabel'
 >(
 	search: string,
 	key: U
@@ -100,7 +97,7 @@ const filterArray = [
 		update: (filter, newFilter) => {
 			if (newFilter.length === 0) return;
 
-			const splitFilter = newFilter.split(',');
+			const splitFilter = newFilter.trim().replace('|', ',').split(',');
 
 			for (const currentFilter of splitFilter) {
 				const accountType = currentFilter.trim().toLocaleLowerCase() as AccountTypeEnumType;
@@ -119,7 +116,7 @@ const filterArray = [
 		update: (filter, newFilter) => {
 			if (newFilter.length === 0) return;
 
-			const splitFilter = newFilter.split(',');
+			const splitFilter = newFilter.trim().replace('|', ',').split(',');
 
 			for (const currentFilter of splitFilter) {
 				const accountType = currentFilter.trim() as AccountTypeEnumType;
@@ -133,11 +130,13 @@ const filterArray = [
 			}
 		}
 	},
+	handleNested('!label:', 'excludeLabel'),
 	handleNested('!tag:', 'excludeTag'),
 	handleNested('!account:', 'excludeAccount'),
 	handleNested('!category:', 'excludeCategory'),
 	handleNested('!bill:', 'excludeBill'),
 	handleNested('!budget:', 'excludeBudget'),
+	handleNested('label:', 'label'),
 	handleNested('tag:', 'tag'),
 	handleNested('account:', 'account'),
 	handleNested('category:', 'category'),

@@ -775,6 +775,24 @@ describe('processJournalTextFilter', () => {
 			});
 		});
 
+		it('label: adds a filter.', () => {
+			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
+				textFilter: 'label:labelFilter'
+			};
+
+			// JSON Parse and Stringify to deep clone the object
+			const processedFilter = processJournalTextFilter(
+				JSON.parse(JSON.stringify(inputFilter)),
+				false
+			);
+
+			expect(processedFilter).toEqual({
+				...inputFilter,
+				label: { titleArray: ['labelFilter'] },
+				textFilter: undefined
+			});
+		});
+
 		it('account: adds a filter.', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter: 'account:accountFilter'
@@ -793,10 +811,10 @@ describe('processJournalTextFilter', () => {
 			});
 		});
 
-		it('!tag: !bill: !budget: !category: !account: function correctly', () => {
+		it('!tag: !bill: !budget: !category: !account: !label: function correctly', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
-					'!tag:tagFilter !bill:billFilter !budget:budgetFilter !category:categoryFilter !account:accountFilter'
+					'!tag:tagFilter !bill:billFilter !budget:budgetFilter !category:categoryFilter !account:accountFilter !label:labelFilter'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -812,14 +830,15 @@ describe('processJournalTextFilter', () => {
 				excludeBudget: { titleArray: ['budgetFilter'] },
 				excludeCategory: { titleArray: ['categoryFilter'] },
 				excludeAccount: { titleArray: ['accountFilter'] },
+				excludeLabel: { titleArray: ['labelFilter'] },
 				textFilter: undefined
 			});
 		});
 
-		it('tag: bill: budget: category: account: Work With quoted strings', () => {
+		it('tag: bill: budget: category: account: label: Work With quoted strings', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
-					'tag:"tag Filter" bill:"bill Filter" budget:"budget Filter" category:"category Filter" account:"account Filter"'
+					'tag:"tag Filter" bill:"bill Filter" budget:"budget Filter" category:"category Filter" account:"account Filter" label:"label Filter"'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -835,6 +854,7 @@ describe('processJournalTextFilter', () => {
 				budget: { titleArray: ['budget Filter'] },
 				category: { titleArray: ['category Filter'] },
 				account: { titleArray: ['account Filter'] },
+				label: { titleArray: ['label Filter'] },
 				textFilter: undefined
 			});
 		});
@@ -842,7 +862,7 @@ describe('processJournalTextFilter', () => {
 		it('tag: bill: budget: category: account: are ored together if multiple are used', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
-					'tag:"tag Filter" tag:"tag Filter 2" bill:"bill Filter" bill:"bill Filter 2" budget:"budget Filter" budget:"budget Filter 2" category:"category Filter" category:"category Filter 2" account:"account Filter" account:"account Filter 2"'
+					'tag:"tag Filter" tag:"tag Filter 2" bill:"bill Filter" bill:"bill Filter 2" budget:"budget Filter" budget:"budget Filter 2" category:"category Filter" category:"category Filter 2" account:"account Filter" account:"account Filter 2" label:"label Filter" label:"label Filter 2"'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -858,14 +878,15 @@ describe('processJournalTextFilter', () => {
 				budget: { titleArray: ['budget Filter', 'budget Filter 2'] },
 				category: { titleArray: ['category Filter', 'category Filter 2'] },
 				account: { titleArray: ['account Filter', 'account Filter 2'] },
+				label: { titleArray: ['label Filter', 'label Filter 2'] },
 				textFilter: undefined
 			});
 		});
 
-		it('!tag: !bill: !budget: !category: !account: are ored together if multiple are used', () => {
+		it('!tag: !bill: !budget: !category: !account: !label: are ored together if multiple are used', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
-					'!tag:"tag Filter" !tag:"tag Filter 2" !bill:"bill Filter" !bill:"bill Filter 2" !budget:"budget Filter" !budget:"budget Filter 2" !category:"category Filter" !category:"category Filter 2" !account:"account Filter" !account:"account Filter 2"'
+					'!tag:"tag Filter" !tag:"tag Filter 2" !bill:"bill Filter" !bill:"bill Filter 2" !budget:"budget Filter" !budget:"budget Filter 2" !category:"category Filter" !category:"category Filter 2" !account:"account Filter" !account:"account Filter 2" !label:"label Filter" !label:"label Filter 2"'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -881,6 +902,7 @@ describe('processJournalTextFilter', () => {
 				excludeBudget: { titleArray: ['budget Filter', 'budget Filter 2'] },
 				excludeCategory: { titleArray: ['category Filter', 'category Filter 2'] },
 				excludeAccount: { titleArray: ['account Filter', 'account Filter 2'] },
+				excludeLabel: { titleArray: ['label Filter', 'label Filter 2'] },
 				textFilter: undefined
 			});
 		});
@@ -921,9 +943,45 @@ describe('processJournalTextFilter', () => {
 			});
 		});
 
+		it('type: with a pipe "|" separate list of type adds these to the account type filter', () => {
+			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
+				textFilter: 'type:asset|liability'
+			};
+
+			// JSON Parse and Stringify to deep clone the object
+			const processedFilter = processJournalTextFilter(
+				JSON.parse(JSON.stringify(inputFilter)),
+				false
+			);
+
+			expect(processedFilter).toEqual({
+				...inputFilter,
+				account: { type: ['asset', 'liability'] },
+				textFilter: undefined
+			});
+		});
+
 		it('!type: with a comma separate list of type adds these to the account type filter', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter: '!type:asset,liability'
+			};
+
+			// JSON Parse and Stringify to deep clone the object
+			const processedFilter = processJournalTextFilter(
+				JSON.parse(JSON.stringify(inputFilter)),
+				false
+			);
+
+			expect(processedFilter).toEqual({
+				...inputFilter,
+				excludeAccount: { type: ['asset', 'liability'] },
+				textFilter: undefined
+			});
+		});
+
+		it('!type: with a pipe "|" separate list of type adds these to the account type filter', () => {
+			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
+				textFilter: '!type:asset|liability'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
