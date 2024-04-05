@@ -56,6 +56,7 @@ export const categoryFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
 	title: z.coerce.string().optional(),
+	titleArray: z.array(z.coerce.string()).optional(),
 	group: z.coerce.string().optional(),
 	single: z.coerce.string().optional(),
 	status: z.enum(statusEnum).optional(),

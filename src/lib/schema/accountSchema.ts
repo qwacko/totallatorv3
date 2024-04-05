@@ -122,6 +122,7 @@ export const accountFilterSchema = z.object({
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
 	title: z.coerce.string().optional(),
+	titleArray: z.array(z.coerce.string()).optional(),
 	type: z
 		.array(z.enum(accountTypeEnum))
 		.optional()
