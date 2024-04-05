@@ -83,10 +83,11 @@ const handleNested = <
 	key: search,
 	update: (filter: JournalFilterSchemaWithoutPaginationType, newFilter: string) => {
 		if (newFilter.length === 0) return;
-		if (!filter[key]) {
+		if (filter[key] === undefined) {
 			// Use a type assertion here to convince TypeScript that this assignment is safe.
-			filter[key] = { titleArray: [] };
-		} else if (!filter[key]?.titleArray) {
+			filter[key] = {};
+		}
+		if (filter[key]?.titleArray === undefined) {
 			filter[key]!.titleArray = [];
 		}
 		filter[key]?.titleArray?.push(newFilter);
@@ -167,8 +168,11 @@ const filterArray = [
 				const accountType = currentFilter.trim().toLocaleLowerCase() as AccountTypeEnumType;
 
 				if (accountTypeEnum.includes(accountType)) {
-					if (!filter.excludeAccount) {
-						filter.excludeAccount = { type: [] };
+					if (filter.excludeAccount === undefined) {
+						filter.excludeAccount = {};
+					}
+					if (filter.excludeAccount.type === undefined) {
+						filter.excludeAccount.type = [];
 					}
 					filter?.excludeAccount?.type && filter.excludeAccount.type.push(accountType);
 				}
@@ -186,8 +190,11 @@ const filterArray = [
 				const accountType = currentFilter.trim() as AccountTypeEnumType;
 
 				if (accountTypeEnum.includes(accountType)) {
-					if (!filter.account) {
-						filter.account = { type: [] };
+					if (filter.account === undefined) {
+						filter.account = {};
+					}
+					if (filter.account.type === undefined) {
+						filter.account.type = [];
 					}
 					filter?.account?.type && filter.account.type.push(accountType);
 				}

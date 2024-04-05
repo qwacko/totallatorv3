@@ -1083,5 +1083,27 @@ describe('processJournalTextFilter', () => {
 				textFilter: undefined
 			});
 		});
+
+		it('using group: cash: and type: works together correctly', () => {
+			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
+				textFilter: 'group:mortgage cash: type:asset|liability group:cash'
+			};
+
+			// JSON Parse and Stringify to deep clone the object
+			const processedFilter = processJournalTextFilter(
+				JSON.parse(JSON.stringify(inputFilter)),
+				false
+			);
+
+			expect(processedFilter).toEqual({
+				...inputFilter,
+				account: {
+					isCash: true,
+					type: ['asset', 'liability'],
+					accountGroupCombinedArray: ['mortgage', 'cash']
+				},
+				textFilter: undefined
+			});
+		});
 	});
 });

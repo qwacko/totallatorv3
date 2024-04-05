@@ -18,6 +18,7 @@ import {
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
+import { arrayToText } from '../misc/arrayToText';
 
 export const accountFilterToQuery = ({
 	filter,
@@ -159,6 +160,15 @@ export const accountFilterToText = async ({
 	if (restFilter.accountGroup3) stringArray.push(`Group 3 contains ${restFilter.accountGroup3}`);
 	if (restFilter.accountGroupCombined)
 		stringArray.push(`Group Combined contains ${restFilter.accountGroupCombined}`);
+	if (restFilter.accountGroupCombinedArray && restFilter.accountGroupCombinedArray.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.accountGroupCombinedArray,
+				singularName: 'Group Combined',
+				midText: 'contains'
+			})
+		);
+	}
 	if (restFilter.accountTitleCombined)
 		stringArray.push(`Group Combined With Title contains ${restFilter.accountTitleCombined}`);
 	statusFilterToText(stringArray, filter);
