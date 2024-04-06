@@ -65,7 +65,7 @@ export default withMermaid({
 						link: 'configuration/filters',
 						collapsed: true,
 						items: [
-							{ text: 'Text Filters 🚧', link: 'configuration/text-filters' },
+							{ text: 'Text Filters', link: 'configuration/text-filters' },
 							{ text: 'Reusable Filters 🚧', link: 'configuration/reusable-filters' }
 						]
 					},
