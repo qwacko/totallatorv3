@@ -36,7 +36,7 @@
 				goto(newURL, { keepFocus: true, noScroll: true });
 			}
 		},
-		updateDelay: 500
+		updateDelay: 1000
 	});
 
 	let filterOpened = false;
@@ -242,7 +242,7 @@
 				{#if $urlStore.searchParams}
 					<Input
 						type="text"
-						bind:value={$urlStore.searchParams.accountTitleCombined}
+						bind:value={$urlStore.searchParams.textFilter}
 						placeholder="Filter by Title"
 						class="flex flex-grow"
 					/>

@@ -23,6 +23,12 @@
 </script>
 
 <div class="flex flex-col gap-2">
+	<TextInput
+		bind:value={activeFilter.textFilter}
+		name="textFilter"
+		title="Text Filter"
+		errorMessage=""
+	/>
 	<IdFilter bind:id={activeFilter.id} />
 	<FilterIdArray title="Journal IDs" bind:idArray={activeFilter.idArray} />
 	<FilterIdArray title="Transaction IDs" bind:idArray={activeFilter.transactionIdArray} />

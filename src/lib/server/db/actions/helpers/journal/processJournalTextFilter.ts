@@ -1,4 +1,3 @@
-import { accountTypeEnum, type AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import { accountTextFilterKeys } from '../account/accountTextFilter';
 import {
@@ -53,86 +52,6 @@ const filterArray = [
 		'account',
 		'account'
 	),
-	{
-		key: 'networth:',
-		update: (filter) => {
-			if (filter.account === undefined) {
-				filter.account = {};
-			}
-			filter.account.isNetWorth = true;
-		}
-	},
-	{
-		key: '!networth:',
-		update: (filter) => {
-			if (filter.account === undefined) {
-				filter.account = {};
-			}
-			filter.account.isNetWorth = false;
-		}
-	},
-	{
-		key: 'cash:',
-		update: (filter) => {
-			if (filter.account === undefined) {
-				filter.account = {};
-			}
-			filter.account.isCash = true;
-		}
-	},
-	{
-		key: '!cash:',
-		update: (filter) => {
-			if (filter.account === undefined) {
-				filter.account = {};
-			}
-			filter.account.isCash = false;
-		}
-	},
-	{
-		key: '!type:',
-		update: (filter, newFilter) => {
-			if (newFilter.length === 0) return;
-
-			const splitFilter = newFilter.trim().replace('|', ',').split(',');
-
-			for (const currentFilter of splitFilter) {
-				const accountType = currentFilter.trim().toLocaleLowerCase() as AccountTypeEnumType;
-
-				if (accountTypeEnum.includes(accountType)) {
-					if (filter.excludeAccount === undefined) {
-						filter.excludeAccount = {};
-					}
-					if (filter.excludeAccount.type === undefined) {
-						filter.excludeAccount.type = [];
-					}
-					filter?.excludeAccount?.type && filter.excludeAccount.type.push(accountType);
-				}
-			}
-		}
-	},
-	{
-		key: 'type:',
-		update: (filter, newFilter) => {
-			if (newFilter.length === 0) return;
-
-			const splitFilter = newFilter.trim().replace('|', ',').split(',');
-
-			for (const currentFilter of splitFilter) {
-				const accountType = currentFilter.trim() as AccountTypeEnumType;
-
-				if (accountTypeEnum.includes(accountType)) {
-					if (filter.account === undefined) {
-						filter.account = {};
-					}
-					if (filter.account.type === undefined) {
-						filter.account.type = [];
-					}
-					filter?.account?.type && filter.account.type.push(accountType);
-				}
-			}
-		}
-	},
 	handleNested('!payee:', 'excludePayee'),
 	handleNested('!label:', 'excludeLabel'),
 	handleNested('!tag:', 'excludeTag'),
@@ -321,11 +240,24 @@ const filterArray = [
 	}
 ] satisfies TextFilterOptionsType<JournalFilterSchemaWithoutPaginationType>;
 
-export const processJournalTextFilter = textFilterHandler(filterArray, (filter, currentFilter) => {
-	if (currentFilter.length === 0) return;
-	if (!filter.descriptionArray) {
-		filter.descriptionArray = [];
-	}
+export const processJournalTextFilter = textFilterHandler(
+	filterArray,
+	(filter, currentFilter) => {
+		if (currentFilter.length === 0) return;
+		if (!filter.descriptionArray) {
+			filter.descriptionArray = [];
+		}
 
-	filter.descriptionArray.push(currentFilter);
-});
+		filter.descriptionArray.push(currentFilter);
+	},
+	{
+		'cash:': 'accountcash:',
+		'!cash:': 'account!cash:',
+		'type:': 'accounttype:',
+		'!type:': 'account!type:',
+		'networth:': 'accountnetworth:',
+		'!networth:': 'account!networth:',
+		'nw:': 'accountnetworth:',
+		'!nw': 'account!networth:'
+	}
+);

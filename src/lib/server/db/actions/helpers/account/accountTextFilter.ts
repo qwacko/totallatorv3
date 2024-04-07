@@ -10,6 +10,94 @@ import {
 
 const filterArray = [
 	{
+		key: ['importDetailId:', 'importDetail:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'importDetailIdArray', newFilter);
+		}
+	},
+	{
+		key: ['!importDetailId:', '!importDetail:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'excludeImportDetailIdArray', newFilter);
+		}
+	},
+	{
+		key: ['importId:', 'import:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'importIdArray', newFilter);
+		}
+	},
+	{
+		key: ['!importId:', '!import:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'excludeImportIdArray', newFilter);
+		}
+	},
+	{
+		key: ['status:'],
+		update: (filter, newFilter) => {
+			if (!filter.statusArray) {
+				filter.statusArray = [];
+			}
+			if (newFilter === 'active') {
+				filter.statusArray.push('active');
+			}
+			if (newFilter === 'disabled') {
+				filter.statusArray.push('disabled');
+			}
+		}
+	},
+	{
+		key: ['!status:'],
+		update: (filter, newFilter) => {
+			if (!filter.excludeStatusArray) {
+				filter.excludeStatusArray = [];
+			}
+			if (newFilter === 'active') {
+				filter.excludeStatusArray.push('active');
+			}
+			if (newFilter === 'disabled') {
+				filter.excludeStatusArray.push('disabled');
+			}
+		}
+	},
+	{
+		key: ['disabled:'],
+		update: (filter) => {
+			filter.disabled = true;
+		}
+	},
+	{
+		key: ['!disabled:'],
+		update: (filter) => {
+			filter.disabled = false;
+		}
+	},
+	{
+		key: ['allowupdate:'],
+		update: (filter) => {
+			filter.allowUpdate = true;
+		}
+	},
+	{
+		key: ['!allowupdate'],
+		update: (filter) => {
+			filter.allowUpdate = false;
+		}
+	},
+	{
+		key: ['active:'],
+		update: (filter) => {
+			filter.active = true;
+		}
+	},
+	{
+		key: ['!active:'],
+		update: (filter) => {
+			filter.active = false;
+		}
+	},
+	{
 		key: ['networth:', 'nw'],
 		update: (filter) => {
 			filter.isNetWorth = true;
@@ -44,10 +132,10 @@ const filterArray = [
 				const accountType = currentFilter.trim().toLocaleLowerCase() as AccountTypeEnumType;
 
 				if (accountTypeEnum.includes(accountType)) {
-					if (filter.type === undefined) {
-						filter.type = [];
+					if (filter.excludeType === undefined) {
+						filter.excludeType = [];
 					}
-					filter.type.push(accountType);
+					filter.excludeType.push(accountType);
 				}
 			}
 		}
@@ -63,34 +151,34 @@ const filterArray = [
 				const accountType = currentFilter.trim().toLocaleLowerCase() as AccountTypeEnumType;
 
 				if (accountTypeEnum.includes(accountType)) {
-					if (filter.excludeType === undefined) {
-						filter.excludeType = [];
+					if (filter.type === undefined) {
+						filter.type = [];
 					}
-					filter.excludeType.push(accountType);
+					filter.type.push(accountType);
 				}
 			}
 		}
 	},
 	{
-		key: ['combinedTitle:', 'combined:'],
+		key: ['combinedTitle:', 'combined:', 'titlecombined:'],
 		update: (filter, newFilter) => {
 			addToArray(filter, 'accountTitleCombinedArray', newFilter);
 		}
 	},
 	{
-		key: ['!combinedTitle:', '!combined:'],
+		key: ['!combinedTitle:', '!combined:', '!titlecombined:'],
 		update: (filter, newFilter) => {
 			addToArray(filter, 'excludeAccountTitleCombinedArray', newFilter);
 		}
 	},
 	{
-		key: ['accountgroup:', 'group:'],
+		key: ['accountgroup:', 'group:', 'groupcombined:', 'combinedgroup:'],
 		update: (filter, newFilter) => {
 			addToArray(filter, 'accountGroupCombinedArray', newFilter);
 		}
 	},
 	{
-		key: ['!accountgroup:', '!group:'],
+		key: ['!accountgroup:', '!group:', '!groupcombined:', '!combinedgroup:'],
 		update: (filter, newFilter) => {
 			addToArray(filter, 'excludeAccountGroupCombinedArray', newFilter);
 		}
@@ -132,39 +220,75 @@ const filterArray = [
 		}
 	},
 	{
-		key: ['startafter:', '!startbefore:'],
+		key: ['startafter:', '!startafter:'],
 		update: (filter, newFilter) => {
 			compareTextDate(filter, 'startDateAfter', newFilter, 'max');
 		}
 	},
 	{
-		key: ['startbefore:', '!startafter:'],
+		key: ['startbefore:', '!startbefore:'],
 		update: (filter, newFilter) => {
 			compareTextDate(filter, 'startDateBefore', newFilter, 'min');
 		}
 	},
 	{
-		key: ['endafter:', '!endbefore:'],
+		key: ['endafter:', '!endafter:'],
 		update: (filter, newFilter) => {
-			compareTextDate(filter, 'startDateAfter', newFilter, 'max');
+			compareTextDate(filter, 'endDateAfter', newFilter, 'max');
 		}
 	},
 	{
-		key: ['endbefore:', '!endafter:'],
+		key: ['endbefore:', '!endbefore:'],
 		update: (filter, newFilter) => {
-			compareTextDate(filter, 'startDateBefore', newFilter, 'min');
+			compareTextDate(filter, 'endDateBefore', newFilter, 'min');
 		}
 	},
 	{
-		key: ['mincount:', 'countmin:'],
+		key: ['min:', 'mintotal:', '!min:', '!mintotal:', 'totalmin:', '!totalmin:'],
+		update: (filter, newFilter) => {
+			compareTextNumber(filter, 'totalMin', newFilter, 'min');
+		}
+	},
+	{
+		key: ['max:', 'maxtotal:', '!max:', '!maxtotal:', 'totalmax:', '!totalmax:'],
+		update: (filter, newFilter) => {
+			compareTextNumber(filter, 'totalMax', newFilter, 'max');
+		}
+	},
+	{
+		key: ['mincount:', 'countmin:', '!mincount:', '!countmin:'],
 		update: (filter, newFilter) => {
 			compareTextNumber(filter, 'countMin', newFilter, 'min');
 		}
 	},
 	{
-		key: ['maxcount:', 'countmax:'],
+		key: ['maxcount:', 'countmax:', '!maxcount:', '!countmax:'],
 		update: (filter, newFilter) => {
 			compareTextNumber(filter, 'countMax', newFilter, 'max');
+		}
+	},
+	{
+		key: ['minlast:', 'lastmin:', '!minlast:', '!lastmin:'],
+		update: (filter, newFilter) => {
+			compareTextDate(filter, 'lastDateMin', newFilter, 'min');
+		}
+	},
+	{
+		key: ['maxlast:', 'lastmax:', '!maxlast:', '!lastmax:'],
+		update: (filter, newFilter) => {
+			compareTextDate(filter, 'lastDateMax', newFilter, 'max');
+		}
+	},
+	{
+		key: ['minfirst:', 'firstmin:', '!minfirst:', '!firstmin:'],
+		update: (filter, newFilter) => {
+			compareTextDate(filter, 'firstDateMin', newFilter, 'min');
+		}
+	},
+	{
+		key: ['maxfirst:', 'firstmax:', '!maxfirst:', '!firstmax:'],
+		update: (filter, newFilter) => {
+			compareTextDate(filter, 'firstDateMax', newFilter, 'max');
 		}
 	},
 	{
@@ -180,14 +304,26 @@ const filterArray = [
 		}
 	},
 	{
+		key: ['title:', 'description:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'titleArray', newFilter);
+		}
+	},
+	{
+		key: ['!title:', '!description:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'excludeTitleArray', newFilter);
+		}
+	},
+	{
 		key: '!',
 		update: (filter, newFilter) => {
-			addToArray(filter, 'excludeTitlearray', newFilter);
+			addToArray(filter, 'excludeTitleArray', newFilter);
 		}
 	}
 ] satisfies TextFilterOptionsType<AccountFilterSchemaWithoutPaginationType>;
 
-export const processJournalTextFilter = textFilterHandler(filterArray, (filter, currentFilter) => {
+export const processAccountTextFilter = textFilterHandler(filterArray, (filter, currentFilter) => {
 	addToArray(filter, 'titleArray', currentFilter);
 });
 

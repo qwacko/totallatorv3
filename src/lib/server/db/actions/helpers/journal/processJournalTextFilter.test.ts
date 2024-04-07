@@ -395,8 +395,7 @@ describe('processJournalTextFilter', () => {
 				reconciled: true,
 				complete: true,
 				account: {
-					isCash: true,
-					isNetWorth: true
+					textFilter: ` cash:"" networth:""`
 				},
 				textFilter: undefined
 			});
@@ -420,8 +419,7 @@ describe('processJournalTextFilter', () => {
 				reconciled: false,
 				complete: false,
 				account: {
-					isCash: false,
-					isNetWorth: false
+					textFilter: ` !cash:"" !networth:""`
 				},
 				textFilter: undefined
 			});
@@ -446,14 +444,13 @@ describe('processJournalTextFilter', () => {
 				reconciled: true,
 				complete: true,
 				account: {
-					isCash: true,
-					isNetWorth: false
+					textFilter: ` cash:"gggg" !networth:"5t3ssdf"`
 				},
 				textFilter: undefined
 			});
 		});
 
-		it('for multiple instances of a boolean flag, the last one is used', () => {
+		it('for multiple instances of a boolean flag, the last one is used (except for nested which are passed through', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				textFilter:
 					'transfer: !transfer:  !checked: checked: reconciled: !reconciled: !complete: complete: cash: !cash: !networth: networth:'
@@ -471,15 +468,12 @@ describe('processJournalTextFilter', () => {
 				dataChecked: true,
 				reconciled: false,
 				complete: true,
-				account: {
-					isCash: false,
-					isNetWorth: true
-				},
+				account: { textFilter: ` cash:"" !cash:"" !networth:"" networth:""` },
 				textFilter: undefined
 			});
 		});
 
-		it('text filter overrides the default ones', () => {
+		it('text filter overrides the default ones (only for base level items)', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
 				transfer: false,
 				dataChecked: false,
@@ -505,8 +499,9 @@ describe('processJournalTextFilter', () => {
 				reconciled: false,
 				complete: false,
 				account: {
-					isCash: false,
-					isNetWorth: true
+					isCash: true,
+					isNetWorth: false,
+					textFilter: ` !cash:"" networth:""`
 				},
 				textFilter: undefined
 			});
@@ -967,7 +962,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				account: { type: ['asset'] },
+				account: { textFilter: ` type:"asset"` },
 				textFilter: undefined
 			});
 		});
@@ -985,7 +980,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				account: { type: ['asset', 'liability'] },
+				account: { textFilter: ` type:"asset,liability"` },
 				textFilter: undefined
 			});
 		});
@@ -1003,7 +998,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				account: { type: ['asset', 'liability'] },
+				account: { textFilter: ` type:"asset|liability"` },
 				textFilter: undefined
 			});
 		});
@@ -1021,7 +1016,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				excludeAccount: { type: ['asset', 'liability'] },
+				account: { textFilter: ` !type:"asset,liability"` },
 				textFilter: undefined
 			});
 		});
@@ -1039,7 +1034,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				excludeAccount: { type: ['asset', 'liability'] },
+				account: { textFilter: ` !type:"asset|liability"` },
 				textFilter: undefined
 			});
 		});
@@ -1095,15 +1090,10 @@ describe('processJournalTextFilter', () => {
 				false
 			);
 
-			expect(processedFilter).toEqual({
-				...inputFilter,
-				account: {
-					textFilter: ' group:"mortgage" group:"cash"',
-					isCash: true,
-					type: ['asset', 'liability']
-				},
-				textFilter: undefined
-			});
+			expect(processedFilter?.account?.textFilter).toContain(`group:"mortgage"`);
+			expect(processedFilter?.account?.textFilter).toContain(`cash:""`);
+			expect(processedFilter?.account?.textFilter).toContain(`group:"cash"`);
+			expect(processedFilter?.account?.textFilter).toContain(`type:"asset|liability"`);
 		});
 
 		it('account boolean filters passthrough works', () => {

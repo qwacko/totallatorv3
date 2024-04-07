@@ -125,7 +125,7 @@ export const accountFilterSchema = z.object({
 	excludeIdArray: z.array(z.string()).optional(),
 	title: z.coerce.string().optional(),
 	titleArray: z.array(z.coerce.string()).optional(),
-	excludeTitlearray: z.array(z.coerce.string()).optional(),
+	excludeTitleArray: z.array(z.coerce.string()).optional(),
 	type: z
 		.array(z.enum(accountTypeEnum))
 		.optional()
@@ -150,6 +150,8 @@ export const accountFilterSchema = z.object({
 	accountTitleCombinedArray: z.array(z.string()).optional(),
 	excludeAccountTitleCombinedArray: z.array(z.string()).optional(),
 	status: z.enum(statusEnum).optional(),
+	statusArray: z.array(z.enum(statusEnum)).optional(),
+	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),
@@ -160,7 +162,9 @@ export const accountFilterSchema = z.object({
 	endDateBefore: dateStringSchema.optional(),
 	endDateAfter: dateStringSchema.optional(),
 	importIdArray: z.array(z.string()).optional(),
+	excludeImportIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
+	excludeImportDetailIdArray: z.array(z.string()).optional(),
 
 	//Summary Info Filters
 	...summaryFilterProperties,

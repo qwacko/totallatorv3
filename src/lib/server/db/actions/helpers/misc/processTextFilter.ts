@@ -133,7 +133,8 @@ export type TextFilterOptionsType<T extends { textFilter?: string }> = {
 export const textFilterHandler =
 	<T extends { textFilter?: string }>(
 		filterList: TextFilterOptionsType<T>,
-		defaultFilter: (filter: T, currentFilter: string) => void
+		defaultFilter: (filter: T, currentFilter: string) => void,
+		proxyKeys?: { [U: string]: string }
 	) =>
 	(filter: T, logProcessing?: boolean) => {
 		if (!filter.textFilter) {
@@ -147,6 +148,18 @@ export const textFilterHandler =
 		}
 
 		for (const text of processedTextFilter) {
+			let useText = text;
+			if (proxyKeys) {
+				for (const proxyKey in proxyKeys) {
+					if (text.toLocaleLowerCase().startsWith(proxyKey.toLocaleLowerCase())) {
+						useText = `${proxyKeys[proxyKey]}${text.slice(proxyKey.length)}`;
+						break;
+					}
+				}
+			}
+			if (logProcessing && useText !== text) {
+				console.log(`Text "${text}" proxied to "${useText}"`);
+			}
 			let filterHandled = false;
 			let filterKey = '';
 
@@ -162,17 +175,18 @@ export const textFilterHandler =
 					if (filterHandled) {
 						break;
 					}
-					if (text.toLocaleLowerCase().startsWith(currentFilterKey.toLocaleLowerCase())) {
+
+					if (useText.toLocaleLowerCase().startsWith(currentFilterKey.toLocaleLowerCase())) {
 						filterKey = currentFilterKey;
 						filterHandled = true;
-						currentFilter.update(filter, unpackText(text, currentFilterKey), filterKey);
+						currentFilter.update(filter, unpackText(useText, currentFilterKey), filterKey);
 						break;
 					}
 				}
 			}
 			if (!filterHandled) {
 				filterKey = 'default';
-				const currentFilter = unpackText(text);
+				const currentFilter = unpackText(useText);
 				defaultFilter(filter, currentFilter);
 			}
 
