@@ -86,7 +86,7 @@ Accounts have the following search options, as well as the [summary items](#summ
 
 ## Bills, Budgets, Labels
 
-All these items have the same search options, and are outlined below:
+Bills, Budgets and Labels have the following search options, as well as the [summary items](#summary-filters)
 
 | Prefix              | Default |   Format / Options    | Search Function                | Duplicates     |
 | ------------------- | :-----: | :-------------------: | ------------------------------ | -------------- |
@@ -101,7 +101,7 @@ All these items have the same search options, and are outlined below:
 
 ## Categories, Tags
 
-These all share the same search options, and are outlined below:
+Categories and Tags have the following search options, as well as the [summary items](#summary-filters)
 
 | Prefix              | Default |   Format / Options    | Search Function                | Duplicates     |
 | ------------------- | :-----: | :-------------------: | ------------------------------ | -------------- |
