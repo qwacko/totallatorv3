@@ -1,5 +1,9 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import { accountTextFilterKeys } from '../account/accountTextFilter';
+import { billTextFilterKeys } from '../bill/billTextFilter';
+import { budgetTextFilterKeys } from '../budget/budgetTextFilter';
+import { categoryTextFilterKeys } from '../category/categoryTextFilter';
+import { labelTextFilterKeys } from '../label/labelTextFilter';
 import {
 	addToArray,
 	dateRegex,
@@ -9,25 +13,9 @@ import {
 	textFilterHandler,
 	type TextFilterOptionsType
 } from '../misc/processTextFilter';
+import { tagTextFilterKeys } from '../tag/tagTextFilter';
 
-const handleNested = <
-	U extends
-		| 'tag'
-		| 'excludeTag'
-		| 'bill'
-		| 'excludeBill'
-		| 'budget'
-		| 'excludeBudget'
-		| 'category'
-		| 'excludeCategory'
-		| 'label'
-		| 'excludeLabel'
-		| 'payee'
-		| 'excludePayee'
->(
-	search: string,
-	key: U
-) => ({
+const handleNested = <U extends 'payee' | 'excludePayee'>(search: string, key: U) => ({
 	key: search,
 	update: (filter: JournalFilterSchemaWithoutPaginationType, newFilter: string) => {
 		if (newFilter.length === 0) return;
@@ -53,18 +41,58 @@ const filterArray = [
 		'account',
 		'account'
 	),
+	nestedStringFilterHandler<'excludeLabel', JournalFilterSchemaWithoutPaginationType>(
+		labelTextFilterKeys,
+		'!label',
+		'excludeLabel'
+	),
+	nestedStringFilterHandler<'label', JournalFilterSchemaWithoutPaginationType>(
+		labelTextFilterKeys,
+		'label',
+		'label'
+	),
+	nestedStringFilterHandler<'excludeTag', JournalFilterSchemaWithoutPaginationType>(
+		tagTextFilterKeys,
+		'!tag',
+		'excludeTag'
+	),
+	nestedStringFilterHandler<'tag', JournalFilterSchemaWithoutPaginationType>(
+		tagTextFilterKeys,
+		'tag',
+		'tag'
+	),
+	nestedStringFilterHandler<'excludeCategory', JournalFilterSchemaWithoutPaginationType>(
+		categoryTextFilterKeys,
+		'!category',
+		'excludeCategory'
+	),
+	nestedStringFilterHandler<'category', JournalFilterSchemaWithoutPaginationType>(
+		categoryTextFilterKeys,
+		'category',
+		'category'
+	),
+	nestedStringFilterHandler<'excludeBill', JournalFilterSchemaWithoutPaginationType>(
+		billTextFilterKeys,
+		'!bill',
+		'excludeBill'
+	),
+	nestedStringFilterHandler<'bill', JournalFilterSchemaWithoutPaginationType>(
+		billTextFilterKeys,
+		'bill',
+		'bill'
+	),
+	nestedStringFilterHandler<'excludeBudget', JournalFilterSchemaWithoutPaginationType>(
+		budgetTextFilterKeys,
+		'!budget',
+		'excludeBudget'
+	),
+	nestedStringFilterHandler<'budget', JournalFilterSchemaWithoutPaginationType>(
+		budgetTextFilterKeys,
+		'budget',
+		'budget'
+	),
 	handleNested('!payee:', 'excludePayee'),
-	handleNested('!label:', 'excludeLabel'),
-	handleNested('!tag:', 'excludeTag'),
-	handleNested('!category:', 'excludeCategory'),
-	handleNested('!bill:', 'excludeBill'),
-	handleNested('!budget:', 'excludeBudget'),
-	handleNested('label:', 'label'),
 	handleNested('payee:', 'payee'),
-	handleNested('tag:', 'tag'),
-	handleNested('category:', 'category'),
-	handleNested('bill:', 'bill'),
-	handleNested('budget:', 'budget'),
 	{
 		key: 'month:',
 		update: (filter, newFilter) => {

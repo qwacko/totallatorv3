@@ -1,4 +1,4 @@
-import type { TagFilterSchemaType } from '$lib/schema/tagSchema';
+import type { TagFilterSchemaWithoutPaginationType } from '$lib/schema/tagSchema';
 import type { DBType } from '../../../db';
 import { tag } from '../../../postgres/schema';
 import {
@@ -17,22 +17,23 @@ import {
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { processTagTextFilter } from './tagTextFilter';
 
 export const tagFilterToQuery = ({
 	filter,
 	target = 'tag'
 }: {
-	filter: Omit<TagFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: TagFilterSchemaWithoutPaginationType;
 	target?: 'tag' | 'tagWithSummary' | 'materializedJournals';
 }) => {
-	const restFilter = filter;
+	const restFilter = processTagTextFilter.process(filter);
 	const includeSummary = target === 'tagWithSummary';
 	const materializedJournals = target === 'materializedJournals';
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		idColumn: materializedJournals ? journalExtendedView.tagId : tagMaterializedView.id,
 		titleColumn: materializedJournals ? journalExtendedView.tagTitle : tagMaterializedView.title,
 		groupColumn: materializedJournals ? journalExtendedView.tagGroup : tagMaterializedView.group,
@@ -40,7 +41,7 @@ export const tagFilterToQuery = ({
 	});
 	statusFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		statusColumn: materializedJournals ? journalExtendedView.tagStatus : tagMaterializedView.status,
 		disabledColumn: materializedJournals
 			? journalExtendedView.tagDisabled
@@ -54,7 +55,7 @@ export const tagFilterToQuery = ({
 	if (!materializedJournals) {
 		importFilterToQueryMaterialized({
 			where,
-			filter,
+			filter: restFilter,
 			table: {
 				importId: tagMaterializedView.importId,
 				importDetailId: tagMaterializedView.importDetailId
@@ -99,16 +100,16 @@ export const tagFilterToText = async ({
 	allText = true
 }: {
 	db: DBType;
-	filter: Omit<TagFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: TagFilterSchemaWithoutPaginationType;
 	prefix?: string;
 	allText?: boolean;
 }) => {
-	const restFilter = filter;
+	const restFilter = processTagTextFilter.process(filter);
 
 	const stringArray: string[] = [];
-	await idTitleFilterToText(db, stringArray, filter, tagIdToTitle);
-	statusFilterToText(stringArray, filter);
-	importFilterToText(db, stringArray, filter);
+	await idTitleFilterToText(db, stringArray, restFilter, tagIdToTitle);
+	statusFilterToText(stringArray, restFilter);
+	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

@@ -167,10 +167,10 @@
 			<svelte:fragment slot="filter">
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
-						<Input
+					<Input
 							type="text"
-							bind:value={$urlStore.searchParams.title}
-							placeholder="Filter by Title"
+							bind:value={$urlStore.searchParams.textFilter}
+							placeholder="Filter..."
 							class="flex flex-grow"
 						/>
 					{/if}

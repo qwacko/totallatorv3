@@ -49,16 +49,23 @@ export const labelOrderByEnumToText = (input: OrderByEnumType) => {
 };
 
 export const labelFilterSchema = z.object({
+	textFilter: z.string().optional(),
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
+	excludeIdArray: z.array(z.string()).optional(),
 	title: z.coerce.string().optional(),
 	titleArray: z.array(z.string()).optional(),
+	excludeTitleArray: z.array(z.string()).optional(),
 	status: z.enum(statusEnum).optional(),
+	statusArray: z.array(z.enum(statusEnum)).optional(),
+	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),
 	importIdArray: z.array(z.string()).optional(),
+	excludeImportIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
+	excludeImportDetailIdArray: z.array(z.string()).optional(),
 
 	//Summary Info Filters
 	...summaryFilterProperties,
@@ -72,3 +79,7 @@ export const labelFilterSchema = z.object({
 });
 
 export type LabelFilterSchemaType = z.infer<typeof labelFilterSchema>;
+export type LabelFilterSchemaWithoutPaginationType = Omit<
+	LabelFilterSchemaType,
+	'page' | 'pageSize' | 'orderBy'
+>;

@@ -1,4 +1,4 @@
-import type { BillFilterSchemaType } from '$lib/schema/billSchema';
+import type { BillFilterSchemaWithoutPaginationType } from '$lib/schema/billSchema';
 import type { DBType } from '../../../db';
 import { bill } from '../../../postgres/schema';
 import {
@@ -17,28 +17,29 @@ import {
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { processBillTextFilter } from './billTextFilter';
 
 export const billFilterToQuery = ({
 	filter,
 	target = 'bill'
 }: {
-	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: BillFilterSchemaWithoutPaginationType;
 	target?: 'materializedJournals' | 'bill' | 'billWithSummary';
 }) => {
-	const restFilter = filter;
+	const restFilter = processBillTextFilter.process(filter);
 	const includeSummary = target === 'billWithSummary';
 	const materializedJournals = target === 'materializedJournals';
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		idColumn: materializedJournals ? journalExtendedView.billId : billMaterializedView.id,
 		titleColumn: materializedJournals ? journalExtendedView.billTitle : billMaterializedView.title
 	});
 	statusFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		statusColumn: materializedJournals
 			? journalExtendedView.billStatus
 			: billMaterializedView.status,
@@ -55,7 +56,7 @@ export const billFilterToQuery = ({
 	if (!materializedJournals) {
 		importFilterToQueryMaterialized({
 			where,
-			filter,
+			filter: restFilter,
 			table: {
 				importId: billMaterializedView.importId,
 				importDetailId: billMaterializedView.importDetailId
@@ -100,16 +101,16 @@ export const billFilterToText = async ({
 	allText = true
 }: {
 	db: DBType;
-	filter: Omit<BillFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: BillFilterSchemaWithoutPaginationType;
 	prefix?: string;
 	allText?: boolean;
 }) => {
-	const restFilter = filter;
+	const restFilter = processBillTextFilter.process(filter);
 
 	const stringArray: string[] = [];
-	await idTitleFilterToText(db, stringArray, filter, billIdToTitle);
-	statusFilterToText(stringArray, filter);
-	importFilterToText(db, stringArray, filter);
+	await idTitleFilterToText(db, stringArray, restFilter, billIdToTitle);
+	statusFilterToText(stringArray, restFilter);
+	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

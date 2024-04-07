@@ -183,8 +183,8 @@
 					{#if $urlStore.searchParams}
 						<Input
 							type="text"
-							bind:value={$urlStore.searchParams.title}
-							placeholder="Filter by Title"
+							bind:value={$urlStore.searchParams.textFilter}
+							placeholder="Filter..."
 							class="flex flex-grow"
 						/>
 					{/if}

@@ -49,21 +49,29 @@ export const budgetOrderByEnumToText = (input: OrderByEnumType) => {
 };
 
 export const budgetFilterSchema = z.object({
+	textFilter: z.string().optional(),
 	id: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
+	excludeIdArray: z.array(z.string()).optional(),
 	title: z.coerce.string().optional(),
 	titleArray: z.array(z.coerce.string()).optional(),
+	excludeTitleArray: z.array(z.coerce.string()).optional(),
 	status: z.enum(statusEnum).optional(),
+	statusArray: z.array(z.enum(statusEnum)).optional(),
+	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),
 	importIdArray: z.array(z.string()).optional(),
+	excludeImportIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
-	page: z.number().default(0).optional(),
-	pageSize: z.number().default(10).optional(),
+	excludeImportDetailIdArray: z.array(z.string()).optional(),
 
 	//Summary Info Filters
 	...summaryFilterProperties,
+
+	page: z.coerce.number().default(0).optional(),
+	pageSize: z.coerce.number().default(10).optional(),
 
 	orderBy: z
 		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
@@ -72,3 +80,7 @@ export const budgetFilterSchema = z.object({
 });
 
 export type BudgetFilterSchemaType = z.infer<typeof budgetFilterSchema>;
+export type BudgetFilterSchemaWithoutPaginationType = Omit<
+	BudgetFilterSchemaType,
+	'page' | 'pageSize' | 'orderBy'
+>;

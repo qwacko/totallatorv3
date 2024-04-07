@@ -1,4 +1,8 @@
 import type { AccountFilterSchemaWithoutPaginationType } from '$lib/schema/accountSchema';
+import type { BillFilterSchemaWithoutPaginationType } from '$lib/schema/billSchema';
+import type { BudgetFilterSchemaWithoutPaginationType } from '$lib/schema/budgetSchema';
+import type { CategoryFilterSchemaWithoutPaginationType } from '$lib/schema/categorySchema';
+import type { LabelFilterSchemaWithoutPaginationType } from '$lib/schema/labelSchema';
 import type { TagFilterSchemaWithoutPaginationType } from '$lib/schema/tagSchema';
 import {
 	addToArray,
@@ -8,8 +12,44 @@ import {
 } from './processTextFilter';
 
 type TextFilterSchemaType = TextFilterOptionsType<
-	AccountFilterSchemaWithoutPaginationType | TagFilterSchemaWithoutPaginationType
+	| AccountFilterSchemaWithoutPaginationType
+	| TagFilterSchemaWithoutPaginationType
+	| BillFilterSchemaWithoutPaginationType
+	| BudgetFilterSchemaWithoutPaginationType
+	| CategoryFilterSchemaWithoutPaginationType
+	| LabelFilterSchemaWithoutPaginationType
 >;
+
+type TextFilterWithGroupSingleSchemaType = TextFilterOptionsType<
+	TagFilterSchemaWithoutPaginationType | CategoryFilterSchemaWithoutPaginationType
+>;
+
+export const groupSingleTextFilterArray = [
+	{
+		key: ['group:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'groupArray', newFilter);
+		}
+	},
+	{
+		key: ['!group:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'excludeGroupArray', newFilter);
+		}
+	},
+	{
+		key: ['single:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'singleArray', newFilter);
+		}
+	},
+	{
+		key: ['!single:'],
+		update: (filter, newFilter) => {
+			addToArray(filter, 'excludeSingleArray', newFilter);
+		}
+	}
+] satisfies TextFilterWithGroupSingleSchemaType;
 
 export const importTextFilterArray = [
 	{

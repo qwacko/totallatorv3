@@ -137,7 +137,8 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 	defaultExcludeFilter: (filter: T, currentFilter: string) => void,
 	proxyKeys?: { [U: string]: string }
 ) => {
-	const process = (filter: T, logProcessing?: boolean) => {
+	const process = (extFilter: T, logProcessing?: boolean) => {
+		const filter = JSON.parse(JSON.stringify(extFilter)) as T;
 		if (!filter.textFilter) {
 			return filter;
 		}
