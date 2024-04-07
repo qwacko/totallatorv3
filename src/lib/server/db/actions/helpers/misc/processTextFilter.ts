@@ -1,3 +1,70 @@
+export const addToArray = <T extends Record<string, string[] | any>>(
+	filter: T,
+	key: keyof T,
+	value: string
+) => {
+	if (!filter[key]) {
+		filter[key] = [] as any;
+	}
+	filter[key].push(value);
+};
+
+export const compareTextNumber = <T extends Record<string, number | undefined | any>>(
+	filter: T,
+	key: keyof T,
+	currentFilter: string,
+	type: 'min' | 'max'
+) => {
+	const numberMatch = parseFloat(currentFilter);
+
+	if (!isNaN(numberMatch)) {
+		const currentFilterNumber = filter[key];
+
+		if (typeof currentFilterNumber === 'number') {
+			if (type === 'min') {
+				filter[key] = Math.min(currentFilterNumber, numberMatch) as T[keyof T];
+			} else {
+				filter[key] = Math.max(currentFilterNumber, numberMatch) as T[keyof T];
+			}
+		} else {
+			filter[key] = numberMatch as T[keyof T]; // Update type constraint to allow for undefined values
+		}
+	}
+};
+
+export const compareTextDate = <T extends Record<string, string | undefined | any>>(
+	filter: T,
+	key: keyof T,
+	currentFilter: string,
+	type: 'min' | 'max'
+) => {
+	const dateMatch = currentFilter.match(dateRegex);
+
+	if (dateMatch) {
+		const [, year, month, day] = dateMatch;
+		const date = isValidDate(year, month, day);
+
+		if (date) {
+			const currentFilterDate = filter[key];
+
+			if (typeof currentFilterDate === 'string') {
+				const currentFilterDateString = currentFilterDate as string;
+				if (type === 'min') {
+					filter[key] = (
+						currentFilterDateString < date ? currentFilterDateString : date
+					) as T[keyof T];
+				} else {
+					filter[key] = (
+						currentFilterDateString > date ? currentFilterDateString : date
+					) as T[keyof T];
+				}
+			} else {
+				filter[key] = date as T[keyof T]; // Update type constraint to allow for undefined values
+			}
+		}
+	}
+};
+
 function splitInput(inputString: string): string[] {
 	const pattern = /\S+:"[^"]*"\s|\S+:\S+\s|("|!")[^"]*"\s|\S+/g;
 
@@ -58,12 +125,14 @@ export function isValidDate(year: string, month: string, day: string) {
 	return `${stringYear}-${stringMonth}-${stringDay}`;
 }
 
+export type TextFilterOptionsType<T extends { textFilter?: string }> = {
+	key: string | string[];
+	update: (filter: T, currentFilter: string, prefix: string) => void;
+}[];
+
 export const textFilterHandler =
 	<T extends { textFilter?: string }>(
-		filterList: {
-			key: string;
-			update: (filter: T, currentFilter: string) => void;
-		}[],
+		filterList: TextFilterOptionsType<T>,
 		defaultFilter: (filter: T, currentFilter: string) => void
 	) =>
 	(filter: T, logProcessing?: boolean) => {
@@ -82,12 +151,23 @@ export const textFilterHandler =
 			let filterKey = '';
 
 			for (const currentFilterInfo in filterList) {
-				const currentFilter = filterList[currentFilterInfo];
-				if (text.toLocaleLowerCase().startsWith(currentFilter.key.toLocaleLowerCase())) {
-					filterKey = currentFilter.key;
-					filterHandled = true;
-					currentFilter.update(filter, unpackText(text, currentFilter.key));
+				if (filterHandled) {
 					break;
+				}
+				const currentFilter = filterList[currentFilterInfo];
+				const currentFilterKeyAsArray = Array.isArray(currentFilter.key)
+					? currentFilter.key
+					: [currentFilter.key];
+				for (const currentFilterKey of currentFilterKeyAsArray) {
+					if (filterHandled) {
+						break;
+					}
+					if (text.toLocaleLowerCase().startsWith(currentFilterKey.toLocaleLowerCase())) {
+						filterKey = currentFilterKey;
+						filterHandled = true;
+						currentFilter.update(filter, unpackText(text, currentFilterKey), filterKey);
+						break;
+					}
 				}
 			}
 			if (!filterHandled) {
@@ -103,3 +183,35 @@ export const textFilterHandler =
 
 		return { ...filter, textFilter: undefined };
 	};
+
+type WithTextFilter = { textFilter?: string | undefined };
+
+// This helper type ensures that T has a structure where it can contain any number of keys of type string,
+// and at least one of those keys (specified by U) points to an object of type WithTextFilter.
+type FilterType<U extends PropertyKey> = { [K in U]?: WithTextFilter } & Record<string, any>;
+
+export const nestedStringFilterHandler = <U extends string, T extends FilterType<U>>(
+	filterKeys: string[],
+	filterPrefix: string,
+	filterKey: U
+): TextFilterOptionsType<T>[number] => {
+	return {
+		key: [
+			...filterKeys.map((item) => `${filterPrefix}${item}`),
+			`${filterPrefix}:`,
+			`!${filterPrefix}:`
+		],
+		update: (filter: T, currentFilter: string, currentPrefix: string) => {
+			if (!filter[filterKey]) {
+				filter[filterKey] = {} as T[U];
+			}
+			if (!filter[filterKey].textFilter) {
+				filter[filterKey].textFilter = '';
+			}
+
+			const filterUse = currentPrefix.slice(filterPrefix.length);
+
+			filter[filterKey].textFilter += ` ${filterUse === ':' ? '' : filterUse}"${currentFilter}"`;
+		}
+	};
+};

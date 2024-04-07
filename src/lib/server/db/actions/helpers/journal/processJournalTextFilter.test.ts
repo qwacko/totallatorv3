@@ -831,7 +831,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				account: { titleArray: ['accountFilter'] },
+				account: { textFilter: ` "accountFilter"` },
 				textFilter: undefined
 			});
 		});
@@ -872,7 +872,7 @@ describe('processJournalTextFilter', () => {
 				excludeBill: { titleArray: ['billFilter'] },
 				excludeBudget: { titleArray: ['budgetFilter'] },
 				excludeCategory: { titleArray: ['categoryFilter'] },
-				excludeAccount: { titleArray: ['accountFilter'] },
+				excludeAccount: { textFilter: ` "accountFilter"` },
 				excludeLabel: { titleArray: ['labelFilter'] },
 				excludePayee: { titleArray: ['payeeFilter'] },
 				textFilter: undefined
@@ -897,7 +897,7 @@ describe('processJournalTextFilter', () => {
 				bill: { titleArray: ['bill Filter'] },
 				budget: { titleArray: ['budget Filter'] },
 				category: { titleArray: ['category Filter'] },
-				account: { titleArray: ['account Filter'] },
+				account: { textFilter: ` "account Filter"` },
 				label: { titleArray: ['label Filter'] },
 				payee: { titleArray: ['payee Filter'] },
 				textFilter: undefined
@@ -922,7 +922,7 @@ describe('processJournalTextFilter', () => {
 				bill: { titleArray: ['bill Filter', 'bill Filter 2'] },
 				budget: { titleArray: ['budget Filter', 'budget Filter 2'] },
 				category: { titleArray: ['category Filter', 'category Filter 2'] },
-				account: { titleArray: ['account Filter', 'account Filter 2'] },
+				account: { textFilter: ` "account Filter" "account Filter 2"` },
 				label: { titleArray: ['label Filter', 'label Filter 2'] },
 				payee: { titleArray: ['payee Filter', 'payee Filter 2'] },
 				textFilter: undefined
@@ -947,7 +947,7 @@ describe('processJournalTextFilter', () => {
 				excludeBill: { titleArray: ['bill Filter', 'bill Filter 2'] },
 				excludeBudget: { titleArray: ['budget Filter', 'budget Filter 2'] },
 				excludeCategory: { titleArray: ['category Filter', 'category Filter 2'] },
-				excludeAccount: { titleArray: ['account Filter', 'account Filter 2'] },
+				excludeAccount: { textFilter: ` "account Filter" "account Filter 2"` },
 				excludeLabel: { titleArray: ['label Filter', 'label Filter 2'] },
 				excludePayee: { titleArray: ['payee Filter', 'payee Filter 2'] },
 				textFilter: undefined
@@ -1046,7 +1046,7 @@ describe('processJournalTextFilter', () => {
 
 		it('group: adds an account group filter', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
-				textFilter: 'group:mortgage'
+				textFilter: 'accountgroup:mortgage'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -1058,7 +1058,7 @@ describe('processJournalTextFilter', () => {
 			expect(processedFilter).toEqual({
 				...inputFilter,
 				account: {
-					accountGroupCombinedArray: ['mortgage']
+					textFilter: ' group:"mortgage"'
 				},
 				textFilter: undefined
 			});
@@ -1066,7 +1066,7 @@ describe('processJournalTextFilter', () => {
 
 		it('!group: adds an account group filter', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
-				textFilter: '!group:mortgage'
+				textFilter: '!accountgroup:mortgage'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -1078,15 +1078,15 @@ describe('processJournalTextFilter', () => {
 			expect(processedFilter).toEqual({
 				...inputFilter,
 				excludeAccount: {
-					accountGroupCombinedArray: ['mortgage']
+					textFilter: ' group:"mortgage"'
 				},
 				textFilter: undefined
 			});
 		});
 
-		it('using group: cash: and type: works together correctly', () => {
+		it('using accountgroup: cash: and type: works together correctly', () => {
 			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
-				textFilter: 'group:mortgage cash: type:asset|liability group:cash'
+				textFilter: 'accountgroup:mortgage cash: type:asset|liability accountgroup:cash'
 			};
 
 			// JSON Parse and Stringify to deep clone the object
@@ -1098,9 +1098,29 @@ describe('processJournalTextFilter', () => {
 			expect(processedFilter).toEqual({
 				...inputFilter,
 				account: {
+					textFilter: ' group:"mortgage" group:"cash"',
 					isCash: true,
-					type: ['asset', 'liability'],
-					accountGroupCombinedArray: ['mortgage', 'cash']
+					type: ['asset', 'liability']
+				},
+				textFilter: undefined
+			});
+		});
+
+		it('account boolean filters passthrough works', () => {
+			const inputFilter: JournalFilterSchemaWithoutPaginationType = {
+				textFilter: 'accountcash: account!nw:'
+			};
+
+			// JSON Parse and Stringify to deep clone the object
+			const processedFilter = processJournalTextFilter(
+				JSON.parse(JSON.stringify(inputFilter)),
+				false
+			);
+
+			expect(processedFilter).toEqual({
+				...inputFilter,
+				account: {
+					textFilter: ' cash:"" !nw:""'
 				},
 				textFilter: undefined
 			});

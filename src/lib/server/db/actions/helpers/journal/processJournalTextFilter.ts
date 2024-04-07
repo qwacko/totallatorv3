@@ -1,6 +1,14 @@
 import { accountTypeEnum, type AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
-import { dateRegex, isValidDate, monthRegex, textFilterHandler } from '../misc/processTextFilter';
+import { accountTextFilterKeys } from '../account/accountTextFilter';
+import {
+	dateRegex,
+	isValidDate,
+	monthRegex,
+	nestedStringFilterHandler,
+	textFilterHandler,
+	type TextFilterOptionsType
+} from '../misc/processTextFilter';
 
 const handleNested = <
 	U extends
@@ -12,8 +20,6 @@ const handleNested = <
 		| 'excludeBudget'
 		| 'category'
 		| 'excludeCategory'
-		| 'account'
-		| 'excludeAccount'
 		| 'label'
 		| 'excludeLabel'
 		| 'payee'
@@ -37,32 +43,16 @@ const handleNested = <
 });
 
 const filterArray = [
-	{
-		key: '!group:',
-		update: (filter, newFilter) => {
-			if (newFilter.length === 0) return;
-			if (filter.excludeAccount === undefined) {
-				filter.excludeAccount = {};
-			}
-			if (filter.excludeAccount.accountGroupCombinedArray === undefined) {
-				filter.excludeAccount.accountGroupCombinedArray = [];
-			}
-			filter.excludeAccount.accountGroupCombinedArray.push(newFilter);
-		}
-	},
-	{
-		key: 'group:',
-		update: (filter, newFilter) => {
-			if (newFilter.length === 0) return;
-			if (filter.account === undefined) {
-				filter.account = {};
-			}
-			if (filter.account.accountGroupCombinedArray === undefined) {
-				filter.account.accountGroupCombinedArray = [];
-			}
-			filter.account.accountGroupCombinedArray.push(newFilter);
-		}
-	},
+	nestedStringFilterHandler<'excludeAccount', JournalFilterSchemaWithoutPaginationType>(
+		accountTextFilterKeys,
+		'!account',
+		'excludeAccount'
+	),
+	nestedStringFilterHandler<'account', JournalFilterSchemaWithoutPaginationType>(
+		accountTextFilterKeys,
+		'account',
+		'account'
+	),
 	{
 		key: 'networth:',
 		update: (filter) => {
@@ -146,14 +136,12 @@ const filterArray = [
 	handleNested('!payee:', 'excludePayee'),
 	handleNested('!label:', 'excludeLabel'),
 	handleNested('!tag:', 'excludeTag'),
-	handleNested('!account:', 'excludeAccount'),
 	handleNested('!category:', 'excludeCategory'),
 	handleNested('!bill:', 'excludeBill'),
 	handleNested('!budget:', 'excludeBudget'),
 	handleNested('label:', 'label'),
 	handleNested('payee:', 'payee'),
 	handleNested('tag:', 'tag'),
-	handleNested('account:', 'account'),
 	handleNested('category:', 'category'),
 	handleNested('bill:', 'bill'),
 	handleNested('budget:', 'budget'),
@@ -331,10 +319,7 @@ const filterArray = [
 			filter.excludeDescriptionArray.push(newFilter);
 		}
 	}
-] satisfies {
-	key: string;
-	update: (filter: JournalFilterSchemaWithoutPaginationType, currentFilter: string) => void;
-}[];
+] satisfies TextFilterOptionsType<JournalFilterSchemaWithoutPaginationType>;
 
 export const processJournalTextFilter = textFilterHandler(filterArray, (filter, currentFilter) => {
 	if (currentFilter.length === 0) return;
