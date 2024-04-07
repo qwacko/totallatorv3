@@ -1,4 +1,4 @@
-import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
+import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import { journalEntry } from '../../../postgres/schema';
 import { SQL, eq, gte, lte, inArray, ilike, not, notInArray } from 'drizzle-orm';
 import {
@@ -21,10 +21,10 @@ import { processJournalTextFilter } from './processJournalTextFilter';
 
 export const journalFilterToQuery = async (
 	db: DBType,
-	filterIn: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	filterIn: JournalFilterSchemaWithoutPaginationType,
 	{ firstMonthOfFY }: { firstMonthOfFY: number } = { firstMonthOfFY: 1 }
 ) => {
-	const filter = processJournalTextFilter(JSON.parse(JSON.stringify(filterIn)));
+	const filter = processJournalTextFilter.process(JSON.parse(JSON.stringify(filterIn)));
 
 	const where: SQL<unknown>[] = [];
 
@@ -163,12 +163,12 @@ export const journalFilterToText = async ({
 	allText = true,
 	db
 }: {
-	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: JournalFilterSchemaWithoutPaginationType;
 	prefix?: string;
 	allText?: boolean;
 	db: DBType;
 }) => {
-	const filterInternal = processJournalTextFilter(JSON.parse(JSON.stringify(filter)));
+	const filterInternal = processJournalTextFilter.process(JSON.parse(JSON.stringify(filter)));
 
 	const stringArray: string[] = [];
 	if (filterInternal.id) stringArray.push(`ID is ${filterInternal.id}`);

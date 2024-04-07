@@ -3,6 +3,7 @@ export const addToArray = <T extends Record<string, string[] | any>>(
 	key: keyof T,
 	value: string
 ) => {
+	if (value.length === 0) return;
 	if (!filter[key]) {
 		filter[key] = [] as any;
 	}
@@ -130,13 +131,13 @@ export type TextFilterOptionsType<T extends { textFilter?: string }> = {
 	update: (filter: T, currentFilter: string, prefix: string) => void;
 }[];
 
-export const textFilterHandler =
-	<T extends { textFilter?: string }>(
-		filterList: TextFilterOptionsType<T>,
-		defaultFilter: (filter: T, currentFilter: string) => void,
-		proxyKeys?: { [U: string]: string }
-	) =>
-	(filter: T, logProcessing?: boolean) => {
+export const textFilterHandler = <T extends { textFilter?: string }>(
+	filterList: TextFilterOptionsType<T>,
+	defaultFilter: (filter: T, currentFilter: string) => void,
+	defaultExcludeFilter: (filter: T, currentFilter: string) => void,
+	proxyKeys?: { [U: string]: string }
+) => {
+	const process = (filter: T, logProcessing?: boolean) => {
 		if (!filter.textFilter) {
 			return filter;
 		}
@@ -185,9 +186,15 @@ export const textFilterHandler =
 				}
 			}
 			if (!filterHandled) {
-				filterKey = 'default';
-				const currentFilter = unpackText(useText);
-				defaultFilter(filter, currentFilter);
+				if (useText.startsWith('!')) {
+					filterKey = 'default exclude';
+					const currentFilter = unpackText(useText, '!');
+					defaultExcludeFilter(filter, currentFilter);
+				} else {
+					filterKey = 'default';
+					const currentFilter = unpackText(useText);
+					defaultFilter(filter, currentFilter);
+				}
 			}
 
 			if (logProcessing) {
@@ -197,6 +204,14 @@ export const textFilterHandler =
 
 		return { ...filter, textFilter: undefined };
 	};
+
+	const keys = () =>
+		[...(proxyKeys ? Object.keys(proxyKeys) : []), ...filterList.map((item) => item.key)]
+			.flat()
+			.sort();
+
+	return { process, keys };
+};
 
 type WithTextFilter = { textFilter?: string | undefined };
 

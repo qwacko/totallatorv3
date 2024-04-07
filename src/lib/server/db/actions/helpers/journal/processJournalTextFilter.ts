@@ -1,6 +1,7 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import { accountTextFilterKeys } from '../account/accountTextFilter';
 import {
+	addToArray,
 	dateRegex,
 	isValidDate,
 	monthRegex,
@@ -210,32 +211,13 @@ const filterArray = [
 	{
 		key: 'description:',
 		update: (filter, newFilter) => {
-			if (newFilter.length === 0) return;
-			if (!filter.descriptionArray) {
-				filter.descriptionArray = [];
-			}
-
-			filter.descriptionArray.push(newFilter);
+			addToArray(filter, 'descriptionArray', newFilter);
 		}
 	},
 	{
 		key: '!description:',
 		update: (filter, newFilter) => {
-			if (newFilter.length === 0) return;
-			if (!filter.excludeDescriptionArray) {
-				filter.excludeDescriptionArray = [];
-			}
-			filter.excludeDescriptionArray.push(newFilter);
-		}
-	},
-	{
-		key: '!',
-		update: (filter, newFilter) => {
-			if (newFilter.length === 0) return;
-			if (!filter.excludeDescriptionArray) {
-				filter.excludeDescriptionArray = [];
-			}
-			filter.excludeDescriptionArray.push(newFilter);
+			addToArray(filter, 'excludeDescriptionArray', newFilter);
 		}
 	}
 ] satisfies TextFilterOptionsType<JournalFilterSchemaWithoutPaginationType>;
@@ -243,12 +225,10 @@ const filterArray = [
 export const processJournalTextFilter = textFilterHandler(
 	filterArray,
 	(filter, currentFilter) => {
-		if (currentFilter.length === 0) return;
-		if (!filter.descriptionArray) {
-			filter.descriptionArray = [];
-		}
-
-		filter.descriptionArray.push(currentFilter);
+		addToArray(filter, 'descriptionArray', currentFilter);
+	},
+	(filter, currentFilter) => {
+		addToArray(filter, 'excludeDescriptionArray', currentFilter);
 	},
 	{
 		'cash:': 'accountcash:',

@@ -39,7 +39,9 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(JSON.parse(JSON.stringify(inputFilter)));
+			const processedFilter = processJournalTextFilter.process(
+				JSON.parse(JSON.stringify(inputFilter))
+			);
 
 			expect(processedFilter).toEqual(inputFilter);
 		});
@@ -53,7 +55,9 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(JSON.parse(JSON.stringify(inputFilter)));
+			const processedFilter = processJournalTextFilter.process(
+				JSON.parse(JSON.stringify(inputFilter))
+			);
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
@@ -71,7 +75,9 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(JSON.parse(JSON.stringify(inputFilter)));
+			const processedFilter = processJournalTextFilter.process(
+				JSON.parse(JSON.stringify(inputFilter))
+			);
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
@@ -89,7 +95,9 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(JSON.parse(JSON.stringify(inputFilter)));
+			const processedFilter = processJournalTextFilter.process(
+				JSON.parse(JSON.stringify(inputFilter))
+			);
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
@@ -107,7 +115,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -128,7 +136,9 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(JSON.parse(JSON.stringify(inputFilter)));
+			const processedFilter = processJournalTextFilter.process(
+				JSON.parse(JSON.stringify(inputFilter))
+			);
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
@@ -146,7 +156,9 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(JSON.parse(JSON.stringify(inputFilter)));
+			const processedFilter = processJournalTextFilter.process(
+				JSON.parse(JSON.stringify(inputFilter))
+			);
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
@@ -164,7 +176,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -185,7 +197,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -208,7 +220,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -230,7 +242,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -249,7 +261,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -267,7 +279,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -287,7 +299,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -308,7 +320,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -327,7 +339,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -346,7 +358,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -365,7 +377,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -383,7 +395,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -407,7 +419,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -432,7 +444,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -457,7 +469,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -487,7 +499,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -514,7 +526,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -533,7 +545,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -552,7 +564,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -571,7 +583,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -590,7 +602,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -609,7 +621,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -629,7 +641,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -656,7 +668,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -674,7 +686,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -691,7 +703,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -709,7 +721,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -729,7 +741,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -747,7 +759,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -765,7 +777,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -783,7 +795,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -801,7 +813,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -819,7 +831,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -837,7 +849,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -856,7 +868,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -881,7 +893,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -906,7 +918,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -931,7 +943,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -955,7 +967,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -973,7 +985,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -991,7 +1003,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -1009,7 +1021,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -1027,7 +1039,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -1045,7 +1057,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -1065,7 +1077,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -1085,7 +1097,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);
@@ -1102,7 +1114,7 @@ describe('processJournalTextFilter', () => {
 			};
 
 			// JSON Parse and Stringify to deep clone the object
-			const processedFilter = processJournalTextFilter(
+			const processedFilter = processJournalTextFilter.process(
 				JSON.parse(JSON.stringify(inputFilter)),
 				false
 			);

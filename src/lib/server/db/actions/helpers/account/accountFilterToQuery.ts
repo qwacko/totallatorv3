@@ -1,4 +1,4 @@
-import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
+import type { AccountFilterSchemaWithoutPaginationType } from '$lib/schema/accountSchema';
 import type { DBType } from '$lib/server/db/db';
 import { account } from '$lib/server/db/postgres/schema';
 import {
@@ -25,12 +25,12 @@ export const accountFilterToQuery = ({
 	filter,
 	target
 }: {
-	filter: Omit<AccountFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>;
+	filter: AccountFilterSchemaWithoutPaginationType;
 	target?: 'materializedJournals' | 'account' | 'accountWithSummary';
 }) => {
 	const where: SQL<unknown>[] = [];
 
-	const intFilter = processAccountTextFilter(JSON.parse(JSON.stringify(filter)));
+	const intFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(filter)));
 
 	const materializedJournals = target === 'materializedJournals';
 	const includeSummary = target === 'accountWithSummary';
@@ -221,12 +221,12 @@ export const accountFilterToText = async ({
 	allText = true,
 	db
 }: {
-	filter: Omit<AccountFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: AccountFilterSchemaWithoutPaginationType;
 	prefix?: string;
 	allText?: boolean;
 	db: DBType;
 }) => {
-	const restFilter = processAccountTextFilter(JSON.parse(JSON.stringify(filter)));
+	const restFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(filter)));
 
 	const stringArray: string[] = [];
 	await idTitleFilterToText(db, stringArray, restFilter, accountIdToTitle);

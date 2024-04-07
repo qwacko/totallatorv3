@@ -1,4 +1,4 @@
-import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
+import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq, gte, lte, ilike, not, inArray, notInArray } from 'drizzle-orm';
 import { accountFilterToQuery } from '../account/accountFilterToQuery';
@@ -15,7 +15,7 @@ import { processJournalTextFilter } from '../journal/processJournalTextFilter';
 
 export const materializedJournalFilterToQuery = async (
 	db: DBType,
-	filterIn: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	filterIn: JournalFilterSchemaWithoutPaginationType,
 	{
 		excludeStart = false,
 		excludeEnd = false,
@@ -28,7 +28,7 @@ export const materializedJournalFilterToQuery = async (
 		firstMonthOfFY?: number;
 	} = {}
 ) => {
-	const filter = processJournalTextFilter(JSON.parse(JSON.stringify(filterIn)));
+	const filter = processJournalTextFilter.process(JSON.parse(JSON.stringify(filterIn)));
 
 	const where: SQL<unknown>[] = [];
 
