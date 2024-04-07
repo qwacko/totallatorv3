@@ -30,8 +30,13 @@ import {
 	backupSchemaMigrate_06to07,
 	backupSchemaMigrate_06to07Information
 } from './backupSchemaMigrate_06to07';
+import { backupSchemaRev08 } from './backupSchema.Rev08';
+import {
+	backupSchemaMigrate_07to08,
+	backupSchemaMigrate_07to08Information
+} from './backupSchemaMigrate_07to08';
 
-export const currentBackupSchema = backupSchemaRev07;
+export const currentBackupSchema = backupSchemaRev08;
 export type CurrentBackupSchemaType = z.infer<typeof currentBackupSchema>;
 export type CurrentBackupSchemaInfoType = Pick<CurrentBackupSchemaType, 'information' | 'version'>;
 
@@ -42,7 +47,8 @@ export const combinedBackupSchema = z.union([
 	backupSchemaRev04,
 	backupSchemaRev05,
 	backupSchemaRev06,
-	backupSchemaRev07
+	backupSchemaRev07,
+	backupSchemaRev08
 ]);
 
 export const combinedBackupInfoSchema = z.union([
@@ -52,7 +58,8 @@ export const combinedBackupInfoSchema = z.union([
 	backupSchemaRev04.pick({ information: true, version: true }),
 	backupSchemaRev05.pick({ information: true, version: true }),
 	backupSchemaRev06.pick({ information: true, version: true }),
-	backupSchemaRev07.pick({ information: true, version: true })
+	backupSchemaRev07.pick({ information: true, version: true }),
+	backupSchemaRev08.pick({ information: true, version: true })
 ]);
 
 export type CombinedBackupSchemaType = z.infer<typeof combinedBackupSchema>;
@@ -91,7 +98,12 @@ export const backupSchemaInfoToLatest = (
 			? backupDataParsed06
 			: backupSchemaMigrate_06to07Information(backupDataParsed06);
 
-	return backupDataParsed07;
+	const backupDataParsed08 =
+		backupDataParsed07.version !== 7
+			? backupDataParsed07
+			: backupSchemaMigrate_07to08Information(backupDataParsed07);
+
+	return backupDataParsed08;
 };
 
 export const backupSchemaToLatest = (
@@ -127,5 +139,10 @@ export const backupSchemaToLatest = (
 			? backupDataParsed06
 			: backupSchemaMigrate_06to07(backupDataParsed06);
 
-	return backupDataParsed07;
+	const backupDataParsed08 =
+		backupDataParsed07.version !== 7
+			? backupDataParsed07
+			: backupSchemaMigrate_07to08(backupDataParsed07);
+
+	return backupDataParsed08;
 };
