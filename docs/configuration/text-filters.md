@@ -17,67 +17,118 @@ The following rules are used across all text search types:
 - _Multiple Of Same Prefix :_ When there are multiple of the same prefix or action, then the way this is handled depends on the prefix / action.
 - _Boolean Prefix :_ Some filters are a boolean (yes / no) filter. For these items the filter prefix and exclude filter prefix are used (i.e. `cash:` and `!cash:`), rather than writing true or false (i.e. `cash:true` and `cash:false`). Any text written after the colon is ignored (i.e. `cash:false` and `cash:cash` is the same as `cash:`)
 - _Case Sensitivity :_ All text filters are case insensitive.
+- _Range Filters :_ For filters which are filtering within a range (i.e. `max:` and `min:`), the `!` vresion of this doesn't make sense. So the `!` version of htese filters will function that same with or without the `!` (i.e. `!max:100` and `max:100` will both filter for items with a maximum of 100).
 
 ## Journals
 
-| Prefix           | Default |                               Format / Options                               | Search Function                        | Duplicates       |
-| ---------------- | :-----: | :--------------------------------------------------------------------------: | -------------------------------------- | ---------------- |
-| **description:** |   `Y`   |                                   `string`                                   | Journal Description                    | or'ed together   |
-| **max:**         |         |                                   `number`                                   | Maximum journal amount                 | Minimum is used. |
-| **min:**         |         |                                   `number`                                   | Minimum journal amount                 | Maximum is used. |
-| **linked:**      |         |                                  `boolean`                                   | Journal is "linked"                    | Last is used     |
-| **reconciled:**  |         |                                  `boolean`                                   | Journal is reconciled                  | Last is used     |
-| **checked:**     |         |                                  `boolean`                                   | Journal has had data checked           | Last is used     |
-| **complete:**    |         |                                  `boolean`                                   | Journal is complete                    | Last is used     |
-| **transfer:**    |         |                                  `boolean`                                   | Journal is part of a transfer          | Last is used     |
-| **before:**      |         |                          `YYYY-MM-DD` or `YY-M-DD`                           | Journal date is before date            | earliest is used |
-| **after:**       |         |                          `YYYY-MM-DD` or `YY-M-DD`                           | Journal date is after date             | latest is used   |
-| **month:**       |         |                             `YYYY-MM` or `YY-M`                              | Journal date is in chosen month        | or'ed together   |
-| **bill:**        |         |                                   `string`                                   | Journal Bill Title search              | or'ed together   |
-| **budget:**      |         |                                   `string`                                   | Journal Budget Title search            | or'ed together   |
-| **category:**    |         |                                   `string`                                   | Journal Category Title search          | or'ed together   |
-| **tag:**         |         |                                   `string`                                   | Journal Tag Title search               | or'ed together   |
-| **label:**       |         |                                   `string`                                   | Journal Label Title search             | or'ed together   |
-| **account:**     |         |                                   `string`                                   | Journal Account Title search           | or'ed together   |
-| **type:**        |         | `asset` `liability` `income` or `expense` (Can be combined with `,` or `\|`) | Journal Account Type search            | or'ed together   |
-| **group:**       |         |                                   `string`                                   | Journal Account Group search           | or'ed together   |
-| **cash:**        |         |                                  `boolean`                                   | Journal Account is a cash account      | Last is used     |
-| **networth:**    |         |                                  `boolean`                                   | Journal Account is a net worth account | Last is used     |
+| Prefix           | Default |     Format / Options      | Search Function                                                                       | Duplicates       |
+| ---------------- | :-----: | :-----------------------: | ------------------------------------------------------------------------------------- | ---------------- |
+| **description:** |   `Y`   |         `string`          | Journal Description                                                                   | or'ed together   |
+| **max:**         |         |         `number`          | Maximum journal amount                                                                | Minimum is used. |
+| **min:**         |         |         `number`          | Minimum journal amount                                                                | Maximum is used. |
+| **linked:**      |         |         `boolean`         | Journal is "linked"                                                                   | Last is used     |
+| **reconciled:**  |         |         `boolean`         | Journal is reconciled                                                                 | Last is used     |
+| **checked:**     |         |         `boolean`         | Journal has had data checked                                                          | Last is used     |
+| **complete:**    |         |         `boolean`         | Journal is complete                                                                   | Last is used     |
+| **transfer:**    |         |         `boolean`         | Journal is part of a transfer                                                         | Last is used     |
+| **before:**      |         | `YYYY-MM-DD` or `YY-M-DD` | Journal date is before date                                                           | earliest is used |
+| **after:**       |         | `YYYY-MM-DD` or `YY-M-DD` | Journal date is after date                                                            | latest is used   |
+| **month:**       |         |    `YYYY-MM` or `YY-M`    | Journal date is in chosen month                                                       | or'ed together   |
+| **payee:**       |         |         `string`          | At least one of the linked journal entries in the same transaction has a payee title. | or'ed together   |
+
+### Linked Items
+
+For linked items (`account`, `bill`, `budget`, `category`, `tag`, `label`), using the text before the search term for that item will search the related item. For example `accounttype:asset` will return all journals with an account that is an asset account. The inversion of this is also possible, so `!accounttype:asset` will return all journals with an account that is not an asset account.
+
+The linked item title without another filter will use the default search for that item. For example `account:search` is the same as `accountdescription:search`, and `!account:search` is the same as `!accountdescription:search`.
+
+Because of the way the filtering works, it is possible to have some unusual filters such as `!account!type:asset` which will return journals that don't have an account that isn't an asset. Also `!accounttype:asset` and `account!type:asset` will return the same results.
+
+### Shorthand Filters
+
+For simpler searches fpr common linked items searches there are shorthands as shown below:
+
+- `cash:` -> `accountcash:`
+- `!cash:` -> `account!cash:`
+- `type:` -> `accounttype:`
+- `!type:` -> `account!type:`
+- `networth:` -> `accountnetworth:`
+- `!networth:` -> `account!networth:`
+- `nw:` -> `accountnetworth:`
+- `!nw:` -> `account!networth:`
 
 ## Accounts
 
-| Prefix        | Default |                               Format / Options                               | Search Function                | Duplicates     |
-| ------------- | :-----: | :--------------------------------------------------------------------------: | ------------------------------ | -------------- |
-| **title:**    |   `Y`   |                                   `string`                                   | Account Name                   | or'ed together |
-| **titleAll:** |         |                                   `string`                                   | Account Group / Name Combined  | or'ed together |
-| **group:**    |         |                                   `string`                                   | Account Group Title search     | or'ed together |
-| **group1:**   |         |                                   `string`                                   | Account Group 1 Title search   | or'ed together |
-| **group2:**   |         |                                   `string`                                   | Account Group 2 Title search   | or'ed together |
-| **group3:**   |         |                                   `string`                                   | Account Group 3 Title search   | or'ed together |
-| **type:**     |         | `asset` `liability` `income` or `expense` (Can be combined with `,` or `\|`) | Account Type search            | or'ed together |
-| **cash:**     |         |                                  `boolean`                                   | Account is a cash account      | Last is used   |
-| **networth:** |         |                                  `boolean`                                   | Account is a net worth account | Last is used   |
-| **active:**   |         |                                  `boolean`                                   | Account is active              | Last is used   |
-| **disabled:** |         |                                  `boolean`                                   | Account is disabled            | Last is used   |
+Accounts have the following search options, as well as the [summary items](#summary-filters)
+
+| Prefix              | Default |                               Format / Options                               | Search Function                                                         | Duplicates     |
+| ------------------- | :-----: | :--------------------------------------------------------------------------: | ----------------------------------------------------------------------- | -------------- |
+| **id:**             |   `Y`   |                                   `string`                                   | Item ID                                                                 | or'ed together |
+| **title:**          |   `Y`   |                                   `string`                                   | Account Name                                                            | or'ed together |
+| **titlecombined:**  |   `Y`   |                                   `string`                                   | Account Name and Group Combined                                         | or'ed together |
+| **group:**          |         |                                   `string`                                   | Account Group Title search (combination of Group 1 / Group 2 / Group 3) | or'ed together |
+| **group1:**         |         |                                   `string`                                   | Account Group 1 Title search                                            | or'ed together |
+| **group2:**         |         |                                   `string`                                   | Account Group 2 Title search                                            | or'ed together |
+| **group3:**         |         |                                   `string`                                   | Account Group 3 Title search                                            | or'ed together |
+| **type:**           |         | `asset` `liability` `income` or `expense` (Can be combined with `,` or `\|`) | Account Type search                                                     | or'ed together |
+| **cash:**           |         |                                  `boolean`                                   | Account is a cash account                                               | Last is used   |
+| **networth:**       |         |                                  `boolean`                                   | Account is a net worth account                                          | Last is used   |
+| **startafter:**     |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account Start Date is after date                                        | Last is used   |
+| **startbefore:**    |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account Start Date is before date                                       | Last is used   |
+| **endafter:**       |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account End Date is after date                                          | Last is used   |
+| **endbefore:**      |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account End Date is before date                                         | Last is used   |
+| **status:**         |         |                            `active` / `disabled`                             | Account status matches term                                             | or'ed together |
+| **active:**         |         |                                  `boolean`                                   | Account is active                                                       | Last is used   |
+| **disabled:**       |         |                                  `boolean`                                   | Account is disabled                                                     | Last is used   |
+| **allowUpdate:**    |         |                                  `boolean`                                   | Account allows update                                                   | Last is used   |
+| **importId:**       |         |                                   `string`                                   | Import ID matches value                                                 | or'ed together |
+| **importDetailId:** |         |                                   `string`                                   | Import Detail ID matches value                                          | or'ed together |
 
 ## Bills, Budgets, Labels
 
 All these items have the same search options, and are outlined below:
 
-| Prefix        | Default | Format / Options | Search Function | Duplicates     |
-| ------------- | :-----: | :--------------: | --------------- | -------------- |
-| **title:**    |   `Y`   |     `string`     | Combined TItle  | or'ed together |
-| **active:**   |         |    `boolean`     | Is active       | Last is used   |
-| **disabled:** |         |    `boolean`     | Is disabled     | Last is used   |
+| Prefix              | Default |   Format / Options    | Search Function                | Duplicates     |
+| ------------------- | :-----: | :-------------------: | ------------------------------ | -------------- |
+| **id:**             |   `Y`   |       `string`        | Item ID                        | or'ed together |
+| **title:**          |   `Y`   |       `string`        | Combined Title                 | or'ed together |
+| **status:**         |         | `active` / `disabled` | Account status matches term    | or'ed together |
+| **active:**         |         |       `boolean`       | Account is active              | Last is used   |
+| **disabled:**       |         |       `boolean`       | Account is disabled            | Last is used   |
+| **allowUpdate:**    |         |       `boolean`       | Account allows update          | Last is used   |
+| **importId:**       |         |       `string`        | Import ID matches value        | or'ed together |
+| **importDetailId:** |         |       `string`        | Import Detail ID matches value | or'ed together |
 
 ## Categories, Tags
 
 These all share the same search options, and are outlined below:
 
-| Prefix        | Default | Format / Options | Search Function     | Duplicates     |
-| ------------- | :-----: | :--------------: | ------------------- | -------------- |
-| **title:**    |   `Y`   |     `string`     | Combined Title      | or'ed together |
-| **active:**   |         |    `boolean`     | Account is active   | Last is used   |
-| **disabled:** |         |    `boolean`     | Account is disabled | Last is used   |
-| **group:**    |         |     `string`     | Group Title         | or'ed together |
-| **single:**   |         |     `string`     | Single Title        | or'ed together |
+| Prefix              | Default |   Format / Options    | Search Function                | Duplicates     |
+| ------------------- | :-----: | :-------------------: | ------------------------------ | -------------- |
+| **id:**             |   `Y`   |       `string`        | Item ID                        | or'ed together |
+| **title:**          |   `Y`   |       `string`        | Combined Title                 | or'ed together |
+| **group:**          |         |       `string`        | Group Title                    | or'ed together |
+| **single:**         |         |       `string`        | Single Title                   | or'ed together |
+| **status:**         |         | `active` / `disabled` | Account status matches term    | or'ed together |
+| **active:**         |         |       `boolean`       | Account is active              | Last is used   |
+| **disabled:**       |         |       `boolean`       | Account is disabled            | Last is used   |
+| **allowUpdate:**    |         |       `boolean`       | Account allows update          | Last is used   |
+| **importId:**       |         |       `string`        | Import ID matches value        | or'ed together |
+| **importDetailId:** |         |       `string`        | Import Detail ID matches value | or'ed together |
+
+## Summary Filters
+
+The following are available on the linked item lists (i.e. account, bill etc...), and can only be used in the item specific filtering as these don't work as nested filtering for journal filtering.
+
+These filters filter the list based on aggregate data (sum, count, max date, min date) from journals associated with the linked item.
+
+| Prefix        | Default |     Format / Options      | Search Function                      | Duplicates |
+| ------------- | :-----: | :-----------------------: | ------------------------------------ | ---------- |
+| **min:**      |         |         `number`          | Sum of journal entries minimum value | max        |
+| **max:**      |         |         `number`          | Sum of journal entries maximum value | min        |
+| **mincount:** |         |         `number`          | Minimum count of journal entries     | max        |
+| **maxcount:** |         |         `number`          | Maximum count of journal entries     | min        |
+| **minlast:**  |         | `YYYY-MM-DD` or `YY-M-DD` | Minimum last journal entry date      | min        |
+| **maxlast:**  |         | `YYYY-MM-DD` or `YY-M-DD` | Maximum last journal entry date      | max        |
+| **minfirst:** |         | `YYYY-MM-DD` or `YY-M-DD` | Minimum first journal entry date     | min        |
+| **maxfirst:** |         | `YYYY-MM-DD` or `YY-M-DD` | Maximum first journal entry date     | max        |
