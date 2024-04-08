@@ -10,7 +10,7 @@ import {
 	type CloneJournalUpdateSchemaType,
 	cloneJournalUpdateSchema
 } from '$lib/schema/journalSchema';
-import { eq, and,  not, or } from 'drizzle-orm';
+import { eq, and, not, or } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { journalEntry, transaction, labelsToJournals } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -31,6 +31,7 @@ import { updateManyTransferInfo } from './helpers/journal/updateTransactionTrans
 import { materializedViewActions } from './materializedViewActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
 
 export const journalActions = {
 	createFromSimpleTransaction: async ({
@@ -286,7 +287,13 @@ export const journalActions = {
 
 		const completedCount = journals.data.filter((journal) => journal.complete).length;
 
-		if (completedCount > 0) throw new Error('Cannot update journals that are already complete');
+		if (completedCount > 0) {
+			const updatingLabelsOnly = checkUpdateLabelsOnly(processedData.data);
+
+			if (!updatingLabelsOnly) {
+				throw new Error('Cannot update journals that are already complete');
+			}
+		}
 
 		const linkedJournals = journals.data.filter((journal) => journal.linked);
 		const unlinkedJournals = journals.data.filter((journal) => !journal.linked);
