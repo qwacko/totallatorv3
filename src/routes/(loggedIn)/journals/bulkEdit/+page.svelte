@@ -48,26 +48,25 @@
 	/>
 	<Heading tag="h3">Update Data</Heading>
 	{#if !data.selectedJournals.canEdit}<ErrorText
-			message="At Least One Journal Is Complete So Cannot Update Journals"
+			message="At Least One Journal Is Complete So Can Only Update Journal Labels"
 			title="Complete Journals Present"
-		/>
-	{:else}
-		<form method="post" class="grid grid-cols-1 gap-2 md:grid-cols-2" action="?/update" use:enhance>
-			<PreviousUrlInput name="prevPage" />
-			<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
-			<input type="hidden" name="currentPage" value={urlInfo.current.url} />
-
+		/>{/if}
+	<form method="post" class="grid grid-cols-1 gap-2 md:grid-cols-2" action="?/update" use:enhance>
+		<PreviousUrlInput name="prevPage" />
+		<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
+		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
+		{#if data.selectedJournals.canEdit}
 			<UpdateJournalForm {form} />
 			<UpdateJournalLinksForm {form} dropdownInfo={data.streamed.dropdownInfo} />
-			<UpdateJournalLabelsForm
-				{form}
-				dropdownInfo={data.streamed.dropdownInfo}
-				allLabelIds={data.allLabelIds}
-				commonLabelIds={data.commonLabelIds}
-			/>
-			<Button type="submit">Update {data.journals.count} Journals</Button>
-			<Button on:click={() => form.reset()}>Reset</Button>
-			<PrevPageButton>Cancel</PrevPageButton>
-		</form>
-	{/if}
+		{/if}
+		<UpdateJournalLabelsForm
+			{form}
+			dropdownInfo={data.streamed.dropdownInfo}
+			allLabelIds={data.allLabelIds}
+			commonLabelIds={data.commonLabelIds}
+		/>
+		<Button type="submit">Update {data.journals.count} Journals</Button>
+		<Button on:click={() => form.reset()}>Reset</Button>
+		<PrevPageButton>Cancel</PrevPageButton>
+	</form>
 </PageLayout>

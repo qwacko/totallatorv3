@@ -57,7 +57,7 @@ export const load = async (data) => {
 			canEdit: journalData.common.complete === false
 		},
 		form,
-		allLabelIds,
+		allLabelIds: allLabelIds.filter((labelId) => !commonLabelIds.includes(labelId)),
 		commonLabelIds
 	};
 };
