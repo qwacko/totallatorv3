@@ -83,19 +83,19 @@ export default withMermaid({
 						link: 'advanced/automatic-import',
 						collapsed: true,
 						items: [
-							{ text: 'Salt Edge', link: '/salt-edge' },
-							{ text: 'Akahu', link: '/akahu' }
+							{ text: 'Salt Edge', link: 'advanced/salt-edge' },
+							{ text: 'Akahu', link: 'advanced/akahu' }
 						]
 					}
 				]
 			},
 			{
 				text: 'Developers 🚧',
-				link: 'development/development',
+				link: 'developers/development',
 				items: [
-					{ text: 'Contributing 🚧', link: 'development/contribution' },
-					{ text: 'Database 🚧', link: 'development/database' },
-					{ text: 'Auto Import Development 🚧', link: 'development/develop-auto-import' }
+					{ text: 'Contributing 🚧', link: 'developers/contribution' },
+					{ text: 'Database 🚧', link: 'developers/database' },
+					{ text: 'Auto Import Development 🚧', link: 'developers/develop-auto-import' }
 				]
 			}
 		],
