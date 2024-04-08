@@ -748,7 +748,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				tag: { titleArray: ['tagFilter'] },
+				tag: { textFilter: ' "tagFilter"' },
 				textFilter: undefined
 			});
 		});
@@ -766,7 +766,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				bill: { titleArray: ['billFilter'] },
+				bill: { textFilter: ' "billFilter"' },
 				textFilter: undefined
 			});
 		});
@@ -784,7 +784,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				budget: { titleArray: ['budgetFilter'] },
+				budget: { textFilter: ' "budgetFilter"' },
 				textFilter: undefined
 			});
 		});
@@ -802,7 +802,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				category: { titleArray: ['categoryFilter'] },
+				category: { textFilter: ' "categoryFilter"' },
 				textFilter: undefined
 			});
 		});
@@ -820,7 +820,7 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				label: { titleArray: ['labelFilter'] },
+				label: { textFilter: ' "labelFilter"' },
 				textFilter: undefined
 			});
 		});
@@ -875,12 +875,12 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				excludeTag: { titleArray: ['tagFilter'] },
-				excludeBill: { titleArray: ['billFilter'] },
-				excludeBudget: { titleArray: ['budgetFilter'] },
-				excludeCategory: { titleArray: ['categoryFilter'] },
+				excludeTag: { textFilter: ' "tagFilter"' },
+				excludeBill: { textFilter: ' "billFilter"' },
+				excludeBudget: { textFilter: ' "budgetFilter"' },
+				excludeCategory: { textFilter: ' "categoryFilter"' },
 				excludeAccount: { textFilter: ` "accountFilter"` },
-				excludeLabel: { titleArray: ['labelFilter'] },
+				excludeLabel: { textFilter: ' "labelFilter"' },
 				excludePayee: { titleArray: ['payeeFilter'] },
 				textFilter: undefined
 			});
@@ -900,12 +900,12 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				tag: { titleArray: ['tag Filter'] },
-				bill: { titleArray: ['bill Filter'] },
-				budget: { titleArray: ['budget Filter'] },
-				category: { titleArray: ['category Filter'] },
+				tag: { textFilter: ' "tag Filter"' },
+				bill: { textFilter: ' "bill Filter"' },
+				budget: { textFilter: ' "budget Filter"' },
+				category: { textFilter: ' "category Filter"' },
 				account: { textFilter: ` "account Filter"` },
-				label: { titleArray: ['label Filter'] },
+				label: { textFilter: ' "label Filter"' },
 				payee: { titleArray: ['payee Filter'] },
 				textFilter: undefined
 			});
@@ -925,12 +925,12 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				tag: { titleArray: ['tag Filter', 'tag Filter 2'] },
-				bill: { titleArray: ['bill Filter', 'bill Filter 2'] },
-				budget: { titleArray: ['budget Filter', 'budget Filter 2'] },
-				category: { titleArray: ['category Filter', 'category Filter 2'] },
+				tag: { textFilter: ` "tag Filter" "tag Filter 2"` },
+				bill: { textFilter: ` "bill Filter" "bill Filter 2"` },
+				budget: { textFilter: ` "budget Filter" "budget Filter 2"` },
+				category: { textFilter: ` "category Filter" "category Filter 2"` },
 				account: { textFilter: ` "account Filter" "account Filter 2"` },
-				label: { titleArray: ['label Filter', 'label Filter 2'] },
+				label: { textFilter: ` "label Filter" "label Filter 2"` },
 				payee: { titleArray: ['payee Filter', 'payee Filter 2'] },
 				textFilter: undefined
 			});
@@ -950,12 +950,12 @@ describe('processJournalTextFilter', () => {
 
 			expect(processedFilter).toEqual({
 				...inputFilter,
-				excludeTag: { titleArray: ['tag Filter', 'tag Filter 2'] },
-				excludeBill: { titleArray: ['bill Filter', 'bill Filter 2'] },
-				excludeBudget: { titleArray: ['budget Filter', 'budget Filter 2'] },
-				excludeCategory: { titleArray: ['category Filter', 'category Filter 2'] },
+				excludeTag: { textFilter: ` "tag Filter" "tag Filter 2"` },
+				excludeBill: { textFilter: ` "bill Filter" "bill Filter 2"` },
+				excludeBudget: { textFilter: ` "budget Filter" "budget Filter 2"` },
+				excludeCategory: { textFilter: ` "category Filter" "category Filter 2"` },
 				excludeAccount: { textFilter: ` "account Filter" "account Filter 2"` },
-				excludeLabel: { titleArray: ['label Filter', 'label Filter 2'] },
+				excludeLabel: { textFilter: ` "label Filter" "label Filter 2"` },
 				excludePayee: { titleArray: ['payee Filter', 'payee Filter 2'] },
 				textFilter: undefined
 			});
