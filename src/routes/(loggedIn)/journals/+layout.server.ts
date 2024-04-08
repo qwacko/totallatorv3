@@ -20,6 +20,10 @@ export const load = async (data) => {
 		account: { type: ['asset', 'liability'] }
 	};
 
+	if (filter.pageSize > 500) {
+		redirect(302, updateParams({ searchParams: { pageSize: 10 } }).url);
+	}
+
 	const journalData = await tActions.journalView.list({
 		db,
 		filter,
