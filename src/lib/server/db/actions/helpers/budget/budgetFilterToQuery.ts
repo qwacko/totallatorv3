@@ -1,4 +1,4 @@
-import type { BudgetFilterSchemaType } from '$lib/schema/budgetSchema';
+import type { BudgetFilterSchemaWithoutPaginationType } from '$lib/schema/budgetSchema';
 import type { DBType } from '../../../db';
 import { budget } from '../../../postgres/schema';
 import {
@@ -17,22 +17,23 @@ import {
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { processBudgetTextFilter } from './budgetTextFilter';
 
 export const budgetFilterToQuery = ({
 	filter,
 	target = 'budget'
 }: {
-	filter: Omit<BudgetFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: BudgetFilterSchemaWithoutPaginationType;
 	target?: 'budget' | 'budgetWithSummary' | 'materializedJournals';
 }) => {
-	const restFilter = filter;
+	const restFilter = processBudgetTextFilter.process(filter);
 	const includeSummary = target === 'budgetWithSummary';
 	const materializedJournals = target === 'materializedJournals';
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		idColumn: materializedJournals ? journalExtendedView.budgetId : budgetMaterializedView.id,
 		titleColumn: materializedJournals
 			? journalExtendedView.budgetTitle
@@ -40,7 +41,7 @@ export const budgetFilterToQuery = ({
 	});
 	statusFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		statusColumn: materializedJournals
 			? journalExtendedView.budgetStatus
 			: budgetMaterializedView.status,
@@ -58,7 +59,7 @@ export const budgetFilterToQuery = ({
 	if (!materializedJournals) {
 		importFilterToQueryMaterialized({
 			where,
-			filter,
+			filter: restFilter,
 			table: {
 				importId: budgetMaterializedView.importId,
 				importDetailId: budgetMaterializedView.importDetailId
@@ -103,16 +104,16 @@ export const budgetFilterToText = async ({
 	allText = true
 }: {
 	db: DBType;
-	filter: Omit<BudgetFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: BudgetFilterSchemaWithoutPaginationType;
 	prefix?: string;
 	allText?: boolean;
 }) => {
-	const restFilter = filter;
+	const restFilter = processBudgetTextFilter.process(filter);
 
 	const stringArray: string[] = [];
-	await idTitleFilterToText(db, stringArray, filter, budgetIdToTitle);
-	statusFilterToText(stringArray, filter);
-	importFilterToText(db, stringArray, filter);
+	await idTitleFilterToText(db, stringArray, restFilter, budgetIdToTitle);
+	statusFilterToText(stringArray, restFilter);
+	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

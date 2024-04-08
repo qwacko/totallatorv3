@@ -1,4 +1,4 @@
-import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
+import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq, gte, lte, ilike, not, inArray, notInArray } from 'drizzle-orm';
 import { accountFilterToQuery } from '../account/accountFilterToQuery';
@@ -10,11 +10,12 @@ import { labelFilterToSubQuery } from '../label/labelFilterToQuery';
 import { type DBType } from '../../../db';
 import { journalPayeeToSubquery } from '../journal/journalPayeeToSubquery';
 import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
-import { inArrayWrapped, notInArrayWrapped } from '../misc/inArrayWrapped';
+import { ilikeArrayWrapped, inArrayWrapped, notInArrayWrapped } from '../misc/inArrayWrapped';
+import { processJournalTextFilter } from '../journal/processJournalTextFilter';
 
 export const materializedJournalFilterToQuery = async (
 	db: DBType,
-	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	filterIn: JournalFilterSchemaWithoutPaginationType,
 	{
 		excludeStart = false,
 		excludeEnd = false,
@@ -27,6 +28,8 @@ export const materializedJournalFilterToQuery = async (
 		firstMonthOfFY?: number;
 	} = {}
 ) => {
+	const filter = processJournalTextFilter.process(JSON.parse(JSON.stringify(filterIn)));
+
 	const where: SQL<unknown>[] = [];
 
 	if (filter.id) where.push(eq(journalExtendedView.id, filter.id));
@@ -51,6 +54,14 @@ export const materializedJournalFilterToQuery = async (
 		where.push(ilike(journalExtendedView.description, `%${filter.description}%`));
 	if (filter.excludeDescription)
 		where.push(not(ilike(journalExtendedView.description, `%${filter.excludeDescription}%`)));
+	if (filter.descriptionArray && filter.descriptionArray.length > 0) {
+		where.push(ilikeArrayWrapped(journalExtendedView.description, filter.descriptionArray));
+	}
+	if (filter.excludeDescriptionArray && filter.excludeDescriptionArray.length > 0) {
+		where.push(
+			not(ilikeArrayWrapped(journalExtendedView.description, filter.excludeDescriptionArray))
+		);
+	}
 	if (!excludeStart && filter.dateAfter)
 		where.push(gte(journalExtendedView.dateText, filter.dateAfter));
 	if (!excludeEnd && filter.dateBefore)

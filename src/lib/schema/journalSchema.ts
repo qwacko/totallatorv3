@@ -218,6 +218,7 @@ export const journalOrderByEnum = [
 ] as const;
 
 export const journalFilterSchemaWithoutPagination = z.object({
+	textFilter: z.coerce.string().optional(),
 	id: z.coerce.string().optional(),
 	excludeId: z.coerce.string().optional(),
 	idArray: z.array(z.string()).optional(),
@@ -232,7 +233,9 @@ export const journalFilterSchemaWithoutPagination = z.object({
 	yearMonth: z.array(z.string()).optional(),
 	excludeYearMonth: z.array(z.string()).optional(),
 	description: z.coerce.string().optional().nullable(),
+	descriptionArray: z.array(z.string()).optional(),
 	excludeDescription: z.coerce.string().optional(),
+	excludeDescriptionArray: z.array(z.string()).optional(),
 	transfer: z.coerce.boolean().optional(),
 	linked: z.coerce.boolean().optional(),
 	reconciled: z.coerce.boolean().optional(),
@@ -244,14 +247,16 @@ export const journalFilterSchemaWithoutPagination = z.object({
 		.object({
 			id: z.string().optional(),
 			idArray: z.array(z.string()).optional(),
-			title: z.string().optional()
+			title: z.string().optional(),
+			titleArray: z.array(z.string()).optional()
 		})
 		.optional(),
 	excludePayee: z
 		.object({
 			id: z.string().optional(),
 			idArray: z.array(z.string()).optional(),
-			title: z.string().optional()
+			title: z.string().optional(),
+			titleArray: z.array(z.string()).optional()
 		})
 		.optional(),
 	account: accountFilterSchema

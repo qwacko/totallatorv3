@@ -15,21 +15,24 @@ import {
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
 import { labelMaterializedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
+import { processLabelTextFilter } from './labelTextFilter';
 
 export const labelFilterToQuery = (
 	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,
 	includeSummary: boolean = false
 ) => {
+	const restFilter = processLabelTextFilter.process(filter);
+
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		idColumn: labelMaterializedView.id,
 		titleColumn: labelMaterializedView.title
 	});
 	statusFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		statusColumn: labelMaterializedView.status,
 		disabledColumn: labelMaterializedView.disabled,
 		activeColumn: labelMaterializedView.active,
@@ -37,7 +40,7 @@ export const labelFilterToQuery = (
 	});
 	importFilterToQueryMaterialized({
 		where,
-		filter,
+		filter: restFilter,
 		table: {
 			importId: labelMaterializedView.importId,
 			importDetailId: labelMaterializedView.importDetailId
@@ -47,7 +50,7 @@ export const labelFilterToQuery = (
 	if (includeSummary) {
 		summaryFilterToQueryMaterialized({
 			where,
-			filter,
+			filter: restFilter,
 			table: {
 				count: labelMaterializedView.count,
 				sum: labelMaterializedView.sum,
@@ -69,7 +72,9 @@ export const labelFilterToSubQuery = ({
 	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>;
 	includeSummary?: boolean;
 }) => {
-	const labelFilter = labelFilterToQuery(filter, includeSummary);
+	const restFilter = processLabelTextFilter.process(filter);
+
+	const labelFilter = labelFilterToQuery(restFilter, includeSummary);
 	const labelIdsSubquery = db
 		.select({ id: journalEntry.id })
 		.from(labelsToJournals)
@@ -111,12 +116,12 @@ export const labelFilterToText = async ({
 	prefix?: string;
 	allText?: boolean;
 }) => {
-	const restFilter = filter;
+	const restFilter = processLabelTextFilter.process(filter);
 
 	const stringArray: string[] = [];
-	await idTitleFilterToText(db, stringArray, filter, labelIdToTitle);
-	statusFilterToText(stringArray, filter);
-	importFilterToText(db, stringArray, filter);
+	await idTitleFilterToText(db, stringArray, restFilter, labelIdToTitle);
+	statusFilterToText(stringArray, restFilter);
+	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

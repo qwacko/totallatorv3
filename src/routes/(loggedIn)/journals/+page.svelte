@@ -48,13 +48,13 @@
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/journals',
-		pageInfo: page,
+		pageInfo: page,		
 		onUpdate: (newURL) => {
 			if (browser && newURL !== urlInfo.current.url) {
 				goto(newURL, { keepFocus: true, noScroll: true });
 			}
 		},
-		updateDelay: 500
+		updateDelay: 1000
 	});
 </script>
 
@@ -211,8 +211,8 @@
 					{#if $urlStore.searchParams}
 						<Input
 							type="text"
-							bind:value={$urlStore.searchParams.description}
-							placeholder="Filter by Description"
+							bind:value={$urlStore.searchParams.textFilter}
+							placeholder="Filter..."
 							class="flex flex-grow"
 						/>
 					{/if}

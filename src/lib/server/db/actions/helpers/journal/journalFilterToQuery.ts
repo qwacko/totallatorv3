@@ -1,4 +1,4 @@
-import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
+import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
 import { journalEntry } from '../../../postgres/schema';
 import { SQL, eq, gte, lte, inArray, ilike, not, notInArray } from 'drizzle-orm';
 import {
@@ -16,13 +16,16 @@ import { arrayToText } from '../misc/arrayToText';
 import { importIdsToTitles } from '../import/importIdsToTitles';
 import { journalPayeeToSubquery } from './journalPayeeToSubquery';
 import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
-import { inArrayWrapped, notInArrayWrapped } from '../misc/inArrayWrapped';
+import { ilikeArrayWrapped, inArrayWrapped, notInArrayWrapped } from '../misc/inArrayWrapped';
+import { processJournalTextFilter } from './processJournalTextFilter';
 
 export const journalFilterToQuery = async (
 	db: DBType,
-	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>,
+	filterIn: JournalFilterSchemaWithoutPaginationType,
 	{ firstMonthOfFY }: { firstMonthOfFY: number } = { firstMonthOfFY: 1 }
 ) => {
+	const filter = processJournalTextFilter.process(JSON.parse(JSON.stringify(filterIn)));
+
 	const where: SQL<unknown>[] = [];
 
 	if (filter.id) where.push(eq(journalEntry.id, filter.id));
@@ -44,6 +47,12 @@ export const journalFilterToQuery = async (
 	if (filter.description) where.push(ilike(journalEntry.description, `%${filter.description}%`));
 	if (filter.excludeDescription)
 		where.push(not(ilike(journalEntry.description, `%${filter.excludeDescription}%`)));
+	if (filter.descriptionArray && filter.descriptionArray.length > 0) {
+		where.push(ilikeArrayWrapped(journalEntry.description, filter.descriptionArray));
+	}
+	if (filter.excludeDescriptionArray && filter.excludeDescriptionArray.length > 0) {
+		where.push(not(ilikeArrayWrapped(journalEntry.description, filter.excludeDescriptionArray)));
+	}
 	if (filter.dateSpan) {
 		const dateSpan = dateSpanInfo[filter.dateSpan];
 		const startDate = dateSpan.getStartDate({ currentDate: new Date(), firstMonthOfFY });
@@ -154,86 +163,116 @@ export const journalFilterToText = async ({
 	allText = true,
 	db
 }: {
-	filter: Omit<JournalFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: JournalFilterSchemaWithoutPaginationType;
 	prefix?: string;
 	allText?: boolean;
 	db: DBType;
 }) => {
-	const stringArray: string[] = [];
-	if (filter.id) stringArray.push(`ID is ${filter.id}`);
-	if (filter.excludeId) stringArray.push(`ID is not ${filter.excludeId}`);
-	if (filter.idArray) {
-		stringArray.push(await arrayToText({ data: filter.idArray, singularName: 'ID' }));
-	}
-	if (filter.excludeIdArray && filter.excludeIdArray.length > 0) {
-		stringArray.push(
-			await arrayToText({ data: filter.excludeIdArray, singularName: 'Exclude ID' })
-		);
-	}
-	if (filter.maxAmount !== undefined) stringArray.push(`Amount < ${filter.maxAmount}`);
-	if (filter.minAmount !== undefined) stringArray.push(`Amount > ${filter.minAmount}`);
+	const filterInternal = processJournalTextFilter.process(JSON.parse(JSON.stringify(filter)));
 
-	if (filter.yearMonth && filter.yearMonth.length > 0) {
-		stringArray.push(await arrayToText({ data: filter.yearMonth, singularName: 'Year-Month' }));
+	const stringArray: string[] = [];
+	if (filterInternal.id) stringArray.push(`ID is ${filterInternal.id}`);
+	if (filterInternal.excludeId) stringArray.push(`ID is not ${filterInternal.excludeId}`);
+	if (filterInternal.idArray) {
+		stringArray.push(await arrayToText({ data: filterInternal.idArray, singularName: 'ID' }));
 	}
-	if (filter.excludeYearMonth && filter.excludeYearMonth.length > 0) {
+	if (filterInternal.excludeIdArray && filterInternal.excludeIdArray.length > 0) {
 		stringArray.push(
-			`Exclude ${await arrayToText({ data: filter.excludeYearMonth, singularName: 'Year-Month' })}`
+			await arrayToText({ data: filterInternal.excludeIdArray, singularName: 'Exclude ID' })
 		);
 	}
-	if (filter.transactionIdArray && filter.transactionIdArray.length > 0) {
+	if (filterInternal.maxAmount !== undefined)
+		stringArray.push(`Amount < ${filterInternal.maxAmount}`);
+	if (filterInternal.minAmount !== undefined)
+		stringArray.push(`Amount > ${filterInternal.minAmount}`);
+
+	if (filterInternal.yearMonth && filterInternal.yearMonth.length > 0) {
 		stringArray.push(
-			await arrayToText({ data: filter.transactionIdArray, singularName: 'Transaction ID' })
+			await arrayToText({ data: filterInternal.yearMonth, singularName: 'Year-Month' })
 		);
 	}
-	if (filter.excludeTransactionIdArray && filter.excludeTransactionIdArray.length > 0) {
+	if (filterInternal.excludeYearMonth && filterInternal.excludeYearMonth.length > 0) {
+		stringArray.push(
+			`Exclude ${await arrayToText({ data: filterInternal.excludeYearMonth, singularName: 'Year-Month' })}`
+		);
+	}
+	if (filterInternal.transactionIdArray && filterInternal.transactionIdArray.length > 0) {
+		stringArray.push(
+			await arrayToText({ data: filterInternal.transactionIdArray, singularName: 'Transaction ID' })
+		);
+	}
+	if (
+		filterInternal.excludeTransactionIdArray &&
+		filterInternal.excludeTransactionIdArray.length > 0
+	) {
 		stringArray.push(
 			await arrayToText({
-				data: filter.excludeTransactionIdArray,
+				data: filterInternal.excludeTransactionIdArray,
 				singularName: 'Exclude Transaction ID'
 			})
 		);
 	}
-	if (filter.description) stringArray.push(`Description contains ${filter.description}`);
-	if (filter.excludeDescription)
-		stringArray.push(`Exclude Description contains ${filter.excludeDescription}`);
-	if (filter.dateAfter) stringArray.push(`Date is after ${filter.dateAfter}`);
-	if (filter.dateBefore) stringArray.push(`Date is before ${filter.dateBefore}`);
-	if (filter.dateSpan) {
-		const dateSpan = dateSpanInfo[filter.dateSpan];
-		stringArray.push(`Date is in ${dateSpan.title}`);
-	}
-	if (filter.transfer !== undefined)
-		stringArray.push(`Is ${filter.transfer ? 'Transfer' : 'Not A Transfer'}`);
-	if (filter.complete !== undefined)
-		stringArray.push(`Is ${filter.complete ? 'Complete' : 'Incomplete'}`);
-	if (filter.linked !== undefined)
-		stringArray.push(`Is ${filter.linked ? 'Linked' : 'Not Linked'}`);
-	if (filter.dataChecked !== undefined)
-		stringArray.push(filter.dataChecked ? 'Has had data checked' : "Hasn't had data checked");
-	if (filter.reconciled !== undefined)
-		stringArray.push(filter.reconciled ? 'Is Reconciled' : 'Is Not Reconciled');
-	if (filter.importIdArray && filter.importIdArray.length > 0)
+	if (filterInternal.description)
+		stringArray.push(`Description contains ${filterInternal.description}`);
+	if (filterInternal.excludeDescription)
+		stringArray.push(`Exclude Description contains ${filterInternal.excludeDescription}`);
+	if (filterInternal.descriptionArray && filterInternal.descriptionArray.length > 0) {
 		stringArray.push(
 			await arrayToText({
-				data: filter.importIdArray,
+				data: filterInternal.descriptionArray,
+				singularName: 'Description',
+				midText: 'contains'
+			})
+		);
+	}
+	if (filterInternal.excludeDescriptionArray && filterInternal.excludeDescriptionArray.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: filterInternal.excludeDescriptionArray,
+				singularName: 'Description',
+				midText: 'does not contain'
+			})
+		);
+	}
+	if (filterInternal.dateAfter) stringArray.push(`Date is after ${filterInternal.dateAfter}`);
+	if (filterInternal.dateBefore) stringArray.push(`Date is before ${filterInternal.dateBefore}`);
+	if (filterInternal.dateSpan) {
+		const dateSpan = dateSpanInfo[filterInternal.dateSpan];
+		stringArray.push(`Date is in ${dateSpan.title}`);
+	}
+	if (filterInternal.transfer !== undefined)
+		stringArray.push(`Is ${filterInternal.transfer ? 'Transfer' : 'Not A Transfer'}`);
+	if (filterInternal.complete !== undefined)
+		stringArray.push(`Is ${filterInternal.complete ? 'Complete' : 'Incomplete'}`);
+	if (filterInternal.linked !== undefined)
+		stringArray.push(`Is ${filterInternal.linked ? 'Linked' : 'Not Linked'}`);
+	if (filterInternal.dataChecked !== undefined)
+		stringArray.push(
+			filterInternal.dataChecked ? 'Has had data checked' : "Hasn't had data checked"
+		);
+	if (filterInternal.reconciled !== undefined)
+		stringArray.push(filterInternal.reconciled ? 'Is Reconciled' : 'Is Not Reconciled');
+	if (filterInternal.importIdArray && filterInternal.importIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: filterInternal.importIdArray,
 				singularName: 'Import',
 				inputToText: (title) => importIdsToTitles(db, title)
 			})
 		);
-	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
+	if (filterInternal.importDetailIdArray && filterInternal.importDetailIdArray.length > 0)
 		stringArray.push(
 			await arrayToText({
-				data: filter.importDetailIdArray,
+				data: filterInternal.importDetailIdArray,
 				singularName: 'Import Detail ID'
 			})
 		);
 
 	const linkedArray: string[] = [];
-	if (filter.account) {
+	if (filterInternal.account) {
 		linkedArray.push(
 			...(await accountFilterToText({
-				filter: filter.account,
+				filter: filterInternal.account,
 				prefix: 'Account',
 				allText: false,
 				db
@@ -241,10 +280,10 @@ export const journalFilterToText = async ({
 		);
 	}
 
-	if (filter.excludeAccount) {
+	if (filterInternal.excludeAccount) {
 		linkedArray.push(
 			...(await accountFilterToText({
-				filter: filter.excludeAccount,
+				filter: filterInternal.excludeAccount,
 				prefix: 'Exclude Account',
 				allText: false,
 				db
@@ -252,120 +291,137 @@ export const journalFilterToText = async ({
 		);
 	}
 
-	if (filter.bill) {
-		linkedArray.push(
-			...(await billFilterToText({ db, filter: filter.bill, prefix: 'Bill', allText: false }))
-		);
-	}
-	if (filter.excludeBill) {
+	if (filterInternal.bill) {
 		linkedArray.push(
 			...(await billFilterToText({
 				db,
-				filter: filter.excludeBill,
+				filter: filterInternal.bill,
+				prefix: 'Bill',
+				allText: false
+			}))
+		);
+	}
+	if (filterInternal.excludeBill) {
+		linkedArray.push(
+			...(await billFilterToText({
+				db,
+				filter: filterInternal.excludeBill,
 				prefix: 'Exclude Bill',
 				allText: false
 			}))
 		);
 	}
 
-	if (filter.budget) {
-		linkedArray.push(
-			...(await budgetFilterToText({ db, filter: filter.budget, prefix: 'Budget', allText: false }))
-		);
-	}
-
-	if (filter.excludeBudget) {
+	if (filterInternal.budget) {
 		linkedArray.push(
 			...(await budgetFilterToText({
 				db,
-				filter: filter.excludeBudget,
+				filter: filterInternal.budget,
+				prefix: 'Budget',
+				allText: false
+			}))
+		);
+	}
+
+	if (filterInternal.excludeBudget) {
+		linkedArray.push(
+			...(await budgetFilterToText({
+				db,
+				filter: filterInternal.excludeBudget,
 				prefix: 'Exclude Budget',
 				allText: false
 			}))
 		);
 	}
 
-	if (filter.category) {
+	if (filterInternal.category) {
 		linkedArray.push(
 			...(await categoryFilterToText({
 				db,
-				filter: filter.category,
+				filter: filterInternal.category,
 				prefix: 'Category',
 				allText: false
 			}))
 		);
 	}
-	if (filter.excludeCategory) {
+	if (filterInternal.excludeCategory) {
 		linkedArray.push(
 			...(await categoryFilterToText({
 				db,
-				filter: filter.excludeCategory,
+				filter: filterInternal.excludeCategory,
 				prefix: 'Exclude Category',
 				allText: false
 			}))
 		);
 	}
 
-	if (filter.tag) {
+	if (filterInternal.tag) {
 		linkedArray.push(
-			...(await tagFilterToText({ db, filter: filter.tag, prefix: 'Tag', allText: false }))
+			...(await tagFilterToText({ db, filter: filterInternal.tag, prefix: 'Tag', allText: false }))
 		);
 	}
-	if (filter.excludeTag) {
+	if (filterInternal.excludeTag) {
 		linkedArray.push(
 			...(await tagFilterToText({
 				db,
-				filter: filter.excludeTag,
+				filter: filterInternal.excludeTag,
 				prefix: 'Exclude Tag',
 				allText: false
 			}))
 		);
 	}
 
-	if (filter.label) {
-		linkedArray.push(
-			...(await labelFilterToText({ db, filter: filter.label, prefix: 'Label', allText: false }))
-		);
-	}
-
-	if (filter.excludeLabel) {
+	if (filterInternal.label) {
 		linkedArray.push(
 			...(await labelFilterToText({
 				db,
-				filter: filter.excludeLabel,
+				filter: filterInternal.label,
+				prefix: 'Label',
+				allText: false
+			}))
+		);
+	}
+
+	if (filterInternal.excludeLabel) {
+		linkedArray.push(
+			...(await labelFilterToText({
+				db,
+				filter: filterInternal.excludeLabel,
 				prefix: 'Exclude Label',
 				allText: false
 			}))
 		);
 	}
 
-	if (filter.payee?.id) {
-		linkedArray.push(`Payee is ${await accountIdsToTitles(db, [filter.payee.id])}`);
+	if (filterInternal.payee?.id) {
+		linkedArray.push(`Payee is ${await accountIdsToTitles(db, [filterInternal.payee.id])}`);
 	}
-	if (filter.excludePayee?.id) {
-		linkedArray.push(`Exclude Payee is ${await accountIdsToTitles(db, [filter.excludePayee.id])}`);
-	}
-
-	if (filter.payee?.title) {
-		linkedArray.push(`Payee Title contains ${filter.payee.title}`);
-	}
-	if (filter.excludePayee?.title) {
-		linkedArray.push(`Exclude Payee Title contains ${filter.excludePayee.title}`);
+	if (filterInternal.excludePayee?.id) {
+		linkedArray.push(
+			`Exclude Payee is ${await accountIdsToTitles(db, [filterInternal.excludePayee.id])}`
+		);
 	}
 
-	if (filter.payee?.idArray) {
+	if (filterInternal.payee?.title) {
+		linkedArray.push(`Payee Title contains ${filterInternal.payee.title}`);
+	}
+	if (filterInternal.excludePayee?.title) {
+		linkedArray.push(`Exclude Payee Title contains ${filterInternal.excludePayee.title}`);
+	}
+
+	if (filterInternal.payee?.idArray) {
 		linkedArray.push(
 			await arrayToText({
-				data: filter.payee.idArray,
+				data: filterInternal.payee.idArray,
 				singularName: 'Payee',
 				inputToText: (inputValue) => accountIdsToTitles(db, inputValue)
 			})
 		);
 	}
-	if (filter.excludePayee?.idArray) {
+	if (filterInternal.excludePayee?.idArray) {
 		linkedArray.push(
 			await arrayToText({
-				data: filter.excludePayee.idArray,
+				data: filterInternal.excludePayee.idArray,
 				singularName: 'Exclude Payee',
 				inputToText: (inputValue) => accountIdsToTitles(db, inputValue)
 			})

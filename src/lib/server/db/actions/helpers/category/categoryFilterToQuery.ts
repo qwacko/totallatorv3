@@ -18,6 +18,7 @@ import {
 } from '../misc/filterToQueryImportCore';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { processCategoryTextFilter } from './categoryTextFilter';
 
 export const categoryFilterToQuery = ({
 	filter,
@@ -26,14 +27,14 @@ export const categoryFilterToQuery = ({
 	filter: Omit<CategoryFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
 	target?: 'category' | 'categoryWithSummary' | 'materializedJournals';
 }) => {
-	const restFilter = filter;
+	const restFilter = processCategoryTextFilter.process(filter);
 	const includeSummary = target === 'categoryWithSummary';
 	const materializedJournals = target === 'materializedJournals';
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		idColumn: materializedJournals ? journalExtendedView.categoryId : categoryMaterializedView.id,
 		titleColumn: materializedJournals
 			? journalExtendedView.categoryTitle
@@ -47,7 +48,7 @@ export const categoryFilterToQuery = ({
 	});
 	statusFilterToQueryMapped({
 		where,
-		filter,
+		filter: restFilter,
 		statusColumn: materializedJournals
 			? journalExtendedView.categoryStatus
 			: categoryMaterializedView.status,
@@ -65,7 +66,7 @@ export const categoryFilterToQuery = ({
 	if (!materializedJournals) {
 		importFilterToQueryMaterialized({
 			where,
-			filter,
+			filter: restFilter,
 			table: {
 				importId: categoryMaterializedView.importId,
 				importDetailId: categoryMaterializedView.importDetailId
@@ -114,12 +115,12 @@ export const categoryFilterToText = async ({
 	prefix?: string;
 	allText?: boolean;
 }) => {
-	const restFilter = filter;
+	const restFilter = processCategoryTextFilter.process(filter);
 
 	const stringArray: string[] = [];
-	await idTitleFilterToText(db, stringArray, filter, categoryIdToTitle);
-	statusFilterToText(stringArray, filter);
-	importFilterToText(db, stringArray, filter);
+	await idTitleFilterToText(db, stringArray, restFilter, categoryIdToTitle);
+	statusFilterToText(stringArray, restFilter);
+	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

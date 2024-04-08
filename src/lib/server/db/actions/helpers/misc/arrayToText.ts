@@ -1,13 +1,15 @@
 export const arrayToText = async ({
 	data,
 	singularName,
-	inputToText = async (inValue) => inValue
+	inputToText = async (inValue) => inValue,
+	midText = 'is'
 }: {
 	data: string[];
 	singularName?: string;
 	inputToText?: (data: string[]) => Promise<string[]>;
+	midText?: string;
 }): Promise<string> => {
-	const prefix = singularName ? `${singularName} is` : 'Is';
+	const prefix = singularName ? `${singularName} ${midText}` : 'Is';
 	if (data.length === 0) {
 		return '';
 	} else if (data.length === 1) {

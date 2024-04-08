@@ -1,10 +1,13 @@
 import { budget, bill, category, tag, label, account } from '../../../postgres/schema';
-import { SQL, eq, type ColumnBaseConfig } from 'drizzle-orm';
+import { SQL, eq, type ColumnBaseConfig, not } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import type { PgColumn } from 'drizzle-orm/pg-core';
+import { inArrayWrapped } from './inArrayWrapped';
 
 type FilterCoreType = {
 	status?: StatusEnumType | undefined;
+	statusArray?: StatusEnumType[];
+	excludeStatusArray?: StatusEnumType[];
 	disabled?: boolean | undefined;
 	allowUpdate?: boolean | undefined;
 	active?: boolean | undefined;
@@ -28,6 +31,10 @@ export const statusFilterToQueryMapped = ({
 	const restFilter = filter;
 
 	if (restFilter.status) where.push(eq(statusColumn, restFilter.status));
+	if (restFilter.statusArray && restFilter.statusArray.length > 0)
+		where.push(inArrayWrapped(statusColumn, restFilter.statusArray));
+	if (restFilter.excludeStatusArray && restFilter.excludeStatusArray.length > 0)
+		where.push(not(inArrayWrapped(statusColumn, restFilter.excludeStatusArray)));
 	if (restFilter.disabled !== undefined) where.push(eq(disabledColumn, restFilter.disabled));
 	if (restFilter.allowUpdate !== undefined)
 		where.push(eq(allowUpdateColumn, restFilter.allowUpdate));
@@ -57,6 +64,10 @@ export const statusFilterToQuery = (
 							: account;
 
 	if (restFilter.status) where.push(eq(usedTable.status, restFilter.status));
+	if (restFilter.statusArray && restFilter.statusArray.length > 0)
+		where.push(inArrayWrapped(usedTable.status, restFilter.statusArray));
+	if (restFilter.excludeStatusArray && restFilter.excludeStatusArray.length > 0)
+		where.push(not(inArrayWrapped(usedTable.status, restFilter.excludeStatusArray)));
 	if (restFilter.disabled !== undefined) where.push(eq(usedTable.disabled, restFilter.disabled));
 	if (restFilter.allowUpdate !== undefined)
 		where.push(eq(usedTable.allowUpdate, restFilter.allowUpdate));
@@ -69,6 +80,10 @@ export const statusFilterToText = async (stringArray: string[], filter: FilterCo
 	const restFilter = filter;
 
 	if (restFilter.status) stringArray.push(`Status equals ${restFilter.status}`);
+	if (restFilter.statusArray && restFilter.statusArray.length > 0)
+		stringArray.push(`Status equals ${restFilter.statusArray.join(' or ')}`);
+	if (restFilter.excludeStatusArray && restFilter.excludeStatusArray.length > 0)
+		stringArray.push(`Status does not equal ${restFilter.excludeStatusArray.join(' or ')}`);
 	if (restFilter.disabled !== undefined)
 		stringArray.push(`Is ${restFilter.disabled ? '' : 'Not '}Disabled`);
 	if (restFilter.allowUpdate !== undefined)

@@ -55,6 +55,12 @@
 {:else}
 	<div class="flex flex-col gap-2">
 		<Button on:click={() => (filter = undefined)}>Clear Filter</Button>
+		<TextInput
+			bind:value={filter.textFilter}
+			name="textFilter"
+			title="Text Filter"
+			errorMessage=""
+		/>
 		<FilterIdArray bind:idArray={filter.importIdArray} title="Import Id" />
 		<FilterIdArray bind:idArray={filter.importDetailIdArray} title="Import Detail Id" />
 		<IdFilter bind:id={filter.id} {idToString} />

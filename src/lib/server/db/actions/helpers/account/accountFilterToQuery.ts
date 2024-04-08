@@ -1,11 +1,11 @@
-import type { AccountFilterSchemaType } from '$lib/schema/accountSchema';
+import type { AccountFilterSchemaWithoutPaginationType } from '$lib/schema/accountSchema';
 import type { DBType } from '$lib/server/db/db';
 import { account } from '$lib/server/db/postgres/schema';
 import {
 	accountMaterializedView,
 	journalExtendedView
 } from '$lib/server/db/postgres/schema/materializedViewSchema';
-import { SQL, eq, gt, ilike, lt } from 'drizzle-orm';
+import { SQL, eq, gt, ilike, lt, not } from 'drizzle-orm';
 import {
 	summaryFilterToQueryMaterialized,
 	summaryFilterToText
@@ -17,17 +17,20 @@ import {
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
-import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
+import { arrayToText } from '../misc/arrayToText';
+import { processAccountTextFilter } from './accountTextFilter';
 
 export const accountFilterToQuery = ({
 	filter,
 	target
 }: {
-	filter: Omit<AccountFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>;
-
+	filter: AccountFilterSchemaWithoutPaginationType;
 	target?: 'materializedJournals' | 'account' | 'accountWithSummary';
 }) => {
 	const where: SQL<unknown>[] = [];
+
+	const intFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(filter)));
 
 	const materializedJournals = target === 'materializedJournals';
 	const includeSummary = target === 'accountWithSummary';
@@ -55,53 +58,130 @@ export const accountFilterToQuery = ({
 
 	idTitleFilterToQueryMapped({
 		where,
-		filter,
+		filter: intFilter,
 		idColumn: selectedTable.id,
 		titleColumn: selectedTable.title
 	});
-	if (filter.accountGroup)
-		where.push(ilike(selectedTable.accountGroup, `%${filter.accountGroup}%`));
-	if (filter.accountGroup2)
-		where.push(ilike(selectedTable.accountGroup2, `%${filter.accountGroup2}%`));
-	if (filter.accountGroup3)
-		where.push(ilike(selectedTable.accountGroup3, `%${filter.accountGroup3}%`));
-	if (filter.accountGroupCombined)
-		where.push(ilike(selectedTable.accountGroupCombined, `%${filter.accountGroupCombined}%`));
-	if (filter.accountTitleCombined)
-		where.push(ilike(selectedTable.accountTitleCombined, `%${filter.accountTitleCombined}%`));
+
+	// Account Group
+	if (intFilter.accountGroup)
+		where.push(ilike(selectedTable.accountGroup, `%${intFilter.accountGroup}%`));
+	if (intFilter.accountGroupArray && intFilter.accountGroupArray.length > 0) {
+		where.push(ilikeArrayWrapped(selectedTable.accountGroup, intFilter.accountGroupArray));
+	}
+	if (intFilter.excludeAccountGroupArray && intFilter.excludeAccountGroupArray.length > 0) {
+		where.push(
+			not(ilikeArrayWrapped(selectedTable.accountGroup, intFilter.excludeAccountGroupArray))
+		);
+	}
+
+	// Account Group 2
+	if (intFilter.accountGroup2)
+		where.push(ilike(selectedTable.accountGroup2, `%${intFilter.accountGroup2}%`));
+	if (intFilter.accountGroup2Array && intFilter.accountGroup2Array.length > 0) {
+		where.push(ilikeArrayWrapped(selectedTable.accountGroup2, intFilter.accountGroup2Array));
+	}
+	if (intFilter.excludeAccountGroup2Array && intFilter.excludeAccountGroup2Array.length > 0) {
+		where.push(
+			not(ilikeArrayWrapped(selectedTable.accountGroup2, intFilter.excludeAccountGroup2Array))
+		);
+	}
+
+	// Account Group 3
+	if (intFilter.accountGroup3)
+		where.push(ilike(selectedTable.accountGroup3, `%${intFilter.accountGroup3}%`));
+	if (intFilter.accountGroup3Array && intFilter.accountGroup3Array.length > 0) {
+		where.push(ilikeArrayWrapped(selectedTable.accountGroup3, intFilter.accountGroup3Array));
+	}
+	if (intFilter.excludeAccountGroup3Array && intFilter.excludeAccountGroup3Array.length > 0) {
+		where.push(
+			not(ilikeArrayWrapped(selectedTable.accountGroup3, intFilter.excludeAccountGroup3Array))
+		);
+	}
+
+	// Account Group Combined
+	if (intFilter.accountGroupCombined)
+		where.push(ilike(selectedTable.accountGroupCombined, `%${intFilter.accountGroupCombined}%`));
+	if (intFilter.accountGroupCombinedArray && intFilter.accountGroupCombinedArray.length > 0) {
+		where.push(
+			ilikeArrayWrapped(selectedTable.accountGroupCombined, intFilter.accountGroupCombinedArray)
+		);
+	}
+	if (
+		intFilter.excludeAccountGroupCombinedArray &&
+		intFilter.excludeAccountGroupCombinedArray.length > 0
+	) {
+		where.push(
+			not(
+				ilikeArrayWrapped(
+					selectedTable.accountGroupCombined,
+					intFilter.excludeAccountGroupCombinedArray
+				)
+			)
+		);
+	}
+
+	// Account Title Combined
+	if (intFilter.accountTitleCombined)
+		where.push(ilike(selectedTable.accountTitleCombined, `%${intFilter.accountTitleCombined}%`));
+	if (intFilter.accountTitleCombinedArray && intFilter.accountTitleCombinedArray.length > 0) {
+		where.push(
+			ilikeArrayWrapped(selectedTable.accountTitleCombined, intFilter.accountTitleCombinedArray)
+		);
+	}
+	if (
+		intFilter.excludeAccountTitleCombinedArray &&
+		intFilter.excludeAccountTitleCombinedArray.length > 0
+	) {
+		where.push(
+			not(
+				ilikeArrayWrapped(
+					selectedTable.accountTitleCombined,
+					intFilter.excludeAccountTitleCombinedArray
+				)
+			)
+		);
+	}
+
 	statusFilterToQueryMapped({
 		where,
-		filter,
+		filter: intFilter,
 		statusColumn: selectedTable.status,
 		disabledColumn: selectedTable.disabled,
 		allowUpdateColumn: selectedTable.allowUpdate,
 		activeColumn: selectedTable.active
 	});
-	if (filter.isCash !== undefined) where.push(eq(selectedTable.isCash, filter.isCash));
-	if (filter.isNetWorth !== undefined) where.push(eq(selectedTable.isNetWorth, filter.isNetWorth));
-	if (filter.startDateAfter !== undefined)
-		where.push(gt(selectedTable.startDate, filter.startDateAfter));
-	if (filter.startDateBefore !== undefined)
-		where.push(lt(selectedTable.startDate, filter.startDateBefore));
-	if (filter.endDateAfter !== undefined) where.push(gt(selectedTable.endDate, filter.endDateAfter));
-	if (filter.endDateBefore !== undefined)
-		where.push(lt(selectedTable.endDate, filter.endDateBefore));
+	if (intFilter.isCash !== undefined) where.push(eq(selectedTable.isCash, intFilter.isCash));
+	if (intFilter.isNetWorth !== undefined)
+		where.push(eq(selectedTable.isNetWorth, intFilter.isNetWorth));
+	if (intFilter.startDateAfter !== undefined)
+		where.push(gt(selectedTable.startDate, intFilter.startDateAfter));
+	if (intFilter.startDateBefore !== undefined)
+		where.push(lt(selectedTable.startDate, intFilter.startDateBefore));
+	if (intFilter.endDateAfter !== undefined)
+		where.push(gt(selectedTable.endDate, intFilter.endDateAfter));
+	if (intFilter.endDateBefore !== undefined)
+		where.push(lt(selectedTable.endDate, intFilter.endDateBefore));
 	if (!materializedJournals) {
 		importFilterToQueryMaterialized({
 			where,
-			filter,
+			filter: intFilter,
 			table: {
 				importId: accountMaterializedView.importId,
 				importDetailId: accountMaterializedView.importDetailId
 			}
 		});
 	}
-	if (filter.type !== undefined && filter.type.length > 0)
-		where.push(inArrayWrapped(selectedTable.type, filter.type));
+
+	//Type
+	if (intFilter.type !== undefined && intFilter.type.length > 0)
+		where.push(inArrayWrapped(selectedTable.type, intFilter.type));
+	if (intFilter.excludeType !== undefined && intFilter.excludeType.length > 0)
+		where.push(not(inArrayWrapped(selectedTable.type, intFilter.excludeType)));
 
 	if (includeSummary) {
 		summaryFilterToQueryMaterialized({
-			filter,
+			filter: intFilter,
 			where,
 			table: {
 				count: accountMaterializedView.count,
@@ -141,27 +221,139 @@ export const accountFilterToText = async ({
 	allText = true,
 	db
 }: {
-	filter: Omit<AccountFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
+	filter: AccountFilterSchemaWithoutPaginationType;
 	prefix?: string;
 	allText?: boolean;
 	db: DBType;
 }) => {
-	const restFilter = filter;
+	const restFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(filter)));
 
 	const stringArray: string[] = [];
-	await idTitleFilterToText(db, stringArray, filter, accountIdToTitle);
+	await idTitleFilterToText(db, stringArray, restFilter, accountIdToTitle);
+
+	// Account Group
 	if (restFilter.accountGroup) stringArray.push(`Group contains ${restFilter.accountGroup}`);
+	if (restFilter.accountGroupArray && restFilter.accountGroupArray.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.accountGroupArray,
+				singularName: 'Group',
+				midText: 'contains'
+			})
+		);
+	}
+	if (restFilter.excludeAccountGroupArray && restFilter.excludeAccountGroupArray.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.excludeAccountGroupArray,
+				singularName: 'Group',
+				midText: 'does not contain'
+			})
+		);
+	}
+
+	// Account Group 2
 	if (restFilter.accountGroup2) stringArray.push(`Group 2 contains ${restFilter.accountGroup2}`);
+	if (restFilter.accountGroup2Array && restFilter.accountGroup2Array.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.accountGroup2Array,
+				singularName: 'Group 2',
+				midText: 'contains'
+			})
+		);
+	}
+	if (restFilter.excludeAccountGroup2Array && restFilter.excludeAccountGroup2Array.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.excludeAccountGroup2Array,
+				singularName: 'Group 2',
+				midText: 'does not contain'
+			})
+		);
+	}
+
+	// Account Group 3
 	if (restFilter.accountGroup3) stringArray.push(`Group 3 contains ${restFilter.accountGroup3}`);
+	if (restFilter.accountGroup3Array && restFilter.accountGroup3Array.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.accountGroup3Array,
+				singularName: 'Group 3',
+				midText: 'contains'
+			})
+		);
+	}
+	if (restFilter.excludeAccountGroup3Array && restFilter.excludeAccountGroup3Array.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.excludeAccountGroup3Array,
+				singularName: 'Group 3',
+				midText: 'does not contain'
+			})
+		);
+	}
+
+	// Account Group Combined
 	if (restFilter.accountGroupCombined)
 		stringArray.push(`Group Combined contains ${restFilter.accountGroupCombined}`);
+	if (restFilter.accountGroupCombinedArray && restFilter.accountGroupCombinedArray.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.accountGroupCombinedArray,
+				singularName: 'Group Combined',
+				midText: 'contains'
+			})
+		);
+	}
+	if (
+		restFilter.excludeAccountGroupCombinedArray &&
+		restFilter.excludeAccountGroupCombinedArray.length > 0
+	) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.excludeAccountGroupCombinedArray,
+				singularName: 'Group Combined',
+				midText: 'does not contain'
+			})
+		);
+	}
+
+	// Account Title Combined
 	if (restFilter.accountTitleCombined)
 		stringArray.push(`Group Combined With Title contains ${restFilter.accountTitleCombined}`);
-	statusFilterToText(stringArray, filter);
+	if (restFilter.accountTitleCombinedArray && restFilter.accountTitleCombinedArray.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.accountTitleCombinedArray,
+				singularName: 'Group Combined With Title',
+				midText: 'contains'
+			})
+		);
+	}
+	if (
+		restFilter.excludeAccountTitleCombinedArray &&
+		restFilter.excludeAccountTitleCombinedArray.length > 0
+	) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.excludeAccountTitleCombinedArray,
+				singularName: 'Group Combined With Title',
+				midText: 'does not contain'
+			})
+		);
+	}
+
+	// Status FIlters
+	statusFilterToText(stringArray, restFilter);
+
+	// Boolean Filters
 	if (restFilter.isCash !== undefined)
 		stringArray.push(`Is ${restFilter.isCash ? '' : 'Not '}Cash`);
 	if (restFilter.isNetWorth !== undefined)
 		stringArray.push(`Is ${restFilter.isNetWorth ? '' : 'Not '}Net Worth`);
+
+	// Date Filters
 	if (restFilter.startDateAfter !== undefined)
 		stringArray.push(`Start Date Is After ${restFilter.startDateAfter}`);
 	if (restFilter.startDateBefore !== undefined)
@@ -170,14 +362,27 @@ export const accountFilterToText = async ({
 		stringArray.push(`End Date Is After ${restFilter.endDateAfter}`);
 	if (restFilter.endDateBefore !== undefined)
 		stringArray.push(`End Date Is Before ${restFilter.endDateBefore}`);
+
+	// Type Filter
 	if (restFilter.type !== undefined && restFilter.type.length > 0) {
-		if (restFilter.type.length === 1) {
-			stringArray.push(`Type is ${restFilter.type[0]}`);
-		} else if (restFilter.type.length < 4) {
-			stringArray.push(`Type is one of ${restFilter.type.join(', ')}`);
-		}
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.type,
+				singularName: 'Type'
+			})
+		);
 	}
-	importFilterToText(db, stringArray, filter);
+	if (restFilter.excludeType !== undefined && restFilter.excludeType.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.excludeType,
+				singularName: 'Type',
+				midText: 'is not'
+			})
+		);
+	}
+
+	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
 };

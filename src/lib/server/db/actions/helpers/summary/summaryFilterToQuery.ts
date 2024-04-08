@@ -19,10 +19,22 @@ export const summaryFilterToQueryMaterialized = ({
 	if (restFilter.countMin !== undefined) where.push(gte(table.count, restFilter.countMin));
 	if (restFilter.totalMax !== undefined) where.push(lte(table.sum, restFilter.totalMax));
 	if (restFilter.totalMin !== undefined) where.push(gte(table.sum, restFilter.totalMin));
-	if (restFilter.firstDateMax) where.push(lte(table.firstDate, new Date(restFilter.firstDateMax)));
-	if (restFilter.firstDateMin) where.push(gte(table.firstDate, new Date(restFilter.firstDateMin)));
-	if (restFilter.lastDateMax) where.push(lte(table.lastDate, new Date(restFilter.lastDateMax)));
-	if (restFilter.lastDateMin) where.push(gte(table.lastDate, new Date(restFilter.lastDateMin)));
+
+	if (restFilter.firstDateMax)
+		//@ts-expect-error date type comparison works better this way
+		where.push(lte(table.firstDate, new Date(restFilter.firstDateMax).toISOString().slice(0, 10)));
+
+	if (restFilter.firstDateMin)
+		//@ts-expect-error date type comparison works better this way
+		where.push(gte(table.firstDate, new Date(restFilter.firstDateMin).toISOString().slice(0, 10)));
+
+	if (restFilter.lastDateMax)
+		//@ts-expect-error date type comparison works better this way
+		where.push(lte(table.lastDate, new Date(restFilter.lastDateMax).toISOString().slice(0, 10)));
+
+	if (restFilter.lastDateMin)
+		//@ts-expect-error date type comparison works better this way
+		where.push(gte(table.lastDate, new Date(restFilter.lastDateMin).toISOString().slice(0, 10)));
 };
 
 export const summaryFilterToText = ({
