@@ -17,6 +17,9 @@ The following rules are used across all text search types:
 - _Multiple Of Same Prefix :_ When there are multiple of the same prefix or action, then the way this is handled depends on the prefix / action.
 - _Boolean Prefix :_ Some filters are a boolean (yes / no) filter. For these items the filter prefix and exclude filter prefix are used (i.e. `cash:` and `!cash:`), rather than writing true or false (i.e. `cash:true` and `cash:false`). Any text written after the colon is ignored (i.e. `cash:false` and `cash:cash` is the same as `cash:`)
 - _Case Sensitivity :_ All text filters are case insensitive.
+- _Filter Wildcards :_ Wildcards can be used in string filters that align with the underlying database (postgres). The following wildcards are supported:
+  - `%` : Any number of characters (including none)
+  - `_` : Any single character
 - _Range Filters :_ For filters which are filtering within a range (i.e. `max:` and `min:`), the `!` vresion of this doesn't make sense. So the `!` version of htese filters will function that same with or without the `!` (i.e. `!max:100` and `max:100` will both filter for items with a maximum of 100).
 
 ## Journals
