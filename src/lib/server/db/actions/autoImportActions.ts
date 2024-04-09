@@ -58,6 +58,27 @@ export const autoImportActions = {
 
 		return autoImport[0];
 	},
+	clone: async ({ db, id }: { db: DBType; id: string }) => {
+		const autoImport = await autoImportActions.getById({ db, id });
+
+		if (!autoImport) {
+			throw new Error(`AutoImport with id ${id} not found`);
+		}
+
+		const newId = nanoid();
+		await db
+			.insert(autoImportTable)
+			.values({
+				...autoImport,
+				id: newId,
+				title: `${autoImport.title} (Copy)`,
+				enabled: false,
+				...updatedTime()
+			})
+			.execute();
+
+		return newId;
+	},
 	create: async ({ db, data }: { db: DBType; data: CreateAutoImportSchemaType }) => {
 		const id = nanoid();
 		await db
