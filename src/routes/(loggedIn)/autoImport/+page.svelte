@@ -16,6 +16,8 @@
 	import ImportIcon from '$lib/components/icons/ImportIcon.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
+	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
+	import { enhance } from '$app/forms';
 
 	$: urlInfo = pageInfo('/(loggedIn)/autoImport', $page);
 	const urlStore = pageInfoStore({
@@ -138,24 +140,31 @@
 						}
 					}).url}
 					<div class="flex flex-row justify-center">
-						<ButtonGroup>
-							<Button href={importsURL} class="p-2" outline color="blue">
-								<ImportIcon height={15} width={15} />
-							</Button>
-							<Button href={detailURL} class="p-2" outline>
-								<EditIcon height={15} width={15} />
-							</Button>
-							<Button href={deleteURL} class="p-2" outline color="red">
-								<DeleteIcon height={15} width={15} />
-							</Button>
-							<RawDataModal
-								data={currentRow.config}
-								title="{currentRow.title} Config"
-								dev={true}
-								icon="more"
-								outline
-							/>
-						</ButtonGroup>
+						<form use:enhance action="?/clone" method="post">
+							<input type="hidden" name="id" value={currentRow.id} />
+							<ButtonGroup>
+								<Button href={importsURL} class="p-2" outline color="blue">
+									<ImportIcon height={15} width={15} />
+								</Button>
+								<Button href={detailURL} class="p-2" outline>
+									<EditIcon height={15} width={15} />
+								</Button>
+								<Button href={deleteURL} class="p-2" outline color="red">
+									<DeleteIcon height={15} width={15} />
+								</Button>
+								<Button type="submit" class="p-2" outline color="blue">
+									<CloneIcon height={15} width={15} />
+								</Button>
+
+								<RawDataModal
+									data={currentRow.config}
+									title="{currentRow.title} Config"
+									dev={true}
+									icon="more"
+									outline
+								/>
+							</ButtonGroup>
+						</form>
 					</div>
 				{:else if currentColumn.id === 'enabled'}
 					<Badge color={currentRow.enabled ? 'green' : 'red'}>

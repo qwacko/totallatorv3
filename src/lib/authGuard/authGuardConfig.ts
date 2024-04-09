@@ -173,7 +173,8 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// Automatic Imports
 		// ----------------------------------------
 		'/(loggedIn)/autoImport': {
-			...adminOnlyConfig
+			...adminOnlyConfig,
+			POSTCheck: { clone: POSTAllowAdminOnly }
 		},
 		'/(loggedIn)/autoImport/[id]/[filename]': { ...adminOnlyConfig },
 		'/(loggedIn)/autoImport/create': {
