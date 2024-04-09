@@ -1,6 +1,5 @@
 import { serverEnv } from '$lib/server/serverEnv';
 import { nanoid } from 'nanoid';
-import { writeFileSync } from 'fs';
 import type { DBType } from '../db';
 import {
 	account,
@@ -42,6 +41,8 @@ import { importListSubquery } from './helpers/import/importListSubquery';
 import { importToOrderByToSQL } from './helpers/import/importOrderByToSQL';
 import { importFilterToQuery } from './helpers/import/importFilterToQuery';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { importFileHandler } from '$lib/server/files/fileHandler';
+import { logging } from '$lib/server/logging';
 
 export const importActions = {
 	numberActive: async (db: DBType) => {
@@ -139,15 +140,17 @@ export const importActions = {
 		const dateTime = new Date().toISOString().slice(0, 10);
 
 		const saveFilename = `${dateTime}_${id}_${originalFilename}`;
-		const combinedFilename = `${serverEnv.IMPORT_DIR}${saveFilename}`;
 
-		writeFileSync(combinedFilename, Buffer.from(await newFile.arrayBuffer()));
+		await importFileHandler.write(
+			saveFilename,
+			fileType === 'json' ? Buffer.from(await newFile.arrayBuffer()) : await newFile.text()
+		);
 
 		await db
 			.insert(importTable)
 			.values({
 				id,
-				filename: combinedFilename,
+				filename: saveFilename,
 				title: originalFilename,
 				...updatedTime(),
 				status: 'created',
@@ -158,7 +161,16 @@ export const importActions = {
 			})
 			.execute();
 
-		await processCreatedImport({ db, id });
+		try {
+			await processCreatedImport({ db, id });
+		} catch (e) {
+			logging.error('Error Processing Import', e);
+			await db
+				.update(importTable)
+				.set({ status: 'error', errorInfo: e, ...updatedTime() })
+				.where(eq(importTable.id, id))
+				.execute();
+		}
 
 		return id;
 	},

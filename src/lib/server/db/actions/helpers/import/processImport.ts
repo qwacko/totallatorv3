@@ -12,7 +12,6 @@ import {
 	tag
 } from '$lib/server/db/postgres/schema';
 import Papa from 'papaparse';
-import { readFileSync } from 'fs';
 import { updatedTime } from '../misc/updatedTime';
 import { importActions } from '../../importActions';
 import {
@@ -32,6 +31,7 @@ import { tActions } from '../../tActions';
 import { getImportDetail } from './getImportDetail';
 import type { ImportStatusType } from '$lib/schema/importSchema';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { importFileHandler } from '$lib/server/files/fileHandler';
 
 export const processCreatedImport = async ({ db, id }: { db: DBType; id: string }) => {
 	const data = await db.select().from(importTable).where(eq(importTable.id, id));
@@ -49,7 +49,8 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 	if (!importData.filename) {
 		throw new Error('Import File Not Found');
 	}
-	const file = readFileSync(importData.filename);
+
+	const file = await importFileHandler.readToString(importData.filename);
 	const checkImportDuplicates =
 		(innerFunc: (data: string[]) => Promise<string[]>) => async (data: string[]) => {
 			if (!importData.checkImportedOnly) {
@@ -71,7 +72,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 		const rowsToSkip = importMappingInformation?.configuration
 			? importMappingInformation.configuration.rowsToSkip
 			: 0;
-		const processedData = Papa.parse(file.toString(), {
+		const processedData = Papa.parse(file, {
 			header: true,
 			skipEmptyLines: true,
 			beforeFirstChunk: function (chunk) {
@@ -272,7 +273,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 			return;
 		}
 
-		const jsonData = JSON.parse(file.toString());
+		const jsonData = JSON.parse(file);
 		const schema = z.array(z.record(z.any()));
 		const parsedData = schema.safeParse(jsonData);
 
