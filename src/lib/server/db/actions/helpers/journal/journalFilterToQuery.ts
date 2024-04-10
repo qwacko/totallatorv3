@@ -282,6 +282,26 @@ export const journalFilterToText = async ({
 		);
 	}
 
+	if (filterInternal.payee?.titleArray) {
+		linkedArray.push(
+			await arrayToText({
+				data: filterInternal.payee.titleArray,
+				singularName: 'Payee Title',
+				midText: 'contains'
+			})
+		);
+	}
+
+	if (filterInternal.excludePayee?.titleArray) {
+		linkedArray.push(
+			await arrayToText({
+				data: filterInternal.excludePayee.titleArray,
+				singularName: 'Exclude Payee Title',
+				midText: 'contains'
+			})
+		);
+	}
+
 	const stringArrayWithPrefix = prefix
 		? stringArray.map((item) => `${prefix} ${item}`)
 		: stringArray;
