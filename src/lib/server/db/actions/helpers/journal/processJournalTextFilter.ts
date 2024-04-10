@@ -237,13 +237,13 @@ const filterArray = [
 		}
 	},
 	{
-		key: 'description:',
+		key: ['description:', 'desc:'],
 		update: (filter, newFilter) => {
 			addToArray(filter, 'descriptionArray', newFilter);
 		}
 	},
 	{
-		key: '!description:',
+		key: ['!description:', '!desc:'],
 		update: (filter, newFilter) => {
 			addToArray(filter, 'excludeDescriptionArray', newFilter);
 		}
