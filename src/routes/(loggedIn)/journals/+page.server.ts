@@ -1,11 +1,24 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
+import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { logging } from '$lib/server/logging';
+import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
 	authGuard(data);
-	const { current: pageInfo } = serverPageInfo(data.route.id, data);
+	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
+
+	const filter: JournalFilterSchemaType = pageInfo.searchParams || {
+		page: 0,
+		pageSize: 10,
+		orderBy: [{ field: 'date', direction: 'desc' }],
+		account: { type: ['asset', 'liability'] }
+	};
+
+	if (filter.pageSize > 500) {
+		redirect(302, updateParams({ searchParams: { pageSize: 10 } }).url);
+	}
 
 	return { searchParams: pageInfo.searchParams };
 };
