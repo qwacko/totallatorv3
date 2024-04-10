@@ -1,0 +1,70 @@
+<script lang="ts">
+	import { Button, Modal, P } from 'flowbite-svelte';
+	import { superForm, type SuperValidated } from 'sveltekit-superforms';
+	import UpdateJournalForm from '../../journals/clone/UpdateJournalForm.svelte';
+	import UpdateJournalLinksForm from '../../journals/clone/UpdateJournalLinksForm.svelte';
+	import UpdateJournalLabelsForm from '../../journals/clone/UpdateJournalLabelsForm.svelte';
+	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
+	import type { UpdateJournalSchemaType } from '$lib/schema/journalSchema';
+
+	export let modificationFormData: SuperValidated<UpdateJournalSchemaType>;
+	export let changeModal: boolean = false;
+	export let id: string;
+	export let changeText: string[] | undefined;
+	type DDI = { id: string; title: string; group: string; enabled: boolean };
+	type DDINoGroup = { id: string; title: string; enabled: boolean };
+	export let dropdownInfo: {
+		tag: Promise<DDI[]>;
+		bill: Promise<DDINoGroup[]>;
+		budget: Promise<DDINoGroup[]>;
+		category: Promise<DDI[]>;
+		account: Promise<DDI[]>;
+		label: Promise<DDINoGroup[]>;
+	};
+
+	const form = superForm(modificationFormData, {
+		onResult: () => {
+			changeModal = false;
+		}
+	});
+
+	$: modificationFormValue = form.form;
+	$: enhance = form.enhance;
+</script>
+
+<div class="flex flex-col gap-2">
+	<P class="self-center" weight="semibold">Related Change</P>
+	<div class="flex flex-row items-center gap-6 self-center">
+		<div class="flex flex-col gap-1">
+			<Button color="light" outline on:click={() => (changeModal = true)}>Changes</Button>
+			{#if changeModal}
+				<form method="post" action="?/updateChange" use:enhance>
+					<Modal bind:open={changeModal}>
+						<UpdateJournalForm {form} />
+						<UpdateJournalLinksForm {form} {dropdownInfo} />
+						<UpdateJournalLabelsForm {form} {dropdownInfo} allLabelIds={[]} commonLabelIds={[]} />
+						<div class="flex">
+							<pre>{JSON.stringify($modificationFormValue, null, 2)}</pre>
+						</div>
+						<svelte:fragment slot="footer">
+							<Button on:click={() => (changeModal = false)} outline>Cancel</Button>
+							<div class="flex-grow"></div>
+							<PreviousUrlInput name="prevPage" routeBased />
+							<input type="hidden" name="id" value={id} />
+							<Button type="submit">Update</Button>
+						</svelte:fragment>
+					</Modal>
+				</form>
+			{/if}
+		</div>
+		<div class="flex flex-col gap-1">
+			{#if changeText}
+				{#each changeText as currentChangeText}
+					<div class="flex">
+						{currentChangeText}
+					</div>
+				{/each}
+			{/if}
+		</div>
+	</div>
+</div>

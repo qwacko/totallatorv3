@@ -1,5 +1,5 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
-import { serverPageInfo } from '$lib/routes';
+import { serverPageInfo, urlGenerator } from '$lib/routes';
 import {
 	defaultJournalFilter,
 	journalFilterSchema,
@@ -11,7 +11,7 @@ import {
 } from '$lib/schema/reusableFilterSchema.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { setError, superValidate } from 'sveltekit-superforms';
+import { setError, superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { journalUpdateToText } from '$lib/server/db/actions/helpers/journal/journalUpdateToText.js';
 import { reusableFilterPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
@@ -103,15 +103,33 @@ export const actions = {
 		});
 
 		if (!processedCreation.success) {
-			return setError(form, 'Form Submission Error');
+			return message(form, 'Form Submission Error');
 		}
+		let newFilterId: string | undefined = undefined;
 
 		try {
-			await tActions.reusableFitler.create({ db: data.locals.db, data: processedCreation.data });
+			const newFilter = await tActions.reusableFitler.create({
+				db: data.locals.db,
+				data: processedCreation.data
+			});
+			if (newFilter?.id) {
+				newFilterId = newFilter.id;
+			} else {
+				return message(form, 'Reusable Filter Not Created');
+			}
 		} catch (e) {
-			return setError(form, 'Reusable Filter Creation Error');
+			return message(form, 'Reusable Filter Creation Error');
 		}
 
-		redirect(302, prevPage);
+		console.log('newFilterId', newFilterId);
+		redirect(
+			302,
+			urlGenerator({
+				address: '/(loggedIn)/filters/[id]',
+				paramsValue: { id: newFilterId },
+				searchParamsValue: {}
+			}).url
+		);
+		return;
 	}
 };
