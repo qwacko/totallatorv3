@@ -77,42 +77,17 @@ const filterFormSchemaWithPage = updateReusableFilterFormSchema.merge(
 );
 
 export const actions = {
-	default: async (data) => {
+	update: async (data) => {
 		const form = await superValidate(data.request, zod(filterFormSchemaWithPage));
 
 		if (!form.valid) {
 			return form;
 		}
 
-		const {
-			id,
-			filter: filterText,
-			change: changeText,
-			prevPage,
-			currentPage,
-			...restForm
-		} = form.data;
-
-		if (!filterText) {
-			return setError(form, 'Filter Is Required');
-		}
-
-		const filter = journalFilterSchema.safeParse(JSON.parse(filterText));
-
-		if (!filter.success) {
-			return setError(form, 'filter', 'Filter Is Invalid');
-		}
-
-		const change = changeText ? updateJournalSchema.safeParse(JSON.parse(changeText)) : undefined;
-
-		if (change && !change.success) {
-			return setError(form, 'change', 'Change Is Invalid');
-		}
+		const { id, filter, change, prevPage, currentPage, ...restForm } = form.data;
 
 		const processedUpdate = updateReusableFilterSchema.safeParse({
-			...restForm,
-			change: change ? change.data : undefined,
-			filter: filter.data
+			...restForm
 		});
 
 		if (!processedUpdate.success) {
@@ -121,11 +96,69 @@ export const actions = {
 		}
 
 		try {
+			console.log(`Updaing Filter ${processedUpdate}`);
 			await tActions.reusableFitler.update({ db: data.locals.db, id, data: processedUpdate.data });
 		} catch (e) {
+			logging.error('Reusable Filter Update Error', e);
 			return setError(form, 'Reusable Filter Update Error');
 		}
 
-		redirect(302, prevPage);
+		return { form };
+	},
+	updateFilter: async (data) => {
+		const form = await superValidate(data.request, zod(filterFormSchemaWithPage));
+		const id = data.params.id;
+
+		if (!form.valid) {
+			return form;
+		}
+
+		const { filter } = form.data;
+
+		if (!filter) {
+			logging.error('Filter Is Required');
+			return setError(form, 'Filter Is Required');
+		}
+
+		const filterProcessed = journalFilterSchema.safeParse(JSON.parse(filter));
+
+		if (!filterProcessed.success) {
+			logging.error('Filter Is Invalid', JSON.stringify(filterProcessed.error, null, 2));
+			return setError(form, 'Filter Is Invalid');
+		}
+
+		try {
+			await tActions.reusableFitler.update({
+				db: data.locals.db,
+				id,
+				data: { filter: filterProcessed.data }
+			});
+		} catch (e) {
+			logging.error('Reusable Filter Update Error', e);
+			return setError(form, 'Reusable Filter Update Error');
+		}
+
+		return { form };
+	},
+	updateChange: async (data) => {
+		const form = await superValidate(data.request, zod(updateJournalSchema));
+		const id = data.params.id;
+
+		if (!form.valid) {
+			return form;
+		}
+
+		try {
+			await tActions.reusableFitler.update({
+				db: data.locals.db,
+				id,
+				data: { change: form.data }
+			});
+		} catch (e) {
+			logging.error('Reusable Filter Update Change Error', e);
+			return setError(form, 'Reusable Filter Update Change Error');
+		}
+
+		return { form };
 	}
 };
