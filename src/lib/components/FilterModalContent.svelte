@@ -6,7 +6,7 @@
 		JournalFilterSchemaType,
 		JournalFilterSchemaWithoutPaginationType
 	} from '$lib/schema/journalSchema';
-	import { Button, Accordion, AccordionItem } from 'flowbite-svelte';
+	import { Button, Accordion, AccordionItem, Input } from 'flowbite-svelte';
 	import JournalEntryFilter from './filters/JournalEntryFilter.svelte';
 	import AccountFilter from './filters/AccountFilter.svelte';
 	import BillFilter from './filters/BillFilter.svelte';
@@ -41,6 +41,12 @@
 </script>
 
 <div class="flex flex-col gap-6">
+	<Input
+		bind:value={activeFilter.textFilter}
+		name="textFilter"
+		title="Text Filter"
+		errorMessage=""
+	/>
 	<Accordion>
 		<AccordionItem>
 			<svelte:fragment slot="header">Journal Entry</svelte:fragment>
