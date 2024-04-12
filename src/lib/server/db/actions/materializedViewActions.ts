@@ -13,6 +13,7 @@ import {
 } from '../postgres/schema/materializedViewSchema';
 
 import { booleanKeyValueStore } from './helpers/keyValueStore';
+import { logging } from '$lib/server/logging';
 
 const refreshRequiredStore = booleanKeyValueStore('journalExtendedViewRefresh', true);
 const accountRefreshRequiredStore = booleanKeyValueStore('accountViewRefresh', true);
@@ -32,7 +33,7 @@ const timePromise = async <T>(title: string, enable: boolean | undefined, fn: ()
 	const endTime = Date.now();
 
 	if (logRefreshTime) {
-		console.log(`${title} took ${endTime - startTime}ms`);
+		logging.debug(`${title} took ${endTime - startTime}ms`);
 	}
 
 	return result;
@@ -124,8 +125,6 @@ export const materializedViewActions = {
 		const needsUpdate = Object.keys(items).some(
 			(key) => itemsRequiringUpdate[key as any as keyof typeof itemsRequiringUpdate]
 		);
-
-		// console.log('Conditional Refresh : ', { needsUpdate, itemsRequiringUpdate, items });
 
 		if (!needsUpdate) return false;
 

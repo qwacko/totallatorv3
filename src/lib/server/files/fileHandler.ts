@@ -4,8 +4,9 @@ import { FileStorage } from '@flystorage/file-storage';
 import { LocalStorageAdapter } from '@flystorage/local-fs';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AwsS3StorageAdapter } from '@flystorage/aws-s3';
+import { logging } from '../logging';
 
-const fileHandler = (address: string) => {
+const fileHandler = (address: string, title: string) => {
 	if (address.startsWith('s3://')) {
 		const bucketAndPrefix = address.replace('s3://', '');
 		const [bucket] = bucketAndPrefix.split('/');
@@ -23,7 +24,7 @@ const fileHandler = (address: string) => {
 			throw new Error('S3 environment variables not correctly set');
 		}
 
-		console.log(`Bucket = ${bucket}, Prefix = ${prefix}`);
+		logging.debug(`${title} FileHandler Initiation : S3 : Bucket = ${bucket}, Prefix = ${prefix}`);
 
 		const client = new S3Client({
 			credentials: {
@@ -42,9 +43,11 @@ const fileHandler = (address: string) => {
 		return storage;
 	}
 
+	logging.debug(`${title} FileHandler Initiation  : Local File Storage : Address = ${address}`);
+
 	const adapter = new LocalStorageAdapter(address);
 	return new FileStorage(adapter);
 };
 
-export const backupFileHandler = fileHandler(serverEnv.BACKUP_DIR);
-export const importFileHandler = fileHandler(serverEnv.IMPORT_DIR);
+export const backupFileHandler = fileHandler(serverEnv.BACKUP_DIR, 'Backup');
+export const importFileHandler = fileHandler(serverEnv.IMPORT_DIR, 'Import');

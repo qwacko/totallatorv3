@@ -18,8 +18,6 @@ export const getData_Akahu = async ({
 
 	const start = useStartDate.toISOString();
 
-	console.log('start', start);
-
 	const akahu = new AkahuClient({ appToken });
 
 	let cursor: undefined | null | string = undefined;

@@ -266,7 +266,7 @@ export const backupActions = {
 		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 8,
+			version: 9,
 			data: {
 				user: await db.select().from(user).execute(),
 				session: await db.select().from(session).execute(),

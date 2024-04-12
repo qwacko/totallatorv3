@@ -7,7 +7,7 @@ import {
 } from '$lib/schema/reusableFilterSchema';
 import { and, asc, desc, eq, type InferSelectModel } from 'drizzle-orm';
 import type { DBType } from '../db';
-import { reusableFilter } from '$lib/server/db/postgres/schema';
+import { importTable, reusableFilter } from '$lib/server/db/postgres/schema';
 import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
 import { nanoid } from 'nanoid';
 import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
@@ -274,18 +274,78 @@ export const reusableFilterActions = {
 			.where(eq(reusableFilter.applyFollowingImport, true))
 			.execute();
 
+		await db
+			.update(importTable)
+			.set({
+				importStatus: {
+					count: items.length,
+					complete: 0,
+					completeIds: [],
+					ids: items.map((item) => item.id),
+					startTime: new Date()
+				},
+				...updatedTime()
+			})
+			.where(eq(importTable.id, importId))
+			.execute();
+
 		let index = 1;
 
-		for (const currentItem of items) {
-			await reusableFilterActions.applyById({ db, id: currentItem.id, importId });
+		let remainingNumber = items.length;
+
+		while (remainingNumber > 0) {
+			const currentItem = await db.query.importTable
+				.findFirst({
+					where: eq(importTable.id, importId)
+				})
+				.execute();
+
+			if (!currentItem || !currentItem.importStatus) {
+				throw new Error('Import Not Found');
+			}
+
+			const currentImportStatus = currentItem.importStatus;
+			const currentImportId = currentItem.importStatus.ids[0];
+
+			await db.transaction(async (db) => {
+				await reusableFilterActions.applyById({
+					db,
+					id: currentImportId,
+					importId
+				});
+
+				const ids = currentImportStatus.ids.filter((item) => item !== currentImportId);
+				const completeIds = [...currentImportStatus.completeIds, currentImportId];
+				remainingNumber = ids.length;
+
+				await db
+					.update(importTable)
+					.set({
+						importStatus: {
+							count: currentImportStatus.count,
+							complete: completeIds.length,
+							ids,
+							completeIds,
+							startTime: currentImportStatus.startTime
+						},
+						...updatedTime()
+					})
+					.where(eq(importTable.id, importId))
+					.execute();
+			});
 
 			if (timeout && new Date() > timeout) {
 				logging.error(`Filter Application Timeout. Reached ${index} of ${items.length} filters.`);
 				throw new Error('Filter Application Timeout');
 			}
-
-			index++;
 		}
+
+		// Clear The Import Status After Completion
+		await db
+			.update(importTable)
+			.set({ importStatus: null, ...updatedTime() })
+			.where(eq(importTable.id, importId))
+			.execute();
 	},
 	applyAllAutomatic: async ({ db }: { db: DBType }) => {
 		const items = await db

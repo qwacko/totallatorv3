@@ -32,6 +32,7 @@ import {
 import { dateRangeMaterializedView } from '../postgres/schema/materializedViewSchema';
 import type { DBDateRangeType } from './helpers/report/filtersToDateRange';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { logging } from '$lib/server/logging';
 
 export const reportActions = {
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
@@ -39,12 +40,12 @@ export const reportActions = {
 
 		if (!reportInfo) throw new Error('Report not found');
 
-		console.log('Deleting Reports');
-		console.log(
+		logging.debug('Deleting Reports');
+		logging.debug(
 			'Report Elements',
 			reportInfo.reportElements.map((item) => item.id)
 		);
-		console.log('Filter', reportInfo.filterId);
+		logging.debug('Filter', reportInfo.filterId);
 
 		await db.transaction(async (trx) => {
 			await reportActions.reportElement.deleteMany({
@@ -284,7 +285,7 @@ export const reportActions = {
 		id: string;
 		filter: JournalFilterSchemaWithoutPaginationType;
 	}) => {
-		console.log('Upserting Filter', filter);
+		logging.debug('Upserting Filter', filter);
 
 		const reportConfig = await reportActions.getSimpleReportConfig({ db, id });
 
@@ -798,7 +799,7 @@ export const reportActions = {
 		update: async ({ db, data }: { db: DBType; data: UpdateReportElementType }) => {
 			const { id, ...restData } = data;
 
-			console.log('Updating Report Element : ', data);
+			logging.debug('Updating Report Element : ', data);
 
 			await db.transaction(async (trx) => {
 				if (restData.clearTitle) {

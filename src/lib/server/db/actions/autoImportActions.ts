@@ -14,6 +14,7 @@ import { autoImportFilterToQuery } from './helpers/autoImport/autoImportFilterTo
 import { autoImportToOrderByToSQL } from './helpers/autoImport/autoImportOrderByToSQL';
 import { getData_Common } from './helpers/autoImport/getData_Common';
 import { tActions } from './tActions';
+import { logging } from '$lib/server/logging';
 
 export const autoImportActions = {
 	list: async ({ db, filter }: { db: DBType; filter: AutoImportFilterSchemaType }) => {
@@ -193,7 +194,7 @@ export const autoImportActions = {
 
 		const data = await autoImportActions.getData({ db, id });
 
-		console.log('Triggering Import', data.length, autoImport.title);
+		logging.debug('Triggering Import', data.length, autoImport.title);
 
 		const dateString = new Date().toISOString().slice(0, 10);
 

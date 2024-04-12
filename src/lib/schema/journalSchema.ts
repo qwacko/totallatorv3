@@ -17,16 +17,6 @@ const zodStringBlanking = z
 		val === '' || val === 'undefined' || val === 'null' ? undefined : val ? val : undefined
 	);
 
-const zodCoercedBoolean = z.boolean().or(
-	z
-		.string()
-		.refine(
-			(val) =>
-				val === '0' || val === '1' || val.toLowerCase() === 'true' || val.toLowerCase() === 'false'
-		)
-		.transform((val) => val === '1' || val.toLowerCase() === 'true')
-);
-
 export const createJournalDBCore = z.object({
 	uniqueId: z.string().nullable().optional(),
 	date: dateStringSchema,
@@ -40,10 +30,10 @@ export const createJournalDBCore = z.object({
 	importId: zodStringBlanking,
 	importDetailId: zodStringBlanking,
 	labels: z.array(z.string()).optional(),
-	linked: zodCoercedBoolean.default(true).optional(),
-	reconciled: zodCoercedBoolean.default(false).optional(),
-	dataChecked: zodCoercedBoolean.default(false).optional(),
-	complete: zodCoercedBoolean.default(false).optional()
+	linked: z.boolean().default(true).optional(),
+	reconciled: z.boolean().default(false).optional(),
+	dataChecked: z.boolean().default(false).optional(),
+	complete: z.boolean().default(false).optional()
 });
 
 export type CreateJournalDBCoreType = z.infer<typeof createJournalDBCore>;

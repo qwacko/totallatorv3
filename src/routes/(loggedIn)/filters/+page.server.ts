@@ -52,8 +52,6 @@ export let actions = {
 
 		const idsArray = ids.map((id) => id.toString());
 
-		console.log(`Target IDs : ${idsArray}`);
-
 		try {
 			await tActions.reusableFitler.refreshSome({ db, ids: idsArray });
 		} catch (e) {

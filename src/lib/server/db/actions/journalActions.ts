@@ -291,7 +291,8 @@ export const journalActions = {
 			const updatingLabelsOnly = checkUpdateLabelsOnly(processedData.data);
 
 			if (!updatingLabelsOnly) {
-				throw new Error('Cannot update journals that are already complete');
+				logging.error('Cannot update journals that are already complete', processedFilter, processedData.data);
+				return undefined;
 			}
 		}
 

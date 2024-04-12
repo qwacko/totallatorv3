@@ -34,8 +34,6 @@
 			return;
 		}
 
-		console.log('Resolved Data : ', resolvedData);
-
 		options = {
 			chart: {
 				height: `${height}px`,

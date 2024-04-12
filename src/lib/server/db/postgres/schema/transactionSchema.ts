@@ -446,6 +446,17 @@ export const importItemDetailRelations = relations(importItemDetail, ({ one }) =
 	})
 }));
 
+export type ImportProgress =
+	| {
+			startTime: Date;
+			count: number;
+			ids: string[];
+			complete: number;
+			completeIds: string[];
+	  }
+	| null
+	| undefined;
+
 export const importTable = pgTable(
 	'import',
 	{
@@ -461,7 +472,8 @@ export const importTable = pgTable(
 		autoClean: boolean('auto_clean').notNull().default(false),
 		importMappingId: text('mapped_import_id'),
 		autoImportId: text('auto_import_id'),
-		errorInfo: json('error_info')
+		errorInfo: json('error_info'),
+		importStatus: jsonb('import_status').$type<ImportProgress>().default(null)
 	},
 	(t) => ({
 		statusIdx: index('label_status_idx').on(t.status),

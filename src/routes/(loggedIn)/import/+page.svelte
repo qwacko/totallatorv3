@@ -17,6 +17,7 @@
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
+	import { importProgressToText } from './importProgressToText.js';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/import', $page);
@@ -181,7 +182,7 @@
 									color="green"
 								/>
 							{/if}
-							{importStatusToTest(currentRow.status)}
+							{importStatusToTest(currentRow.status)}{importProgressToText(currentRow.importStatus)}
 						</div>
 					</Badge>
 				{:else if currentColumn.id === 'autoProcess'}

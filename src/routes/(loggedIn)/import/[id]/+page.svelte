@@ -14,6 +14,7 @@
 	import ToggleInputForm from '$lib/components/ToggleInputForm.svelte';
 	import { linkToImportItems } from './linkToImportItems';
 	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
+	import { importProgressToText } from '../importProgressToText';
 
 	export let data;
 
@@ -22,7 +23,6 @@
 			data.streaming.data.detail.status === 'importing' ||
 			data.streaming.data.detail.status === 'awaitingImport'
 		) {
-			console.log('Invalidating All');
 			setTimeout(() => {
 				invalidateAll();
 			}, 2000);
@@ -197,9 +197,9 @@
 		{/if}
 		{#if importData.detail.status === 'importing'}
 			<Badge color="green">
-				<Spinner size="8" class=" p-1" color="green" />Importing... ({Math.floor(
-					(new Date().valueOf() - importData.detail.updatedAt.valueOf()) / 1000
-				)}s)
+				<Spinner size="8" class=" p-1" color="green" />Importing...{importProgressToText(
+					importData.detail.importStatus
+				)}
 			</Badge>
 		{/if}
 		{#if importData.detail.status === 'complete'}

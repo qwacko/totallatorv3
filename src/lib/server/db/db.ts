@@ -30,9 +30,8 @@ const enableLogger = serverEnv.DB_QUERY_LOG;
 
 class MyLogger implements Logger {
 	logQuery(query: string, params: unknown[]): void {
-		// console.log({ query, params });
 		if (query.startsWith('update') && enableLogger && serverEnv.DEV) {
-			console.log({ query, params });
+			logging.info({ query, params });
 		}
 	}
 }

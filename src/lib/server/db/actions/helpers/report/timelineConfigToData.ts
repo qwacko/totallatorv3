@@ -6,6 +6,7 @@ import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
 import { reportConfigPartTrendDisplayInfo } from '$lib/schema/reportHelpers/reportConfigPartTrendDisplayOptions';
 import { reportConfigPartItemGroupingInfo } from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum';
+import { logging } from '$lib/server/logging';
 
 export const timelineConfigToData = async ({
 	db,
@@ -125,8 +126,7 @@ export const timelineConfigToData = async ({
 			try {
 				calcValue = Number(evaluate(currentCalc));
 			} catch (err) {
-				console.log('Error in calculation', err);
-				// Handle error or set calcValue to a default
+				logging.error('Error in calculation', err);
 			}
 
 			return {

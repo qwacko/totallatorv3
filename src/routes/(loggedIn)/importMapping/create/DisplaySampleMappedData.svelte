@@ -21,7 +21,6 @@
 
 	const processFile = (file: File, numRows: number) => {
 		importErrorMessage = undefined;
-		console.log('File Type : ', file.type);
 
 		if (file.type === 'text/csv') {
 			Papa.parse(file, {
@@ -40,7 +39,6 @@
 				},
 				error: function (error) {
 					importErrorMessage = 'CSV Data Error';
-					console.log('CSV Data Error', error);
 					csvData = undefined;
 					rowNumber = 1;
 					numberRows = 1;
@@ -60,7 +58,6 @@
 
 						if (parsedData.success === false) {
 							importErrorMessage = 'Invalid JSON Data';
-							console.log('Invalid JSON Data', parsedData.error);
 						} else {
 							csvData = parsedData.data;
 							rowNumber = 1;
@@ -68,15 +65,11 @@
 					})
 					.catch((e) => {
 						importErrorMessage = 'Import Error';
-						console.log('Error reading file', e);
 					});
 			} catch (e) {
-				console.log('Error parsing JSON', e);
 				importErrorMessage = 'Import Error';
 			}
 
-			// importErrorMessage = 'Invalid File Type';
-			// console.log('Invalid File Type');
 		}
 	};
 
@@ -89,7 +82,6 @@
 			if (files && files.length > 0) {
 				const file = files[0];
 				currentFile = file;
-				console.log('File: ', file);
 			} else {
 				currentFile = undefined;
 			}

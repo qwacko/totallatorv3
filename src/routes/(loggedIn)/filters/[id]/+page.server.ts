@@ -96,7 +96,6 @@ export const actions = {
 		}
 
 		try {
-			console.log(`Updaing Filter ${processedUpdate}`);
 			await tActions.reusableFitler.update({ db: data.locals.db, id, data: processedUpdate.data });
 		} catch (e) {
 			logging.error('Reusable Filter Update Error', e);

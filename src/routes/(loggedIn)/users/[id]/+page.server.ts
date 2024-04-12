@@ -3,6 +3,7 @@ import { defaultJournalRedirect } from '$lib/helpers/defaultRedirect.js';
 import { updateUserSchema } from '$lib/schema/userSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { user } from '$lib/server/db/postgres/schema';
+import { logging } from '$lib/server/logging';
 import { eq } from 'drizzle-orm';
 import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -46,8 +47,6 @@ export const actions = {
 
 		const form = await superValidate(data.request, zod(updateUserSchema));
 
-		console.log('updateInforForm : ', form);
-
 		if (!form.valid) {
 			return { form };
 		}
@@ -60,7 +59,7 @@ export const actions = {
 				initiatingUser: authUser
 			});
 		} catch (e) {
-			console.log('updateInfoError : ', e);
+			logging.error('updateInfoError : ', e);
 			return message(form, 'Error Updating User', { status: 401 });
 		}
 

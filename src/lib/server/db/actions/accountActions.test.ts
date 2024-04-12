@@ -166,14 +166,12 @@ describe('accountActions', async () => {
 			const accountGroupCombined = `Group1:Group2:Group3`;
 			const status = 'active';
 
-			const firstAccount = await accountActions.createAndGet(db, {
+			await accountActions.createAndGet(db, {
 				title,
 				type: 'asset',
 				accountGroupCombined,
 				status
 			});
-
-			console.log('First Account : ', firstAccount);
 
 			const errorAccount = accountActions.createAndGet(db, {
 				title,
@@ -409,55 +407,6 @@ describe('accountActions', async () => {
 			).rejects.toThrowError('Account Account0 not found');
 		});
 
-		//REMOVED THIS AS THE MS AREN"T CORRECTLY STORED IN THE DB.
-		// testIT('Updating an account updates updatedAt (for both asset and expense)', async (db, id) => {
-
-		// 	const startTime = new Date()
-
-		// 	const initialAccount = await accountActions.getById(db, `Account1`);
-		// 	const initialAccount2 = await accountActions.getById(db, `Account4`);
-
-		// 	if (initialAccount && initialAccount2) {
-		// 		expect(new Date(initialAccount.updatedAt).getTime()).toBeLessThan(startTime.getTime());
-		// 		expect(new Date(initialAccount2.updatedAt).getTime()).toBeLessThan(startTime.getTime());
-		// 	}
-
-		// 	await accountActions.update({
-		// 		db,
-		// 		id: `Account1`,
-		// 		data: {
-		// 			title: `Updated Account1`,
-		// 			type: 'asset',
-		// 			accountGroupCombined: 'Group1:Group2:Group3',
-		// 			status: 'disabled'
-		// 		}
-		// 	});
-		// 	await accountActions.update({
-		// 		db,
-		// 		id: `Account4`,
-		// 		data: {
-		// 			title: `Updated Account2`,
-		// 			type: 'expense',
-		// 			accountGroupCombined: 'Group1:Group2:Group3',
-		// 			status: 'disabled'
-		// 		}
-		// 	});
-
-		// 	const endTime = new Date()
-
-		// 	const updatedAccount = await accountActions.getById(db, `Account1`);
-		// 	const updatedAccount2 = await accountActions.getById(db, `Account4`);
-
-		// 	console.log({ startTime, endTime, accountTime: updatedAccount?.updatedAt })
-
-		// 	if (updatedAccount && updatedAccount2) {
-		// 		expect(new Date(updatedAccount.updatedAt).getTime()).toBeGreaterThanOrEqual(startTime.getTime());
-		// 		expect(new Date(updatedAccount.updatedAt).getTime()).toBeLessThanOrEqual(endTime.getTime());
-		// 		expect(new Date(updatedAccount2.updatedAt).getTime()).toBeGreaterThanOrEqual(startTime.getTime());
-		// 		expect(new Date(updatedAccount2.updatedAt).getTime()).toBeLessThanOrEqual(endTime.getTime());
-		// 	}
-		// });
-
 		testIT(
 			'Updating the status will update related items correctly (asset and expense)',
 			async (db, id) => {
@@ -582,8 +531,6 @@ describe('accountActions', async () => {
 			await accountActions.deleteMany(db, [{ id: `Account3` }]);
 
 			const account = await accountActions.getById(db, `Account3`);
-
-			console.log('account', account, id);
 
 			expect(account).toBeUndefined();
 		});

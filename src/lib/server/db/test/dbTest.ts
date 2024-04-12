@@ -14,13 +14,14 @@ import postgres from 'postgres';
 import { it } from 'vitest';
 import { nanoid } from 'nanoid';
 import { materializedViewActions } from '../actions/materializedViewActions';
+import { logging } from '$lib/server/logging';
 
 if (!serverEnv.POSTGRES_TEST_URL) {
 	throw new Error('POSTGRES_TEST_URL is not defined');
 }
 
 const genTestDB = async () => {
-	console.log('Generating Test DB');
+	logging.info('Generating Test DB');
 
 	const useURL = serverEnv.POSTGRES_TEST_URL || serverEnv.POSTGRES_URL || '';
 
@@ -28,9 +29,8 @@ const genTestDB = async () => {
 
 	class MyLogger implements Logger {
 		logQuery(query: string, params: unknown[]): void {
-			// console.log({ query, params });
 			if (query.startsWith('update') && enableLogger && serverEnv.DEV) {
-				console.log({ query, params });
+				logging.info({ query, params });
 			}
 		}
 	}
