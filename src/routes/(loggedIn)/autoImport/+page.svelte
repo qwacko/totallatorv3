@@ -52,7 +52,7 @@
 			highlightTextColumns={['title']}
 			paginationInfo={{
 				page: data.list.page,
-				count: data.list.pageCount,
+				count: data.list.count,
 				perPage: data.list.pageSize,
 				buttonCount: 5,
 				urlForPage: (value) => urlInfo.updateParams({ searchParams: { page: value } }).url
