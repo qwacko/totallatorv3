@@ -6,6 +6,7 @@ import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
 import { type currencyFormatType } from '$lib/schema/userSchema';
 import { convertNumberToText } from '../../../../../helpers/convertNumberToText';
+import { logging } from '$lib/server/logging';
 
 export const sparklineConfigToData = async ({
 	db,
@@ -91,7 +92,7 @@ export const sparklineConfigToData = async ({
 				textValue: convertNumberToText({ value: calcValue, config: config.numberDisplay, currency })
 			};
 		} catch (err) {
-			console.log('Error in Sparkline Config To Data', err);
+			logging.error('Error in Sparkline Config To Data', err);
 			errorMessage = `Math Request Malformed. Query = ${currentCalc}`;
 			return {
 				time: date,

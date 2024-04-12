@@ -1,5 +1,6 @@
 import type { BackupSchemaRev04Type } from './backupSchema.Rev04';
 import type { BackupSchemaRev03Type } from './backupSchema.Rev03';
+import { logging } from '../logging';
 
 export const backupSchemaMigrate_03to04Information = (
 	backup03Information: Pick<BackupSchemaRev03Type, 'information' | 'version'>
@@ -15,7 +16,7 @@ export const backupSchemaMigrate_03to04Information = (
 export const backupSchemaMigrate_03to04 = (
 	backup03: BackupSchemaRev03Type
 ): BackupSchemaRev04Type => {
-	console.log('Transforming Backup From Rev 03 to Rev 04');
+	logging.info('Transforming Backup From Rev 03 to Rev 04');
 	return {
 		...backupSchemaMigrate_03to04Information({
 			version: backup03.version,

@@ -1,3 +1,5 @@
+import { logging } from '$lib/server/logging';
+
 export const addToArray = <T extends Record<string, string[] | any>>(
 	filter: T,
 	key: keyof T,
@@ -146,7 +148,7 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 		const processedTextFilter = splitInput(filter.textFilter);
 
 		if (logProcessing) {
-			console.log('processedTextFilter:', filter.textFilter, processedTextFilter);
+			logging.info('processedTextFilter:', filter.textFilter, processedTextFilter);
 		}
 
 		for (const text of processedTextFilter) {
@@ -160,7 +162,7 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 				}
 			}
 			if (logProcessing && useText !== text) {
-				console.log(`Text "${text}" proxied to "${useText}"`);
+				logging.info(`Text "${text}" proxied to "${useText}"`);
 			}
 			let filterHandled = false;
 			let filterKey = '';
@@ -199,7 +201,7 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 			}
 
 			if (logProcessing) {
-				console.log(`Text "${text}" handled by filter "${filterKey}"`);
+				logging.info(`Text "${text}" handled by filter "${filterKey}"`);
 			}
 		}
 

@@ -462,7 +462,7 @@ export const importActions = {
 							await importLabel({ item, trx });
 						}
 
-						console.log(
+						logging.debug(
 							`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
 						);
 

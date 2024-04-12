@@ -110,8 +110,6 @@ export const journalMaterialisedList = async ({
 
 	const journalsPromise = journalQueryCore.execute();
 
-	// console.log(otherInfo);
-
 	const runningTotalInner = db
 		.select({ amount: journalExtendedView.amount })
 		.from(journalExtendedView)

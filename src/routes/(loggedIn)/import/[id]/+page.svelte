@@ -23,7 +23,6 @@
 			data.streaming.data.detail.status === 'importing' ||
 			data.streaming.data.detail.status === 'awaitingImport'
 		) {
-			console.log('Invalidating All');
 			setTimeout(() => {
 				invalidateAll();
 			}, 2000);

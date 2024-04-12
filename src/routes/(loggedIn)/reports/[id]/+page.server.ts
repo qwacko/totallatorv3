@@ -69,10 +69,9 @@ export const actions = {
 
 		const data = journalFilterSchemaWithoutPagination.safeParse(JSON.parse(filter.toString()));
 
-		// console.log('data', data);
 
 		if (!data.success) {
-			console.log('Update Filter Parsing Error : ', data.error.message);
+			logging.error('Update Filter Parsing Error : ', data.error.message);
 			return failWrapper('Invalid Filter');
 		}
 

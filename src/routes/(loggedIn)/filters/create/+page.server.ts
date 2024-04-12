@@ -121,7 +121,6 @@ export const actions = {
 			return message(form, 'Reusable Filter Creation Error');
 		}
 
-		console.log('newFilterId', newFilterId);
 		redirect(
 			302,
 			urlGenerator({

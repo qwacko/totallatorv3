@@ -332,9 +332,6 @@ export const accountActions = {
 				})
 				.where(eq(account.id, id))
 				.execute();
-
-			const matchingAccount = await db.select().from(account).where(eq(account.id, id)).execute();
-			console.log('New Update Time = ', matchingAccount[0].updatedAt);
 		}
 		return id;
 	},
