@@ -1,0 +1,1 @@
+ALTER TABLE "import" ADD COLUMN "import_status" jsonb DEFAULT 'null'::jsonb;

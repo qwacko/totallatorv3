@@ -472,18 +472,18 @@ export const importActions = {
 						}
 					})
 				);
-				await tActions.reusableFitler.applyFollowingImport({
-					db: trx,
-					importId: id,
-					timeout: maxTime
-				});
-
-				await trx
-					.update(importTable)
-					.set({ status: 'complete', ...updatedTime() })
-					.where(eq(importTable.id, id))
-					.execute();
 			});
+			await tActions.reusableFitler.applyFollowingImport({
+				db,
+				importId: id,
+				timeout: maxTime
+			});
+
+			await db
+				.update(importTable)
+				.set({ status: 'complete', ...updatedTime() })
+				.where(eq(importTable.id, id))
+				.execute();
 		} catch (e) {
 			//Check if the import is still in the importing state
 			const importInfoList = await db
