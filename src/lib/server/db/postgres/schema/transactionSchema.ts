@@ -108,7 +108,9 @@ export const accountRelations = relations(account, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [account.importId],
 		references: [importTable.id]
-	})
+	}),
+	files: many(fileTable),
+	notes: many(notesTable)
 }));
 
 export const tag = pgTable(
@@ -138,7 +140,9 @@ export const tagRelations = relations(tag, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [tag.importId],
 		references: [importTable.id]
-	})
+	}),
+	files: many(fileTable),
+	notes: many(notesTable)
 }));
 
 export const category = pgTable(
@@ -168,7 +172,9 @@ export const categoryRelations = relations(category, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [category.importId],
 		references: [importTable.id]
-	})
+	}),
+	files: many(fileTable),
+	notes: many(notesTable)
 }));
 
 export const bill = pgTable(
@@ -194,7 +200,9 @@ export const billRelations = relations(bill, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [bill.importId],
 		references: [importTable.id]
-	})
+	}),
+	files: many(fileTable),
+	notes: many(notesTable)
 }));
 
 export const budget = pgTable(
@@ -220,7 +228,9 @@ export const budgetRelations = relations(budget, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [budget.importId],
 		references: [importTable.id]
-	})
+	}),
+	files: many(fileTable),
+	notes: many(notesTable)
 }));
 
 export const label = pgTable('label', {
@@ -240,7 +250,9 @@ export const labelRelations = relations(label, ({ many, one }) => ({
 	import: one(importTable, {
 		fields: [label.importId],
 		references: [importTable.id]
-	})
+	}),
+	files: many(fileTable),
+	notes: many(notesTable)
 }));
 
 export const labelsToJournals = pgTable(
@@ -297,7 +309,9 @@ export const transaction = pgTable('transaction', {
 });
 
 export const transactionRelations = relations(transaction, ({ many }) => ({
-	journals: many(journalEntry)
+	journals: many(journalEntry),
+	files: many(fileTable),
+	notes: many(notesTable)
 }));
 
 export const journalEntry = pgTable(
@@ -367,6 +381,185 @@ export const journalEntryRelations = relations(journalEntry, ({ one, many }) => 
 		references: [importTable.id]
 	}),
 	labels: many(labelsToJournals)
+}));
+
+const fileReasonEnum = ['receipt', 'invoice', 'report', 'info'] as const;
+export type FileReason = (typeof fileReasonEnum)[number];
+
+export const fileTable = pgTable(
+	'files',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title'),
+		reason: text('reason', { enum: fileReasonEnum }).notNull(),
+		originalFilename: text('original_filename').notNull(),
+		filename: text('filename').notNull(),
+		type: text('type').notNull(),
+		size: integer('size').notNull(),
+		fileExists: boolean('file_exists').notNull(),
+		linked: boolean('linked').notNull(),
+		transactionId: text('transaction_id'),
+		accountId: text('account_id'),
+		billId: text('bill_id'),
+		budgetId: text('budget_id'),
+		categoryId: text('category_id'),
+		tagId: text('tag_id'),
+		labelId: text('label_id'),
+		autoImportId: text('auto_import_id'),
+		reportId: text('report_id'),
+		reportElementId: text('report_element_id')
+	},
+	(t) => ({
+		reasonIdx: index('file_reason_idx').on(t.reason),
+		titleIdx: index('file_title_idx').on(t.title),
+		filenameIdx: index('file_filename_idx').on(t.filename),
+		typeIdx: index('file_type_idx').on(t.type),
+		sizeIdx: index('file_size_idx').on(t.size),
+		fileExistsIdx: index('file_file_exists_idx').on(t.fileExists),
+		transactionIdx: index('file_transaction_idx').on(t.transactionId),
+		accountIdx: index('file_account_idx').on(t.accountId),
+		billIdx: index('file_bill_idx').on(t.billId),
+		budgetIdx: index('file_budget_idx').on(t.budgetId),
+		categoryIdx: index('file_category_idx').on(t.categoryId),
+		tagIdx: index('file_tag_idx').on(t.tagId),
+		labelIdx: index('file_label_idx').on(t.labelId),
+		autoImportIdx: index('file_auto_import_idx').on(t.autoImportId),
+		reportIdx: index('file_report_idx').on(t.reportId),
+		reportElementIdx: index('file_report_element_idx').on(t.reportElementId)
+	})
+);
+
+export const fileTableRelations = relations(fileTable, ({ one, many }) => ({
+	transaction: one(transaction, {
+		fields: [fileTable.transactionId],
+		references: [transaction.id]
+	}),
+	account: one(account, {
+		fields: [fileTable.accountId],
+		references: [account.id]
+	}),
+	bill: one(bill, {
+		fields: [fileTable.billId],
+		references: [bill.id]
+	}),
+	budget: one(budget, {
+		fields: [fileTable.budgetId],
+		references: [budget.id]
+	}),
+	category: one(category, {
+		fields: [fileTable.categoryId],
+		references: [category.id]
+	}),
+	tag: one(tag, {
+		fields: [fileTable.tagId],
+		references: [tag.id]
+	}),
+	label: one(label, {
+		fields: [fileTable.labelId],
+		references: [label.id]
+	}),
+	autoImport: one(autoImportTable, {
+		fields: [fileTable.autoImportId],
+		references: [autoImportTable.id]
+	}),
+	report: one(report, {
+		fields: [fileTable.reportId],
+		references: [report.id]
+	}),
+	reportElement: one(reportElement, {
+		fields: [fileTable.reportElementId],
+		references: [reportElement.id]
+	}),
+	notes: many(notesTable)
+}));
+
+export const noteTypeEnum = ['info', 'reminder'] as const;
+export type NoteTypeType = (typeof noteTypeEnum)[number];
+
+export const notesTable = pgTable(
+	'notes',
+	{
+		...idColumn,
+		...timestampColumns,
+		note: text('note').notNull(),
+		type: text('type', { enum: noteTypeEnum }).notNull().default('info'),
+		createdById: text('created_by').notNull(),
+		transactionId: text('transaction_id'),
+		accountId: text('account_id'),
+		billId: text('bill_id'),
+		budgetId: text('budget_id'),
+		categoryId: text('category_id'),
+		tagId: text('tag_id'),
+		labelId: text('label_id'),
+		fileId: text('file_id'),
+		autoImportId: text('auto_import_id'),
+		reportId: text('report_id'),
+		reportElementId: text('report_element_id')
+	},
+	(t) => ({
+		noteIdx: index('note_note_idx').on(t.note),
+		typeIdx: index('note_type_idx').on(t.type),
+		transactionIdx: index('note_transaction_idx').on(t.transactionId),
+		accountIdx: index('note_account_idx').on(t.accountId),
+		billIdx: index('note_bill_idx').on(t.billId),
+		budgetIdx: index('note_budget_idx').on(t.budgetId),
+		categoryIdx: index('note_category_idx').on(t.categoryId),
+		tagIdx: index('note_tag_idx').on(t.tagId),
+		labelIdx: index('note_label_idx').on(t.labelId),
+		createdByIdx: index('note_created_by_idx').on(t.createdById),
+		fileIdx: index('note_file_idx').on(t.fileId),
+		autoImportIdx: index('note_auto_import_idx').on(t.autoImportId),
+		reportIdx: index('note_report_idx').on(t.reportId),
+		reportElementIdx: index('note_report_element_idx').on(t.reportElementId)
+	})
+);
+
+export const notesTableRelations = relations(notesTable, ({ one }) => ({
+	transaction: one(transaction, {
+		fields: [notesTable.transactionId],
+		references: [transaction.id]
+	}),
+	account: one(account, {
+		fields: [notesTable.accountId],
+		references: [account.id]
+	}),
+	bill: one(bill, {
+		fields: [notesTable.billId],
+		references: [bill.id]
+	}),
+	budget: one(budget, {
+		fields: [notesTable.budgetId],
+		references: [budget.id]
+	}),
+	category: one(category, {
+		fields: [notesTable.categoryId],
+		references: [category.id]
+	}),
+	tag: one(tag, {
+		fields: [notesTable.tagId],
+		references: [tag.id]
+	}),
+	label: one(label, {
+		fields: [notesTable.labelId],
+		references: [label.id]
+	}),
+	file: one(fileTable, {
+		fields: [notesTable.fileId],
+		references: [fileTable.id]
+	}),
+	autoImport: one(autoImportTable, {
+		fields: [notesTable.autoImportId],
+		references: [autoImportTable.id]
+	}),
+	report: one(report, {
+		fields: [notesTable.reportId],
+		references: [report.id]
+	}),
+	reportElement: one(reportElement, {
+		fields: [notesTable.reportElementId],
+		references: [reportElement.id]
+	})
 }));
 
 export const importItemDetail = pgTable(
@@ -530,7 +723,9 @@ export const autoImportTableRelations = relations(autoImportTable, ({ one, many 
 		fields: [autoImportTable.importMappingId],
 		references: [importMapping.id]
 	}),
-	imports: many(importTable)
+	imports: many(importTable),
+	files: many(fileTable),
+	notes: many(notesTable)
 }));
 
 export const reusableFilter = pgTable(

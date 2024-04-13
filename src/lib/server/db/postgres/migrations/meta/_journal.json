@@ -288,6 +288,13 @@
       "when": 1712914251332,
       "tag": "0040_quiet_makkari",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1712978079157,
+      "tag": "0041_normal_lady_bullseye",
+      "breakpoints": true
     }
   ]
 }
