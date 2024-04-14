@@ -1,5 +1,16 @@
 import { logging } from '$lib/server/logging';
 
+export const addEnumToArray = <T extends Record<string, string[] | any>>(
+	filter: T,
+	key: keyof T,
+	value: string,
+	allowedValues: string[] | readonly string[]
+) => {
+	if (allowedValues.includes(value)) {
+		addToArray(filter, key, value);
+	}
+};
+
 export const addToArray = <T extends Record<string, string[] | any>>(
 	filter: T,
 	key: keyof T,

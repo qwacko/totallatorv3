@@ -32,6 +32,9 @@ import { pageSizeEnum } from '../../../../schema/pageSizeSchema';
 import { type ReportElementLayoutType } from '../../../../schema/reportHelpers/reportElementLayoutEnum';
 import type { ReportConfigPartSchemaType } from '../../../../schema/reportHelpers/reportConfigPartSchema';
 import type { CombinedBackupSchemaInfoType } from '$lib/server/backups/backupSchema';
+import { noteTypeEnum } from '../../../../schema/enum/noteTypeEnum';
+import { fileReasonEnum } from '../../../../schema/enum/fileReasonEnum';
+import { fileTypeEnum } from '../../../../schema/enum/fileTypeEnum';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -383,9 +386,6 @@ export const journalEntryRelations = relations(journalEntry, ({ one, many }) => 
 	labels: many(labelsToJournals)
 }));
 
-const fileReasonEnum = ['receipt', 'invoice', 'report', 'info'] as const;
-export type FileReason = (typeof fileReasonEnum)[number];
-
 export const fileTable = pgTable(
 	'files',
 	{
@@ -395,7 +395,7 @@ export const fileTable = pgTable(
 		reason: text('reason', { enum: fileReasonEnum }).notNull(),
 		originalFilename: text('original_filename').notNull(),
 		filename: text('filename').notNull(),
-		type: text('type').notNull(),
+		type: text('type', { enum: fileTypeEnum }).notNull(),
 		size: integer('size').notNull(),
 		fileExists: boolean('file_exists').notNull(),
 		linked: boolean('linked').notNull(),
@@ -473,9 +473,6 @@ export const fileTableRelations = relations(fileTable, ({ one, many }) => ({
 	}),
 	notes: many(notesTable)
 }));
-
-export const noteTypeEnum = ['info', 'reminder'] as const;
-export type NoteTypeType = (typeof noteTypeEnum)[number];
 
 export const notesTable = pgTable(
 	'notes',
