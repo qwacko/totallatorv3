@@ -25,6 +25,7 @@
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
 	import { currencyFormat } from '$lib/stores/userInfoStore.js';
 	import NotesButton from '$lib/components/NotesButton.svelte';
+	import FilesButton from '$lib/components/FilesButton.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -224,7 +225,14 @@
 								<DeleteIcon height={15} width={15} />
 							</Button>
 							<NotesButton notes={currentRow.notes} target={{ accountId: currentRow.id }} />
-							<RawDataModal data={currentRow} title="Raw Account Data" dev={data.dev} />
+							<FilesButton files={currentRow.files} target={{ accountId: currentRow.id }} />
+							<RawDataModal
+								data={currentRow}
+								title="Raw Account Data"
+								dev={data.dev}
+								color="primary"
+								outline
+							/>
 						</ButtonGroup>
 					</form>
 				</div>

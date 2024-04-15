@@ -15,6 +15,7 @@ import { tagActions } from './tagActions';
 import { userActions } from './userActions';
 import { autoImportActions } from './autoImportActions';
 import { noteActions } from './noteActions';
+import { fileActions } from './fileActions';
 
 export const tActions = {
 	tag: tagActions,
@@ -33,5 +34,6 @@ export const tActions = {
 	materializedViews: materializedViewActions,
 	user: userActions,
 	autoImport: autoImportActions,
-	note: noteActions
+	note: noteActions,
+	file: fileActions
 };

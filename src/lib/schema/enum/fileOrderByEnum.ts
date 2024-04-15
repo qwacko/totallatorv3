@@ -10,7 +10,7 @@ export const fileOrderByEnum = [
 	'updatedAt'
 ] as const;
 
-type FileOrderByEnumType = (typeof fileOrderByEnum)[number];
+export type FileOrderByEnumType = (typeof fileOrderByEnum)[number];
 
 type FileOrderByEnumTitles = {
 	[K in FileOrderByEnumType]: string;

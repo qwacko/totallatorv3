@@ -15,9 +15,13 @@
 	import { enhance } from '$app/forms';
 	import type { NoteTypeType } from '$lib/schema/enum/noteTypeEnum';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
+	import { customEnhance } from '$lib/helpers/customEnhance';
+	import ActionButton from './ActionButton.svelte';
 
 	export let notes: GroupedNotesType;
 	export let target: CreateFileNoteRelationshipSchemaType;
+
+	let creating = false;
 
 	let modal = false;
 
@@ -33,9 +37,9 @@
 
 <Button
 	on:click={() => (modal = true)}
-	color={notes.length > 0 ? (hasReminder ? 'red' : 'primary') : 'light'}
+	color={hasReminder ? 'red' : 'primary'}
 	outline={notes.length === 0}
-	class="flex flex-row content-center gap-2 p-2"
+	class="p-2"
 >
 	<NotesIcon />
 </Button>
@@ -70,14 +74,27 @@
 		</Timeline>
 	{/each}
 	<svelte:fragment slot="footer">
-		<form method="post" action="?/addNote" use:enhance class="flex w-full">
+		<form
+			method="post"
+			action="?/addNote"
+			use:enhance={customEnhance({
+				updateLoading: (newLoading) => (creating = newLoading)
+			})}
+			class="flex w-full"
+		>
 			{#each targetItems as currentItem}
 				<input type="hidden" name={currentItem.key} value={currentItem.value} />
 			{/each}
 			<input type="hidden" name="type" value={currentType} />
 			<Textarea name="note" placeholder="Add a note">
 				<div slot="footer" class="flex items-center justify-between">
-					<Button class="rounded-lg" type="submit">Create Note</Button>
+					<ActionButton
+						class="rounded-lg"
+						type="submit"
+						message="Create Note"
+						loadingMessage="Creating..."
+						loading={creating}
+					/>
 					<Toolbar embedded>
 						<Button
 							on:click={() => (currentType = 'info')}

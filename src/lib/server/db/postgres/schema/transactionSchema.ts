@@ -392,6 +392,7 @@ export const fileTable = pgTable(
 		...idColumn,
 		...timestampColumns,
 		title: text('title'),
+		createdById: text('created_by').notNull(),
 		reason: text('reason', { enum: fileReasonEnum }).notNull(),
 		originalFilename: text('original_filename').notNull(),
 		filename: text('filename').notNull(),

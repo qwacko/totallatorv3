@@ -6,10 +6,22 @@ import {
 	type UpdateNoteSchemaType
 } from '$lib/schema/noteSchema';
 import type { DBType } from '../db';
-import { account, bill, notesTable, user } from '../postgres/schema';
+import {
+	account,
+	bill,
+	budget,
+	category,
+	tag,
+	label,
+	autoImportTable,
+	report,
+	reportElement,
+	notesTable,
+	user
+} from '../postgres/schema';
 import { noteFilterToQuery } from './helpers/note/noteFilterToQuery';
 import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
-import { and, count as drizzleCount, eq, inArray, desc } from 'drizzle-orm';
+import { and, count as drizzleCount, eq, inArray, desc, getTableColumns } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
 
@@ -38,10 +50,28 @@ export const noteActions = {
 		const orderBySQL = noteToOrderByToSQL({ orderBy });
 
 		const results = await db
-			.select()
+			.select({
+				...getTableColumns(notesTable),
+				accountTitle: account.title,
+				billTitle: bill.title,
+				budgetTitle: budget.title,
+				categoryTitle: category.title,
+				tagTitle: tag.title,
+				labelTitle: label.title,
+				autoImportTitle: autoImportTable.title,
+				reportTitle: report.title,
+				reportElementTitle: reportElement.title
+			})
 			.from(notesTable)
 			.leftJoin(account, eq(account.id, notesTable.accountId))
 			.leftJoin(bill, eq(bill.id, notesTable.billId))
+			.leftJoin(budget, eq(budget.id, notesTable.budgetId))
+			.leftJoin(category, eq(category.id, notesTable.categoryId))
+			.leftJoin(tag, eq(tag.id, notesTable.tagId))
+			.leftJoin(label, eq(label.id, notesTable.labelId))
+			.leftJoin(autoImportTable, eq(autoImportTable.id, notesTable.autoImportId))
+			.leftJoin(report, eq(report.id, notesTable.reportId))
+			.leftJoin(reportElement, eq(reportElement.id, notesTable.reportElementId))
 			.where(and(...where))
 			.limit(pageSize)
 			.offset(page * pageSize)

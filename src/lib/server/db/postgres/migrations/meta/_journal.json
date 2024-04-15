@@ -295,6 +295,13 @@
       "when": 1712978079157,
       "tag": "0041_normal_lady_bullseye",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1713170045986,
+      "tag": "0042_freezing_justice",
+      "breakpoints": true
     }
   ]
 }

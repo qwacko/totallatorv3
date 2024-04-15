@@ -1,0 +1,1 @@
+ALTER TABLE "files" ADD COLUMN "created_by" text NOT NULL;
