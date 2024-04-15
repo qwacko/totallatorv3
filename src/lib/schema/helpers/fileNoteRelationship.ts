@@ -13,6 +13,12 @@ export const createFileNoteRelationshipSchema = {
 	reportElementId: z.string().optional().nullable()
 };
 
+const createFileNoteRelationshipSchemaCombined = z.object(createFileNoteRelationshipSchema);
+
+export type CreateFileNoteRelationshipSchemaType = z.infer<
+	typeof createFileNoteRelationshipSchemaCombined
+>;
+
 export const fileNoteRelationshipFilterSchema = {
 	transactionIdArray: z.array(z.string()).optional(),
 	excludeTransactionIdArray: z.array(z.string()).optional(),

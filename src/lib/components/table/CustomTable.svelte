@@ -137,7 +137,7 @@
 		<Button size="sm" class="flex p-2" color="light" on:click={() => (filterOpened = true)}>
 			<FilterIcon />
 		</Button>
-		<Modal bind:open={filterOpened} size="lg" title={filterModalTitle}>
+		<Modal bind:open={filterOpened} size="lg" title={filterModalTitle} outsideclose>
 			<slot name="filterModal" {currentFilter} {filterOpened} {updateFilterOpened} />
 		</Modal>
 	{/if}

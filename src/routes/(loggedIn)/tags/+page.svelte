@@ -21,6 +21,7 @@
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import NotesButton from '$lib/components/NotesButton.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -163,6 +164,7 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
+								<NotesButton notes={currentRow.notes} target={{tagId: currentRow.id}} />
 								<RawDataModal data={currentRow} title="Raw Tag Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>

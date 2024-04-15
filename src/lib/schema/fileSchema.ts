@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { noteOrderByEnum } from './enum/noteOrderByEnum';
 import {
 	createFileNoteRelationshipSchema,
 	fileNoteRelationshipFilterSchema
 } from './helpers/fileNoteRelationship';
 import { fileReasonEnum } from './enum/fileReasonEnum';
 import { fileTypeEnum } from './enum/fileTypeEnum';
+import { fileOrderByEnum } from './enum/fileOrderByEnum';
 
 export const createFileSchema = z.object({
 	title: z.string().optional(),
@@ -55,9 +55,9 @@ export const fileFilterSchema = fileFilterWithoutPaginationSchema.merge(
 		page: z.number().default(0).optional(),
 		pageSize: z.number().default(10).optional(),
 		orderBy: z
-			.array(z.object({ field: z.enum(noteOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+			.array(z.object({ field: z.enum(fileOrderByEnum), direction: z.enum(['asc', 'desc']) }))
 			.default([{ direction: 'desc', field: 'createdAt' }])
 			.optional()
 	})
 );
-export type NoteFilterSchemaType = z.infer<typeof fileFilterSchema>;
+export type FileFilterSchemaType = z.infer<typeof fileFilterSchema>;

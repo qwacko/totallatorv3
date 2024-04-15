@@ -3,6 +3,7 @@ import { serverPageInfo } from '$lib/routes';
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { logging } from '$lib/server/logging';
+import { noteFormActions } from '$lib/server/noteFormActions.js';
 import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
@@ -24,6 +25,7 @@ export const load = async (data) => {
 };
 
 export const actions = {
+	...noteFormActions,
 	update: async (data) => {
 		const form = await data.request.formData();
 		const journalId = form.get('journalId')?.toString();

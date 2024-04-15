@@ -21,6 +21,7 @@
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import NotesButton from '$lib/components/NotesButton.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/labels', $page);
@@ -149,6 +150,7 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
+								<NotesButton notes={currentRow.notes} target={{ labelId: currentRow.id }} />
 								<RawDataModal data={currentRow} title="Raw Label Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>
@@ -167,7 +169,7 @@
 			<svelte:fragment slot="filter">
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
-					<Input
+						<Input
 							type="text"
 							bind:value={$urlStore.searchParams.textFilter}
 							placeholder="Filter..."

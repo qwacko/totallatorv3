@@ -12,6 +12,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
+import { noteFormActions } from '$lib/server/noteFormActions';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -54,7 +55,7 @@ export const load = async (data) => {
 	const accountDropdown = await tActions.account.listForDropdown({ db });
 
 	return {
-		accounts,
+		accounts: await tActions.note.addNotesToItems({ db, data: accounts, grouping: 'account' }),
 		searchParams: pageInfo.searchParams,
 		filterText,
 		accountSummary,
@@ -68,6 +69,7 @@ const submitValidation = z.object({
 });
 
 export const actions = {
+	...noteFormActions,
 	update: async ({ request, locals }) => {
 		const db = locals.db;
 		const form = await superValidate(request, zod(submitValidation));

@@ -4,6 +4,7 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { budgetFilterToText } from '$lib/server/db/actions/helpers/budget/budgetFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
+import { noteFormActions } from '$lib/server/noteFormActions.js';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -38,7 +39,7 @@ export const load = async (data) => {
 	const budgetDropdowns = await tActions.budget.listForDropdown({ db });
 
 	return {
-		budgets,
+		budgets: await tActions.note.addNotesToItems({ db, data: budgets, grouping: 'budget' }),
 		searchParams: pageInfo.searchParams,
 		filterText,
 		budgetSummary,
@@ -52,6 +53,7 @@ const submitValidation = z.object({
 });
 
 export const actions = {
+	...noteFormActions,
 	update: async ({ request, locals }) => {
 		const db = locals.db;
 		const form = await superValidate(request, zod(submitValidation));

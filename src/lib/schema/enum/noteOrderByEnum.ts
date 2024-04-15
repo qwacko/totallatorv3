@@ -1,6 +1,6 @@
 export const noteOrderByEnum = ['note', 'type', 'createdAt', 'updatedAt'] as const;
 
-type NoteOrderByEnumType = (typeof noteOrderByEnum)[number];
+export type NoteOrderByEnumType = (typeof noteOrderByEnum)[number];
 
 type NoteOrderByEnumTitles = {
 	[K in NoteOrderByEnumType]: string;

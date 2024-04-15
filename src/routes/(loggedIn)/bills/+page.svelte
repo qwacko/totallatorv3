@@ -21,6 +21,7 @@
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import NotesButton from '$lib/components/NotesButton.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/bills', $page);
@@ -150,6 +151,7 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
+								<NotesButton notes={currentRow.notes} target={{billId: currentRow.id}} />
 								<RawDataModal data={currentRow} title="Raw Bill Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>
