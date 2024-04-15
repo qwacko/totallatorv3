@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CreateFileNoteRelationshipSchemaType } from '$lib/schema/helpers/fileNoteRelationship';
-	import { Button, Modal, Timeline, TimelineItem, Badge, P, Fileupload } from 'flowbite-svelte';
+	import { Button, Modal, Fileupload } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import FileIcon from './icons/FileIcon.svelte';
