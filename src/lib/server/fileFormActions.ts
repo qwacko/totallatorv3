@@ -1,4 +1,4 @@
-import { createFileSchema } from '$lib/schema/fileSchema';
+import { createFileSchema, updateFileSchema } from '$lib/schema/fileSchema';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
 import { type RequestEvent } from '@sveltejs/kit';
@@ -26,6 +26,24 @@ export const fileFormActions = {
 			});
 		} catch (e) {
 			logging.error('Error Creating File', e);
+		}
+	},
+	updateFile: async (data: RequestEvent<Partial<Record<string, string>>, string>) => {
+		const form = await superValidate(data.request, zod(updateFileSchema));
+		if (!form.valid) {
+			return { form };
+		}
+
+		console.log('Updatae File : ', form.data);
+
+		try {
+			await tActions.file.updateMany({
+				db: data.locals.db,
+				filter: { idArray: [form.data.id] },
+				update: form.data
+			});
+		} catch (e) {
+			logging.error('Error Updating File', e);
 		}
 	},
 	deleteFile: async (data: RequestEvent<Partial<Record<string, string>>, string>) => {

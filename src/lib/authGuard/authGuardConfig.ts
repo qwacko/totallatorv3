@@ -45,7 +45,8 @@ const notesActions = {
 
 const filesActions = {
 	addFile: POSTAllowAdminOnly,
-	deleteFile: POSTAllowAdminOnly
+	deleteFile: POSTAllowAdminOnly,
+	updateFile: POSTAllowAdminOnly
 };
 
 export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({

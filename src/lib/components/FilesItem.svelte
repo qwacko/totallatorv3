@@ -7,10 +7,13 @@
 	import type { GroupedFilesType } from '$lib/server/db/actions/fileActions';
 	import { urlGenerator } from '$lib/routes';
 	import DownloadIcon from './icons/DownloadIcon.svelte';
+	import UnlinkIcon from './icons/UnlinkIcon.svelte';
+	import { fileRelationshipKeys } from '$lib/schema/helpers/fileNoteRelationship';
 
 	export let currentFile: GroupedFilesType[number];
 
 	let deleting = false;
+	let updating = false;
 </script>
 
 <Timeline order="activity">
@@ -47,6 +50,28 @@
 						{#if deleting}<div class="flex flex-row items-center gap-1">
 								<Spinner class="h-3 w-3" /> Deleting...
 							</div>{:else}<DeleteIcon />{/if}
+					</Button>
+				</form>
+				<form
+					method="post"
+					action="?/updateFile"
+					use:enhance={customEnhance({ updateLoading: (newLoading) => (updating = newLoading) })}
+				>
+					{#each fileRelationshipKeys as key}
+						<input type="hidden" name={key} value={null} />
+					{/each}
+					<input type="hidden" name="id" value={currentFile.id} />
+
+					<Button
+						type="submit"
+						outline
+						color="blue"
+						class="rounded-lg border p-2"
+						disabled={updating}
+					>
+						{#if updating}<div class="flex flex-row items-center gap-1">
+								<Spinner class="h-3 w-3" />
+							</div>{:else}<UnlinkIcon />{/if}
 					</Button>
 				</form>
 

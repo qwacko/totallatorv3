@@ -13,6 +13,8 @@ export const createFileNoteRelationshipSchema = {
 	reportElementId: z.string().optional().nullable()
 };
 
+export const fileRelationshipKeys = Object.keys(createFileNoteRelationshipSchema);
+
 const createFileNoteRelationshipSchemaCombined = z.object(createFileNoteRelationshipSchema);
 
 export type CreateFileNoteRelationshipSchemaType = z.infer<
