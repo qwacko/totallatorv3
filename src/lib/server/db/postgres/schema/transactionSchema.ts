@@ -396,6 +396,7 @@ export const fileTable = pgTable(
 		reason: text('reason', { enum: fileReasonEnum }).notNull(),
 		originalFilename: text('original_filename').notNull(),
 		filename: text('filename').notNull(),
+		thumbnailFilename: text('thumbnail_filename'),
 		type: text('type', { enum: fileTypeEnum }).notNull(),
 		size: integer('size').notNull(),
 		fileExists: boolean('file_exists').notNull(),

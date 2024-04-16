@@ -63,11 +63,11 @@
 				</Button>
 			</div>
 			<div class="whitespace-pre">{currentFile.originalFilename}</div>
-			{#if currentFile.type === 'png' || currentFile.type === 'jpg'}
+			{#if currentFile.thumbnailFilename}
 				<img
 					src={urlGenerator({
 						address: '/(loggedIn)/files/[id]/image/[filename]',
-						paramsValue: { id: currentFile.id, filename: currentFile.originalFilename }
+						paramsValue: { id: currentFile.id, filename: currentFile.thumbnailFilename }
 					}).url}
 					alt={currentFile.originalFilename}
 				/>

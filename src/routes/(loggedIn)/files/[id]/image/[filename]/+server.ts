@@ -12,7 +12,7 @@ export const GET = async (data) => {
 		throw new Error('No params');
 	}
 
-	const fileData = await tActions.file.getFile({
+	const fileData = await tActions.file.getThumbnail({
 		db: data.locals.db,
 		id: params.id
 	});
@@ -23,12 +23,7 @@ export const GET = async (data) => {
 
 	const fileContent = await fileData.fileData;
 
-	console.log('type : ', fileData.info.type);
-
 	return new Response(fileContent, {
-		status: 200,
-		headers: {
-			'Content-Type': 'image/png'
-		}
+		status: 200
 	});
 };

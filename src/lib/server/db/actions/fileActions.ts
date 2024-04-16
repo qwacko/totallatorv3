@@ -26,6 +26,7 @@ import {
 } from '$lib/schema/fileSchema';
 import type { FileTypeType } from '$lib/schema/enum/fileTypeEnum';
 import { fileFileHandler } from '$lib/server/files/fileHandler';
+import sharp from 'sharp';
 
 type GroupingOptions =
 	| 'transaction'
@@ -128,6 +129,7 @@ export const fileActions = {
 				type: fileTable.type,
 				filename: fileTable.filename,
 				originalFilename: fileTable.originalFilename,
+				thumbnailFilename: fileTable.thumbnailFilename,
 				createdAt: fileTable.createdAt,
 				updatedAt: fileTable.updatedAt,
 				createdById: fileTable.createdById,
@@ -234,16 +236,45 @@ export const fileActions = {
 
 		const originalFilename = fileData.name;
 		const filename = `${id}-${originalFilename}`;
+		const thumbnailFilename = `${id}-thumbnail-${originalFilename}`;
 		const size = fileData.size;
 
 		const fileIsPDF = fileData.type === 'application/pdf';
 		const fileIsJPG = fileData.type === 'image/jpeg';
 		const fileIsPNG = fileData.type === 'image/png';
-		const type: FileTypeType = fileIsPDF ? 'pdf' : fileIsJPG ? 'jpg' : fileIsPNG ? 'png' : 'other';
+		const fileIsWEBP = fileData.type === 'image/webp';
+		const fileIsGIF = fileData.type === 'image/gif';
+		const fileIsTIFF = fileData.type === 'image/tiff';
+		const fileIsAVIF = fileData.type === 'image/avif';
+		const fileIsSVG = fileData.type === 'image/svg+xml';
+		const fileIsImage =
+			fileIsJPG || fileIsPNG || fileIsWEBP || fileIsGIF || fileIsTIFF || fileIsAVIF || fileIsSVG;
+		const type: FileTypeType = fileIsPDF
+			? 'pdf'
+			: fileIsJPG
+				? 'jpg'
+				: fileIsPNG
+					? 'png'
+					: fileIsWEBP
+						? 'webp'
+						: fileIsGIF
+							? 'gif'
+							: fileIsTIFF
+								? 'tiff'
+								: fileIsAVIF
+									? 'avif'
+									: fileIsSVG
+										? 'svg'
+										: 'other';
 
 		const fileContents = Buffer.from(await fileData.arrayBuffer());
 
+		const thumbnail = fileIsImage ? await sharp(fileContents).resize(400).toBuffer() : undefined;
+
 		await fileFileHandler.write(filename, fileContents);
+		if (thumbnail) {
+			await fileFileHandler.write(thumbnailFilename, thumbnail);
+		}
 
 		type InsertFile = typeof fileTable.$inferInsert;
 		const createData: InsertFile = {
@@ -251,6 +282,7 @@ export const fileActions = {
 			createdById: creationUserId,
 			originalFilename,
 			filename,
+			thumbnailFilename: fileIsImage ? thumbnailFilename : null,
 			title: originalFilename,
 			size,
 			type,
@@ -271,12 +303,13 @@ export const fileActions = {
 		filter: FileFilterSchemaWithoutPaginationType;
 		update: UpdateFileSchemaType;
 	}) => {
+		const { id, ...restUpdate } = update;
 		const where = fileFilterToQuery(filter);
 
 		await db
 			.update(fileTable)
 			.set({
-				...update,
+				...restUpdate,
 				...updatedTime()
 			})
 			.where(and(...where))
@@ -344,6 +377,26 @@ export const fileActions = {
 		}
 
 		const fileData = fileFileHandler.readToBuffer(file[0].filename);
+
+		return {
+			fileData,
+			info: file[0]
+		};
+	},
+	getThumbnail: async ({ db, id }: { db: DBType; id: string }) => {
+		const file = await db.select().from(fileTable).where(eq(fileTable.id, id)).execute();
+
+		if (!file.length) {
+			throw new Error('File not found');
+		}
+
+		const targetFile = file[0];
+
+		if (!targetFile.thumbnailFilename) {
+			throw new Error('No thumbnail');
+		}
+
+		const fileData = fileFileHandler.readToBuffer(targetFile.thumbnailFilename);
 
 		return {
 			fileData,
