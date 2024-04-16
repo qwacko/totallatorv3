@@ -477,6 +477,13 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			}
 		},
 
+		'/(loggedIn)/files/[id]/[filename]': {
+			...userOnlyConfig
+		},
+		'/(loggedIn)/files/[id]/image/[filename]': {
+			...userOnlyConfig
+		},
+
 		'/(loggedOut)/login': {
 			...loggedOutConfig,
 			POSTCheck: {

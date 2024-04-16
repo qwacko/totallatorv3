@@ -232,6 +232,15 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			paramsValidation: z.object({ id: z.string(), item: z.string() }).parse
 		},
 
+		// Files
+		// ----------------------------------------
+		'/(loggedIn)/files/[id]/[filename]': {
+			paramsValidation: z.object({ id: z.string(), filename: z.string() }).parse
+		},
+		'/(loggedIn)/files/[id]/image/[filename]': {
+			paramsValidation: z.object({ id: z.string(), filename: z.string() }).parse
+		},
+
 		// Users
 		// ----------------------------------------
 		'/(loggedIn)/logout': {},

@@ -241,7 +241,9 @@ export const fileActions = {
 		const fileIsPNG = fileData.type === 'image/png';
 		const type: FileTypeType = fileIsPDF ? 'pdf' : fileIsJPG ? 'jpg' : fileIsPNG ? 'png' : 'other';
 
-		await fileFileHandler.write(filename, await fileData.text());
+		const fileContents = Buffer.from(await fileData.arrayBuffer());
+
+		await fileFileHandler.write(filename, fileContents);
 
 		type InsertFile = typeof fileTable.$inferInsert;
 		const createData: InsertFile = {
@@ -333,6 +335,20 @@ export const fileActions = {
 				await fileFileHandler.deleteFile(currentFile.filename);
 			})
 		);
+	},
+	getFile: async ({ db, id }: { db: DBType; id: string }) => {
+		const file = await db.select().from(fileTable).where(eq(fileTable.id, id)).execute();
+
+		if (!file.length) {
+			throw new Error('File not found');
+		}
+
+		const fileData = fileFileHandler.readToBuffer(file[0].filename);
+
+		return {
+			fileData,
+			info: file[0]
+		};
 	}
 };
 

@@ -21,9 +21,10 @@ import {
 } from '../postgres/schema';
 import { noteFilterToQuery } from './helpers/note/noteFilterToQuery';
 import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
-import { and, count as drizzleCount, eq, inArray, desc, getTableColumns } from 'drizzle-orm';
+import { and, count as drizzleCount, eq, desc, getTableColumns } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 type GroupingOptions =
 	| 'transaction'
@@ -130,7 +131,7 @@ export const noteActions = {
 			})
 			.from(notesTable)
 			.leftJoin(user, eq(user.id, notesTable.createdById))
-			.where(inArray(notesTable[`${grouping}Id`], ids))
+			.where(inArrayWrapped(notesTable[`${grouping}Id`], ids))
 			.orderBy(desc(notesTable.createdAt));
 
 		const groupedItems = items.reduce(

@@ -1,17 +1,12 @@
 <script lang="ts">
-	import {
-		Button,
-		Timeline,
-		TimelineItem,
-		Badge,
-		P,
-		Spinner
-	} from 'flowbite-svelte';
+	import { Button, Timeline, TimelineItem, Badge, P, Spinner } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import FileIcon from './icons/FileIcon.svelte';
 	import type { GroupedFilesType } from '$lib/server/db/actions/fileActions';
+	import { urlGenerator } from '$lib/routes';
+	import DownloadIcon from './icons/DownloadIcon.svelte';
 
 	export let currentFile: GroupedFilesType[number];
 
@@ -46,7 +41,7 @@
 						type="submit"
 						outline
 						color="red"
-						class="rounded-lg border-0 p-1"
+						class="rounded-lg border p-2"
 						disabled={deleting}
 					>
 						{#if deleting}<div class="flex flex-row items-center gap-1">
@@ -54,8 +49,29 @@
 							</div>{:else}<DeleteIcon />{/if}
 					</Button>
 				</form>
+
+				<Button
+					href={urlGenerator({
+						address: '/(loggedIn)/files/[id]/[filename]',
+						paramsValue: { id: currentFile.id, filename: currentFile.originalFilename }
+					}).url}
+					color="blue"
+					class="rounded-lg border p-2"
+					outline
+				>
+					<DownloadIcon />
+				</Button>
 			</div>
 			<div class="whitespace-pre">{currentFile.originalFilename}</div>
+			{#if currentFile.type === 'png' || currentFile.type === 'jpg'}
+				<img
+					src={urlGenerator({
+						address: '/(loggedIn)/files/[id]/image/[filename]',
+						paramsValue: { id: currentFile.id, filename: currentFile.originalFilename }
+					}).url}
+					alt={currentFile.originalFilename}
+				/>
+			{/if}
 		</div>
 	</TimelineItem>
 </Timeline>
