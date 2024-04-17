@@ -17,6 +17,7 @@ import { importMappingFilterSchema } from './schema/importMappingSchema';
 import { dateSpanEnum } from './schema/dateSpanSchema';
 import { importFilterSchema } from './schema/importSchema';
 import { autoImportFilterSchema } from './schema/autoImportSchema';
+import { createFileNoteRelationshipSchema } from './schema/helpers/fileNoteRelationship';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -240,6 +241,13 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/files/[id]/image/[filename]': {
 			paramsValidation: z.object({ id: z.string(), filename: z.string() }).parse
 		},
+		'/(loggedIn)/files/linkUnlinked': {
+			searchParamsValidation: z.object(createFileNoteRelationshipSchema).parse
+		},
+		'/(loggedIn)/files/linkToTransaction/[id]': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
+		'/(loggedIn)/files': {},
 
 		// Users
 		// ----------------------------------------

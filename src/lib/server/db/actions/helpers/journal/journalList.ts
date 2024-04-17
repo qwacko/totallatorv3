@@ -148,6 +148,12 @@ export const journalMaterialisedList = async ({
 		grouping: 'transaction'
 	});
 
+	const transactionFiles = await tActions.file.listGrouped({
+		db,
+		ids: transactionIds,
+		grouping: 'transaction'
+	});
+
 	const runningTotal = (await runningTotalPromise)[0].sum;
 
 	//Logic to prevent querying too much data if the page size is too large
@@ -174,6 +180,7 @@ export const journalMaterialisedList = async ({
 		);
 		const total = runningTotal - priorJournalTotal;
 		const notes = journal.transactionId ? transactionNotes[journal.transactionId] : undefined;
+		const files = journal.transactionId ? transactionFiles[journal.transactionId] : undefined;
 
 		return {
 			...journal,
@@ -181,7 +188,8 @@ export const journalMaterialisedList = async ({
 			otherJournals: thisOtherJournalData?.otherJournals ?? [],
 			importDetail: thisImportDetail?.processedInfo,
 			labels: thisOtherJournalData?.labels ?? [],
-			notes: notes ?? []
+			notes: notes ?? [],
+			files: files ?? []
 		};
 	});
 

@@ -2,7 +2,8 @@ import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { serverPageInfo } from '$lib/routes';
 import { logging } from '$lib/server/logging.js';
-import { noteFormActions } from '$lib/server/noteFormActions.js';
+import { noteFormActions } from '$lib/server/noteFormActions';
+import { fileFormActions } from '$lib/server/fileFormActions';
 
 export const load = async (request) => {
 	authGuard(request);
@@ -16,10 +17,14 @@ export const load = async (request) => {
 	});
 
 	return {
-		list: await tActions.note.addNotesToItems({
+		list: await tActions.file.addFilesToItems({
 			db: request.locals.db,
-			data: autoImportList,
-			grouping: 'autoImport'
+			grouping: 'autoImport',
+			data: await tActions.note.addNotesToItems({
+				db: request.locals.db,
+				data: autoImportList,
+				grouping: 'autoImport'
+			})
 		}),
 		filter
 	};
@@ -27,6 +32,7 @@ export const load = async (request) => {
 
 export const actions = {
 	...noteFormActions,
+	...fileFormActions,
 	clone: async ({ request, locals }) => {
 		const form = await request.formData();
 		const id = form.get('id');

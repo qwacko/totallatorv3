@@ -21,6 +21,8 @@ export type CreateFileNoteRelationshipSchemaType = z.infer<
 	typeof createFileNoteRelationshipSchemaCombined
 >;
 
+export type KeysOfCreateFileNoteRelationshipSchemaType = keyof CreateFileNoteRelationshipSchemaType;
+
 export const fileNoteRelationshipFilterSchema = {
 	transactionIdArray: z.array(z.string()).optional(),
 	excludeTransactionIdArray: z.array(z.string()).optional(),

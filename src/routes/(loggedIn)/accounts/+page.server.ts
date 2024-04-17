@@ -13,7 +13,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import { noteFormActions } from '$lib/server/noteFormActions';
-import { fileFormActions } from '$lib/server/fileFormActions.js';
+import { fileFormActions } from '$lib/server/fileFormActions';
 
 export const load = async (data) => {
 	authGuard(data);

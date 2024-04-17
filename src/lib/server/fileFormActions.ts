@@ -34,8 +34,6 @@ export const fileFormActions = {
 			return { form };
 		}
 
-		console.log('Updatae File : ', form.data);
-
 		try {
 			await tActions.file.updateMany({
 				db: data.locals.db,

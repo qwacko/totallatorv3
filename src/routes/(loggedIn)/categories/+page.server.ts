@@ -9,6 +9,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
+import { fileFormActions } from '$lib/server/fileFormActions';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -38,7 +39,11 @@ export const load = async (data) => {
 	const categoryDropdowns = await tActions.category.listForDropdown({ db });
 
 	return {
-		categories: await tActions.note.addNotesToItems({ db, data: categories, grouping: 'category' }),
+		categories: await tActions.file.addFilesToItems({
+			db,
+			grouping: 'category',
+			data: await tActions.note.addNotesToItems({ db, data: categories, grouping: 'category' })
+		}),
 		searchParams: pageInfo.searchParams,
 		filterText,
 		categorySummary,
@@ -53,6 +58,7 @@ const submitValidation = z.object({
 
 export const actions = {
 	...noteFormActions,
+	...fileFormActions,
 	update: async ({ request, locals }) => {
 		const db = locals.db;
 		const form = await superValidate(request, zod(submitValidation));

@@ -12,7 +12,16 @@ import {
 	reportElement,
 	user
 } from '../postgres/schema';
-import { and, count as drizzleCount, eq, inArray, desc, getTableColumns } from 'drizzle-orm';
+import {
+	and,
+	count as drizzleCount,
+	eq,
+	desc,
+	getTableColumns,
+	isNull,
+	or,
+	isNotNull
+} from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { fileFilterToQuery } from './helpers/file/fileFilterToQuery';
@@ -27,6 +36,14 @@ import {
 import type { FileTypeType } from '$lib/schema/enum/fileTypeEnum';
 import { fileFileHandler } from '$lib/server/files/fileHandler';
 import sharp from 'sharp';
+import {
+	fileRelationshipKeys,
+	type CreateFileNoteRelationshipSchemaType,
+	type KeysOfCreateFileNoteRelationshipSchemaType
+} from '$lib/schema/helpers/fileNoteRelationship';
+import { tActions } from './tActions';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 
 type GroupingOptions =
 	| 'transaction'
@@ -138,7 +155,7 @@ export const fileActions = {
 			})
 			.from(fileTable)
 			.leftJoin(user, eq(user.id, fileTable.createdById))
-			.where(inArray(fileTable[`${grouping}Id`], ids))
+			.where(inArrayWrapped(fileTable[`${grouping}Id`], ids))
 			.orderBy(desc(fileTable.createdAt));
 
 		const groupedItems = items.reduce(
@@ -294,6 +311,35 @@ export const fileActions = {
 
 		await db.insert(fileTable).values(createData).execute();
 	},
+	updateLinked: async ({ db }: { db: DBType }) => {
+		await db
+			.update(fileTable)
+			.set({ linked: false })
+			.where(
+				and(
+					eq(fileTable.linked, true),
+					...fileRelationshipKeys.map((key) =>
+						isNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
+					)
+				)
+			)
+			.execute();
+
+		await db
+			.update(fileTable)
+			.set({ linked: true })
+			.where(
+				and(
+					eq(fileTable.linked, false),
+					or(
+						...fileRelationshipKeys.map((key) =>
+							isNotNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
+						)
+					)
+				)
+			)
+			.execute();
+	},
 	updateMany: async ({
 		db,
 		filter,
@@ -315,31 +361,7 @@ export const fileActions = {
 			.where(and(...where))
 			.execute();
 
-		const updatedFiles = await fileActions.listWithoutPagination({ db, filter });
-
-		await Promise.all(
-			updatedFiles.map(async (currentFile) => {
-				const linked = Boolean(
-					currentFile.accountId ||
-						currentFile.billId ||
-						currentFile.budgetId ||
-						currentFile.categoryId ||
-						currentFile.tagId ||
-						currentFile.labelId ||
-						currentFile.autoImportId ||
-						currentFile.reportId ||
-						currentFile.reportElementId
-				);
-
-				if (currentFile.linked === linked) return;
-
-				await db
-					.update(fileTable)
-					.set({ linked })
-					.where(eq(fileTable.id, currentFile.id))
-					.execute();
-			})
-		);
+		await fileActions.updateLinked({ db });
 	},
 	deleteMany: async ({
 		db,
@@ -348,20 +370,7 @@ export const fileActions = {
 		db: DBType;
 		filter: FileFilterSchemaWithoutPaginationType;
 	}) => {
-		console.log('deleteMany Files', filter);
-
-		const where = fileFilterToQuery(filter);
-
 		const files = await fileActions.listWithoutPagination({ db, filter });
-
-		console.log('NUmber To Delete', files.length);
-
-		const deleted = await db
-			.delete(fileTable)
-			.where(and(...where))
-			.execute();
-
-		console.log('Deleted', deleted);
 
 		await Promise.all(
 			files.map(async (currentFile) => {
@@ -401,6 +410,66 @@ export const fileActions = {
 		return {
 			fileData,
 			info: file[0]
+		};
+	},
+	getLinkedText: async ({
+		db,
+		items
+	}: {
+		db: DBType;
+		items: CreateFileNoteRelationshipSchemaType;
+	}) => {
+		const accountTitle = items.accountId
+			? await tActions.account.getById(db, items.accountId)
+			: undefined;
+		const billTitle = items.billId ? await tActions.bill.getById(db, items.billId) : undefined;
+		const budgetTitle = items.budgetId
+			? await tActions.budget.getById(db, items.budgetId)
+			: undefined;
+		const categoryTitle = items.categoryId
+			? await tActions.category.getById(db, items.categoryId)
+			: undefined;
+		const tagTitle = items.tagId ? await tActions.tag.getById(db, items.tagId) : undefined;
+		const labelTitle = items.labelId ? await tActions.label.getById(db, items.labelId) : undefined;
+		const autoImportTitle = items.autoImportId
+			? await tActions.autoImport.getById({ db, id: items.autoImportId })
+			: undefined;
+		const reportTitle = items.reportId
+			? await tActions.report.getSimpleReportConfig({ db, id: items.reportId })
+			: undefined;
+		const reportElementTitle = items.reportElementId
+			? await tActions.report.reportElement.get({ db, id: items.reportElementId })
+			: undefined;
+
+		const data = {
+			accountTitle: accountTitle
+				? { description: 'Account', title: accountTitle.title }
+				: undefined,
+			billTitle: billTitle ? { description: 'Bill', title: billTitle.title } : undefined,
+			budgetTitle: budgetTitle ? { description: 'Budget', title: budgetTitle.title } : undefined,
+			categoryTitle: categoryTitle
+				? { description: 'Category', title: categoryTitle.title }
+				: undefined,
+			tagTitle: tagTitle ? { description: 'Tag', title: tagTitle.title } : undefined,
+			labelTitle: labelTitle ? { description: 'Label', title: labelTitle.title } : undefined,
+			autoImportTitle: autoImportTitle
+				? { description: 'Auto Import', title: autoImportTitle.title }
+				: undefined,
+			reportTitle: reportTitle ? { description: 'Report', title: reportTitle.title } : undefined,
+			reportElementTitle: reportElementTitle
+				? { description: 'Report Element', title: reportElementTitle.title }
+				: undefined
+		};
+
+		return {
+			data,
+			text: filterNullUndefinedAndDuplicates(
+				Object.keys(data).map((key) => {
+					const item = data[key as keyof typeof data];
+					if (!item) return undefined;
+					return `${item.description} - ${item.title}`;
+				})
+			).join(', ')
 		};
 	}
 };

@@ -36,6 +36,7 @@
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { currencyFormat } from '$lib/stores/userInfoStore';
 	import NotesButton from '../../../lib/components/NotesButton.svelte';
+	import FilesButton from '$lib/components/FilesButton.svelte';
 
 	export let data;
 
@@ -355,6 +356,13 @@
 								target={{
 									transactionId: currentJournal.transactionId
 								}}
+							/>
+							<FilesButton
+								files={currentJournal.files}
+								target={{
+									transactionId: currentJournal.transactionId
+								}}
+								transactionId={currentJournal.transactionId || undefined}
 							/>
 							<RawDataModal data={currentJournal} dev={true} title="Journal Data" icon="more" />
 						</ButtonGroup>

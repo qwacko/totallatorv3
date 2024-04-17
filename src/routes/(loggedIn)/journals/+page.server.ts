@@ -5,6 +5,7 @@ import { tActions } from '$lib/server/db/actions/tActions.js';
 import { logging } from '$lib/server/logging';
 import { noteFormActions } from '$lib/server/noteFormActions.js';
 import { redirect } from '@sveltejs/kit';
+import { fileFormActions } from '$lib/server/fileFormActions';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -26,6 +27,7 @@ export const load = async (data) => {
 
 export const actions = {
 	...noteFormActions,
+	...fileFormActions,
 	update: async (data) => {
 		const form = await data.request.formData();
 		const journalId = form.get('journalId')?.toString();

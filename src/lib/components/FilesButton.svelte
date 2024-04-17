@@ -7,9 +7,12 @@
 	import ActionButton from './ActionButton.svelte';
 	import type { GroupedFilesType } from '$lib/server/db/actions/fileActions';
 	import FilesItem from './FilesItem.svelte';
+	import { urlGenerator } from '$lib/routes';
+	import LinkIcon from './icons/LinkIcon.svelte';
 
 	export let files: GroupedFilesType;
 	export let target: CreateFileNoteRelationshipSchemaType;
+	export let transactionId: string | undefined = undefined;
 
 	let creating = false;
 
@@ -19,6 +22,13 @@
 		key,
 		value: target[key as keyof typeof target]
 	}));
+
+	$: linkURL = transactionId
+		? urlGenerator({
+				address: '/(loggedIn)/files/linkToTransaction/[id]',
+				paramsValue: { id: transactionId }
+			}).url
+		: urlGenerator({ address: '/(loggedIn)/files/linkUnlinked', searchParamsValue: target }).url;
 </script>
 
 <Button on:click={() => (modal = true)} color="primary" outline={files.length === 0} class="p-2">
@@ -29,6 +39,9 @@
 		<FilesItem {currentFile} />
 	{/each}
 	<svelte:fragment slot="footer">
+		<Button href={linkURL} color="primary" outline class="rounded-lg border">
+			<LinkIcon />
+		</Button>
 		<form
 			method="post"
 			action="?/addFile"

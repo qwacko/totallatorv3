@@ -19,6 +19,7 @@
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import { enhance } from '$app/forms';
 	import NotesButton from '$lib/components/NotesButton.svelte';
+	import FilesButton from '$lib/components/FilesButton.svelte';
 
 	$: urlInfo = pageInfo('/(loggedIn)/autoImport', $page);
 	const urlStore = pageInfoStore({
@@ -156,7 +157,8 @@
 								<Button type="submit" class="p-2" outline color="blue">
 									<CloneIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{autoImportId: currentRow.id}} />
+								<NotesButton notes={currentRow.notes} target={{ autoImportId: currentRow.id }} />
+								<FilesButton files={currentRow.files} target={{ autoImportId: currentRow.id }} />
 								<RawDataModal
 									data={currentRow.config}
 									title="{currentRow.title} Config"

@@ -21,6 +21,7 @@ export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType)
 		idColumn: fileTable.id,
 		titleColumn: fileTable.title
 	});
+
 	if (restFilter.reasonArray && restFilter.reasonArray.length > 0) {
 		where.push(inArrayWrapped(fileTable.reason, restFilter.reasonArray));
 	}

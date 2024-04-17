@@ -22,6 +22,7 @@
 	import { summaryColumns } from '$lib/schema/summarySchema';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import NotesButton from '$lib/components/NotesButton.svelte';
+	import FilesButton from '$lib/components/FilesButton.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/labels', $page);
@@ -150,7 +151,8 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{ labelId: currentRow.id }} />
+								<NotesButton notes={currentRow.notes} target={{ labelId: currentRow.id }} />								
+								<FilesButton files={currentRow.files} target={{labelId: currentRow.id}} />
 								<RawDataModal data={currentRow} title="Raw Label Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>
