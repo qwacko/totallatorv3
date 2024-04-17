@@ -95,6 +95,7 @@
 						paramsValue: { id: currentFile.id, filename: currentFile.thumbnailFilename }
 					}).url}
 					alt={currentFile.originalFilename}
+					class="max-h-48 max-w-48 object-contain"
 				/>
 			{/if}
 		</div>
