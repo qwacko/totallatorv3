@@ -88,6 +88,7 @@
 				>
 					<ActionButton
 						type="submit"
+						size="sm"
 						color={data.backupInformation.locked ? 'red' : 'green'}
 						loading={updatingLocked}
 						loadingMessage="Updating..."
