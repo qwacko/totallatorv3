@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { customEnhance } from '$lib/helpers/customEnhance';
-	import { urlGenerator } from '$lib/routes';
 	import { Button, Spinner } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import LinkIcon from './icons/LinkIcon.svelte';
+	import FileThumbnail from './FileThumbnail.svelte';
 
 	export let item: {
 		title: string | null;
@@ -22,16 +22,7 @@
 	<div class="flex flex-row items-center justify-between">
 		{item.title ? item.title : item.originalFilename}
 	</div>
-	{#if item.thumbnailFilename}
-		<img
-			src={urlGenerator({
-				address: '/(loggedIn)/files/[id]/image/[filename]',
-				paramsValue: { id: item.id, filename: item.thumbnailFilename }
-			}).url}
-			alt={item.title ? item.title : item.originalFilename}
-			class="max-h-48 max-w-48 object-contain"
-		/>
-	{/if}
+	<FileThumbnail {item} />
 	<div class="flex flex-grow"></div>
 	<form
 		method="post"

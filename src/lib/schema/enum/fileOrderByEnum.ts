@@ -1,7 +1,7 @@
 export const fileOrderByEnum = [
 	'title',
 	'reason',
-	'filename',
+	'originalFilename',
 	'size',
 	'exists',
 	'linked',
@@ -20,7 +20,7 @@ type FileOrderByEnumTitles = {
 const fileEnumTitles: FileOrderByEnumTitles = {
 	title: 'Title',
 	reason: 'Reason',
-	filename: 'Filename',
+	originalFilename: 'Filename',
 	size: 'Size',
 	exists: 'Exists',
 	linked: 'Linked',

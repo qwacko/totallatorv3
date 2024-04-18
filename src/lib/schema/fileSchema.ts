@@ -39,6 +39,7 @@ export const fileFilterWithoutPaginationSchema = z.object({
 	excludeTypeArray: z.array(z.enum(fileTypeEnum)).optional(),
 	filenameArray: z.array(z.string()).optional(),
 	excludeFilenameArray: z.array(z.string()).optional(),
+	thumbnail: z.boolean().optional(),
 	maxSize: z.number().optional(),
 	minSize: z.number().optional(),
 	linked: z.boolean().optional(),

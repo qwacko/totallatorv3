@@ -10,7 +10,7 @@ export const load = async (data) => {
 	const { current } = serverPageInfo(data.route.id, data);
 
 	if (!current.params?.id) {
-		redirect(302, urlGenerator({ address: '/(loggedIn)/files' }).url);
+		redirect(302, urlGenerator({ address: '/(loggedIn)/files', searchParamsValue: {} }).url);
 	}
 
 	const journals = await tActions.journalView.list({

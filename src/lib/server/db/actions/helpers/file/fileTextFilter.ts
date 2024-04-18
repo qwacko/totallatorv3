@@ -59,15 +59,39 @@ const filterArray = [
 		}
 	},
 	{
-		key: ['linked:', '!linked:'],
-		update: (filter, currentFilter) => {
-			filter.linked = currentFilter === 'linked:';
+		key: ['linked:'],
+		update: (filter) => {
+			filter.linked = true;
 		}
 	},
 	{
-		key: ['exists:', '!exists:'],
-		update: (filter, currentFilter) => {
-			filter.exists = currentFilter === 'exists:';
+		key: ['!linked:'],
+		update: (filter) => {
+			filter.linked = false;
+		}
+	},
+	{
+		key: ['exists:'],
+		update: (filter) => {
+			filter.exists = true;
+		}
+	},
+	{
+		key: ['!exists:'],
+		update: (filter) => {
+			filter.exists = false;
+		}
+	},
+	{
+		key: ['thumbnail:'],
+		update: (filter) => {
+			filter.thumbnail = true;
+		}
+	},
+	{
+		key: ['!thumbnail:'],
+		update: (filter) => {
+			filter.thumbnail = false;
 		}
 	}
 ] satisfies TextFilterOptionsType<FileFilterSchemaWithoutPaginationType>;

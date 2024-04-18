@@ -9,7 +9,7 @@ export const load = async (data) => {
 	const { current } = serverPageInfo(data.route.id, data);
 
 	if (!current.searchParams) {
-		redirect(302, urlGenerator({ address: '/(loggedIn)/files' }).url);
+		redirect(302, urlGenerator({ address: '/(loggedIn)/files', searchParamsValue: {} }).url);
 	}
 
 	const titleInfo = await tActions.file.getLinkedText({

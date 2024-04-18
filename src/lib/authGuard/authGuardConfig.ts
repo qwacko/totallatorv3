@@ -480,6 +480,9 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 
 		// Files
 		// ----------------------------------------
+		'/(loggedIn)/files': {
+			...userOnlyConfig
+		},
 		'/(loggedIn)/files/linkUnlinked': {
 			...adminOnlyConfig,
 			POSTCheck: {
@@ -492,7 +495,22 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 				...filesActions
 			}
 		},
+		'/(loggedIn)/files/[id]': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				...filesActions
+			}
+		},
+		'/(loggedIn)/files/[id]/delete': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				...filesActions
+			}
+		},
 		'/(loggedIn)/files/[id]/image/[filename]': {
+			...userOnlyConfig
+		},
+		'/(loggedIn)/files/[id]/[filename]': {
 			...userOnlyConfig
 		},
 		'/(loggedOut)/login': {

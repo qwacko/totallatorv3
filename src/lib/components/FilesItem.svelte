@@ -9,6 +9,7 @@
 	import DownloadIcon from './icons/DownloadIcon.svelte';
 	import UnlinkIcon from './icons/UnlinkIcon.svelte';
 	import { fileRelationshipKeys } from '$lib/schema/helpers/fileNoteRelationship';
+	import FileThumbnail from './FileThumbnail.svelte';
 
 	export let currentFile: GroupedFilesType[number];
 
@@ -88,16 +89,7 @@
 				</Button>
 			</div>
 			<div class="whitespace-pre">{currentFile.originalFilename}</div>
-			{#if currentFile.thumbnailFilename}
-				<img
-					src={urlGenerator({
-						address: '/(loggedIn)/files/[id]/image/[filename]',
-						paramsValue: { id: currentFile.id, filename: currentFile.thumbnailFilename }
-					}).url}
-					alt={currentFile.originalFilename}
-					class="max-h-48 max-w-48 object-contain"
-				/>
-			{/if}
+			<FileThumbnail item={currentFile} />
 		</div>
 	</TimelineItem>
 </Timeline>

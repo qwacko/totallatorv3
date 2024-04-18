@@ -19,6 +19,7 @@
 	import ReportDropdown from '$lib/components/report/ReportDropdown.svelte';
 	import NotificationDisplay from '$lib/components/NotificationDisplay.svelte';
 	import { userInfoUpdateStore } from '$lib/stores/userInfoStore.js';
+	import FileIcon from '$lib/components/icons/FileIcon.svelte';
 
 	export let data;
 
@@ -38,6 +39,7 @@
 	$: pageIsCurrentUser = data.user?.id ? $page.url.toString().includes(data.user.id) : false;
 	$: pageIsUsers = $page.route.id?.startsWith('/(loggedIn)/users') && !pageIsCurrentUser;
 	$: pageIsFilters = $page.route.id?.startsWith('/(loggedIn)/filters');
+	$: pageIsFiles = $page.route.id?.startsWith('/(loggedIn)/files');
 
 	$: pageMap = [
 		{
@@ -75,6 +77,12 @@
 			active: pageIsAccounts,
 			icon: AccountIcon,
 			href: urlGenerator({ address: '/(loggedIn)/accounts', searchParamsValue: {} })
+		},
+		{
+			label: 'Files',
+			active: pageIsFiles,
+			icon: FileIcon,
+			href: urlGenerator({ address: '/(loggedIn)/files', searchParamsValue: {} })
 		},
 		{
 			label: 'Reusable Filters',

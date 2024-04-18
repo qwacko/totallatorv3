@@ -1,10 +1,10 @@
 import { fileTable } from '../../../postgres/schema';
-import { SQL, not, eq, lte, gte } from 'drizzle-orm';
+import { SQL, not, eq, lte, gte, isNull, isNotNull } from 'drizzle-orm';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
 import { processNoteTextFilter } from './fileTextFilter';
-import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
 import { arrayToText } from '../misc/arrayToText';
 import type { FileFilterSchemaWithoutPaginationType } from '$lib/schema/fileSchema';
@@ -35,10 +35,10 @@ export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType)
 		where.push(not(inArrayWrapped(fileTable.type, restFilter.excludeTypeArray)));
 	}
 	if (restFilter.filenameArray && restFilter.filenameArray.length > 0) {
-		where.push(inArrayWrapped(fileTable.filename, restFilter.filenameArray));
+		where.push(ilikeArrayWrapped(fileTable.filename, restFilter.filenameArray));
 	}
 	if (restFilter.excludeFilenameArray && restFilter.excludeFilenameArray.length > 0) {
-		where.push(not(inArrayWrapped(fileTable.filename, restFilter.excludeFilenameArray)));
+		where.push(not(ilikeArrayWrapped(fileTable.filename, restFilter.excludeFilenameArray)));
 	}
 	if (restFilter.maxSize !== undefined) {
 		where.push(lte(fileTable.size, restFilter.maxSize));
@@ -51,6 +51,13 @@ export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType)
 	}
 	if (restFilter.exists !== undefined) {
 		where.push(eq(fileTable.fileExists, restFilter.exists));
+	}
+	if (restFilter.thumbnail !== undefined) {
+		if (restFilter.thumbnail) {
+			where.push(isNotNull(fileTable.thumbnailFilename));
+		} else {
+			where.push(isNull(fileTable.thumbnailFilename));
+		}
 	}
 	noteFileRelationshipQuery({
 		where,
@@ -158,6 +165,9 @@ export const fileFilterToText = async ({
 	}
 	if (restFilter.exists !== undefined) {
 		stringArray.push(restFilter.exists ? `File Exists` : `File Is Missing`);
+	}
+	if (restFilter.thumbnail !== undefined) {
+		stringArray.push(restFilter.thumbnail ? `File Has Thumbnail` : `File Does Not Have Thumbnail`);
 	}
 
 	return filterToQueryFinal({ stringArray, allText, prefix });

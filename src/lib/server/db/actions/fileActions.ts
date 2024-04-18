@@ -24,7 +24,7 @@ import {
 } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { fileFilterToQuery } from './helpers/file/fileFilterToQuery';
+import { fileFilterToQuery, fileFilterToText } from './helpers/file/fileFilterToQuery';
 import { fileToOrderByToSQL } from './helpers/file/fileOrderByToSQL';
 import {
 	createFileSchema,
@@ -63,6 +63,9 @@ export const fileActions = {
 			.findFirst({ where: ({ id: fileId }, { eq }) => eq(fileId, id) })
 			.execute();
 	},
+	filterToText: async ({ db, filter }: { db: DBType; filter: FileFilterSchemaType }) => {
+		return fileFilterToText({ db, filter });
+	},
 	list: async ({ db, filter }: { db: DBType; filter: FileFilterSchemaType }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
@@ -100,6 +103,25 @@ export const fileActions = {
 			.orderBy(...orderBySQL)
 			.execute();
 
+		const transactionIdArray = filterNullUndefinedAndDuplicates(
+			results.map((a) => a.transactionId)
+		);
+
+		const journalInformation = await tActions.journalView.list({
+			db,
+			filter: { transactionIdArray, pageSize: 100000, page: 0 }
+		});
+
+		const resultsWithJournals = results.map((result) => {
+			const journals = journalInformation.data.filter(
+				(a) => a.transactionId === result.transactionId
+			);
+			return {
+				...result,
+				journals
+			};
+		});
+
 		const resultCount = await db
 			.select({ count: drizzleCount(fileTable.id) })
 			.from(fileTable)
@@ -109,7 +131,7 @@ export const fileActions = {
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
-		return { count, data: results, pageCount, page, pageSize };
+		return { count, data: resultsWithJournals, pageCount, page, pageSize };
 	},
 	listWithoutPagination: async ({
 		db,
@@ -293,19 +315,21 @@ export const fileActions = {
 			await fileFileHandler.write(thumbnailFilename, thumbnail);
 		}
 
+		const title = restData.title || originalFilename;
+
 		type InsertFile = typeof fileTable.$inferInsert;
 		const createData: InsertFile = {
+			...restData,
 			id,
 			createdById: creationUserId,
 			originalFilename,
 			filename,
 			thumbnailFilename: fileIsImage ? thumbnailFilename : null,
-			title: originalFilename,
+			title,
 			size,
 			type,
 			fileExists: true,
 			linked,
-			...restData,
 			...updatedTime()
 		};
 
