@@ -1,8 +1,12 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
-import { tActions } from '$lib/server/db/actions/tActions.js';
+import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
 import { urlGenerator } from '$lib/routes';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { updateFileSchema } from '$lib/schema/fileSchema';
+import { fileFormActions } from '$lib/server/fileFormActions';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -25,8 +29,16 @@ export const load = async (data) => {
 		redirect(302, urlGenerator({ address: '/(loggedIn)/files', searchParamsValue: {} }).url);
 	}
 
+	const form = await superValidate(
+		{ id: fileInfo.data[0].id, title: fileInfo.data[0].title || '' },
+		zod(updateFileSchema)
+	);
+
 	return {
 		id: current.params.id,
-		file: fileInfo.data[0]
+		file: fileInfo.data[0],
+		form
 	};
 };
+
+export const actions = fileFormActions;

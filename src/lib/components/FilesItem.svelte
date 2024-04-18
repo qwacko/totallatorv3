@@ -13,7 +13,6 @@
 
 	export let currentFile: GroupedFilesType[number];
 
-	let deleting = false;
 	let updating = false;
 </script>
 
@@ -35,24 +34,14 @@
 				<P weight="light" size="sm">
 					{new Date(currentFile.createdAt).toISOString().slice(0, 10)}
 				</P>
-				<form
-					method="post"
-					action="?/deleteFile"
-					use:enhance={customEnhance({ updateLoading: (newLoading) => (deleting = newLoading) })}
-				>
-					<input type="hidden" name="fileId" value={currentFile.id} />
 					<Button
-						type="submit"
+						href={urlGenerator({address:"/(loggedIn)/files/[id]/delete", paramsValue: {id:currentFile.id}}).url}
 						outline
 						color="red"
 						class="rounded-lg border p-2"
-						disabled={deleting}
 					>
-						{#if deleting}<div class="flex flex-row items-center gap-1">
-								<Spinner class="h-3 w-3" /> Deleting...
-							</div>{:else}<DeleteIcon />{/if}
+					<DeleteIcon />
 					</Button>
-				</form>
 				<form
 					method="post"
 					action="?/updateFile"
