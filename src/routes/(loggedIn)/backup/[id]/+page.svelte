@@ -89,6 +89,7 @@
 					<ActionButton
 						type="submit"
 						size="sm"
+						outline
 						color={data.backupInformation.locked ? 'red' : 'green'}
 						loading={updatingLocked}
 						loadingMessage="Updating..."
