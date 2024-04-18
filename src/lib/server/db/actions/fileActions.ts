@@ -107,15 +107,22 @@ export const fileActions = {
 			results.map((a) => a.transactionId)
 		);
 
-		const journalInformation = await tActions.journalView.list({
-			db,
-			filter: { transactionIdArray, pageSize: 100000, page: 0 }
-		});
+		const journalInformation =
+			transactionIdArray.length > 0
+				? await tActions.journalView.list({
+						db,
+						filter: {
+							transactionIdArray,
+							pageSize: 100000,
+							page: 0
+						}
+					})
+				: undefined;
 
 		const resultsWithJournals = results.map((result) => {
-			const journals = journalInformation.data.filter(
-				(a) => a.transactionId === result.transactionId
-			);
+			const journals = journalInformation
+				? journalInformation.data.filter((a) => a.transactionId === result.transactionId)
+				: [];
 			return {
 				...result,
 				journals
