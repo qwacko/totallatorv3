@@ -6,6 +6,8 @@
 		id: string;
 		originalFilename: string;
 	};
+
+	export let size: 'sm' | 'md' | 'lg' = 'md';
 </script>
 
 {#if item.thumbnailFilename}
@@ -15,6 +17,12 @@
 			paramsValue: { id: item.id, filename: item.thumbnailFilename }
 		}).url}
 		alt={item.originalFilename}
-		class="max-h-48 max-w-48 object-contain"
+		class=" object-contain"
+		class:max-h-32={size === 'sm'}
+		class:max-w-32={size === 'sm'}
+		class:max-h-64={size === 'lg'}
+		class:max-w-64={size === 'lg'}
+		class:max-h-48={size === 'md'}
+		class:max-w-48={size === 'md'}
 	/>
 {/if}

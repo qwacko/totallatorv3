@@ -403,9 +403,18 @@ export const fileActions = {
 	}) => {
 		const files = await fileActions.listWithoutPagination({ db, filter });
 
+		console.log(
+			'Deleting Files: ',
+			files.map((a) => a.id)
+		);
+
 		await Promise.all(
 			files.map(async (currentFile) => {
-				await fileFileHandler.deleteFile(currentFile.filename);
+				currentFile.filename && (await fileFileHandler.deleteFile(currentFile.filename));
+				currentFile.thumbnailFilename &&
+					(await fileFileHandler.deleteFile(currentFile.thumbnailFilename));
+
+				await db.delete(fileTable).where(eq(fileTable.id, currentFile.id)).execute();
 			})
 		);
 	},

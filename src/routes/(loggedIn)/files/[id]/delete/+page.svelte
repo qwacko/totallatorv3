@@ -1,17 +1,12 @@
 <script lang="ts">
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import { urlGenerator } from '$lib/routes.js';
 	import { Button } from 'flowbite-svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import FileThumbnail from '$lib/components/FileThumbnail.svelte';
+	import { enhance } from '$app/forms';
 
 	export let data;
-
-	$: deleteURL = urlGenerator({
-		address: '/(loggedIn)/files/[id]/delete',
-		paramsValue: { id: data.file.id }
-	}).url;
 </script>
 
 <CustomHeader pageTitle="Edit File" filterText={data.file.title || data.file.originalFilename} />
@@ -20,5 +15,9 @@
 	<div class="self-center">
 		<FileThumbnail item={data.file} size="lg" />
 	</div>
-	<Button outline color="red" href={deleteURL}><DeleteIcon /></Button>
+	Are you sure you want to delete this file?
+	<form method="post" action="?/deleteFile" use:enhance>
+		<input type="hidden" name="fileId" value={data.file.id} />
+		<Button outline color="red" type="submit"><DeleteIcon /></Button>
+	</form>
 </PageLayout>

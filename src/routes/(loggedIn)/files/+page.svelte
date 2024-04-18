@@ -128,7 +128,7 @@
 			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
 				{#if currentColumn.id === 'actions'}
 					{@const deleteURL = urlGenerator({
-						address: '/(loggedIn)/labels/[id]/delete',
+						address: '/(loggedIn)/files/[id]/delete',
 						paramsValue: { id: currentRow.id }
 					}).url}
 					{@const downloadURL = urlGenerator({
