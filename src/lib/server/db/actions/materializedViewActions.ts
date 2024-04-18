@@ -70,13 +70,7 @@ export const materializedViewActions = {
 	}) => {
 		await Promise.all([
 			timePromise('Journal Extended View Refresh', items.journals, async () => {
-				console.log('Refreshing Journal Extended View');
-				const startTime = new Date();
 				await db.refreshMaterializedView(journalExtendedView);
-				const endTime = new Date();
-				console.log(
-					`Journal Extended View Refresh took ${endTime.getTime() - startTime.getTime()}ms`
-				);
 				await refreshRequiredStore.set(db, false);
 			}),
 			timePromise('Account View Refresh', items.account, async () => {

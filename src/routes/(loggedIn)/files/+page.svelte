@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, ButtonGroup, Input, Badge, Popover, Spinner } from 'flowbite-svelte';
+	import { Button, ButtonGroup, Input, Badge, Popover } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
@@ -109,7 +109,7 @@
 				{
 					id: 'fileExists',
 					title: 'Exists',
-					sortKey: 'fileExists'
+					sortKey: 'exists'
 				},
 				{
 					id: 'title',

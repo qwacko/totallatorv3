@@ -411,11 +411,6 @@ export const fileActions = {
 	}) => {
 		const files = await fileActions.listWithoutPagination({ db, filter });
 
-		console.log(
-			'Deleting Files: ',
-			files.map((a) => a.id)
-		);
-
 		await Promise.all(
 			files.map(async (currentFile) => {
 				currentFile.filename && (await fileFileHandler.deleteFile(currentFile.filename));

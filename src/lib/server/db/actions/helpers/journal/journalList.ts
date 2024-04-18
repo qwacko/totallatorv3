@@ -22,6 +22,7 @@ import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { tActions } from '../../tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { sqlToText } from '../printMaterializedViewList';
+import {logging} from '$lib/server/logging';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -112,7 +113,7 @@ export const journalMaterialisedList = async ({
 		.limit(pageSize);
 
 	if (false) {
-		console.log(sqlToText(journalQueryCore.getSQL()));
+		logging.debug(sqlToText(journalQueryCore.getSQL()));
 	}
 
 	const journalsPromise = journalQueryCore.execute();

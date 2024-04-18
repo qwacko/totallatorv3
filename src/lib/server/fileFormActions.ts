@@ -47,7 +47,6 @@ export const fileFormActions = {
 	deleteFile: async (data: RequestEvent<Partial<Record<string, string>>, string>) => {
 		const form = await data.request.formData();
 		const fileId = form.get('fileId');
-		console.log('Deleting File: ', fileId);
 		if (!fileId) return;
 		const fileIdString = fileId.toString();
 		try {
