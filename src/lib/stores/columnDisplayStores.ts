@@ -26,6 +26,7 @@ export const labelColumnsStore = writable(['actions', 'title', 'status', 'total'
 export const fileColumnsStore = writable([
 	'actions',
 	'createdAt',
+	'fileExists',
 	'thumbnailFilename',
 	'title',
 	'originalFilename',

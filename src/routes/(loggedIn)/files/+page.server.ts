@@ -18,3 +18,9 @@ export const load = async (data) => {
 
 	return { searchParams: current.searchParams, files, filterText };
 };
+
+export const actions = {
+	checkFiles: async (data) => {
+		await tActions.file.checkFilesExist({ db: data.locals.db });
+	}
+};

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, ButtonGroup, Input, Badge, Popover } from 'flowbite-svelte';
+	import { Button, ButtonGroup, Input, Badge, Popover, Spinner } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
@@ -25,6 +25,8 @@
 	import BudgetIcon from '$lib/components/icons/BudgetIcon.svelte';
 	import TagIcon from '$lib/components/icons/TagIcon.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
+	import { customEnhance } from '$lib/helpers/customEnhance';
+	import ActionButton from '$lib/components/ActionButton.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/files', $page);
@@ -42,6 +44,8 @@
 
 	let filterOpened = false;
 
+	let checkingFiles = false;
+
 	onNavigate(() => {
 		filterOpened = false;
 	});
@@ -56,6 +60,22 @@
 
 <PageLayout title="Files" size="xl">
 	<svelte:fragment slot="right">
+		<form
+			method="post"
+			use:enhance={customEnhance({
+				updateLoading: (loading) => (checkingFiles = loading)
+			})}
+			action="?/checkFiles"
+		>
+			<ActionButton
+				color="primary"
+				outline
+				type="submit"
+				message="Check Files"
+				loadingMessage="Checking..."
+				loading={checkingFiles}
+			/>
+		</form>
 		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/labels/create' }).url}>
 			Create
 		</Button>
@@ -85,6 +105,11 @@
 					title: 'Created',
 					rowToDisplay: (row) => row.createdAt.toISOString().slice(0, 10),
 					sortKey: 'createdAt'
+				},
+				{
+					id: 'fileExists',
+					title: 'Exists',
+					sortKey: 'fileExists'
 				},
 				{
 					id: 'title',
@@ -165,6 +190,12 @@
 					{/if}
 				{:else if currentColumn.id === 'type'}
 					<Badge>{fileTypeToText(currentRow.type)}</Badge>
+				{:else if currentColumn.id === 'fileExists'}
+					{#if !currentRow.fileExists}
+						<Badge color="red">Missing</Badge>
+					{:else}
+						<Badge color="green">Y</Badge>
+					{/if}
 				{:else if currentColumn.id === 'links'}
 					<div class="flex flex-col items-stretch gap-1">
 						{#if currentRow.accountTitle}
