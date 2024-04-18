@@ -3,7 +3,9 @@ import { serverPageInfo } from '$lib/routes.js';
 import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { billFilterToText } from '$lib/server/db/actions/helpers/bill/billFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
+import { fileFormActions } from '$lib/server/fileFormActions';
 import { logging } from '$lib/server/logging';
+import { noteFormActions } from '$lib/server/noteFormActions.js';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -38,7 +40,11 @@ export const load = async (data) => {
 	const billDropdowns = await tActions.bill.listForDropdown({ db });
 
 	return {
-		bills,
+		bills: await tActions.file.addFilesToItems({
+			db,
+			grouping: 'bill',
+			data: await tActions.note.addNotesToItems({ db, data: bills, grouping: 'bill' })
+		}),
 		searchParams: pageInfo.searchParams,
 		filterText,
 		billSummary,
@@ -52,6 +58,8 @@ const submitValidation = z.object({
 });
 
 export const actions = {
+	...noteFormActions,
+	...fileFormActions,
 	update: async ({ request, locals }) => {
 		const db = locals.db;
 		const form = await superValidate(request, zod(submitValidation));

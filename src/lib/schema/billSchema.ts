@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { statusEnum } from './statusSchema';
 import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
+import { linkedFileFilterSchema } from './fileSchema';
+import { linkedNoteFilterSchema } from './noteSchema';
 
 export const createBillSchema = z.object({
 	title: z.string(),
@@ -48,35 +50,38 @@ export const billOrderByEnumToText = (input: OrderByEnumType) => {
 	return enumTitles[input];
 };
 
-export const billFilterSchema = z.object({
-	textFilter: z.string().optional(),
-	id: z.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	title: z.coerce.string().optional(),
-	titleArray: z.array(z.coerce.string()).optional(),
-	excludeTitleArray: z.array(z.coerce.string()).optional(),
-	status: z.enum(statusEnum).optional(),
-	statusArray: z.array(z.enum(statusEnum)).optional(),
-	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
-	disabled: z.boolean().optional(),
-	allowUpdate: z.boolean().optional(),
-	active: z.boolean().optional(),
-	importIdArray: z.array(z.string()).optional(),
-	excludeImportIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	excludeImportDetailIdArray: z.array(z.string()).optional(),
+export const billFilterSchema = z
+	.object({
+		textFilter: z.string().optional(),
+		id: z.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		title: z.coerce.string().optional(),
+		titleArray: z.array(z.coerce.string()).optional(),
+		excludeTitleArray: z.array(z.coerce.string()).optional(),
+		status: z.enum(statusEnum).optional(),
+		statusArray: z.array(z.enum(statusEnum)).optional(),
+		excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
+		disabled: z.boolean().optional(),
+		allowUpdate: z.boolean().optional(),
+		active: z.boolean().optional(),
+		importIdArray: z.array(z.string()).optional(),
+		excludeImportIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+		excludeImportDetailIdArray: z.array(z.string()).optional(),
 
-	//Summary Info Filters
-	...summaryFilterProperties,
+		//Summary Info Filters
+		...summaryFilterProperties,
 
-	page: z.number().default(0).optional(),
-	pageSize: z.number().default(10).optional(),
-	orderBy: z
-		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
-		.default([{ direction: 'asc', field: 'title' }])
-		.optional()
-});
+		page: z.number().default(0).optional(),
+		pageSize: z.number().default(10).optional(),
+		orderBy: z
+			.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+			.default([{ direction: 'asc', field: 'title' }])
+			.optional()
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
 export type BillFilterSchemaType = z.infer<typeof billFilterSchema>;
 export type BillFilterSchemaWithoutPaginationType = Omit<

@@ -51,3 +51,4 @@ const fileHandler = (address: string, title: string) => {
 
 export const backupFileHandler = fileHandler(serverEnv.BACKUP_DIR, 'Backup');
 export const importFileHandler = fileHandler(serverEnv.IMPORT_DIR, 'Import');
+export const fileFileHandler = fileHandler(serverEnv.FILE_DIR, 'File');

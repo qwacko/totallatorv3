@@ -90,6 +90,7 @@
     "node-schedule": "^2.1.1",
     "oslo": "^1.1.3",
     "postgres": "^3.4.4",
+    "sharp": "^0.33.3",
     "skguard": "^0.0.15",
     "skroutes": "^0.0.15",
     "zod": "^3.22.4"

@@ -88,6 +88,8 @@
 				>
 					<ActionButton
 						type="submit"
+						size="sm"
+						outline
 						color={data.backupInformation.locked ? 'red' : 'green'}
 						loading={updatingLocked}
 						loadingMessage="Updating..."
@@ -129,6 +131,8 @@
 					<Badge>Report Items : {information.information.itemCount.numberReportItems}</Badge>
 					<Badge>Reports : {information.information.itemCount.numberReports}</Badge>
 					<Badge>Backups : {information.information.itemCount.numberBackups}</Badge>
+					<Badge>Files : {information.information.itemCount.numberFiles}</Badge>
+					<Badge>Notes : {information.information.itemCount.numberNotes}</Badge>
 				</div>
 			</div>
 		</div>

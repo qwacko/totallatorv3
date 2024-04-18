@@ -19,6 +19,8 @@ import {
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { processCategoryTextFilter } from './categoryTextFilter';
+import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
 
 export const categoryFilterToQuery = ({
 	filter,
@@ -75,6 +77,17 @@ export const categoryFilterToQuery = ({
 	}
 
 	if (includeSummary) {
+		linkedFileFilterQuery({
+			where,
+			filter: restFilter,
+			fileCountColumn: categoryMaterializedView.fileCount
+		});
+		linkedNoteFilterQuery({
+			where,
+			filter: restFilter,
+			noteCountColumn: categoryMaterializedView.noteCount,
+			reminderCountColumn: categoryMaterializedView.reminderCount
+		});
 		summaryFilterToQueryMaterialized({
 			where,
 			filter: restFilter,
@@ -120,6 +133,8 @@ export const categoryFilterToText = async ({
 	const stringArray: string[] = [];
 	await idTitleFilterToText(db, stringArray, restFilter, categoryIdToTitle);
 	statusFilterToText(stringArray, restFilter);
+	linkedFileFilterToText(restFilter, stringArray);
+	linkedNoteFilterToText(restFilter, stringArray);
 	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });

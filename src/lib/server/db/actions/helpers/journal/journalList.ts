@@ -19,6 +19,10 @@ import { materializedJournalFilterToOrderBy } from '../journalMaterializedView/m
 import { alias } from 'drizzle-orm/pg-core';
 import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { tActions } from '../../tActions';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
+import { sqlToText } from '../printMaterializedViewList';
+import {logging} from '$lib/server/logging';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -108,6 +112,10 @@ export const journalMaterialisedList = async ({
 		.offset(page * pageSize)
 		.limit(pageSize);
 
+	if (false) {
+		logging.debug(sqlToText(journalQueryCore.getSQL()));
+	}
+
 	const journalsPromise = journalQueryCore.execute();
 
 	const runningTotalInner = db
@@ -136,6 +144,21 @@ export const journalMaterialisedList = async ({
 
 	const journals = await journalsPromise;
 	const journalIds = journals.map((item) => item.id);
+	const transactionIds = filterNullUndefinedAndDuplicates(
+		journals.map((item) => item.transactionId)
+	);
+
+	const transactionNotes = await tActions.note.listGrouped({
+		db,
+		ids: transactionIds,
+		grouping: 'transaction'
+	});
+
+	const transactionFiles = await tActions.file.listGrouped({
+		db,
+		ids: transactionIds,
+		grouping: 'transaction'
+	});
 
 	const runningTotal = (await runningTotalPromise)[0].sum;
 
@@ -162,13 +185,17 @@ export const journalMaterialisedList = async ({
 			(x) => x.relationId === journal.id || x.relation2Id === journal.id
 		);
 		const total = runningTotal - priorJournalTotal;
+		const notes = journal.transactionId ? transactionNotes[journal.transactionId] : undefined;
+		const files = journal.transactionId ? transactionFiles[journal.transactionId] : undefined;
 
 		return {
 			...journal,
 			total,
 			otherJournals: thisOtherJournalData?.otherJournals ?? [],
 			importDetail: thisImportDetail?.processedInfo,
-			labels: thisOtherJournalData?.labels ?? []
+			labels: thisOtherJournalData?.labels ?? [],
+			notes: notes ?? [],
+			files: files ?? []
 		};
 	});
 

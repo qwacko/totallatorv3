@@ -20,6 +20,8 @@ import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 import { arrayToText } from '../misc/arrayToText';
 import { processAccountTextFilter } from './accountTextFilter';
+import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
 
 export const accountFilterToQuery = ({
 	filter,
@@ -180,6 +182,17 @@ export const accountFilterToQuery = ({
 		where.push(not(inArrayWrapped(selectedTable.type, intFilter.excludeType)));
 
 	if (includeSummary) {
+		linkedFileFilterQuery({
+			where,
+			filter: intFilter,
+			fileCountColumn: accountMaterializedView.fileCount
+		});
+		linkedNoteFilterQuery({
+			where,
+			filter: intFilter,
+			noteCountColumn: accountMaterializedView.noteCount,
+			reminderCountColumn: accountMaterializedView.reminderCount
+		});
 		summaryFilterToQueryMaterialized({
 			filter: intFilter,
 			where,
@@ -382,6 +395,8 @@ export const accountFilterToText = async ({
 		);
 	}
 
+	linkedFileFilterToText(restFilter, stringArray);
+	linkedNoteFilterToText(restFilter, stringArray);
 	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });

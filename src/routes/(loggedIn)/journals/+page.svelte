@@ -35,6 +35,8 @@
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { currencyFormat } from '$lib/stores/userInfoStore';
+	import NotesButton from '../../../lib/components/NotesButton.svelte';
+	import FilesButton from '$lib/components/FilesButton.svelte';
 
 	export let data;
 
@@ -48,7 +50,7 @@
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/journals',
-		pageInfo: page,		
+		pageInfo: page,
 		onUpdate: (newURL) => {
 			if (browser && newURL !== urlInfo.current.url) {
 				goto(newURL, { keepFocus: true, noScroll: true });
@@ -349,6 +351,19 @@
 									<DataCheckedIcon height="15" width="15" />
 								</Button>
 							{/if}
+							<NotesButton
+								notes={currentJournal.notes}
+								target={{
+									transactionId: currentJournal.transactionId
+								}}
+							/>
+							<FilesButton
+								files={currentJournal.files}
+								target={{
+									transactionId: currentJournal.transactionId
+								}}
+								transactionId={currentJournal.transactionId || undefined}
+							/>
 							<RawDataModal data={currentJournal} dev={true} title="Journal Data" icon="more" />
 						</ButtonGroup>
 					</form>

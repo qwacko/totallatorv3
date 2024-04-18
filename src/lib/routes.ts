@@ -17,6 +17,8 @@ import { importMappingFilterSchema } from './schema/importMappingSchema';
 import { dateSpanEnum } from './schema/dateSpanSchema';
 import { importFilterSchema } from './schema/importSchema';
 import { autoImportFilterSchema } from './schema/autoImportSchema';
+import { createFileNoteRelationshipSchema } from './schema/helpers/fileNoteRelationship';
+import { fileFilterSchema } from './schema/fileSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -230,6 +232,30 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/reports/element/[id]': { paramsValidation: z.object({ id: z.string() }).parse },
 		'/(loggedIn)/reports/element/[id]/[item]': {
 			paramsValidation: z.object({ id: z.string(), item: z.string() }).parse
+		},
+
+		// Files
+		// ----------------------------------------
+		'/(loggedIn)/files/[id]': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
+		'/(loggedIn)/files/[id]/delete': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
+		'/(loggedIn)/files/[id]/[filename]': {
+			paramsValidation: z.object({ id: z.string(), filename: z.string() }).parse
+		},
+		'/(loggedIn)/files/[id]/image/[filename]': {
+			paramsValidation: z.object({ id: z.string(), filename: z.string() }).parse
+		},
+		'/(loggedIn)/files/linkUnlinked': {
+			searchParamsValidation: z.object(createFileNoteRelationshipSchema).parse
+		},
+		'/(loggedIn)/files/linkToTransaction/[id]': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
+		'/(loggedIn)/files': {
+			searchParamsValidation: fileFilterSchema.optional().catch({}).parse
 		},
 
 		// Users

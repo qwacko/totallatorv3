@@ -3,6 +3,7 @@ import { accountTextFilterKeys } from '../account/accountTextFilter';
 import { billTextFilterKeys } from '../bill/billTextFilter';
 import { budgetTextFilterKeys } from '../budget/budgetTextFilter';
 import { categoryTextFilterKeys } from '../category/categoryTextFilter';
+import { fileFilterArray } from '../file/fileTextFilter';
 import { labelTextFilterKeys } from '../label/labelTextFilter';
 import {
 	addToArray,
@@ -13,6 +14,7 @@ import {
 	textFilterHandler,
 	type TextFilterOptionsType
 } from '../misc/processTextFilter';
+import { noteFilterArray } from '../note/noteTextFilter';
 import { tagTextFilterKeys } from '../tag/tagTextFilter';
 
 const handleNested = <U extends 'payee' | 'excludePayee'>(search: string, key: U) => ({
@@ -247,7 +249,9 @@ const filterArray = [
 		update: (filter, newFilter) => {
 			addToArray(filter, 'excludeDescriptionArray', newFilter);
 		}
-	}
+	},
+	...fileFilterArray,
+	...noteFilterArray
 ] satisfies TextFilterOptionsType<JournalFilterSchemaWithoutPaginationType>;
 
 export const processJournalTextFilter = textFilterHandler(

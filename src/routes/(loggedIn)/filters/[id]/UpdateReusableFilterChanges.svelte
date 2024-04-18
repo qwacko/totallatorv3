@@ -39,7 +39,7 @@
 			<Button color="light" outline on:click={() => (changeModal = true)}>Changes</Button>
 			{#if changeModal}
 				<form method="post" action="?/updateChange" use:enhance>
-					<Modal bind:open={changeModal}>
+					<Modal bind:open={changeModal} outsideclose>
 						<UpdateJournalForm {form} />
 						<UpdateJournalLinksForm {form} {dropdownInfo} />
 						<UpdateJournalLabelsForm {form} {dropdownInfo} allLabelIds={[]} commonLabelIds={[]} />

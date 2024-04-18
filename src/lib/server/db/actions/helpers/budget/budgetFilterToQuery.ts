@@ -18,6 +18,8 @@ import {
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { processBudgetTextFilter } from './budgetTextFilter';
+import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
 
 export const budgetFilterToQuery = ({
 	filter,
@@ -68,6 +70,17 @@ export const budgetFilterToQuery = ({
 	}
 
 	if (includeSummary) {
+		linkedFileFilterQuery({
+			where,
+			filter: restFilter,
+			fileCountColumn: budgetMaterializedView.fileCount
+		});
+		linkedNoteFilterQuery({
+			where,
+			filter: restFilter,
+			noteCountColumn: budgetMaterializedView.noteCount,
+			reminderCountColumn: budgetMaterializedView.reminderCount
+		});
 		summaryFilterToQueryMaterialized({
 			where,
 			filter: restFilter,
@@ -113,6 +126,8 @@ export const budgetFilterToText = async ({
 	const stringArray: string[] = [];
 	await idTitleFilterToText(db, stringArray, restFilter, budgetIdToTitle);
 	statusFilterToText(stringArray, restFilter);
+	linkedFileFilterToText(restFilter, stringArray);
+	linkedNoteFilterToText(restFilter, stringArray);
 	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });

@@ -37,7 +37,7 @@
 <Button color="light" on:click={() => (opened = true)}>
 	<FilterIcon />
 </Button>
-<Modal bind:open={opened} size="lg" title={modalTitle}>
+<Modal bind:open={opened} size="lg" title={modalTitle} outsideclose>
 	<FilterModalContent
 		{currentFilter}
 		{accountDropdown}

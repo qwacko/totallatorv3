@@ -33,7 +33,9 @@ import {
 	reportElement,
 	reportElementConfig,
 	backupTable,
-	autoImportTable
+	autoImportTable,
+	notesTable,
+	fileTable
 } from '../postgres/schema';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
 import superjson from 'superjson';
@@ -266,7 +268,7 @@ export const backupActions = {
 		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 9,
+			version: 10,
 			data: {
 				user: await db.select().from(user).execute(),
 				session: await db.select().from(session).execute(),
@@ -294,8 +296,10 @@ export const backupActions = {
 				backup: (await db.select().from(backupTable).execute()).map((item) => ({
 					...item,
 					information: superjson.stringify(item.information)
-				}))
-			}
+				})),
+				note: await db.select().from(notesTable).execute(),
+				file: await db.select().from(fileTable).execute()
+		}
 		};
 
 		const backupData: CurrentBackupSchemaType = {
@@ -325,7 +329,9 @@ export const backupActions = {
 					numberReportElements: backupDataDB.data.reportElement.length,
 					numberReportFilters: backupDataDB.data.filter.length,
 					numberReportItems: backupDataDB.data.reportElementConfig.length,
-					numberBackups: backupDataDB.data.backup.length
+					numberBackups: backupDataDB.data.backup.length,
+					numberNotes: backupDataDB.data.note.length,
+					numberFiles: backupDataDB.data.file.length
 				}
 			}
 		};

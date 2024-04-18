@@ -133,5 +133,13 @@ export const cronJobs: CronJob[] = [
 		job: async () => {
 			await tActions.autoImport.triggerMany({ db, frequency: 'monthly' });
 		}
+	},
+	{
+		name: 'Check Stored Files - Daily',
+		schedule: '0 5 * * *',
+		job: async () => {
+			await tActions.file.checkFilesExist({ db });
+			await tActions.file.updateLinked({ db });
+		}
 	}
 ];

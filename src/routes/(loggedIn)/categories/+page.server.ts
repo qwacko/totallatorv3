@@ -4,10 +4,12 @@ import { defaultJournalFilter } from '$lib/schema/journalSchema';
 import { categoryFilterToText } from '$lib/server/db/actions/helpers/category/categoryFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { logging } from '$lib/server/logging';
+import { noteFormActions } from '$lib/server/noteFormActions.js';
 import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
+import { fileFormActions } from '$lib/server/fileFormActions';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -37,7 +39,11 @@ export const load = async (data) => {
 	const categoryDropdowns = await tActions.category.listForDropdown({ db });
 
 	return {
-		categories,
+		categories: await tActions.file.addFilesToItems({
+			db,
+			grouping: 'category',
+			data: await tActions.note.addNotesToItems({ db, data: categories, grouping: 'category' })
+		}),
 		searchParams: pageInfo.searchParams,
 		filterText,
 		categorySummary,
@@ -51,6 +57,8 @@ const submitValidation = z.object({
 });
 
 export const actions = {
+	...noteFormActions,
+	...fileFormActions,
 	update: async ({ request, locals }) => {
 		const db = locals.db;
 		const form = await superValidate(request, zod(submitValidation));

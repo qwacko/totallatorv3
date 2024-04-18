@@ -21,6 +21,8 @@
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import NotesButton from '$lib/components/NotesButton.svelte';
+	import FilesButton from '$lib/components/FilesButton.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/categories', $page);
@@ -115,6 +117,7 @@
 					rowToDisplay: (row) => statusToDisplay(row.status),
 					sortKey: 'status'
 				},
+
 				...summaryColumns({ currencyFormat: data.user?.currencyFormat })
 			]}
 			bind:shownColumns={$categoryColumnsStore}
@@ -166,6 +169,8 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
+								<NotesButton notes={currentRow.notes} target={{ categoryId: currentRow.id }} />
+								<FilesButton files={currentRow.files} target={{ categoryId: currentRow.id }} />
 								<RawDataModal data={currentRow} title="Raw Category Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>

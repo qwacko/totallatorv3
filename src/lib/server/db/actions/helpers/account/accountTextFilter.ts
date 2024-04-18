@@ -12,6 +12,8 @@ import {
 	statisticsTextFilterArray,
 	statusTextFilterArray
 } from '../misc/textFilterConfigurations';
+import { noteFilterArray } from '../note/noteTextFilter';
+import { fileFilterArray } from '../file/fileTextFilter';
 
 const filterArray = [
 	...importTextFilterArray,
@@ -163,6 +165,8 @@ const filterArray = [
 			compareTextDate(filter, 'endDateBefore', newFilter, 'min');
 		}
 	},
+	...fileFilterArray,
+	...noteFilterArray,
 	...idTitleTextFilterArray
 ] satisfies TextFilterOptionsType<AccountFilterSchemaWithoutPaginationType>;
 

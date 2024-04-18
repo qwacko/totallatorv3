@@ -16,6 +16,8 @@ import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
 import { labelMaterializedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { processLabelTextFilter } from './labelTextFilter';
+import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
 
 export const labelFilterToQuery = (
 	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,
@@ -48,6 +50,17 @@ export const labelFilterToQuery = (
 	});
 
 	if (includeSummary) {
+		linkedFileFilterQuery({
+			where,
+			filter: restFilter,
+			fileCountColumn: labelMaterializedView.fileCount
+		});
+		linkedNoteFilterQuery({
+			where,
+			filter: restFilter,
+			noteCountColumn: labelMaterializedView.noteCount,
+			reminderCountColumn: labelMaterializedView.reminderCount
+		});
 		summaryFilterToQueryMaterialized({
 			where,
 			filter: restFilter,
@@ -121,6 +134,8 @@ export const labelFilterToText = async ({
 	const stringArray: string[] = [];
 	await idTitleFilterToText(db, stringArray, restFilter, labelIdToTitle);
 	statusFilterToText(stringArray, restFilter);
+	linkedFileFilterToText(restFilter, stringArray);
+	linkedNoteFilterToText(restFilter, stringArray);
 	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });
