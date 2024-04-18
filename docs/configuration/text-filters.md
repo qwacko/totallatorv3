@@ -24,20 +24,23 @@ The following rules are used across all text search types:
 
 ## Journals
 
-| Prefix           | Default |     Format / Options      | Search Function                                                                       | Duplicates       |
-| ---------------- | :-----: | :-----------------------: | ------------------------------------------------------------------------------------- | ---------------- |
-| **description:** |   `Y`   |         `string`          | Journal Description                                                                   | or'ed together   |
-| **max:**         |         |         `number`          | Maximum journal amount                                                                | Minimum is used. |
-| **min:**         |         |         `number`          | Minimum journal amount                                                                | Maximum is used. |
-| **linked:**      |         |         `boolean`         | Journal is "linked"                                                                   | Last is used     |
-| **reconciled:**  |         |         `boolean`         | Journal is reconciled                                                                 | Last is used     |
-| **checked:**     |         |         `boolean`         | Journal has had data checked                                                          | Last is used     |
-| **complete:**    |         |         `boolean`         | Journal is complete                                                                   | Last is used     |
-| **transfer:**    |         |         `boolean`         | Journal is part of a transfer                                                         | Last is used     |
-| **before:**      |         | `YYYY-MM-DD` or `YY-M-DD` | Journal date is before date                                                           | earliest is used |
-| **after:**       |         | `YYYY-MM-DD` or `YY-M-DD` | Journal date is after date                                                            | latest is used   |
-| **month:**       |         |    `YYYY-MM` or `YY-M`    | Journal date is in chosen month                                                       | or'ed together   |
-| **payee:**       |         |         `string`          | At least one of the linked journal entries in the same transaction has a payee title. | or'ed together   |
+| Prefix           | Default |     Format / Options      | Search Function                                                                              | Duplicates       |
+| ---------------- | :-----: | :-----------------------: | -------------------------------------------------------------------------------------------- | ---------------- |
+| **description:** |   `Y`   |         `string`          | Journal Description                                                                          | or'ed together   |
+| **max:**         |         |         `number`          | Maximum journal amount                                                                       | Minimum is used. |
+| **min:**         |         |         `number`          | Minimum journal amount                                                                       | Maximum is used. |
+| **linked:**      |         |         `boolean`         | Journal is "linked"                                                                          | Last is used     |
+| **reconciled:**  |         |         `boolean`         | Journal is reconciled                                                                        | Last is used     |
+| **checked:**     |         |         `boolean`         | Journal has had data checked                                                                 | Last is used     |
+| **complete:**    |         |         `boolean`         | Journal is complete                                                                          | Last is used     |
+| **transfer:**    |         |         `boolean`         | Journal is part of a transfer                                                                | Last is used     |
+| **note:**        |         |         `boolean`         | The transaction has at least one [note](./notesfiles#notes) linked to it.                    | Last is used     |
+| **reminder:**    |         |         `boolean`         | The transaction has at least one [note](./notesfiles#notes) that is a reminder linked to it. | Last is used     |
+| **file:**        |         |         `boolean`         | The transaction has at least one [file](./notesfiles#files) linked to it.                    | Last is used     |
+| **before:**      |         | `YYYY-MM-DD` or `YY-M-DD` | Journal date is before date                                                                  | earliest is used |
+| **after:**       |         | `YYYY-MM-DD` or `YY-M-DD` | Journal date is after date                                                                   | latest is used   |
+| **month:**       |         |    `YYYY-MM` or `YY-M`    | Journal date is in chosen month                                                              | or'ed together   |
+| **payee:**       |         |         `string`          | At least one of the linked journal entries in the same transaction has a payee title.        | or'ed together   |
 
 ### Linked Items
 
@@ -64,60 +67,69 @@ For simpler searches fpr common linked items searches there are shorthands as sh
 
 Accounts have the following search options, as well as the [summary items](#summary-filters)
 
-| Prefix              | Default |                               Format / Options                               | Search Function                                                         | Duplicates     |
-| ------------------- | :-----: | :--------------------------------------------------------------------------: | ----------------------------------------------------------------------- | -------------- |
-| **id:**             |   `Y`   |                                   `string`                                   | Item ID                                                                 | or'ed together |
-| **title:**          |   `Y`   |                                   `string`                                   | Account Name                                                            | or'ed together |
-| **titlecombined:**  |   `Y`   |                                   `string`                                   | Account Name and Group Combined                                         | or'ed together |
-| **group:**          |         |                                   `string`                                   | Account Group Title search (combination of Group 1 / Group 2 / Group 3) | or'ed together |
-| **group1:**         |         |                                   `string`                                   | Account Group 1 Title search                                            | or'ed together |
-| **group2:**         |         |                                   `string`                                   | Account Group 2 Title search                                            | or'ed together |
-| **group3:**         |         |                                   `string`                                   | Account Group 3 Title search                                            | or'ed together |
-| **type:**           |         | `asset` `liability` `income` or `expense` (Can be combined with `,` or `\|`) | Account Type search                                                     | or'ed together |
-| **cash:**           |         |                                  `boolean`                                   | Account is a cash account                                               | Last is used   |
-| **networth:**       |         |                                  `boolean`                                   | Account is a net worth account                                          | Last is used   |
-| **startafter:**     |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account Start Date is after date                                        | Last is used   |
-| **startbefore:**    |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account Start Date is before date                                       | Last is used   |
-| **endafter:**       |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account End Date is after date                                          | Last is used   |
-| **endbefore:**      |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account End Date is before date                                         | Last is used   |
-| **status:**         |         |                            `active` / `disabled`                             | Account status matches term                                             | or'ed together |
-| **active:**         |         |                                  `boolean`                                   | Account is active                                                       | Last is used   |
-| **disabled:**       |         |                                  `boolean`                                   | Account is disabled                                                     | Last is used   |
-| **allowUpdate:**    |         |                                  `boolean`                                   | Account allows update                                                   | Last is used   |
-| **importId:**       |         |                                   `string`                                   | Import ID matches value                                                 | or'ed together |
-| **importDetailId:** |         |                                   `string`                                   | Import Detail ID matches value                                          | or'ed together |
+| Prefix              | Default |                               Format / Options                               | Search Function                                                              | Duplicates     |
+| ------------------- | :-----: | :--------------------------------------------------------------------------: | ---------------------------------------------------------------------------- | -------------- |
+| **id:**             |   `Y`   |                                   `string`                                   | Item ID                                                                      | or'ed together |
+| **title:**          |   `Y`   |                                   `string`                                   | Account Name                                                                 | or'ed together |
+| **titlecombined:**  |   `Y`   |                                   `string`                                   | Account Name and Group Combined                                              | or'ed together |
+| **group:**          |         |                                   `string`                                   | Account Group Title search (combination of Group 1 / Group 2 / Group 3)      | or'ed together |
+| **group1:**         |         |                                   `string`                                   | Account Group 1 Title search                                                 | or'ed together |
+| **group2:**         |         |                                   `string`                                   | Account Group 2 Title search                                                 | or'ed together |
+| **group3:**         |         |                                   `string`                                   | Account Group 3 Title search                                                 | or'ed together |
+| **type:**           |         | `asset` `liability` `income` or `expense` (Can be combined with `,` or `\|`) | Account Type search                                                          | or'ed together |
+| **cash:**           |         |                                  `boolean`                                   | Account is a cash account                                                    | Last is used   |
+| **networth:**       |         |                                  `boolean`                                   | Account is a net worth account                                               | Last is used   |
+| **startafter:**     |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account Start Date is after date                                             | Last is used   |
+| **startbefore:**    |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account Start Date is before date                                            | Last is used   |
+| **endafter:**       |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account End Date is after date                                               | Last is used   |
+| **endbefore:**      |         |         `YYYY-MM-DD` or `YY-M-DD` (Can be combined with `,` or `\|`)         | Account End Date is before date                                              | Last is used   |
+| **status:**         |         |                            `active` / `disabled`                             | Account status matches term                                                  | or'ed together |
+| **active:**         |         |                                  `boolean`                                   | Account is active                                                            | Last is used   |
+| **disabled:**       |         |                                  `boolean`                                   | Account is disabled                                                          | Last is used   |
+| **allowUpdate:**    |         |                                  `boolean`                                   | Account allows update                                                        | Last is used   |
+| **importId:**       |         |                                   `string`                                   | Import ID matches value                                                      | or'ed together |
+| **importDetailId:** |         |                                   `string`                                   | Import Detail ID matches value                                               | or'ed together |
+| **note:**           |         |                                  `boolean`                                   | Has at least one [note](./notesfiles#notes) linked to it.                    | Last is used   |
+| **reminder:**       |         |                                  `boolean`                                   | Has at least one [note](./notesfiles#notes) that is a reminder linked to it. | Last is used   |
+| **file:**           |         |                                  `boolean`                                   | Has at least one [file](./notesfiles#files) linked to it.                    | Last is used   |
 
 ## Bills, Budgets, Labels
 
 Bills, Budgets and Labels have the following search options, as well as the [summary items](#summary-filters)
 
-| Prefix              | Default |   Format / Options    | Search Function                | Duplicates     |
-| ------------------- | :-----: | :-------------------: | ------------------------------ | -------------- |
-| **id:**             |   `Y`   |       `string`        | Item ID                        | or'ed together |
-| **title:**          |   `Y`   |       `string`        | Combined Title                 | or'ed together |
-| **status:**         |         | `active` / `disabled` | Account status matches term    | or'ed together |
-| **active:**         |         |       `boolean`       | Account is active              | Last is used   |
-| **disabled:**       |         |       `boolean`       | Account is disabled            | Last is used   |
-| **allowUpdate:**    |         |       `boolean`       | Account allows update          | Last is used   |
-| **importId:**       |         |       `string`        | Import ID matches value        | or'ed together |
-| **importDetailId:** |         |       `string`        | Import Detail ID matches value | or'ed together |
+| Prefix              | Default |   Format / Options    | Search Function                                                              | Duplicates     |
+| ------------------- | :-----: | :-------------------: | ---------------------------------------------------------------------------- | -------------- |
+| **id:**             |   `Y`   |       `string`        | Item ID                                                                      | or'ed together |
+| **title:**          |   `Y`   |       `string`        | Combined Title                                                               | or'ed together |
+| **status:**         |         | `active` / `disabled` | Account status matches term                                                  | or'ed together |
+| **active:**         |         |       `boolean`       | Account is active                                                            | Last is used   |
+| **disabled:**       |         |       `boolean`       | Account is disabled                                                          | Last is used   |
+| **allowUpdate:**    |         |       `boolean`       | Account allows update                                                        | Last is used   |
+| **importId:**       |         |       `string`        | Import ID matches value                                                      | or'ed together |
+| **importDetailId:** |         |       `string`        | Import Detail ID matches value                                               | or'ed together |
+| **note:**           |         |       `boolean`       | Has at least one [note](./notesfiles#notes) linked to it.                    | Last is used   |
+| **reminder:**       |         |       `boolean`       | Has at least one [note](./notesfiles#notes) that is a reminder linked to it. | Last is used   |
+| **file:**           |         |       `boolean`       | Has at least one [file](./notesfiles#files) linked to it.                    | Last is used   |
 
 ## Categories, Tags
 
 Categories and Tags have the following search options, as well as the [summary items](#summary-filters)
 
-| Prefix              | Default |   Format / Options    | Search Function                | Duplicates     |
-| ------------------- | :-----: | :-------------------: | ------------------------------ | -------------- |
-| **id:**             |   `Y`   |       `string`        | Item ID                        | or'ed together |
-| **title:**          |   `Y`   |       `string`        | Combined Title                 | or'ed together |
-| **group:**          |         |       `string`        | Group Title                    | or'ed together |
-| **single:**         |         |       `string`        | Single Title                   | or'ed together |
-| **status:**         |         | `active` / `disabled` | Account status matches term    | or'ed together |
-| **active:**         |         |       `boolean`       | Account is active              | Last is used   |
-| **disabled:**       |         |       `boolean`       | Account is disabled            | Last is used   |
-| **allowUpdate:**    |         |       `boolean`       | Account allows update          | Last is used   |
-| **importId:**       |         |       `string`        | Import ID matches value        | or'ed together |
-| **importDetailId:** |         |       `string`        | Import Detail ID matches value | or'ed together |
+| Prefix              | Default |   Format / Options    | Search Function                                                              | Duplicates     |
+| ------------------- | :-----: | :-------------------: | ---------------------------------------------------------------------------- | -------------- |
+| **id:**             |   `Y`   |       `string`        | Item ID                                                                      | or'ed together |
+| **title:**          |   `Y`   |       `string`        | Combined Title                                                               | or'ed together |
+| **group:**          |         |       `string`        | Group Title                                                                  | or'ed together |
+| **single:**         |         |       `string`        | Single Title                                                                 | or'ed together |
+| **status:**         |         | `active` / `disabled` | Account status matches term                                                  | or'ed together |
+| **active:**         |         |       `boolean`       | Account is active                                                            | Last is used   |
+| **disabled:**       |         |       `boolean`       | Account is disabled                                                          | Last is used   |
+| **allowUpdate:**    |         |       `boolean`       | Account allows update                                                        | Last is used   |
+| **importId:**       |         |       `string`        | Import ID matches value                                                      | or'ed together |
+| **importDetailId:** |         |       `string`        | Import Detail ID matches value                                               | or'ed together |
+| **note:**           |         |       `boolean`       | Has at least one [note](./notesfiles#notes) linked to it.                    | Last is used   |
+| **reminder:**       |         |       `boolean`       | Has at least one [note](./notesfiles#notes) that is a reminder linked to it. | Last is used   |
+| **file:**           |         |       `boolean`       | Has at least one [file](./notesfiles#files) linked to it.                    | Last is used   |
 
 ## Summary Filters
 

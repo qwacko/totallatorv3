@@ -69,6 +69,10 @@ export default withMermaid({
 							{ text: 'Reusable Filters 🚧', link: 'configuration/reusable-filters' }
 						]
 					},
+					{
+						text: 'Notes / Files',
+						link: 'configuration/notesfiles'
+					},
 					{ text: 'Reports 🚧', link: 'configuration/reports' }
 				]
 			},
