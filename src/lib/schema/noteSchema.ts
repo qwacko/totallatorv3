@@ -48,3 +48,10 @@ export const noteFilterSchema = noteFilterWithoutPaginationSchema.merge(
 	})
 );
 export type NoteFilterSchemaType = z.infer<typeof noteFilterSchema>;
+
+export const linkedNoteFilterSchema = z.object({
+	note: z.boolean().optional(),
+	reminder: z.boolean().optional()
+});
+
+export type LinkedNoteFilterSchemaType = z.infer<typeof linkedNoteFilterSchema>;

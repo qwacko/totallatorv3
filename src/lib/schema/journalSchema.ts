@@ -8,6 +8,8 @@ import { categoryFilterSchema } from './categorySchema';
 import { labelFilterSchema } from './labelSchema';
 import { cloneDeep } from 'lodash-es';
 import { dateSpanEnum } from './dateSpanSchema';
+import { linkedFileFilterSchema } from './fileSchema';
+import { linkedNoteFilterSchema } from './noteSchema';
 
 const zodStringBlanking = z
 	.string()
@@ -207,69 +209,75 @@ export const journalOrderByEnum = [
 	'accountName'
 ] as const;
 
-export const journalFilterSchemaWithoutPagination = z.object({
-	textFilter: z.coerce.string().optional(),
-	id: z.coerce.string().optional(),
-	excludeId: z.coerce.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	transactionIdArray: z.array(z.string()).optional(),
-	excludeTransactionIdArray: z.array(z.string()).optional(),
-	dateSpan: z.enum(dateSpanEnum).optional().nullable(),
-	dateBefore: dateStringSchema.optional().nullable(),
-	dateAfter: dateStringSchema.optional().nullable(),
-	maxAmount: z.number().optional(),
-	minAmount: z.number().optional(),
-	yearMonth: z.array(z.string()).optional(),
-	excludeYearMonth: z.array(z.string()).optional(),
-	description: z.coerce.string().optional().nullable(),
-	descriptionArray: z.array(z.string()).optional(),
-	excludeDescription: z.coerce.string().optional(),
-	excludeDescriptionArray: z.array(z.string()).optional(),
-	transfer: z.coerce.boolean().optional(),
-	linked: z.coerce.boolean().optional(),
-	reconciled: z.coerce.boolean().optional(),
-	dataChecked: z.coerce.boolean().optional(),
-	complete: z.boolean().optional(),
-	importIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	payee: z
-		.object({
-			id: z.string().optional(),
-			idArray: z.array(z.string()).optional(),
-			title: z.string().optional(),
-			titleArray: z.array(z.string()).optional()
-		})
-		.optional(),
-	excludePayee: z
-		.object({
-			id: z.string().optional(),
-			idArray: z.array(z.string()).optional(),
-			title: z.string().optional(),
-			titleArray: z.array(z.string()).optional()
-		})
-		.optional(),
-	account: accountFilterSchema
-		.omit({ page: true, pageSize: true, orderBy: true })
-		.optional()
-		.default({ type: ['asset', 'liability'] })
-		.optional(),
-	excludeAccount: accountFilterSchema
-		.omit({ page: true, pageSize: true, orderBy: true })
-		.optional(),
-	tag: tagFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	excludeTag: tagFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	bill: billFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	excludeBill: billFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	budget: budgetFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	excludeBudget: budgetFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	category: categoryFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	excludeCategory: categoryFilterSchema
-		.omit({ page: true, pageSize: true, orderBy: true })
-		.optional(),
-	label: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
-	excludeLabel: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional()
-});
+export const journalFilterSchemaWithoutPagination = z
+	.object({
+		textFilter: z.coerce.string().optional(),
+		id: z.coerce.string().optional(),
+		excludeId: z.coerce.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		transactionIdArray: z.array(z.string()).optional(),
+		excludeTransactionIdArray: z.array(z.string()).optional(),
+		dateSpan: z.enum(dateSpanEnum).optional().nullable(),
+		dateBefore: dateStringSchema.optional().nullable(),
+		dateAfter: dateStringSchema.optional().nullable(),
+		maxAmount: z.number().optional(),
+		minAmount: z.number().optional(),
+		yearMonth: z.array(z.string()).optional(),
+		excludeYearMonth: z.array(z.string()).optional(),
+		description: z.coerce.string().optional().nullable(),
+		descriptionArray: z.array(z.string()).optional(),
+		excludeDescription: z.coerce.string().optional(),
+		excludeDescriptionArray: z.array(z.string()).optional(),
+		transfer: z.coerce.boolean().optional(),
+		linked: z.coerce.boolean().optional(),
+		reconciled: z.coerce.boolean().optional(),
+		dataChecked: z.coerce.boolean().optional(),
+		complete: z.boolean().optional(),
+		importIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+
+		payee: z
+			.object({
+				id: z.string().optional(),
+				idArray: z.array(z.string()).optional(),
+				title: z.string().optional(),
+				titleArray: z.array(z.string()).optional()
+			})
+			.optional(),
+		excludePayee: z
+			.object({
+				id: z.string().optional(),
+				idArray: z.array(z.string()).optional(),
+				title: z.string().optional(),
+				titleArray: z.array(z.string()).optional()
+			})
+			.optional(),
+		account: accountFilterSchema
+			.omit({ page: true, pageSize: true, orderBy: true })
+			.optional()
+			.default({ type: ['asset', 'liability'] })
+			.optional(),
+		excludeAccount: accountFilterSchema
+			.omit({ page: true, pageSize: true, orderBy: true })
+			.optional(),
+		tag: tagFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+		excludeTag: tagFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+		bill: billFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+		excludeBill: billFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+		budget: budgetFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+		excludeBudget: budgetFilterSchema
+			.omit({ page: true, pageSize: true, orderBy: true })
+			.optional(),
+		category: categoryFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+		excludeCategory: categoryFilterSchema
+			.omit({ page: true, pageSize: true, orderBy: true })
+			.optional(),
+		label: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional(),
+		excludeLabel: labelFilterSchema.omit({ page: true, pageSize: true, orderBy: true }).optional()
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
 export type JournalFilterSchemaWithoutPaginationInputType = z.input<
 	typeof journalFilterSchemaWithoutPagination

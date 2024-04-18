@@ -18,6 +18,8 @@ import {
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { processBillTextFilter } from './billTextFilter';
+import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
 
 export const billFilterToQuery = ({
 	filter,
@@ -65,6 +67,17 @@ export const billFilterToQuery = ({
 	}
 
 	if (includeSummary) {
+		linkedFileFilterQuery({
+			where,
+			filter: restFilter,
+			fileCountColumn: billMaterializedView.fileCount
+		});
+		linkedNoteFilterQuery({
+			where,
+			filter: restFilter,
+			noteCountColumn: billMaterializedView.noteCount,
+			reminderCountColumn: billMaterializedView.reminderCount
+		});
 		summaryFilterToQueryMaterialized({
 			where,
 			filter: restFilter,
@@ -110,6 +123,8 @@ export const billFilterToText = async ({
 	const stringArray: string[] = [];
 	await idTitleFilterToText(db, stringArray, restFilter, billIdToTitle);
 	statusFilterToText(stringArray, restFilter);
+	linkedFileFilterToText(restFilter, stringArray);
+	linkedNoteFilterToText(restFilter, stringArray);
 	importFilterToText(db, stringArray, restFilter);
 	summaryFilterToText({ stringArray, filter: restFilter });
 	return filterToQueryFinal({ stringArray, allText, prefix });

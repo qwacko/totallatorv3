@@ -31,12 +31,14 @@ export const printMaterializedViewList = (
 		const materializedView = materializedList[i];
 
 		outputText +=
+			sqlToText(sql`drop materialized view if exists ${materializedView}`) +
+			'; --> statement-breakpoint \n' +
 			sqlToText(
 				sql`create materialized view ${materializedView} as ${
 					getMaterializedViewConfig(materializedView).query
 				}`
 			) +
-			';\n----------------------------------------------------------------------------------------------------\n\n';
+			'; --> statement-breakpoint \n\n';
 	}
 
 	//Write To File

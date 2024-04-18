@@ -107,3 +107,21 @@ export const processNoteTextFilter = textFilterHandler<FileFilterSchemaWithoutPa
 );
 
 export const noteTextFilterKeys = filterArray.map((f) => f.key).flat();
+
+export const fileFilterArray = [
+	{
+		key: ['file:', 'files:'],
+		update: (filter) => {
+			filter.file = true;
+		}
+	},
+	{
+		key: ['!file:', '!files:'],
+		update: (filter) => {
+			filter.file = false;
+		}
+	}
+] satisfies TextFilterOptionsType<{
+	textFilter?: string;
+	file?: boolean;
+}>;

@@ -10,6 +10,8 @@ import { arrayToText } from '../misc/arrayToText';
 import { importIdsToTitles } from '../import/importIdsToTitles';
 import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
 import { processJournalTextFilter } from './processJournalTextFilter';
+import { linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { linkedNoteFilterToText } from '../note/noteFilterToQuery';
 
 export const journalFilterToText = async ({
 	filter,
@@ -121,6 +123,24 @@ export const journalFilterToText = async ({
 				singularName: 'Import Detail ID'
 			})
 		);
+
+	if (filterInternal.note !== undefined) {
+		if (filterInternal.note) {
+			stringArray.push('Note Exists');
+		} else {
+			stringArray.push('Note Does Not Exist');
+		}
+	}
+	if (filterInternal.reminder !== undefined) {
+		if (filterInternal.reminder) {
+			stringArray.push('Reminder Note Exists');
+		} else {
+			stringArray.push('Reminder Not Does Not Exist');
+		}
+	}
+
+	linkedFileFilterToText(filterInternal, stringArray);
+	linkedNoteFilterToText(filterInternal, stringArray);
 
 	const linkedArray: string[] = [];
 	if (filterInternal.account) {

@@ -1,5 +1,5 @@
 import { fileTable } from '../../../postgres/schema';
-import { SQL, not, eq, lte, gte, isNull, isNotNull } from 'drizzle-orm';
+import { SQL, not, eq, lte, gte, isNull, isNotNull, gt } from 'drizzle-orm';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
@@ -7,7 +7,10 @@ import { processNoteTextFilter } from './fileTextFilter';
 import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
 import { arrayToText } from '../misc/arrayToText';
-import type { FileFilterSchemaWithoutPaginationType } from '$lib/schema/fileSchema';
+import type {
+	FileFilterSchemaWithoutPaginationType,
+	LinkedFileFilterSchemaType
+} from '$lib/schema/fileSchema';
 
 export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType) => {
 	const restFilter = processNoteTextFilter.process(filter);
@@ -171,4 +174,30 @@ export const fileFilterToText = async ({
 	}
 
 	return filterToQueryFinal({ stringArray, allText, prefix });
+};
+
+export const linkedFileFilterToText = (data: LinkedFileFilterSchemaType, stringArray: string[]) => {
+	if (data.file !== undefined) {
+		stringArray.push(data.file ? `Has a linked file` : `Does not have a linked file`);
+	}
+};
+
+export const linkedFileFilterQuery = ({
+	filter,
+	where,
+	fileCountColumn
+}: {
+	filter: LinkedFileFilterSchemaType;
+	where: SQL<unknown>[];
+	fileCountColumn: SQL.Aliased<number>;
+	// PgColumn<ColumnBaseConfig<'number', string>>;
+}) => {
+	if (filter.file !== undefined) {
+		if (filter.file) {
+			where.push(gt(fileCountColumn, 0));
+		}
+		if (!filter.file) {
+			where.push(isNull(fileCountColumn));
+		}
+	}
 };

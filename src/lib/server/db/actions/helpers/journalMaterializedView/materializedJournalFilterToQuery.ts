@@ -12,6 +12,8 @@ import { journalPayeeToSubquery } from '../journal/journalPayeeToSubquery';
 import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
 import { ilikeArrayWrapped, inArrayWrapped, notInArrayWrapped } from '../misc/inArrayWrapped';
 import { processJournalTextFilter } from '../journal/processJournalTextFilter';
+import { linkedFileFilterQuery } from '../file/fileFilterToQuery';
+import { linkedNoteFilterQuery } from '../note/noteFilterToQuery';
 
 export const materializedJournalFilterToQuery = async (
 	db: DBType,
@@ -163,6 +165,18 @@ export const materializedJournalFilterToQuery = async (
 		});
 		where.push(...excludeTagFilter.map((x) => not(x)));
 	}
+
+	linkedFileFilterQuery({
+		where,
+		filter,
+		fileCountColumn: journalExtendedView.fileCount
+	});
+	linkedNoteFilterQuery({
+		where,
+		filter,
+		noteCountColumn: journalExtendedView.noteCount,
+		reminderCountColumn: journalExtendedView.reminderCount
+	});
 
 	if (filter.label) {
 		where.push(

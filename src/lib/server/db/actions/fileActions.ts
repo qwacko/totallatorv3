@@ -44,6 +44,7 @@ import {
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { materializedViewActions } from './materializedViewActions';
 
 type GroupingOptions =
 	| 'transaction'
@@ -341,6 +342,7 @@ export const fileActions = {
 		};
 
 		await db.insert(fileTable).values(createData).execute();
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateLinked: async ({ db }: { db: DBType }) => {
 		await db
@@ -370,6 +372,8 @@ export const fileActions = {
 				)
 			)
 			.execute();
+
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateMany: async ({
 		db,
@@ -393,6 +397,8 @@ export const fileActions = {
 			.execute();
 
 		await fileActions.updateLinked({ db });
+
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	deleteMany: async ({
 		db,
@@ -417,6 +423,8 @@ export const fileActions = {
 				await db.delete(fileTable).where(eq(fileTable.id, currentFile.id)).execute();
 			})
 		);
+
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	getFile: async ({ db, id }: { db: DBType; id: string }) => {
 		const file = await db.select().from(fileTable).where(eq(fileTable.id, id)).execute();

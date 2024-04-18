@@ -3,6 +3,8 @@ import { statusEnum } from './statusSchema';
 import { accountTypeEnum } from './accountTypeSchema';
 import { dateStringSchema } from './dateStringSchema';
 import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
+import { linkedFileFilterSchema } from './fileSchema';
+import { linkedNoteFilterSchema } from './noteSchema';
 
 export const createAccountSchema = z.object({
 	title: z.string(),
@@ -118,65 +120,68 @@ export const accountOrderByEnumToText = (input: OrderByEnumType) => {
 	return enumTitles[input];
 };
 
-export const accountFilterSchema = z.object({
-	textFilter: z.string().optional(),
-	id: z.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	title: z.coerce.string().optional(),
-	titleArray: z.array(z.coerce.string()).optional(),
-	excludeTitleArray: z.array(z.coerce.string()).optional(),
-	type: z
-		.array(z.enum(accountTypeEnum))
-		.optional()
-		.transform((e) => (e && e.length === 0 ? undefined : e)),
-	excludeType: z
-		.array(z.enum(accountTypeEnum))
-		.optional()
-		.transform((e) => (e && e.length === 0 ? undefined : e)),
-	accountGroup: z.coerce.string().optional(),
-	accountGroupArray: z.array(z.coerce.string()).optional(),
-	excludeAccountGroupArray: z.array(z.coerce.string()).optional(),
-	accountGroup2: z.coerce.string().optional(),
-	accountGroup2Array: z.array(z.coerce.string()).optional(),
-	excludeAccountGroup2Array: z.array(z.coerce.string()).optional(),
-	accountGroup3: z.coerce.string().optional(),
-	accountGroup3Array: z.array(z.coerce.string()).optional(),
-	excludeAccountGroup3Array: z.array(z.coerce.string()).optional(),
-	accountGroupCombined: z.coerce.string().optional(),
-	accountGroupCombinedArray: z.array(z.string()).optional(),
-	excludeAccountGroupCombinedArray: z.array(z.string()).optional(),
-	accountTitleCombined: z.coerce.string().optional(),
-	accountTitleCombinedArray: z.array(z.string()).optional(),
-	excludeAccountTitleCombinedArray: z.array(z.string()).optional(),
-	status: z.enum(statusEnum).optional(),
-	statusArray: z.array(z.enum(statusEnum)).optional(),
-	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
-	disabled: z.boolean().optional(),
-	allowUpdate: z.boolean().optional(),
-	active: z.boolean().optional(),
-	isCash: z.coerce.boolean().optional(),
-	isNetWorth: z.coerce.boolean().optional(),
-	startDateBefore: dateStringSchema.optional(),
-	startDateAfter: dateStringSchema.optional(),
-	endDateBefore: dateStringSchema.optional(),
-	endDateAfter: dateStringSchema.optional(),
-	importIdArray: z.array(z.string()).optional(),
-	excludeImportIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	excludeImportDetailIdArray: z.array(z.string()).optional(),
+export const accountFilterSchema = z
+	.object({
+		textFilter: z.string().optional(),
+		id: z.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		title: z.coerce.string().optional(),
+		titleArray: z.array(z.coerce.string()).optional(),
+		excludeTitleArray: z.array(z.coerce.string()).optional(),
+		type: z
+			.array(z.enum(accountTypeEnum))
+			.optional()
+			.transform((e) => (e && e.length === 0 ? undefined : e)),
+		excludeType: z
+			.array(z.enum(accountTypeEnum))
+			.optional()
+			.transform((e) => (e && e.length === 0 ? undefined : e)),
+		accountGroup: z.coerce.string().optional(),
+		accountGroupArray: z.array(z.coerce.string()).optional(),
+		excludeAccountGroupArray: z.array(z.coerce.string()).optional(),
+		accountGroup2: z.coerce.string().optional(),
+		accountGroup2Array: z.array(z.coerce.string()).optional(),
+		excludeAccountGroup2Array: z.array(z.coerce.string()).optional(),
+		accountGroup3: z.coerce.string().optional(),
+		accountGroup3Array: z.array(z.coerce.string()).optional(),
+		excludeAccountGroup3Array: z.array(z.coerce.string()).optional(),
+		accountGroupCombined: z.coerce.string().optional(),
+		accountGroupCombinedArray: z.array(z.string()).optional(),
+		excludeAccountGroupCombinedArray: z.array(z.string()).optional(),
+		accountTitleCombined: z.coerce.string().optional(),
+		accountTitleCombinedArray: z.array(z.string()).optional(),
+		excludeAccountTitleCombinedArray: z.array(z.string()).optional(),
+		status: z.enum(statusEnum).optional(),
+		statusArray: z.array(z.enum(statusEnum)).optional(),
+		excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
+		disabled: z.boolean().optional(),
+		allowUpdate: z.boolean().optional(),
+		active: z.boolean().optional(),
+		isCash: z.coerce.boolean().optional(),
+		isNetWorth: z.coerce.boolean().optional(),
+		startDateBefore: dateStringSchema.optional(),
+		startDateAfter: dateStringSchema.optional(),
+		endDateBefore: dateStringSchema.optional(),
+		endDateAfter: dateStringSchema.optional(),
+		importIdArray: z.array(z.string()).optional(),
+		excludeImportIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+		excludeImportDetailIdArray: z.array(z.string()).optional(),
 
-	//Summary Info Filters
-	...summaryFilterProperties,
+		//Summary Info Filters
+		...summaryFilterProperties,
 
-	page: z.coerce.number().default(0).optional(),
-	pageSize: z.coerce.number().default(10).optional(),
+		page: z.coerce.number().default(0).optional(),
+		pageSize: z.coerce.number().default(10).optional(),
 
-	orderBy: z
-		.array(z.object({ field: z.enum(accountOrderByEnum), direction: z.enum(['asc', 'desc']) }))
-		.default([{ direction: 'asc', field: 'title' }])
-		.optional()
-});
+		orderBy: z
+			.array(z.object({ field: z.enum(accountOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+			.default([{ direction: 'asc', field: 'title' }])
+			.optional()
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
 export type AccountFilterSchemaType = z.infer<typeof accountFilterSchema>;
 export type AccountFilterSchemaWithoutPaginationType = Omit<

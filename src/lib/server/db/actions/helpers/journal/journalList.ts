@@ -21,6 +21,7 @@ import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { tActions } from '../../tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
+import { sqlToText } from '../printMaterializedViewList';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -109,6 +110,10 @@ export const journalMaterialisedList = async ({
 		.orderBy(...orderBy)
 		.offset(page * pageSize)
 		.limit(pageSize);
+
+	if (false) {
+		console.log(sqlToText(journalQueryCore.getSQL()));
+	}
 
 	const journalsPromise = journalQueryCore.execute();
 

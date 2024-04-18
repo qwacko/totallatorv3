@@ -46,7 +46,7 @@ export type DBType = typeof db;
 //Only Migrate If not TEST_ENV and if there is a POSTGRES_URL
 if (!serverEnv.TEST_ENV && serverEnv.POSTGRES_URL) {
 	logging.info('Migrating DB!!');
-	migrate(migrationDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
+	await migrate(migrationDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
 } else if (!serverEnv.POSTGRES_URL) {
 	logging.warn('No POSTGRES_URL found, skipping migration!');
 } else if (serverEnv.TEST_ENV) {

@@ -33,3 +33,34 @@ export const processNoteTextFilter = textFilterHandler<NoteFilterSchemaWithoutPa
 );
 
 export const noteTextFilterKeys = filterArray.map((f) => f.key).flat();
+
+export const noteFilterArray = [
+	{
+		key: ['note:', 'notes:'],
+		update: (filter) => {
+			filter.note = true;
+		}
+	},
+	{
+		key: ['!note:', '!notes:'],
+		update: (filter) => {
+			filter.note = false;
+		}
+	},
+	{
+		key: ['reminder:', 'reminders:'],
+		update: (filter) => {
+			filter.reminder = true;
+		}
+	},
+	{
+		key: ['!reminder:', '!reminders:'],
+		update: (filter) => {
+			filter.reminder = false;
+		}
+	}
+] satisfies TextFilterOptionsType<{
+	textFilter?: string;
+	note?: boolean;
+	reminder?: boolean;
+}>;

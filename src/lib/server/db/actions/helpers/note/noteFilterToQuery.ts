@@ -1,10 +1,13 @@
 import { notesTable } from '../../../postgres/schema';
-import { SQL, not } from 'drizzle-orm';
+import { SQL, not, gt, isNull } from 'drizzle-orm';
 import { idTitleFilterToQueryMapped } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
 import { processNoteTextFilter } from './noteTextFilter';
-import type { NoteFilterSchemaWithoutPaginationType } from '$lib/schema/noteSchema';
+import type {
+	NoteFilterSchemaWithoutPaginationType,
+	LinkedNoteFilterSchemaType
+} from '$lib/schema/noteSchema';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
 import { arrayToText } from '../misc/arrayToText';
@@ -94,4 +97,39 @@ export const noteFilterToText = async ({
 	}
 
 	return filterToQueryFinal({ stringArray, allText, prefix });
+};
+
+export const linkedNoteFilterToText = (data: LinkedNoteFilterSchemaType, stringArray: string[]) => {
+	if (data.note !== undefined) stringArray.push(`Has ${data.note ? 'A' : 'No'} Linked Note`);
+	if (data.reminder !== undefined)
+		stringArray.push(`Has ${data.reminder ? 'A' : 'No'} Reminder Note`);
+};
+
+export const linkedNoteFilterQuery = ({
+	filter,
+	where,
+	noteCountColumn,
+	reminderCountColumn
+}: {
+	filter: LinkedNoteFilterSchemaType;
+	where: SQL<unknown>[];
+	noteCountColumn: SQL.Aliased<number>;
+	reminderCountColumn: SQL.Aliased<number>;
+}) => {
+	if (filter.note !== undefined) {
+		if (filter.note) {
+			where.push(gt(noteCountColumn, 0));
+		}
+		if (!filter.note) {
+			where.push(isNull(noteCountColumn));
+		}
+	}
+	if (filter.reminder !== undefined) {
+		if (filter.reminder) {
+			where.push(gt(reminderCountColumn, 0));
+		}
+		if (!filter.reminder) {
+			where.push(isNull(reminderCountColumn));
+		}
+	}
 };

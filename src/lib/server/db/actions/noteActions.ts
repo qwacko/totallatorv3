@@ -25,6 +25,7 @@ import { and, count as drizzleCount, eq, desc, getTableColumns } from 'drizzle-o
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { materializedViewActions } from './materializedViewActions';
 
 type GroupingOptions =
 	| 'transaction'
@@ -223,6 +224,8 @@ export const noteActions = {
 				...updatedTime()
 			})
 			.execute();
+
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateMany: async ({
 		db,
@@ -243,6 +246,8 @@ export const noteActions = {
 			})
 			.where(and(...where))
 			.execute();
+
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	deleteMany: async ({
 		db,
@@ -257,6 +262,8 @@ export const noteActions = {
 			.delete(notesTable)
 			.where(and(...where))
 			.execute();
+
+		await materializedViewActions.setRefreshRequired(db);
 	}
 };
 

@@ -11,12 +11,16 @@ import {
 	statisticsTextFilterArray,
 	statusTextFilterArray
 } from '../misc/textFilterConfigurations';
+import { noteFilterArray } from '../note/noteTextFilter';
+import { fileFilterArray } from '../file/fileTextFilter';
 
 const filterArray = [
 	...importTextFilterArray,
 	...statusTextFilterArray,
 	...statisticsTextFilterArray,
 	...groupSingleTextFilterArray,
+	...fileFilterArray,
+	...noteFilterArray,
 	...idTitleTextFilterArray
 ] satisfies TextFilterOptionsType<CategoryFilterSchemaWithoutPaginationType>;
 
