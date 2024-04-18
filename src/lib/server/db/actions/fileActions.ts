@@ -45,6 +45,8 @@ import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { materializedViewActions } from './materializedViewActions';
+import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
+import { logging } from '$lib/server/logging';
 
 type GroupingOptions =
 	| 'transaction'
@@ -519,6 +521,52 @@ export const fileActions = {
 				})
 			).join(', ')
 		};
+	},
+	checkFilesExist: async ({ db }: { db: DBType }) => {
+		const dbFiles = await db
+			.select({
+				id: fileTable.id,
+				filename: fileTable.filename,
+				thumbnailFilename: fileTable.thumbnailFilename,
+				fileExists: fileTable.fileExists
+			})
+			.from(fileTable)
+			.execute();
+
+		let storedFiles: string[] = [];
+
+		try {
+			const listing = fileFileHandler.list('.', { deep: false });
+
+			for await (const entry of listing) {
+				if (entry.type === 'file' || entry.isFile) {
+					storedFiles.push(entry.path);
+				}
+			}
+		} catch (err) {
+			if (err instanceof UnableToCheckDirectoryExistence) {
+				logging.error('Unable to check directory existence');
+			}
+		}
+
+		await Promise.all(
+			dbFiles.map(async (dbFile) => {
+				if (!storedFiles.includes(dbFile.filename)) {
+					await db
+						.update(fileTable)
+						.set({ fileExists: false, ...updatedTime() })
+						.where(eq(fileTable.id, dbFile.id))
+						.execute();
+				}
+				if (dbFile.thumbnailFilename && !storedFiles.includes(dbFile.thumbnailFilename)) {
+					await db
+						.update(fileTable)
+						.set({ thumbnailFilename: null, ...updatedTime() })
+						.where(eq(fileTable.id, dbFile.id))
+						.execute();
+				}
+			})
+		);
 	}
 };
 
