@@ -23,7 +23,7 @@ import { tActions } from '../../tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { sqlToText } from '../printMaterializedViewList';
 import { logging } from '$lib/server/logging';
-import { dbLogger } from '$lib/server/db/dbLogger';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -117,7 +117,7 @@ export const journalMaterialisedList = async ({
 		logging.debug(sqlToText(journalQueryCore.getSQL()));
 	}
 
-	const journalsPromise = dbLogger(journalQueryCore);
+	const journalsPromise = dbExecuteLogger(journalQueryCore);
 
 	const runningTotalInner = db
 		.select({ amount: journalExtendedView.amount })
