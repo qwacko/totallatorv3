@@ -10,6 +10,7 @@ type QueryCache = {
 	time: Date;
 	duration: number;
 	params: unknown[];
+	size: number;
 };
 
 type Query = {
@@ -67,6 +68,8 @@ export const dbLoggerCreate = ({
 		const startDate = new Date();
 		const start = Date.now();
 		const returnData = await query.execute();
+
+		const responseSize = JSON.stringify(returnData).length;
 		const end = Date.now();
 		const time = end - start;
 		const queryInfo = query.toSQL();
@@ -76,7 +79,8 @@ export const dbLoggerCreate = ({
 			query: queryInfo.sql,
 			time: startDate,
 			duration: time,
-			params: queryInfo.params
+			params: queryInfo.params,
+			size: responseSize
 		});
 
 		if (queryInformation.length > localCacheSize) {
@@ -110,7 +114,8 @@ const dbLogger = dbLoggerCreate({
 				query: query.query,
 				time: query.time,
 				duration: query.duration,
-				params: JSON.stringify(query.params)
+				params: JSON.stringify(query.params),
+				size: query.size
 			}))
 		);
 

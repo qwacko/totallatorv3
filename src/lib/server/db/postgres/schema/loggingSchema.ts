@@ -27,7 +27,8 @@ export const queryLogTable = pgTable('query_log', {
 	queryId: varchar('query_id', { length: 60 }),
 	time: timestamp('time').notNull(),
 	duration: integer('duration').notNull(),
-	params: text('params')
+	params: text('params'),
+	size: integer('size').default(0).notNull()
 });
 
 export const queryLogRelationships = relations(queryLogTable, ({ one }) => ({

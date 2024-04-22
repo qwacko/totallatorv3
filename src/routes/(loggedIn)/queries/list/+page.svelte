@@ -12,6 +12,7 @@
 	import QueryDetailModal from './QueryDetailModal.svelte';
 	import QueryXyChart from './QueryXYChart.svelte';
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
+	import { sizeToText } from '$lib/helpers/sizeToText';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/queries/list', $page);
@@ -76,6 +77,12 @@
 					id: 'time',
 					title: 'Time',
 					sortKey: 'time'
+				},
+				{
+					id: 'size',
+					title: 'Size',
+					sortKey: 'size',
+					rowToDisplay: (row) => sizeToText(row.size)
 				},
 				{
 					id: 'params',

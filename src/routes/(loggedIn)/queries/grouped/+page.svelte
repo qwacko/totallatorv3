@@ -11,6 +11,7 @@
 	import { groupedQueryColumnsStore } from '$lib/stores/columnDisplayStores';
 	import GroupedChartQueryPopover from './GroupedChartQueryPopover.svelte';
 	import DbQueryIcon from '$lib/components/icons/DBQueryIcon.svelte';
+	import { sizeToText } from '$lib/helpers/sizeToText';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/queries/grouped', $page);
@@ -68,20 +69,44 @@
 				{
 					id: 'maxDuration',
 					title: 'Max Duration',
-					rowToDisplay: (row) => (row.maxDuration || 0).toFixed() || '',
+					rowToDisplay: (row) => `${(row.maxDuration || 0).toFixed()}ms`,
 					sortKey: 'maxDuration'
 				},
 				{
 					id: 'minDuration',
 					title: 'Min Duration',
-					rowToDisplay: (row) => (row.minDuration || 0).toFixed() || '',
+					rowToDisplay: (row) => `${(row.minDuration || 0).toFixed()}ms`,
 					sortKey: 'minDuration'
 				},
 				{
 					id: 'averageDuration',
 					title: 'Avg Duration',
-					rowToDisplay: (row) => (Number(row.averageDuration) || 0).toFixed(1) || '',
+					rowToDisplay: (row) => `${(Number(row.averageDuration) || 0).toFixed(1)}ms`,
 					sortKey: 'averageDuration'
+				},
+				{
+					id: 'maxSize',
+					title: 'Max Size',
+					rowToDisplay: (row) => sizeToText(row.maxSize),
+					sortKey: 'maxSize'
+				},
+				{
+					id: 'minSize',
+					title: 'Min Size',
+					rowToDisplay: (row) => sizeToText(row.minSize),
+					sortKey: 'minSize'
+				},
+				{
+					id: 'averageSize',
+					title: 'Avg Size',
+					rowToDisplay: (row) => sizeToText(row.averageSize),
+					sortKey: 'averageSize'
+				},
+				{
+					id: 'totalSize',
+					title: 'Total Size',
+					rowToDisplay: (row) => sizeToText(row.totalSize),
+					sortKey: 'totalSize'
 				},
 				{
 					id: 'totalTime',

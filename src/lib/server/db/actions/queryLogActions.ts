@@ -66,7 +66,11 @@ export const queryLogActions = {
 					maxDuration: subquery.maxDuration,
 					minDuration: subquery.minDuration,
 					averageDuration: subquery.averageDuration,
+					maxSize: subquery.maxSize,
+					minSize: subquery.minSize,
+					averageSize: subquery.averageSize,
 					totalTime: subquery.totalTime,
+					totalSize: subquery.totalSize,
 					timeBuckets: subquery.timeBuckets
 				})
 				.from(subquery)
@@ -106,7 +110,8 @@ export const queryLogActions = {
 					queryId: queryLogTable.queryId,
 					duration: queryLogTable.duration,
 					time: queryLogTable.time,
-					params: queryLogTable.params
+					params: queryLogTable.params,
+					size: queryLogTable.size
 				})
 				.from(queryLogTable)
 				.leftJoin(queryContentsTable, eq(queryLogTable.queryId, queryContentsTable.id))

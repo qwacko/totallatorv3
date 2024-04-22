@@ -1,0 +1,1 @@
+ALTER TABLE "query_log" ADD COLUMN "size" integer DEFAULT 0 NOT NULL;

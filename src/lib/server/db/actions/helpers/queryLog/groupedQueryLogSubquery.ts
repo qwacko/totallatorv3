@@ -18,10 +18,14 @@ export const groupedQueryLogSubquery = ({ db, where }: { db: DBType; where: SQL<
 			maxDuration: max(queryLogTable.duration).as('maxDuration'),
 			minDuration: min(queryLogTable.duration).as('minDuration'),
 			averageDuration: avg(queryLogTable.duration).as('averageDuration'),
+			maxSize: max(queryLogTable.size).as('maxSize'),
+			minSize: min(queryLogTable.size).as('minSize'),
+			averageSize: avg(queryLogTable.size).as('averageSize'),
 			count: drizzleCount(queryLogTable.id).as('count'),
 			first: min(queryLogTable.time).as('first'),
 			last: max(queryLogTable.time).as('last'),
 			totalTime: sum(queryLogTable.duration).as('totalTime'),
+			totalSize: sum(queryLogTable.size).as('totalSize'),
 			timeBuckets: sql
 				.raw(
 					` jsonb_build_object( ${timeBuckets

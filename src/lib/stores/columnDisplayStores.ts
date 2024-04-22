@@ -94,12 +94,14 @@ export const groupedQueryColumnsStore = writable<(GroupedQueryLogOrderByEnumType
 	'title',
 	'maxDuration',
 	'averageDuration',
+	'maxSize',
+	'averageSize',
 	'count',
 	'last'
 ]);
 
 export const queryColumnsStore = writable<
 	(QueryLogOrderByEnumType | 'actions' | 'params' | 'queryDetail')[]
->(['actions', 'time', 'title', 'duration', 'params']);
+>(['actions', 'time', 'title', 'duration', 'size', 'params']);
 
 export const numberRows = writable(10);

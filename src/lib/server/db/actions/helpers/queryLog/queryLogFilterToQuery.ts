@@ -36,6 +36,12 @@ export const queryLogFilterToQuery = ({
 	if (restFilter.end) {
 		where.push(lte(targetTable.time, new Date(restFilter.end)));
 	}
+	if (restFilter.minSize !== undefined) {
+		where.push(gte(targetTable.size, restFilter.minSize * 1000));
+	}
+	if (restFilter.maxSize !== undefined) {
+		where.push(lte(targetTable.size, restFilter.maxSize * 1000));
+	}
 	if (restFilter.maxDuration !== undefined) {
 		where.push(lte(targetTable.duration, restFilter.maxDuration));
 	}
@@ -150,6 +156,12 @@ export const queryLogFilterToText = async ({
 	}
 	if (restFilter.minDuration !== undefined) {
 		stringArray.push(`Min duration is ${restFilter.minDuration}`);
+	}
+	if (restFilter.minSize !== undefined) {
+		stringArray.push(`Min size is ${restFilter.minSize}`);
+	}
+	if (restFilter.maxSize !== undefined) {
+		stringArray.push(`Max size is ${restFilter.maxSize}`);
 	}
 	if (restFilter.queryArray && restFilter.queryArray.length > 0) {
 		stringArray.push(

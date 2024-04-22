@@ -14,6 +14,8 @@ export const queryLogFilterWithoutPaginationSchema = z.object({
 	excludeTitleIdArray: z.array(z.string()).optional(),
 	maxDuration: z.number().optional(),
 	minDuration: z.number().optional(),
+	minSize: z.number().optional(),
+	maxSize: z.number().optional(),
 	queryArray: z.array(z.string()).optional(),
 	excludeQueryArray: z.array(z.string()).optional(),
 	queryIdArray: z.array(z.string()).optional(),
