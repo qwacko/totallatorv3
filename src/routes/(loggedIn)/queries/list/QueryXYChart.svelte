@@ -16,10 +16,9 @@
 		toolbox: {
 			feature: {
 				brush: {
-					type: ['rect', 'polygon', 'clear'], // Types of brushes
+					type: ['rect', 'clear'], // Types of brushes
 					title: {
 						rect: 'Rectangle selection',
-						polygon: 'Lasso selection',
 						clear: 'Clear selection'
 					}
 				}
@@ -28,7 +27,7 @@
 		brush: {
 			throttleType: 'debounce',
 			throttleDelay: 100,
-			toolbox: ['rect', 'polygon', 'clear'],
+			toolbox: ['rect', 'clear'],
 			xAxisIndex: 'all',
 			brushLink: 'all',
 			outOfBrush: {
