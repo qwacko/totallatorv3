@@ -19,6 +19,7 @@ import { importFilterSchema } from './schema/importSchema';
 import { autoImportFilterSchema } from './schema/autoImportSchema';
 import { createFileNoteRelationshipSchema } from './schema/helpers/fileNoteRelationship';
 import { fileFilterSchema } from './schema/fileSchema';
+import { groupedQueryLogFilter, queryLogFilterSchema } from './schema/queryLogSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -256,6 +257,15 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		},
 		'/(loggedIn)/files': {
 			searchParamsValidation: fileFilterSchema.optional().catch({}).parse
+		},
+
+		// Query Logging
+		// ----------------------------------------
+		'/(loggedIn)/queries/grouped': {
+			searchParamsValidation: groupedQueryLogFilter.optional().catch({}).parse
+		},
+		'/(loggedIn)/queries/list': {
+			searchParamsValidation: queryLogFilterSchema.optional().catch({}).parse
 		},
 
 		// Users

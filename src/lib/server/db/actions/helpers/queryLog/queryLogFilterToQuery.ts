@@ -1,5 +1,5 @@
-import { queryLogTable } from '../../../postgres/schema';
-import { SQL, not, lte, gte } from 'drizzle-orm';
+import { queryLogTable, queryLogTitleTable, queryContentsTable } from '../../../postgres/schema';
+import { SQL, not, lte, gte, inArray } from 'drizzle-orm';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
 import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
@@ -42,6 +42,18 @@ export const queryLogFilterToQuery = ({
 	if (restFilter.excludeQueryArray && restFilter.excludeQueryArray.length > 0) {
 		where.push(not(inArrayWrapped(targetTable.query, restFilter.excludeQueryArray)));
 	}
+	if (restFilter.titleIdArray) {
+		where.push(inArrayWrapped(targetTable.titleId, restFilter.titleIdArray));
+	}
+	if (restFilter.excludeTitleIdArray) {
+		where.push(not(inArrayWrapped(targetTable.titleId, restFilter.excludeTitleIdArray)));
+	}
+	if (restFilter.queryIdArray) {
+		where.push(inArrayWrapped(targetTable.queryId, restFilter.queryIdArray));
+	}
+	if (restFilter.excludeQueryIdArray) {
+		where.push(not(inArrayWrapped(targetTable.queryId, restFilter.excludeQueryIdArray)));
+	}
 	if (restFilter.lastMinutes) {
 		const startTime = new Date();
 		startTime.setMinutes(startTime.getMinutes() - restFilter.lastMinutes);
@@ -49,6 +61,24 @@ export const queryLogFilterToQuery = ({
 	}
 
 	return where;
+};
+
+const queryTitleIdToTitle = async ({ db, titleIds }: { db: DBType; titleIds: string[] }) => {
+	const title = await db
+		.select()
+		.from(queryLogTitleTable)
+		.where(inArray(queryLogTitleTable.id, titleIds))
+		.execute();
+	return title.map((t) => t.title || t.id);
+};
+
+const queryQueryIdToQuery = async ({ db, queryIds }: { db: DBType; queryIds: string[] }) => {
+	const query = await db
+		.select()
+		.from(queryContentsTable)
+		.where(inArray(queryContentsTable.id, queryIds))
+		.execute();
+	return query.map((q) => q.query || q.id);
 };
 
 export const queryLogFilterToText = async ({
@@ -110,6 +140,46 @@ export const queryLogFilterToText = async ({
 				data: restFilter.excludeQueryArray,
 				singularName: 'Query',
 				midText: 'does not contain'
+			})
+		);
+	}
+	if (restFilter.titleIdArray) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.titleIdArray,
+				singularName: 'Title ID',
+				midText: 'contains',
+				inputToText: async (titleIds) => queryTitleIdToTitle({ db, titleIds })
+			})
+		);
+	}
+	if (restFilter.excludeTitleIdArray) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.excludeTitleIdArray,
+				singularName: 'Title ID',
+				midText: 'does not contain',
+				inputToText: async (titleIds) => queryTitleIdToTitle({ db, titleIds })
+			})
+		);
+	}
+	if (restFilter.queryIdArray) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.queryIdArray,
+				singularName: 'Query ID',
+				midText: 'contains',
+				inputToText: async (queryIds) => queryQueryIdToQuery({ db, queryIds })
+			})
+		);
+	}
+	if (restFilter.excludeQueryIdArray) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.excludeQueryIdArray,
+				singularName: 'Query ID',
+				midText: 'does not contain',
+				inputToText: async (queryIds) => queryQueryIdToQuery({ db, queryIds })
 			})
 		);
 	}

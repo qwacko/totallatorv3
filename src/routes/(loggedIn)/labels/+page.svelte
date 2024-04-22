@@ -46,7 +46,7 @@
 </script>
 
 <CustomHeader
-	pageTitle="Journals"
+	pageTitle="Labels"
 	filterText={data.filterText}
 	pageNumber={data.labels.page}
 	numPages={data.labels.pageCount}
@@ -80,11 +80,11 @@
 				buttonCount: 5,
 				urlForPage: (value) => urlInfo.updateParams({ searchParams: { page: value } }).url
 			}}
-			noneFoundText="No Matching Tags Found"
+			noneFoundText="No Matching Labels Found"
 			data={data.labels.data}
 			currentOrder={data.searchParams?.orderBy}
 			currentFilter={data.searchParams}
-			filterModalTitle="Filter Tags"
+			filterModalTitle="Filter Labels"
 			bind:numberRows={$urlStore.searchParams.pageSize}
 			bind:filterOpened
 			columns={[

@@ -1,12 +1,51 @@
 import type { DBType } from '../db';
-import { count as drizzleCount } from 'drizzle-orm';
-import type { GroupedQueryLogFilterType } from '$lib/schema/queryLogSchema';
-import { queryLogFilterToQuery } from './helpers/queryLog/queryLogFilterToQuery';
+import { count as drizzleCount, and, isNull, lt, asc, inArray, eq } from 'drizzle-orm';
+import type {
+	GroupedQueryLogFilterType,
+	QueryLogFilterSchemaType,
+	QueryLogFilterSchemaWithoutPaginationType
+} from '$lib/schema/queryLogSchema';
+import {
+	queryLogFilterToQuery,
+	queryLogFilterToText
+} from './helpers/queryLog/queryLogFilterToQuery';
 import { groupedQueryLogSubquery } from './helpers/queryLog/groupedQueryLogSubquery';
 import { groupedQueryLogOrderByToSQL } from './helpers/queryLog/groupedQueryLogOrderByToSQL';
 import { dbExecuteLogger } from '../dbLogger';
+import { queryLogTable, queryContentsTable, queryLogTitleTable } from '../postgres/schema';
+import { queryLogOrderByToSQL } from './helpers/queryLog/queryLogOrderByToSQL';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
+import { nanoid } from 'nanoid';
+
+const paginationReturnBuilder = <T extends Record<string, any>>({
+	data,
+	countResult,
+	pageNo,
+	pageSize
+}: {
+	data: T[];
+	countResult: { count: number }[];
+	pageNo: number;
+	pageSize: number;
+}) => {
+	const count = countResult[0].count;
+	const pageCount = Math.max(1, Math.ceil(count / pageSize));
+
+	return { count, data, pageCount, page: pageNo, pageSize };
+};
 
 export const queryLogActions = {
+	filterToText: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: QueryLogFilterSchemaWithoutPaginationType;
+	}) => {
+		const filterText = await queryLogFilterToText({ db, filter });
+
+		return filterText;
+	},
 	listGroups: async ({ db, filter }: { db: DBType; filter: GroupedQueryLogFilterType }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
@@ -18,8 +57,20 @@ export const queryLogActions = {
 
 		const results = await dbExecuteLogger(
 			db
-				.select()
+				.select({
+					titleId: subquery.titleId,
+					title: queryLogTitleTable.title,
+					count: subquery.count,
+					first: subquery.first,
+					last: subquery.last,
+					maxDuration: subquery.maxDuration,
+					minDuration: subquery.minDuration,
+					averageDuration: subquery.averageDuration,
+					totalTime: subquery.totalTime,
+					timeBuckets: subquery.timeBuckets
+				})
 				.from(subquery)
+				.leftJoin(queryLogTitleTable, eq(subquery.titleId, queryLogTitleTable.id))
 				.orderBy(...orderBySQL)
 				.limit(pageSize)
 				.offset(page * pageSize),
@@ -27,15 +78,205 @@ export const queryLogActions = {
 		);
 
 		const resultCount = await dbExecuteLogger(
-			db.select({ count: drizzleCount(subquery.title) }).from(subquery),
+			db.select({ count: drizzleCount(subquery.count) }).from(subquery),
 			'Query Log - List Groups - Count'
 		);
 
-		const count = resultCount[0].count;
-		const pageCount = Math.max(1, Math.ceil(count / pageSize));
+		return paginationReturnBuilder({
+			data: results,
+			countResult: resultCount,
+			pageNo: page,
+			pageSize
+		});
+	},
+	list: async ({ db, filter }: { db: DBType; filter: QueryLogFilterSchemaType }) => {
+		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		return { count, data: results, pageCount, page, pageSize };
+		const where = queryLogFilterToQuery({ filter: restFilter });
+
+		const orderBySQL = queryLogOrderByToSQL({ orderBy });
+
+		const results = await dbExecuteLogger(
+			db
+				.select({
+					id: queryLogTable.id,
+					title: queryLogTitleTable.title,
+					titleId: queryLogTable.titleId,
+					query: queryContentsTable.query,
+					queryId: queryLogTable.queryId,
+					duration: queryLogTable.duration,
+					time: queryLogTable.time,
+					params: queryLogTable.params
+				})
+				.from(queryLogTable)
+				.leftJoin(queryContentsTable, eq(queryLogTable.queryId, queryContentsTable.id))
+				.leftJoin(queryLogTitleTable, eq(queryLogTable.titleId, queryLogTitleTable.id))
+				.where(and(...where))
+				.orderBy(...orderBySQL)
+				.limit(pageSize)
+				.offset(page * pageSize),
+			'Query Log - List Items - Query'
+		);
+
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(queryLogTable.query) })
+				.from(queryLogTable)
+				.leftJoin(queryContentsTable, eq(queryLogTable.queryId, queryContentsTable.id))
+				.leftJoin(queryLogTitleTable, eq(queryLogTable.titleId, queryLogTitleTable.id))
+				.where(and(...where)),
+			'Query Log - ListItems - Count'
+		);
+
+		return paginationReturnBuilder({
+			data: results,
+			countResult: resultCount,
+			pageNo: page,
+			pageSize
+		});
+	},
+	listXY: async ({ db, filter }: { db: DBType; filter: QueryLogFilterSchemaType }) => {
+		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
+
+		const where = queryLogFilterToQuery({ filter: restFilter });
+
+		const results = await dbExecuteLogger(
+			db
+				.select({
+					id: queryLogTable.id,
+					duration: queryLogTable.duration,
+					time: queryLogTable.time
+				})
+				.from(queryLogTable)
+				.leftJoin(queryContentsTable, eq(queryLogTable.queryId, queryContentsTable.id))
+				.leftJoin(queryLogTitleTable, eq(queryLogTable.titleId, queryLogTitleTable.id))
+				.where(and(...where)),
+			'Query Log - List XY - Query'
+		);
 
 		return results;
+	},
+	tidy: async ({ db }: { db: DBType }) => {
+		//Remove logs older than 30 days
+		await db
+			.delete(queryLogTable)
+			.where(lt(queryLogTable.time, new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)));
+
+		//Remove the oldest logs if there are more than 100000
+		const queryLogCount = await db
+			.select({ count: drizzleCount(queryLogTable.id) })
+			.from(queryLogTable)
+			.execute();
+		if (queryLogCount[0].count > 100000) {
+			const oldestLogs = await db
+				.select({ id: queryLogTable.id })
+				.from(queryLogTable)
+				.orderBy(asc(queryLogTable.time))
+				.limit(queryLogCount[0].count - 100000)
+				.execute();
+			await db.delete(queryLogTable).where(
+				inArray(
+					queryLogTable.id,
+					oldestLogs.map((log) => log.id)
+				)
+			);
+		}
+
+		///Add Query With Blank
+		const blankQueryItem = await db.query.queryContentsTable.findFirst({
+			where: ({ query }, { eq }) => eq(query, 'Blank')
+		});
+
+		if (!blankQueryItem) {
+			await db.insert(queryContentsTable).values({ id: nanoid(), query: 'Blank' }).execute();
+		}
+
+		const logsWithoutQuery = await db
+			.select()
+			.from(queryLogTable)
+			.where(isNull(queryLogTable.queryId))
+			.execute();
+
+		if (logsWithoutQuery.length > 0) {
+			const missingQueries = filterNullUndefinedAndDuplicates(
+				logsWithoutQuery.map((log) => log.query)
+			);
+
+			if (missingQueries.length > 0) {
+				await db.insert(queryContentsTable).values(
+					missingQueries.map((query) => ({
+						id: nanoid(),
+						query
+					}))
+				);
+
+				await Promise.all(
+					logsWithoutQuery.map(async (log) => {
+						const queryContents = await db
+							.select()
+							.from(queryContentsTable)
+							.where(eq(queryContentsTable.query, log.query || 'Blank'))
+							.execute();
+						const queryContentsId = queryContents[0].id;
+
+						await db
+							.update(queryLogTable)
+							.set({
+								queryId: queryContentsId
+							})
+							.where(eq(queryLogTable.id, log.id))
+							.execute();
+					})
+				);
+			}
+		}
+
+		///Add Title With Blank
+		const blankTitleItem = await db.query.queryLogTitleTable.findFirst({
+			where: ({ title }, { eq }) => eq(title, 'Blank')
+		});
+
+		if (!blankTitleItem) {
+			await db.insert(queryLogTitleTable).values({ id: nanoid(), title: 'Blank' }).execute();
+		}
+
+		const logsWithoutTitle = await db
+			.select()
+			.from(queryLogTable)
+			.where(isNull(queryLogTable.titleId))
+			.execute();
+
+		if (logsWithoutTitle.length > 0) {
+			const missingTitles = filterNullUndefinedAndDuplicates(
+				logsWithoutTitle.map((log) => log.title)
+			);
+
+			if (missingTitles.length > 0) {
+				await db.insert(queryLogTitleTable).values(
+					missingTitles.map((title) => ({
+						id: nanoid(),
+						title
+					}))
+				);
+
+				await Promise.all(
+					logsWithoutTitle.map(async (log) => {
+						const queryLogTitle = await db
+							.select()
+							.from(queryLogTitleTable)
+							.where(eq(queryLogTitleTable.title, log.title || 'Blank'))
+							.execute();
+						const queryLogTitleId = queryLogTitle[0].id;
+						await db
+							.update(queryLogTable)
+							.set({
+								titleId: queryLogTitleId
+							})
+							.where(eq(queryLogTable.id, log.id))
+							.execute();
+					})
+				);
+			}
+		}
 	}
 };

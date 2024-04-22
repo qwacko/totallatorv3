@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 import { logging } from '../logging';
 import { db } from './db';
 import { queryLogTable } from './postgres/schema';
-import { lt, asc, count, inArray } from 'drizzle-orm';
+import { tActions } from './actions/tActions';
 
 type QueryCache = {
 	title?: string;
@@ -100,7 +100,7 @@ const dbLogger = dbLoggerCreate({
 	localCacheSize: 1000,
 	localCacheTimeout: 5000,
 	storeQueries: async (queries) => {
-		const startTime = Date.now();
+		if (queries.length === 0) return;
 
 		await db.insert(queryLogTable).values(
 			queries.map((query) => ({
@@ -112,33 +112,8 @@ const dbLogger = dbLoggerCreate({
 				params: JSON.stringify(query.params)
 			}))
 		);
-		//Remove logs older than 30 days
-		await db
-			.delete(queryLogTable)
-			.where(lt(queryLogTable.time, new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)));
 
-		//Remove the oldest logs if there are more than 100000
-		const queryLogCount = await db
-			.select({ count: count(queryLogTable.id) })
-			.from(queryLogTable)
-			.execute();
-		if (queryLogCount[0].count > 100000) {
-			const oldestLogs = await db
-				.select({ id: queryLogTable.id })
-				.from(queryLogTable)
-				.orderBy(asc(queryLogTable.time))
-				.limit(queryLogCount[0].count - 100000)
-				.execute();
-			await db.delete(queryLogTable).where(
-				inArray(
-					queryLogTable.id,
-					oldestLogs.map((log) => log.id)
-				)
-			);
-		}
-
-		const endTime = Date.now();
-		logging.info(`Stored ${queries.length} queries in ${endTime - startTime}ms`);
+		await tActions.queryLog.tidy({ db });
 	},
 	logError: logging.error
 });

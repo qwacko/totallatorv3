@@ -7,7 +7,14 @@
 	export let renderer: 'canvas' | 'svg' = 'canvas';
 </script>
 
-<div class="chart" use:chartable={{ renderer, theme, options }} />
+<div
+	class="chart"
+	use:chartable={{ renderer, theme, options }}
+	on:click
+	on:select
+	on:selectChanged
+	aria-roledescription="chart"
+/>
 
 <style>
 	.chart {

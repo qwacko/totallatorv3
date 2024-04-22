@@ -3,7 +3,10 @@ export const groupedQueryLogOrderByEnum = [
 	'maxDuration',
 	'minDuration',
 	'averageDuration',
-	'count'
+	'count',
+	'first',
+	'last',
+	'totalTime'
 ] as const;
 
 export type GroupedQueryLogOrderByEnumType = (typeof groupedQueryLogOrderByEnum)[number];
@@ -18,7 +21,10 @@ const groupedQueryLogEnumTitles: GroupedQueryLogOrderByEnumTitles = {
 	maxDuration: 'Max Duration',
 	minDuration: 'Min Duration',
 	averageDuration: 'Average Duration',
-	count: 'Count'
+	count: 'Count',
+	first: 'First',
+	last: 'Last',
+	totalTime: 'Total Time'
 };
 
 export const groupedQueryLogOrderByEnumToText = (input: GroupedQueryLogOrderByEnumType) => {

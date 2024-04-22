@@ -8,10 +8,14 @@ export const queryLogFilterWithoutPaginationSchema = z.object({
 	end: z.date().optional(),
 	titleArray: z.array(z.string()).optional(),
 	excludeTitleArray: z.array(z.string()).optional(),
+	titleIdArray: z.array(z.string()).optional(),
+	excludeTitleIdArray: z.array(z.string()).optional(),
 	maxDuration: z.number().optional(),
 	minDuration: z.number().optional(),
 	queryArray: z.array(z.string()).optional(),
 	excludeQueryArray: z.array(z.string()).optional(),
+	queryIdArray: z.array(z.string()).optional(),
+	excludeQueryIdArray: z.array(z.string()).optional(),
 	lastMinutes: z.number().optional()
 });
 
