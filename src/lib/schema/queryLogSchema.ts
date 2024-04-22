@@ -3,6 +3,8 @@ import { queryLogOrderByEnum } from './enum/queryLogOrderByEnum';
 import { groupedQueryLogOrderByEnum } from './enum/groupedQueryLogOrderByEnum';
 
 export const queryLogFilterWithoutPaginationSchema = z.object({
+	idArray: z.array(z.string()).optional(),
+	excludeIdArray: z.array(z.string()).optional(),
 	textFilter: z.string().optional(),
 	start: z.date().optional(),
 	end: z.date().optional(),

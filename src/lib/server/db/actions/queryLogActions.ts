@@ -145,7 +145,8 @@ export const queryLogActions = {
 				.select({
 					id: queryLogTable.id,
 					duration: queryLogTable.duration,
-					time: queryLogTable.time
+					time: queryLogTable.time,
+					title: queryLogTitleTable.title
 				})
 				.from(queryLogTable)
 				.leftJoin(queryContentsTable, eq(queryLogTable.queryId, queryContentsTable.id))

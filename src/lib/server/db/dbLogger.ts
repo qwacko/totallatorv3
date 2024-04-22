@@ -64,6 +64,7 @@ export const dbLoggerCreate = ({
 		if (disable) {
 			return query.execute();
 		}
+		const startDate = new Date();
 		const start = Date.now();
 		const returnData = await query.execute();
 		const end = Date.now();
@@ -73,7 +74,7 @@ export const dbLoggerCreate = ({
 		queryInformation.push({
 			title,
 			query: queryInfo.sql,
-			time: new Date(),
+			time: startDate,
 			duration: time,
 			params: queryInfo.params
 		});

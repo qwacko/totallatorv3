@@ -18,6 +18,12 @@ export const queryLogFilterToQuery = ({
 
 	const where: SQL<unknown>[] = [];
 
+	if (restFilter.idArray && restFilter.idArray.length > 0) {
+		where.push(inArrayWrapped(targetTable.id, restFilter.idArray));
+	}
+	if (restFilter.excludeIdArray && restFilter.excludeIdArray.length > 0) {
+		where.push(not(inArrayWrapped(targetTable.id, restFilter.excludeIdArray)));
+	}
 	if (restFilter.titleArray && restFilter.titleArray.length > 0) {
 		where.push(ilikeArrayWrapped(targetTable.title, restFilter.titleArray));
 	}
@@ -95,6 +101,26 @@ export const queryLogFilterToText = async ({
 	const restFilter = processQueryLogTextFilter.process(filter);
 
 	const stringArray: string[] = [];
+
+	if (restFilter.idArray && restFilter.idArray.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.idArray,
+				singularName: 'ID',
+				midText: 'is '
+			})
+		);
+	}
+	if (restFilter.excludeIdArray && restFilter.excludeIdArray.length > 0) {
+		stringArray.push(
+			await arrayToText({
+				data: restFilter.excludeIdArray,
+				singularName: 'ID',
+				midText: 'is not '
+			})
+		);
+	}
+
 	if (restFilter.titleArray && restFilter.titleArray.length > 0) {
 		stringArray.push(
 			await arrayToText({
