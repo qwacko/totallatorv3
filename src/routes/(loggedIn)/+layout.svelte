@@ -20,6 +20,8 @@
 	import NotificationDisplay from '$lib/components/NotificationDisplay.svelte';
 	import { userInfoUpdateStore } from '$lib/stores/userInfoStore.js';
 	import FileIcon from '$lib/components/icons/FileIcon.svelte';
+	import DBQueryIcon from '$lib/components/icons/DBQueryIcon.svelte';
+	import DBGroupedQueryIcon from '$lib/components/icons/DBGroupedQueryIcon.svelte';
 
 	export let data;
 
@@ -40,6 +42,8 @@
 	$: pageIsUsers = $page.route.id?.startsWith('/(loggedIn)/users') && !pageIsCurrentUser;
 	$: pageIsFilters = $page.route.id?.startsWith('/(loggedIn)/filters');
 	$: pageIsFiles = $page.route.id?.startsWith('/(loggedIn)/files');
+	$: pageIsQueryLog = $page.route.id?.startsWith('/(loggedIn)/queries/list');
+	$: pageIsGroupedQueries = $page.route.id?.startsWith('/(loggedIn)/queries/grouped');
 
 	$: pageMap = [
 		{
@@ -113,6 +117,18 @@
 			active: pageIsBackup,
 			icon: BackupIcon,
 			href: urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } })
+		},
+		{
+			label: 'Query Groups',
+			active: pageIsGroupedQueries,
+			icon: DBGroupedQueryIcon,
+			href: urlGenerator({ address: '/(loggedIn)/queries/grouped', searchParamsValue: { page: 0, pageSize: 10 } })
+		},
+		{
+			label: 'Queries',
+			active: pageIsQueryLog,
+			icon: DBQueryIcon,
+			href: urlGenerator({ address: '/(loggedIn)/queries/list', searchParamsValue: { page: 0, pageSize: 10, textFilter: "last:60" } })
 		},
 		...(data.user
 			? [

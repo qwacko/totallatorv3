@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes';
 	import { goto } from '$app/navigation';
@@ -11,6 +10,7 @@
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
 	import { groupedQueryColumnsStore } from '$lib/stores/columnDisplayStores';
 	import GroupedChartQueryPopover from './GroupedChartQueryPopover.svelte';
+	import DbQueryIcon from '$lib/components/icons/DBQueryIcon.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/queries/grouped', $page);
@@ -114,12 +114,16 @@
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/queries/list',
-						searchParamsValue: { titleIdArray: currentRow.titleId ? [currentRow.titleId]: [] }
+						searchParamsValue: {
+							titleIdArray: currentRow.titleId ? [currentRow.titleId] : [],
+							pageSize: 10,
+							page: 0
+						}
 					}).url}
 					<div class="flex flex-row justify-center">
 						<ButtonGroup>
-							<Button href={detailURL} class="p-2" outline>
-								<EditIcon height={15} width={15} />
+							<Button href={detailURL} class="p-2">
+								<DbQueryIcon height={15} width={15} />
 							</Button>
 							<GroupedChartQueryPopover data={currentRow} />
 							<RawDataModal data={currentRow} title="Raw Grouped Query Data" dev={data.dev} />

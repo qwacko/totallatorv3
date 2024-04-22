@@ -31,10 +31,10 @@ export const queryLogFilterToQuery = ({
 		where.push(not(ilikeArrayWrapped(targetTable.title, restFilter.excludeTitleArray)));
 	}
 	if (restFilter.start) {
-		where.push(gte(targetTable.time, restFilter.start));
+		where.push(gte(targetTable.time, new Date(restFilter.start)));
 	}
 	if (restFilter.end) {
-		where.push(lte(targetTable.time, restFilter.end));
+		where.push(lte(targetTable.time, new Date(restFilter.end)));
 	}
 	if (restFilter.maxDuration !== undefined) {
 		where.push(lte(targetTable.duration, restFilter.maxDuration));

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
+	import { Button, ButtonGroup, Dropdown, DropdownItem, Input } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { page } from '$app/stores';
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes';
 	import { goto } from '$app/navigation';
@@ -12,6 +11,7 @@
 	import { queryColumnsStore } from '$lib/stores/columnDisplayStores';
 	import QueryDetailModal from './QueryDetailModal.svelte';
 	import QueryXyChart from './QueryXYChart.svelte';
+	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/queries/list', $page);
@@ -61,7 +61,6 @@
 				{
 					id: 'title',
 					title: 'Title',
-					rowToDisplay: (row) => row.title,
 					sortKey: 'title'
 				},
 				{
@@ -71,13 +70,11 @@
 				{
 					id: 'duration',
 					title: 'Duration',
-					rowToDisplay: (row) => (row.duration || 0).toFixed() || '',
 					sortKey: 'duration'
 				},
 				{
 					id: 'time',
 					title: 'Time',
-					rowToDisplay: (row) => (row.time ? row.time.toLocaleString() : ''),
 					sortKey: 'time'
 				},
 				{
@@ -90,18 +87,86 @@
 		>
 			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
 				{#if currentColumn.id === 'actions'}
-					{@const detailURL = urlGenerator({
-						address: '/(loggedIn)/queries/list',
-						searchParamsValue: { titleArray: currentRow.title ? [currentRow.title] : undefined }
-					}).url}
 					<div class="flex flex-row justify-center">
 						<ButtonGroup>
-							<Button href={detailURL} class="p-2" outline>
-								<EditIcon height={15} width={15} />
-							</Button>
 							<QueryDetailModal data={currentRow} />
 							<RawDataModal data={currentRow} title="Raw Grouped Query Data" dev={data.dev} />
 						</ButtonGroup>
+					</div>
+				{:else if currentColumn.id === 'title'}
+					<div class="flex flex-row items-center gap-2">
+						{currentRow.title}
+						{#if currentRow.titleId}
+							<Button
+								size="xs"
+								outline
+								class="border-0"
+								href={urlInfo.updateParams({
+									searchParams: {
+										titleIdArray: [currentRow.titleId]
+									}
+								}).url}
+							>
+								<FilterIcon />
+							</Button>
+						{/if}
+					</div>
+				{:else if currentColumn.id === 'time'}
+					{@const timeString = currentRow.time ? currentRow.time.toLocaleString() : ''}
+					{@const minuteOffsets = [1, 2, 5, 10, 60, 120]}
+					<div class="flex flex-row items-center gap-2">
+						{timeString}
+						<Button size="xs" outline class="border-0"><FilterIcon /></Button>
+						<Dropdown>
+							<DropdownItem
+								href={urlInfo.updateParams({
+									searchParams: {
+										start: currentRow.time.toISOString(),
+										end: currentRow.time.toISOString()
+									}
+								}).url}
+							>
+								{timeString}
+							</DropdownItem>
+							{#each minuteOffsets as currentOffset}
+								{@const start = new Date(currentRow.time.getTime() - currentOffset * 60 * 1000)}
+								{@const end = new Date(currentRow.time.getTime() + currentOffset * 60 * 1000)}
+								<DropdownItem
+									href={urlInfo.updateParams({
+										searchParams: { start: start.toISOString(), end: end.toISOString() }
+									}).url}
+								>
+									±{currentOffset} min
+								</DropdownItem>
+							{/each}
+						</Dropdown>
+					</div>
+				{:else if currentColumn.id === 'duration'}
+					{@const duration = currentRow.duration || 0}
+					{@const durationSpans = [1, 2, 5, 10, 50, 100]}
+					<div class="flex flex-row items-center gap-2">
+						{duration.toFixed() || ''}ms
+						<Button size="xs" outline class="border-0"><FilterIcon /></Button>
+						<Dropdown>
+							<DropdownItem
+								href={urlInfo.updateParams({
+									searchParams: { minDuration: duration, maxDuration: duration }
+								}).url}
+							>
+								{duration.toFixed()}ms
+							</DropdownItem>
+							{#each durationSpans as span}
+								{@const max = duration + span}
+								{@const min = Math.max(duration - span, 0)}
+								<DropdownItem
+									href={urlInfo.updateParams({
+										searchParams: { minDuration: min, maxDuration: max }
+									}).url}
+								>
+									{min.toFixed()}ms to {max.toFixed()}ms
+								</DropdownItem>
+							{/each}
+						</Dropdown>
 					</div>
 				{/if}
 			</svelte:fragment>
@@ -115,6 +180,15 @@
 							class="flex flex-grow"
 						/>
 					{/if}
+					<Button
+						href={urlGenerator({
+							address: '/(loggedIn)/queries/list',
+							searchParamsValue: { page: 0, pageSize: 10 }
+						}).url}
+						outline
+					>
+						Clear Filter
+					</Button>
 				</div>
 			</svelte:fragment>
 		</CustomTable>{/if}
