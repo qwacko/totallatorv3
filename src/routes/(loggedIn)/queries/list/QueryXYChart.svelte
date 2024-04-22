@@ -1,16 +1,40 @@
 <script lang="ts">
 	import type { EChartsOption } from 'echarts';
 	import Chart from '$lib/components/chart/Chart.svelte';
+	import type { EChartsBrushSelectedHandler } from '$lib/components/chart/chartable';
 	import { goto } from '$app/navigation';
 	import { urlGenerator } from '$lib/routes';
+	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 
-	export let data: { duration: number; time: Date; title: string; id: string }[];
+	export let data: { duration: number; time: Date; title: string | null; id: string }[];
 
 	let chartConfig: EChartsOption | undefined;
 
 	$: minTime = Math.min(...data.map((item) => item.time.getTime()));
 
 	$: chartConfig = {
+		toolbox: {
+			feature: {
+				brush: {
+					type: ['rect', 'polygon', 'clear'], // Types of brushes
+					title: {
+						rect: 'Rectangle selection',
+						polygon: 'Lasso selection',
+						clear: 'Clear selection'
+					}
+				}
+			}
+		},
+		brush: {
+			throttleType: 'debounce',
+			throttleDelay: 100,
+			toolbox: ['rect', 'polygon', 'clear'],
+			xAxisIndex: 'all',
+			brushLink: 'all',
+			outOfBrush: {
+				colorAlpha: 0.1 // Dim points outside the brush area
+			}
+		},
 		xAxis: {
 			show: true,
 			boundaryGap: false
@@ -41,6 +65,35 @@
 			}
 		]
 	};
+
+	let selectedData: Parameters<EChartsBrushSelectedHandler>[0] | undefined = undefined;
+
+	const onBrushSelected: EChartsBrushSelectedHandler = (params) => {
+		selectedData = params;
+	};
+
+	const onBrushEnd = () => {
+		setTimeout(() => {
+			if (!selectedData) return;
+			const selectedDataIndexes = selectedData.batch
+				.map((batch) => batch.selected.map((index) => index.dataIndex))
+				.flat()
+				.flat();
+			let selectedIds: string[] | undefined = filterNullUndefinedAndDuplicates(
+				selectedDataIndexes.map((index) => data[index].id)
+			);
+			if (selectedIds.length == 0) {
+				selectedIds = undefined;
+			}
+
+			goto(
+				urlGenerator({
+					address: '/(loggedIn)/queries/list',
+					searchParamsValue: { idArray: selectedIds, pageSize: 10, page: 0 }
+				}).url
+			);
+		}, 200);
+	};
 </script>
 
 <div class="relative flex h-60 w-full grow self-stretch justify-self-stretch">
@@ -49,9 +102,16 @@
 			renderer="svg"
 			onClick={(e) => {
 				if (e.dataIndex !== undefined) {
-                    const item = data[e.dataIndex];
-                    goto(urlGenerator({address: "/(loggedIn)/queries/list", searchParamsValue: {idArray: [item.id], pageSize:10, page:0} }).url)
-                };
+					const item = data[e.dataIndex];
+					goto(
+						urlGenerator({
+							address: '/(loggedIn)/queries/list',
+							searchParamsValue: { idArray: [item.id], pageSize: 10, page: 0 }
+						}).url
+					);
+				}
 			}}
+			{onBrushSelected}
+			{onBrushEnd}
 		/>{/if}
 </div>

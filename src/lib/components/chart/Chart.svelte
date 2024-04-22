@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { EChartsOption } from 'echarts';
-	import { chartable, type EChartsClickHandler } from './chartable';
+	import {
+		chartable,
+		type EChartsClickHandler,
+		type EChartsBrushEndHandler,
+		type EChartsBrushSelectedHandler
+	} from './chartable';
 
 	export let options: EChartsOption;
 	export let theme: string | undefined = undefined;
@@ -8,6 +13,8 @@
 	export let onClick: EChartsClickHandler | undefined = undefined;
 	export let onMouseOut: EChartsClickHandler | undefined = undefined;
 	export let onMouseOver: EChartsClickHandler | undefined = undefined;
+	export let onBrushEnd: EChartsBrushEndHandler | undefined = undefined;
+	export let onBrushSelected: EChartsBrushSelectedHandler | undefined = undefined;
 </script>
 
 <div
@@ -18,7 +25,9 @@
 		options,
 		onClick,
 		onMouseOut,
-		onMouseOver
+		onMouseOver,
+		onBrushEnd,
+		onBrushSelected
 	}}
 	aria-roledescription="chart"
 />

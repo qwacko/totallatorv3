@@ -10,6 +10,37 @@ export type OptionsDataFormatter = (
 	dataIndex: number
 ) => string;
 export type EChartsClickHandler = (params: ECElementEvent) => void;
+export type BrushSelectedType = {
+	type: 'brushselected';
+	batch: {
+		brushId: string;
+		brushIndex: number;
+		brushName: string;
+		areas: {
+			range: number[];
+			coordRange: number[];
+			coordRanges: number[][];
+		}[];
+		selected: {
+			seriesIndex: number;
+
+			dataIndex: number[];
+		}[];
+	}[];
+};
+export type EChartsBrushSelectedHandler = (params: BrushSelectedType) => void;
+
+type BrushEndType = {
+	type: 'brushEnd';
+	areas: {
+		brushType: string;
+		coordRange: number[][];
+		coordRanges: number[][][];
+		range: number[];
+	}[];
+};
+
+export type EChartsBrushEndHandler = (params: BrushEndType) => void;
 
 export type ChartOptions = {
 	theme?: EChartsTheme;
@@ -18,6 +49,8 @@ export type ChartOptions = {
 	onClick?: EChartsClickHandler;
 	onMouseOver?: EChartsClickHandler;
 	onMouseOut?: EChartsClickHandler;
+	onBrushSelected?: EChartsBrushSelectedHandler;
+	onBrushEnd?: EChartsBrushEndHandler;
 };
 
 const DEFAULT_OPTIONS: Partial<ChartOptions> = {
@@ -30,6 +63,8 @@ export function chartable(element: HTMLElement, echartOptions: ChartOptions) {
 	let clickHandler: EChartsClickHandler | undefined = echartOptions.onClick;
 	let mouseOverHandler: EChartsClickHandler | undefined = echartOptions.onMouseOver;
 	let mouseOutHandler: EChartsClickHandler | undefined = echartOptions.onMouseOut;
+	let brushSelectedHandler: EChartsBrushSelectedHandler | undefined = echartOptions.onBrushSelected;
+	let brushEndHandler: EChartsBrushEndHandler | undefined = echartOptions.onBrushEnd;
 
 	async function loadAndInitializeEcharts() {
 		if (!browser) return;
@@ -52,6 +87,12 @@ export function chartable(element: HTMLElement, echartOptions: ChartOptions) {
 		});
 		echartsInstance.on('mouseout', function (params) {
 			mouseOutHandler && mouseOutHandler(params);
+		});
+		echartsInstance.on('brushEnd', function (params) {
+			brushEndHandler && brushEndHandler(params as any);
+		});
+		echartsInstance.on('brushSelected', function (params) {
+			brushSelectedHandler && brushSelectedHandler(params as any);
 		});
 
 		window.addEventListener('resize', handleResize);
