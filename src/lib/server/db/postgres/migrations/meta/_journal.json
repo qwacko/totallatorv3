@@ -351,6 +351,13 @@
       "when": 1713817931139,
       "tag": "0049_curved_fabian_cortez",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "5",
+      "when": 1713819731932,
+      "tag": "0050_kind_lifeguard",
+      "breakpoints": true
     }
   ]
 }

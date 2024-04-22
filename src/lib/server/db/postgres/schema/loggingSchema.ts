@@ -23,7 +23,7 @@ export const queryLogTable = pgTable('query_log', {
 	id: varchar('id', { length: 60 }).notNull().primaryKey(),
 	title: text('title'),
 	titleId: varchar('title_id', { length: 60 }),
-	query: text('query').notNull(),
+	query: text('query'),
 	queryId: varchar('query_id', { length: 60 }),
 	time: timestamp('time').notNull(),
 	duration: integer('duration').notNull(),

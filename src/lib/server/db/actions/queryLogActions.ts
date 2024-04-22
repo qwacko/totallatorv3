@@ -1,5 +1,5 @@
 import type { DBType } from '../db';
-import { count as drizzleCount, and, isNull, lt, asc, inArray, eq } from 'drizzle-orm';
+import { count as drizzleCount, and, isNull, isNotNull, lt, asc, inArray, eq } from 'drizzle-orm';
 import type {
 	GroupedQueryLogFilterType,
 	QueryLogFilterSchemaType,
@@ -284,5 +284,23 @@ export const queryLogActions = {
 				);
 			}
 		}
+
+		//Blank query if there is a queryid
+		await db
+			.update(queryLogTable)
+			.set({
+				query: null
+			})
+			.where(and(isNotNull(queryLogTable.query), isNull(queryLogTable.queryId)))
+			.execute();
+
+		//Blank Title if there is a title id
+		await db
+			.update(queryLogTable)
+			.set({
+				title: null
+			})
+			.where(and(isNotNull(queryLogTable.title), isNull(queryLogTable.titleId)))
+			.execute();
 	}
 };
