@@ -258,6 +258,7 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/files': {
 			searchParamsValidation: fileFilterSchema.optional().catch({}).parse
 		},
+		'/(loggedIn)/files/create': {},
 
 		// Query Logging
 		// ----------------------------------------

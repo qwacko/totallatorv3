@@ -495,6 +495,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 				checkFiles: POSTAllowUsers
 			}
 		},
+		'/(loggedIn)/files/create': {
+			...adminOnlyConfig,
+			POSTCheck: {
+				...filesActions
+			}
+		},
 		'/(loggedIn)/files/linkUnlinked': {
 			...adminOnlyConfig,
 			POSTCheck: {

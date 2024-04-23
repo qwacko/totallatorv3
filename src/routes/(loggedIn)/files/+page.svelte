@@ -76,7 +76,7 @@
 				loading={checkingFiles}
 			/>
 		</form>
-		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/labels/create' }).url}>
+		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/files/create' }).url}>
 			Create
 		</Button>
 	</svelte:fragment>

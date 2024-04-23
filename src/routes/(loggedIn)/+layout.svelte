@@ -118,18 +118,28 @@
 			icon: BackupIcon,
 			href: urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } })
 		},
-		...(data.enableDBLog ?  [{
-			label: 'Query Groups',
-			active: pageIsGroupedQueries,
-			icon: DBGroupedQueryIcon,
-			href: urlGenerator({ address: '/(loggedIn)/queries/grouped', searchParamsValue: { page: 0, pageSize: 10 } })
-		},
-		{
-			label: 'Queries',
-			active: pageIsQueryLog,
-			icon: DBQueryIcon,
-			href: urlGenerator({ address: '/(loggedIn)/queries/list', searchParamsValue: { page: 0, pageSize: 10, textFilter: "last:60" } })
-		}]:[]),
+		...(data.enableDBLog
+			? [
+					{
+						label: 'Query Groups',
+						active: pageIsGroupedQueries,
+						icon: DBGroupedQueryIcon,
+						href: urlGenerator({
+							address: '/(loggedIn)/queries/grouped',
+							searchParamsValue: { page: 0, pageSize: 10 }
+						})
+					},
+					{
+						label: 'Queries',
+						active: pageIsQueryLog,
+						icon: DBQueryIcon,
+						href: urlGenerator({
+							address: '/(loggedIn)/queries/list',
+							searchParamsValue: { page: 0, pageSize: 10, textFilter: 'last:60' }
+						})
+					}
+				]
+			: []),
 		...(data.user
 			? [
 					{
@@ -168,6 +178,9 @@
 
 <div class="flex flex-col justify-stretch p-2">
 	<div class="flex flex-row flex-wrap justify-center gap-2 pb-8 pt-4">
+		<Button href={urlGenerator({ address: '/(loggedIn)/files/create' }).url} outline size="xs">
+			<FileIcon />
+		</Button>
 		<ReportDropdown items={data.reportDropdown} />
 		<FilterDropdown
 			showDefaultJournalFilters
