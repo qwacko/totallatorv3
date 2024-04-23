@@ -119,7 +119,7 @@
 						{/if}
 					</div>
 				{:else if currentColumn.id === 'time'}
-					{@const timeString = currentRow.time ? currentRow.time.toLocaleString() : ''}
+					{@const timeString = currentRow.time ? `${currentRow.time.toLocaleString()}.${String(currentRow.time.getMilliseconds()).padStart(3,"0")}` : ''}
 					{@const minuteOffsets = [1, 2, 5, 10, 60, 120]}
 					<div class="flex flex-row items-center gap-2">
 						{timeString}

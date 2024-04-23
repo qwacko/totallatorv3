@@ -55,7 +55,7 @@
 			trigger: 'axis',
 			formatter: (params) => {
 				const item = data[(params as any)[0].dataIndex];
-				return `${item.title}<br>${item.duration}ms<br>${item.time.toLocaleString()}.${item.time.getMilliseconds()}`;
+				return `${item.title}<br>${item.duration}ms<br>${item.time.toLocaleString()}.${String(item.time.getMilliseconds()).padStart(3, '0')}`;
 			}
 		},
 		series: [

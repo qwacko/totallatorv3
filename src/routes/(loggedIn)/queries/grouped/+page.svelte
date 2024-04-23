@@ -123,13 +123,19 @@
 				{
 					id: 'first',
 					title: 'First',
-					rowToDisplay: (row) => (row.first ? row.first.toLocaleString() : ''),
+					rowToDisplay: (row) =>
+						row.first
+							? `${row.first.toLocaleString()}.${String(row.first.getMilliseconds()).padStart(3, '0')}`
+							: '',
 					sortKey: 'first'
 				},
 				{
 					id: 'last',
 					title: 'Last',
-					rowToDisplay: (row) => (row.last ? row.last.toLocaleString() : ''),
+					rowToDisplay: (row) =>
+						row.last
+							? `${row.last.toLocaleString()}.${String(row.last.getMilliseconds()).padStart(3, '0')}`
+							: '',
 					sortKey: 'last'
 				}
 			]}
