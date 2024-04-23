@@ -9,6 +9,13 @@ There are a number of environment variables that can be used to configure the wa
 
 ## Configuration
 
+### `TZ`
+
+- Type: `string`
+- Default: `UTC`
+
+Sets the timezone for the server to be operating in. Useful as imports may have timezone information in them.
+
 ### `ALLOW_SIGNUP`
 
 - Type: `boolean`

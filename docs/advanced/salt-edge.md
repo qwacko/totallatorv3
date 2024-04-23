@@ -70,7 +70,7 @@ The following is example import mapping that works with Salt Edge.
 
 - Skip Rows: `0`
 - Unique ID : <span v-pre>`{{ id }}`</span>
-- Date : <span v-pre>`{{ substring made_on 0 10 }}`</span>
+- Date : <span v-pre>`{{ substring localDate 0 10 }}`</span>
 - Description : <span v-pre>`{{ description }}`</span>
 - Amount : <span v-pre>`{{ amount }}`</span>
 - From Account : Set to a catch-all / unallocated account for later automatic updates to fix.

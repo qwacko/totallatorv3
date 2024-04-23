@@ -59,7 +59,7 @@ The following is example import mapping that works with Salt Edge.
 
 - Skip Rows: `0`
 - Unique ID : <span v-pre>`{{ _id }}`</span>
-- Date : <span v-pre>`{{substring date 0 10}}`</span>
+- Date : <span v-pre>`{{substring localDate 0 10}}`</span>
 - Description : <span v-pre>`{{type}} {{merchant.name }} {{description}}{{meta.reference}}`</span> Note that this is likely to need to be adjusted for different banks.
 - Amount : <span v-pre>`{{ amount }}`</span>
 - From Account : Set to a catch-all / unallocated account for later automatic updates to fix.

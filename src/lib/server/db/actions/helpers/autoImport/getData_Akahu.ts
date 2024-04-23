@@ -53,9 +53,16 @@ export const getData_Akahu = async ({
 		);
 	}
 
-	const modifiedTransactions = transactions.filter((item) =>
-		account ? item._account === account._id : item._account === config.accountId
-	);
+	const modifiedTransactions = transactions
+		.filter((item) =>
+			account ? item._account === account._id : item._account === config.accountId
+		)
+		.map((item) => ({
+			...item,
+			localDate: new Date(new Date(item.date).getTime() - new Date().getTimezoneOffset() * 60000)
+				.toISOString()
+				.slice(0, 10)
+		}));
 
 	return modifiedTransactions;
 };

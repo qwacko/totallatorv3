@@ -26,6 +26,7 @@ Automatic importing follows the following sequence:
   - Retrieve and input necessary credentials into auto import.
 - **_Built In Functionality_**
   - Reach out to provider and retrieve the latest transactions (using user provided credentials)
+    - Note that some providers may provide the transaction date in a different timezone to the server location. During the read process a `localDate` field is added to the transaction data which accounts for the `TZ` environment variable of the server to provide corrected dates.
   - Process and filter data based on user configuration (i.e. start date, target account etc..)
   - Create a new import with all the transactions added (applying import mapping configuration).
 - **_Normal Import Functionality (If Auto Process is true)_**
