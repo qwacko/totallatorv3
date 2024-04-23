@@ -89,7 +89,7 @@
                     items={dropdownInfo}
                     field="labelId"
                     placeholder="Select Label..."
-                    itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+                    itemToDisplay={(item) => ({ title: item.title })}
                     itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
                 />
             {/await}
@@ -113,7 +113,7 @@
                     items={dropdownInfo}
                     field="budgetId"
                     placeholder="Select Budget..."
-                    itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+                    itemToDisplay={(item) => ({ title: item.title })}
                     itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
                 />
             {/await}
@@ -137,7 +137,7 @@
                     items={dropdownInfo}
                     field="billId"
                     placeholder="Select Bill..."
-                    itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+                    itemToDisplay={(item) => ({ title: item.title })}
                     itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
                 />
             {/await}
