@@ -11,6 +11,7 @@
 	let chartConfig: EChartsOption | undefined;
 
 	$: minTime = Math.min(...data.map((item) => item.time.getTime()));
+	$: maxTime = Math.max(...data.map((item) => item.time.getTime()));
 
 	$: chartConfig = {
 		toolbox: {
@@ -36,7 +37,9 @@
 		},
 		xAxis: {
 			show: true,
-			boundaryGap: false
+			boundaryGap: false,
+			min: minTime - 5,
+			max: maxTime + 5
 		},
 		yAxis: {
 			show: false
@@ -52,12 +55,12 @@
 			trigger: 'axis',
 			formatter: (params) => {
 				const item = data[(params as any)[0].dataIndex];
-				return `${item.title}<br>${item.duration}ms<br>${item.time.toLocaleString()}`;
+				return `${item.title}<br>${item.duration}ms<br>${item.time.toLocaleString()}.${item.time.getMilliseconds()}`;
 			}
 		},
 		series: [
 			{
-				data: data.map((item) => [item.time.getTime() - minTime, item.duration]),
+				data: data.map((item) => [item.time.getTime(), item.duration]),
 				type: 'scatter',
 				animation: false,
 				symbolSize: 5
