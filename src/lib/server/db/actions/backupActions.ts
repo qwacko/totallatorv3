@@ -46,6 +46,7 @@ import { updatedTime } from './helpers/misc/updatedTime';
 import { logging } from '$lib/server/logging';
 import { serverEnv } from '$lib/server/serverEnv';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { dbExecuteLogger } from '../dbLogger';
 
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -70,9 +71,12 @@ const chunker = async <D, R>(
 
 export const backupActions = {
 	trimBackups: async ({ db }: { db: DBType }) => {
-		const firstBackup = await db.query.backupTable.findFirst({
-			orderBy: ({ createdAt }, { asc }) => asc(createdAt)
-		});
+		const firstBackup = await dbExecuteLogger(
+			db.query.backupTable.findFirst({
+				orderBy: ({ createdAt }, { asc }) => asc(createdAt)
+			}),
+			'Backup - Trim Backups - First Backup'
+		);
 
 		if (!firstBackup) {
 			return;
@@ -115,17 +119,21 @@ export const backupActions = {
 			currentDate.setDate(currentDate.getDate() + 7);
 		}
 
-		const lockedBackups = await db
-			.select({ id: backupTable.id, createdAt: backupTable.createdAt })
-			.from(backupTable)
-			.where(eq(backupTable.locked, true))
-			.execute();
+		const lockedBackups = await dbExecuteLogger(
+			db
+				.select({ id: backupTable.id, createdAt: backupTable.createdAt })
+				.from(backupTable)
+				.where(eq(backupTable.locked, true)),
+			'Backup - Trim Backups - Locked Backups'
+		);
 
-		const unlockedBackups = await db
-			.select({ id: backupTable.id, createdAt: backupTable.createdAt })
-			.from(backupTable)
-			.where(eq(backupTable.locked, false))
-			.execute();
+		const unlockedBackups = await dbExecuteLogger(
+			db
+				.select({ id: backupTable.id, createdAt: backupTable.createdAt })
+				.from(backupTable)
+				.where(eq(backupTable.locked, false)),
+			'Backup - Trim Backups - Unlocked Backups'
+		);
 
 		const backupsToLock: string[] = [];
 
@@ -154,21 +162,26 @@ export const backupActions = {
 		}
 
 		if (backupsToLock.length > 0) {
-			await db
-				.update(backupTable)
-				.set({ locked: true })
-				.where(inArrayWrapped(backupTable.id, backupsToLock))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(backupTable)
+					.set({ locked: true })
+					.where(inArrayWrapped(backupTable.id, backupsToLock)),
+				'Backup - Trim Backups - Lock Backups'
+			);
 		}
 
 		const retentionMonths = serverEnv.RETENTION_MONTHS;
 		const retentionDate = new Date();
 		retentionDate.setMonth(retentionDate.getMonth() - retentionMonths);
 
-		const backupsToDelete = await db.query.backupTable.findMany({
-			where: ({ createdAt, locked }, { lte, eq, and }) =>
-				and(eq(locked, false), lte(createdAt, retentionDate))
-		});
+		const backupsToDelete = await dbExecuteLogger(
+			db.query.backupTable.findMany({
+				where: ({ createdAt, locked }, { lte, eq, and }) =>
+					and(eq(locked, false), lte(createdAt, retentionDate))
+			}),
+			'Backup - Trim Backups - Backups To Delete'
+		);
 
 		const numberOfBackups = lockedBackups.length + unlockedBackups.length;
 
@@ -181,7 +194,7 @@ export const backupActions = {
 				`Retention Policy Not Met. Percentage To Delete: ${percentageToDelete}. Max Percentage To Delete: ${maxPercentageToDelete}`
 			);
 		} else if (backupsToDelete.length > 0) {
-			await db.transaction(async (trx) => {
+			db.transaction(async (trx) => {
 				await Promise.all(
 					backupsToDelete.map(async (backup) => {
 						await backupActions.deleteBackup({ db: trx, id: backup.id });
@@ -223,9 +236,8 @@ export const backupActions = {
 
 			const fileInfo = getFilenameInfo(backupFileName);
 
-			await db
-				.insert(backupTable)
-				.values({
+			await dbExecuteLogger(
+				db.insert(backupTable).values({
 					id,
 					title: fileInfo.withoutExtension,
 					filename: fileInfo.filename,
@@ -238,8 +250,9 @@ export const backupActions = {
 					createdBy: 'User',
 					locked: true,
 					information
-				})
-				.execute();
+				}),
+				'Backup - Import File - Insert Backup Table'
+			);
 		} catch (e) {
 			logging.error(`Backup Import Failed. Incorrect Contents - ${backupFileName}`);
 			logging.error('Error', e);
@@ -270,36 +283,83 @@ export const backupActions = {
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
 			version: 10,
 			data: {
-				user: await db.select().from(user).execute(),
-				session: await db.select().from(session).execute(),
-				key: await db.select().from(key).execute(),
-				account: await db.select().from(account).execute(),
-				bill: await db.select().from(bill).execute(),
-				budget: await db.select().from(budget).execute(),
-				category: await db.select().from(category).execute(),
-				tag: await db.select().from(tag).execute(),
-				label: await db.select().from(label).execute(),
-				labelsToJournals: await db.select().from(labelsToJournals).execute(),
-				transaction: await db.select().from(transaction).execute(),
-				journalEntry: await db.select().from(journalEntry).execute(),
-				importItemDetail: await db.select().from(importItemDetail).execute(),
-				importTable: await db.select().from(importTable).execute(),
-				autoImportTable: await db.select().from(autoImportTable).execute(),
-				importMapping: await db.select().from(importMapping).execute(),
-				reusableFilter: await db.select().from(reusableFilter).execute(),
-				filter: await db.select().from(filter).execute(),
-				report: await db.select().from(report).execute(),
-				filtersToReportConfigs: await db.select().from(filtersToReportConfigs).execute(),
-				keyValueTable: await db.select().from(keyValueTable).execute(),
-				reportElement: await db.select().from(reportElement).execute(),
-				reportElementConfig: await db.select().from(reportElementConfig).execute(),
-				backup: (await db.select().from(backupTable).execute()).map((item) => ({
+				user: await dbExecuteLogger(db.select().from(user), 'Backup - Store Backup - User'),
+				session: await dbExecuteLogger(
+					db.select().from(session),
+					'Backup - Store Backup - Session'
+				),
+				key: await dbExecuteLogger(db.select().from(key), 'Backup - Store Backup - Key'),
+				account: await dbExecuteLogger(
+					db.select().from(account),
+					'Backup - Store Backup - Account'
+				),
+				bill: await dbExecuteLogger(db.select().from(bill), 'Backup - Store Backup - Bill'),
+				budget: await dbExecuteLogger(db.select().from(budget), 'Backup - Store Backup - Budget'),
+				category: await dbExecuteLogger(
+					db.select().from(category),
+					'Backup - Store Backup - Category'
+				),
+				tag: await dbExecuteLogger(db.select().from(tag), 'Backup - Store Backup - Tag'),
+				label: await dbExecuteLogger(db.select().from(label), 'Backup - Store Backup - Label'),
+				labelsToJournals: await dbExecuteLogger(
+					db.select().from(labelsToJournals),
+					'Backup - Store Backup - Labels To Journals'
+				),
+				transaction: await dbExecuteLogger(
+					db.select().from(transaction),
+					'Backup - Store Backup - Transaction'
+				),
+				journalEntry: await dbExecuteLogger(
+					db.select().from(journalEntry),
+					'Backup - Store Backup - Journal Entry'
+				),
+				importItemDetail: await dbExecuteLogger(
+					db.select().from(importItemDetail),
+					'Backup - Store Backup - Import Item Detail'
+				),
+				importTable: await dbExecuteLogger(
+					db.select().from(importTable),
+					'Backup - Store Backup - Import Table'
+				),
+				autoImportTable: await dbExecuteLogger(
+					db.select().from(autoImportTable),
+					'Backup - Store Backup - Auto Import Table'
+				),
+				importMapping: await dbExecuteLogger(
+					db.select().from(importMapping),
+					'Backup - Store Backup - Import Mapping'
+				),
+				reusableFilter: await dbExecuteLogger(
+					db.select().from(reusableFilter),
+					'Backup - Store Backup - Reusable Filter'
+				),
+				filter: await dbExecuteLogger(db.select().from(filter), 'Backup - Store Backup - Filter'),
+				report: await dbExecuteLogger(db.select().from(report), 'Backup - Store Backup - Report'),
+				filtersToReportConfigs: await dbExecuteLogger(
+					db.select().from(filtersToReportConfigs),
+					'Backup - Store Backup - Filters To Report Configs'
+				),
+				keyValueTable: await dbExecuteLogger(
+					db.select().from(keyValueTable),
+					'Backup - Store Backup - Key Value Table'
+				),
+				reportElement: await dbExecuteLogger(
+					db.select().from(reportElement),
+					'Backup - Store Backup - Report Element'
+				),
+				reportElementConfig: await dbExecuteLogger(
+					db.select().from(reportElementConfig),
+					'Backup - Store Backup - Report Element Config'
+				),
+				backup: (
+					await dbExecuteLogger(db.select().from(backupTable), 'Backup - Store Backup - Backup')
+				).map((item) => ({
 					...item,
 					information: superjson.stringify(item.information)
 				})),
-				note: await db.select().from(notesTable).execute(),
-				file: await db.select().from(fileTable).execute()
-		}
+				note: await dbExecuteLogger(db.select().from(notesTable), 'Backup - Store Backup - Note'),
+				file: await dbExecuteLogger(db.select().from(fileTable), 'Backup - Store Backup - File')
+			}
 		};
 
 		const backupData: CurrentBackupSchemaType = {
@@ -349,23 +409,29 @@ export const backupActions = {
 			information: checkedBackupData.information
 		};
 
-		await db.insert(backupTable).values({
-			id: nanoid(),
-			title,
-			filename: filenameUse,
-			fileExists: true,
-			updatedAt: date,
-			createdAt: date,
-			compressed: compress,
-			version: checkedBackupData.version,
-			creationReason,
-			createdBy,
-			locked,
-			information
-		});
+		await dbExecuteLogger(
+			db.insert(backupTable).values({
+				id: nanoid(),
+				title,
+				filename: filenameUse,
+				fileExists: true,
+				updatedAt: date,
+				createdAt: date,
+				compressed: compress,
+				version: checkedBackupData.version,
+				creationReason,
+				createdBy,
+				locked,
+				information
+			}),
+			'Backup - Store Backup - Insert Backup Table'
+		);
 	},
 	getBackupData: async ({ returnRaw, id, db }: { id: string; returnRaw: boolean; db: DBType }) => {
-		const backupFiles = await db.select().from(backupTable).where(eq(backupTable.id, id)).execute();
+		const backupFiles = await dbExecuteLogger(
+			db.select().from(backupTable).where(eq(backupTable.id, id)),
+			'Backup - Get Backup Data'
+		);
 
 		if (backupFiles.length === 0) {
 			throw new Error('Backup File Not Found In DB');
@@ -376,19 +442,17 @@ export const backupActions = {
 		const fileExists = await backupFileHandler.fileExists(backupFile.filename);
 
 		if (!fileExists) {
-			await db
-				.update(backupTable)
-				.set({ fileExists: false })
-				.where(eq(backupTable.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db.update(backupTable).set({ fileExists: false }).where(eq(backupTable.id, id)),
+				'Backup - Get Backup Data - Update File Exists (false)'
+			);
 			throw new Error('Backup File Not Found On Disk');
 		}
 		if (fileExists && backupFile.fileExists === false) {
-			await db
-				.update(backupTable)
-				.set({ fileExists: true })
-				.where(eq(backupTable.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db.update(backupTable).set({ fileExists: true }).where(eq(backupTable.id, id)),
+				'Backup - Get Backup Data - Update File Exists (true)'
+			);
 		}
 
 		if (returnRaw) {
@@ -417,32 +481,37 @@ export const backupActions = {
 		return backupSchemaToLatest(backupDataParsed);
 	},
 	lock: async ({ id, db }: { id: string; db: DBType }) => {
-		await db
-			.update(backupTable)
-			.set({ locked: true, ...updatedTime() })
-			.where(eq(backupTable.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(backupTable)
+				.set({ locked: true, ...updatedTime() })
+				.where(eq(backupTable.id, id)),
+			'Backup - Lock Backup'
+		);
 	},
 	unlock: async ({ id, db }: { id: string; db: DBType }) => {
-		await db
-			.update(backupTable)
-			.set({ locked: false, ...updatedTime() })
-			.where(eq(backupTable.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(backupTable)
+				.set({ locked: false, ...updatedTime() })
+				.where(eq(backupTable.id, id)),
+			'Backup - Unlock Backup'
+		);
 	},
 	updateTitle: async ({ id, title, db }: { id: string; title: string; db: DBType }) => {
-		await db
-			.update(backupTable)
-			.set({ title, ...updatedTime() })
-			.where(eq(backupTable.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(backupTable)
+				.set({ title, ...updatedTime() })
+				.where(eq(backupTable.id, id)),
+			'Backup - Update Title'
+		);
 	},
 	deleteBackup: async ({ id, db }: { id: string; db: DBType }) => {
-		const backupFilesInDB = await db
-			.select()
-			.from(backupTable)
-			.where(eq(backupTable.id, id))
-			.execute();
+		const backupFilesInDB = await dbExecuteLogger(
+			db.select().from(backupTable).where(eq(backupTable.id, id)),
+			'Backup - Delete Backup - Get Details'
+		);
 
 		const backupFileInDB = backupFilesInDB[0];
 
@@ -458,7 +527,10 @@ export const backupActions = {
 		}
 
 		if (backupFilesInDB.length === 1) {
-			await db.delete(backupTable).where(eq(backupTable.id, id)).execute();
+			await dbExecuteLogger(
+				db.delete(backupTable).where(eq(backupTable.id, id)),
+				'Backup - Delete - Delete'
+			);
 		}
 
 		return;
@@ -472,7 +544,10 @@ export const backupActions = {
 		id: string;
 		includeUsers?: boolean;
 	}) => {
-		const backups = await db.select().from(backupTable).where(eq(backupTable.id, id)).execute();
+		const backups = await dbExecuteLogger(
+			db.select().from(backupTable).where(eq(backupTable.id, id)),
+			'Backup - Restore Backup - Get Backup'
+		);
 		if (backups.length === 0) {
 			throw new Error('Backup Not Found');
 		}
@@ -493,156 +568,226 @@ export const backupActions = {
 		await db.transaction(async (trx) => {
 			//Clear The Database
 			if (includeUsers) {
-				await trx.delete(user).execute();
-				await trx.delete(session).execute();
-				await trx.delete(key).execute();
+				await dbExecuteLogger(trx.delete(user), 'Backup Restore - Delete Users');
+				await dbExecuteLogger(trx.delete(session), 'Backup Restore - Delete Sessions');
+				await dbExecuteLogger(trx.delete(key), 'Backup Restore - Delete Keys');
 			}
-			await trx.delete(account).execute();
-			await trx.delete(bill).execute();
-			await trx.delete(budget).execute();
-			await trx.delete(category).execute();
-			await trx.delete(tag).execute();
-			await trx.delete(label).execute();
-			await trx.delete(transaction).execute();
-			await trx.delete(journalEntry).execute();
-			await trx.delete(labelsToJournals).execute();
-			await trx.delete(importMapping).execute();
-			await trx.delete(importTable).execute();
-			await trx.delete(importItemDetail).execute();
-			await trx.delete(reusableFilter).execute();
-			await trx.delete(filter).execute();
-			await trx.delete(report).execute();
-			await trx.delete(filtersToReportConfigs).execute();
-			await trx.delete(keyValueTable).execute();
-			await trx.delete(reportElement).execute();
-			await trx.delete(reportElementConfig).execute();
-			await trx.delete(backupTable).execute();
+			await dbExecuteLogger(trx.delete(account), 'Backup Restore - Delete Accounts');
+			await dbExecuteLogger(trx.delete(bill), 'Backup Restore - Delete Bills');
+			await dbExecuteLogger(trx.delete(budget), 'Backup Restore - Delete Budgets');
+			await dbExecuteLogger(trx.delete(category), 'Backup Restore - Delete Categories');
+			await dbExecuteLogger(trx.delete(tag), 'Backup Restore - Delete Tags');
+			await dbExecuteLogger(trx.delete(label), 'Backup Restore - Delete Labels');
+			await dbExecuteLogger(trx.delete(transaction), 'Backup Restore - Delete Transactions');
+			await dbExecuteLogger(trx.delete(journalEntry), 'Backup Restore - Delete Journal Entries');
+			await dbExecuteLogger(
+				trx.delete(labelsToJournals),
+				'Backup Restore - Delete Labels To Journals'
+			);
+			await dbExecuteLogger(trx.delete(importMapping), 'Backup Restore - Delete Import Mapping');
+			await dbExecuteLogger(trx.delete(importTable), 'Backup Restore - Delete Import Table');
+			await dbExecuteLogger(
+				trx.delete(importItemDetail),
+				'Backup Restore - Delete Import Item Detail'
+			);
+			await dbExecuteLogger(trx.delete(reusableFilter), 'Backup Restore - Delete Reusable Filter');
+			await dbExecuteLogger(trx.delete(filter), 'Backup Restore - Delete Filter');
+			await dbExecuteLogger(trx.delete(report), 'Backup Restore - Delete Report');
+			await dbExecuteLogger(
+				trx.delete(filtersToReportConfigs),
+				'Backup Restore - Delete Filters To Report Configs'
+			);
+			await dbExecuteLogger(trx.delete(keyValueTable), 'Backup Restore - Delete Key Value Table');
+			await dbExecuteLogger(trx.delete(reportElement), 'Backup Restore - Delete Report Element');
+			await dbExecuteLogger(
+				trx.delete(reportElementConfig),
+				'Backup Restore - Delete Report Element Config'
+			);
+			await dbExecuteLogger(trx.delete(backupTable), 'Backup Restore - Delete Backup Table');
+			await dbExecuteLogger(
+				trx.delete(autoImportTable),
+				'Backup Restore - Delete Auto Import Table'
+			);
+			await dbExecuteLogger(trx.delete(notesTable), 'Backup Restore - Delete Notes Table');
+			await dbExecuteLogger(trx.delete(fileTable), 'Backup Restore - Delete File Table');
 			logging.info(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			//Update Database from Backup
 			if (includeUsers) {
 				await chunker(checkedBackupData.data.user, 1000, async (data) =>
-					trx.insert(user).values(data).execute()
+					dbExecuteLogger(trx.insert(user).values(data), 'Backup Restore - Insert Users')
 				);
 				await chunker(checkedBackupData.data.session, 1000, async (data) =>
-					trx.insert(session).values(data).execute()
+					dbExecuteLogger(trx.insert(session).values(data), 'Backup Restore - Insert Sessions')
 				);
 				await chunker(checkedBackupData.data.key, 1000, async (data) =>
-					trx.insert(key).values(data).execute()
+					dbExecuteLogger(trx.insert(key).values(data), 'Backup Restore - Insert Keys')
 				);
 			}
 
 			await chunker(checkedBackupData.data.account, 1000, async (data) =>
-				trx.insert(account).values(data).execute()
+				dbExecuteLogger(trx.insert(account).values(data), 'Backup Restore - Insert Accounts')
 			);
 			logging.info(`Account Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.bill, 1000, async (data) =>
-				trx.insert(bill).values(data).execute()
+				dbExecuteLogger(trx.insert(bill).values(data), 'Backup Restore - Insert Bills')
 			);
 			logging.info(`Bill Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.budget, 1000, async (data) =>
-				trx.insert(budget).values(data).execute()
+				dbExecuteLogger(trx.insert(budget).values(data), 'Backup Restore - Insert Budgets')
 			);
 			logging.info(`Budget Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.category, 1000, async (data) =>
-				trx.insert(category).values(data).execute()
+				dbExecuteLogger(trx.insert(category).values(data), 'Backup Restore - Insert Categories')
 			);
 			logging.info(`Category Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.tag, 1000, async (data) =>
-				trx.insert(tag).values(data).execute()
+				dbExecuteLogger(trx.insert(tag).values(data), 'Backup Restore - Insert Tags')
 			);
 			logging.info(`Tag Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.label, 1000, async (data) =>
-				trx.insert(label).values(data).execute()
+				dbExecuteLogger(trx.insert(label).values(data), 'Backup Restore - Insert Labels')
 			);
 			logging.info(`Label Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.transaction, 1000, async (data) =>
-				trx.insert(transaction).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(transaction).values(data),
+					'Backup Restore - Insert Transactions'
+				)
 			);
 			logging.info(`Transaction Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.journalEntry, 1000, async (data) =>
-				trx.insert(journalEntry).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(journalEntry).values(data),
+					'Backup Restore - Insert Journal Entries'
+				)
 			);
 			logging.info(`Journal Entry Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.labelsToJournals, 1000, async (data) =>
-				trx.insert(labelsToJournals).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(labelsToJournals).values(data),
+					'Backup Restore - Insert Labels To Journals'
+				)
 			);
 			logging.info(`Labels to Journals Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.importMapping, 1000, async (data) =>
-				trx.insert(importMapping).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(importMapping).values(data),
+					'Backup Restore - Insert Import Mapping'
+				)
 			);
 			logging.info(`Import Mapping Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.importTable, 1000, async (data) =>
-				trx.insert(importTable).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(importTable).values(data),
+					'Backup Restore - Insert Import Table'
+				)
 			);
 			logging.info(`Import Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.importItemDetail, 1000, async (data) =>
-				trx.insert(importItemDetail).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(importItemDetail).values(data),
+					'Backup Restore - Insert Import Item Detail'
+				)
 			);
 			logging.info(`Import Item Detail Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+			await chunker(checkedBackupData.data.autoImportTable, 1000, async (data) =>
+				dbExecuteLogger(
+					trx.insert(autoImportTable).values(data),
+					'Backup Restore - Insert Auto Import Table'
+				)
+			);
+			logging.info(`Auto Import Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 			await chunker(checkedBackupData.data.reusableFilter, 1000, async (data) =>
-				trx.insert(reusableFilter).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(reusableFilter).values(data),
+					'Backup Restore - Insert Reusable Filter'
+				)
 			);
 			logging.info(`Reusable Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			await chunker(checkedBackupData.data.filter, 1000, async (data) =>
-				trx.insert(filter).values(data).execute()
+				dbExecuteLogger(trx.insert(filter).values(data), 'Backup Restore - Insert Filter')
 			);
 			logging.info(`Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			await chunker(checkedBackupData.data.report, 1000, async (data) =>
-				trx.insert(report).values(data).execute()
+				dbExecuteLogger(trx.insert(report).values(data), 'Backup Restore - Insert Report')
 			);
 			logging.info(`Report Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			await chunker(checkedBackupData.data.filtersToReportConfigs, 1000, async (data) =>
-				trx.insert(filtersToReportConfigs).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(filtersToReportConfigs).values(data),
+					'Backup Restore - Insert Filters To Report Configs'
+				)
 			);
 			logging.info(
 				`Filters To Report Configs Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 			);
 
 			await chunker(checkedBackupData.data.reportElement, 1000, async (data) =>
-				trx.insert(reportElement).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(reportElement).values(data),
+					'Backup Restore - Insert Report Element'
+				)
 			);
 			logging.info(`Report Element Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			await chunker(checkedBackupData.data.reportElementConfig, 1000, async (data) =>
-				trx.insert(reportElementConfig).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(reportElementConfig).values(data),
+					'Backup Restore - Insert Report Element Config'
+				)
 			);
 			logging.info(
 				`Report Element Config Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 			);
 
 			await chunker(checkedBackupData.data.keyValueTable, 1000, async (data) =>
-				trx.insert(keyValueTable).values(data).execute()
+				dbExecuteLogger(
+					trx.insert(keyValueTable).values(data),
+					'Backup Restore - Insert Key Value Table'
+				)
 			);
 			logging.info(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 			await chunker(checkedBackupData.data.backup, 1000, async (data) =>
-				trx
-					.insert(backupTable)
-					.values(
+				dbExecuteLogger(
+					trx.insert(backupTable).values(
 						data.map((item) => ({
 							...item,
 							information: combinedBackupInfoSchema.parse(superjson.parse(item.information))
 						}))
-					)
-					.execute()
+					),
+					'Backup Restore - Insert Backup Table'
+				)
 			);
 			logging.info(`Backup Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
+			await chunker(checkedBackupData.data.note, 1000, async (data) =>
+				dbExecuteLogger(trx.insert(notesTable).values(data), 'Backup Restore - Insert Notes Table')
+			);
+			logging.info(`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+			await chunker(checkedBackupData.data.file, 1000, async (data) =>
+				dbExecuteLogger(trx.insert(fileTable).values(data), 'Backup Restore - Insert File Table')
+			);
+			logging.info(`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
 			//Mark the backup as having a restored date.
-			await trx
-				.update(backupTable)
-				.set({ restoreDate: new Date(), ...updatedTime() })
-				.where(eq(backupTable.id, id))
-				.execute();
+			await dbExecuteLogger(
+				trx
+					.update(backupTable)
+					.set({ restoreDate: new Date(), ...updatedTime() })
+					.where(eq(backupTable.id, id)),
+				'Backup Restore - Update Backup Table'
+			);
 		});
 	},
 	refreshList: async ({ db }: { db: DBType }) => {
 		const [backupsInDB, backupFiles] = await Promise.all([
-			db.select().from(backupTable).execute(),
+			dbExecuteLogger(db.select().from(backupTable), 'Backup - Refresh List - Get Backups In DB'),
 			backupFileHandler.list('')
 		]);
 
@@ -666,22 +811,26 @@ export const backupActions = {
 		//Mark Files In DB But Not In Files AS Not File Exists
 		await Promise.all(
 			filesInDBButNotInFiles.map((filename) =>
-				db
-					.update(backupTable)
-					.set({ fileExists: false })
-					.where(eq(backupTable.filename, filename))
-					.execute()
+				dbExecuteLogger(
+					db
+						.update(backupTable)
+						.set({ fileExists: false })
+						.where(eq(backupTable.filename, filename)),
+					'Backup - Refresh List - Mark File Not Exists'
+				)
 			)
 		);
 
 		//Mark Files in DB BUt Not Exists that do exist as file exists
 		await Promise.all(
 			filesNotExistInDBButExistInFiles.map((filename) =>
-				db
-					.update(backupTable)
-					.set({ fileExists: true })
-					.where(eq(backupTable.filename, filename))
-					.execute()
+				dbExecuteLogger(
+					db
+						.update(backupTable)
+						.set({ fileExists: true })
+						.where(eq(backupTable.filename, filename)),
+					'Backup - Refresh List - Mark File Exists'
+				)
 			)
 		);
 
@@ -703,9 +852,8 @@ export const backupActions = {
 			const filenameDate = filename.substring(0, 10);
 			const filenameTitle = filename.substring(11);
 
-			await db
-				.insert(backupTable)
-				.values({
+			await dbExecuteLogger(
+				db.insert(backupTable).values({
 					id: nanoid(),
 					title: filenameTitle,
 					filename,
@@ -718,8 +866,9 @@ export const backupActions = {
 					createdBy: 'Automatically',
 					locked: false,
 					information
-				})
-				.execute();
+				}),
+				'Backup - Refresh List - Insert Backup Table'
+			);
 			const end = new Date();
 			logging.info(
 				`File ${index + 1} of ${filesNotInDB.length} took ${end.getTime() - start.getTime()}ms`
@@ -727,11 +876,10 @@ export const backupActions = {
 		}
 	},
 	list: async ({ db }: { db: DBType }) => {
-		const listData = await db
-			.select()
-			.from(backupTable)
-			.orderBy(desc(backupTable.createdAt))
-			.execute();
+		const listData = await dbExecuteLogger(
+			db.select().from(backupTable).orderBy(desc(backupTable.createdAt)),
+			'Backup - List'
+		);
 
 		return listData.map((data) => ({
 			...data,
@@ -739,7 +887,10 @@ export const backupActions = {
 		}));
 	},
 	getBackupInfo: async ({ db, id }: { db: DBType; id: string }) => {
-		const data = await db.select().from(backupTable).where(eq(backupTable.id, id)).execute();
+		const data = await dbExecuteLogger(
+			db.select().from(backupTable).where(eq(backupTable.id, id)),
+			'Backup - Get Info'
+		);
 		if (data.length === 0) {
 			return undefined;
 		}
@@ -747,11 +898,10 @@ export const backupActions = {
 		return { ...data[0], information: backupSchemaInfoToLatest(data[0].information) };
 	},
 	getBackupInfoByFilename: async ({ db, filename }: { db: DBType; filename: string }) => {
-		const data = await db
-			.select()
-			.from(backupTable)
-			.where(eq(backupTable.filename, filename))
-			.execute();
+		const data = await dbExecuteLogger(
+			db.select().from(backupTable).where(eq(backupTable.filename, filename)),
+			'Backup - Get Info By Filename'
+		);
 		if (data.length === 0) {
 			return undefined;
 		}

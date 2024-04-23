@@ -4,43 +4,51 @@ import { updatedTime } from '../misc/updatedTime';
 import { nanoid } from 'nanoid';
 import { generateItemsForJournalCreation } from './generateItemsForJournalCreation';
 import { account, bill, budget, category, label, tag } from '$lib/server/db/postgres/schema';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const getCachedData = async ({ db, count }: { db: DBType; count: number }) => {
 	const useCache = count > 1;
 
 	return {
 		cachedAccounts: useCache
-			? await db
-					.select({ id: account.id, title: account.accountTitleCombined, status: account.status })
-					.from(account)
-					.execute()
+			? await dbExecuteLogger(
+					db
+						.select({ id: account.id, title: account.accountTitleCombined, status: account.status })
+						.from(account),
+					'getCachedData - Accounts'
+				)
 			: undefined,
 		cachedBills: useCache
-			? await db
-					.select({ id: bill.id, title: bill.title, status: bill.status })
-					.from(bill)
-					.execute()
+			? await dbExecuteLogger(
+					db.select({ id: bill.id, title: bill.title, status: bill.status }).from(bill),
+					'getCachedData - Bills'
+				)
 			: undefined,
 		cachedBudgets: useCache
-			? await db
-					.select({ id: budget.id, title: budget.title, status: budget.status })
-					.from(budget)
-					.execute()
+			? await dbExecuteLogger(
+					db.select({ id: budget.id, title: budget.title, status: budget.status }).from(budget),
+					'getCachedData - Budgets'
+				)
 			: undefined,
 		cachedTags: useCache
-			? await db.select({ id: tag.id, title: tag.title, status: tag.status }).from(tag).execute()
+			? await dbExecuteLogger(
+					db.select({ id: tag.id, title: tag.title, status: tag.status }).from(tag),
+					'getCachedData - Tags'
+				)
 			: undefined,
 		cachedCategories: useCache
-			? await db
-					.select({ id: category.id, title: category.title, status: category.status })
-					.from(category)
-					.execute()
+			? await dbExecuteLogger(
+					db
+						.select({ id: category.id, title: category.title, status: category.status })
+						.from(category),
+					'getCachedData - Categories'
+				)
 			: undefined,
 		cachedLabels: useCache
-			? await db
-					.select({ id: label.id, title: label.title, status: label.status })
-					.from(label)
-					.execute()
+			? await dbExecuteLogger(
+					db.select({ id: label.id, title: label.title, status: label.status }).from(label),
+					'getCachedData - Labels'
+				)
 			: undefined
 	};
 };

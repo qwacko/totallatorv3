@@ -25,6 +25,7 @@ import { createTagSchema } from '$lib/schema/tagSchema';
 import { createLabelSchema } from '$lib/schema/labelSchema';
 import { simpleSchemaToCombinedSchema } from '../journal/simpleSchemaToCombinedSchema';
 import { logging } from '$lib/server/logging';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 const importItem = async <T extends Record<string, unknown>, DBT extends { id: string }>({
 	db,
@@ -43,50 +44,58 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 			const createdItem = await createItem({ item: processedItem.data, db });
 
 			if (createdItem) {
-				await db
-					.update(importItemDetail)
-					.set({
-						status: 'imported',
-						importInfo: createdItem,
-						relationId: createdItem.id,
-						...updatedTime()
-					})
-					.where(eq(importItemDetail.id, item.id))
-					.execute();
+				await dbExecuteLogger(
+					db
+						.update(importItemDetail)
+						.set({
+							status: 'imported',
+							importInfo: createdItem,
+							relationId: createdItem.id,
+							...updatedTime()
+						})
+						.where(eq(importItemDetail.id, item.id)),
+					'importItem - Mark Imported'
+				);
 			} else {
-				await db
-					.update(importItemDetail)
-					.set({
-						status: 'importError',
-						errorInfo: { errors: ['Account Not Found'] },
-						...updatedTime()
-					})
-					.where(eq(importItemDetail.id, item.id))
-					.execute();
+				await dbExecuteLogger(
+					db
+						.update(importItemDetail)
+						.set({
+							status: 'importError',
+							errorInfo: { errors: ['Account Not Found'] },
+							...updatedTime()
+						})
+						.where(eq(importItemDetail.id, item.id)),
+					'importItem - Mark Error 1'
+				);
 			}
 		} catch (e) {
 			logging.error('Import Item Error', JSON.stringify(e, null, 2));
 
-			await db
+			await dbExecuteLogger(
+				db
+					.update(importItemDetail)
+					.set({
+						status: 'importError',
+						errorInfo: { error: e as Record<string, unknown> },
+						...updatedTime()
+					})
+					.where(eq(importItemDetail.id, item.id)),
+				'importItem - Mark Error 2'
+			);
+		}
+	} else {
+		await dbExecuteLogger(
+			db
 				.update(importItemDetail)
 				.set({
 					status: 'importError',
-					errorInfo: { error: e as Record<string, unknown> },
+					errorInfo: { errors: processedItem.error.errors.map((e) => e.message) },
 					...updatedTime()
 				})
-				.where(eq(importItemDetail.id, item.id))
-				.execute();
-		}
-	} else {
-		await db
-			.update(importItemDetail)
-			.set({
-				status: 'importError',
-				errorInfo: { errors: processedItem.error.errors.map((e) => e.message) },
-				...updatedTime()
-			})
-			.where(eq(importItemDetail.id, item.id))
-			.execute();
+				.where(eq(importItemDetail.id, item.id)),
+			'importItem - Mark Error 3'
+		);
 	}
 };
 export async function importTransaction({
@@ -117,70 +126,83 @@ export async function importTransaction({
 
 				await Promise.all(
 					importedData.map(async (transactionId) => {
-						const journalData = await trx.query.transaction.findFirst({
-							where: eq(transaction.id, transactionId),
-							with: { journals: true }
-						});
+						const journalData = await dbExecuteLogger(
+							trx.query.transaction.findFirst({
+								where: eq(transaction.id, transactionId),
+								with: { journals: true }
+							}),
+							'importTransaction - Find Transaction'
+						);
 
 						if (journalData) {
-							await trx
-								.update(importItemDetail)
-								.set({
-									status: 'imported',
-									importInfo: journalData,
-									relationId: journalData.journals[0].id,
-									relation2Id: journalData.journals[1].id,
-									...updatedTime()
-								})
-								.where(eq(importItemDetail.id, item.id))
-								.execute();
+							await dbExecuteLogger(
+								trx
+									.update(importItemDetail)
+									.set({
+										status: 'imported',
+										importInfo: journalData,
+										relationId: journalData.journals[0].id,
+										relation2Id: journalData.journals[1].id,
+										...updatedTime()
+									})
+									.where(eq(importItemDetail.id, item.id)),
+								'importTransaction - Mark Imported'
+							);
 						} else {
-							await trx
-								.update(importItemDetail)
-								.set({
-									status: 'importError',
-									errorInfo: { errors: ['Journal Not Found'] },
-									...updatedTime()
-								})
-								.where(eq(importItemDetail.id, item.id))
-								.execute();
+							await dbExecuteLogger(
+								trx
+									.update(importItemDetail)
+									.set({
+										status: 'importError',
+										errorInfo: { errors: ['Journal Not Found'] },
+										...updatedTime()
+									})
+									.where(eq(importItemDetail.id, item.id)),
+								'importTransaction - Mark Error 1'
+							);
 						}
 					})
 				);
 			} catch (e) {
 				logging.error('Import Transaction Error', JSON.stringify(e, null, 2));
 
-				await trx
+				await dbExecuteLogger(
+					trx
+						.update(importItemDetail)
+						.set({
+							status: 'importError',
+							errorInfo: { error: e as Record<string, unknown> },
+							...updatedTime()
+						})
+						.where(eq(importItemDetail.id, item.id)),
+					'importTransaction - Mark Error 2'
+				);
+			}
+		} else {
+			await dbExecuteLogger(
+				trx
 					.update(importItemDetail)
 					.set({
 						status: 'importError',
-						errorInfo: { error: e as Record<string, unknown> },
+						errorInfo: { errors: processedCombinedTransaction.error.errors.map((e) => e.message) },
 						...updatedTime()
 					})
-					.where(eq(importItemDetail.id, item.id))
-					.execute();
-			}
-		} else {
-			await trx
+					.where(eq(importItemDetail.id, item.id)),
+				'importTransaction - Mark Error 3'
+			);
+		}
+	} else {
+		await dbExecuteLogger(
+			trx
 				.update(importItemDetail)
 				.set({
 					status: 'importError',
-					errorInfo: { errors: processedCombinedTransaction.error.errors.map((e) => e.message) },
+					errorInfo: { errors: processedItem.error.errors.map((e) => e.message) },
 					...updatedTime()
 				})
-				.where(eq(importItemDetail.id, item.id))
-				.execute();
-		}
-	} else {
-		await trx
-			.update(importItemDetail)
-			.set({
-				status: 'importError',
-				errorInfo: { errors: processedItem.error.errors.map((e) => e.message) },
-				...updatedTime()
-			})
-			.where(eq(importItemDetail.id, item.id))
-			.execute();
+				.where(eq(importItemDetail.id, item.id)),
+			'importTransaction - Mark Error 4'
+		);
 	}
 }
 export const importAccount = async ({
@@ -203,9 +225,12 @@ export const importAccount = async ({
 				importDetailId: item.id
 			});
 
-			const createdItem = await trx.query.account.findFirst({
-				where: eq(account.id, importedData)
-			});
+			const createdItem = await dbExecuteLogger(
+				trx.query.account.findFirst({
+					where: eq(account.id, importedData)
+				}),
+				'importAccount - Find Account'
+			);
 
 			return createdItem;
 		}
@@ -229,9 +254,12 @@ export const importBill = async ({
 				importDetailId: item.id
 			});
 
-			const createdItem = await trx.query.bill.findFirst({
-				where: eq(bill.id, importedData)
-			});
+			const createdItem = await dbExecuteLogger(
+				trx.query.bill.findFirst({
+					where: eq(bill.id, importedData)
+				}),
+				'importBill - Find Bill'
+			);
 
 			return createdItem;
 		}
@@ -255,9 +283,12 @@ export const importBudget = async ({
 				importDetailId: item.id
 			});
 
-			const createdItem = await trx.query.budget.findFirst({
-				where: eq(budget.id, importedData)
-			});
+			const createdItem = await dbExecuteLogger(
+				trx.query.budget.findFirst({
+					where: eq(budget.id, importedData)
+				}),
+				'importBudget - Find Budget'
+			);
 
 			return createdItem;
 		}
@@ -281,9 +312,12 @@ export const importCategory = async ({
 				importDetailId: item.id
 			});
 
-			const createdItem = await trx.query.category.findFirst({
-				where: eq(category.id, importedData)
-			});
+			const createdItem = await dbExecuteLogger(
+				trx.query.category.findFirst({
+					where: eq(category.id, importedData)
+				}),
+				'importCategory - Find Category'
+			);
 
 			return createdItem;
 		}
@@ -307,9 +341,12 @@ export const importTag = async ({
 				importDetailId: item.id
 			});
 
-			const createdItem = await trx.query.tag.findFirst({
-				where: eq(tag.id, importedData)
-			});
+			const createdItem = await dbExecuteLogger(
+				trx.query.tag.findFirst({
+					where: eq(tag.id, importedData)
+				}),
+				'importTag - Find Tag'
+			);
 
 			return createdItem;
 		}
@@ -333,9 +370,12 @@ export const importLabel = async ({
 				importDetailId: item.id
 			});
 
-			const createdItem = await trx.query.label.findFirst({
-				where: eq(label.id, importedData)
-			});
+			const createdItem = await dbExecuteLogger(
+				trx.query.label.findFirst({
+					where: eq(label.id, importedData)
+				}),
+				'importLabel - Find Label'
+			);
 
 			return createdItem;
 		}

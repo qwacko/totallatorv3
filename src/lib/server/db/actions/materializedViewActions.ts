@@ -14,6 +14,7 @@ import {
 
 import { booleanKeyValueStore } from './helpers/keyValueStore';
 import { logging } from '$lib/server/logging';
+import { dbExecuteLogger } from '../dbLogger';
 
 const refreshRequiredStore = booleanKeyValueStore('journalExtendedViewRefresh', true);
 const accountRefreshRequiredStore = booleanKeyValueStore('accountViewRefresh', true);
@@ -70,35 +71,59 @@ export const materializedViewActions = {
 	}) => {
 		await Promise.all([
 			timePromise('Journal Extended View Refresh', items.journals, async () => {
-				await db.refreshMaterializedView(journalExtendedView);
+				await dbExecuteLogger(
+					db.refreshMaterializedView(journalExtendedView),
+					'View Refresh - Journal Extended View'
+				);
 				await refreshRequiredStore.set(db, false);
 			}),
 			timePromise('Account View Refresh', items.account, async () => {
-				await db.refreshMaterializedView(accountMaterializedView);
+				await dbExecuteLogger(
+					db.refreshMaterializedView(accountMaterializedView),
+					'View Refresh - Account View'
+				);
 				await accountRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Tag View Refresh', items.tag, async () => {
-				await db.refreshMaterializedView(tagMaterializedView);
+				await dbExecuteLogger(
+					db.refreshMaterializedView(tagMaterializedView),
+					'View Refresh - Tag View'
+				);
 				await tagRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Bill View Refresh', items.bill, async () => {
-				await db.refreshMaterializedView(billMaterializedView);
+				await dbExecuteLogger(
+					db.refreshMaterializedView(billMaterializedView),
+					'View Refresh - Bill View'
+				);
 				await billRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Budget View Refresh', items.budget, async () => {
-				await db.refreshMaterializedView(budgetMaterializedView);
+				await dbExecuteLogger(
+					db.refreshMaterializedView(budgetMaterializedView),
+					'View Refresh - Budget View'
+				);
 				await budgetRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Category View Refresh', items.category, async () => {
-				await db.refreshMaterializedView(categoryMaterializedView);
+				await dbExecuteLogger(
+					db.refreshMaterializedView(categoryMaterializedView),
+					'View Refresh - Category View'
+				);
 				await categoryRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Label View Refresh', items.label, async () => {
-				await db.refreshMaterializedView(labelMaterializedView);
+				await dbExecuteLogger(
+					db.refreshMaterializedView(labelMaterializedView),
+					'View Refresh - Label View'
+				);
 				await labelRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Date Time View Refresh', items.label, async () => {
-				await db.refreshMaterializedView(dateRangeMaterializedView);
+				await dbExecuteLogger(
+					db.refreshMaterializedView(dateRangeMaterializedView),
+					'View Refresh - Date Time View'
+				);
 				await dateTimeRefreshRequiredStore.set(db, false);
 			})
 		]);
@@ -141,11 +166,13 @@ export const materializedViewActions = {
 			categoryRefreshRequiredStore.set(db, true),
 			labelRefreshRequiredStore.set(db, true),
 			dateTimeRefreshRequiredStore.set(db, true),
-			db
-				.update(reusableFilter)
-				.set({ needsUpdate: true })
-				.where(eq(reusableFilter.needsUpdate, false))
-				.execute()
+			dbExecuteLogger(
+				db
+					.update(reusableFilter)
+					.set({ needsUpdate: true })
+					.where(eq(reusableFilter.needsUpdate, false)),
+				'Set Refresh Required - True'
+			)
 		]);
 	}
 };

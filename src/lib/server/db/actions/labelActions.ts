@@ -21,27 +21,35 @@ import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { labelMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const labelActions = {
 	getById: async (db: DBType, id: string) => {
-		return db.query.label.findFirst({ where: eq(label.id, id) }).execute();
+		return dbExecuteLogger(
+			db.query.label.findFirst({ where: eq(label.id, id) }),
+			'Labels - Get By ID'
+		);
 	},
 	count: async (db: DBType, filter?: LabelFilterSchemaType) => {
 		materializedViewActions.conditionalRefresh({ db });
-		const count = await db
-			.select({ count: drizzleCount(labelMaterializedView.id) })
-			.from(labelMaterializedView)
-			.where(and(...(filter ? labelFilterToQuery(filter) : [])))
-			.execute();
+		const count = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(labelMaterializedView.id) })
+				.from(labelMaterializedView)
+				.where(and(...(filter ? labelFilterToQuery(filter) : []))),
+			'Labels - Count'
+		);
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		materializedViewActions.conditionalRefresh({ db });
-		const items = db
-			.select({ id: labelMaterializedView.id, journalCount: labelMaterializedView.count })
-			.from(labelMaterializedView)
-			.execute();
+		const items = dbExecuteLogger(
+			db
+				.select({ id: labelMaterializedView.id, journalCount: labelMaterializedView.count })
+				.from(labelMaterializedView),
+			'Labels - List With Transaction Count'
+		);
 
 		return items;
 	},
@@ -67,20 +75,24 @@ export const labelActions = {
 				]
 			: defaultOrderBy;
 
-		const results = await db
-			.select()
-			.from(labelMaterializedView)
-			.where(and(...where))
-			.limit(pageSize)
-			.offset(page * pageSize)
-			.orderBy(...orderByResult)
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select()
+				.from(labelMaterializedView)
+				.where(and(...where))
+				.limit(pageSize)
+				.offset(page * pageSize)
+				.orderBy(...orderByResult),
+			'Labels - List - Results'
+		);
 
-		const resultCount = await db
-			.select({ count: drizzleCount(labelMaterializedView.id) })
-			.from(labelMaterializedView)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(labelMaterializedView.id) })
+				.from(labelMaterializedView)
+				.where(and(...where)),
+			'Labels - List - Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -89,10 +101,10 @@ export const labelActions = {
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		await streamingDelay();
-		const items = db
-			.select({ id: label.id, title: label.title, enabled: label.allowUpdate })
-			.from(label)
-			.execute();
+		const items = dbExecuteLogger(
+			db.select({ id: label.id, title: label.title, enabled: label.allowUpdate }).from(label),
+			'Labels - List For Dropdown'
+		);
 
 		return items;
 	},
@@ -112,7 +124,10 @@ export const labelActions = {
 		if (id) {
 			const currentLabel = cachedData
 				? cachedData.find((currentData) => currentData.id === id)
-				: await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
+				: await dbExecuteLogger(
+						db.query.label.findFirst({ where: eq(label.id, id) }),
+						'Labels - Create Or Get - Get By ID'
+					);
 
 			if (currentLabel) {
 				if (requireActive && currentLabel.status !== 'active') {
@@ -124,7 +139,10 @@ export const labelActions = {
 		} else if (title) {
 			const currentLabel = cachedData
 				? cachedData.find((currentData) => currentData.title === title)
-				: await db.query.label.findFirst({ where: eq(label.title, title) }).execute();
+				: await dbExecuteLogger(
+						db.query.label.findFirst({ where: eq(label.title, title) }),
+						'Labels - Create Or Get - Get By Title'
+					);
 			if (currentLabel) {
 				if (requireActive && currentLabel.status !== 'active') {
 					throw new Error(`Label ${currentLabel.title} is not active`);
@@ -135,9 +153,10 @@ export const labelActions = {
 				title,
 				status: 'active'
 			});
-			const newLabel = await db.query.label
-				.findFirst({ where: eq(label.id, newLabelId) })
-				.execute();
+			const newLabel = await dbExecuteLogger(
+				db.query.label.findFirst({ where: eq(label.id, newLabelId) }),
+				'Labels - Create Or Get - Get New Label'
+			);
 			if (!newLabel) {
 				throw new Error('Error Creating Label');
 			}
@@ -148,7 +167,10 @@ export const labelActions = {
 	},
 	create: async (db: DBType, data: CreateLabelSchemaType) => {
 		const id = nanoid();
-		await db.insert(label).values(labelCreateInsertionData(data, id)).execute();
+		await dbExecuteLogger(
+			db.insert(label).values(labelCreateInsertionData(data, id)),
+			'Labels - Create'
+		);
 
 		await materializedViewActions.setRefreshRequired(db);
 
@@ -159,10 +181,10 @@ export const labelActions = {
 		{ journalId, labelId }: { journalId: string; labelId: string }
 	) => {
 		const id = nanoid();
-		await db
-			.insert(labelsToJournals)
-			.values({ id, journalId, labelId, ...updatedTime() })
-			.execute();
+		await dbExecuteLogger(
+			db.insert(labelsToJournals).values({ id, journalId, labelId, ...updatedTime() }),
+			'Labels - Create Link'
+		);
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	createMany: async (db: DBType, data: CreateLabelSchemaType[]) => {
@@ -171,29 +193,34 @@ export const labelActions = {
 			labelCreateInsertionData(currentData, ids[index])
 		);
 
-		await db.insert(label).values(insertData).execute();
+		await dbExecuteLogger(db.insert(label).values(insertData), 'Labels - Create Many');
 		await materializedViewActions.setRefreshRequired(db);
 
 		return ids;
 	},
 	update: async (db: DBType, data: UpdateLabelSchemaType) => {
 		const { id } = data;
-		const currentLabel = await db.query.label.findFirst({ where: eq(label.id, id) }).execute();
+		const currentLabel = await dbExecuteLogger(
+			db.query.label.findFirst({ where: eq(label.id, id) }),
+			'Labels - Update - Get By ID'
+		);
 
 		if (!currentLabel) {
 			logging.error('Update Label: Label not found', data);
 			return id;
 		}
 
-		await db
-			.update(label)
-			.set({
-				...statusUpdate(data.status),
-				...updatedTime(),
-				title: data.title
-			})
-			.where(eq(label.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(label)
+				.set({
+					...statusUpdate(data.status),
+					...updatedTime(),
+					title: data.title
+				})
+				.where(eq(label.id, id)),
+			'Labels - Update'
+		);
 		await materializedViewActions.setRefreshRequired(db);
 
 		return id;
@@ -206,9 +233,10 @@ export const labelActions = {
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
 	canDelete: async (db: DBType, data: IdSchemaType) => {
-		const currentLabel = await db.query.label
-			.findFirst({ where: eq(label.id, data.id), with: { journals: { limit: 1 } } })
-			.execute();
+		const currentLabel = await dbExecuteLogger(
+			db.query.label.findFirst({ where: eq(label.id, data.id), with: { journals: { limit: 1 } } }),
+			'Labels - Can Delete - Get By ID'
+		);
 		if (!currentLabel) {
 			return true;
 		}
@@ -220,12 +248,15 @@ export const labelActions = {
 		return db.transaction(async (transDb) => {
 			//If the Label has no journals, then mark as deleted, otherwise do nothing
 			if (await labelActions.canDelete(db, data)) {
-				await transDb
-					.delete(labelsToJournals)
-					.where(eq(labelsToJournals.labelId, data.id))
-					.execute();
+				await dbExecuteLogger(
+					transDb.delete(labelsToJournals).where(eq(labelsToJournals.labelId, data.id)),
+					'Labels - Soft Delete - Delete Links'
+				);
 
-				await transDb.delete(label).where(eq(label.id, data.id)).execute();
+				await dbExecuteLogger(
+					transDb.delete(label).where(eq(label.id, data.id)),
+					'Labels - Soft Delete'
+				);
 				await materializedViewActions.setRefreshRequired(db);
 			}
 
@@ -237,12 +268,15 @@ export const labelActions = {
 		const idList = data.map((currentData) => currentData.id);
 
 		return await db.transaction(async (transDb) => {
-			await transDb
-				.delete(labelsToJournals)
-				.where(inArrayWrapped(labelsToJournals.labelId, idList))
-				.execute();
+			await dbExecuteLogger(
+				transDb.delete(labelsToJournals).where(inArrayWrapped(labelsToJournals.labelId, idList)),
+				'Labels - Hard Delete Many - Delete Links'
+			);
 
-			await transDb.delete(label).where(inArrayWrapped(label.id, idList)).execute();
+			await dbExecuteLogger(
+				transDb.delete(label).where(inArrayWrapped(label.id, idList)),
+				'Labels - Hard Delete Many'
+			);
 		});
 		await materializedViewActions.setRefreshRequired(db);
 	},
@@ -250,7 +284,10 @@ export const labelActions = {
 		logging.info('Seeding Labels : ', count);
 
 		const existingTitles = (
-			await db.query.label.findMany({ columns: { title: true } }).execute()
+			await dbExecuteLogger(
+				db.query.label.findMany({ columns: { title: true } }),
+				'Labels - Seed - Get Existing'
+			)
 		).map((item) => item.title);
 		const itemsToCreate = createUniqueItemsOnly({
 			existing: existingTitles,

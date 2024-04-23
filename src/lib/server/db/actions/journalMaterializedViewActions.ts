@@ -17,31 +17,39 @@ import {
 import { getMonthlySummary } from './helpers/summary/getMonthlySummary';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { materializedViewActions } from './materializedViewActions';
+import { dbExecuteLogger } from '../dbLogger';
 
 const logStats = true;
 
 export const journalMaterializedViewActions = {
 	getById: async (db: DBType, id: string) => {
 		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
-		return db.select().from(journalExtendedView).where(eq(journalExtendedView.id, id)).execute();
+		return dbExecuteLogger(
+			db.select().from(journalExtendedView).where(eq(journalExtendedView.id, id)),
+			'Journal Materialized - Get By Id'
+		);
 	},
 	count: async (db: DBType, filter?: JournalFilterSchemaType) => {
 		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
-		const countQuery = await db
-			.select({ count: count(journalExtendedView.id) })
-			.from(journalExtendedView)
-			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [sql`true`])))
-			.execute();
+		const countQuery = await dbExecuteLogger(
+			db
+				.select({ count: count(journalExtendedView.id) })
+				.from(journalExtendedView)
+				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [sql`true`]))),
+			'Journal Materialized - Count'
+		);
 
 		return countQuery[0].count;
 	},
 	sum: async (db: DBType, filter?: JournalFilterSchemaType) => {
 		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
-		const sumQuery = await db
-			.select({ sum: sum(journalExtendedView.id) })
-			.from(journalExtendedView)
-			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [sql`true`])))
-			.execute();
+		const sumQuery = await dbExecuteLogger(
+			db
+				.select({ sum: sum(journalExtendedView.id) })
+				.from(journalExtendedView)
+				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [sql`true`]))),
+			'Journal Materialized - Sum'
+		);
 
 		return sumQuery[0].sum;
 	},
@@ -88,60 +96,70 @@ export const journalMaterializedViewActions = {
 			.from(journalExtendedView)
 			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])));
 
-		const tagsQuery = db
-			.select({
-				id: journalExtendedView.tagId,
-				title: journalExtendedView.tagTitle,
-				...commonSummary
-			})
-			.from(journalExtendedView)
-			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-			.groupBy(journalExtendedView.tagId, journalExtendedView.tagTitle)
-			.execute();
+		const tagsQuery = dbExecuteLogger(
+			db
+				.select({
+					id: journalExtendedView.tagId,
+					title: journalExtendedView.tagTitle,
+					...commonSummary
+				})
+				.from(journalExtendedView)
+				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
+				.groupBy(journalExtendedView.tagId, journalExtendedView.tagTitle),
+			'Journal Materialized - Summary - Tags'
+		);
 
-		const categoriesQuery = db
-			.select({
-				id: journalExtendedView.categoryId,
-				title: journalExtendedView.categoryTitle,
-				...commonSummary
-			})
-			.from(journalExtendedView)
-			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-			.groupBy(journalExtendedView.categoryId, journalExtendedView.categoryTitle)
-			.execute();
+		const categoriesQuery = dbExecuteLogger(
+			db
+				.select({
+					id: journalExtendedView.categoryId,
+					title: journalExtendedView.categoryTitle,
+					...commonSummary
+				})
+				.from(journalExtendedView)
+				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
+				.groupBy(journalExtendedView.categoryId, journalExtendedView.categoryTitle),
+			'Journal Materialized - Summary - Categories'
+		);
 
-		const billsQuery = db
-			.select({
-				id: journalExtendedView.billId,
-				title: journalExtendedView.billTitle,
-				...commonSummary
-			})
-			.from(journalExtendedView)
-			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-			.groupBy(journalExtendedView.billId, journalExtendedView.billTitle)
-			.execute();
+		const billsQuery = dbExecuteLogger(
+			db
+				.select({
+					id: journalExtendedView.billId,
+					title: journalExtendedView.billTitle,
+					...commonSummary
+				})
+				.from(journalExtendedView)
+				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
+				.groupBy(journalExtendedView.billId, journalExtendedView.billTitle),
+			'Journal Materialized - Summary - Bills'
+		);
 
-		const budgetsQuery = db
-			.select({
-				id: journalExtendedView.budgetId,
-				title: journalExtendedView.budgetTitle,
-				...commonSummary
-			})
-			.from(journalExtendedView)
-			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-			.groupBy(journalExtendedView.budgetId, journalExtendedView.budgetTitle)
-			.execute();
+		const budgetsQuery = dbExecuteLogger(
+			db
+				.select({
+					id: journalExtendedView.budgetId,
+					title: journalExtendedView.budgetTitle,
+					...commonSummary
+				})
+				.from(journalExtendedView)
+				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
+				.groupBy(journalExtendedView.budgetId, journalExtendedView.budgetTitle),
+			'Journal Materialized - Summary - Budgets'
+		);
 
-		const accountsQuery = db
-			.select({
-				id: journalExtendedView.accountId,
-				title: journalExtendedView.accountTitle,
-				...commonSummary
-			})
-			.from(journalExtendedView)
-			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-			.groupBy(journalExtendedView.accountId, journalExtendedView.accountTitle)
-			.execute();
+		const accountsQuery = dbExecuteLogger(
+			db
+				.select({
+					id: journalExtendedView.accountId,
+					title: journalExtendedView.accountTitle,
+					...commonSummary
+				})
+				.from(journalExtendedView)
+				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
+				.groupBy(journalExtendedView.accountId, journalExtendedView.accountTitle),
+			'Journal Materialized - Summary - Accounts'
+		);
 
 		const monthlyQueryCore = db
 			.select({
@@ -174,9 +192,14 @@ export const journalMaterializedViewActions = {
 			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
 			.groupBy(journalExtendedView.yearMonth);
 
-		const summaryQuery = (await summaryQueryCore.execute())[0];
+		const summaryQuery = (
+			await dbExecuteLogger(summaryQueryCore, 'Journal Materialized - Summary - Summary Core')
+		)[0];
 
-		const monthlyQuery = await monthlyQueryCore.execute();
+		const monthlyQuery = await dbExecuteLogger(
+			monthlyQueryCore,
+			'Journal Materialized - Summary - Monthly Query'
+		);
 
 		const monthlySummary = getMonthlySummary({
 			monthlyQuery,

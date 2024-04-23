@@ -1,5 +1,6 @@
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 import { reusableFilter } from '$lib/server/db/postgres/schema';
 import { logging } from '$lib/server/logging.js';
 
@@ -240,10 +241,10 @@ export const actions = {
 	},
 	deleteReusableFilters: async ({ locals }) => {
 		try {
-			const items = await locals.db
-				.select({ id: reusableFilter.id })
-				.from(reusableFilter)
-				.execute();
+			const items = await dbExecuteLogger(
+				locals.db.select({ id: reusableFilter.id }).from(reusableFilter),
+				'deleteReusableFilters - getItems'
+			);
 			await tActions.reusableFitler.deleteMany({
 				db: locals.db,
 				ids: items.map((item) => item.id)

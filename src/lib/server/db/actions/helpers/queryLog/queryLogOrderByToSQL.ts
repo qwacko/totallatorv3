@@ -7,7 +7,7 @@ export const queryLogOrderByToSQL = ({
 }: {
 	orderBy?: { field: QueryLogOrderByEnumType; direction: 'asc' | 'desc' }[];
 }): SQL<unknown>[] => {
-	const defaultOrderBy = [asc(queryLogTable.title)];
+	const defaultOrderBy = [desc(queryLogTable.time)];
 
 	const orderByResult = orderBy
 		? [

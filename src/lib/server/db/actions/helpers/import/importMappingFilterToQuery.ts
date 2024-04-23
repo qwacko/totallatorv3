@@ -4,6 +4,7 @@ import { importMapping } from '../../../postgres/schema';
 import { SQL, eq, ilike, or } from 'drizzle-orm';
 import { arrayToText } from '../misc/arrayToText';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const importMappingFilterToQuery = (
 	filter: Omit<ImportMappingFilterSchema, 'page' | 'pageSize' | 'orderBy'>
@@ -29,12 +30,14 @@ export const importMappingFilterToQuery = (
 };
 
 export const importMappingIdToTitle = async (db: DBType, id: string) => {
-	const foundImportMapping = await db
-		.select({ title: importMapping.title })
-		.from(importMapping)
-		.where(eq(importMapping.id, id))
-		.limit(1)
-		.execute();
+	const foundImportMapping = await dbExecuteLogger(
+		db
+			.select({ title: importMapping.title })
+			.from(importMapping)
+			.where(eq(importMapping.id, id))
+			.limit(1),
+		'importMappingIdToTitle'
+	);
 
 	if (foundImportMapping?.length === 1) {
 		return foundImportMapping[0].title;

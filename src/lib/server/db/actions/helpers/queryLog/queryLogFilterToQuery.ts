@@ -6,6 +6,7 @@ import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 import { arrayToText } from '../misc/arrayToText';
 import type { QueryLogFilterSchemaWithoutPaginationType } from '$lib/schema/queryLogSchema';
 import { processQueryLogTextFilter } from './queryLogTextFilter';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const queryLogFilterToQuery = ({
 	filter
@@ -76,20 +77,18 @@ export const queryLogFilterToQuery = ({
 };
 
 const queryTitleIdToTitle = async ({ db, titleIds }: { db: DBType; titleIds: string[] }) => {
-	const title = await db
-		.select()
-		.from(queryLogTitleTable)
-		.where(inArray(queryLogTitleTable.id, titleIds))
-		.execute();
+	const title = await dbExecuteLogger(
+		db.select().from(queryLogTitleTable).where(inArray(queryLogTitleTable.id, titleIds)),
+		'Query Log - Title ID to Title'
+	);
 	return title.map((t) => t.title || t.id);
 };
 
 const queryQueryIdToQuery = async ({ db, queryIds }: { db: DBType; queryIds: string[] }) => {
-	const query = await db
-		.select()
-		.from(queryContentsTable)
-		.where(inArray(queryContentsTable.id, queryIds))
-		.execute();
+	const query = await dbExecuteLogger(
+		db.select().from(queryContentsTable).where(inArray(queryContentsTable.id, queryIds)),
+		'Query Log - Query ID to Query'
+	);
 	return query.map((q) => q.query || q.id);
 };
 

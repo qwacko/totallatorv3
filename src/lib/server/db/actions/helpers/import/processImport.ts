@@ -32,9 +32,13 @@ import { getImportDetail } from './getImportDetail';
 import type { ImportStatusType } from '$lib/schema/importSchema';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { importFileHandler } from '$lib/server/files/fileHandler';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const processCreatedImport = async ({ db, id }: { db: DBType; id: string }) => {
-	const data = await db.select().from(importTable).where(eq(importTable.id, id));
+	const data = await dbExecuteLogger(
+		db.select().from(importTable).where(eq(importTable.id, id)),
+		'getImportData'
+	);
 	if (data.length === 0) {
 		throw new Error('Import Not Found');
 	}
@@ -54,11 +58,10 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 	const checkImportDuplicates =
 		(innerFunc: (data: string[]) => Promise<string[]>) => async (data: string[]) => {
 			if (!importData.checkImportedOnly) {
-				const existingImports = await db
-					.select()
-					.from(importItemDetail)
-					.where(inArrayWrapped(importItemDetail.uniqueId, data))
-					.execute();
+				const existingImports = await dbExecuteLogger(
+					db.select().from(importItemDetail).where(inArrayWrapped(importItemDetail.uniqueId, data)),
+					'checkImportDuplicates'
+				);
 
 				if (existingImports.length > 0) {
 					return filterNullUndefinedAndDuplicates(existingImports.map((item) => item.uniqueId));
@@ -86,15 +89,17 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 		});
 
 		if (processedData.errors && processedData.errors.length > 0) {
-			await db
-				.update(importTable)
-				.set({
-					status: 'error',
-					errorInfo: processedData.errors,
-					...updatedTime()
-				})
-				.where(eq(importTable.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(importTable)
+					.set({
+						status: 'error',
+						errorInfo: processedData.errors,
+						...updatedTime()
+					})
+					.where(eq(importTable.id, id)),
+				'processCreatedImport - set error status'
+			);
 		} else {
 			if (importData.type === 'transaction') {
 				await importActions.processItems({
@@ -112,11 +117,10 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 					getUniqueIdentifier: (data) =>
 						`${data.accountGroupCombined ? data.accountGroupCombined + ':' : ''}:${data.title}`,
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
-						const existingAccounts = await db
-							.select()
-							.from(account)
-							.where(inArrayWrapped(account.accountTitleCombined, data))
-							.execute();
+						const existingAccounts = await dbExecuteLogger(
+							db.select().from(account).where(inArrayWrapped(account.accountTitleCombined, data)),
+							'checkImportDuplicates - account'
+						);
 						return existingAccounts.map((item) => item.accountTitleCombined);
 					})
 				});
@@ -128,11 +132,10 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 					schema: createBillSchema,
 					getUniqueIdentifier: (data) => data.title,
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
-						const existingBills = await db
-							.select()
-							.from(bill)
-							.where(inArrayWrapped(bill.title, data))
-							.execute();
+						const existingBills = await dbExecuteLogger(
+							db.select().from(bill).where(inArrayWrapped(bill.title, data)),
+							'checkImportDuplicates - bill'
+						);
 						return existingBills.map((item) => item.title);
 					})
 				});
@@ -144,11 +147,10 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 					schema: createBudgetSchema,
 					getUniqueIdentifier: (data) => data.title,
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
-						const existingBudgets = await db
-							.select()
-							.from(budget)
-							.where(inArrayWrapped(budget.title, data))
-							.execute();
+						const existingBudgets = await dbExecuteLogger(
+							db.select().from(budget).where(inArrayWrapped(budget.title, data)),
+							'checkImportDuplicates - budget'
+						);
 						return existingBudgets.map((item) => item.title);
 					})
 				});
@@ -160,11 +162,10 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 					schema: createCategorySchema,
 					getUniqueIdentifier: (data) => data.title,
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
-						const existingCategories = await db
-							.select()
-							.from(category)
-							.where(inArrayWrapped(category.title, data))
-							.execute();
+						const existingCategories = await dbExecuteLogger(
+							db.select().from(category).where(inArrayWrapped(category.title, data)),
+							'checkImportDuplicates - category'
+						);
 						return existingCategories.map((item) => item.title);
 					})
 				});
@@ -176,11 +177,10 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 					schema: createTagSchema,
 					getUniqueIdentifier: (data) => data.title,
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
-						const existingTags = await db
-							.select()
-							.from(tag)
-							.where(inArrayWrapped(tag.title, data))
-							.execute();
+						const existingTags = await dbExecuteLogger(
+							db.select().from(tag).where(inArrayWrapped(tag.title, data)),
+							'checkImportDuplicates - tag'
+						);
 						return existingTags.map((item) => item.title);
 					})
 				});
@@ -192,11 +192,10 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 					schema: createLabelSchema,
 					getUniqueIdentifier: (data) => data.title,
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
-						const existingLabels = await db
-							.select()
-							.from(label)
-							.where(inArrayWrapped(label.title, data))
-							.execute();
+						const existingLabels = await dbExecuteLogger(
+							db.select().from(label).where(inArrayWrapped(label.title, data)),
+							'checkImportDuplicates - label'
+						);
 						return existingLabels.map((item) => item.title);
 					})
 				});
@@ -234,11 +233,13 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 								},
 								getUniqueIdentifier: (data) => data.uniqueId,
 								checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
-									const existingTransactions = await db
-										.select()
-										.from(journalEntry)
-										.where(inArrayWrapped(journalEntry.uniqueId, data))
-										.execute();
+									const existingTransactions = await dbExecuteLogger(
+										db
+											.select()
+											.from(journalEntry)
+											.where(inArrayWrapped(journalEntry.uniqueId, data)),
+										'checkImportDuplicates - simpleTransaction'
+									);
 									return filterNullUndefinedAndDuplicates(
 										existingTransactions.map((item) => item.uniqueId)
 									);
@@ -261,15 +262,17 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 
 		const config = importMappingDetail?.configuration;
 		if (!importMappingDetail || !config) {
-			await db
-				.update(importTable)
-				.set({
-					status: 'error',
-					errorInfo: 'Import Mapping Not Found',
-					...updatedTime()
-				})
-				.where(eq(importTable.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(importTable)
+					.set({
+						status: 'error',
+						errorInfo: 'Import Mapping Not Found',
+						...updatedTime()
+					})
+					.where(eq(importTable.id, id)),
+				'processCreatedImport - set error status'
+			);
 			return;
 		}
 
@@ -278,15 +281,17 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 		const parsedData = schema.safeParse(jsonData);
 
 		if (!parsedData.success) {
-			await db
-				.update(importTable)
-				.set({
-					status: 'error',
-					errorInfo: parsedData.error.errors,
-					...updatedTime()
-				})
-				.where(eq(importTable.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(importTable)
+					.set({
+						status: 'error',
+						errorInfo: parsedData.error.errors,
+						...updatedTime()
+					})
+					.where(eq(importTable.id, id)),
+				'processCreatedImport - set error status'
+			);
 			return;
 		}
 
@@ -315,11 +320,10 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 			},
 			getUniqueIdentifier: (data) => data.uniqueId,
 			checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
-				const existingTransactions = await db
-					.select()
-					.from(journalEntry)
-					.where(inArrayWrapped(journalEntry.uniqueId, data))
-					.execute();
+				const existingTransactions = await dbExecuteLogger(
+					db.select().from(journalEntry).where(inArrayWrapped(journalEntry.uniqueId, data)),
+					'checkImportDuplicates - simpleTransaction'
+				);
 				return filterNullUndefinedAndDuplicates(existingTransactions.map((item) => item.uniqueId));
 			})
 		});
@@ -343,9 +347,11 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 				? 'complete'
 				: 'processed';
 
-	await db
-		.update(importTable)
-		.set({ status: targetStatus, ...updatedTime() })
-		.where(eq(importTable.id, id))
-		.execute();
+	await dbExecuteLogger(
+		db
+			.update(importTable)
+			.set({ status: targetStatus, ...updatedTime() })
+			.where(eq(importTable.id, id)),
+		'processCreatedImport - set status'
+	);
 };

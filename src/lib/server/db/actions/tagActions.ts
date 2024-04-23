@@ -22,30 +22,35 @@ import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { tagMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const tagActions = {
 	getById: async (db: DBType, id: string) => {
-		return db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
+		return dbExecuteLogger(db.query.tag.findFirst({ where: eq(tag.id, id) }), 'Tags - Get By Id');
 	},
 	count: async (db: DBType, filter?: TagFilterSchemaType) => {
 		materializedViewActions.conditionalRefresh({ db });
 		const where = filter ? tagFilterToQuery({ filter, target: 'tag' }) : [];
 
-		const result = await db
-			.select({ count: drizzleCount(tagMaterializedView.id) })
-			.from(tagMaterializedView)
-			.where(and(...where))
-			.execute();
+		const result = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(tagMaterializedView.id) })
+				.from(tagMaterializedView)
+				.where(and(...where)),
+			'Tags - Count'
+		);
 
 		return result[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
-		const items = db
-			.select({ id: tag.id, journalCount: count(journalEntry.id) })
-			.from(tag)
-			.leftJoin(journalEntry, eq(journalEntry.tagId, tag.id))
-			.groupBy(tag.id)
-			.execute();
+		const items = dbExecuteLogger(
+			db
+				.select({ id: tag.id, journalCount: count(journalEntry.id) })
+				.from(tag)
+				.leftJoin(journalEntry, eq(journalEntry.tagId, tag.id))
+				.groupBy(tag.id),
+			'Tags - List With Transaction Count'
+		);
 
 		return items;
 	},
@@ -73,20 +78,24 @@ export const tagActions = {
 				]
 			: defaultOrderBy;
 
-		const results = await db
-			.select()
-			.from(tagMaterializedView)
-			.where(and(...where))
-			.limit(pageSize)
-			.offset(page * pageSize)
-			.orderBy(...orderByResult)
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select()
+				.from(tagMaterializedView)
+				.where(and(...where))
+				.limit(pageSize)
+				.offset(page * pageSize)
+				.orderBy(...orderByResult),
+			'Tags - List - Results'
+		);
 
-		const resultCount = await db
-			.select({ count: drizzleCount(tag.id) })
-			.from(tagMaterializedView)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(tag.id) })
+				.from(tagMaterializedView)
+				.where(and(...where)),
+			'Tags - List - Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -95,10 +104,12 @@ export const tagActions = {
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		await streamingDelay();
-		const items = db
-			.select({ id: tag.id, title: tag.title, group: tag.group, enabled: tag.allowUpdate })
-			.from(tag)
-			.execute();
+		const items = dbExecuteLogger(
+			db
+				.select({ id: tag.id, title: tag.title, group: tag.group, enabled: tag.allowUpdate })
+				.from(tag),
+			'Tags - List For Dropdown'
+		);
 
 		return items;
 	},
@@ -118,7 +129,10 @@ export const tagActions = {
 		if (id) {
 			const currentTag = cachedData
 				? cachedData.find((current) => current.id === id)
-				: await db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
+				: await dbExecuteLogger(
+						db.query.tag.findFirst({ where: eq(tag.id, id) }),
+						'Tags - Create Or Get - By Id'
+					);
 
 			if (currentTag) {
 				if (requireActive && currentTag.status !== 'active') {
@@ -130,7 +144,10 @@ export const tagActions = {
 		} else if (title) {
 			const currentTag = cachedData
 				? cachedData.find((current) => current.title === title)
-				: await db.query.tag.findFirst({ where: eq(tag.title, title) }).execute();
+				: await dbExecuteLogger(
+						db.query.tag.findFirst({ where: eq(tag.title, title) }),
+						'Tags - Create Or Get - Title'
+					);
 			if (currentTag) {
 				if (requireActive && currentTag.status !== 'active') {
 					throw new Error(`Tag ${currentTag.title} is not active`);
@@ -142,7 +159,10 @@ export const tagActions = {
 				status: 'active'
 			});
 
-			const newTag = await db.query.tag.findFirst({ where: eq(tag.id, newTagId) }).execute();
+			const newTag = await dbExecuteLogger(
+				db.query.tag.findFirst({ where: eq(tag.id, newTagId) }),
+				'Tags - Create Or Get - New Tag'
+			);
 			if (!newTag) {
 				throw new Error('Error Creating Tag');
 			}
@@ -153,7 +173,7 @@ export const tagActions = {
 	},
 	create: async (db: DBType, data: CreateTagSchemaType) => {
 		const id = nanoid();
-		await db.insert(tag).values(tagCreateInsertionData(data, id)).execute();
+		await dbExecuteLogger(db.insert(tag).values(tagCreateInsertionData(data, id)), 'Tags - Create');
 
 		await materializedViewActions.setRefreshRequired(db);
 		return id;
@@ -163,29 +183,34 @@ export const tagActions = {
 		const insertData = data.map((currentData, index) =>
 			tagCreateInsertionData(currentData, ids[index])
 		);
-		await db.insert(tag).values(insertData).execute();
+		await dbExecuteLogger(db.insert(tag).values(insertData), 'Tags - Create Many');
 
 		await materializedViewActions.setRefreshRequired(db);
 		return ids;
 	},
 	update: async (db: DBType, data: UpdateTagSchemaType) => {
 		const { id } = data;
-		const currentTag = await db.query.tag.findFirst({ where: eq(tag.id, id) }).execute();
+		const currentTag = await dbExecuteLogger(
+			db.query.tag.findFirst({ where: eq(tag.id, id) }),
+			'Tags - Update - Current Tag'
+		);
 
 		if (!currentTag) {
 			logging.error('Update Tag: Tag not found', data);
 			return id;
 		}
 
-		await db
-			.update(tag)
-			.set({
-				...statusUpdate(data.status),
-				...updatedTime(),
-				...combinedTitleSplit(data)
-			})
-			.where(eq(tag.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(tag)
+				.set({
+					...statusUpdate(data.status),
+					...updatedTime(),
+					...combinedTitleSplit(data)
+				})
+				.where(eq(tag.id, id)),
+			'Tags - Update'
+		);
 
 		await materializedViewActions.setRefreshRequired(db);
 		return id;
@@ -198,9 +223,10 @@ export const tagActions = {
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
 	canDelete: async (db: DBType, data: IdSchemaType) => {
-		const currentTag = await db.query.tag
-			.findFirst({ where: eq(tag.id, data.id), with: { journals: { limit: 1 } } })
-			.execute();
+		const currentTag = await dbExecuteLogger(
+			db.query.tag.findFirst({ where: eq(tag.id, data.id), with: { journals: { limit: 1 } } }),
+			'Tags - Can Delete'
+		);
 		if (!currentTag) {
 			return true;
 		}
@@ -211,7 +237,7 @@ export const tagActions = {
 	delete: async (db: DBType, data: IdSchemaType) => {
 		// If the tag has no journals, then mark as deleted, otherwise do nothing
 		if (await tagActions.canDelete(db, data)) {
-			await db.delete(tag).where(eq(tag.id, data.id)).execute();
+			await dbExecuteLogger(db.delete(tag).where(eq(tag.id, data.id)), 'Tags - Delete');
 		}
 
 		await materializedViewActions.setRefreshRequired(db);
@@ -225,15 +251,15 @@ export const tagActions = {
 			return currentTag && currentTag.journalCount === 0;
 		});
 		if (itemsForDeletion.length === data.length) {
-			await db
-				.delete(tag)
-				.where(
+			await dbExecuteLogger(
+				db.delete(tag).where(
 					inArrayWrapped(
 						tag.id,
 						itemsForDeletion.map((item) => item.id)
 					)
-				)
-				.execute();
+				),
+				'Tags - Delete Many'
+			);
 			await materializedViewActions.setRefreshRequired(db);
 			return true;
 		}
@@ -243,7 +269,10 @@ export const tagActions = {
 		logging.info('Seeding Tags : ', count);
 
 		const existingTitles = (
-			await db.query.tag.findMany({ columns: { title: true } }).execute()
+			await dbExecuteLogger(
+				db.query.tag.findMany({ columns: { title: true } }),
+				'Tags - Seed - Existing'
+			)
 		).map((item) => item.title);
 		const itemsToCreate = createUniqueItemsOnly({
 			existing: existingTitles,

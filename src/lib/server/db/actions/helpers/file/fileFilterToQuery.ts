@@ -11,6 +11,7 @@ import type {
 	FileFilterSchemaWithoutPaginationType,
 	LinkedFileFilterSchemaType
 } from '$lib/schema/fileSchema';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType) => {
 	const restFilter = processNoteTextFilter.process(filter);
@@ -72,12 +73,15 @@ export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType)
 };
 
 export const fileIdToTitle = async (db: DBType, id: string) => {
-	const title = await db.query.fileTable.findFirst({
-		where: ({ id: idColumn }, { eq }) => eq(idColumn, id),
-		columns: {
-			title: true
-		}
-	});
+	const title = await dbExecuteLogger(
+		db.query.fileTable.findFirst({
+			where: ({ id: idColumn }, { eq }) => eq(idColumn, id),
+			columns: {
+				title: true
+			}
+		}),
+		'File ID To Title'
+	);
 	if (!title || !title.title) {
 		return id;
 	}

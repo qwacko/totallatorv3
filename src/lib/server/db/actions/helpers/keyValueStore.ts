@@ -1,16 +1,19 @@
 import { eq } from 'drizzle-orm';
 import { type DBType } from '../../db';
 import { keyValueTable } from '../../postgres/schema';
+import { dbExecuteLogger } from '../../dbLogger';
 
 export const keyValueStore = (key: string) => {
 	return {
 		get: async (db: DBType) => {
-			const keyValue = await db
-				.select({ value: keyValueTable.value })
-				.from(keyValueTable)
-				.where(eq(keyValueTable.key, key))
-				.limit(1)
-				.execute();
+			const keyValue = await dbExecuteLogger(
+				db
+					.select({ value: keyValueTable.value })
+					.from(keyValueTable)
+					.where(eq(keyValueTable.key, key))
+					.limit(1),
+				'Key Value Store - Get'
+			);
 
 			if (keyValue?.length > 0) {
 				return keyValue[0].value;
@@ -18,14 +21,16 @@ export const keyValueStore = (key: string) => {
 			return undefined;
 		},
 		set: async (db: DBType, value: string) => {
-			await db
-				.insert(keyValueTable)
-				.values({
-					key,
-					value
-				})
-				.onConflictDoUpdate({ target: keyValueTable.key, set: { value } })
-				.execute();
+			await dbExecuteLogger(
+				db
+					.insert(keyValueTable)
+					.values({
+						key,
+						value
+					})
+					.onConflictDoUpdate({ target: keyValueTable.key, set: { value } }),
+				'Key Value Store - Set'
+			);
 		}
 	};
 };

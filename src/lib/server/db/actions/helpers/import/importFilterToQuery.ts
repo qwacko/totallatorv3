@@ -10,6 +10,7 @@ import { importTable } from '$lib/server/db/postgres/schema';
 import type { DBType } from '$lib/server/db/db';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { autoImportIdToTitle } from '../autoImport/autoImportFilterToQuery';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const importFilterToQuery = ({
 	filter,
@@ -71,12 +72,14 @@ export const importFilterToQuery = ({
 };
 
 const importIdToTitle = async (db: DBType, id: string) => {
-	const foundImport = await db
-		.select({ title: importTable.title })
-		.from(importTable)
-		.where(eq(importTable.id, id))
-		.limit(1)
-		.execute();
+	const foundImport = await dbExecuteLogger(
+		db
+			.select({ title: importTable.title })
+			.from(importTable)
+			.where(eq(importTable.id, id))
+			.limit(1),
+		'importIdToTitle'
+	);
 
 	if (foundImport?.length === 1) {
 		return foundImport[0].title;

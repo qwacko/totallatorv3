@@ -33,6 +33,7 @@ import { dateRangeMaterializedView } from '../postgres/schema/materializedViewSc
 import type { DBDateRangeType } from './helpers/report/filtersToDateRange';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { logging } from '$lib/server/logging';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const reportActions = {
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
@@ -53,9 +54,15 @@ export const reportActions = {
 				ids: reportInfo.reportElements.map((item) => item.id)
 			});
 			if (reportInfo.filterId) {
-				await trx.delete(filterTable).where(eq(filterTable.id, reportInfo.filterId)).execute();
+				await dbExecuteLogger(
+					trx.delete(filterTable).where(eq(filterTable.id, reportInfo.filterId)),
+					'Report - Delete - Delete Filter'
+				);
 			}
-			await trx.delete(report).where(eq(report.id, id)).execute();
+			await dbExecuteLogger(
+				trx.delete(report).where(eq(report.id, id)),
+				'Report - Delete - Delete Report'
+			);
 		});
 	},
 	create: async ({ db, data }: { db: DBType; data: CreateReportType }) => {
@@ -66,10 +73,10 @@ export const reportActions = {
 		].map((item) => ({ ...item, reportId: id }));
 
 		await db.transaction(async (trx) => {
-			await trx
-				.insert(report)
-				.values({ id, ...data, ...updatedTime() })
-				.execute();
+			await dbExecuteLogger(
+				trx.insert(report).values({ id, ...data, ...updatedTime() }),
+				'Report - Create - Insert Report'
+			);
 
 			await reportActions.reportElement.createMany({
 				db: trx,
@@ -80,10 +87,10 @@ export const reportActions = {
 		return id;
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
-		const reports = await db
-			.select({ id: report.id, title: report.title, group: report.group })
-			.from(report)
-			.execute();
+		const reports = await dbExecuteLogger(
+			db.select({ id: report.id, title: report.title, group: report.group }).from(report),
+			'Report - List For Dropdown'
+		);
 
 		const reportGroups = filterNullUndefinedAndDuplicates(reports.map((item) => item.group)).sort(
 			(a, b) => a.localeCompare(b)
@@ -106,9 +113,12 @@ export const reportActions = {
 		];
 	},
 	getSimpleReportConfig: async ({ db, id }: { db: DBType; id: string }) => {
-		const reportConfig = await db.query.report.findFirst({
-			where: (report, { eq }) => eq(report.id, id)
-		});
+		const reportConfig = await dbExecuteLogger(
+			db.query.report.findFirst({
+				where: (report, { eq }) => eq(report.id, id)
+			}),
+			'Report - Get Simple Report Config'
+		);
 
 		if (!reportConfig) {
 			return undefined;
@@ -125,13 +135,16 @@ export const reportActions = {
 		id: string;
 		pageFilter?: JournalFilterSchemaWithoutPaginationType;
 	}) => {
-		const reportConfig = await db.query.report.findFirst({
-			where: (report, { eq }) => eq(report.id, id),
-			with: {
-				filter: true,
-				reportElements: true
-			}
-		});
+		const reportConfig = await dbExecuteLogger(
+			db.query.report.findFirst({
+				where: (report, { eq }) => eq(report.id, id),
+				with: {
+					filter: true,
+					reportElements: true
+				}
+			}),
+			'Report - Get Report Config'
+		);
 
 		if (!reportConfig) {
 			return undefined;
@@ -200,11 +213,13 @@ export const reportActions = {
 				//Update Existing ELements
 				await Promise.all(
 					reportElementsToUpdate.map(async (currentReportElement) => {
-						await trx
-							.update(reportElement)
-							.set(currentReportElement)
-							.where(eq(reportElement.id, currentReportElement.id))
-							.execute();
+						await dbExecuteLogger(
+							trx
+								.update(reportElement)
+								.set(currentReportElement)
+								.where(eq(reportElement.id, currentReportElement.id)),
+							'Report - Update Layout - Update Element'
+						);
 					})
 				);
 			}
@@ -234,13 +249,15 @@ export const reportActions = {
 		await db.transaction(async (trx) => {
 			await reportActions.filter.create({ db: trx, id: filterId });
 
-			await trx
-				.update(report)
-				.set({
-					filterId
-				})
-				.where(eq(report.id, id))
-				.execute();
+			await dbExecuteLogger(
+				trx
+					.update(report)
+					.set({
+						filterId
+					})
+					.where(eq(report.id, id)),
+				'Report - Add Filter - Update Report'
+			);
 		});
 
 		return;
@@ -322,9 +339,12 @@ export const reportActions = {
 				throw new Error('Invalid Report Element Config');
 			}
 
-			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
-				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId)
-			});
+			const reportElementConfigData = await dbExecuteLogger(
+				db.query.reportElementConfig.findFirst({
+					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId)
+				}),
+				'Report Element Config Item - Update - Find'
+			);
 
 			if (!reportElementConfigData?.config) {
 				throw new Error('Report Element Config not found');
@@ -338,45 +358,57 @@ export const reportActions = {
 				return item;
 			});
 
-			await db
-				.update(reportElementConfig)
-				.set({ config: updatedConfig, ...updatedTime() })
-				.where(eq(reportElementConfig.id, configId))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(reportElementConfig)
+					.set({ config: updatedConfig, ...updatedTime() })
+					.where(eq(reportElementConfig.id, configId)),
+				'Report Element Config Item - Update - Update'
+			);
 		}
 	},
 	reportElementConfiguration: {
 		listReusable: async ({ db }: { db: DBType }) => {
-			const reportElementConfigs = await db
-				.select({ id: reportElementConfig.id, title: reportElementConfig.title })
-				.from(reportElementConfig)
-				.where(eq(reportElementConfig.reusable, true))
-				.execute();
+			const reportElementConfigs = await dbExecuteLogger(
+				db
+					.select({ id: reportElementConfig.id, title: reportElementConfig.title })
+					.from(reportElementConfig)
+					.where(eq(reportElementConfig.reusable, true)),
+				'Report Element Configuration - List Reusable'
+			);
 
 			return reportElementConfigs;
 		},
 		setReusable: async ({ db, id }: { db: DBType; id: string }) => {
-			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
-				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id)
-			});
+			const reportElementConfigData = await dbExecuteLogger(
+				db.query.reportElementConfig.findFirst({
+					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id)
+				}),
+				'Report Element Configuration - Set Reusable - Find'
+			);
 
 			if (!reportElementConfigData) {
 				throw new Error('Report Element Config not found');
 			}
 
-			await db
-				.update(reportElementConfig)
-				.set({ reusable: true })
-				.where(eq(reportElementConfig.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(reportElementConfig)
+					.set({ reusable: true })
+					.where(eq(reportElementConfig.id, id)),
+				'Report Element Configuration - Set Reusable - Update'
+			);
 		},
 		clearReusable: async ({ db, id }: { db: DBType; id: string }) => {
-			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
-				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id),
-				with: {
-					reportElements: true
-				}
-			});
+			const reportElementConfigData = await dbExecuteLogger(
+				db.query.reportElementConfig.findFirst({
+					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id),
+					with: {
+						reportElements: true
+					}
+				}),
+				'Report Element Configuration - Clear Reusable - Find'
+			);
 
 			if (!reportElementConfigData) {
 				throw new Error('Report Element Config not found');
@@ -386,11 +418,13 @@ export const reportActions = {
 				throw new Error('Report Element Config is used in multiple reports elements');
 			}
 
-			await db
-				.update(reportElementConfig)
-				.set({ reusable: false })
-				.where(eq(reportElementConfig.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(reportElementConfig)
+					.set({ reusable: false })
+					.where(eq(reportElementConfig.id, id)),
+				'Report Element Configuration - Clear Reusable - Update'
+			);
 		},
 		update: async ({
 			db,
@@ -401,12 +435,15 @@ export const reportActions = {
 			reportElementId: string;
 			data: UpdateReportConfigurationType;
 		}) => {
-			const reportElementInfo = await db.query.reportElement.findFirst({
-				where: (reportElement, { eq }) => eq(reportElement.id, reportElementId),
-				with: {
-					reportElementConfig: true
-				}
-			});
+			const reportElementInfo = await dbExecuteLogger(
+				db.query.reportElement.findFirst({
+					where: (reportElement, { eq }) => eq(reportElement.id, reportElementId),
+					with: {
+						reportElementConfig: true
+					}
+				}),
+				'Report Element Configuration - Update - Find'
+			);
 			if (!reportElementInfo?.reportElementConfig) {
 				throw new Error('Report Element Config not found');
 			}
@@ -414,21 +451,26 @@ export const reportActions = {
 				throw new Error('Report Element Config is locked');
 			}
 
-			await db
-				.update(reportElementConfig)
-				.set({ ...data, ...updatedTime() })
-				.where(eq(reportElementConfig.id, reportElementInfo.reportElementConfig.id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(reportElementConfig)
+					.set({ ...data, ...updatedTime() })
+					.where(eq(reportElementConfig.id, reportElementInfo.reportElementConfig.id)),
+				'Report Element Configuration - Update - Update'
+			);
 
 			return;
 		},
 		addFilter: async ({ db, configId }: { db: DBType; configId: string }) => {
-			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
-				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
-				with: {
-					filters: true
-				}
-			});
+			const reportElementConfigData = await dbExecuteLogger(
+				db.query.reportElementConfig.findFirst({
+					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
+					with: {
+						filters: true
+					}
+				}),
+				'Report Element Configuration - Add Filter - Find'
+			);
 
 			if (!reportElementConfigData) {
 				throw new Error('Report Element Config not found');
@@ -448,16 +490,16 @@ export const reportActions = {
 			await db.transaction(async (trx) => {
 				await reportActions.filter.create({ db: trx, id: newFilterId });
 
-				await trx
-					.insert(filtersToReportConfigs)
-					.values({
+				await dbExecuteLogger(
+					trx.insert(filtersToReportConfigs).values({
 						id: nanoid(),
 						reportElementConfigId: configId,
 						filterId: newFilterId,
 						order: newFilterOrder,
 						...updatedTime()
-					})
-					.execute();
+					}),
+					'Report Element Configuration - Add Filter - Insert'
+				);
 			});
 		},
 		updateFilter: async ({
@@ -471,12 +513,15 @@ export const reportActions = {
 			filterId: string;
 			filter: JournalFilterSchemaWithoutPaginationType;
 		}) => {
-			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
-				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
-				with: {
-					filters: true
-				}
-			});
+			const reportElementConfigData = await dbExecuteLogger(
+				db.query.reportElementConfig.findFirst({
+					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
+					with: {
+						filters: true
+					}
+				}),
+				'Report Element Configuration - Update Filter - Find'
+			);
 
 			if (!reportElementConfigData) {
 				throw new Error('Report Element Config not found');
@@ -513,12 +558,15 @@ export const reportActions = {
 			configId: string;
 			filterId: string;
 		}) => {
-			const reportElementConfigData = await db.query.reportElementConfig.findFirst({
-				where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
-				with: {
-					filters: true
-				}
-			});
+			const reportElementConfigData = await dbExecuteLogger(
+				db.query.reportElementConfig.findFirst({
+					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
+					with: {
+						filters: true
+					}
+				}),
+				'Report Element Configuration - Remove Filter - Find'
+			);
 
 			if (!reportElementConfigData) {
 				throw new Error('Report Element Config not found');
@@ -537,12 +585,17 @@ export const reportActions = {
 			}
 
 			await db.transaction(async (trx) => {
-				await trx
-					.delete(filtersToReportConfigs)
-					.where(eq(filtersToReportConfigs.id, filterToRemove.id))
-					.execute();
+				await dbExecuteLogger(
+					trx
+						.delete(filtersToReportConfigs)
+						.where(eq(filtersToReportConfigs.id, filterToRemove.id)),
+					'Report Element Configuration - Remove Filter - Delete'
+				);
 
-				await trx.delete(filterTable).where(eq(filterTable.id, filterId)).execute();
+				await dbExecuteLogger(
+					trx.delete(filterTable).where(eq(filterTable.id, filterId)),
+					'Report Element Configuration - Remove Filter - Delete Filter'
+				);
 			});
 		}
 	},
@@ -551,10 +604,10 @@ export const reportActions = {
 			const filterConfig: JournalFilterSchemaWithoutPaginationType = {};
 			const filterText = (await journalFilterToText({ db, filter: filterConfig })).join(' and ');
 
-			await db
-				.insert(filterTable)
-				.values({ id, ...updatedTime(), filter: filterConfig, filterText })
-				.execute();
+			await dbExecuteLogger(
+				db.insert(filterTable).values({ id, ...updatedTime(), filter: filterConfig, filterText }),
+				'Filter - Create - Insert'
+			);
 		},
 		update: async ({
 			db,
@@ -565,9 +618,12 @@ export const reportActions = {
 			filterId: string;
 			filterConfig: JournalFilterSchemaWithoutPaginationType;
 		}) => {
-			const filterFromDB = await db.query.filter.findFirst({
-				where: (filter, { eq }) => eq(filter.id, filterId)
-			});
+			const filterFromDB = await dbExecuteLogger(
+				db.query.filter.findFirst({
+					where: (filter, { eq }) => eq(filter.id, filterId)
+				}),
+				'Filter - Update - Find'
+			);
 
 			if (!filterFromDB) {
 				throw new Error('Filter does not exist');
@@ -582,15 +638,17 @@ export const reportActions = {
 			const filterText = await journalFilterToText({ db, filter: validatedFilter.data });
 
 			await db.transaction(async (trx) => {
-				await trx
-					.update(filterTable)
-					.set({
-						filter: validatedFilter.data,
-						filterText: filterText.join(' and '),
-						...updatedTime()
-					})
-					.where(eq(filterTable.id, filterId))
-					.execute();
+				await dbExecuteLogger(
+					trx
+						.update(filterTable)
+						.set({
+							filter: validatedFilter.data,
+							filterText: filterText.join(' and '),
+							...updatedTime()
+						})
+						.where(eq(filterTable.id, filterId)),
+					'Filter - Update - Update'
+				);
 			});
 
 			return;
@@ -606,27 +664,33 @@ export const reportActions = {
 			id: string;
 			pageFilter?: JournalFilterSchemaWithoutPaginationType;
 		}) => {
-			const elementConfig = await db.query.reportElement.findFirst({
-				where: (reportElement, { eq }) => eq(reportElement.id, id),
-				with: {
-					filter: true,
-					report: {
-						with: {
-							filter: true
-						}
-					},
-					reportElementConfig: {
-						with: {
-							filters: { with: { filter: true } }
+			const elementConfig = await dbExecuteLogger(
+				db.query.reportElement.findFirst({
+					where: (reportElement, { eq }) => eq(reportElement.id, id),
+					with: {
+						filter: true,
+						report: {
+							with: {
+								filter: true
+							}
+						},
+						reportElementConfig: {
+							with: {
+								filters: { with: { filter: true } }
+							}
 						}
 					}
-				}
-			});
+				}),
+				'Report Element - Get With Data - Get Element Config'
+			);
 
-			const simpleElementConfigPromise = db.query.reportElement.findFirst({
-				where: (reportElement, { eq }) => eq(reportElement.id, id),
-				with: { reportElementConfig: true }
-			});
+			const simpleElementConfigPromise = dbExecuteLogger(
+				db.query.reportElement.findFirst({
+					where: (reportElement, { eq }) => eq(reportElement.id, id),
+					with: { reportElementConfig: true }
+				}),
+				'Report Element - Get With Data - Get Simple Element Config'
+			);
 
 			if (!elementConfig) {
 				throw new Error('Report Element not found');
@@ -636,7 +700,10 @@ export const reportActions = {
 
 			if (!simpleElementConfig) throw new Error('Report Element Config not found');
 
-			const dateRange = await db.select().from(dateRangeMaterializedView).limit(1).execute();
+			const dateRange = await dbExecuteLogger(
+				db.select().from(dateRangeMaterializedView).limit(1),
+				'Report Element - Get With Data - Date Range'
+			);
 
 			const processedDateRange: DBDateRangeType = {
 				min: dateRange[0]?.minDate || new Date('2000-01-01'),
@@ -663,19 +730,25 @@ export const reportActions = {
 			return { id: simpleElementConfig.id, elementConfig: simpleElementConfig, itemData: data };
 		},
 		deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
-			const reportElements = await db.query.reportElement.findMany({
-				where: (reportElement) => inArrayWrapped(reportElement.id, ids)
-			});
+			const reportElements = await dbExecuteLogger(
+				db.query.reportElement.findMany({
+					where: (reportElement) => inArrayWrapped(reportElement.id, ids)
+				}),
+				'Report Element - Delete Many - Find'
+			);
 
 			const reportElementConfigIds = reportElements.map((item) => item.reportElementConfigId);
 
-			const reportElementConfigs = await db.query.reportElementConfig.findMany({
-				where: (reportElementConfig) =>
-					inArrayWrapped(reportElementConfig.id, reportElementConfigIds),
-				with: {
-					reportElements: true
-				}
-			});
+			const reportElementConfigs = await dbExecuteLogger(
+				db.query.reportElementConfig.findMany({
+					where: (reportElementConfig) =>
+						inArrayWrapped(reportElementConfig.id, reportElementConfigIds),
+					with: {
+						reportElements: true
+					}
+				}),
+				'Report Element - Delete Many - Find Configs'
+			);
 
 			const reportElementsToDelete = reportElements.map((item) => item.id);
 
@@ -695,46 +768,53 @@ export const reportActions = {
 				})
 			);
 
-			const reportConfigToFiltersToDelete = await db.query.filtersToReportConfigs.findMany({
-				where: (filtersToReportConfigs) =>
-					inArrayWrapped(filtersToReportConfigs.reportElementConfigId, reportConfigsToDelete)
-			});
+			const reportConfigToFiltersToDelete = await dbExecuteLogger(
+				db.query.filtersToReportConfigs.findMany({
+					where: (filtersToReportConfigs) =>
+						inArrayWrapped(filtersToReportConfigs.reportElementConfigId, reportConfigsToDelete)
+				}),
+				'Report Element - Delete Many - Find Filters'
+			);
 
 			await db.transaction(async (trx) => {
 				if (reportElementsToDelete.length > 0) {
-					await trx
-						.delete(reportElement)
-						.where(inArrayWrapped(reportElement.id, reportElementsToDelete))
-						.execute();
+					await dbExecuteLogger(
+						trx
+							.delete(reportElement)
+							.where(inArrayWrapped(reportElement.id, reportElementsToDelete)),
+						'Report Element - Delete Many - Delete Elements'
+					);
 				}
 
 				if (reportConfigsToDelete.length > 0) {
-					await trx
-						.delete(reportElementConfig)
-						.where(inArrayWrapped(reportElementConfig.id, reportConfigsToDelete))
-						.execute();
+					await dbExecuteLogger(
+						trx
+							.delete(reportElementConfig)
+							.where(inArrayWrapped(reportElementConfig.id, reportConfigsToDelete)),
+						'Report Element - Delete Many - Delete Configs'
+					);
 				}
 
 				if (reportConfigToFiltersToDelete.length > 0) {
-					await trx
-						.delete(filtersToReportConfigs)
-						.where(
+					await dbExecuteLogger(
+						trx.delete(filtersToReportConfigs).where(
 							inArrayWrapped(
 								filtersToReportConfigs.reportElementConfigId,
 								reportConfigToFiltersToDelete.map((item) => item.id)
 							)
-						)
-						.execute();
+						),
+						'Report Element - Delete Many - Delete Filters'
+					);
 
-					await trx
-						.delete(filterTable)
-						.where(
+					await dbExecuteLogger(
+						trx.delete(filterTable).where(
 							inArrayWrapped(
 								filterTable.id,
 								reportConfigToFiltersToDelete.map((item) => item.filterId)
 							)
-						)
-						.execute();
+						),
+						'Report Element - Delete Many - Delete Filter'
+					);
 				}
 			});
 		},
@@ -772,23 +852,32 @@ export const reportActions = {
 			);
 
 			await db.transaction(async (trx) => {
-				await trx.insert(reportElement).values(reportElementsData).execute();
-				await trx.insert(reportElementConfig).values(reportElementsConfigData).execute();
+				await dbExecuteLogger(
+					trx.insert(reportElement).values(reportElementsData),
+					'Report Element - Create Many - Insert Elements'
+				);
+				await dbExecuteLogger(
+					trx.insert(reportElementConfig).values(reportElementsConfigData),
+					'Report Element - Create Many - Insert Configs'
+				);
 			});
 		},
 		get: async ({ db, id }: { db: DBType; id: string }) => {
-			const reportElementData = await db.query.reportElement.findFirst({
-				where: (reportElement, { eq }) => eq(reportElement.id, id),
-				with: {
-					filter: true,
-					reportElementConfig: { with: { filters: { with: { filter: true } } } },
-					report: {
-						with: {
-							filter: true
+			const reportElementData = await dbExecuteLogger(
+				db.query.reportElement.findFirst({
+					where: (reportElement, { eq }) => eq(reportElement.id, id),
+					with: {
+						filter: true,
+						reportElementConfig: { with: { filters: { with: { filter: true } } } },
+						report: {
+							with: {
+								filter: true
+							}
 						}
 					}
-				}
-			});
+				}),
+				'Report Element - Get'
+			);
 
 			if (!reportElementData) {
 				return undefined;
@@ -803,17 +892,18 @@ export const reportActions = {
 
 			await db.transaction(async (trx) => {
 				if (restData.clearTitle) {
-					await trx
-						.update(reportElement)
-						.set({ title: null })
-						.where(eq(reportElement.id, id))
-						.execute();
+					await dbExecuteLogger(
+						trx.update(reportElement).set({ title: null }).where(eq(reportElement.id, id)),
+						'Report Element - Update - Clear Title'
+					);
 				} else if (restData.title) {
-					await trx
-						.update(reportElement)
-						.set({ title: restData.title })
-						.where(eq(reportElement.id, id))
-						.execute();
+					await dbExecuteLogger(
+						trx
+							.update(reportElement)
+							.set({ title: restData.title })
+							.where(eq(reportElement.id, id)),
+						'Report Element - Update - Update Title'
+					);
 				}
 			});
 
@@ -838,13 +928,15 @@ export const reportActions = {
 			await db.transaction(async (trx) => {
 				await reportActions.filter.create({ db: trx, id: filterId });
 
-				await trx
-					.update(reportElement)
-					.set({
-						filterId
-					})
-					.where(eq(reportElement.id, id))
-					.execute();
+				await dbExecuteLogger(
+					trx
+						.update(reportElement)
+						.set({
+							filterId
+						})
+						.where(eq(reportElement.id, id)),
+					'Report Element - Add Filter - Update Element'
+				);
 			});
 
 			return;
@@ -894,15 +986,20 @@ export const reportActions = {
 			}
 
 			await db.transaction(async (trx) => {
-				await trx
-					.update(reportElement)
-					.set({
-						filterId: null
-					})
-					.where(eq(reportElement.id, id))
-					.execute();
+				await dbExecuteLogger(
+					trx
+						.update(reportElement)
+						.set({
+							filterId: null
+						})
+						.where(eq(reportElement.id, id)),
+					'Report Element - Remove Filter - Update Element'
+				);
 
-				await trx.delete(filterTable).where(eq(filterTable.id, filterId)).execute();
+				await dbExecuteLogger(
+					trx.delete(filterTable).where(eq(filterTable.id, filterId)),
+					'Report Element - Remove Filter - Delete Filter'
+				);
 			});
 
 			return;

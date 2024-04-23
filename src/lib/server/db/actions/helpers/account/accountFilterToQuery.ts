@@ -22,6 +22,7 @@ import { arrayToText } from '../misc/arrayToText';
 import { processAccountTextFilter } from './accountTextFilter';
 import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const accountFilterToQuery = ({
 	filter,
@@ -209,12 +210,10 @@ export const accountFilterToQuery = ({
 };
 
 export const accountIdToTitle = async (db: DBType, id: string) => {
-	const foundAccount = await db
-		.select({ title: account.title })
-		.from(account)
-		.where(eq(account.id, id))
-		.limit(1)
-		.execute();
+	const foundAccount = await dbExecuteLogger(
+		db.select({ title: account.title }).from(account).where(eq(account.id, id)).limit(1),
+		'accountIdToTitle'
+	);
 
 	if (foundAccount?.length === 1) {
 		return foundAccount[0].title;

@@ -12,6 +12,7 @@ import { asc, desc, getTableColumns, and, sql, eq } from 'drizzle-orm';
 import { importMappingFilterToQuery } from './helpers/import/importMappingFilterToQuery';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
+import { dbExecuteLogger } from '../dbLogger';
 
 const processImportedDataResult = (data: ImportMappingType) => {
 	const { configuration, ...restData } = data;
@@ -26,11 +27,10 @@ const processImportedDataResult = (data: ImportMappingType) => {
 
 export const importMappingActions = {
 	getById: async ({ db, id }: { db: DBType; id: string }) => {
-		const data = await db
-			.select(getTableColumns(importMapping))
-			.from(importMapping)
-			.where(eq(importMapping.id, id))
-			.execute();
+		const data = await dbExecuteLogger(
+			db.select(getTableColumns(importMapping)).from(importMapping).where(eq(importMapping.id, id)),
+			'Import Mapping - Get By ID'
+		);
 
 		return data.length === 1 ? processImportedDataResult(data[0]) : undefined;
 	},
@@ -50,22 +50,26 @@ export const importMappingActions = {
 				]
 			: defaultOrderBy;
 
-		const results = await db
-			.select(getTableColumns(importMapping))
-			.from(importMapping)
-			.where(and(...where))
-			.orderBy(...orderByResult)
-			.limit(pageSize)
-			.offset(page * pageSize)
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select(getTableColumns(importMapping))
+				.from(importMapping)
+				.where(and(...where))
+				.orderBy(...orderByResult)
+				.limit(pageSize)
+				.offset(page * pageSize),
+			'Import Mapping - List - Results'
+		);
 
-		const resultCount = await db
-			.select({
-				count: drizzleCount(importMapping.id)
-			})
-			.from(importMapping)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({
+					count: drizzleCount(importMapping.id)
+				})
+				.from(importMapping)
+				.where(and(...where)),
+			'Import Mapping - List - Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -80,11 +84,13 @@ export const importMappingActions = {
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		await streamingDelay();
-		const results = await db
-			.select({ id: importMapping.id, title: importMapping.title, enabled: sql<boolean>`true` })
-			.from(importMapping)
-			.orderBy(asc(importMapping.title))
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select({ id: importMapping.id, title: importMapping.title, enabled: sql<boolean>`true` })
+				.from(importMapping)
+				.orderBy(asc(importMapping.title)),
+			'Import Mapping - List For Dropdown'
+		);
 
 		return results;
 	},
@@ -106,35 +112,40 @@ export const importMappingActions = {
 
 		const id = nanoid();
 
-		await db.insert(importMapping).values({
-			id,
-			title: data.title,
-			configuration: JSON.stringify(data.configuration),
-			sampleData: data.sampleData,
-			...updatedTime()
-		});
+		await dbExecuteLogger(
+			db.insert(importMapping).values({
+				id,
+				title: data.title,
+				configuration: JSON.stringify(data.configuration),
+				sampleData: data.sampleData,
+				...updatedTime()
+			}),
+			'Import Mapping - Create'
+		);
 
 		return id;
 	},
 	clone: async ({ db, id }: { db: DBType; id: string }) => {
-		const data = await db
-			.select(getTableColumns(importMapping))
-			.from(importMapping)
-			.where(eq(importMapping.id, id))
-			.execute();
+		const data = await dbExecuteLogger(
+			db.select(getTableColumns(importMapping)).from(importMapping).where(eq(importMapping.id, id)),
+			'Import Mapping - Clone - Find'
+		);
 
 		if (data.length === 1) {
 			const targetItem = data[0];
 
 			const newId = nanoid();
 
-			await db.insert(importMapping).values({
-				id: newId,
-				title: `${targetItem.title} (Clone)`,
-				configuration: targetItem.configuration,
-				sampleData: targetItem.sampleData,
-				...updatedTime()
-			});
+			await dbExecuteLogger(
+				db.insert(importMapping).values({
+					id: newId,
+					title: `${targetItem.title} (Clone)`,
+					configuration: targetItem.configuration,
+					sampleData: targetItem.sampleData,
+					...updatedTime()
+				}),
+				'Import Mapping - Clone - Insert'
+			);
 
 			return newId;
 		}
@@ -161,19 +172,26 @@ export const importMappingActions = {
 			throw new Error(`Configuration Error : ${processedConfig.error.message}`);
 		}
 
-		await db
-			.update(importMapping)
-			.set({
-				title: data.title,
-				configuration:
-					data.configuration && processedConfig ? JSON.stringify(processedConfig.data) : undefined,
-				sampleData: data.sampleData,
-				...updatedTime()
-			})
-			.where(eq(importMapping.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(importMapping)
+				.set({
+					title: data.title,
+					configuration:
+						data.configuration && processedConfig
+							? JSON.stringify(processedConfig.data)
+							: undefined,
+					sampleData: data.sampleData,
+					...updatedTime()
+				})
+				.where(eq(importMapping.id, id)),
+			'Import Mapping - Update'
+		);
 	},
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
-		await db.delete(importMapping).where(eq(importMapping.id, id)).execute();
+		await dbExecuteLogger(
+			db.delete(importMapping).where(eq(importMapping.id, id)),
+			'Import Mapping - Delete'
+		);
 	}
 };
