@@ -122,7 +122,14 @@ export const getData_SaltEdge = async ({
 		lookbackDays: config.lookbackDays
 	});
 
-	const filteredTransactions = transactions.filter((item) => item.made_on >= useStartDate);
+	const filteredTransactions = transactions
+		.filter((item) => item.made_on >= useStartDate)
+		.map((item) => ({
+			...item,
+			localDate: new Date(new Date(item.made_on).getTime() - new Date().getTimezoneOffset() * 60000)
+				.toISOString()
+				.slice(0, 10)
+		}));
 
 	return filteredTransactions;
 };
