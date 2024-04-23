@@ -118,7 +118,7 @@
 			icon: BackupIcon,
 			href: urlGenerator({ address: '/(loggedIn)/backup', searchParamsValue: { page: 0 } })
 		},
-		{
+		...(data.enableDBLog ?  [{
 			label: 'Query Groups',
 			active: pageIsGroupedQueries,
 			icon: DBGroupedQueryIcon,
@@ -129,7 +129,7 @@
 			active: pageIsQueryLog,
 			icon: DBQueryIcon,
 			href: urlGenerator({ address: '/(loggedIn)/queries/list', searchParamsValue: { page: 0, pageSize: 10, textFilter: "last:60" } })
-		},
+		}]:[]),
 		...(data.user
 			? [
 					{

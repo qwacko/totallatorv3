@@ -16,6 +16,7 @@ import { queryLogTable, queryContentsTable, queryLogTitleTable } from '../postgr
 import { queryLogOrderByToSQL } from './helpers/queryLog/queryLogOrderByToSQL';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { nanoid } from 'nanoid';
+import { serverEnv } from '$lib/server/serverEnv';
 
 const paginationReturnBuilder = <T extends Record<string, any>>({
 	data,
@@ -166,19 +167,24 @@ export const queryLogActions = {
 		//Remove logs older than 30 days
 		await db
 			.delete(queryLogTable)
-			.where(lt(queryLogTable.time, new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)));
+			.where(
+				lt(
+					queryLogTable.time,
+					new Date(Date.now() - serverEnv.DBLOG_STORAGE_HOURS * 60 * 60 * 1000)
+				)
+			);
 
 		//Remove the oldest logs if there are more than 100000
 		const queryLogCount = await db
 			.select({ count: drizzleCount(queryLogTable.id) })
 			.from(queryLogTable)
 			.execute();
-		if (queryLogCount[0].count > 100000) {
+		if (queryLogCount[0].count > serverEnv.DBLOG_STORAGE_COUNT) {
 			const oldestLogs = await db
 				.select({ id: queryLogTable.id })
 				.from(queryLogTable)
 				.orderBy(asc(queryLogTable.time))
-				.limit(queryLogCount[0].count - 100000)
+				.limit(queryLogCount[0].count - serverEnv.DBLOG_STORAGE_COUNT)
 				.execute();
 			await db.delete(queryLogTable).where(
 				inArray(

@@ -49,7 +49,12 @@ const serverEnvValidation = z.object({
 	S3_ACCESS_KEY_ID: z.string().optional(),
 	S3_SECRET_ACCESS_KEY: z.string().optional(),
 	S3_ACCESS_URL: z.string().optional(),
-	S3_REGION: z.string().optional()
+	S3_REGION: z.string().optional(),
+	DBLOG_ENABLE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
+	DBLOG_CACHE_SIZE: z.coerce.number().optional().default(1000),
+	DBLOG_CACHE_TIMEOUT: z.coerce.number().optional().default(5000),
+	DBLOG_STORAGE_HOURS: z.coerce.number().optional().default(24),
+	DBLOG_STORAGE_COUNT: z.coerce.number().optional().default(100000)
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -75,5 +80,8 @@ export const serverEnv = serverEnvValidation.parse({
 	S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID,
 	S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY,
 	S3_ACCESS_URL: env.S3_ACCESS_URL,
-	S3_REGION: env.S3_REGION
+	S3_REGION: env.S3_REGION,
+	DBLOG_ENABLE: env.DBLOG_ENABLE,
+	DBLOG_CACHE_SIZE: env.DBLOG_CACHE_SIZE,
+	DBLOG_CACHE_TIMEOUT: env.DBLOG_CACHE_TIMEOUT
 });

@@ -3,6 +3,7 @@ import { logging } from '../logging';
 import { db } from './db';
 import { queryLogTable } from './postgres/schema';
 import { tActions } from './actions/tActions';
+import { serverEnv } from '../serverEnv';
 
 type QueryCache = {
 	title?: string;
@@ -102,8 +103,9 @@ export const dbLoggerCreate = ({
 };
 
 const dbLogger = dbLoggerCreate({
-	localCacheSize: 1000,
-	localCacheTimeout: 5000,
+	localCacheSize: serverEnv.DBLOG_CACHE_SIZE,
+	localCacheTimeout: serverEnv.DBLOG_CACHE_TIMEOUT,
+	disable: !serverEnv.DBLOG_ENABLE,
 	storeQueries: async (queries) => {
 		if (queries.length === 0) return;
 
