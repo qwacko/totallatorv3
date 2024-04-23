@@ -76,6 +76,43 @@ Directory to store backups. Note that this same environemnt variable can refer t
 
 Directory to store imports. Note that this same environemnt variable can refer to an `s3://...` address to store imports in a S3 (or compatible) bucket further details available [here](/advanced/import)
 
+## Database Query Monitoring
+
+### `DBLOG_ENABLE`
+
+- Type: `boolean`
+- Default: `false`
+
+Enable / Disable database query logging. Should normally be turned off as this creates unnecessary load on the database. Intended to be used for debugging purposes. This also enables / disables the page to view the database logs through the frontend.
+
+### DBLOG_CACHE_SIZE
+
+- Type: `number`
+- Default: `1000`
+
+Size of cache of DB Queries to retain in memory before forcing a flush to the database.
+
+### DB_LOG_CACHE_TIMEOUT
+
+- Type: `number`
+- Default: `5000`
+
+Time in milliseconds to wait for there to be no new queries before flushing the cache to the database.
+
+### DBLOG_STORAGE_HOURS
+
+- Type: `number`
+- Default: `24`
+
+Number of hours to retain database logs for in the database.
+
+### DBLOG_STORAGE_COUNT
+
+- Type: `number`
+- Default: `100000`
+
+Number of database logs to retain in the database.
+
 ## Scheduled Tasks
 
 ### `AUTOMATIC_FILTER_SCHEDULE`

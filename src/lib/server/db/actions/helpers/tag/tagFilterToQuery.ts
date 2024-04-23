@@ -20,6 +20,7 @@ import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { processTagTextFilter } from './tagTextFilter';
 import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const tagFilterToQuery = ({
 	filter,
@@ -93,12 +94,10 @@ export const tagFilterToQuery = ({
 };
 
 export const tagIdToTitle = async (db: DBType, id: string) => {
-	const foundTag = await db
-		.select({ title: tag.title })
-		.from(tag)
-		.where(eq(tag.id, id))
-		.limit(1)
-		.execute();
+	const foundTag = await dbExecuteLogger(
+		db.select({ title: tag.title }).from(tag).where(eq(tag.id, id)).limit(1),
+		'Tag ID to Title'
+	);
 
 	if (foundTag?.length === 1) {
 		return foundTag[0].title;

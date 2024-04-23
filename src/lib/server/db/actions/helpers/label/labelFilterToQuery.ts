@@ -18,6 +18,7 @@ import { labelMaterializedView } from '$lib/server/db/postgres/schema/materializ
 import { processLabelTextFilter } from './labelTextFilter';
 import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const labelFilterToQuery = (
 	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,
@@ -99,12 +100,10 @@ export const labelFilterToSubQuery = ({
 };
 
 export const labelIdToTitle = async (db: DBType, id: string) => {
-	const foundLabel = await db
-		.select({ title: label.title })
-		.from(label)
-		.where(eq(label.id, id))
-		.limit(1)
-		.execute();
+	const foundLabel = await dbExecuteLogger(
+		db.select({ title: label.title }).from(label).where(eq(label.id, id)).limit(1),
+		'Label ID to Title'
+	);
 
 	if (foundLabel?.length === 1) {
 		return foundLabel[0].title;

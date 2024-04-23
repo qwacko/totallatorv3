@@ -2,13 +2,14 @@ import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { user } from '$lib/server/db/postgres/schema';
 import { serverPageInfo, urlGenerator } from '$lib/routes';
 import { redirect } from '@sveltejs/kit';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const load = async (data) => {
 	authGuard(data);
 	const db = data.locals.db;
 	const { current } = serverPageInfo(data.route.id, data);
 	// Fetch users from database
-	const allUsers = await db.select().from(user).execute();
+	const allUsers = await dbExecuteLogger(db.select().from(user), 'Get All Users');
 
 	const perPage = 5;
 	const page = current.searchParams ? current.searchParams.page : 0;

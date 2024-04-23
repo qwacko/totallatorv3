@@ -330,6 +330,34 @@
       "when": 1713467111483,
       "tag": "0046_flippant_charles_xavier",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "5",
+      "when": 1713606932563,
+      "tag": "0047_clever_malice",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "5",
+      "when": 1713757739387,
+      "tag": "0048_premium_wendell_rand",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "5",
+      "when": 1713817931139,
+      "tag": "0049_curved_fabian_cortez",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "5",
+      "when": 1713819731932,
+      "tag": "0050_kind_lifeguard",
+      "breakpoints": true
     }
   ]
 }

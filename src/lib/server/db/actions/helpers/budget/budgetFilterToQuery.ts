@@ -20,6 +20,7 @@ import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { processBudgetTextFilter } from './budgetTextFilter';
 import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const budgetFilterToQuery = ({
 	filter,
@@ -97,12 +98,10 @@ export const budgetFilterToQuery = ({
 };
 
 export const budgetIdToTitle = async (db: DBType, id: string) => {
-	const foundBudget = await db
-		.select({ title: budget.title })
-		.from(budget)
-		.where(eq(budget.id, id))
-		.limit(1)
-		.execute();
+	const foundBudget = await dbExecuteLogger(
+		db.select({ title: budget.title }).from(budget).where(eq(budget.id, id)).limit(1),
+		'budgetIdToTitle'
+	);
 
 	if (foundBudget?.length === 1) {
 		return foundBudget[0].title;

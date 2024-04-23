@@ -21,13 +21,14 @@ import { logging } from '$lib/server/logging';
 import { count as drizzleCount } from 'drizzle-orm';
 import { seedReusableFilterData } from './helpers/seed/seedReusableFilterData';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const reusableFilterActions = {
 	count: async (db: DBType) => {
-		const count = await db
-			.select({ count: drizzleCount(reusableFilter.id) })
-			.from(reusableFilter)
-			.execute();
+		const count = await dbExecuteLogger(
+			db.select({ count: drizzleCount(reusableFilter.id) }).from(reusableFilter),
+			'Reusable Filter - Count'
+		);
 
 		return count[0].count;
 	},
@@ -48,33 +49,39 @@ export const reusableFilterActions = {
 			currentFilter.changeText.length > 0;
 
 		if (count !== currentFilter.journalCount) {
-			await db
-				.update(reusableFilter)
-				.set({ journalCount: count })
-				.where(eq(reusableFilter.id, currentFilter.id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(reusableFilter)
+					.set({ journalCount: count })
+					.where(eq(reusableFilter.id, currentFilter.id)),
+				'Reusable Filter - Update Journal Count'
+			);
 		}
 
 		if (canApply !== currentFilter.canApply) {
-			await db
-				.update(reusableFilter)
-				.set({ canApply })
-				.where(eq(reusableFilter.id, currentFilter.id))
-				.execute();
+			await dbExecuteLogger(
+				db.update(reusableFilter).set({ canApply }).where(eq(reusableFilter.id, currentFilter.id)),
+				'Reusable Filter - Update Can Apply'
+			);
 		}
 
 		if (currentFilter.needsUpdate) {
-			await db
-				.update(reusableFilter)
-				.set({ needsUpdate: false })
-				.where(eq(reusableFilter.id, currentFilter.id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(reusableFilter)
+					.set({ needsUpdate: false })
+					.where(eq(reusableFilter.id, currentFilter.id)),
+				'Reusable Filter - Update Needs Update'
+			);
 		}
 
 		return { ...itemUnpacked, canApply, journalCount: count };
 	},
 	getById: async ({ db, id }: { db: DBType; id: string }) => {
-		const item = await db.select().from(reusableFilter).where(eq(reusableFilter.id, id)).execute();
+		const item = await dbExecuteLogger(
+			db.select().from(reusableFilter).where(eq(reusableFilter.id, id)),
+			'Reusable Filter - Get By ID'
+		);
 		if (!item || item.length === 0) {
 			return undefined;
 		}
@@ -87,7 +94,10 @@ export const reusableFilterActions = {
 		return updatedFilter;
 	},
 	refreshAll: async ({ db, maximumTime }: { db: DBType; maximumTime: number }) => {
-		await db.update(reusableFilter).set({ needsUpdate: true }).execute();
+		await dbExecuteLogger(
+			db.update(reusableFilter).set({ needsUpdate: true }),
+			'Reusable Filter - Refresh All'
+		);
 		return reusableFilterActions.refresh({ db, maximumTime });
 	},
 	refreshSome: async ({ db, ids }: { db: DBType; ids: string[] }) => {
@@ -99,12 +109,10 @@ export const reusableFilterActions = {
 		let numberModified = 0;
 
 		while (Date.now() - startTime < maximumTime) {
-			const filter = await db
-				.select()
-				.from(reusableFilter)
-				.where(eq(reusableFilter.needsUpdate, true))
-				.limit(1)
-				.execute();
+			const filter = await dbExecuteLogger(
+				db.select().from(reusableFilter).where(eq(reusableFilter.needsUpdate, true)).limit(1),
+				'Reusable Filter - Refresh - Get Filter'
+			);
 			if (!filter || filter.length === 0) {
 				break;
 			}
@@ -162,22 +170,26 @@ export const reusableFilterActions = {
 				]
 			: defaultOrderBy;
 
-		const results = await db
-			.select()
-			.from(reusableFilter)
-			.where(and(...where))
-			.orderBy(...orderByResult)
-			.limit(pageSize)
-			.offset(page * pageSize)
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select()
+				.from(reusableFilter)
+				.where(and(...where))
+				.orderBy(...orderByResult)
+				.limit(pageSize)
+				.offset(page * pageSize),
+			'Reusable Filter - List - Query'
+		);
 
 		const resultsProcessed = await reusableFilterDBUnpackedMany(results);
 
-		const resultCount = await db
-			.select({ count: drizzleCount(reusableFilter.id) })
-			.from(reusableFilter)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(reusableFilter.id) })
+				.from(reusableFilter)
+				.where(and(...where)),
+			'Reusable Filter - List - Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -185,12 +197,14 @@ export const reusableFilterActions = {
 		return { count, data: resultsProcessed, pageCount, page, pageSize };
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
-		const allResults = await db
-			.select()
-			.from(reusableFilter)
-			.orderBy(asc(reusableFilter.title), desc(reusableFilter.createdAt))
-			.where(eq(reusableFilter.listed, true))
-			.execute();
+		const allResults = await dbExecuteLogger(
+			db
+				.select()
+				.from(reusableFilter)
+				.orderBy(asc(reusableFilter.title), desc(reusableFilter.createdAt))
+				.where(eq(reusableFilter.listed, true)),
+			'Reusable Filter - List For Dropdown'
+		);
 
 		const results = (await reusableFilterDBUnpackedMany(allResults)).map((item) => ({
 			title: item.title,
@@ -268,37 +282,42 @@ export const reusableFilterActions = {
 		importId: string;
 		timeout?: Date;
 	}) => {
-		const items = await db
-			.select({ id: reusableFilter.id })
-			.from(reusableFilter)
-			.where(eq(reusableFilter.applyFollowingImport, true))
-			.execute();
+		const items = await dbExecuteLogger(
+			db
+				.select({ id: reusableFilter.id })
+				.from(reusableFilter)
+				.where(eq(reusableFilter.applyFollowingImport, true)),
+			'Reusable Filter - Apply Following Import'
+		);
 
-		await db
-			.update(importTable)
-			.set({
-				importStatus: {
-					count: items.length,
-					complete: 0,
-					completeIds: [],
-					ids: items.map((item) => item.id),
-					startTime: new Date()
-				},
-				...updatedTime()
-			})
-			.where(eq(importTable.id, importId))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(importTable)
+				.set({
+					importStatus: {
+						count: items.length,
+						complete: 0,
+						completeIds: [],
+						ids: items.map((item) => item.id),
+						startTime: new Date()
+					},
+					...updatedTime()
+				})
+				.where(eq(importTable.id, importId)),
+			'Reusable Filter - Apply Following Import - Update Import Status'
+		);
 
 		let index = 1;
 
 		let remainingNumber = items.length;
 
 		while (remainingNumber > 0) {
-			const currentItem = await db.query.importTable
-				.findFirst({
+			const currentItem = await dbExecuteLogger(
+				db.query.importTable.findFirst({
 					where: eq(importTable.id, importId)
-				})
-				.execute();
+				}),
+				'Reusable Filter - Apply Following Import - Get Import'
+			);
 
 			if (!currentItem || !currentItem.importStatus) {
 				throw new Error('Import Not Found');
@@ -318,20 +337,22 @@ export const reusableFilterActions = {
 				const completeIds = [...currentImportStatus.completeIds, currentImportId];
 				remainingNumber = ids.length;
 
-				await db
-					.update(importTable)
-					.set({
-						importStatus: {
-							count: currentImportStatus.count,
-							complete: completeIds.length,
-							ids,
-							completeIds,
-							startTime: currentImportStatus.startTime
-						},
-						...updatedTime()
-					})
-					.where(eq(importTable.id, importId))
-					.execute();
+				await dbExecuteLogger(
+					db
+						.update(importTable)
+						.set({
+							importStatus: {
+								count: currentImportStatus.count,
+								complete: completeIds.length,
+								ids,
+								completeIds,
+								startTime: currentImportStatus.startTime
+							},
+							...updatedTime()
+						})
+						.where(eq(importTable.id, importId)),
+					'Reusable Filter - Apply Following Import - Update Import Status'
+				);
 			});
 
 			if (timeout && new Date() > timeout) {
@@ -341,18 +362,22 @@ export const reusableFilterActions = {
 		}
 
 		// Clear The Import Status After Completion
-		await db
-			.update(importTable)
-			.set({ importStatus: null, ...updatedTime() })
-			.where(eq(importTable.id, importId))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(importTable)
+				.set({ importStatus: null, ...updatedTime() })
+				.where(eq(importTable.id, importId)),
+			'Reusable Filter - Apply Following Import - Clear Import Status'
+		);
 	},
 	applyAllAutomatic: async ({ db }: { db: DBType }) => {
-		const items = await db
-			.select({ id: reusableFilter.id })
-			.from(reusableFilter)
-			.where(eq(reusableFilter.applyAutomatically, true))
-			.execute();
+		const items = await dbExecuteLogger(
+			db
+				.select({ id: reusableFilter.id })
+				.from(reusableFilter)
+				.where(eq(reusableFilter.applyAutomatically, true)),
+			'Reusable Filter - Apply All Automatic'
+		);
 
 		await Promise.all(
 			items.map(async (currentItem) => {
@@ -388,9 +413,8 @@ export const reusableFilterActions = {
 
 		const changeText = await journalUpdateToText({ db, change });
 
-		await db
-			.insert(reusableFilter)
-			.values({
+		await dbExecuteLogger(
+			db.insert(reusableFilter).values({
 				filter: JSON.stringify(filter),
 				filterText: filterText.join(' and '),
 				change: change ? JSON.stringify(change) : undefined,
@@ -402,8 +426,9 @@ export const reusableFilterActions = {
 				modificationType: listed ? modificationType : undefined,
 				...updatedTime(),
 				...reusableFilterData
-			})
-			.execute();
+			}),
+			'Reusable Filter - Create'
+		);
 
 		return reusableFilterActions.getById({ db, id: idUse });
 	},
@@ -422,9 +447,10 @@ export const reusableFilterActions = {
 			throw new Error('Invalid Data');
 		}
 
-		const targetItem = await db.query.reusableFilter
-			.findFirst({ where: eq(reusableFilter.id, id) })
-			.execute();
+		const targetItem = await dbExecuteLogger(
+			db.query.reusableFilter.findFirst({ where: eq(reusableFilter.id, id) }),
+			'Reusable Filter - Update - Find'
+		);
 
 		if (!targetItem) {
 			throw new Error('Item Not Found');
@@ -437,30 +463,38 @@ export const reusableFilterActions = {
 		const filterTextUse = filterText ? filterText.join(' and ') : undefined;
 		const changeText = await journalUpdateToText({ db, change });
 
-		await db
-			.update(reusableFilter)
-			.set({
-				filter: filter ? JSON.stringify(filter) : undefined,
-				filterText: filterTextUse,
-				change: change ? JSON.stringify(change) : undefined,
-				changeText: changeText ? changeText.join(', ') : undefined,
-				group: group && group.length > 0 ? group : null,
-				listed,
-				modificationType: listed ? modificationType : null,
-				...updatedTime(),
-				...reusableFilterData
-			})
-			.where(eq(reusableFilter.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(reusableFilter)
+				.set({
+					filter: filter ? JSON.stringify(filter) : undefined,
+					filterText: filterTextUse,
+					change: change ? JSON.stringify(change) : undefined,
+					changeText: changeText ? changeText.join(', ') : undefined,
+					group: group && group.length > 0 ? group : null,
+					listed,
+					modificationType: listed ? modificationType : null,
+					...updatedTime(),
+					...reusableFilterData
+				})
+				.where(eq(reusableFilter.id, id)),
+			'Reusable Filter - Update'
+		);
 
 		return reusableFilterActions.getById({ db, id });
 	},
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
-		await db.delete(reusableFilter).where(eq(reusableFilter.id, id)).execute();
+		await dbExecuteLogger(
+			db.delete(reusableFilter).where(eq(reusableFilter.id, id)),
+			'Reusable Filter - Delete'
+		);
 	},
 	deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
 		if (ids.length > 0) {
-			await db.delete(reusableFilter).where(inArrayWrapped(reusableFilter.id, ids)).execute();
+			await dbExecuteLogger(
+				db.delete(reusableFilter).where(inArrayWrapped(reusableFilter.id, ids)),
+				'Reusable Filter - Delete Many'
+			);
 		}
 	},
 	seed: async ({ db, count }: { db: DBType; count: number }) => {

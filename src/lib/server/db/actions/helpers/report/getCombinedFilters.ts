@@ -11,6 +11,7 @@ import {
 	reportConfigPartItemGroupingInfo,
 	type ReportConfigPartItemGroupingType
 } from '$lib/schema/reportHelpers/reportConfigPartItemGroupingEnum';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 const groupingEnum = ['single', 'time', 'grouped'] as const;
 const resultEnum = ['sum', 'count', 'min', 'max', 'avg'] as const;
@@ -184,18 +185,20 @@ export const getCombinedFilters = ({
 
 		const valueColumn = getValueColumn(resultType);
 
-		const dbData = await db
-			.select({
-				group1: groupingColumn1,
-				group2: groupingColumn2,
-				group3: groupingColumn3,
-				group4: groupingColumn4,
-				value: valueColumn
-			})
-			.from(journalExtendedView)
-			.where(and(...filters))
-			.groupBy(groupingColumn1, groupingColumn2, groupingColumn3, groupingColumn4)
-			.execute();
+		const dbData = await dbExecuteLogger(
+			db
+				.select({
+					group1: groupingColumn1,
+					group2: groupingColumn2,
+					group3: groupingColumn3,
+					group4: groupingColumn4,
+					value: valueColumn
+				})
+				.from(journalExtendedView)
+				.where(and(...filters))
+				.groupBy(groupingColumn1, groupingColumn2, groupingColumn3, groupingColumn4),
+			'Report - Get Combined Number'
+		);
 
 		if (!dbData[0]) {
 			return { errorMessage: 'No data found' };
@@ -220,23 +223,27 @@ export const getCombinedFilters = ({
 		const valueColumn = getValueColumn(resultType);
 
 		const dbData = groupingColumn
-			? await db
-					.select({
-						group: groupingColumn,
-						value: valueColumn
-					})
-					.from(journalExtendedView)
-					.where(and(...filters))
-					.groupBy(groupingColumn)
-					.execute()
-			: await db
-					.select({
-						group: sql<null>`null`,
-						value: valueColumn
-					})
-					.from(journalExtendedView)
-					.where(and(...filters))
-					.execute();
+			? await dbExecuteLogger(
+					db
+						.select({
+							group: groupingColumn,
+							value: valueColumn
+						})
+						.from(journalExtendedView)
+						.where(and(...filters))
+						.groupBy(groupingColumn),
+					'Report - Get Combined Filters - Get Single Number 1'
+				)
+			: await dbExecuteLogger(
+					db
+						.select({
+							group: sql<null>`null`,
+							value: valueColumn
+						})
+						.from(journalExtendedView)
+						.where(and(...filters)),
+					'Report - Get Combined Filters - Get Single Number 2'
+				);
 
 		if (!dbData[0]) {
 			return { errorMessage: 'No data found' };
@@ -278,35 +285,37 @@ export const getCombinedFilters = ({
 					.from(sql.raw(`(VALUES ('${dateOptions.join("'), ('")}')) AS date_series(date_text)`))
 			);
 
-		const dbData = await db
-			.with(dateSeries)
-			.select({
-				time: dateSeries.dateSeries,
-				group: groupingColumn ? groupingColumn : sql<string>`${nullTitle}`,
-				value: getValueColumn(resultType)
-			})
-			.from(journalExtendedView)
-			.leftJoin(
-				dateSeries,
-				eq(
-					timeGrouping === 'month'
-						? journalExtendedView.yearMonth
-						: timeGrouping === 'year'
-							? journalExtendedView.year
-							: timeGrouping === 'day'
-								? journalExtendedView.yearMonthDay
-								: timeGrouping === 'quarter'
-									? journalExtendedView.yearQuarter
-									: journalExtendedView.yearWeek,
-					dateSeries.dateSeries
+		const dbData = await dbExecuteLogger(
+			db
+				.with(dateSeries)
+				.select({
+					time: dateSeries.dateSeries,
+					group: groupingColumn ? groupingColumn : sql<string>`${nullTitle}`,
+					value: getValueColumn(resultType)
+				})
+				.from(journalExtendedView)
+				.leftJoin(
+					dateSeries,
+					eq(
+						timeGrouping === 'month'
+							? journalExtendedView.yearMonth
+							: timeGrouping === 'year'
+								? journalExtendedView.year
+								: timeGrouping === 'day'
+									? journalExtendedView.yearMonthDay
+									: timeGrouping === 'quarter'
+										? journalExtendedView.yearQuarter
+										: journalExtendedView.yearWeek,
+						dateSeries.dateSeries
+					)
 				)
-			)
-			.orderBy(asc(dateSeries.dateSeries))
-			.where(and(...filters))
-			.groupBy(
-				...(groupingColumn ? [dateSeries.dateSeries, groupingColumn] : [dateSeries.dateSeries])
-			)
-			.execute();
+				.orderBy(asc(dateSeries.dateSeries))
+				.where(and(...filters))
+				.groupBy(
+					...(groupingColumn ? [dateSeries.dateSeries, groupingColumn] : [dateSeries.dateSeries])
+				),
+			'Report - Get Combined Filters - Get Time Series Data'
+		);
 
 		const hashedData: Record<string, { value: number }> = {};
 

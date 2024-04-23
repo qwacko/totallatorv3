@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { userActions } from '$lib/server/db/actions/userActions.js';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 const passwordSchema = updatePasswordSchema;
 
@@ -47,7 +48,10 @@ export const actions = {
 		}
 
 		const targetUser = (
-			await locals.db.select().from(user).where(eq(user.id, targetUserId)).execute()
+			await dbExecuteLogger(
+				locals.db.select().from(user).where(eq(user.id, targetUserId)),
+				'Get User By Id'
+			)
 		)[0];
 
 		if (!targetUser) {

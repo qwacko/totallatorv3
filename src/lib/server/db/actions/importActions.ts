@@ -43,14 +43,17 @@ import { importFilterToQuery } from './helpers/import/importFilterToQuery';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { importFileHandler } from '$lib/server/files/fileHandler';
 import { logging } from '$lib/server/logging';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const importActions = {
 	numberActive: async (db: DBType) => {
-		const result = await db
-			.select({ count: drizzleCount(importTable.id) })
-			.from(importTable)
-			.where(inArrayWrapped(importTable.status, ['importing', 'awaitingImport']))
-			.execute();
+		const result = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(importTable.id) })
+				.from(importTable)
+				.where(inArrayWrapped(importTable.status, ['importing', 'awaitingImport'])),
+			'Import - Number Active'
+		);
 
 		return result[0].count;
 	},
@@ -61,20 +64,24 @@ export const importActions = {
 
 		const where = importFilterToQuery({ filter: restFilter, query: internalQuery });
 
-		const results = await db
-			.select()
-			.from(internalQuery)
-			.where(and(...where))
-			.limit(pageSize)
-			.offset(page * pageSize)
-			.orderBy(...importToOrderByToSQL({ query: internalQuery, orderBy }))
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select()
+				.from(internalQuery)
+				.where(and(...where))
+				.limit(pageSize)
+				.offset(page * pageSize)
+				.orderBy(...importToOrderByToSQL({ query: internalQuery, orderBy })),
+			'Import - List - Query'
+		);
 
-		const resultCount = await db
-			.select({ count: drizzleCount(internalQuery.id) })
-			.from(internalQuery)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(internalQuery.id) })
+				.from(internalQuery)
+				.where(and(...where)),
+			'Import - List - Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -95,7 +102,10 @@ export const importActions = {
 	update: async ({ db, data }: { db: DBType; data: UpdateImportSchemaType }) => {
 		const { id, ...restData } = data;
 
-		await db.update(importTable).set(restData).where(eq(importTable.id, id)).execute();
+		await dbExecuteLogger(
+			db.update(importTable).set(restData).where(eq(importTable.id, id)),
+			'Import - Update'
+		);
 	},
 	store: async ({
 		db,
@@ -146,9 +156,8 @@ export const importActions = {
 			fileType === 'json' ? Buffer.from(await newFile.arrayBuffer()) : await newFile.text()
 		);
 
-		await db
-			.insert(importTable)
-			.values({
+		await dbExecuteLogger(
+			db.insert(importTable).values({
 				id,
 				filename: saveFilename,
 				title: originalFilename,
@@ -158,18 +167,21 @@ export const importActions = {
 				autoImportId,
 				type,
 				...restData
-			})
-			.execute();
+			}),
+			'Import - Store - Insert'
+		);
 
 		try {
 			await processCreatedImport({ db, id });
 		} catch (e) {
 			logging.error('Error Processing Import', e);
-			await db
-				.update(importTable)
-				.set({ status: 'error', errorInfo: e, ...updatedTime() })
-				.where(eq(importTable.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(importTable)
+					.set({ status: 'error', errorInfo: e, ...updatedTime() })
+					.where(eq(importTable.id, id)),
+				'Import - Store - Error'
+			);
 		}
 
 		return id;
@@ -197,17 +209,17 @@ export const importActions = {
 				const importDetailId = nanoid();
 				const preprocessedData = importDataToSchema(row);
 				if ('errors' in preprocessedData) {
-					await db
-						.insert(importItemDetail)
-						.values({
+					await dbExecuteLogger(
+						db.insert(importItemDetail).values({
 							id: importDetailId,
 							...updatedTime(),
 							status: 'error',
 							processedInfo: { source: row },
 							errorInfo: { errors: preprocessedData.errors },
 							importId: id
-						})
-						.execute();
+						}),
+						'Import - Process Items - Error'
+					);
 					return;
 				}
 				const validatedData = schema.safeParse(preprocessedData.data);
@@ -221,9 +233,8 @@ export const importActions = {
 							: undefined;
 
 					if (foundUniqueIdentifiers && foundUniqueIdentifiers.length > 0) {
-						await db
-							.insert(importItemDetail)
-							.values({
+						await dbExecuteLogger(
+							db.insert(importItemDetail).values({
 								id: importDetailId,
 								...updatedTime(),
 								status: 'duplicate',
@@ -234,12 +245,12 @@ export const importActions = {
 								},
 								importId: id,
 								uniqueId: unqiueIdentifier
-							})
-							.execute();
+							}),
+							'Import - Process Items - Duplicate'
+						);
 					} else {
-						await db
-							.insert(importItemDetail)
-							.values({
+						await dbExecuteLogger(
+							db.insert(importItemDetail).values({
 								id: importDetailId,
 								...updatedTime(),
 								status: 'processed',
@@ -250,32 +261,36 @@ export const importActions = {
 								},
 								importId: id,
 								uniqueId: unqiueIdentifier
-							})
-							.execute();
+							}),
+							'Import - Process Items - Processed'
+						);
 					}
 				} else {
-					await db
-						.insert(importItemDetail)
-						.values({
+					await dbExecuteLogger(
+						db.insert(importItemDetail).values({
 							id: importDetailId,
 							...updatedTime(),
 							status: 'error',
 							processedInfo: { source: row, processed: preprocessedData },
 							errorInfo: { errors: validatedData.error.errors.map((e) => e.message) },
 							importId: id
-						})
-						.execute();
+						}),
+						'Import - Process Items - Error 2'
+					);
 				}
 			})
 		);
 	},
 	get: async ({ id, db }: { db: DBType; id: string }) => {
-		const data = await db
-			.select()
-			.from(importTable)
-			.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
-			.leftJoin(autoImportTable, eq(autoImportTable.id, importTable.autoImportId))
-			.where(eq(importTable.id, id));
+		const data = await dbExecuteLogger(
+			db
+				.select()
+				.from(importTable)
+				.leftJoin(importMapping, eq(importMapping.id, importTable.importMappingId))
+				.leftJoin(autoImportTable, eq(autoImportTable.id, importTable.autoImportId))
+				.where(eq(importTable.id, id)),
+			'Import - Get'
+		);
 
 		if (data.length === 0) {
 			return { importInfo: undefined };
@@ -285,7 +300,10 @@ export const importActions = {
 	},
 	getDetail: async ({ db, id }: { db: DBType; id: string }) => {
 		await streamingDelay();
-		const data = await db.select().from(importTable).where(eq(importTable.id, id));
+		const data = await dbExecuteLogger(
+			db.select().from(importTable).where(eq(importTable.id, id)),
+			'Import - Get'
+		);
 
 		if (!data.length) {
 			throw new Error('Import Not Found');
@@ -300,17 +318,19 @@ export const importActions = {
 		return getImportDetail({ db, id });
 	},
 	reprocess: async ({ db, id }: { db: DBType; id: string }) => {
-		const item = await db.select().from(importTable).where(eq(importTable.id, id));
+		const item = await dbExecuteLogger(
+			db.select().from(importTable).where(eq(importTable.id, id)),
+			'Import - Reprocess - Get'
+		);
 
 		if (!item.length) {
 			throw new Error('Import Not Found');
 		}
 
-		const itemDetails = await db
-			.select()
-			.from(importItemDetail)
-			.where(eq(importItemDetail.importId, id))
-			.execute();
+		const itemDetails = await dbExecuteLogger(
+			db.select().from(importItemDetail).where(eq(importItemDetail.importId, id)),
+			'Import - Reprocess - Get Details'
+		);
 
 		const importData = item[0];
 
@@ -331,21 +351,25 @@ export const importActions = {
 		}
 
 		await db.transaction(async (trx) => {
-			await trx
-				.update(importTable)
-				.set({ status: 'created', errorInfo: null, ...updatedTime() })
-				.where(eq(importTable.id, id))
-				.execute();
+			await dbExecuteLogger(
+				trx
+					.update(importTable)
+					.set({ status: 'created', errorInfo: null, ...updatedTime() })
+					.where(eq(importTable.id, id)),
+				'Import - Reprocess - Update Import'
+			);
 
-			await trx.delete(importItemDetail).where(eq(importItemDetail.importId, id)).execute();
+			await dbExecuteLogger(
+				trx.delete(importItemDetail).where(eq(importItemDetail.importId, id)),
+				'Import - Reprocess - Delete Details'
+			);
 		});
 	},
 	triggerImport: async ({ db, id }: { db: DBType; id: string }) => {
-		const importInfoList = await db
-			.select()
-			.from(importTable)
-			.where(eq(importTable.id, id))
-			.execute();
+		const importInfoList = await dbExecuteLogger(
+			db.select().from(importTable).where(eq(importTable.id, id)),
+			'Import - Trigger Import - Get'
+		);
 
 		const importInfo = importInfoList[0];
 		if (!importInfo) {
@@ -355,56 +379,63 @@ export const importActions = {
 			throw new Error('Import is not in state Processed. Cannot trigger import.');
 		}
 
-		await db
-			.update(importTable)
-			.set({ status: 'awaitingImport', ...updatedTime() })
-			.where(eq(importTable.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(importTable)
+				.set({ status: 'awaitingImport', ...updatedTime() })
+				.where(eq(importTable.id, id)),
+			'Import - Trigger Import - Update'
+		);
 	},
 	doRequiredImports: async ({ db }: { db: DBType }) => {
 		const importTimeoutms = serverEnv.IMPORT_TIMEOUT_MIN * 60 * 1000;
 		const earliestUpdatedAt = new Date(Date.now() - importTimeoutms);
 
 		//Upate All Imports That Are Set To Auto Process to Awaiting Import
-		await db
-			.update(importTable)
-			.set({ status: 'awaitingImport', ...updatedTime() })
-			.where(and(eq(importTable.status, 'processed'), eq(importTable.autoProcess, true)))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(importTable)
+				.set({ status: 'awaitingImport', ...updatedTime() })
+				.where(and(eq(importTable.status, 'processed'), eq(importTable.autoProcess, true))),
+			'Import - Do Required Imports - Update'
+		);
 
-		const numberImportingTooLong = await db
-			.select()
-			.from(importTable)
-			.where(and(eq(importTable.status, 'importing'), lt(importTable.updatedAt, earliestUpdatedAt)))
-			.execute();
+		const numberImportingTooLong = await dbExecuteLogger(
+			db
+				.select()
+				.from(importTable)
+				.where(
+					and(eq(importTable.status, 'importing'), lt(importTable.updatedAt, earliestUpdatedAt))
+				),
+			'Import - Do Required Imports - Get Importing Too Long'
+		);
 
 		await Promise.all(
 			numberImportingTooLong.map(async (item) => {
-				await db
-					.update(importTable)
-					.set({ status: 'error', errorInfo: 'Import Timed Out', ...updatedTime() })
-					.where(eq(importTable.id, item.id))
-					.execute();
+				await dbExecuteLogger(
+					db
+						.update(importTable)
+						.set({ status: 'error', errorInfo: 'Import Timed Out', ...updatedTime() })
+						.where(eq(importTable.id, item.id)),
+					'Import - Do Required Imports - Update Importing Too Long'
+				);
 			})
 		);
 
-		const numberImporting = await db
-			.select()
-			.from(importTable)
-			.where(eq(importTable.status, 'importing'))
-			.execute();
+		const numberImporting = await dbExecuteLogger(
+			db.select().from(importTable).where(eq(importTable.status, 'importing')),
+			'Import - Do Required Imports - Get Importing'
+		);
 
 		//Only One Import Should Be Executing At A Time
 		if (numberImporting.length > 0) {
 			return;
 		}
 
-		const importDetails = await db
-			.select()
-			.from(importTable)
-			.where(eq(importTable.status, 'awaitingImport'))
-			.limit(1)
-			.execute();
+		const importDetails = await dbExecuteLogger(
+			db.select().from(importTable).where(eq(importTable.status, 'awaitingImport')).limit(1),
+			'Import - Do Required Imports - Get Awaiting Import'
+		);
 
 		await Promise.all(
 			importDetails.map(async (item) => {
@@ -413,11 +444,10 @@ export const importActions = {
 		);
 	},
 	doImport: async ({ db, id }: { db: DBType; id: string }) => {
-		const importInfoList = await db
-			.select()
-			.from(importTable)
-			.where(eq(importTable.id, id))
-			.execute();
+		const importInfoList = await dbExecuteLogger(
+			db.select().from(importTable).where(eq(importTable.id, id)),
+			'Import - Do Import - Get'
+		);
 
 		const importInfo = importInfoList[0];
 		if (!importInfo) {
@@ -428,17 +458,22 @@ export const importActions = {
 		}
 
 		//Mark as importing
-		await db
-			.update(importTable)
-			.set({ status: 'importing', ...updatedTime() })
-			.where(eq(importTable.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(importTable)
+				.set({ status: 'importing', ...updatedTime() })
+				.where(eq(importTable.id, id)),
+			'Import - Do Import - Update'
+		);
 
 		try {
-			const importDetails = await db
-				.select()
-				.from(importItemDetail)
-				.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'processed')));
+			const importDetails = await dbExecuteLogger(
+				db
+					.select()
+					.from(importItemDetail)
+					.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'processed'))),
+				'Import - Do Import - Get Details'
+			);
 
 			const startTime = new Date();
 			const maxTime = new Date(startTime.getTime() + serverEnv.IMPORT_TIMEOUT_MIN * 60 * 1000);
@@ -479,86 +514,100 @@ export const importActions = {
 				timeout: maxTime
 			});
 
-			await db
-				.update(importTable)
-				.set({ status: 'complete', ...updatedTime() })
-				.where(eq(importTable.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(importTable)
+					.set({ status: 'complete', ...updatedTime() })
+					.where(eq(importTable.id, id)),
+				'Import - Do Import - Update Complete'
+			);
 		} catch (e) {
 			//Check if the import is still in the importing state
-			const importInfoList = await db
-				.select()
-				.from(importTable)
-				.where(eq(importTable.id, id))
-				.limit(1)
-				.execute();
+			const importInfoList = await dbExecuteLogger(
+				db.select().from(importTable).where(eq(importTable.id, id)).limit(1),
+				'Import - Do Import - Get 2'
+			);
 
 			const importInfo = importInfoList[0];
 
 			if (importInfo && importInfo.status === 'importing') {
 				//Mark as error
 
-				await db
-					.update(importTable)
-					.set({ status: 'error', errorInfo: e, ...updatedTime() })
-					.where(eq(importTable.id, id))
-					.execute();
+				await dbExecuteLogger(
+					db
+						.update(importTable)
+						.set({ status: 'error', errorInfo: e, ...updatedTime() })
+						.where(eq(importTable.id, id)),
+					'Import - Do Import - Update Error'
+				);
 			}
 		}
 	},
 	forgetImport: async ({ db, id }: { db: DBType; id: string }) => {
 		await db.transaction(async (db) => {
-			await db.delete(importTable).where(eq(importTable.id, id)).execute();
-			await db.delete(importItemDetail).where(eq(importItemDetail.importId, id)).execute();
-			await db
-				.update(journalEntry)
-				.set({ importId: null })
-				.where(eq(journalEntry.importId, id))
-				.execute();
+			await dbExecuteLogger(
+				db.delete(importTable).where(eq(importTable.id, id)),
+				'Import - Forget Import - Delete Import Table'
+			);
+			await dbExecuteLogger(
+				db.delete(importItemDetail).where(eq(importItemDetail.importId, id)),
+				'Import - Forget Import - Delete Import Details'
+			);
+			await dbExecuteLogger(
+				db.update(journalEntry).set({ importId: null }).where(eq(journalEntry.importId, id)),
+				'Import - Forget Import - Update Journal Entry'
+			);
 
-			await db
-				.update(bill)
-				.set({ importId: null, importDetailId: null })
-				.where(eq(bill.importId, id))
-				.execute();
-			await db
-				.update(budget)
-				.set({ importId: null, importDetailId: null })
-				.where(eq(budget.importId, id))
-				.execute();
-			await db
-				.update(category)
-				.set({ importId: null, importDetailId: null })
-				.where(eq(category.importId, id))
-				.execute();
-			await db
-				.update(tag)
-				.set({ importId: null, importDetailId: null })
-				.where(eq(tag.importId, id))
-				.execute();
-			await db
-				.update(account)
-				.set({ importId: null, importDetailId: null })
-				.where(eq(account.importId, id))
-				.execute();
-			await db
-				.update(account)
-				.set({ importId: null, importDetailId: null })
-				.where(eq(account.importId, id))
-				.execute();
-			await db
-				.update(label)
-				.set({ importId: null, importDetailId: null })
-				.where(eq(label.importId, id))
-				.execute();
+			await dbExecuteLogger(
+				db.update(bill).set({ importId: null, importDetailId: null }).where(eq(bill.importId, id)),
+				'Import - Forget Import - Update Bill'
+			);
+			await dbExecuteLogger(
+				db
+					.update(budget)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(budget.importId, id)),
+				'Import - Forget Import - Update Budget'
+			);
+			await dbExecuteLogger(
+				db
+					.update(category)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(category.importId, id)),
+				'Import - Forget Import - Update Category'
+			);
+			await dbExecuteLogger(
+				db.update(tag).set({ importId: null, importDetailId: null }).where(eq(tag.importId, id)),
+				'Import - Forget Import - Update Tag'
+			);
+			await dbExecuteLogger(
+				db
+					.update(account)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(account.importId, id)),
+				'Import - Forget Import - Update Account'
+			);
+			await dbExecuteLogger(
+				db
+					.update(account)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(account.importId, id)),
+				'Import - Forget Import - Update Account'
+			);
+			await dbExecuteLogger(
+				db
+					.update(label)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(label.importId, id)),
+				'Import - Forget Import - Update Label'
+			);
 		});
 	},
 	canDelete: async ({ db, id }: { db: DBType; id: string }) => {
-		const importDetails = await db
-			.select()
-			.from(importTable)
-			.where(eq(importTable.id, id))
-			.execute();
+		const importDetails = await dbExecuteLogger(
+			db.select().from(importTable).where(eq(importTable.id, id)),
+			'Import - Can Delete - Get Details'
+		);
 
 		if (!importDetails || importDetails.length === 0) {
 			return false;
@@ -578,42 +627,60 @@ export const importActions = {
 			return true;
 		}
 		if (importInfo.type === 'account') {
-			const accounts = await db.select().from(account).where(eq(account.importId, id));
+			const accounts = await dbExecuteLogger(
+				db.select().from(account).where(eq(account.importId, id)),
+				'Import - Can Delete - Account'
+			);
 			return tActions.account.canDeleteMany(
 				db,
 				accounts.map((item) => item.id)
 			);
 		}
 		if (importInfo.type === 'bill') {
-			const bills = await db.select().from(bill).where(eq(bill.importId, id));
+			const bills = await dbExecuteLogger(
+				db.select().from(bill).where(eq(bill.importId, id)),
+				'Import - Can Delete - Bill'
+			);
 			return tActions.bill.canDeleteMany(
 				db,
 				bills.map((item) => item.id)
 			);
 		}
 		if (importInfo.type === 'budget') {
-			const budgets = await db.select().from(budget).where(eq(budget.importId, id));
+			const budgets = await dbExecuteLogger(
+				db.select().from(budget).where(eq(budget.importId, id)),
+				'Import - Can Delete - Budget'
+			);
 			return tActions.budget.canDeleteMany(
 				db,
 				budgets.map((item) => item.id)
 			);
 		}
 		if (importInfo.type === 'category') {
-			const categories = await db.select().from(category).where(eq(category.importId, id));
+			const categories = await dbExecuteLogger(
+				db.select().from(category).where(eq(category.importId, id)),
+				'Import - Can Delete - Category'
+			);
 			return tActions.category.canDeleteMany(
 				db,
 				categories.map((item) => item.id)
 			);
 		}
 		if (importInfo.type === 'label') {
-			const labels = await db.select().from(label).where(eq(label.importId, id));
+			const labels = await dbExecuteLogger(
+				db.select().from(label).where(eq(label.importId, id)),
+				'Import - Can Delete - Label'
+			);
 			return tActions.label.canDeleteMany(
 				db,
 				labels.map((item) => item.id)
 			);
 		}
 		if (importInfo.type === 'tag') {
-			const tags = await db.select().from(tag).where(eq(tag.importId, id));
+			const tags = await dbExecuteLogger(
+				db.select().from(tag).where(eq(tag.importId, id)),
+				'Import - Can Delete - Tag'
+			);
 			return tActions.tag.canDeleteMany(
 				db,
 				tags.map((item) => item.id)
@@ -624,17 +691,20 @@ export const importActions = {
 		const canDelete = await importActions.canDelete({ db, id });
 
 		if (canDelete) {
-			const importDetails = await db.query.importTable.findFirst({
-				where: eq(importTable.id, id),
-				with: {
-					bills: true,
-					budgets: true,
-					categories: true,
-					tags: true,
-					labels: true,
-					journals: true
-				}
-			});
+			const importDetails = await dbExecuteLogger(
+				db.query.importTable.findFirst({
+					where: eq(importTable.id, id),
+					with: {
+						bills: true,
+						budgets: true,
+						categories: true,
+						tags: true,
+						labels: true,
+						journals: true
+					}
+				}),
+				'Import - Delete Linked - Get Details'
+			);
 			await db.transaction(async (db) => {
 				if (importDetails) {
 					const transactionIds = filterNullUndefinedAndDuplicates(
@@ -662,12 +732,14 @@ export const importActions = {
 						db,
 						importDetails.labels.map((item) => ({ id: item.id }))
 					);
-					await db.delete(importItemDetail).where(eq(importItemDetail.importId, id)).execute();
-					await db
-						.update(importTable)
-						.set({ status: 'created' })
-						.where(eq(importTable.id, id))
-						.execute();
+					await dbExecuteLogger(
+						db.delete(importItemDetail).where(eq(importItemDetail.importId, id)),
+						'Import - Delete Linked - Delete Details'
+					);
+					await dbExecuteLogger(
+						db.update(importTable).set({ status: 'created' }).where(eq(importTable.id, id)),
+						'Import - Delete Linked - Update Import'
+					);
 				}
 			});
 		}
@@ -678,44 +750,53 @@ export const importActions = {
 		if (canDelete) {
 			await db.transaction(async (db) => {
 				await importActions.deleteLinked({ db, id });
-				await db.delete(importTable).where(eq(importTable.id, id)).execute();
+				await dbExecuteLogger(
+					db.delete(importTable).where(eq(importTable.id, id)),
+					'Import - Delete - Delete Import'
+				);
 			});
 		}
 	},
 	autoCleanAll: async ({ db, retainDays }: { db: DBType; retainDays: number }) => {
-		const importsToClean = await db
-			.select({ id: importTable.id })
-			.from(importTable)
-			.where(
-				and(
-					eq(importTable.status, 'complete'),
-					lt(importTable.createdAt, new Date(Date.now() - retainDays * 24 * 60 * 60 * 1000)),
-					eq(importTable.autoClean, true)
-				)
-			)
-			.execute();
+		const importsToClean = await dbExecuteLogger(
+			db
+				.select({ id: importTable.id })
+				.from(importTable)
+				.where(
+					and(
+						eq(importTable.status, 'complete'),
+						lt(importTable.createdAt, new Date(Date.now() - retainDays * 24 * 60 * 60 * 1000)),
+						eq(importTable.autoClean, true)
+					)
+				),
+			'Import - Auto Clean All - Get Imports'
+		);
 
 		for (const importToClean of importsToClean) {
-			const numberNotImported = await db
-				.select({ count: drizzleCount(importItemDetail.id) })
-				.from(importItemDetail)
-				.where(
-					and(
-						eq(importItemDetail.importId, importToClean.id),
-						not(eq(importItemDetail.status, 'imported'))
-					)
-				)
-				.execute();
-			const numberImported = await db
-				.select({ count: drizzleCount(importItemDetail.id) })
-				.from(importItemDetail)
-				.where(
-					and(
-						eq(importItemDetail.importId, importToClean.id),
-						eq(importItemDetail.status, 'imported')
-					)
-				)
-				.execute();
+			const numberNotImported = await dbExecuteLogger(
+				db
+					.select({ count: drizzleCount(importItemDetail.id) })
+					.from(importItemDetail)
+					.where(
+						and(
+							eq(importItemDetail.importId, importToClean.id),
+							not(eq(importItemDetail.status, 'imported'))
+						)
+					),
+				'Import - Auto Clean All - Get Not Imported'
+			);
+			const numberImported = await dbExecuteLogger(
+				db
+					.select({ count: drizzleCount(importItemDetail.id) })
+					.from(importItemDetail)
+					.where(
+						and(
+							eq(importItemDetail.importId, importToClean.id),
+							eq(importItemDetail.status, 'imported')
+						)
+					),
+				'Import - Auto Clean All - Get Imported'
+			);
 
 			if (numberNotImported[0].count > 0 || numberImported[0].count === 0) {
 				await importActions.clean({ db, id: importToClean.id });
@@ -723,11 +804,10 @@ export const importActions = {
 		}
 	},
 	clean: async ({ db, id }: { db: DBType; id: string }) => {
-		const foundImports = await db
-			.select()
-			.from(importTable)
-			.where(eq(importTable.id, id))
-			.execute();
+		const foundImports = await dbExecuteLogger(
+			db.select().from(importTable).where(eq(importTable.id, id)),
+			'Import - Clean - Get Import'
+		);
 
 		if (foundImports.length === 0) {
 			return;
@@ -739,20 +819,26 @@ export const importActions = {
 			return;
 		}
 
-		const numberImported = await db
-			.select()
-			.from(importItemDetail)
-			.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'imported')))
-			.execute();
+		const numberImported = await dbExecuteLogger(
+			db
+				.select()
+				.from(importItemDetail)
+				.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'imported'))),
+			'Import - Clean - Get Imported'
+		);
 
 		//When there is no imported items, delete the entire import, when there is some imported, then remove everything that is not "imported"
 		if (numberImported.length === 0) {
 			await importActions.forgetImport({ db, id });
 		} else {
-			await db
-				.delete(importItemDetail)
-				.where(and(eq(importItemDetail.importId, id), not(eq(importItemDetail.status, 'imported'))))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.delete(importItemDetail)
+					.where(
+						and(eq(importItemDetail.importId, id), not(eq(importItemDetail.status, 'imported')))
+					),
+				'Import - Clean - Delete Not Imported'
+			);
 		}
 	}
 };

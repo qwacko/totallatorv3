@@ -22,7 +22,8 @@ import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { tActions } from '../../tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { sqlToText } from '../printMaterializedViewList';
-import {logging} from '$lib/server/logging';
+import { logging } from '$lib/server/logging';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -71,21 +72,23 @@ const getOtherJournalInfo = async (db: DBType, journalIds: string[]) => {
 			.groupBy(journalEntry.id)
 	);
 
-	const otherJournalInformation = await db
-		.with(labelsq, journalsq)
-		.select({
-			id: journalEntry.id,
-			labels: sql<LabelColumnType>`COALESCE(${labelsq.labelData},'[]'::JSONB)`.as('labelData'),
-			otherJournals:
-				sql<OtherJournalsColumnType>`COALESCE(${journalsq.otherJournalData},'[]'::JSONB)`.as(
-					'otherJournalData'
-				)
-		})
-		.from(journalEntry)
-		.where(inArrayWrapped(journalEntry.id, journalIds))
-		.leftJoin(labelsq, eq(journalEntry.id, labelsq.journalId))
-		.leftJoin(journalsq, eq(journalEntry.id, journalsq.journalId))
-		.execute();
+	const otherJournalInformation = await dbExecuteLogger(
+		db
+			.with(labelsq, journalsq)
+			.select({
+				id: journalEntry.id,
+				labels: sql<LabelColumnType>`COALESCE(${labelsq.labelData},'[]'::JSONB)`.as('labelData'),
+				otherJournals:
+					sql<OtherJournalsColumnType>`COALESCE(${journalsq.otherJournalData},'[]'::JSONB)`.as(
+						'otherJournalData'
+					)
+			})
+			.from(journalEntry)
+			.where(inArrayWrapped(journalEntry.id, journalIds))
+			.leftJoin(labelsq, eq(journalEntry.id, labelsq.journalId))
+			.leftJoin(journalsq, eq(journalEntry.id, journalsq.journalId)),
+		'Journal Materialized - Other Journal Information'
+	);
 
 	return otherJournalInformation;
 };
@@ -116,7 +119,7 @@ export const journalMaterialisedList = async ({
 		logging.debug(sqlToText(journalQueryCore.getSQL()));
 	}
 
-	const journalsPromise = journalQueryCore.execute();
+	const journalsPromise = dbExecuteLogger(journalQueryCore, 'Journal Materialized - Data');
 
 	const runningTotalInner = db
 		.select({ amount: journalExtendedView.amount })
@@ -126,18 +129,20 @@ export const journalMaterialisedList = async ({
 		.offset(page * pageSize)
 		.as('sumInner');
 
-	const runningTotalPromise = db
-		.select({ sum: sum(runningTotalInner.amount).mapWith(Number) })
-		.from(runningTotalInner)
-		.execute();
+	const runningTotalPromise = dbExecuteLogger(
+		db.select({ sum: sum(runningTotalInner.amount).mapWith(Number) }).from(runningTotalInner),
+		'Journal Materialized - Running Total'
+	);
 
-	const resultCount = await db
-		.select({
-			count: drizzleCount(journalExtendedView.id)
-		})
-		.from(journalExtendedView)
-		.where(and(...andFilter))
-		.execute();
+	const resultCount = await dbExecuteLogger(
+		db
+			.select({
+				count: drizzleCount(journalExtendedView.id)
+			})
+			.from(journalExtendedView)
+			.where(and(...andFilter)),
+		'Journal Materialized - Result Count'
+	);
 
 	const count = resultCount[0].count;
 	const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -166,16 +171,18 @@ export const journalMaterialisedList = async ({
 	const limitedJournalIds = journalIds.slice(0, 500);
 
 	const otherJournalData = await getOtherJournalInfo(db, limitedJournalIds);
-	const importDetails = await db
-		.select()
-		.from(importItemDetail)
-		.where(
-			or(
-				inArrayWrapped(importItemDetail.relationId, limitedJournalIds),
-				inArrayWrapped(importItemDetail.relation2Id, limitedJournalIds)
-			)
-		)
-		.execute();
+	const importDetails = await dbExecuteLogger(
+		db
+			.select()
+			.from(importItemDetail)
+			.where(
+				or(
+					inArrayWrapped(importItemDetail.relationId, limitedJournalIds),
+					inArrayWrapped(importItemDetail.relation2Id, limitedJournalIds)
+				)
+			),
+		'Journal Materialized - Import Details'
+	);
 
 	const journalsMerged = journals.map((journal, index) => {
 		const priorJournals = journals.filter((_, i) => i < index);

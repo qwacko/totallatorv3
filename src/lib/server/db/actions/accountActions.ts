@@ -29,27 +29,35 @@ import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { accountMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const accountActions = {
 	getById: async (db: DBType, id: string) => {
-		return db.query.account.findFirst({ where: eq(account.id, id) }).execute();
+		return dbExecuteLogger(
+			db.query.account.findFirst({ where: eq(account.id, id) }),
+			'Accounts - Get By ID'
+		);
 	},
 	count: async (db: DBType, filter?: AccountFilterSchemaType) => {
-		const count = await db
-			.select({ count: drizzleCount(account.id) })
-			.from(accountMaterializedView)
-			.where(and(...(filter ? accountFilterToQuery({ filter: filter, target: 'account' }) : [])))
-			.execute();
+		const count = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(account.id) })
+				.from(accountMaterializedView)
+				.where(and(...(filter ? accountFilterToQuery({ filter: filter, target: 'account' }) : []))),
+			'Accounts - Count'
+		);
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		await materializedViewActions.conditionalRefresh({ db });
 
-		const items = db
-			.select({ id: accountMaterializedView.id, journalCount: accountMaterializedView.count })
-			.from(accountMaterializedView)
-			.execute();
+		const items = dbExecuteLogger(
+			db
+				.select({ id: accountMaterializedView.id, journalCount: accountMaterializedView.count })
+				.from(accountMaterializedView),
+			'Accounts - List With Transaction Count'
+		);
 
 		return items;
 	},
@@ -78,20 +86,24 @@ export const accountActions = {
 				]
 			: defaultOrderBy;
 
-		const results = await db
-			.select()
-			.from(accountMaterializedView)
-			.where(and(...where))
-			.limit(pageSize)
-			.offset(page * pageSize)
-			.orderBy(...orderByResult)
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select()
+				.from(accountMaterializedView)
+				.where(and(...where))
+				.limit(pageSize)
+				.offset(page * pageSize)
+				.orderBy(...orderByResult),
+			'Accounts - List'
+		);
 
-		const resultCount = await db
-			.select({ count: drizzleCount(account.id) })
-			.from(accountMaterializedView)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(account.id) })
+				.from(accountMaterializedView)
+				.where(and(...where)),
+			'Accounts - List - Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -100,15 +112,17 @@ export const accountActions = {
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		await streamingDelay();
-		const items = db
-			.select({
-				id: account.id,
-				title: account.title,
-				enabled: account.allowUpdate,
-				group: account.accountGroupCombined
-			})
-			.from(account)
-			.execute();
+		const items = await dbExecuteLogger(
+			db
+				.select({
+					id: account.id,
+					title: account.title,
+					enabled: account.allowUpdate,
+					group: account.accountGroupCombined
+				})
+				.from(account),
+			'Accounts - List For Dropdown'
+		);
 
 		return items;
 	},
@@ -151,7 +165,10 @@ export const accountActions = {
 	create: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = nanoid();
 
-		await db.insert(account).values(accountCreateInsertionData(data, id));
+		await dbExecuteLogger(
+			db.insert(account).values(accountCreateInsertionData(data, id)),
+			'Accounts - Create'
+		);
 
 		await materializedViewActions.setRefreshRequired(db);
 
@@ -159,7 +176,10 @@ export const accountActions = {
 	},
 	createAndGet: async (db: DBType, data: CreateAccountSchemaType) => {
 		const id = await accountActions.create(db, data);
-		return db.query.account.findFirst({ where: eq(account.id, id) }).execute();
+		return dbExecuteLogger(
+			db.query.account.findFirst({ where: eq(account.id, id) }),
+			'Accounts - Create And Get - Get'
+		);
 	},
 	createOrGet: async ({
 		db,
@@ -177,7 +197,7 @@ export const accountActions = {
 		if (id) {
 			const currentAccount = cachedData
 				? cachedData.find((item) => item.id === id)
-				: await db.query.account.findFirst({ where: eq(account.id, id) }).execute();
+				: await dbExecuteLogger(db.query.account.findFirst({ where: eq(account.id, id) }));
 
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
@@ -193,9 +213,10 @@ export const accountActions = {
 
 			const currentAccount = cachedData
 				? cachedData.find((item) => item.title === title)
-				: await db.query.account
-						.findFirst({ where: eq(account.accountTitleCombined, title) })
-						.execute();
+				: await dbExecuteLogger(
+						db.query.account.findFirst({ where: eq(account.accountTitleCombined, title) }),
+						'Accounts - Create Or Get - Check Exists'
+					);
 
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
@@ -209,9 +230,10 @@ export const accountActions = {
 				type: isExpense ? 'expense' : 'asset',
 				status: 'active'
 			});
-			const newAccount = await db.query.account
-				.findFirst({ where: eq(account.id, newAccountId) })
-				.execute();
+			const newAccount = await dbExecuteLogger(
+				db.query.account.findFirst({ where: eq(account.id, newAccountId) }),
+				'Accounts - Create Or Get - Check Created'
+			);
 			if (!newAccount) {
 				throw new Error(`Account Creation Error`);
 			}
@@ -263,9 +285,10 @@ export const accountActions = {
 			type,
 			...restData
 		} = data;
-		const currentAccount = await db.query.account
-			.findFirst({ where: eq(account.id, id) })
-			.execute();
+		const currentAccount = await dbExecuteLogger(
+			db.query.account.findFirst({ where: eq(account.id, id) }),
+			'Accounts - Update - Get'
+		);
 
 		if (!currentAccount) {
 			throw new Error(`Account ${id} not found`);
@@ -287,19 +310,21 @@ export const accountActions = {
 			!changingToAssetOrLiability
 		) {
 			//Limit what can be updated for an income or expense account
-			await db
-				.update(account)
-				.set({
-					type: type || currentAccount.type,
-					...statusUpdate(status),
-					...combinedAccountTitleSplitRequired({
-						title: title || currentAccount.title,
-						accountGroupCombined: ''
-					}),
-					...updatedTime()
-				})
-				.where(eq(account.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(account)
+					.set({
+						type: type || currentAccount.type,
+						...statusUpdate(status),
+						...combinedAccountTitleSplitRequired({
+							title: title || currentAccount.title,
+							accountGroupCombined: ''
+						}),
+						...updatedTime()
+					})
+					.where(eq(account.id, id)),
+				'Accounts - Update - Expense Or Income'
+			);
 		} else {
 			const newAccountGroupCombined = accountGroupCombinedClear
 				? ''
@@ -315,23 +340,25 @@ export const accountActions = {
 
 			const { startDate, endDate, isCash, isNetWorth } = restData;
 
-			await db
-				.update(account)
-				.set({
-					startDate,
-					endDate,
-					isCash,
-					isNetWorth,
-					type: type || currentAccount.type,
-					...statusUpdate(status),
-					...combinedAccountTitleSplitRequired({
-						title: title || currentAccount.title,
-						accountGroupCombined: newAccountGroupCombined
-					}),
-					...updatedTime()
-				})
-				.where(eq(account.id, id))
-				.execute();
+			await dbExecuteLogger(
+				db
+					.update(account)
+					.set({
+						startDate,
+						endDate,
+						isCash,
+						isNetWorth,
+						type: type || currentAccount.type,
+						...statusUpdate(status),
+						...combinedAccountTitleSplitRequired({
+							title: title || currentAccount.title,
+							accountGroupCombined: newAccountGroupCombined
+						}),
+						...updatedTime()
+					})
+					.where(eq(account.id, id)),
+				'Accounts - Update - Asset Or Liability'
+			);
 		}
 		return id;
 	},
@@ -343,9 +370,13 @@ export const accountActions = {
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
 	canDelete: async (db: DBType, data: IdSchemaType) => {
-		const currentAccount = await db.query.account
-			.findFirst({ where: eq(account.id, data.id), with: { journals: { limit: 1 } } })
-			.execute();
+		const currentAccount = await dbExecuteLogger(
+			db.query.account.findFirst({
+				where: eq(account.id, data.id),
+				with: { journals: { limit: 1 } }
+			}),
+			'Accounts - Can Delete'
+		);
 		if (!currentAccount) {
 			return true;
 		}
@@ -354,7 +385,7 @@ export const accountActions = {
 	delete: async (db: DBType, data: IdSchemaType) => {
 		// If the account has no journals, then mark as deleted, otherwise do nothing
 		if (await accountActions.canDelete(db, data)) {
-			await db.delete(account).where(eq(account.id, data.id)).execute();
+			await dbExecuteLogger(db.delete(account).where(eq(account.id, data.id)), 'Accounts - Delete');
 		}
 
 		await materializedViewActions.setRefreshRequired(db);
@@ -367,15 +398,15 @@ export const accountActions = {
 			return currentAccount && currentAccount.journalCount === 0;
 		});
 		if (itemsForDeletion.length === data.length) {
-			await db
-				.delete(account)
-				.where(
+			await dbExecuteLogger(
+				db.delete(account).where(
 					inArrayWrapped(
 						account.id,
 						itemsForDeletion.map((item) => item.id)
 					)
-				)
-				.execute();
+				),
+				'Accounts - Delete Many'
+			);
 			await materializedViewActions.setRefreshRequired(db);
 			return true;
 		}
@@ -387,8 +418,8 @@ export const accountActions = {
 			return accountCreateInsertionData(currentAccount, id);
 		});
 
-		await db.transaction(async (db) => {
-			await db.insert(account).values(dataForInsertion);
+		await db.transaction(async (trx) => {
+			await dbExecuteLogger(trx.insert(account).values(dataForInsertion), 'Accounts - Create Many');
 		});
 
 		await materializedViewActions.setRefreshRequired(db);

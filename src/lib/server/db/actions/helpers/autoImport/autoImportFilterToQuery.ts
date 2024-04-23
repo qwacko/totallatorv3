@@ -9,6 +9,7 @@ import {
 	autoImportFrequencyToDisplay
 } from '$lib/schema/autoImportSchema';
 import { importMappingIdToTitle } from '../import/importMappingFilterToQuery';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const autoImportFilterToQuery = ({
 	filter
@@ -47,12 +48,14 @@ export const autoImportFilterToQuery = ({
 };
 
 export const autoImportIdToTitle = async (db: DBType, id: string) => {
-	const foundAutoImport = await db
-		.select({ title: autoImportTable.title })
-		.from(autoImportTable)
-		.where(eq(autoImportTable.id, id))
-		.limit(1)
-		.execute();
+	const foundAutoImport = await dbExecuteLogger(
+		db
+			.select({ title: autoImportTable.title })
+			.from(autoImportTable)
+			.where(eq(autoImportTable.id, id))
+			.limit(1),
+		'autoImportIdToTitle'
+	);
 
 	if (foundAutoImport?.length === 1) {
 		return foundAutoImport[0].title;

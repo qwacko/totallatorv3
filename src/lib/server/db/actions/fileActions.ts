@@ -47,6 +47,7 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { materializedViewActions } from './materializedViewActions';
 import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
 import { logging } from '$lib/server/logging';
+import { dbExecuteLogger } from '../dbLogger';
 
 type GroupingOptions =
 	| 'transaction'
@@ -62,9 +63,10 @@ type GroupingOptions =
 
 export const fileActions = {
 	getById: async (db: DBType, id: string) => {
-		return db.query.fileTable
-			.findFirst({ where: ({ id: fileId }, { eq }) => eq(fileId, id) })
-			.execute();
+		return dbExecuteLogger(
+			db.query.fileTable.findFirst({ where: ({ id: fileId }, { eq }) => eq(fileId, id) }),
+			'File - Get By ID'
+		);
 	},
 	filterToText: async ({ db, filter }: { db: DBType; filter: FileFilterSchemaType }) => {
 		return fileFilterToText({ db, filter });
@@ -75,36 +77,38 @@ export const fileActions = {
 		const where = fileFilterToQuery(restFilter);
 		const orderBySQL = fileToOrderByToSQL({ orderBy });
 
-		const results = await db
-			.select({
-				...getTableColumns(fileTable),
-				accountTitle: account.title,
-				billTitle: bill.title,
-				budgetTitle: budget.title,
-				categoryTitle: category.title,
-				tagTitle: tag.title,
-				labelTitle: label.title,
-				autoImportTitle: autoImportTable.title,
-				reportTitle: report.title,
-				reportElementTitle: reportElement.title,
-				createdBy: user.username
-			})
-			.from(fileTable)
-			.leftJoin(account, eq(account.id, fileTable.accountId))
-			.leftJoin(bill, eq(bill.id, fileTable.billId))
-			.leftJoin(budget, eq(budget.id, fileTable.budgetId))
-			.leftJoin(category, eq(category.id, fileTable.categoryId))
-			.leftJoin(tag, eq(tag.id, fileTable.tagId))
-			.leftJoin(label, eq(label.id, fileTable.labelId))
-			.leftJoin(autoImportTable, eq(autoImportTable.id, fileTable.autoImportId))
-			.leftJoin(report, eq(report.id, fileTable.reportId))
-			.leftJoin(reportElement, eq(reportElement.id, fileTable.reportElementId))
-			.leftJoin(user, eq(user.id, fileTable.createdById))
-			.where(and(...where))
-			.limit(pageSize)
-			.offset(page * pageSize)
-			.orderBy(...orderBySQL)
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select({
+					...getTableColumns(fileTable),
+					accountTitle: account.title,
+					billTitle: bill.title,
+					budgetTitle: budget.title,
+					categoryTitle: category.title,
+					tagTitle: tag.title,
+					labelTitle: label.title,
+					autoImportTitle: autoImportTable.title,
+					reportTitle: report.title,
+					reportElementTitle: reportElement.title,
+					createdBy: user.username
+				})
+				.from(fileTable)
+				.leftJoin(account, eq(account.id, fileTable.accountId))
+				.leftJoin(bill, eq(bill.id, fileTable.billId))
+				.leftJoin(budget, eq(budget.id, fileTable.budgetId))
+				.leftJoin(category, eq(category.id, fileTable.categoryId))
+				.leftJoin(tag, eq(tag.id, fileTable.tagId))
+				.leftJoin(label, eq(label.id, fileTable.labelId))
+				.leftJoin(autoImportTable, eq(autoImportTable.id, fileTable.autoImportId))
+				.leftJoin(report, eq(report.id, fileTable.reportId))
+				.leftJoin(reportElement, eq(reportElement.id, fileTable.reportElementId))
+				.leftJoin(user, eq(user.id, fileTable.createdById))
+				.where(and(...where))
+				.limit(pageSize)
+				.offset(page * pageSize)
+				.orderBy(...orderBySQL),
+			'File - List - Get Files'
+		);
 
 		const transactionIdArray = filterNullUndefinedAndDuplicates(
 			results.map((a) => a.transactionId)
@@ -132,11 +136,13 @@ export const fileActions = {
 			};
 		});
 
-		const resultCount = await db
-			.select({ count: drizzleCount(fileTable.id) })
-			.from(fileTable)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(fileTable.id) })
+				.from(fileTable)
+				.where(and(...where)),
+			'File - List - Get Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -343,37 +349,41 @@ export const fileActions = {
 			...updatedTime()
 		};
 
-		await db.insert(fileTable).values(createData).execute();
+		await dbExecuteLogger(db.insert(fileTable).values(createData), 'File - Create');
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateLinked: async ({ db }: { db: DBType }) => {
-		await db
-			.update(fileTable)
-			.set({ linked: false })
-			.where(
-				and(
-					eq(fileTable.linked, true),
-					...fileRelationshipKeys.map((key) =>
-						isNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
-					)
-				)
-			)
-			.execute();
-
-		await db
-			.update(fileTable)
-			.set({ linked: true })
-			.where(
-				and(
-					eq(fileTable.linked, false),
-					or(
+		await dbExecuteLogger(
+			db
+				.update(fileTable)
+				.set({ linked: false })
+				.where(
+					and(
+						eq(fileTable.linked, true),
 						...fileRelationshipKeys.map((key) =>
-							isNotNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
+							isNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
 						)
 					)
-				)
-			)
-			.execute();
+				),
+			'File - Update Linked - False'
+		);
+
+		await dbExecuteLogger(
+			db
+				.update(fileTable)
+				.set({ linked: true })
+				.where(
+					and(
+						eq(fileTable.linked, false),
+						or(
+							...fileRelationshipKeys.map((key) =>
+								isNotNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
+							)
+						)
+					)
+				),
+			'File - Update Linked - True'
+		);
 
 		await materializedViewActions.setRefreshRequired(db);
 	},
@@ -389,14 +399,16 @@ export const fileActions = {
 		const { id, ...restUpdate } = update;
 		const where = fileFilterToQuery(filter);
 
-		await db
-			.update(fileTable)
-			.set({
-				...restUpdate,
-				...updatedTime()
-			})
-			.where(and(...where))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(fileTable)
+				.set({
+					...restUpdate,
+					...updatedTime()
+				})
+				.where(and(...where)),
+			'File - Update Many'
+		);
 
 		await fileActions.updateLinked({ db });
 
@@ -417,14 +429,20 @@ export const fileActions = {
 				currentFile.thumbnailFilename &&
 					(await fileFileHandler.deleteFile(currentFile.thumbnailFilename));
 
-				await db.delete(fileTable).where(eq(fileTable.id, currentFile.id)).execute();
+				await dbExecuteLogger(
+					db.delete(fileTable).where(eq(fileTable.id, currentFile.id)),
+					'File - Delete Many'
+				);
 			})
 		);
 
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	getFile: async ({ db, id }: { db: DBType; id: string }) => {
-		const file = await db.select().from(fileTable).where(eq(fileTable.id, id)).execute();
+		const file = await dbExecuteLogger(
+			db.select().from(fileTable).where(eq(fileTable.id, id)),
+			'File - Get File'
+		);
 
 		if (!file.length) {
 			throw new Error('File not found');
@@ -438,7 +456,10 @@ export const fileActions = {
 		};
 	},
 	getThumbnail: async ({ db, id }: { db: DBType; id: string }) => {
-		const file = await db.select().from(fileTable).where(eq(fileTable.id, id)).execute();
+		const file = await dbExecuteLogger(
+			db.select().from(fileTable).where(eq(fileTable.id, id)),
+			'File - Get Thumbnail'
+		);
 
 		if (!file.length) {
 			throw new Error('File not found');
@@ -518,15 +539,17 @@ export const fileActions = {
 		};
 	},
 	checkFilesExist: async ({ db }: { db: DBType }) => {
-		const dbFiles = await db
-			.select({
-				id: fileTable.id,
-				filename: fileTable.filename,
-				thumbnailFilename: fileTable.thumbnailFilename,
-				fileExists: fileTable.fileExists
-			})
-			.from(fileTable)
-			.execute();
+		const dbFiles = await dbExecuteLogger(
+			db
+				.select({
+					id: fileTable.id,
+					filename: fileTable.filename,
+					thumbnailFilename: fileTable.thumbnailFilename,
+					fileExists: fileTable.fileExists
+				})
+				.from(fileTable),
+			'File - Check Files Exist'
+		);
 
 		let storedFiles: string[] = [];
 
@@ -547,18 +570,22 @@ export const fileActions = {
 		await Promise.all(
 			dbFiles.map(async (dbFile) => {
 				if (!storedFiles.includes(dbFile.filename)) {
-					await db
-						.update(fileTable)
-						.set({ fileExists: false, ...updatedTime() })
-						.where(eq(fileTable.id, dbFile.id))
-						.execute();
+					await dbExecuteLogger(
+						db
+							.update(fileTable)
+							.set({ fileExists: false, ...updatedTime() })
+							.where(eq(fileTable.id, dbFile.id)),
+						'File - Check Files Exist - Update File Exists'
+					);
 				}
 				if (dbFile.thumbnailFilename && !storedFiles.includes(dbFile.thumbnailFilename)) {
-					await db
-						.update(fileTable)
-						.set({ thumbnailFilename: null, ...updatedTime() })
-						.where(eq(fileTable.id, dbFile.id))
-						.execute();
+					await dbExecuteLogger(
+						db
+							.update(fileTable)
+							.set({ thumbnailFilename: null, ...updatedTime() })
+							.where(eq(fileTable.id, dbFile.id)),
+						'File - Check Files Exist - Update Thumbnail'
+					);
 				}
 			})
 		);

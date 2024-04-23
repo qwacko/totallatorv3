@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { category } from '../postgres/schema';
-import { and, asc, desc, eq, } from 'drizzle-orm';
+import { and, asc, desc, eq } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -22,27 +22,35 @@ import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { categoryMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const categoryActions = {
 	getById: async (db: DBType, id: string) => {
-		return db.query.category.findFirst({ where: eq(category.id, id) }).execute();
+		return dbExecuteLogger(
+			db.query.category.findFirst({ where: eq(category.id, id) }),
+			'Category - Get By Id'
+		);
 	},
 	count: async (db: DBType, filter?: CategoryFilterSchemaType) => {
 		materializedViewActions.conditionalRefresh({ db });
-		const count = await db
-			.select({ count: drizzleCount(categoryMaterializedView.id) })
-			.from(categoryMaterializedView)
-			.where(and(...(filter ? categoryFilterToQuery({ filter, target: 'category' }) : [])))
-			.execute();
+		const count = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(categoryMaterializedView.id) })
+				.from(categoryMaterializedView)
+				.where(and(...(filter ? categoryFilterToQuery({ filter, target: 'category' }) : []))),
+			'Category - Count'
+		);
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		materializedViewActions.conditionalRefresh({ db });
-		const items = db
-			.select({ id: categoryMaterializedView.id, journalCount: categoryMaterializedView.count })
-			.from(categoryMaterializedView)
-			.execute();
+		const items = dbExecuteLogger(
+			db
+				.select({ id: categoryMaterializedView.id, journalCount: categoryMaterializedView.count })
+				.from(categoryMaterializedView),
+			'Category - List With Transaction Count'
+		);
 
 		return items;
 	},
@@ -69,20 +77,24 @@ export const categoryActions = {
 				]
 			: defaultOrderBy;
 
-		const results = await db
-			.select()
-			.from(categoryMaterializedView)
-			.where(and(...where))
-			.limit(pageSize)
-			.offset(page * pageSize)
-			.orderBy(...orderByResult)
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select()
+				.from(categoryMaterializedView)
+				.where(and(...where))
+				.limit(pageSize)
+				.offset(page * pageSize)
+				.orderBy(...orderByResult),
+			'Category - List - Results'
+		);
 
-		const resultCount = await db
-			.select({ count: drizzleCount(category.id) })
-			.from(categoryMaterializedView)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(category.id) })
+				.from(categoryMaterializedView)
+				.where(and(...where)),
+			'Category - List - Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -91,15 +103,17 @@ export const categoryActions = {
 	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		await streamingDelay();
-		const items = db
-			.select({
-				id: category.id,
-				title: category.title,
-				group: category.group,
-				enabled: category.allowUpdate
-			})
-			.from(category)
-			.execute();
+		const items = dbExecuteLogger(
+			db
+				.select({
+					id: category.id,
+					title: category.title,
+					group: category.group,
+					enabled: category.allowUpdate
+				})
+				.from(category),
+			'Category - List For Dropdown'
+		);
 
 		return items;
 	},
@@ -119,7 +133,10 @@ export const categoryActions = {
 		if (id) {
 			const currentCategory = cachedData
 				? cachedData.find((item) => item.id === id)
-				: await db.query.category.findFirst({ where: eq(category.id, id) }).execute();
+				: await dbExecuteLogger(
+						db.query.category.findFirst({ where: eq(category.id, id) }),
+						'Category - Create Or Get - Get By Id'
+					);
 
 			if (currentCategory) {
 				if (requireActive && currentCategory.status !== 'active') {
@@ -131,7 +148,10 @@ export const categoryActions = {
 		} else if (title) {
 			const currentCategory = cachedData
 				? cachedData.find((item) => item.title === title)
-				: await db.query.category.findFirst({ where: eq(category.title, title) }).execute();
+				: await dbExecuteLogger(
+						db.query.category.findFirst({ where: eq(category.title, title) }),
+						'Category - Create Or Get - Get By Title'
+					);
 			if (currentCategory) {
 				if (requireActive && currentCategory.status !== 'active') {
 					throw new Error(`Category ${currentCategory.title} is not active`);
@@ -142,9 +162,10 @@ export const categoryActions = {
 				title,
 				status: 'active'
 			});
-			const newCategory = await db.query.category
-				.findFirst({ where: eq(category.id, newCategoryId) })
-				.execute();
+			const newCategory = await dbExecuteLogger(
+				db.query.category.findFirst({ where: eq(category.id, newCategoryId) }),
+				'Category - Create Or Get'
+			);
 			if (!newCategory) {
 				throw new Error('Error Creating Category');
 			}
@@ -155,7 +176,10 @@ export const categoryActions = {
 	},
 	create: async (db: DBType, data: CreateCategorySchemaType) => {
 		const id = nanoid();
-		await db.insert(category).values(categoryCreateInsertionData(data, id)).execute();
+		await dbExecuteLogger(
+			db.insert(category).values(categoryCreateInsertionData(data, id)),
+			'Category - Create'
+		);
 		await materializedViewActions.setRefreshRequired(db);
 
 		return id;
@@ -165,31 +189,34 @@ export const categoryActions = {
 		const insertData = data.map((currentData, index) =>
 			categoryCreateInsertionData(currentData, ids[index])
 		);
-		await db.insert(category).values(insertData).execute();
+		await dbExecuteLogger(db.insert(category).values(insertData), 'Category - Create Many');
 		await materializedViewActions.setRefreshRequired(db);
 
 		return ids;
 	},
 	update: async (db: DBType, data: UpdateCategorySchemaType) => {
 		const { id } = data;
-		const currentCategory = await db.query.category
-			.findFirst({ where: eq(category.id, id) })
-			.execute();
+		const currentCategory = await dbExecuteLogger(
+			db.query.category.findFirst({ where: eq(category.id, id) }),
+			'Category - Update - Current Category'
+		);
 
 		if (!currentCategory) {
 			logging.error('Update Category: Category not found', data);
 			return id;
 		}
 
-		await db
-			.update(category)
-			.set({
-				...statusUpdate(data.status),
-				...updatedTime(),
-				...combinedTitleSplit(data)
-			})
-			.where(eq(category.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(category)
+				.set({
+					...statusUpdate(data.status),
+					...updatedTime(),
+					...combinedTitleSplit(data)
+				})
+				.where(eq(category.id, id)),
+			'Category - Update'
+		);
 		await materializedViewActions.setRefreshRequired(db);
 		return id;
 	},
@@ -201,9 +228,13 @@ export const categoryActions = {
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
 	canDelete: async (db: DBType, data: IdSchemaType) => {
-		const currentCategory = await db.query.category
-			.findFirst({ where: eq(category.id, data.id), with: { journals: { limit: 1 } } })
-			.execute();
+		const currentCategory = await dbExecuteLogger(
+			db.query.category.findFirst({
+				where: eq(category.id, data.id),
+				with: { journals: { limit: 1 } }
+			}),
+			'Category - Can Delete'
+		);
 		if (!currentCategory) {
 			return true;
 		}
@@ -213,7 +244,10 @@ export const categoryActions = {
 	},
 	delete: async (db: DBType, data: IdSchemaType) => {
 		if (await categoryActions.canDelete(db, data)) {
-			await db.delete(category).where(eq(category.id, data.id)).execute();
+			await dbExecuteLogger(
+				db.delete(category).where(eq(category.id, data.id)),
+				'Category - Delete'
+			);
 		}
 		await materializedViewActions.setRefreshRequired(db);
 
@@ -227,15 +261,15 @@ export const categoryActions = {
 			return currentCategory && currentCategory.journalCount === 0;
 		});
 		if (itemsForDeletion.length === data.length) {
-			await db
-				.delete(category)
-				.where(
+			await dbExecuteLogger(
+				db.delete(category).where(
 					inArrayWrapped(
 						category.id,
 						itemsForDeletion.map((item) => item.id)
 					)
-				)
-				.execute();
+				),
+				'Category - Delete Many'
+			);
 			await materializedViewActions.setRefreshRequired(db);
 			return true;
 		}
@@ -245,7 +279,10 @@ export const categoryActions = {
 		logging.info('Seeding Categories : ', count);
 
 		const existingTitles = (
-			await db.query.category.findMany({ columns: { title: true } }).execute()
+			await dbExecuteLogger(
+				db.query.category.findMany({ columns: { title: true } }),
+				'Category - Seed'
+			)
 		).map((item) => item.title);
 		const itemsToCreate = createUniqueItemsOnly({
 			existing: existingTitles,

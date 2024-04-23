@@ -438,6 +438,15 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			}
 		},
 
+		// Query Logging
+		// ----------------------------------------
+		'/(loggedIn)/queries/grouped': {
+			...adminOnlyConfig
+		},
+		'/(loggedIn)/queries/list': {
+			...adminOnlyConfig
+		},
+
 		// Users
 		// ----------------------------------------
 

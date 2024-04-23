@@ -1,3 +1,5 @@
+import type { GroupedQueryLogOrderByEnumType } from '$lib/schema/enum/groupedQueryLogOrderByEnum';
+import type { QueryLogOrderByEnumType } from '$lib/schema/enum/queryLogOrderByEnum';
 import { writable } from 'svelte/store';
 
 // First param `preferences` is the local storage key.
@@ -86,5 +88,20 @@ export const journalColumnsStore = writable([
 	'total',
 	'relations'
 ]);
+
+export const groupedQueryColumnsStore = writable<(GroupedQueryLogOrderByEnumType | 'actions')[]>([
+	'actions',
+	'title',
+	'maxDuration',
+	'averageDuration',
+	'maxSize',
+	'averageSize',
+	'count',
+	'last'
+]);
+
+export const queryColumnsStore = writable<
+	(QueryLogOrderByEnumType | 'actions' | 'params' | 'queryDetail')[]
+>(['actions', 'time', 'title', 'duration', 'size', 'params']);
 
 export const numberRows = writable(10);

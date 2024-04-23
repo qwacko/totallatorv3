@@ -32,6 +32,7 @@ import { materializedViewActions } from './materializedViewActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const journalActions = {
 	createFromSimpleTransaction: async ({
@@ -88,17 +89,26 @@ export const journalActions = {
 
 			const transactionChunks = splitArrayIntoChunks(transactions, 2000);
 			for (const chunk of transactionChunks) {
-				await db.insert(transaction).values(chunk).execute();
+				await dbExecuteLogger(
+					db.insert(transaction).values(chunk),
+					'Transaction Journals - Create Many - Transaction'
+				);
 			}
 
 			const journalChunks = splitArrayIntoChunks(journals, 2000);
 			for (const chunk of journalChunks) {
-				await db.insert(journalEntry).values(chunk).execute();
+				await dbExecuteLogger(
+					db.insert(journalEntry).values(chunk),
+					'Transaction Journals - Create Many - Journal'
+				);
 			}
 
 			const labelChunks = splitArrayIntoChunks(labels, 2000);
 			for (const chunk of labelChunks) {
-				await db.insert(labelsToJournals).values(chunk).execute();
+				await dbExecuteLogger(
+					db.insert(labelsToJournals).values(chunk),
+					'Transaction Journals - Create Many - Labels'
+				);
 			}
 
 			await updateManyTransferInfo({ db, transactionIds });
@@ -120,24 +130,31 @@ export const journalActions = {
 
 			await Promise.all(
 				splitTransactionList.map(async (currentTransactionIds) => {
-					const journalsForDeletion = await db
-						.select()
-						.from(journalEntry)
-						.where(inArrayWrapped(journalEntry.transactionId, currentTransactionIds))
-						.execute();
-					await db
-						.delete(journalEntry)
-						.where(inArrayWrapped(journalEntry.transactionId, currentTransactionIds))
-						.execute();
-					await db
-						.delete(transaction)
-						.where(inArrayWrapped(transaction.id, currentTransactionIds))
-						.execute();
-					await db.delete(labelsToJournals).where(
-						inArrayWrapped(
-							labelsToJournals.journalId,
-							journalsForDeletion.map((item) => item.id)
-						)
+					const journalsForDeletion = await dbExecuteLogger(
+						db
+							.select()
+							.from(journalEntry)
+							.where(inArrayWrapped(journalEntry.transactionId, currentTransactionIds)),
+						'Transaction Journals - Hard Delete Transactions - Select Journals'
+					);
+					await dbExecuteLogger(
+						db
+							.delete(journalEntry)
+							.where(inArrayWrapped(journalEntry.transactionId, currentTransactionIds)),
+						'Transaction Journals - Hard Delete Transactions - Delete Journals'
+					);
+					await dbExecuteLogger(
+						db.delete(transaction).where(inArrayWrapped(transaction.id, currentTransactionIds)),
+						'Transaction Journals - Hard Delete Transactions - Delete Transactions'
+					);
+					await dbExecuteLogger(
+						db.delete(labelsToJournals).where(
+							inArrayWrapped(
+								labelsToJournals.journalId,
+								journalsForDeletion.map((item) => item.id)
+							)
+						),
+						'Transaction Journals - Hard Delete Transactions - Delete Labels'
 					);
 				})
 			);
@@ -239,29 +256,35 @@ export const journalActions = {
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	markComplete: async (db: DBType, journalId: string) => {
-		const journal = await db.query.journalEntry
-			.findFirst({ where: eq(journalEntry.id, journalId) })
-			.execute();
+		const journal = await dbExecuteLogger(
+			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
+			'Transaction Journals - Mark Complete - Find Journal'
+		);
 		if (!journal) return;
 		const { transactionId } = journal;
-		await db
-			.update(journalEntry)
-			.set({ complete: true, dataChecked: true, reconciled: true, ...updatedTime() })
-			.where(eq(journalEntry.transactionId, transactionId))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(journalEntry)
+				.set({ complete: true, dataChecked: true, reconciled: true, ...updatedTime() })
+				.where(eq(journalEntry.transactionId, transactionId)),
+			'Transaction Journals - Mark Complete - Update Journal'
+		);
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	markUncomplete: async (db: DBType, journalId: string) => {
-		const journal = await db.query.journalEntry
-			.findFirst({ where: eq(journalEntry.id, journalId) })
-			.execute();
+		const journal = await dbExecuteLogger(
+			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
+			'Transaction Journals - Mark Uncomplete - Find Journal'
+		);
 		if (!journal) return;
 		const { transactionId } = journal;
-		await db
-			.update(journalEntry)
-			.set({ complete: false, ...updatedTime() })
-			.where(eq(journalEntry.transactionId, transactionId))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(journalEntry)
+				.set({ complete: false, ...updatedTime() })
+				.where(eq(journalEntry.transactionId, transactionId)),
+			'Transaction Journals - Mark Uncomplete - Update Journal'
+		);
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateJournals: async ({
@@ -291,7 +314,11 @@ export const journalActions = {
 			const updatingLabelsOnly = checkUpdateLabelsOnly(processedData.data);
 
 			if (!updatingLabelsOnly) {
-				logging.error('Cannot update journals that are already complete', processedFilter, processedData.data);
+				logging.error(
+					'Cannot update journals that are already complete',
+					processedFilter,
+					processedData.data
+				);
 				return undefined;
 			}
 		}
@@ -307,16 +334,18 @@ export const journalActions = {
 
 		const journalIds = [...new Set(unlinkedJournals.map((item) => item.id))];
 		const targetJournals = (
-			await db
-				.select({ id: journalEntry.id })
-				.from(journalEntry)
-				.where(
-					or(
-						inArrayWrapped(journalEntry.id, journalIds),
-						inArrayWrapped(journalEntry.transactionId, linkedTransactionIds)
-					)
-				)
-				.execute()
+			await dbExecuteLogger(
+				db
+					.select({ id: journalEntry.id })
+					.from(journalEntry)
+					.where(
+						or(
+							inArrayWrapped(journalEntry.id, journalIds),
+							inArrayWrapped(journalEntry.transactionId, linkedTransactionIds)
+						)
+					),
+				'Transaction Journals - Update Journals - Select Journals'
+			)
 		).map((item) => item.id);
 
 		await db.transaction(async (db) => {
@@ -397,49 +426,56 @@ export const journalActions = {
 							: undefined;
 
 			if (linkedJournals.length > 0) {
-				await db
-					.update(journalEntry)
-					.set({
-						tagId: await tagId,
-						categoryId: await categoryId,
-						billId: await billId,
-						budgetId: await budgetId,
-						complete,
-						dataChecked,
-						reconciled,
-						description: journalData.description,
-						...targetDate,
-						...updatedTime()
-					})
-					.where(inArrayWrapped(journalEntry.transactionId, linkedTransactionIds))
-					.execute();
+				await dbExecuteLogger(
+					db
+						.update(journalEntry)
+						.set({
+							tagId: await tagId,
+							categoryId: await categoryId,
+							billId: await billId,
+							budgetId: await budgetId,
+							complete,
+							dataChecked,
+							reconciled,
+							description: journalData.description,
+							...targetDate,
+							...updatedTime()
+						})
+						.where(inArrayWrapped(journalEntry.transactionId, linkedTransactionIds)),
+					'Transaction Journals - Update Journals - Update Linked Journals'
+				);
 			}
 
 			if (unlinkedJournals.length > 0) {
 				const journalIds = unlinkedJournals.map((journal) => journal.id);
-				await db
-					.update(journalEntry)
-					.set({
-						tagId: await tagId,
-						categoryId: await categoryId,
-						billId: await billId,
-						budgetId: await budgetId,
-						complete,
-						dataChecked,
-						reconciled,
-						...targetDate,
-						...updatedTime()
-					})
-					.where(inArrayWrapped(journalEntry.id, journalIds));
+				await dbExecuteLogger(
+					db
+						.update(journalEntry)
+						.set({
+							tagId: await tagId,
+							categoryId: await categoryId,
+							billId: await billId,
+							budgetId: await budgetId,
+							complete,
+							dataChecked,
+							reconciled,
+							...targetDate,
+							...updatedTime()
+						})
+						.where(inArrayWrapped(journalEntry.id, journalIds)),
+					'Transaction Journals - Update Journals - Update Unlinked Journals'
+				);
 			}
 			if (accountId) {
 				const journalIds = journals.data.map((journal) => journal.id);
 
-				await db
-					.update(journalEntry)
-					.set({ accountId })
-					.where(inArrayWrapped(journalEntry.id, journalIds))
-					.execute();
+				await dbExecuteLogger(
+					db
+						.update(journalEntry)
+						.set({ accountId })
+						.where(inArrayWrapped(journalEntry.id, journalIds)),
+					'Transaction Journals - Update Journals - Update Account Id'
+				);
 			}
 			if (otherAccountId) {
 				const numberWithMoreThan1 = journals.data.reduce(
@@ -455,47 +491,54 @@ export const journalActions = {
 					return [...prev, ...current.otherJournals.map((item) => item.id)];
 				}, [] as string[]);
 
-				await db
-					.update(journalEntry)
-					.set({ accountId: otherAccountId })
-					.where(inArrayWrapped(journalEntry.id, updatingJournalIds))
-					.execute();
+				await dbExecuteLogger(
+					db
+						.update(journalEntry)
+						.set({ accountId: otherAccountId })
+						.where(inArrayWrapped(journalEntry.id, updatingJournalIds)),
+					'Transaction Journals - Update Journals - Update Other Account Id'
+				);
 			}
 
 			if (journalData.amount !== undefined) {
 				const journalIds = journals.data.map((journal) => journal.id);
 
-				await db
-					.update(journalEntry)
-					.set({ amount: journalData.amount, ...updatedTime() })
-					.where(
-						and(
-							inArrayWrapped(journalEntry.id, journalIds),
-							not(eq(journalEntry.amount, journalData.amount))
-						)
-					)
-					.execute();
+				await dbExecuteLogger(
+					db
+						.update(journalEntry)
+						.set({ amount: journalData.amount, ...updatedTime() })
+						.where(
+							and(
+								inArrayWrapped(journalEntry.id, journalIds),
+								not(eq(journalEntry.amount, journalData.amount))
+							)
+						),
+					'Transaction Journals - Update Journals - Update Amount'
+				);
 
 				//Get Transactions that have a non-zero combined total and update the one with the oldest update time.
 				const transactionIds = filterNullUndefinedAndDuplicates(
 					journals.data.map((journal) => journal.transactionId)
 				);
 
-				const transactionJournals = await db.query.transaction.findMany({
-					where: inArrayWrapped(transaction.id, transactionIds),
-					columns: {
-						id: true
-					},
-					with: {
-						journals: {
-							columns: {
-								id: true,
-								amount: true,
-								updatedAt: true
+				const transactionJournals = await dbExecuteLogger(
+					db.query.transaction.findMany({
+						where: inArrayWrapped(transaction.id, transactionIds),
+						columns: {
+							id: true
+						},
+						with: {
+							journals: {
+								columns: {
+									id: true,
+									amount: true,
+									updatedAt: true
+								}
 							}
 						}
-					}
-				});
+					}),
+					'Transaction Journals - Update Journals - Select Transactions'
+				);
 
 				await Promise.all(
 					transactionJournals.map(async (transaction) => {
@@ -507,11 +550,13 @@ export const journalActions = {
 									.toISOString()
 									.localeCompare(new Date(b.updatedAt).toISOString())
 							)[0];
-							await db
-								.update(journalEntry)
-								.set({ amount: journalToUpdate.amount - total, ...updatedTime() })
-								.where(eq(journalEntry.id, journalToUpdate.id))
-								.execute();
+							await dbExecuteLogger(
+								db
+									.update(journalEntry)
+									.set({ amount: journalToUpdate.amount - total, ...updatedTime() })
+									.where(eq(journalEntry.id, journalToUpdate.id)),
+								'Transaction Journals - Update Journals - Update Transaction Amount'
+							);
 						}
 					})
 				);
@@ -569,36 +614,45 @@ export const journalActions = {
 					}[]
 				);
 
-				await db
-					.insert(labelsToJournals)
-					.values(itemsToCreate)
-					.onConflictDoNothing({ target: [labelsToJournals.journalId, labelsToJournals.labelId] })
-					.execute();
+				await dbExecuteLogger(
+					db
+						.insert(labelsToJournals)
+						.values(itemsToCreate)
+						.onConflictDoNothing({
+							target: [labelsToJournals.journalId, labelsToJournals.labelId]
+						}),
+					'Transaction Journals - Update Journals - Insert Labels'
+				);
 			}
 
 			//Remove the labels that should be removed
 			if (journalData.removeLabels && journalData.removeLabels.length > 0) {
-				await db
-					.delete(labelsToJournals)
-					.where(
-						and(
-							inArrayWrapped(labelsToJournals.labelId, journalData.removeLabels),
-							inArrayWrapped(labelsToJournals.journalId, targetJournals)
-						)
-					);
+				await dbExecuteLogger(
+					db
+						.delete(labelsToJournals)
+						.where(
+							and(
+								inArrayWrapped(labelsToJournals.labelId, journalData.removeLabels),
+								inArrayWrapped(labelsToJournals.journalId, targetJournals)
+							)
+						),
+					'Transaction Journals - Update Journals - Remove Labels'
+				);
 			}
 
 			//When a specific set of labels are specified, then remove the ones that aren't in that list
 			if (labelSettingIds.length > 0) {
-				await db
-					.delete(labelsToJournals)
-					.where(
-						and(
-							inArrayWrapped(labelsToJournals.journalId, targetJournals),
-							not(inArrayWrapped(labelsToJournals.labelId, labelSettingIds))
-						)
-					)
-					.execute();
+				await dbExecuteLogger(
+					db
+						.delete(labelsToJournals)
+						.where(
+							and(
+								inArrayWrapped(labelsToJournals.journalId, targetJournals),
+								not(inArrayWrapped(labelsToJournals.labelId, labelSettingIds))
+							)
+						),
+					'Transaction Journals - Update Journals - Remove Labels'
+				);
 			}
 
 			await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
@@ -632,14 +686,15 @@ export const journalActions = {
 			journals.data.map((journal) => journal.transactionId)
 		);
 
-		const transactions = await db.query.transaction
-			.findMany({
+		const transactions = await dbExecuteLogger(
+			db.query.transaction.findMany({
 				where: inArrayWrapped(transaction.id, originalTransactionIds),
 				with: {
 					journals: { with: { labels: true } }
 				}
-			})
-			.execute();
+			}),
+			'Transaction Journals - Clone Journals - Select Transactions'
+		);
 
 		const transactionsForCreation = transactions.map((transaction) => {
 			const journals: CreateCombinedTransactionType = transaction.journals.map((journal) => ({

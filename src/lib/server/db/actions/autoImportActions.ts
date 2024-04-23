@@ -15,6 +15,7 @@ import { autoImportToOrderByToSQL } from './helpers/autoImport/autoImportOrderBy
 import { getData_Common } from './helpers/autoImport/getData_Common';
 import { tActions } from './tActions';
 import { logging } from '$lib/server/logging';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const autoImportActions = {
 	list: async ({ db, filter }: { db: DBType; filter: AutoImportFilterSchemaType }) => {
@@ -22,24 +23,28 @@ export const autoImportActions = {
 
 		const where = autoImportFilterToQuery({ filter: restFilter });
 
-		const results = await db
-			.select({
-				...getTableColumns(autoImportTable),
-				importMappingTitle: importMapping.title
-			})
-			.from(autoImportTable)
-			.where(and(...where))
-			.limit(pageSize)
-			.leftJoin(importMapping, eq(autoImportTable.importMappingId, importMapping.id))
-			.offset(page * pageSize)
-			.orderBy(...autoImportToOrderByToSQL({ orderBy }))
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select({
+					...getTableColumns(autoImportTable),
+					importMappingTitle: importMapping.title
+				})
+				.from(autoImportTable)
+				.where(and(...where))
+				.limit(pageSize)
+				.leftJoin(importMapping, eq(autoImportTable.importMappingId, importMapping.id))
+				.offset(page * pageSize)
+				.orderBy(...autoImportToOrderByToSQL({ orderBy })),
+			'Auto Import - List - Query'
+		);
 
-		const resultCount = await db
-			.select({ count: drizzleCount(autoImportTable.id) })
-			.from(autoImportTable)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(autoImportTable.id) })
+				.from(autoImportTable)
+				.where(and(...where)),
+			'Auto Import - List - Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -47,11 +52,10 @@ export const autoImportActions = {
 		return { count, data: results, pageCount, page, pageSize };
 	},
 	getById: async ({ db, id }: { db: DBType; id: string }) => {
-		const autoImport = await db
-			.select()
-			.from(autoImportTable)
-			.where(eq(autoImportTable.id, id))
-			.execute();
+		const autoImport = await dbExecuteLogger(
+			db.select().from(autoImportTable).where(eq(autoImportTable.id, id)),
+			'Auto Import - Get By Id'
+		);
 
 		if (autoImport.length === 0) {
 			return null;
@@ -67,43 +71,48 @@ export const autoImportActions = {
 		}
 
 		const newId = nanoid();
-		await db
-			.insert(autoImportTable)
-			.values({
+		await dbExecuteLogger(
+			db.insert(autoImportTable).values({
 				...autoImport,
 				id: newId,
 				title: `${autoImport.title} (Copy)`,
 				enabled: false,
 				...updatedTime()
-			})
-			.execute();
+			}),
+			'Auto Import - Clone'
+		);
 
 		return newId;
 	},
 	create: async ({ db, data }: { db: DBType; data: CreateAutoImportSchemaType }) => {
 		const id = nanoid();
-		await db
-			.insert(autoImportTable)
-			.values({ id, ...data, ...updatedTime() })
-			.execute();
+		await dbExecuteLogger(
+			db.insert(autoImportTable).values({ id, ...data, ...updatedTime() }),
+			'Auto Import - Create'
+		);
 
 		return id;
 	},
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
 		await db.transaction(async (trx) => {
-			await trx.delete(autoImportTable).where(eq(autoImportTable.id, id)).execute();
+			await dbExecuteLogger(
+				trx.delete(autoImportTable).where(eq(autoImportTable.id, id)),
+				'Auto Import - Delete'
+			);
 
-			await trx
-				.update(importTable)
-				.set({ autoImportId: null })
-				.where(eq(importTable.autoImportId, id))
-				.execute();
+			await dbExecuteLogger(
+				trx.update(importTable).set({ autoImportId: null }).where(eq(importTable.autoImportId, id)),
+				'Auto Import - Delete - Update Import'
+			);
 		});
 	},
 	update: async ({ db, data }: { db: DBType; data: UpdateAutoImportFormSchemaType }) => {
-		const matchingAutoImport = await db.query.autoImportTable.findFirst({
-			where: (autoImport, { eq }) => eq(autoImport.id, data.id)
-		});
+		const matchingAutoImport = await dbExecuteLogger(
+			db.query.autoImportTable.findFirst({
+				where: (autoImport, { eq }) => eq(autoImport.id, data.id)
+			}),
+			'Auto Import - Update - Find'
+		);
 
 		if (!matchingAutoImport) {
 			throw new Error(`AutoImport with id ${data.id} not found`);
@@ -141,14 +150,16 @@ export const autoImportActions = {
 			throw new Error(`Invalid update data: ${validatedUpdate.error.message}`);
 		}
 
-		await db
-			.update(autoImportTable)
-			.set({
-				...validatedUpdate.data,
-				...updatedTime()
-			})
-			.where(eq(autoImportTable.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(autoImportTable)
+				.set({
+					...validatedUpdate.data,
+					...updatedTime()
+				})
+				.where(eq(autoImportTable.id, id)),
+			'Auto Import - Update'
+		);
 	},
 	getData: async ({ db, id }: { db: DBType; id: string }) => {
 		const autoImport = await autoImportActions.getById({ db, id });

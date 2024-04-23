@@ -21,6 +21,7 @@ import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { processCategoryTextFilter } from './categoryTextFilter';
 import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const categoryFilterToQuery = ({
 	filter,
@@ -104,12 +105,10 @@ export const categoryFilterToQuery = ({
 };
 
 export const categoryIdToTitle = async (db: DBType, id: string) => {
-	const foundCategory = await db
-		.select({ title: category.title })
-		.from(category)
-		.where(eq(category.id, id))
-		.limit(1)
-		.execute();
+	const foundCategory = await dbExecuteLogger(
+		db.select({ title: category.title }).from(category).where(eq(category.id, id)).limit(1),
+		'categoryIdToTitle'
+	);
 
 	if (foundCategory?.length === 1) {
 		return foundCategory[0].title;

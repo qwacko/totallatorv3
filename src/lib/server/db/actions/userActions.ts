@@ -6,6 +6,7 @@ import { type User } from 'lucia';
 import { nanoid } from 'nanoid';
 import { fixedDelay } from '$lib/server/testingDelay';
 import { hashPassword, checkHashedPassword } from './helpers/hashPassword';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const userActions = {
 	createUser: async ({
@@ -19,11 +20,10 @@ export const userActions = {
 		password: string;
 		admin?: boolean;
 	}): Promise<User | undefined> => {
-		const foundUsers = await db
-			.select()
-			.from(user)
-			.where(eq(user.username, username.toLowerCase()))
-			.execute();
+		const foundUsers = await dbExecuteLogger(
+			db.select().from(user).where(eq(user.username, username.toLowerCase())),
+			'User - Create - Check Existing'
+		);
 
 		if (foundUsers.length > 0) {
 			throw new Error('User already exists');
@@ -33,23 +33,23 @@ export const userActions = {
 		const hashedPassword = await hashPassword(password);
 
 		await db.transaction(async (trx) => {
-			await trx
-				.insert(user)
-				.values({
+			await dbExecuteLogger(
+				trx.insert(user).values({
 					id: userId,
 					username: username.toLowerCase(),
 					admin
-				})
-				.execute();
+				}),
+				'User - Create - Insert'
+			);
 
-			await trx
-				.insert(key)
-				.values({
+			await dbExecuteLogger(
+				trx.insert(key).values({
 					id: nanoid(),
 					userId,
 					hashedPassword
-				})
-				.execute();
+				}),
+				'User - Create - Insert Key'
+			);
 		});
 
 		return userActions.get({ db, userId });
@@ -65,7 +65,10 @@ export const userActions = {
 	}): Promise<void> => {
 		const hashedPassword = await hashPassword(password);
 
-		await db.update(key).set({ hashedPassword }).where(eq(key.userId, userId)).execute();
+		await dbExecuteLogger(
+			db.update(key).set({ hashedPassword }).where(eq(key.userId, userId)),
+			'User - Update Password'
+		);
 	},
 	checkLogin: async ({
 		username,
@@ -76,12 +79,15 @@ export const userActions = {
 		password: string;
 		db: DBType;
 	}): Promise<User | undefined> => {
-		const foundUser = await db.query.user.findFirst({
-			where: (user, { eq }) => eq(user.username, username.toLowerCase()),
-			with: {
-				keys: true
-			}
-		});
+		const foundUser = await dbExecuteLogger(
+			db.query.user.findFirst({
+				where: (user, { eq }) => eq(user.username, username.toLowerCase()),
+				with: {
+					keys: true
+				}
+			}),
+			'User - Check Login - Find User'
+		);
 
 		if (!foundUser) {
 			//Add 200ms delay
@@ -92,22 +98,25 @@ export const userActions = {
 		//This isn't pretty but it works. If for some reason there isn't a key then this creates a new one.
 		//There shouldn't be a time that there isn't a key, but this covers that risk.
 		if (!foundUser.keys) {
-			await db
-				.insert(key)
-				.values({
+			await dbExecuteLogger(
+				db.insert(key).values({
 					id: nanoid(),
 					userId: foundUser.id,
 					hashedPassword: await hashPassword(password)
-				})
-				.execute();
+				}),
+				'User - Check Login - Insert Key'
+			);
 		}
 
-		const foundUser2 = await db.query.user.findFirst({
-			where: (user, { eq }) => eq(user.username, username.toLowerCase()),
-			with: {
-				keys: true
-			}
-		});
+		const foundUser2 = await dbExecuteLogger(
+			db.query.user.findFirst({
+				where: (user, { eq }) => eq(user.username, username.toLowerCase()),
+				with: {
+					keys: true
+				}
+			}),
+			'User - Check Login - Find User 2'
+		);
 
 		if (!foundUser2) {
 			//Add 200ms delay
@@ -138,14 +147,15 @@ export const userActions = {
 	},
 	deleteUser: async ({ db, userId }: { db: DBType; userId: string }) => {
 		await db.transaction(async (trx) => {
-			await trx.delete(key).where(eq(key.userId, userId)).execute();
-			await trx.delete(user).where(eq(user.id, userId)).execute();
+			await dbExecuteLogger(trx.delete(key).where(eq(key.userId, userId)), 'User - Delete - Key');
+			await dbExecuteLogger(trx.delete(user).where(eq(user.id, userId)), 'User - Delete - User');
 		});
 	},
 	get: async ({ db, userId }: { db: DBType; userId: string }): Promise<User | undefined> => {
-		const foundUser = (await db.select().from(user).where(eq(user.id, userId)).execute())[0];
+		const foundUser = (
+			await dbExecuteLogger(db.select().from(user).where(eq(user.id, userId)), 'User - Get')
+		)[0];
 
-		await db.delete(key).execute();
 		if (!foundUser) return undefined;
 
 		return foundUser;
@@ -185,7 +195,10 @@ export const userActions = {
 			throw new Error('Unauthorized');
 		}
 
-		await db.update(user).set(validatedInfo.data).where(eq(user.id, userId)).execute();
+		await dbExecuteLogger(
+			db.update(user).set(validatedInfo.data).where(eq(user.id, userId)),
+			'User - Update Info'
+		);
 	},
 	setAdmin: async ({
 		db,
@@ -201,7 +214,10 @@ export const userActions = {
 			throw new Error('Unauthorized');
 		}
 
-		await db.update(user).set({ admin: true }).where(eq(user.id, userId)).execute();
+		await dbExecuteLogger(
+			db.update(user).set({ admin: true }).where(eq(user.id, userId)),
+			'User - Set Admin'
+		);
 	},
 	clearAdmin: async ({
 		db,
@@ -221,6 +237,9 @@ export const userActions = {
 			throw new Error('Unauthorized');
 		}
 
-		await db.update(user).set({ admin: false }).where(eq(user.id, userId)).execute();
+		await dbExecuteLogger(
+			db.update(user).set({ admin: false }).where(eq(user.id, userId)),
+			'User - Clear Admin'
+		);
 	}
 };

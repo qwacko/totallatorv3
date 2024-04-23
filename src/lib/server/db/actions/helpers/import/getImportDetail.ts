@@ -1,10 +1,11 @@
 import { eq } from 'drizzle-orm';
 import { importTable } from '../../../postgres/schema';
 import type { DBType } from '../../../db';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const getImportDetail = async ({ db, id }: { db: DBType; id: string }) => {
-	const returnData = await db.query.importTable
-		.findFirst({
+	const returnData = await dbExecuteLogger(
+		db.query.importTable.findFirst({
 			where: eq(importTable.id, id),
 			with: {
 				importDetails: {
@@ -20,8 +21,9 @@ export const getImportDetail = async ({ db, id }: { db: DBType; id: string }) =>
 					}
 				}
 			}
-		})
-		.execute();
+		}),
+		'getImportDetail'
+	);
 
 	if (!returnData) {
 		throw new Error('Error Retrieving Import Details');

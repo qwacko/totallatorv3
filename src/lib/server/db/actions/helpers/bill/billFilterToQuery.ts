@@ -20,6 +20,7 @@ import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { processBillTextFilter } from './billTextFilter';
 import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
+import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const billFilterToQuery = ({
 	filter,
@@ -94,12 +95,10 @@ export const billFilterToQuery = ({
 };
 
 export const billIdToTitle = async (db: DBType, id: string) => {
-	const foundBill = await db
-		.select({ title: bill.title })
-		.from(bill)
-		.where(eq(bill.id, id))
-		.limit(1)
-		.execute();
+	const foundBill = await dbExecuteLogger(
+		db.select({ title: bill.title }).from(bill).where(eq(bill.id, id)).limit(1),
+		'billIdToTitle'
+	);
 
 	if (foundBill?.length === 1) {
 		return foundBill[0].title;

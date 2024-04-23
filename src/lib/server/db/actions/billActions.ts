@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { bill } from '../postgres/schema';
-import { and, asc, desc, eq, } from 'drizzle-orm';
+import { and, asc, desc, eq } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -21,27 +21,32 @@ import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { billMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { dbExecuteLogger } from '../dbLogger';
 
 export const billActions = {
 	getById: async (db: DBType, id: string) => {
-		return db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
+		return dbExecuteLogger(db.query.bill.findFirst({ where: eq(bill.id, id) }), 'Bill - Get By Id');
 	},
 	count: async (db: DBType, filter?: BillFilterSchemaType) => {
 		await materializedViewActions.conditionalRefresh({ db });
-		const count = await db
-			.select({ count: drizzleCount(bill.id) })
-			.from(billMaterializedView)
-			.where(and(...(filter ? billFilterToQuery({ filter, target: 'billWithSummary' }) : [])))
-			.execute();
+		const count = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(bill.id) })
+				.from(billMaterializedView)
+				.where(and(...(filter ? billFilterToQuery({ filter, target: 'billWithSummary' }) : []))),
+			'Bill - Count'
+		);
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
 		await materializedViewActions.conditionalRefresh({ db });
-		const items = db
-			.select({ id: billMaterializedView.id, journalCount: billMaterializedView.count })
-			.from(billMaterializedView)
-			.execute();
+		const items = dbExecuteLogger(
+			db
+				.select({ id: billMaterializedView.id, journalCount: billMaterializedView.count })
+				.from(billMaterializedView),
+			'Bill - List With Transaction Count'
+		);
 
 		return items;
 	},
@@ -64,20 +69,24 @@ export const billActions = {
 				]
 			: defaultOrderBy;
 
-		const results = await db
-			.select()
-			.from(billMaterializedView)
-			.where(and(...where))
-			.limit(pageSize)
-			.offset(page * pageSize)
-			.orderBy(...orderByResult)
-			.execute();
+		const results = await dbExecuteLogger(
+			db
+				.select()
+				.from(billMaterializedView)
+				.where(and(...where))
+				.limit(pageSize)
+				.offset(page * pageSize)
+				.orderBy(...orderByResult),
+			'Bill - List - Results'
+		);
 
-		const resultCount = await db
-			.select({ count: drizzleCount(bill.id) })
-			.from(billMaterializedView)
-			.where(and(...where))
-			.execute();
+		const resultCount = await dbExecuteLogger(
+			db
+				.select({ count: drizzleCount(bill.id) })
+				.from(billMaterializedView)
+				.where(and(...where)),
+			'Bill - List - Count'
+		);
 
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -87,10 +96,10 @@ export const billActions = {
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		await testingDelay();
 		await streamingDelay();
-		const items = db
-			.select({ id: bill.id, title: bill.title, enabled: bill.allowUpdate })
-			.from(bill)
-			.execute();
+		const items = dbExecuteLogger(
+			db.select({ id: bill.id, title: bill.title, enabled: bill.allowUpdate }).from(bill),
+			'Bill - List For Dropdown'
+		);
 
 		return items;
 	},
@@ -111,7 +120,10 @@ export const billActions = {
 		if (id) {
 			const currentBill = cachedData
 				? cachedData.find((item) => item.id === id)
-				: await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
+				: await dbExecuteLogger(
+						db.query.bill.findFirst({ where: eq(bill.id, id) }),
+						'Bill - Create Or Get - By Id'
+					);
 
 			if (currentBill) {
 				if (requireActive && currentBill.status !== 'active') {
@@ -123,7 +135,10 @@ export const billActions = {
 		} else if (title) {
 			const currentBill = cachedData
 				? cachedData.find((item) => item.title === title)
-				: await db.query.bill.findFirst({ where: eq(bill.title, title) }).execute();
+				: await dbExecuteLogger(
+						db.query.bill.findFirst({ where: eq(bill.title, title) }),
+						'Bill - Create Or Get - By Title'
+					);
 			if (currentBill) {
 				if (requireActive && currentBill.status !== 'active') {
 					throw new Error(`Bill ${currentBill.title} is not active`);
@@ -134,7 +149,10 @@ export const billActions = {
 				title,
 				status: 'active'
 			});
-			const newBill = await db.query.bill.findFirst({ where: eq(bill.id, newBillId) }).execute();
+			const newBill = await dbExecuteLogger(
+				db.query.bill.findFirst({ where: eq(bill.id, newBillId) }),
+				'Bill - Create Or Get - Check Created'
+			);
 			if (!newBill) {
 				throw new Error('Error Creating Bill');
 			}
@@ -145,7 +163,10 @@ export const billActions = {
 	},
 	create: async (db: DBType, data: CreateBillSchemaType) => {
 		const id = nanoid();
-		await db.insert(bill).values(billCreateInsertionData(data, id)).execute();
+		await dbExecuteLogger(
+			db.insert(bill).values(billCreateInsertionData(data, id)),
+			'Bill - Create'
+		);
 
 		await materializedViewActions.setRefreshRequired(db);
 		return id;
@@ -155,29 +176,34 @@ export const billActions = {
 		const insertData = data.map((currentData, index) =>
 			billCreateInsertionData(currentData, ids[index])
 		);
-		await db.insert(bill).values(insertData).execute();
+		await dbExecuteLogger(db.insert(bill).values(insertData), 'Bill - Create Many');
 
 		await materializedViewActions.setRefreshRequired(db);
 		return ids;
 	},
 	update: async (db: DBType, data: UpdateBillSchemaType) => {
 		const { id } = data;
-		const currentBill = await db.query.bill.findFirst({ where: eq(bill.id, id) }).execute();
+		const currentBill = await dbExecuteLogger(
+			db.query.bill.findFirst({ where: eq(bill.id, id) }),
+			'Bill - Update - Get Current'
+		);
 
 		if (!currentBill) {
 			logging.error('Update Bill: Bill not found', data);
 			return id;
 		}
 
-		await db
-			.update(bill)
-			.set({
-				...statusUpdate(data.status),
-				...updatedTime(),
-				title: data.title
-			})
-			.where(eq(bill.id, id))
-			.execute();
+		await dbExecuteLogger(
+			db
+				.update(bill)
+				.set({
+					...statusUpdate(data.status),
+					...updatedTime(),
+					title: data.title
+				})
+				.where(eq(bill.id, id)),
+			'Bill - Update'
+		);
 
 		await materializedViewActions.setRefreshRequired(db);
 		return id;
@@ -191,9 +217,10 @@ export const billActions = {
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
 	canDelete: async (db: DBType, data: IdSchemaType) => {
-		const currentBill = await db.query.bill
-			.findFirst({ where: eq(bill.id, data.id), with: { journals: { limit: 1 } } })
-			.execute();
+		const currentBill = await dbExecuteLogger(
+			db.query.bill.findFirst({ where: eq(bill.id, data.id), with: { journals: { limit: 1 } } }),
+			'Bill - Can Delete - Get Current'
+		);
 		if (!currentBill) {
 			return true;
 		}
@@ -202,7 +229,7 @@ export const billActions = {
 	},
 	delete: async (db: DBType, data: IdSchemaType) => {
 		if (await billActions.canDelete(db, data)) {
-			await db.delete(bill).where(eq(bill.id, data.id)).execute();
+			await dbExecuteLogger(db.delete(bill).where(eq(bill.id, data.id)), 'Bill - Delete');
 			await materializedViewActions.setRefreshRequired(db);
 		}
 
@@ -216,15 +243,15 @@ export const billActions = {
 			return currentBill && currentBill.journalCount === 0;
 		});
 		if (itemsForDeletion.length === data.length) {
-			await db
-				.delete(bill)
-				.where(
+			await dbExecuteLogger(
+				db.delete(bill).where(
 					inArrayWrapped(
 						bill.id,
 						itemsForDeletion.map((item) => item.id)
 					)
-				)
-				.execute();
+				),
+				'Bill - Delete Many'
+			);
 			await materializedViewActions.setRefreshRequired(db);
 			return true;
 		}
@@ -234,7 +261,10 @@ export const billActions = {
 		logging.info('Seeding Bills : ', count);
 
 		const existingTitles = (
-			await db.query.bill.findMany({ columns: { title: true } }).execute()
+			await dbExecuteLogger(
+				db.query.bill.findMany({ columns: { title: true } }),
+				'Bill - Seed - Get Existing'
+			)
 		).map((item) => item.title);
 		const itemsToCreate = createUniqueItemsOnly({
 			existing: existingTitles,
