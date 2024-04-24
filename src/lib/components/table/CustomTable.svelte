@@ -230,39 +230,54 @@
 			</TableBody>
 		</Table>
 	</div>
-	<div class="gap flex flex-col items-stretch md:hidden">
-		{#each data as row}
-			{@const thisRowColour = rowColour(row)}
-			{@const isGrey = thisRowColour === 'grey'}
-			<div
-				class="flex flex-row gap-2 border-l border-r border-t border-gray-500 p-2 first:rounded-t-lg last:rounded-b-lg last:border-b"
-				class:bg-primary-50={isGrey}
-			>
-				{#if bulkSelection}
-					<ToggleFromArray id={rowToId ? rowToId(row) : undefined} bind:selectedIds />
-				{/if}
-				<div class="flex flex-grow flex-col items-center gap-1 self-stretch">
-					{#each shownColumns as column}
-						{@const currentColumn = columns.find((item) => item.id === column)}
-						<div class="flex">
-							{#if currentColumn}
-								{#if currentColumn.rowToDisplay}
-									<HighlightText
-										text={currentColumn.rowToDisplay(row) || ''}
-										searchText={highlightText}
-										highlight={highlightTextColumns.includes(column)}
-									/>
-								{:else if currentColumn.rowToCurrency}
-									<DisplayCurrency {...currentColumn.rowToCurrency(row)} />
-								{:else}
-									<slot name="customBodyCell" {currentColumn} {row}>No Content</slot>
-								{/if}
-							{/if}
-						</div>
-					{/each}
-				</div>
+	<div class="flex flex-col items-stretch gap-2 md:hidden">
+		{#if bulkSelection}
+			<div class="flex px-4">
+				<ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} /> Selection
 			</div>
-		{/each}
+		{/if}
+		<div class="flex flex-col items-stretch">
+			{#each data as row}
+				{@const thisRowColour = rowColour(row)}
+				{@const isGrey = thisRowColour === 'grey'}
+				<div
+					class="flex flex-col border-l border-r border-t border-gray-500 p-2 first:rounded-t-lg last:rounded-b-lg last:border-b"
+					class:bg-primary-50={isGrey}
+				>
+					{#if bulkSelection}
+						<div class="flex flex-row gap-2 self-start p-2 text-primary-400">
+							<ToggleFromArray id={rowToId ? rowToId(row) : undefined} bind:selectedIds />
+							Selected
+						</div>
+					{/if}
+					<div class="flex flex-grow flex-col items-center gap-1 self-stretch">
+						{#each shownColumns as column}
+							{@const currentColumn = columns.find((item) => item.id === column)}
+							<div class="flex flex-row items-center gap-2">
+								{#if currentColumn}
+									{#if currentColumn.showTitleOnMobile}
+										<div class="flex text-primary-400">
+											{currentColumn.title} :
+										</div>
+									{/if}
+									{#if currentColumn.rowToDisplay}
+										<HighlightText
+											text={currentColumn.rowToDisplay(row) || ''}
+											searchText={highlightText}
+											highlight={highlightTextColumns.includes(column)}
+										/>
+									{:else if currentColumn.rowToCurrency}
+										<DisplayCurrency {...currentColumn.rowToCurrency(row)} />
+									{:else}
+										<slot name="customBodyCell" {currentColumn} {row}>No Content</slot>
+									{/if}
+								{/if}
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/each}
+		</div>
 	</div>
 {/if}
 {#if paginationInfo && data.length > 0 && !hideBottomPagination}

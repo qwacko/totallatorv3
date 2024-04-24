@@ -14,6 +14,8 @@
 	import AccountBadge from '$lib/components/AccountBadge.svelte';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
+	import ArrowUpIcon from '$lib/components/icons/ArrowUpIcon.svelte';
+	import ArrowDownIcon from '$lib/components/icons/ArrowDownIcon.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
@@ -33,7 +35,6 @@
 	import BulkJournalActions from './BulkJournalActions.svelte';
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import { currencyFormat } from '$lib/stores/userInfoStore';
 	import NotesButton from '../../../lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
@@ -148,17 +149,16 @@
 					sortKey: 'amount',
 					customCell: true,
 					rowToCurrency: (row) => ({
-						amount: row.amount,
-						format: $currencyFormat
+						amount: row.amount
 					})
 				},
 				{
 					id: 'total',
 					title: 'Total',
 					rowToCurrency: (row) => ({
-						amount: row.total,
-						format: $currencyFormat
-					})
+						amount: row.total
+					}),
+					showTitleOnMobile: true
 				},
 				{ id: 'relations', title: 'Relations', customCell: true }
 			]}
@@ -377,9 +377,11 @@
 					/>
 				{:else if currentColumn.id === 'direction'}
 					{#if currentJournal.amount > 0}
-						<ArrowLeftIcon />
+						<ArrowLeftIcon class="hidden md:flex" />
+						<ArrowUpIcon class="flex md:hidden" />
 					{:else}
-						<ArrowRightIcon />
+						<ArrowRightIcon class="hidden md:flex" />
+						<ArrowDownIcon class="flex md:hidden" />
 					{/if}
 				{:else if currentColumn.id === 'payee'}
 					{#if currentJournal.otherJournals.length === 1}

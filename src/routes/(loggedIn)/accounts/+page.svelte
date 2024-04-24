@@ -26,6 +26,7 @@
 	import { currencyFormat } from '$lib/stores/userInfoStore.js';
 	import NotesButton from '$lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
+	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -65,10 +66,9 @@
 			Create
 		</Button>
 	</svelte:fragment>
-	<JournalSummaryPopoverContent
-		item={data.accountSummary}
-		summaryFilter={{ account: $urlStore.searchParams } || defaultJournalFilter}
-		showJournalLink
+	<JournalSummaryWithFetch
+		filter={{ account: $urlStore.searchParams }}
+		latestUpdate={data.latestUpdate}
 	/>
 	<CustomTable
 		highlightText={$urlStore.searchParams?.accountTitleCombined}
@@ -248,7 +248,7 @@
 			/>
 		</svelte:fragment>
 		<svelte:fragment slot="filter">
-			<div class="flex flex-row gap-2">
+			<div class="flex flex-col gap-2 md:flex-row">
 				{#if $urlStore.searchParams}
 					<Input
 						type="text"

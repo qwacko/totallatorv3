@@ -11,7 +11,6 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
-	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
@@ -20,9 +19,9 @@
 	import { enhance } from '$app/forms';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import NotesButton from '$lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
+	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/labels', $page);
@@ -58,15 +57,10 @@
 			Create
 		</Button>
 	</svelte:fragment>
-	{#await data.labelSummary}
-		<LoadingSpinner />
-	{:then labelSumamryData}
-		<JournalSummaryPopoverContent
-			item={labelSumamryData}
-			summaryFilter={{ label: $urlStore.searchParams } || defaultJournalFilter()}
-			showJournalLink
-		/>
-	{/await}
+	<JournalSummaryWithFetch
+		filter={{ label: $urlStore.searchParams }}
+		latestUpdate={data.latestUpdate}
+	/>
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.title}
@@ -99,7 +93,8 @@
 					id: 'status',
 					title: 'Status',
 					rowToDisplay: (row) => statusToDisplay(row.status),
-					sortKey: 'status'
+					sortKey: 'status',
+					showTitleOnMobile: true
 				},
 				...summaryColumns({ currencyFormat: data.user?.currencyFormat })
 			]}
@@ -151,8 +146,8 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{ labelId: currentRow.id }} />								
-								<FilesButton files={currentRow.files} target={{labelId: currentRow.id}} />
+								<NotesButton notes={currentRow.notes} target={{ labelId: currentRow.id }} />
+								<FilesButton files={currentRow.files} target={{ labelId: currentRow.id }} />
 								<RawDataModal data={currentRow} title="Raw Label Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>

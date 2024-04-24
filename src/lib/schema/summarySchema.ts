@@ -44,6 +44,7 @@ type SummaryColumnsType = {
 	sortKey: string;
 	rowToDisplay?: (data: RowType) => string;
 	rowToCurrency?: (data: RowType) => { amount: number; format: currencyFormatType };
+	showTitleOnMobile?: boolean;
 }[];
 
 export const summaryColumns = ({ currencyFormat }: { currencyFormat?: currencyFormatType }) => {
@@ -55,25 +56,29 @@ export const summaryColumns = ({ currencyFormat }: { currencyFormat?: currencyFo
 				amount: row.sum || 0,
 				format: currencyFormat || 'USD'
 			}),
-			sortKey: 'sum' as const
+			sortKey: 'sum' as const,
+			showTitleOnMobile: true
 		},
 		{
 			id: 'count' as const,
 			title: 'Count',
 			rowToDisplay: (row) => (row.count || 0).toString(),
-			sortKey: 'count' as const
+			sortKey: 'count' as const,
+			showTitleOnMobile: true
 		},
 		{
 			id: 'firstDate' as const,
 			title: 'First',
 			rowToDisplay: (row) => (row.firstDate ? row.firstDate.toISOString().slice(0, 10) : ''),
-			sortKey: 'firstDate' as const
+			sortKey: 'firstDate' as const,
+			showTitleOnMobile: true
 		},
 		{
 			id: 'lastDate' as const,
 			title: 'Last',
 			rowToDisplay: (row) => (row.lastDate ? row.lastDate.toISOString().slice(0, 10) : ''),
-			sortKey: 'lastDate' as const
+			sortKey: 'lastDate' as const,
+			showTitleOnMobile: true
 		}
 	] satisfies SummaryColumnsType;
 };

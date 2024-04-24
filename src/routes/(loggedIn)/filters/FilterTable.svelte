@@ -70,34 +70,39 @@
 				title: 'Automatic',
 				rowToDisplay: (row) => (row.applyAutomatically ? 'Y' : ''),
 				sortKey: 'applyAutomatically',
-				filterActive: Boolean(searchParams.applyAutomatically !== undefined)
+				filterActive: Boolean(searchParams.applyAutomatically !== undefined),
+				showTitleOnMobile: true
 			},
 			{
 				id: 'applyFollowingImport',
 				title: 'Import',
 				rowToDisplay: (row) => (row.applyFollowingImport ? 'Y' : ''),
 				sortKey: 'applyFollowingImport',
-				filterActive: Boolean(searchParams.applyFollowingImport !== undefined)
+				filterActive: Boolean(searchParams.applyFollowingImport !== undefined),
+				showTitleOnMobile: true
 			},
 			{
 				id: 'listed',
 				title: 'Dropdown',
 				sortKey: 'listed',
 				rowToDisplay: (row) => (row.listed ? 'Y' : ''),
-				filterActive: Boolean(searchParams.listed !== undefined)
+				filterActive: Boolean(searchParams.listed !== undefined),
+				showTitleOnMobile: true
 			},
 			{
 				id: 'modificationType',
 				title: 'Modifiation',
 				sortKey: 'modificationType',
-				filterActive: Boolean(searchParams.modificationType !== undefined)
+				filterActive: Boolean(searchParams.modificationType !== undefined),
+				showTitleOnMobile: true
 			},
 			{
 				id: 'group',
 				title: 'Group',
 				rowToDisplay: (row) => row.group || '',
 				sortKey: 'group',
-				filterActive: Boolean(searchParams.group !== undefined && searchParams.group !== '')
+				filterActive: Boolean(searchParams.group !== undefined && searchParams.group !== ''),
+				showTitleOnMobile: true
 			},
 			{
 				id: 'title',
@@ -111,26 +116,30 @@
 				title: 'Filter',
 				rowToDisplay: (row) => row.filterText,
 				sortKey: 'filterText',
-				filterActive: Boolean(searchParams.filterText !== undefined)
+				filterActive: Boolean(searchParams.filterText !== undefined),
+				showTitleOnMobile: true
 			},
 			{
 				id: 'changeText',
 				title: 'Change',
 				rowToDisplay: (row) => row.changeText || '',
 				sortKey: 'changeText',
-				filterActive: Boolean(searchParams.filterText !== undefined)
+				filterActive: Boolean(searchParams.filterText !== undefined),
+				showTitleOnMobile: true
 			},
 			{
 				id: 'journalCount',
 				title: 'Journal Count',
 				sortKey: 'journalCount',
-				rowToDisplay: (row) => row.journalCount.toString()
+				rowToDisplay: (row) => row.journalCount.toString(),
+				showTitleOnMobile: true
 			},
 			{
 				id: 'canApply',
 				title: 'Can Apply',
 				sortKey: 'canApply',
-				rowToDisplay: (row) => (row.canApply ? 'Y' : '')
+				rowToDisplay: (row) => (row.canApply ? 'Y' : ''),
+				showTitleOnMobile: true
 			}
 		]}
 	>

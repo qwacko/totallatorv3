@@ -29,8 +29,6 @@ export const journalMaterializedViewActions = {
 			'Journal Materialized - Get Latest Update Date'
 		);
 
-		console.log('latestUpdateDate', latestUpdateDate[0].lastUpdated);
-
 		return latestUpdateDate[0].lastUpdated || new Date();
 	},
 	getById: async (db: DBType, id: string) => {
