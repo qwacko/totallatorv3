@@ -31,11 +31,6 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const summary = tActions.journalView.summary({
-		db,
-		filter: { ...filter, page: 0, pageSize: 1000000 }
-	});
-
 	const dropdownInfo = dropdownItems({ db });
 
 	const filterText = await journalFilterToText({ db, filter, prefix: 'Journal' });
@@ -44,7 +39,6 @@ export const load = async (data) => {
 	return {
 		journals: journalData,
 		streamed: {
-			summary,
 			dropdownInfo,
 			refresh: tActions.materializedViews.conditionalRefresh({ db, logStats: true })
 		},

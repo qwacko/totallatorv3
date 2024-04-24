@@ -105,7 +105,7 @@
 </script>
 
 {#if paginationInfo && data.length > 0 && !hideTopPagination}
-	<div class="flex flex-row justify-center gap-2">
+	<div class="flex flex-col items-center gap-2 md:flex-row md:justify-center">
 		<TablePagination {...paginationInfo} />
 		<Button outline class="flex flex-row items-center gap-2" color="light">
 			{numberRows} Rows <ArrowDownIcon />
@@ -125,99 +125,145 @@
 	</div>
 {/if}
 <slot name="filter" />
-<div class="flex flex-row items-center gap-2">
+
+{#if filterText}
+	<div class="flex xl:hidden">
+		<FilterTextDisplay text={filterText} />
+	</div>
+{/if}
+<div class="flex flex-col items-center gap-2 md:flex-row">
 	{#if $$slots.bulkActions}
 		<slot name="bulkActions" {selectedIds} {updateSelectedIds} />
 	{/if}
 	{#if filterText}
-		<FilterTextDisplay text={filterText} />
+		<div class="hidden xl:flex">
+			<FilterTextDisplay text={filterText} />
+		</div>
 	{/if}
-	<div class="flex flex-grow items-center" />
-	{#if $$slots.filterModal}
-		<Button size="sm" class="flex p-2" color="light" on:click={() => (filterOpened = true)}>
-			<FilterIcon />
-		</Button>
-		<Modal bind:open={filterOpened} size="lg" title={filterModalTitle} outsideclose>
-			<slot name="filterModal" {currentFilter} {filterOpened} {updateFilterOpened} />
-		</Modal>
-	{/if}
+	<div class="hidden flex-grow items-center md:flex" />
+	<div class="flex flex-row gap-2">
+		{#if $$slots.filterModal}
+			<Button size="sm" class="flex p-2" color="light" on:click={() => (filterOpened = true)}>
+				<FilterIcon />
+			</Button>
+			<Modal bind:open={filterOpened} size="lg" title={filterModalTitle} outsideclose>
+				<slot name="filterModal" {currentFilter} {filterOpened} {updateFilterOpened} />
+			</Modal>
+		{/if}
 
-	{#if onSortURL && sortOptions.length > 0}
-		<OrderDropDown
-			currentSort={currentOrder}
-			options={sortOptions}
-			{onSortURL}
-			optionToTitle={(option) => columns.find((item) => item.sortKey === option)?.title || ''}
-		/>
-	{/if}
-	<TableColumnDropdown bind:shownColumns {columnIdToTitle} columnIds={allColumnIds} />
-	<slot name="filterButtons" />
+		{#if onSortURL && sortOptions.length > 0}
+			<OrderDropDown
+				currentSort={currentOrder}
+				options={sortOptions}
+				{onSortURL}
+				optionToTitle={(option) => columns.find((item) => item.sortKey === option)?.title || ''}
+			/>
+		{/if}
+		<TableColumnDropdown bind:shownColumns {columnIdToTitle} columnIds={allColumnIds} />
+		<slot name="filterButtons" />
+	</div>
 </div>
 
 {#if data.length === 0}
 	<Alert color="dark">{noneFoundText}</Alert>
 {:else}
-	<Table>
-		<TableHead>
-			{#if bulkSelection}
-				<TableHeadCell class="flex flex-row justify-center gap-1">
-					<ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} />
-				</TableHeadCell>
-			{/if}
-			{#each shownColumns as column}
-				{@const currentColumn = columns.find((item) => item.id === column)}
-				{#if currentColumn}
-					<CustomTableHeadCell
-						title={currentColumn.title}
-						sortKey={currentColumn.sortKey}
-						currentSort={currentOrder}
-						showDropdown={currentColumn.enableDropdown}
-						filterActive={currentColumn.filterActive}
-						{onSortURL}
-					>
-						<svelte:fragment slot="dropdown">
-							<slot name="headerItem" {currentColumn} />
-						</svelte:fragment>
-					</CustomTableHeadCell>
+	<div class="hidden md:flex">
+		<Table>
+			<TableHead>
+				{#if bulkSelection}
+					<TableHeadCell class="flex flex-row justify-center gap-1">
+						<ToggleHeader bind:selectedIds {visibleIds} onlyVisibleAllowed={true} />
+					</TableHeadCell>
 				{/if}
-			{/each}
-		</TableHead>
-		<TableBody>
-			{#each data as row}
-				{@const thisRowColour = rowColour(row)}
-				{@const isGrey = thisRowColour === 'grey'}
-				<TableBodyRow class={isGrey ? 'bg-primary-50' : ''}>
-					{#if bulkSelection}
-						<TableBodyCell>
-							<ToggleFromArray id={rowToId ? rowToId(row) : undefined} bind:selectedIds />
-						</TableBodyCell>
+				{#each shownColumns as column}
+					{@const currentColumn = columns.find((item) => item.id === column)}
+					{#if currentColumn}
+						<CustomTableHeadCell
+							title={currentColumn.title}
+							sortKey={currentColumn.sortKey}
+							currentSort={currentOrder}
+							showDropdown={currentColumn.enableDropdown}
+							filterActive={currentColumn.filterActive}
+							{onSortURL}
+						>
+							<svelte:fragment slot="dropdown">
+								<slot name="headerItem" {currentColumn} />
+							</svelte:fragment>
+						</CustomTableHeadCell>
 					{/if}
+				{/each}
+			</TableHead>
+			<TableBody>
+				{#each data as row}
+					{@const thisRowColour = rowColour(row)}
+					{@const isGrey = thisRowColour === 'grey'}
+					<TableBodyRow class={isGrey ? 'bg-primary-50' : ''}>
+						{#if bulkSelection}
+							<TableBodyCell>
+								<ToggleFromArray id={rowToId ? rowToId(row) : undefined} bind:selectedIds />
+							</TableBodyCell>
+						{/if}
+						{#each shownColumns as column}
+							{@const currentColumn = columns.find((item) => item.id === column)}
+							{#if currentColumn}
+								{#if currentColumn.rowToDisplay}
+									<TableBodyCell>
+										<HighlightText
+											text={currentColumn.rowToDisplay(row) || ''}
+											searchText={highlightText}
+											highlight={highlightTextColumns.includes(column)}
+										/>
+									</TableBodyCell>
+								{:else if currentColumn.rowToCurrency}
+									<TableBodyCell>
+										<DisplayCurrency {...currentColumn.rowToCurrency(row)} />
+									</TableBodyCell>
+								{:else}
+									<TableBodyCell>
+										<slot name="customBodyCell" {currentColumn} {row}>No Content</slot>
+									</TableBodyCell>
+								{/if}
+							{/if}
+						{/each}
+					</TableBodyRow>
+				{/each}
+			</TableBody>
+		</Table>
+	</div>
+	<div class="gap flex flex-col items-stretch md:hidden">
+		{#each data as row}
+			{@const thisRowColour = rowColour(row)}
+			{@const isGrey = thisRowColour === 'grey'}
+			<div
+				class="flex flex-row gap-2 border-l border-r border-t border-gray-500 p-2 first:rounded-t-lg last:rounded-b-lg last:border-b"
+				class:bg-primary-50={isGrey}
+			>
+				{#if bulkSelection}
+					<ToggleFromArray id={rowToId ? rowToId(row) : undefined} bind:selectedIds />
+				{/if}
+				<div class="flex flex-grow flex-col items-center gap-1 self-stretch">
 					{#each shownColumns as column}
 						{@const currentColumn = columns.find((item) => item.id === column)}
-						{#if currentColumn}
-							{#if currentColumn.rowToDisplay}
-								<TableBodyCell>
+						<div class="flex">
+							{#if currentColumn}
+								{#if currentColumn.rowToDisplay}
 									<HighlightText
 										text={currentColumn.rowToDisplay(row) || ''}
 										searchText={highlightText}
 										highlight={highlightTextColumns.includes(column)}
 									/>
-								</TableBodyCell>
-							{:else if currentColumn.rowToCurrency}
-								<TableBodyCell>
+								{:else if currentColumn.rowToCurrency}
 									<DisplayCurrency {...currentColumn.rowToCurrency(row)} />
-								</TableBodyCell>
-							{:else}
-								<TableBodyCell>
+								{:else}
 									<slot name="customBodyCell" {currentColumn} {row}>No Content</slot>
-								</TableBodyCell>
+								{/if}
 							{/if}
-						{/if}
+						</div>
 					{/each}
-				</TableBodyRow>
-			{/each}
-		</TableBody>
-	</Table>
+				</div>
+			</div>
+		{/each}
+	</div>
 {/if}
 {#if paginationInfo && data.length > 0 && !hideBottomPagination}
 	<div class="flex flex-row justify-center">

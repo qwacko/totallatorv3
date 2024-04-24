@@ -21,7 +21,6 @@
 	import TagBadge from '$lib/components/TagBadge.svelte';
 	import BillBadge from '$lib/components/BillBadge.svelte';
 	import BudgetBadge from '$lib/components/BudgetBadge.svelte';
-	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
@@ -37,6 +36,8 @@
 	import { currencyFormat } from '$lib/stores/userInfoStore';
 	import NotesButton from '../../../lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
+	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
+	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 
 	export let data;
 
@@ -77,17 +78,14 @@
 				searchParamsValue: $urlStore.searchParams || defaultJournalFilter()
 			}).url}
 		>
-			Create Transaction
+			<PlusIcon />
 		</Button>
 	</svelte:fragment>
-	{#await data.streamed.summary}
-		<LoadingSpinner loadingText="Loading Summary..." />
-	{:then summary}
-		<JournalSummaryPopoverContent
-			item={summary}
-			summaryFilter={$urlStore.searchParams || defaultJournalFilter()}
-		/>
-	{/await}
+	<JournalSummaryWithFetch
+		filter={data.searchParamsWithoutPagination}
+		latestUpdate={data.latestUpdate}
+	/>
+
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams.description}
@@ -413,28 +411,30 @@
 						</div>
 					{/if}
 				{:else if currentColumn.id === 'relations'}
-					<CategoryBadge
-						data={currentJournal}
-						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-					/>
-					<TagBadge
-						data={currentJournal}
-						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-					/>
-					<BillBadge
-						data={currentJournal}
-						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-					/>
-					<BudgetBadge
-						data={currentJournal}
-						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-					/>
-					{#each currentJournal.labels as currentLabel}
-						<LabelBadge
-							data={currentLabel}
+					<div class="flex flex-row flex-wrap gap-1">
+						<CategoryBadge
+							data={currentJournal}
 							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 						/>
-					{/each}
+						<TagBadge
+							data={currentJournal}
+							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+						/>
+						<BillBadge
+							data={currentJournal}
+							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+						/>
+						<BudgetBadge
+							data={currentJournal}
+							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+						/>
+						{#each currentJournal.labels as currentLabel}
+							<LabelBadge
+								data={currentLabel}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+							/>
+						{/each}
+					</div>
 				{/if}
 			</svelte:fragment>
 			<svelte:fragment slot="headerItem" let:currentColumn>

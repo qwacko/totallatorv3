@@ -33,4 +33,4 @@ export const popoverViewEnum: popoverViewOptions[] = [
 	'Budget'
 ];
 
-export const showSummaryStore = writable<boolean>(true);
+export const showSummaryStore = writable<boolean>(false);

@@ -28,7 +28,7 @@
 				</slot>
 			</div>
 			{#if title}
-				<h3 class="flex justify-center text-4xl font-bold">{title}</h3>
+				<h3 class="flex justify-center text-2xl font-bold md:text-4xl">{title}</h3>
 			{/if}
 			<div class="flex flex-grow basis-0 flex-row justify-end gap-2">
 				<slot name="right" />
