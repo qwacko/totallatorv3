@@ -14,7 +14,6 @@
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import { accountTypeEnum, accountTypeToDisplay } from '$lib/schema/accountTypeSchema';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
-	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
@@ -67,7 +66,7 @@
 		</Button>
 	</svelte:fragment>
 	<JournalSummaryWithFetch
-		filter={{ account: $urlStore.searchParams }}
+		filter={{ account: data.searchParams }}
 		latestUpdate={data.latestUpdate}
 	/>
 	<CustomTable

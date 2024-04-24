@@ -62,7 +62,7 @@
 		</Button>
 	</svelte:fragment>
 	<JournalSummaryWithFetch
-		filter={{ budget: $urlStore.searchParams }}
+		filter={{ budget: data.searchParams }}
 		latestUpdate={data.latestUpdate}
 	/>
 	{#if $urlStore.searchParams && data.searchParams}

@@ -57,7 +57,7 @@
 			Create
 		</Button>
 	</svelte:fragment>
-	<JournalSummaryWithFetch filter={{ tag: $urlStore.searchParams } } latestUpdate={data.latestUpdate} />
+	<JournalSummaryWithFetch filter={{ tag: data.searchParams } } latestUpdate={data.latestUpdate} />
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.title}
