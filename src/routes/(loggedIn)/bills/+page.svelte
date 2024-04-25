@@ -177,7 +177,7 @@
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="filterModal">
-				<BillFilter bind:filter={$urlStore.searchParams} billDetails={data.billDropdowns} />
+				<BillFilter bind:filter={$urlStore.searchParams}  />
 			</svelte:fragment>
 		</CustomTable>
 	{/if}

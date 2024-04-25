@@ -1,6 +1,5 @@
 import { tActions } from '$lib/server/db/actions/tActions';
 import { serverEnv } from '$lib/server/serverEnv';
-import { dropdownItems } from '$lib/server/dropdownItems.js';
 
 export const load = async ({ locals }) => {
 	const latestJournalUpdate = await tActions.journalView.getLatestUpdateDate({ db: locals.db });
@@ -10,7 +9,6 @@ export const load = async ({ locals }) => {
 		reportDropdown: await tActions.report.listForDropdown({ db: locals.db }),
 		enableDBLog: serverEnv.DBLOG_ENABLE,
 		latestUpdate: latestJournalUpdate,
-		dropdownInfo: dropdownItems({ db: locals.db }),
 		dataUpdated: {
 			journals: latestJournalUpdate,
 			bills: (await tActions.bill.latestUpdate({ db: locals.db })).getTime() || 0,

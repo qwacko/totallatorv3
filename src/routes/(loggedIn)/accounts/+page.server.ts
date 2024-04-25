@@ -53,8 +53,6 @@ export const load = async (data) => {
 		db
 	});
 
-	const accountDropdown = await tActions.account.listForDropdown({ db });
-
 	return {
 		accounts: await tActions.file.addFilesToItems({
 			db,
@@ -63,8 +61,7 @@ export const load = async (data) => {
 		}),
 		searchParams: pageInfo.searchParams,
 		filterText,
-		accountSummary,
-		accountDropdown
+		accountSummary
 	};
 };
 

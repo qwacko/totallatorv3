@@ -222,12 +222,6 @@
 				{#if $urlStore.searchParams}
 					<FilterModalContent
 						currentFilter={$urlStore.searchParams}
-						accountDropdown={data.dropdownInfo.account}
-						billDropdown={data.dropdownInfo.bill}
-						budgetDropdown={data.dropdownInfo.budget}
-						categoryDropdown={data.dropdownInfo.category}
-						tagDropdown={data.dropdownInfo.tag}
-						labelDropdown={data.dropdownInfo.label}
 						urlFromFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
 					/>
 				{/if}

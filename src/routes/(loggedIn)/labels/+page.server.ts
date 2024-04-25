@@ -38,8 +38,6 @@ export const load = async (data) => {
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 
-	const labelDropdowns = await tActions.label.listForDropdown({ db });
-
 	return {
 		labels: await tActions.file.addFilesToItems({
 			db,
@@ -48,8 +46,7 @@ export const load = async (data) => {
 		}),
 		searchParams: pageInfo.searchParams,
 		filterText,
-		labelSummary,
-		labelDropdowns
+		labelSummary
 	};
 };
 

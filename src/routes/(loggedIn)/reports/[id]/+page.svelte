@@ -114,7 +114,6 @@
 				</div>
 			{/if}
 			<ReportFilterModal
-				dropdownInfo={data.dropdownInfo}
 				filter={data.report.filter?.filter}
 			/>
 			<div class="flex">

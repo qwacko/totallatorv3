@@ -31,7 +31,6 @@ export const load = async (data) => {
 		filter: { ...defaultJournalFilter(), tag: pageInfo.searchParams }
 	});
 
-	const tagDropdowns = await tActions.tag.listForDropdown({ db });
 	const filterText = await tagFilterToText({
 		db,
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
@@ -45,8 +44,7 @@ export const load = async (data) => {
 		}),
 		searchParams: pageInfo.searchParams,
 		filterText,
-		tagSummary,
-		tagDropdowns
+		tagSummary
 	};
 };
 

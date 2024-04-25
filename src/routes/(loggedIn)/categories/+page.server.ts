@@ -30,8 +30,6 @@ export const load = async (data) => {
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 
-	const categoryDropdowns = await tActions.category.listForDropdown({ db });
-
 	return {
 		categories: await tActions.file.addFilesToItems({
 			db,
@@ -39,8 +37,7 @@ export const load = async (data) => {
 			data: await tActions.note.addNotesToItems({ db, data: categories, grouping: 'category' })
 		}),
 		searchParams: pageInfo.searchParams,
-		filterText,
-		categoryDropdowns
+		filterText
 	};
 };
 

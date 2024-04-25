@@ -182,7 +182,7 @@
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="filterModal">
-				<BudgetFilter bind:filter={$urlStore.searchParams} budgetDetails={data.budgetDropdowns} />
+				<BudgetFilter bind:filter={$urlStore.searchParams}  />
 			</svelte:fragment>
 		</CustomTable>
 	{/if}

@@ -57,11 +57,10 @@
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		{#if data.selectedJournals.canEdit}
 			<UpdateJournalForm {form} />
-			<UpdateJournalLinksForm {form} dropdownInfo={data.dropdownInfo} />
+			<UpdateJournalLinksForm {form} />
 		{/if}
 		<UpdateJournalLabelsForm
 			{form}
-			dropdownInfo={data.dropdownInfo}
 			allLabelIds={data.allLabelIds}
 			commonLabelIds={data.commonLabelIds}
 		/>

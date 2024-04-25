@@ -10,20 +10,8 @@
 	import FilterIcon from './icons/FilterIcon.svelte';
 	import FilterModalContent from './FilterModalContent.svelte';
 
-	type dropdownItemsType = {
-		id: string;
-		title: string;
-		enabled: boolean;
-		group?: string;
-	};
 
 	export let currentFilter: F;
-	export let accountDropdown: Promise<dropdownItemsType[]>;
-	export let billDropdown: Promise<dropdownItemsType[]>;
-	export let budgetDropdown: Promise<dropdownItemsType[]>;
-	export let categoryDropdown: Promise<dropdownItemsType[]>;
-	export let tagDropdown: Promise<dropdownItemsType[]>;
-	export let labelDropdown: Promise<dropdownItemsType[]>;
 	export let urlFromFilter: ((filter: F) => string) | undefined = undefined;
 	export let opened = false;
 	export let hideDates = false;
@@ -40,12 +28,6 @@
 <Modal bind:open={opened} size="lg" title={modalTitle} outsideclose>
 	<FilterModalContent
 		{currentFilter}
-		{accountDropdown}
-		{billDropdown}
-		{budgetDropdown}
-		{categoryDropdown}
-		{tagDropdown}
-		{labelDropdown}
 		{urlFromFilter}
 		{hideDates}
 		bind:url

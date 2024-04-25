@@ -14,16 +14,6 @@
 	export let id: string;
 	export let numberResults: number;
 	export let filterText: string[] | undefined;
-	type DDI = { id: string; title: string; group: string; enabled: boolean };
-	type DDINoGroup = { id: string; title: string; enabled: boolean };
-	export let dropdownInfo: {
-		tag: Promise<DDI[]>;
-		bill: Promise<DDINoGroup[]>;
-		budget: Promise<DDINoGroup[]>;
-		category: Promise<DDI[]>;
-		account: Promise<DDI[]>;
-		label: Promise<DDINoGroup[]>;
-	};
 </script>
 
 <input type="hidden" name="id" value={id} />
@@ -34,12 +24,6 @@
 			<div class="flex flex-col gap-1">
 				<FilterModal
 					currentFilter={filter || defaultJournalFilter()}
-					accountDropdown={dropdownInfo.account}
-					billDropdown={dropdownInfo.bill}
-					categoryDropdown={dropdownInfo.category}
-					budgetDropdown={dropdownInfo.budget}
-					tagDropdown={dropdownInfo.tag}
-					labelDropdown={dropdownInfo.label}
 					bind:opened={filterModal}
 				>
 					<svelte:fragment slot="footerContents" let:activeFilter>

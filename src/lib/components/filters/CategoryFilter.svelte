@@ -5,20 +5,14 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { CategoryFilterSchemaType } from '$lib/schema/categorySchema';
-
-	type categoryDetailType = {
-		id: string;
-		title: string;
-		enabled: boolean;
-		group?: string;
-	};
+	import {  categoryDropdownData } from '$lib/stores/dropdownStores.js'
+	import type { CategoryDropdownType } from '$lib/server/db/actions/categoryActions';
 
 	export let filter: CategoryFilterSchemaType | undefined;
-	export let categoryDetails: categoryDetailType[] | undefined;
 
 	const idToString = (id: string) => {
-		if (categoryDetails) {
-			const matchingItem = categoryDetails.find((item) => item.id === id);
+		if ($categoryDropdownData) {
+			const matchingItem = $categoryDropdownData.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -26,9 +20,9 @@
 		return id;
 	};
 
-	const itemToOption = (data: categoryDetailType): SelectionType => {
-		if (categoryDetails) {
-			const matchingItem = categoryDetails.find((item) => item.id === data.id);
+	const itemToOption = (data: CategoryDropdownType[number]): SelectionType => {
+		if ($categoryDropdownData) {
+			const matchingItem = $categoryDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -36,9 +30,9 @@
 		return { label: data.id, value: data.id };
 	};
 
-	const itemToDisplay = (data: categoryDetailType): { group?: string; title: string } => {
-		if (categoryDetails) {
-			const matchingItem = categoryDetails.find((item) => item.id === data.id);
+	const itemToDisplay = (data: CategoryDropdownType[number]): { group?: string; title: string } => {
+		if ($categoryDropdownData) {
+			const matchingItem = $categoryDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { group: matchingItem.group, title: matchingItem.title };
 			}
@@ -64,7 +58,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Category IDs"
-			lookupItems={categoryDetails}
+			lookupItems={$categoryDropdownData}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

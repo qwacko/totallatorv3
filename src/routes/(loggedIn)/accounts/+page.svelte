@@ -266,7 +266,7 @@
 			</div>
 		</svelte:fragment>
 		<svelte:fragment slot="filterModal">
-			<AccountFilter bind:filter={$urlStore.searchParams} accountDetails={data.accountDropdown} />
+			<AccountFilter bind:filter={$urlStore.searchParams}  />
 		</svelte:fragment>
 	</CustomTable>
 </PageLayout>

@@ -4,20 +4,16 @@
 	import FilterIdArray from './FilterIdArray.svelte';
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
+	import { accountDropdownData } from '$lib/stores/dropdownStores.js'
+	import type { AccountDropdownType } from '$lib/server/db/actions/accountActions';
 
-	type accountDetailType = {
-		id: string;
-		title: string;
-		enabled: boolean;
-		group?: string;
-	};
 
 	export let filter: { id?: string; idArray?: string[]; title?: string } | undefined;
-	export let accountDetails: accountDetailType[] | undefined;
+	
 
 	const idToString = (id: string) => {
-		if (accountDetails) {
-			const matchingItem = accountDetails.find((item) => item.id === id);
+		if ($accountDropdownData) {
+			const matchingItem = $accountDropdownData.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -25,9 +21,9 @@
 		return id;
 	};
 
-	const itemToOption = (data: accountDetailType): SelectionType => {
-		if (accountDetails) {
-			const matchingItem = accountDetails.find((item) => item.id === data.id);
+	const itemToOption = (data: AccountDropdownType[number]): SelectionType => {
+		if ($accountDropdownData) {
+			const matchingItem = $accountDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -35,9 +31,9 @@
 		return { label: data.id, value: data.id };
 	};
 
-	const itemToDisplay = (data: accountDetailType): { group?: string; title: string } => {
-		if (accountDetails) {
-			const matchingItem = accountDetails.find((item) => item.id === data.id);
+	const itemToDisplay = (data: AccountDropdownType[number]): { group?: string; title: string } => {
+		if ($accountDropdownData) {
+			const matchingItem = $accountDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { group: matchingItem.group, title: matchingItem.title };
 			}
@@ -55,7 +51,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Account IDs"
-			lookupItems={accountDetails}
+			lookupItems={$accountDropdownData}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

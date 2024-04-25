@@ -31,8 +31,6 @@ export const load = async (data) => {
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 
-	const billDropdowns = await tActions.bill.listForDropdown({ db });
-
 	return {
 		bills: await tActions.file.addFilesToItems({
 			db,
@@ -40,8 +38,7 @@ export const load = async (data) => {
 			data: await tActions.note.addNotesToItems({ db, data: bills, grouping: 'bill' })
 		}),
 		searchParams: pageInfo.searchParams,
-		filterText,
-		billDropdowns
+		filterText
 	};
 };
 

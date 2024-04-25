@@ -198,7 +198,6 @@
 			<svelte:fragment slot="filterModal">
 				<CategoryFilter
 					bind:filter={$urlStore.searchParams}
-					categoryDetails={data.categoryDropdowns}
 				/>
 			</svelte:fragment>
 		</CustomTable>{/if}

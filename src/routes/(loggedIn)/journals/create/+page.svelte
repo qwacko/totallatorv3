@@ -45,8 +45,8 @@
 		<TextInputForm title="Description" {form} field="description" />
 		<DateInputForm title="Date" {form} field="date" />
 		<CurrencyInputForm title="Amount" {form} field="amount" />
-		<CreateTransactionLinksForm {form} dropdownInfo={data.dropdownInfo} />
-		<CreateTransactionLabelsForm {form} dropdownInfo={data.dropdownInfo} />
+		<CreateTransactionLinksForm {form} />
+		<CreateTransactionLabelsForm {form}  />
 		<Button class="mt-4 md:col-span-2" type="submit">Create Transaction</Button>
 		<Button class="mt-4 md:col-span-2" on:click={() => form.reset()}>Reset</Button>
 		<ErrorText message={$message} />

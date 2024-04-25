@@ -95,12 +95,6 @@
 			<FilterModal
 				currentFilter={data.elementData.filter.filter}
 				bind:opened={filterOpen}
-				accountDropdown={data.dropdownInfo.account}
-				billDropdown={data.dropdownInfo.bill}
-				budgetDropdown={data.dropdownInfo.budget}
-				tagDropdown={data.dropdownInfo.tag}
-				categoryDropdown={data.dropdownInfo.category}
-				labelDropdown={data.dropdownInfo.label}
 			>
 				<svelte:fragment slot="footerContents" let:activeFilter>
 					<Button on:click={() => (filterOpen = false)} outline>Cancel</Button>
@@ -170,14 +164,6 @@
 	/>
 
 	<ReportElementConfigFiltersForm
-		dropdowns={{
-			accountDropdown: data.dropdownInfo.account,
-			billDropdown: data.dropdownInfo.bill,
-			budgetDropdown: data.dropdownInfo.budget,
-			tagDropdown: data.dropdownInfo.tag,
-			categoryDropdown: data.dropdownInfo.category,
-			labelDropdown: data.dropdownInfo.label
-		}}
 		elementData={data.elementData}
 	/>
 

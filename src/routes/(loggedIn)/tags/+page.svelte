@@ -57,7 +57,7 @@
 			Create
 		</Button>
 	</svelte:fragment>
-	<JournalSummaryWithFetch filter={{ tag: data.searchParams } } latestUpdate={data.latestUpdate} />
+	<JournalSummaryWithFetch filter={{ tag: data.searchParams }} latestUpdate={data.latestUpdate} />
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.title}
@@ -159,8 +159,8 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{tagId: currentRow.id}} />								
-								<FilesButton files={currentRow.files} target={{tagId: currentRow.id}} />
+								<NotesButton notes={currentRow.notes} target={{ tagId: currentRow.id }} />
+								<FilesButton files={currentRow.files} target={{ tagId: currentRow.id }} />
 								<RawDataModal data={currentRow} title="Raw Tag Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>
@@ -189,7 +189,7 @@
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="filterModal">
-				<TagFilter bind:filter={$urlStore.searchParams} tagDetails={data.tagDropdowns} />
+				<TagFilter bind:filter={$urlStore.searchParams} />
 			</svelte:fragment>
 		</CustomTable>{/if}
 </PageLayout>

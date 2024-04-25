@@ -176,7 +176,7 @@
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="filterModal">
-				<LabelFilter bind:filter={$urlStore.searchParams} labelDetails={data.labelDropdowns} />
+				<LabelFilter bind:filter={$urlStore.searchParams}  />
 			</svelte:fragment>
 		</CustomTable>{/if}
 </PageLayout>
