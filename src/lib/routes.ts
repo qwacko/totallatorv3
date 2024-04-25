@@ -98,6 +98,16 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			paramsValidation: z.object({ id: z.string() }).parse
 		},
 
+		// Dropdown Data Collection
+		// ----------------------------------------
+		'/(loggedIn)/dropdowns/accounts': {},
+		'/(loggedIn)/dropdowns/bills': {},
+		'/(loggedIn)/dropdowns/budgets': {},
+		'/(loggedIn)/dropdowns/categories': {},
+		'/(loggedIn)/dropdowns/tags': {},
+		'/(loggedIn)/dropdowns/labels': {},
+		'/(loggedIn)/dropdowns/importMappings': {},
+
 		// Automatic Imports
 		// ----------------------------------------
 

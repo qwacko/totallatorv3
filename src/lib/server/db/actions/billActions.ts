@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { bill } from '../postgres/schema';
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -24,6 +24,13 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 
 export const billActions = {
+	latestUpdate: async ({ db }: { db: DBType }) => {
+		const latestUpdate = await dbExecuteLogger(
+			db.select({ lastUpdated: max(bill.updatedAt) }).from(bill),
+			'Bill - Latest Update'
+		);
+		return latestUpdate[0].lastUpdated || new Date();
+	},
 	getById: async (db: DBType, id: string) => {
 		return dbExecuteLogger(db.query.bill.findFirst({ where: eq(bill.id, id) }), 'Bill - Get By Id');
 	},
@@ -276,3 +283,5 @@ export const billActions = {
 		await billActions.createMany(db, itemsToCreate);
 	}
 };
+
+export type BillDropdownType = Awaited<ReturnType<typeof billActions.listForDropdown>>;

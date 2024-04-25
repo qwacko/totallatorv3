@@ -8,7 +8,7 @@ import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { importMapping, type ImportMappingType } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { asc, desc, getTableColumns, and, sql, eq } from 'drizzle-orm';
+import { asc, desc, getTableColumns, and, sql, eq, max } from 'drizzle-orm';
 import { importMappingFilterToQuery } from './helpers/import/importMappingFilterToQuery';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
@@ -26,6 +26,13 @@ const processImportedDataResult = (data: ImportMappingType) => {
 };
 
 export const importMappingActions = {
+	latestUpdate: async ({ db }: { db: DBType }) => {
+		const latestUpdate = await dbExecuteLogger(
+			db.select({ lastUpdated: max(importMapping.updatedAt) }).from(importMapping),
+			'Import Mapping - Latest Update'
+		);
+		return latestUpdate[0].lastUpdated || new Date();
+	},
 	getById: async ({ db, id }: { db: DBType; id: string }) => {
 		const data = await dbExecuteLogger(
 			db.select(getTableColumns(importMapping)).from(importMapping).where(eq(importMapping.id, id)),
@@ -195,3 +202,7 @@ export const importMappingActions = {
 		);
 	}
 };
+
+export type ImportMappingDropdownType = Awaited<
+	ReturnType<typeof importMappingActions.listForDropdown>
+>;

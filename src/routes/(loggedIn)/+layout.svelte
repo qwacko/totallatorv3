@@ -22,6 +22,7 @@
 	import FileIcon from '$lib/components/icons/FileIcon.svelte';
 	import DBQueryIcon from '$lib/components/icons/DBQueryIcon.svelte';
 	import DBGroupedQueryIcon from '$lib/components/icons/DBGroupedQueryIcon.svelte';
+	import UpdateDropdowns from '$lib/stores/UpdateDropdowns.svelte';
 
 	export let data;
 
@@ -175,6 +176,8 @@
 			: [])
 	];
 </script>
+
+<UpdateDropdowns dataUpdated={data.dataUpdated} />
 
 <div class="flex flex-col justify-stretch p-2">
 	<div class="flex flex-row flex-wrap justify-center gap-2 pb-8 pt-4">
