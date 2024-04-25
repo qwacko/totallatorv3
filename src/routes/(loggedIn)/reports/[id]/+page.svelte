@@ -114,7 +114,7 @@
 				</div>
 			{/if}
 			<ReportFilterModal
-				dropdownInfo={data.streamed.dropdownInfo}
+				dropdownInfo={data.dropdownInfo}
 				filter={data.report.filter?.filter}
 			/>
 			<div class="flex">

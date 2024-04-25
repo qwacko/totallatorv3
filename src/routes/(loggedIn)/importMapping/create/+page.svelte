@@ -20,7 +20,7 @@
 	<ImportMappingForm
 		{form}
 		{detailForm}
-		dropdowns={data.dropdowns}
+		dropdowns={data.dropdownInfo}
 		submitButtonText="Create Import Mapping"
 	/>
 </PageLayout>

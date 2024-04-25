@@ -33,10 +33,10 @@
 		<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
 		<CloneJournalForm {form} />
-		<CloneJournalLinksForm {form} dropdownInfo={data.streamed.dropdownInfo} />
+		<CloneJournalLinksForm {form} dropdownInfo={data.dropdownInfo} />
 		<UpdateJournalLabelsForm
 			{form}
-			dropdownInfo={data.streamed.dropdownInfo}
+			dropdownInfo={data.dropdownInfo}
 			allLabelIds={data.allLabelIds}
 			commonLabelIds={data.commonLabelIds}
 		/>

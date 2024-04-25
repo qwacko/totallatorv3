@@ -6,7 +6,6 @@ import {
 	updateReportElementSchema
 } from '$lib/schema/reportSchema.js';
 import { tActions } from '$lib/server/db/actions/tActions.js';
-import { dropdownItems } from '$lib/server/dropdownItems';
 import { redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -68,7 +67,6 @@ export const load = async (data) => {
 		elementData,
 		elementConfigWithData,
 		form,
-		configForm,
-		dropdowns: dropdownItems({ db })
+		configForm
 	};
 };

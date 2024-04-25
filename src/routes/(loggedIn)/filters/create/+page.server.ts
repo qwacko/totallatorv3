@@ -16,7 +16,6 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { journalUpdateToText } from '$lib/server/db/actions/helpers/journal/journalUpdateToText.js';
 import { reusableFilterPageAndFilterValidation } from '$lib/schema/pageAndFilterValidation.js';
 import { redirect } from '@sveltejs/kit';
-import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { bufferingHelper } from '$lib/server/bufferingHelper';
 
 export const load = async (data) => {
@@ -55,7 +54,6 @@ export const load = async (data) => {
 		modificationForm,
 		filterText,
 		changeText,
-		dropdowns: dropdownItems({ db }),
 		numberResults
 	};
 };

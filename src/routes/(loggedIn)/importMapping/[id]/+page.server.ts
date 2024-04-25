@@ -9,7 +9,6 @@ import {
 	importMappingDetailWithRefinementSchema,
 	importMappingUpdateFormSchema
 } from '$lib/schema/importMappingSchema';
-import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { z } from 'zod';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import type { ImportFilterSchemaType } from '$lib/schema/importSchema.js';
@@ -70,7 +69,6 @@ export const load = async (data) => {
 		importMapping,
 		form,
 		detailForm,
-		dropdowns: dropdownItems({ db }),
 		autoImports,
 		importFilter,
 		imports
