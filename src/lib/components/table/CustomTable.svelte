@@ -168,7 +168,7 @@
 	<Alert color="dark">{noneFoundText}</Alert>
 {:else}
 	<div class="hidden md:block">
-		<Table class="bg-red-200">
+		<Table>
 			<TableHead>
 				{#if bulkSelection}
 					<TableHeadCell class="flex flex-row justify-center gap-1">
