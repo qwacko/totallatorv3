@@ -3,8 +3,8 @@
 FROM node:20-alpine AS builder
 
 
-RUN apk add --update --no-cache python3 make g++
-RUN ln -sf python3 /usr/bin/python
+# RUN apk add --update --no-cache python3 make g++
+# RUN ln -sf python3 /usr/bin/python
 
 
 WORKDIR /app
@@ -25,8 +25,8 @@ RUN pnpm build
 FROM --platform=linux/amd64 node:20-alpine AS runner
 WORKDIR /app
 
-RUN apk add --update --no-cache python3 make g++
-RUN ln -sf python3 /usr/bin/python
+# RUN apk add --update --no-cache python3 make g++
+# RUN ln -sf python3 /usr/bin/python
 
 
 ENV DATABASE_FILE ./dev.db
