@@ -24,7 +24,7 @@ const migrationClient = postgres(usedURL || '', { max: 1 });
 const migrationDB = drizzle(migrationClient);
 export const postgresDatabase = postgres(usedURL || '', {
 	debug: serverEnv.DEV,
-	max: 50
+	max: serverEnv.POSTGRES_MAX_CONNECTIONS
 });
 
 const enableLogger = serverEnv.DB_QUERY_LOG;

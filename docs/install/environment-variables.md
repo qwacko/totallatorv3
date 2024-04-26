@@ -29,6 +29,13 @@ Can be used to disable (when `false`) the ability to signup from the login page 
 
 Set the postgres database access string.
 
+### `POSTGRES_MAX_CONNECTIONS`
+
+- Type: `number`
+- Default: `10`
+
+Set the maximum number of connections to the database.
+
 ### `RETENTION_MONTHS`
 
 - Type: `number`
