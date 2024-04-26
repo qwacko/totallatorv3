@@ -10,7 +10,12 @@
 		type JournalFilterSchemaType
 	} from '$lib/schema/journalSchema';
 	import type { ReusableFilterDropdownListType } from '$lib/server/db/actions/reusableFilterActions';
-	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
+	import {
+		Button,
+		Dropdown,
+		DropdownDivider,
+		DropdownItem,
+	} from 'flowbite-svelte';
 
 	export let filters: ReusableFilterDropdownListType;
 	export let updateFilter: (filter: JournalFilterSchemaType) => string;
@@ -19,6 +24,19 @@
 	export let hideIcon = false;
 	export let showDefaultJournalFilters = false;
 	export let buttonText: string | undefined = undefined;
+	export let hideButton: boolean = false;
+	export let placement:   'top'
+  | 'top-start'
+  | 'top-end'
+  | 'right'
+  | 'right-start'
+  | 'right-end'
+  | 'bottom'
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'left'
+  | 'left-start'
+  | 'left-end' | undefined = undefined;
 
 	$: filterKeys = Object.keys(filters).sort((a, b) => a.localeCompare(b));
 
@@ -32,10 +50,12 @@
 	};
 </script>
 
-<Button class="p-2" outline>
-	{#if buttonText}{buttonText}{:else}<FilterMenuIcon />{/if}
-</Button>
-<Dropdown>
+{#if !hideButton}
+	<Button class="p-2" outline>
+		{#if buttonText}{buttonText}{:else}<FilterMenuIcon />{/if}
+	</Button>
+{/if}
+<Dropdown {placement}>
 	{#if showDefaultJournalFilters}
 		<DropdownItem
 			href={filterToURL({

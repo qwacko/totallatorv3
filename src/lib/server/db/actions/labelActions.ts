@@ -6,7 +6,7 @@ import type {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { label, labelsToJournals } from '../postgres/schema';
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -24,6 +24,13 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 
 export const labelActions = {
+	latestUpdate: async ({ db }: { db: DBType }) => {
+		const latestUpdate = await dbExecuteLogger(
+			db.select({ lastUpdated: max(label.updatedAt) }).from(label),
+			'Labels - Latest Update'
+		);
+		return latestUpdate[0].lastUpdated || new Date();
+	},
 	getById: async (db: DBType, id: string) => {
 		return dbExecuteLogger(
 			db.query.label.findFirst({ where: eq(label.id, id) }),
@@ -299,3 +306,5 @@ export const labelActions = {
 		await labelActions.createMany(db, itemsToCreate);
 	}
 };
+
+export type LabelDropdownType = Awaited<ReturnType<typeof labelActions.listForDropdown>>;

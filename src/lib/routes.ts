@@ -6,7 +6,11 @@ import { budgetFilterSchema as budgetFilterSchema } from './schema/budgetSchema'
 import { categoryFilterSchema } from './schema/categorySchema';
 import { labelFilterSchema } from './schema/labelSchema';
 import { accountFilterSchema } from './schema/accountSchema';
-import { defaultJournalFilter, journalFilterSchema } from './schema/journalSchema';
+import {
+	defaultJournalFilter,
+	journalFilterSchema,
+	journalFilterSchemaWithoutPagination
+} from './schema/journalSchema';
 import { idSchema } from './schema/idSchema';
 import { downloadTypeSchema } from './schema/downloadTypeSchema';
 import {
@@ -66,6 +70,11 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/journals': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse
 		},
+		'/(loggedIn)/journals/summaryData': {
+			searchParamsValidation: journalFilterSchemaWithoutPagination
+				.optional()
+				.catch(defaultJournalFilter()).parse
+		},
 		'/(loggedIn)/journals/download': {
 			searchParamsValidation: journalFilterSchema
 				.merge(downloadTypeSchema)
@@ -88,6 +97,16 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse,
 			paramsValidation: z.object({ id: z.string() }).parse
 		},
+
+		// Dropdown Data Collection
+		// ----------------------------------------
+		'/(loggedIn)/dropdowns/accounts': {},
+		'/(loggedIn)/dropdowns/bills': {},
+		'/(loggedIn)/dropdowns/budgets': {},
+		'/(loggedIn)/dropdowns/categories': {},
+		'/(loggedIn)/dropdowns/tags': {},
+		'/(loggedIn)/dropdowns/labels': {},
+		'/(loggedIn)/dropdowns/importMappings': {},
 
 		// Automatic Imports
 		// ----------------------------------------

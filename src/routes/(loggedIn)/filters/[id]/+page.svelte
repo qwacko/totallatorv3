@@ -132,7 +132,6 @@
 	</form>
 	<div class="flex flex-row gap-2">
 		<UpdateReusableFilterFilter
-			dropdownInfo={data.dropdowns}
 			id={data.id}
 			filter={data.filter.filter}
 			filterText={data.filterText}
@@ -144,7 +143,6 @@
 				modificationFormData={data.modificationForm}
 				id={data.id}
 				changeText={data.changeText}
-				dropdownInfo={data.dropdowns}
 				bind:changeModal
 			/>
 		{/if}

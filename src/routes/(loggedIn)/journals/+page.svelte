@@ -14,6 +14,8 @@
 	import AccountBadge from '$lib/components/AccountBadge.svelte';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
+	import ArrowUpIcon from '$lib/components/icons/ArrowUpIcon.svelte';
+	import ArrowDownIcon from '$lib/components/icons/ArrowDownIcon.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
@@ -21,7 +23,6 @@
 	import TagBadge from '$lib/components/TagBadge.svelte';
 	import BillBadge from '$lib/components/BillBadge.svelte';
 	import BudgetBadge from '$lib/components/BudgetBadge.svelte';
-	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
@@ -34,9 +35,10 @@
 	import BulkJournalActions from './BulkJournalActions.svelte';
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import { currencyFormat } from '$lib/stores/userInfoStore';
 	import NotesButton from '../../../lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
+	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
+	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 
 	export let data;
 
@@ -77,17 +79,14 @@
 				searchParamsValue: $urlStore.searchParams || defaultJournalFilter()
 			}).url}
 		>
-			Create Transaction
+			<PlusIcon />
 		</Button>
 	</svelte:fragment>
-	{#await data.streamed.summary}
-		<LoadingSpinner loadingText="Loading Summary..." />
-	{:then summary}
-		<JournalSummaryPopoverContent
-			item={summary}
-			summaryFilter={$urlStore.searchParams || defaultJournalFilter()}
-		/>
-	{/await}
+	<JournalSummaryWithFetch
+		filter={data.searchParamsWithoutPagination}
+		latestUpdate={data.latestUpdate}
+	/>
+
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams.description}
@@ -150,17 +149,16 @@
 					sortKey: 'amount',
 					customCell: true,
 					rowToCurrency: (row) => ({
-						amount: row.amount,
-						format: $currencyFormat
+						amount: row.amount
 					})
 				},
 				{
 					id: 'total',
 					title: 'Total',
 					rowToCurrency: (row) => ({
-						amount: row.total,
-						format: $currencyFormat
-					})
+						amount: row.total
+					}),
+					showTitleOnMobile: true
 				},
 				{ id: 'relations', title: 'Relations', customCell: true }
 			]}
@@ -224,12 +222,6 @@
 				{#if $urlStore.searchParams}
 					<FilterModalContent
 						currentFilter={$urlStore.searchParams}
-						accountDropdown={data.streamed.dropdownInfo.account}
-						billDropdown={data.streamed.dropdownInfo.bill}
-						budgetDropdown={data.streamed.dropdownInfo.budget}
-						categoryDropdown={data.streamed.dropdownInfo.category}
-						tagDropdown={data.streamed.dropdownInfo.tag}
-						labelDropdown={data.streamed.dropdownInfo.label}
 						urlFromFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
 					/>
 				{/if}
@@ -238,7 +230,7 @@
 				{#if currentColumn.id === 'actions'}
 					<form action="?/update" method="post" use:enhance>
 						<input type="hidden" value={currentJournal.id} name="journalId" />
-						<ButtonGroup size="xs">
+						<ButtonGroup size="xs" class="flex-wrap md:flex-nowrap">
 							<Button
 								disabled={currentJournal.complete}
 								href={urlGenerator({
@@ -379,9 +371,11 @@
 					/>
 				{:else if currentColumn.id === 'direction'}
 					{#if currentJournal.amount > 0}
-						<ArrowLeftIcon />
+						<ArrowLeftIcon class="hidden md:flex" />
+						<ArrowUpIcon class="flex md:hidden" />
 					{:else}
-						<ArrowRightIcon />
+						<ArrowRightIcon class="hidden md:flex" />
+						<ArrowDownIcon class="flex md:hidden" />
 					{/if}
 				{:else if currentColumn.id === 'payee'}
 					{#if currentJournal.otherJournals.length === 1}
@@ -413,28 +407,30 @@
 						</div>
 					{/if}
 				{:else if currentColumn.id === 'relations'}
-					<CategoryBadge
-						data={currentJournal}
-						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-					/>
-					<TagBadge
-						data={currentJournal}
-						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-					/>
-					<BillBadge
-						data={currentJournal}
-						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-					/>
-					<BudgetBadge
-						data={currentJournal}
-						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
-					/>
-					{#each currentJournal.labels as currentLabel}
-						<LabelBadge
-							data={currentLabel}
+					<div class="flex flex-row flex-wrap gap-1">
+						<CategoryBadge
+							data={currentJournal}
 							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
 						/>
-					{/each}
+						<TagBadge
+							data={currentJournal}
+							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+						/>
+						<BillBadge
+							data={currentJournal}
+							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+						/>
+						<BudgetBadge
+							data={currentJournal}
+							currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+						/>
+						{#each currentJournal.labels as currentLabel}
+							<LabelBadge
+								data={currentLabel}
+								currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+							/>
+						{/each}
+					</div>
 				{/if}
 			</svelte:fragment>
 			<svelte:fragment slot="headerItem" let:currentColumn>

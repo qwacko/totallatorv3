@@ -1,21 +1,18 @@
 <script lang="ts">
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
 	import type { UpdateJournalSchemaType } from '$lib/schema/journalSchema';
+	import {
+		accountDropdownData,
+		tagDropdownData,
+		billDropdownData,
+		budgetDropdownData,
+		categoryDropdownData
+	} from '$lib/stores/dropdownStores.js';
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
 	export let form: SuperForm<UpdateJournalSchemaType>;
 	export let hideAccount: boolean = false;
-
-	type DDI = { id: string; title: string; group: string; enabled: boolean };
-	type DDINoGroup = { id: string; title: string; enabled: boolean };
-	export let dropdownInfo: {
-		tag: Promise<DDI[]>;
-		bill: Promise<DDINoGroup[]>;
-		budget: Promise<DDINoGroup[]>;
-		category: Promise<DDI[]>;
-		account: Promise<DDI[]>;
-	};
 
 	$: formData = form.form;
 </script>
@@ -24,7 +21,7 @@
 	<ComboSelectForm
 		{form}
 		title="Account"
-		items={dropdownInfo.account}
+		items={$accountDropdownData}
 		field="accountId"
 		placeholder="Select Account..."
 		itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -36,7 +33,7 @@
 	<ComboSelectForm
 		{form}
 		title="Payee"
-		items={dropdownInfo.account}
+		items={$accountDropdownData}
 		field="otherAccountId"
 		placeholder="Select Payee..."
 		itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -49,7 +46,7 @@
 <ComboSelectForm
 	{form}
 	title="Tag"
-	items={dropdownInfo.tag}
+	items={$tagDropdownData}
 	field="tagId"
 	clearField="tagClear"
 	bind:clearValue={$formData.tagClear}
@@ -63,7 +60,7 @@
 <ComboSelectForm
 	{form}
 	title="Category"
-	items={dropdownInfo.category}
+	items={$categoryDropdownData}
 	field="categoryId"
 	clearField="categoryClear"
 	bind:clearValue={$formData.categoryClear}
@@ -77,7 +74,7 @@
 <ComboSelectForm
 	{form}
 	title="Bill"
-	items={dropdownInfo.bill}
+	items={$billDropdownData}
 	field="billId"
 	clearField="billClear"
 	bind:clearValue={$formData.billClear}
@@ -91,7 +88,7 @@
 <ComboSelectForm
 	{form}
 	title="Budget"
-	items={dropdownInfo.budget}
+	items={$budgetDropdownData}
 	field="budgetId"
 	clearField="budgetClear"
 	bind:clearValue={$formData.budgetClear}

@@ -7,7 +7,7 @@ import {
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
 import { account } from '../postgres/schema';
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
 import type { IdSchemaType } from '$lib/schema/idSchema';
@@ -32,6 +32,13 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 
 export const accountActions = {
+	latestUpdate: async ({ db }: { db: DBType }) => {
+		const latestUpdate = await dbExecuteLogger(
+			db.select({ lastUpdated: max(account.updatedAt) }).from(account),
+			'Accounts - Latest Update'
+		);
+		return latestUpdate[0].lastUpdated || new Date();
+	},
 	getById: async (db: DBType, id: string) => {
 		return dbExecuteLogger(
 			db.query.account.findFirst({ where: eq(account.id, id) }),
@@ -469,3 +476,5 @@ export const accountActions = {
 		await materializedViewActions.setRefreshRequired(db);
 	}
 };
+
+export type AccountDropdownType = Awaited<ReturnType<typeof accountActions.listForDropdown>>;

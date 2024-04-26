@@ -1,11 +1,12 @@
-import { SQL, and, avg, count, eq, sql, sum } from 'drizzle-orm';
+import { SQL, and, avg, count, eq, sql, sum, max } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { journalExtendedView } from '../postgres/schema/materializedViewSchema';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
 import type {
 	JournalFilterSchemaInputType,
-	JournalFilterSchemaType
+	JournalFilterSchemaType,
+	JournalFilterSchemaWithoutPaginationType
 } from '$lib/schema/journalSchema';
 import { journalMaterialisedList } from './helpers/journal/journalList';
 import {
@@ -22,6 +23,14 @@ import { dbExecuteLogger } from '../dbLogger';
 const logStats = true;
 
 export const journalMaterializedViewActions = {
+	getLatestUpdateDate: async ({ db }: { db: DBType }) => {
+		const latestUpdateDate = await dbExecuteLogger(
+			db.select({ lastUpdated: max(journalExtendedView.updatedAt) }).from(journalExtendedView),
+			'Journal Materialized - Get Latest Update Date'
+		);
+
+		return latestUpdateDate[0].lastUpdated || new Date();
+	},
 	getById: async (db: DBType, id: string) => {
 		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
 		return dbExecuteLogger(
@@ -60,7 +69,7 @@ export const journalMaterializedViewActions = {
 		endDate
 	}: {
 		db: DBType;
-		filter?: JournalFilterSchemaType;
+		filter?: JournalFilterSchemaType | JournalFilterSchemaWithoutPaginationType;
 		startDate?: string;
 		endDate?: string;
 	}) => {

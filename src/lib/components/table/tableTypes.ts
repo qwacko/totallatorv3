@@ -1,5 +1,4 @@
 import type { OrderByType } from '$lib/helpers/orderByHelper';
-import type { currencyFormatType } from '$lib/schema/userSchema';
 import type { Writable } from 'svelte/store';
 
 export type tableColumnConfig<
@@ -10,12 +9,13 @@ export type tableColumnConfig<
 	id: IDs;
 	title: string;
 	rowToDisplay?: (row: RowData) => string | null | undefined;
-	rowToCurrency?: (row: RowData) => { amount: number | undefined; format: currencyFormatType };
+	rowToCurrency?: (row: RowData) => { amount: number | undefined };
 	sortKey?: OrderKeys;
 	enableDropdown?: boolean;
 	filterActive?: boolean;
 	customHeader?: boolean;
 	customCell?: boolean;
+	showTitleOnMobile?: boolean;
 };
 
 export type TableColumnsConfig<

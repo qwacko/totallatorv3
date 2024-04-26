@@ -7,7 +7,6 @@ import {
 } from '$lib/schema/importMappingSchema.js';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { logging } from '$lib/server/logging';
 import { fail, redirect } from '@sveltejs/kit';
 import { setError, superValidate } from 'sveltekit-superforms';
@@ -16,7 +15,6 @@ import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
-	const db = data.locals.db;
 	serverPageInfo(data.route.id, data);
 	bufferingHelper(data);
 
@@ -26,7 +24,7 @@ export const load = async (data) => {
 	);
 	const detailForm = await superValidate({}, zod(importMappingDetailSchema));
 
-	return { form, detailForm, dropdowns: dropdownItems({ db }) };
+	return { form, detailForm };
 };
 
 const importMappingCreateFormSchemaWithPrevPage = importMappingCreateFormSchema.merge(

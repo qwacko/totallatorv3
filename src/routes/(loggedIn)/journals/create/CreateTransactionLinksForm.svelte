@@ -1,20 +1,17 @@
 <script lang="ts">
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
 	import type { CreateSimpleTransactionType } from '$lib/schema/journalSchema';
+	import {
+		accountDropdownData,
+		tagDropdownData,
+		billDropdownData,
+		budgetDropdownData,
+		categoryDropdownData
+	} from '$lib/stores/dropdownStores.js';
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
 	export let form: SuperForm<CreateSimpleTransactionType>;
-
-	type DDI = { id: string; title: string; group: string; enabled: boolean };
-	type DDINoGroup = { id: string; title: string; enabled: boolean };
-	export let dropdownInfo: {
-		tag: Promise<DDI[]>;
-		bill: Promise<DDINoGroup[]>;
-		budget: Promise<DDINoGroup[]>;
-		category: Promise<DDI[]>;
-		account: Promise<DDI[]>;
-	};
 
 	$: formData = form.form;
 </script>
@@ -22,7 +19,7 @@
 <ComboSelectForm
 	{form}
 	title="From Account"
-	items={dropdownInfo.account}
+	items={$accountDropdownData}
 	field="fromAccountId"
 	placeholder="Select Account..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -33,7 +30,7 @@
 <ComboSelectForm
 	{form}
 	title="To Account"
-	items={dropdownInfo.account}
+	items={$accountDropdownData}
 	field="toAccountId"
 	placeholder="Select Account..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -45,7 +42,7 @@
 <ComboSelectForm
 	{form}
 	title="Tag"
-	items={dropdownInfo.tag}
+	items={$tagDropdownData}
 	field="tagId"
 	placeholder="Select Tag..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -56,7 +53,7 @@
 <ComboSelectForm
 	{form}
 	title="Category"
-	items={dropdownInfo.category}
+	items={$categoryDropdownData}
 	field="categoryId"
 	placeholder="Select Category..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -67,7 +64,7 @@
 <ComboSelectForm
 	{form}
 	title="Bill"
-	items={dropdownInfo.bill}
+	items={$billDropdownData}
 	field="billId"
 	placeholder="Select Bill..."
 	itemToDisplay={(item) => ({ title: item.title })}
@@ -78,7 +75,7 @@
 <ComboSelectForm
 	{form}
 	title="Budget"
-	items={dropdownInfo.budget}
+	items={$budgetDropdownData}
 	field="budgetId"
 	placeholder="Select Budget..."
 	itemToDisplay={(item) => ({ title: item.title })}

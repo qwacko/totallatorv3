@@ -2,15 +2,11 @@
 	import ComboSelect from '$lib/components/ComboSelect.svelte';
 	import type { CreateSimpleTransactionType } from '$lib/schema/journalSchema';
 	import { Button, P } from 'flowbite-svelte';
+	import { labelDropdownData } from '$lib/stores/dropdownStores.js';
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
 	export let form: SuperForm<CreateSimpleTransactionType>;
-
-	type DDINoGroup = { id: string; title: string; enabled: boolean };
-	export let dropdownInfo: {
-		label: Promise<DDINoGroup[]>;
-	};
 
 	let currentLabelId: string | undefined = undefined;
 
@@ -37,47 +33,45 @@
 		currentLabelId && (!$formData.labels || !$formData.labels.includes(currentLabelId));
 </script>
 
-{#await dropdownInfo.label then labelDropdown}
-	<div class="flex flex-col gap-2">
-		<P class="flex text-sm font-semibold">Labels</P>
-		{#if $formData.labels && $formData.labels.length > 0}
-			<div class="flex flex-row flex-wrap gap-2">
-				{#each $formData.labels as currentLabel}
-					{@const labelDetail = labelDropdown.find((item) => item.id === currentLabel)}
-					{#if labelDetail}
-						<div>
-							<input type="hidden" name="labels" value={labelDetail.id} />
-							<Button outline size="xs" on:click={() => setLabelToggle(labelDetail.id)}>
-								{labelDetail.title}
-							</Button>
-						</div>
-					{/if}
-				{/each}
-			</div>
-		{/if}
-		<div class="flex flex-row gap-2">
-			<ComboSelect
-				items={labelDropdown}
-				placeholder="Label Selection..."
-				bind:value={currentLabelId}
-				title=""
-				itemToOption={(item) => ({
-					label: item.title,
-					value: item.id,
-					disabled: !item.enabled
-				})}
-				itemToDisplay={(item) => ({ title: item.title })}
-				class=" flex flex-grow"
-			/>
-			<Button on:click={addSetLabel} disabled={!enableSet} class="h-min self-end">Add</Button>
-			<Button
-				on:click={clearSetLabel}
-				disabled={!($formData.labels && $formData.labels.length > 0)}
-				class="h-min self-end"
-				outline
-			>
-				Clear
-			</Button>
+<div class="flex flex-col gap-2">
+	<P class="flex text-sm font-semibold">Labels</P>
+	{#if $formData.labels && $formData.labels.length > 0}
+		<div class="flex flex-row flex-wrap gap-2">
+			{#each $formData.labels as currentLabel}
+				{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
+				{#if labelDetail}
+					<div>
+						<input type="hidden" name="labels" value={labelDetail.id} />
+						<Button outline size="xs" on:click={() => setLabelToggle(labelDetail.id)}>
+							{labelDetail.title}
+						</Button>
+					</div>
+				{/if}
+			{/each}
 		</div>
+	{/if}
+	<div class="flex flex-row gap-2">
+		<ComboSelect
+			items={$labelDropdownData}
+			placeholder="Label Selection..."
+			bind:value={currentLabelId}
+			title=""
+			itemToOption={(item) => ({
+				label: item.title,
+				value: item.id,
+				disabled: !item.enabled
+			})}
+			itemToDisplay={(item) => ({ title: item.title })}
+			class=" flex flex-grow"
+		/>
+		<Button on:click={addSetLabel} disabled={!enableSet} class="h-min self-end">Add</Button>
+		<Button
+			on:click={clearSetLabel}
+			disabled={!($formData.labels && $formData.labels.length > 0)}
+			class="h-min self-end"
+			outline
+		>
+			Clear
+		</Button>
 	</div>
-{/await}
+</div>

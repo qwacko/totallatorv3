@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getCurrencyFormatter } from '$lib/schema/userSchema';
 
-	import { Chart, Tabs, TabItem, Button } from 'flowbite-svelte';
+	import { Chart, Tabs, TabItem, Button, Spinner } from 'flowbite-svelte';
 	import {
 		generateFlowTrendConfig,
 		generatePIChartConfig,
@@ -30,6 +30,7 @@
 		Omit<JournalFilterSchemaInputType, 'orderBy' | 'page' | 'pageSize'>
 	> = {};
 	export let showJournalLink = false;
+	export let loading: boolean | undefined;
 
 	const chartHeight = '250';
 
@@ -76,7 +77,7 @@
 				on:click={() => ($showSummaryStore = false)}
 				class="h-8 flex-row gap-2"
 			>
-				<EyeIcon /> Hide Summary
+				<EyeIcon /> Hide Summary {#if loading}<Spinner size="4" />{/if}
 			</Button>
 			{#if showJournalLink}
 				<Button {href} color="light" size="xs" class="h-8 flex-row gap-2">

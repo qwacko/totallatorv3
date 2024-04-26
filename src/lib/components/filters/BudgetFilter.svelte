@@ -5,20 +5,15 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { BudgetFilterSchemaType } from '$lib/schema/budgetSchema';
+	import { budgetDropdownData, } from '$lib/stores/dropdownStores.js'
+	import type { BudgetDropdownType } from '$lib/server/db/actions/budgetActions';
 
-	type budgetDetailType = {
-		id: string;
-		title: string;
-		enabled: boolean;
-		group?: string;
-	};
 
 	export let filter: BudgetFilterSchemaType | undefined;
-	export let budgetDetails: budgetDetailType[] | undefined;
 
 	const idToString = (id: string) => {
-		if (budgetDetails) {
-			const matchingItem = budgetDetails.find((item) => item.id === id);
+		if ($budgetDropdownData) {
+			const matchingItem = $budgetDropdownData.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -26,9 +21,9 @@
 		return id;
 	};
 
-	const itemToOption = (data: budgetDetailType): SelectionType => {
-		if (budgetDetails) {
-			const matchingItem = budgetDetails.find((item) => item.id === data.id);
+	const itemToOption = (data: BudgetDropdownType[number]): SelectionType => {
+		if ($budgetDropdownData) {
+			const matchingItem = $budgetDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -36,11 +31,11 @@
 		return { label: data.id, value: data.id };
 	};
 
-	const itemToDisplay = (data: budgetDetailType): { group?: string; title: string } => {
-		if (budgetDetails) {
-			const matchingItem = budgetDetails.find((item) => item.id === data.id);
+	const itemToDisplay = (data: BudgetDropdownType[number]): { group?: string; title: string } => {
+		if ($budgetDropdownData) {
+			const matchingItem = $budgetDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
-				return { group: matchingItem.group, title: matchingItem.title };
+				return { title: matchingItem.title };
 			}
 		}
 		return { title: data.id };
@@ -64,7 +59,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Budget IDs"
-			lookupItems={budgetDetails}
+			lookupItems={$budgetDropdownData}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

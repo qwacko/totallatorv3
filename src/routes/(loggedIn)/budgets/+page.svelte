@@ -11,7 +11,6 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
-	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
@@ -20,9 +19,9 @@
 	import { enhance } from '$app/forms';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import NotesButton from '$lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
+	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/budgets', $page);
@@ -46,7 +45,7 @@
 </script>
 
 <CustomHeader
-	pageTitle="Journals"
+	pageTitle="Budgets"
 	filterText={data.filterText}
 	pageNumber={data.budgets.page}
 	numPages={data.budgets.pageCount}
@@ -62,15 +61,10 @@
 			Create
 		</Button>
 	</svelte:fragment>
-	{#await data.budgetSummary}
-		<LoadingSpinner />
-	{:then budgetSummaryData}
-		<JournalSummaryPopoverContent
-			item={budgetSummaryData}
-			summaryFilter={{ budget: $urlStore.searchParams } || defaultJournalFilter}
-			showJournalLink
-		/>
-	{/await}
+	<JournalSummaryWithFetch
+		filter={{ budget: data.searchParams }}
+		latestUpdate={data.latestUpdate}
+	/>
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.title}
@@ -104,7 +98,8 @@
 					id: 'status',
 					title: 'Status',
 					rowToDisplay: (row) => statusToDisplay(row.status),
-					sortKey: 'status'
+					sortKey: 'status',
+					showTitleOnMobile: true
 				},
 				...summaryColumns({ currencyFormat: data.user?.currencyFormat })
 			]}
@@ -187,7 +182,7 @@
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="filterModal">
-				<BudgetFilter bind:filter={$urlStore.searchParams} budgetDetails={data.budgetDropdowns} />
+				<BudgetFilter bind:filter={$urlStore.searchParams}  />
 			</svelte:fragment>
 		</CustomTable>
 	{/if}

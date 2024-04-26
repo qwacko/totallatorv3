@@ -86,65 +86,76 @@
 				{
 					id: 'autoProcess',
 					title: 'Auto Process',
-					sortKey: 'autoProcess'
+					sortKey: 'autoProcess',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'autoClean',
 					title: 'Auto Clean',
-					sortKey: 'autoClean'
+					sortKey: 'autoClean',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'type',
 					title: 'Type',
 					rowToDisplay: (row) => importTypeToTitle(row.type),
-					sortKey: 'type'
+					sortKey: 'type',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'mapping',
 					title: 'Mapping',
 					rowToDisplay: (row) => row.importMappingTitle,
-					sortKey: 'importMappingTitle'
+					sortKey: 'importMappingTitle',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'status',
 					title: 'Status',
-					sortKey: 'status'
+					sortKey: 'status',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'numErrors',
 					title: 'Errors',
 					rowToDisplay: (row) => (row.numErrors > 0 ? row.numErrors.toString() : ''),
-					sortKey: 'numErrors'
+					sortKey: 'numErrors',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'numImportErrors',
 					title: 'Import Errors',
 					rowToDisplay: (row) => (row.numImportErrors > 0 ? row.numImportErrors.toString() : ''),
-					sortKey: 'numImportErrors'
+					sortKey: 'numImportErrors',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'numDuplicate',
 					title: 'Duplicate',
 					rowToDisplay: (row) => (row.numDuplicate > 0 ? row.numDuplicate.toString() : ''),
-					sortKey: 'numDuplicate'
+					sortKey: 'numDuplicate',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'numImport',
 					title: 'Imported',
 					rowToDisplay: (row) => (row.numImport > 0 ? row.numImport.toString() : ''),
-					sortKey: 'numImport'
+					sortKey: 'numImport',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'numProcessed',
 					title: 'Processed',
 					rowToDisplay: (row) => (row.numProcessed ? row.numProcessed.toString() : ''),
-					sortKey: 'numProcessed'
+					sortKey: 'numProcessed',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'createdAt',
 					title: 'Date',
 					rowToDisplay: (row) => row.createdAt.toISOString().slice(0, 10),
-					sortKey: 'createdAt'
+					sortKey: 'createdAt',
+					showTitleOnMobile: true
 				}
 			]}
 			bind:shownColumns={$importColumnsStore}

@@ -5,20 +5,14 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { BillFilterSchemaType } from '$lib/schema/billSchema';
-
-	type billDetailType = {
-		id: string;
-		title: string;
-		enabled: boolean;
-		group?: string;
-	};
+	import { billDropdownData } from '$lib/stores/dropdownStores.js';
+	import type { BillDropdownType } from '$lib/server/db/actions/billActions';
 
 	export let filter: BillFilterSchemaType | undefined;
-	export let billDetails: billDetailType[] | undefined;
 
 	const idToString = (id: string) => {
-		if (billDetails) {
-			const matchingItem = billDetails.find((item) => item.id === id);
+		if ($billDropdownData) {
+			const matchingItem = $billDropdownData.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -26,9 +20,9 @@
 		return id;
 	};
 
-	const itemToOption = (data: billDetailType): SelectionType => {
-		if (billDetails) {
-			const matchingItem = billDetails.find((item) => item.id === data.id);
+	const itemToOption = (data: BillDropdownType[number]): SelectionType => {
+		if ($billDropdownData) {
+			const matchingItem = $billDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -36,11 +30,11 @@
 		return { label: data.id, value: data.id };
 	};
 
-	const itemToDisplay = (data: billDetailType): { group?: string; title: string } => {
-		if (billDetails) {
-			const matchingItem = billDetails.find((item) => item.id === data.id);
+	const itemToDisplay = (data: BillDropdownType[number]): { group?: string; title: string } => {
+		if ($billDropdownData) {
+			const matchingItem = $billDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
-				return { group: matchingItem.group, title: matchingItem.title };
+				return {  title: matchingItem.title };
 			}
 		}
 		return { title: data.id };
@@ -64,7 +58,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Bill IDs"
-			lookupItems={billDetails}
+			lookupItems={$billDropdownData}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

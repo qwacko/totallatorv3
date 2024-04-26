@@ -92,7 +92,8 @@
 					title: 'Configuration',
 					customCell: true,
 					sortKey: 'configuration',
-					filterActive: Boolean(data.searchParams.configuration !== undefined)
+					filterActive: Boolean(data.searchParams.configuration !== undefined),
+					showTitleOnMobile: true
 				}
 			]}
 		>

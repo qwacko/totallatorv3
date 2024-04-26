@@ -104,12 +104,14 @@
 					id: 'createdAt',
 					title: 'Created',
 					rowToDisplay: (row) => row.createdAt.toISOString().slice(0, 10),
-					sortKey: 'createdAt'
+					sortKey: 'createdAt',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'fileExists',
 					title: 'Exists',
-					sortKey: 'exists'
+					sortKey: 'exists',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'title',
@@ -125,12 +127,14 @@
 					id: 'originalFilename',
 					title: 'Filename',
 					rowToDisplay: (row) => row.originalFilename,
-					sortKey: 'originalFilename'
+					sortKey: 'originalFilename',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'type',
 					title: 'File Type',
-					sortKey: 'type'
+					sortKey: 'type',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'links',
@@ -139,13 +143,15 @@
 				{
 					id: 'reason',
 					title: 'Reason',
-					sortKey: 'reason'
+					sortKey: 'reason',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'size',
 					title: 'File Size',
 					rowToDisplay: (row) => fileSizeToText(row.size),
-					sortKey: 'size'
+					sortKey: 'size',
+					showTitleOnMobile: true
 				}
 			]}
 			bind:shownColumns={$fileColumnsStore}

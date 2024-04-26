@@ -5,20 +5,15 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { TagFilterSchemaType } from '$lib/schema/tagSchema';
+	import { tagDropdownData } from '$lib/stores/dropdownStores.js'
+	import type { TagDropdownType } from '$lib/server/db/actions/tagActions';
 
-	type tagDetailType = {
-		id: string;
-		title: string;
-		enabled: boolean;
-		group?: string;
-	};
 
 	export let filter: TagFilterSchemaType | undefined;
-	export let tagDetails: tagDetailType[] | undefined;
 
 	const idToString = (id: string) => {
-		if (tagDetails) {
-			const matchingItem = tagDetails.find((item) => item.id === id);
+		if ($tagDropdownData) {
+			const matchingItem = $tagDropdownData.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -26,9 +21,9 @@
 		return id;
 	};
 
-	const itemToOption = (data: tagDetailType): SelectionType => {
-		if (tagDetails) {
-			const matchingItem = tagDetails.find((item) => item.id === data.id);
+	const itemToOption = (data: TagDropdownType[number]): SelectionType => {
+		if ($tagDropdownData) {
+			const matchingItem = $tagDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -36,9 +31,9 @@
 		return { label: data.id, value: data.id };
 	};
 
-	const itemToDisplay = (data: tagDetailType): { group?: string; title: string } => {
-		if (tagDetails) {
-			const matchingItem = tagDetails.find((item) => item.id === data.id);
+	const itemToDisplay = (data: TagDropdownType[number]): { group?: string; title: string } => {
+		if ($tagDropdownData) {
+			const matchingItem = $tagDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { group: matchingItem.group, title: matchingItem.title };
 			}
@@ -64,7 +59,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Tag IDs"
-			lookupItems={tagDetails}
+			lookupItems={$tagDropdownData}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

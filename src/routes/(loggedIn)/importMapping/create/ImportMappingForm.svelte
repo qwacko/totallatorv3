@@ -9,11 +9,10 @@
 	import DisplaySampleMappedData from './DisplaySampleMappedData.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
-	import type { DropdownItems } from '$lib/server/dropdownItems';
+	import { accountDropdownData, tagDropdownData, billDropdownData, budgetDropdownData,  categoryDropdownData } from '$lib/stores/dropdownStores.js'
 
 	export let form: SuperForm<ImportMappingCreateFormSchema>;
 	export let detailForm: SuperForm<ImportMappingDetailSchema>;
-	export let dropdowns: DropdownItems;
 	export let submitButtonText: string;
 
 	let formElement: HTMLFormElement;
@@ -79,7 +78,7 @@
 					title="From Account"
 					field="fromAccountId"
 					placeholder="From Account"
-					items={dropdowns.account}
+					items={$accountDropdownData}
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -100,7 +99,7 @@
 					title="To Account"
 					field="toAccountId"
 					placeholder="To Account"
-					items={dropdowns.account}
+					items={$accountDropdownData}
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -125,7 +124,7 @@
 					title="Category"
 					field="categoryId"
 					placeholder="Category"
-					items={dropdowns.category}
+					items={$categoryDropdownData}
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -150,7 +149,7 @@
 					title="Tag"
 					field="tagId"
 					placeholder="Tag"
-					items={dropdowns.tag}
+					items={$tagDropdownData}
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -175,7 +174,7 @@
 					title="Bill"
 					field="billId"
 					placeholder="Bill"
-					items={dropdowns.bill}
+					items={$billDropdownData}
 					itemToDisplay={(item) => ({ title: item.title })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -199,7 +198,7 @@
 					title="Budget"
 					field="budgetId"
 					placeholder="Budget"
-					items={dropdowns.budget}
+					items={$budgetDropdownData}
 					itemToDisplay={(item) => ({ title: item.title })}
 					itemToOption={(item) => ({
 						label: item.title,

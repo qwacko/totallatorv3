@@ -17,10 +17,5 @@
 
 <PageLayout title="Create Import Mapping">
 	<RawDataModal {data} dev={data.dev} />
-	<ImportMappingForm
-		{form}
-		{detailForm}
-		dropdowns={data.dropdowns}
-		submitButtonText="Create Import Mapping"
-	/>
+	<ImportMappingForm {form} {detailForm} submitButtonText="Create Import Mapping" />
 </PageLayout>

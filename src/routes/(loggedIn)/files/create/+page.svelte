@@ -8,6 +8,14 @@
 	import { Button, Fileupload } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms';
 	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers.js';
+	import {
+		accountDropdownData,
+		tagDropdownData,
+		billDropdownData,
+		budgetDropdownData,
+		labelDropdownData,
+		categoryDropdownData
+	} from '$lib/stores/dropdownStores.js';
 
 	export let data;
 
@@ -70,78 +78,65 @@
 			disabled={loading}
 		/>
 		{#if linkedItem === 'account'}
-			{#await data.dropdownInfo.account then dropdownInfo}
-				<ComboSelectForm
-					{form}
-					title="Account"
-					items={dropdownInfo}
-					field="accountId"
-					placeholder="Select Account..."
-					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
-					itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
-				/>
-			{/await}
-        {:else if linkedItem === 'label'}
-            {#await data.dropdownInfo.label then dropdownInfo}
-                <ComboSelectForm
-                    {form}
-                    title="Label"
-                    items={dropdownInfo}
-                    field="labelId"
-                    placeholder="Select Label..."
-                    itemToDisplay={(item) => ({ title: item.title })}
-                    itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
-                />
-            {/await}
-        {:else if linkedItem === 'category'}
-            {#await data.dropdownInfo.category then dropdownInfo}
-                <ComboSelectForm
-                    {form}
-                    title="Category"
-                    items={dropdownInfo}
-                    field="categoryId"
-                    placeholder="Select Category..."
-                    itemToDisplay={(item) => ({ title: item.title, group: item.group })}
-                    itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
-                />
-            {/await}
-        {:else if linkedItem === 'budget'}
-            {#await data.dropdownInfo.budget then dropdownInfo}
-                <ComboSelectForm
-                    {form}
-                    title="Budget"
-                    items={dropdownInfo}
-                    field="budgetId"
-                    placeholder="Select Budget..."
-                    itemToDisplay={(item) => ({ title: item.title })}
-                    itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
-                />
-            {/await}
-        {:else if linkedItem === 'tag'}
-            {#await data.dropdownInfo.tag then dropdownInfo}
-                <ComboSelectForm
-                    {form}
-                    title="Tag"
-                    items={dropdownInfo}
-                    field="tagId"
-                    placeholder="Select Tag..."
-                    itemToDisplay={(item) => ({ title: item.title, group: item.group })}
-                    itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
-                />
-            {/await}
-        {:else if linkedItem === 'bill'}
-            {#await data.dropdownInfo.bill then dropdownInfo}
-                <ComboSelectForm
-                    {form}
-                    title="Bill"
-                    items={dropdownInfo}
-                    field="billId"
-                    placeholder="Select Bill..."
-                    itemToDisplay={(item) => ({ title: item.title })}
-                    itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
-                />
-            {/await}
-
+			<ComboSelectForm
+				{form}
+				title="Account"
+				items={$accountDropdownData}
+				field="accountId"
+				placeholder="Select Account..."
+				itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+				itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+			/>
+		{:else if linkedItem === 'label'}
+			<ComboSelectForm
+				{form}
+				title="Label"
+				items={$labelDropdownData}
+				field="labelId"
+				placeholder="Select Label..."
+				itemToDisplay={(item) => ({ title: item.title })}
+				itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+			/>
+		{:else if linkedItem === 'category'}
+			<ComboSelectForm
+				{form}
+				title="Category"
+				items={$categoryDropdownData}
+				field="categoryId"
+				placeholder="Select Category..."
+				itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+				itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+			/>
+		{:else if linkedItem === 'budget'}
+			<ComboSelectForm
+				{form}
+				title="Budget"
+				items={$budgetDropdownData}
+				field="budgetId"
+				placeholder="Select Budget..."
+				itemToDisplay={(item) => ({ title: item.title })}
+				itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+			/>
+		{:else if linkedItem === 'tag'}
+			<ComboSelectForm
+				{form}
+				title="Tag"
+				items={$tagDropdownData}
+				field="tagId"
+				placeholder="Select Tag..."
+				itemToDisplay={(item) => ({ title: item.title, group: item.group })}
+				itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+			/>
+		{:else if linkedItem === 'bill'}
+			<ComboSelectForm
+				{form}
+				title="Bill"
+				items={$billDropdownData}
+				field="billId"
+				placeholder="Select Bill..."
+				itemToDisplay={(item) => ({ title: item.title })}
+				itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
+			/>
 		{/if}
 		<Fileupload name="file" class="flex flex-grow rounded-lg" disabled={loading} />
 		<Button type="submit" disabled={loading}>Upload</Button>

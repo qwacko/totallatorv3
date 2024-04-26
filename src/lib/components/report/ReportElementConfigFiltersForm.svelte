@@ -9,22 +9,8 @@
 	import { enhance } from '$app/forms';
 	import ActionButton from '../ActionButton.svelte';
 
-	type dropdownItemsType = {
-		id: string;
-		title: string;
-		enabled: boolean;
-		group?: string;
-	};
 
 	export let elementData: ReportElementData;
-	export let dropdowns: {
-		accountDropdown: Promise<dropdownItemsType[]>;
-		billDropdown: Promise<dropdownItemsType[]>;
-		budgetDropdown: Promise<dropdownItemsType[]>;
-		categoryDropdown: Promise<dropdownItemsType[]>;
-		tagDropdown: Promise<dropdownItemsType[]>;
-		labelDropdown: Promise<dropdownItemsType[]>;
-	};
 
 	$: locked = elementData && elementData.reportElementConfig.locked;
 	let loading: boolean[] = [];
@@ -44,7 +30,6 @@
 				<FilterModal
 					currentFilter={currentFilter.filter.filter}
 					bind:opened={filterOpen[index]}
-					{...dropdowns}
 					hideDates
 				>
 					<svelte:fragment slot="footerContents" let:activeFilter>

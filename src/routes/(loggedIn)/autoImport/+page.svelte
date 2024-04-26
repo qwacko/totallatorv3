@@ -82,40 +82,47 @@
 				{
 					id: 'type',
 					title: 'Type',
-					sortKey: 'type'
+					sortKey: 'type',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'autoProcess',
 					title: 'Auto Process',
-					sortKey: 'autoProcess'
+					sortKey: 'autoProcess',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'autoClean',
 					title: 'Auto Clean',
-					sortKey: 'autoClean'
+					sortKey: 'autoClean',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'frequency',
 					title: 'Frequency',
-					sortKey: 'frequency'
+					sortKey: 'frequency',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'importMapping',
 					title: 'Mapping',
 					rowToDisplay: (row) => row.importMappingTitle,
-					sortKey: 'importMapping'
+					sortKey: 'importMapping',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'createdAt',
 					title: 'Created Date',
 					rowToDisplay: (row) => row.createdAt.toISOString().slice(0, 10),
-					sortKey: 'createdAt'
+					sortKey: 'createdAt',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'updatedAt',
 					title: 'Updated Date',
 					rowToDisplay: (row) => row.updatedAt.toISOString().slice(0, 10),
-					sortKey: 'updatedAt'
+					sortKey: 'updatedAt',
+					showTitleOnMobile: true
 				}
 			]}
 			bind:shownColumns={$autoImportColumnsStore}

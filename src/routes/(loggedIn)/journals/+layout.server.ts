@@ -4,7 +4,6 @@ import type { JournalFilterSchemaType } from '$lib/schema/journalSchema.js';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { redirect } from '@sveltejs/kit';
 
 export const load = async (data) => {
@@ -31,21 +30,12 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const summary = tActions.journalView.summary({
-		db,
-		filter: { ...filter, page: 0, pageSize: 1000000 }
-	});
-
-	const dropdownInfo = dropdownItems({ db });
-
 	const filterText = await journalFilterToText({ db, filter, prefix: 'Journal' });
 	const filterDropdown = await tActions.reusableFitler.listForDropdown({ db });
 
 	return {
 		journals: journalData,
 		streamed: {
-			summary,
-			dropdownInfo,
 			refresh: tActions.materializedViews.conditionalRefresh({ db, logStats: true })
 		},
 		filterText,

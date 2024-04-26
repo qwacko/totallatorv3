@@ -14,7 +14,6 @@
 	import { defaultJournalFilter } from '$lib/schema/journalSchema';
 	import { accountTypeEnum, accountTypeToDisplay } from '$lib/schema/accountTypeSchema';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
-	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
@@ -26,6 +25,7 @@
 	import { currencyFormat } from '$lib/stores/userInfoStore.js';
 	import NotesButton from '$lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
+	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
@@ -65,10 +65,9 @@
 			Create
 		</Button>
 	</svelte:fragment>
-	<JournalSummaryPopoverContent
-		item={data.accountSummary}
-		summaryFilter={{ account: $urlStore.searchParams } || defaultJournalFilter}
-		showJournalLink
+	<JournalSummaryWithFetch
+		filter={{ account: data.searchParams }}
+		latestUpdate={data.latestUpdate}
 	/>
 	<CustomTable
 		highlightText={$urlStore.searchParams?.accountTitleCombined}
@@ -248,7 +247,7 @@
 			/>
 		</svelte:fragment>
 		<svelte:fragment slot="filter">
-			<div class="flex flex-row gap-2">
+			<div class="flex flex-col gap-2 md:flex-row">
 				{#if $urlStore.searchParams}
 					<Input
 						type="text"
@@ -267,7 +266,7 @@
 			</div>
 		</svelte:fragment>
 		<svelte:fragment slot="filterModal">
-			<AccountFilter bind:filter={$urlStore.searchParams} accountDetails={data.accountDropdown} />
+			<AccountFilter bind:filter={$urlStore.searchParams}  />
 		</svelte:fragment>
 	</CustomTable>
 </PageLayout>

@@ -44,7 +44,6 @@
 	<form use:enhance method="post" class="flex flex-col gap-2">
 		<AutoImportForm
 			{proxyForm}
-			importMappingDropdown={data.importMappingDropdown}
 			disabled={importing}
 		/>
 

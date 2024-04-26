@@ -170,6 +170,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 				update: POSTAllowAdminOnly
 			}
 		},
+		'/(loggedIn)/journals/summaryData': { ...adminOnlyConfig },
 		'/(loggedIn)/journals/download': { ...adminOnlyConfig },
 		'/(loggedIn)/journals/[id]/edit': {
 			...adminOnlyConfig,
@@ -191,6 +192,30 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		'/(loggedIn)/journals/clone': {
 			...adminOnlyConfig,
 			POSTCheck: { clone: POSTAllowAdminOnly }
+		},
+
+		// Dropdown Data Collection
+		// ----------------------------------------
+		'/(loggedIn)/dropdowns/accounts': {
+			...userOnlyConfig
+		},
+		'/(loggedIn)/dropdowns/bills': {
+			...userOnlyConfig
+		},
+		'/(loggedIn)/dropdowns/budgets': {
+			...userOnlyConfig
+		},
+		'/(loggedIn)/dropdowns/categories': {
+			...userOnlyConfig
+		},
+		'/(loggedIn)/dropdowns/tags': {
+			...userOnlyConfig
+		},
+		'/(loggedIn)/dropdowns/labels': {
+			...userOnlyConfig
+		},
+		'/(loggedIn)/dropdowns/importMappings': {
+			...userOnlyConfig
 		},
 
 		// Automatic Imports

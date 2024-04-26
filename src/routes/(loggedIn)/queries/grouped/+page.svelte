@@ -70,55 +70,64 @@
 					id: 'maxDuration',
 					title: 'Max Duration',
 					rowToDisplay: (row) => `${(row.maxDuration || 0).toFixed()}ms`,
-					sortKey: 'maxDuration'
+					sortKey: 'maxDuration',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'minDuration',
 					title: 'Min Duration',
 					rowToDisplay: (row) => `${(row.minDuration || 0).toFixed()}ms`,
-					sortKey: 'minDuration'
+					sortKey: 'minDuration',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'averageDuration',
 					title: 'Avg Duration',
 					rowToDisplay: (row) => `${(Number(row.averageDuration) || 0).toFixed(1)}ms`,
-					sortKey: 'averageDuration'
+					sortKey: 'averageDuration',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'maxSize',
 					title: 'Max Size',
 					rowToDisplay: (row) => sizeToText(row.maxSize),
-					sortKey: 'maxSize'
+					sortKey: 'maxSize',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'minSize',
 					title: 'Min Size',
 					rowToDisplay: (row) => sizeToText(row.minSize),
-					sortKey: 'minSize'
+					sortKey: 'minSize',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'averageSize',
 					title: 'Avg Size',
 					rowToDisplay: (row) => sizeToText(row.averageSize),
-					sortKey: 'averageSize'
+					sortKey: 'averageSize',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'totalSize',
 					title: 'Total Size',
 					rowToDisplay: (row) => sizeToText(row.totalSize),
-					sortKey: 'totalSize'
+					sortKey: 'totalSize',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'totalTime',
 					title: 'Total Duration',
 					rowToDisplay: (row) => (Number(row.totalTime) || 0).toFixed(1) || '',
-					sortKey: 'totalTime'
+					sortKey: 'totalTime',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'count',
 					title: 'Count',
 					rowToDisplay: (row) => (row.count || 0).toFixed(),
-					sortKey: 'count'
+					sortKey: 'count',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'first',
@@ -127,7 +136,8 @@
 						row.first
 							? `${row.first.toLocaleString()}.${String(row.first.getMilliseconds()).padStart(3, '0')}`
 							: '',
-					sortKey: 'first'
+					sortKey: 'first',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'last',
@@ -136,7 +146,8 @@
 						row.last
 							? `${row.last.toLocaleString()}.${String(row.last.getMilliseconds()).padStart(3, '0')}`
 							: '',
-					sortKey: 'last'
+					sortKey: 'last',
+					showTitleOnMobile: true
 				}
 			]}
 			bind:shownColumns={$groupedQueryColumnsStore}

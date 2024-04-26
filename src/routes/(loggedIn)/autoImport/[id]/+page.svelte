@@ -106,14 +106,7 @@
 	</div>
 	<form use:enhanceForm method="post" action="?/update" class="flex flex-col gap-2">
 		<input type="hidden" name="id" value={data.autoImportDetail.id} />
-		<AutoImportForm
-			{proxyForm}
-			importMappingDropdown={data.importMappingDropdown}
-			disabled={updatingEnabled}
-			lockType
-			hideEnabled
-			closeAccordian
-		/>
+		<AutoImportForm {proxyForm} disabled={updatingEnabled} lockType hideEnabled closeAccordian />
 		<ActionButton
 			type="submit"
 			loading={updatingEnabled}

@@ -10,7 +10,6 @@ import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery';
 import { journalUpdateToText } from '$lib/server/db/actions/helpers/journal/journalUpdateToText';
 import { tActions } from '$lib/server/db/actions/tActions';
-import { dropdownItems } from '$lib/server/dropdownItems.js';
 import { logging } from '$lib/server/logging';
 import { redirect } from '@sveltejs/kit';
 import { setError, superValidate } from 'sveltekit-superforms';
@@ -67,8 +66,7 @@ export const load = async (data) => {
 		form,
 		modificationForm,
 		filterText,
-		changeText,
-		dropdowns: dropdownItems({ db })
+		changeText
 	};
 };
 

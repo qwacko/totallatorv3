@@ -66,28 +66,33 @@
 				},
 				{
 					id: 'parameters',
-					title: 'Parameters'
+					title: 'Parameters',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'duration',
 					title: 'Duration',
-					sortKey: 'duration'
+					sortKey: 'duration',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'time',
 					title: 'Time',
-					sortKey: 'time'
+					sortKey: 'time',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'size',
 					title: 'Size',
 					sortKey: 'size',
-					rowToDisplay: (row) => sizeToText(row.size)
+					rowToDisplay: (row) => sizeToText(row.size),
+					showTitleOnMobile: true
 				},
 				{
 					id: 'params',
 					title: 'Params',
-					rowToDisplay: (row) => row.params
+					rowToDisplay: (row) => row.params,
+					showTitleOnMobile: true
 				}
 			]}
 			bind:shownColumns={$queryColumnsStore}
@@ -119,7 +124,9 @@
 						{/if}
 					</div>
 				{:else if currentColumn.id === 'time'}
-					{@const timeString = currentRow.time ? `${currentRow.time.toLocaleString()}.${String(currentRow.time.getMilliseconds()).padStart(3,"0")}` : ''}
+					{@const timeString = currentRow.time
+						? `${currentRow.time.toLocaleString()}.${String(currentRow.time.getMilliseconds()).padStart(3, '0')}`
+						: ''}
 					{@const minuteOffsets = [1, 2, 5, 10, 60, 120]}
 					<div class="flex flex-row items-center gap-2">
 						{timeString}

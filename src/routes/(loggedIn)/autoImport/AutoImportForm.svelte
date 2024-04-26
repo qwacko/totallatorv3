@@ -10,9 +10,9 @@
 	import BooleanFilterButtons from '$lib/components/filters/BooleanFilterButtons.svelte';
 	import NumberInput from '$lib/components/NumberInput.svelte';
 	import { Accordion, AccordionItem } from 'flowbite-svelte';
+	import { importMappingDropdownData } from '$lib/stores/dropdownStores.js';
 
 	export let proxyForm: AutoImportFormProxy;
-	export let importMappingDropdown: { id: string; title: string; enabled: boolean }[];
 	export let disabled = false;
 	export let lockType = false;
 	export let hideEnabled = false;
@@ -56,7 +56,7 @@
 		title="Import Mapping"
 		name="importMappingId"
 		bind:value={$importMappingIdValue}
-		items={importMappingDropdown.map((t) => ({ name: t.title, value: t.id }))}
+		items={$importMappingDropdownData.map((t) => ({ name: t.title, value: t.id }))}
 		placeholder="Select Import Mapping..."
 		required
 		errorMessage={$importMappingIdErrors}

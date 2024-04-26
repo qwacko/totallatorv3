@@ -40,7 +40,6 @@
 	<ImportMappingForm
 		{form}
 		{detailForm}
-		dropdowns={data.dropdowns}
 		submitButtonText="Update Import Mapping"
 		csvData={data.importMapping.sampleData ? JSON.parse(data.importMapping.sampleData) : undefined}
 	/>

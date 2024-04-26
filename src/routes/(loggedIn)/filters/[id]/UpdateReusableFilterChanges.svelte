@@ -11,16 +11,6 @@
 	export let changeModal: boolean = false;
 	export let id: string;
 	export let changeText: string[] | undefined;
-	type DDI = { id: string; title: string; group: string; enabled: boolean };
-	type DDINoGroup = { id: string; title: string; enabled: boolean };
-	export let dropdownInfo: {
-		tag: Promise<DDI[]>;
-		bill: Promise<DDINoGroup[]>;
-		budget: Promise<DDINoGroup[]>;
-		category: Promise<DDI[]>;
-		account: Promise<DDI[]>;
-		label: Promise<DDINoGroup[]>;
-	};
 
 	const form = superForm(modificationFormData, {
 		onResult: () => {
@@ -41,8 +31,8 @@
 				<form method="post" action="?/updateChange" use:enhance>
 					<Modal bind:open={changeModal} outsideclose>
 						<UpdateJournalForm {form} />
-						<UpdateJournalLinksForm {form} {dropdownInfo} />
-						<UpdateJournalLabelsForm {form} {dropdownInfo} allLabelIds={[]} commonLabelIds={[]} />
+						<UpdateJournalLinksForm {form} />
+						<UpdateJournalLabelsForm {form} allLabelIds={[]} commonLabelIds={[]} />
 						<div class="flex">
 							<pre>{JSON.stringify($modificationFormValue, null, 2)}</pre>
 						</div>

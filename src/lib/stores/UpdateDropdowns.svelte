@@ -1,0 +1,60 @@
+<script lang="ts">
+	import {
+		tagDropdownTime,
+		tagDropdownData,
+		tagDropdownAsyncData,
+		accountDropdownTime,
+		accountDropdownData,
+		accountDropdownAsyncData,
+		billDropdownTime,
+		billDropdownData,
+		billDropdownAsyncData,
+		budgetDropdownTime,
+		budgetDropdownData,
+		budgetDropdownAsyncData,
+		categoryDropdownTime,
+		categoryDropdownData,
+		categoryDropdownAsyncData,
+		labelDropdownTime,
+		labelDropdownData,
+		labelDropdownAsyncData,
+		importMappingDropdownTime,
+		importMappingDropdownData,
+		importMappingDropdownAsyncData
+	} from './dropdownStores.js';
+
+	export let dataUpdated: {
+		tags: number;
+		bills: number;
+		budgets: number;
+		categories: number;
+		accounts: number;
+		labels: number;
+		importMappings: number;
+	};
+
+	$: $tagDropdownTime = dataUpdated.tags;
+	$: $accountDropdownTime = dataUpdated.accounts;
+	$: $billDropdownTime = dataUpdated.bills;
+	$: $budgetDropdownTime = dataUpdated.budgets;
+	$: $categoryDropdownTime = dataUpdated.categories;
+	$: $labelDropdownTime = dataUpdated.labels;
+	$: $importMappingDropdownTime = dataUpdated.importMappings;
+</script>
+
+<div class="hidden">
+	{$tagDropdownAsyncData}
+	{$accountDropdownAsyncData}
+	{$billDropdownAsyncData}
+	{$budgetDropdownAsyncData}
+	{$categoryDropdownAsyncData}
+	{$labelDropdownAsyncData}
+	{$importMappingDropdownAsyncData}
+	{$tagDropdownData}
+	{$accountDropdownData}
+	{$billDropdownData}
+	{$budgetDropdownData}
+	{$categoryDropdownData}
+	{$labelDropdownData}
+	{$importMappingDropdownData}
+</div>

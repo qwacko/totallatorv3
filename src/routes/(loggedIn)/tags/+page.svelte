@@ -11,7 +11,6 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { defaultJournalFilter } from '$lib/schema/journalSchema.js';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
-	import JournalSummaryPopoverContent from '$lib/components/JournalSummaryPopoverContent.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
@@ -20,9 +19,9 @@
 	import { enhance } from '$app/forms';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import NotesButton from '$lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
+	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
 	export let data;
 	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
@@ -58,15 +57,7 @@
 			Create
 		</Button>
 	</svelte:fragment>
-	{#await data.tagSummary}
-		<LoadingSpinner />
-	{:then tagSummaryData}
-		<JournalSummaryPopoverContent
-			item={tagSummaryData}
-			summaryFilter={{ tag: $urlStore.searchParams } || defaultJournalFilter()}
-			showJournalLink
-		/>
-	{/await}
+	<JournalSummaryWithFetch filter={{ tag: data.searchParams }} latestUpdate={data.latestUpdate} />
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.title}
@@ -93,13 +84,15 @@
 					id: 'group',
 					title: 'Group',
 					rowToDisplay: (row) => row.group,
-					sortKey: 'group'
+					sortKey: 'group',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'single',
 					title: 'Single',
 					rowToDisplay: (row) => row.single,
-					sortKey: 'single'
+					sortKey: 'single',
+					showTitleOnMobile: true
 				},
 				{
 					id: 'title',
@@ -111,7 +104,8 @@
 					id: 'status',
 					title: 'Status',
 					rowToDisplay: (row) => statusToDisplay(row.status),
-					sortKey: 'status'
+					sortKey: 'status',
+					showTitleOnMobile: true
 				},
 				...summaryColumns({ currencyFormat: data.user?.currencyFormat })
 			]}
@@ -165,8 +159,8 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{tagId: currentRow.id}} />								
-								<FilesButton files={currentRow.files} target={{tagId: currentRow.id}} />
+								<NotesButton notes={currentRow.notes} target={{ tagId: currentRow.id }} />
+								<FilesButton files={currentRow.files} target={{ tagId: currentRow.id }} />
 								<RawDataModal data={currentRow} title="Raw Tag Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>
@@ -195,7 +189,7 @@
 				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="filterModal">
-				<TagFilter bind:filter={$urlStore.searchParams} tagDetails={data.tagDropdowns} />
+				<TagFilter bind:filter={$urlStore.searchParams} />
 			</svelte:fragment>
 		</CustomTable>{/if}
 </PageLayout>
