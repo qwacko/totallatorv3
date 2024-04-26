@@ -18,7 +18,7 @@
 
 <div class="flex sm:hidden">
 	<Button color="light">
-		Pg {page + 1} / {paginationInfo.lastPage}
+		Pg {page + 1} / {paginationInfo.lastPage + 1}
 		<ArrowDownIcon />
 	</Button>
 	<Dropdown>
