@@ -230,7 +230,7 @@
 				{#if currentColumn.id === 'actions'}
 					<form action="?/update" method="post" use:enhance>
 						<input type="hidden" value={currentJournal.id} name="journalId" />
-						<ButtonGroup size="xs">
+						<ButtonGroup size="xs" class="flex-wrap md:flex-nowrap">
 							<Button
 								disabled={currentJournal.complete}
 								href={urlGenerator({
