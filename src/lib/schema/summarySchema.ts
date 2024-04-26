@@ -43,7 +43,7 @@ type SummaryColumnsType = {
 	title: string;
 	sortKey: string;
 	rowToDisplay?: (data: RowType) => string;
-	rowToCurrency?: (data: RowType) => { amount: number; format: currencyFormatType };
+	rowToCurrency?: (data: RowType) => { amount: number };
 	showTitleOnMobile?: boolean;
 }[];
 
@@ -53,8 +53,7 @@ export const summaryColumns = ({ currencyFormat }: { currencyFormat?: currencyFo
 			id: 'total' as const,
 			title: 'Total',
 			rowToCurrency: (row) => ({
-				amount: row.sum || 0,
-				format: currencyFormat || 'USD'
+				amount: row.sum || 0
 			}),
 			sortKey: 'sum' as const,
 			showTitleOnMobile: true
