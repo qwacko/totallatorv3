@@ -40,7 +40,7 @@ const serverEnvValidation = z.object({
 	DEV_OVERRIDE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	POSTGRES_URL: z.string().optional(),
 	POSTGRES_TEST_URL: z.string().optional(),
-	POSTGRES_MAX_CONNECTIONS: z.number().optional().default(10),
+	POSTGRES_MAX_CONNECTIONS: z.coerce.number().optional().default(10),
 	DB_QUERY_LOG: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TESTING_DELAY: z.coerce.number().optional().default(0),
 	DISABLE_BUFFERING: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
