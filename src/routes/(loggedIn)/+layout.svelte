@@ -25,6 +25,7 @@
 	import UpdateDropdowns from '$lib/stores/UpdateDropdowns.svelte';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import MenuIcon from '$lib/components/icons/MenuIcon.svelte';
+	import FilterSelectionModal from '$lib/components/FilterSelectionModal.svelte';
 
 	export let data;
 
@@ -177,40 +178,48 @@
 				]
 			: [])
 	];
+
+	let filterSelectionModalOpened = false;
 </script>
 
 <UpdateDropdowns dataUpdated={data.dataUpdated} />
 
 <div class="flex flex-col justify-stretch p-2">
 	<div class="flex flex-row gap-2 pb-8 pt-4 md:hidden">
+		<FilterSelectionModal
+			showDefaultJournalFilters
+			filters={data.filterDropdown}
+			newFilter={(newFilter) =>
+				urlGenerator({
+					address: '/(loggedIn)/journals',
+					searchParamsValue: {
+						...newFilter,
+						page: 0,
+						pageSize: 10
+					}
+				}).url}
+			updateFilter={(newFilter) =>
+				urlGenerator({
+					address: '/(loggedIn)/journals',
+					searchParamsValue: newFilter
+				}).url}
+			bind:shown={filterSelectionModalOpened}
+		/>
 		<div class="flex flex-grow"></div>
 		<Button outline><MenuIcon /></Button>
 		<Dropdown>
-			<DropdownItem class="flex flex-row gap-2" href={urlGenerator({address:"/(loggedIn)/files/create"}).url}><FileIcon />Add File</DropdownItem>
-			<DropdownItem class="flex flex-row gap-2"><ArrowLeftIcon />Journals</DropdownItem>
-			<FilterDropdown
-				hideButton
-				placement="left"
-				showDefaultJournalFilters
-				hideIcon
-				buttonText="Journals"
-				filters={data.filterDropdown}
-				newFilter={(newFilter) =>
-					urlGenerator({
-						address: '/(loggedIn)/journals',
-						searchParamsValue: {
-							...newFilter,
-							page: 0,
-							pageSize: 10
-						}
-					}).url}
-				updateFilter={(newFilter) =>
-					urlGenerator({
-						address: '/(loggedIn)/journals',
-						searchParamsValue: newFilter
-					}).url}
-				currentFilter={{ page: 0, pageSize: 10, orderBy: [{ field: 'date', direction: 'desc' }] }}
-			/>
+			<DropdownItem
+				class="flex flex-row gap-2"
+				href={urlGenerator({ address: '/(loggedIn)/files/create' }).url}
+			>
+				<FileIcon />Add File
+			</DropdownItem>
+			<DropdownItem
+				class="flex flex-row gap-2"
+				on:click={() => (filterSelectionModalOpened = true)}
+			>
+				Journals
+			</DropdownItem>
 
 			<DropdownItem class="flex flex-row gap-2"><ArrowLeftIcon />Config</DropdownItem>
 			<Dropdown placement="left">
