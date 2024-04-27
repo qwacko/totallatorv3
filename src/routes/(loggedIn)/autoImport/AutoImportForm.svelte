@@ -52,16 +52,18 @@
 	{/if}
 	<input type="hidden" name="enabled" value={$enabledValue} />
 
-	<SelectInput
-		title="Import Mapping"
-		name="importMappingId"
-		bind:value={$importMappingIdValue}
-		items={$importMappingDropdownData.map((t) => ({ name: t.title, value: t.id }))}
-		placeholder="Select Import Mapping..."
-		required
-		errorMessage={$importMappingIdErrors}
-		{disabled}
-	/>
+	{#if $importMappingDropdownData}
+		<SelectInput
+			title="Import Mapping"
+			name="importMappingId"
+			bind:value={$importMappingIdValue}
+			items={$importMappingDropdownData.map((t) => ({ name: t.title, value: t.id }))}
+			placeholder="Select Import Mapping..."
+			required
+			errorMessage={$importMappingIdErrors}
+			{disabled}
+		/>
+	{/if}
 	<SelectInput
 		title="Update Frequency"
 		name="frequency"

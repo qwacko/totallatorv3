@@ -9,11 +9,11 @@
 	import Check from '~icons/mdi/check';
 	import { fly } from 'svelte/transition';
 	import HighlightText from './HighlightText.svelte';
-	import { Button, Input, Label, P } from 'flowbite-svelte';
+	import { Button, Input, Label, P, Spinner } from 'flowbite-svelte';
 
 	const maxItemsDisplay = 20;
 
-	export let items: T[];
+	export let items: T[] | undefined = undefined;
 	export let filterItems: (data: T[], target: string) => T[] = (items, search) => {
 		return items
 			.filter((item) => {
@@ -52,6 +52,7 @@
 	} = createCombobox<string>({
 		forceVisible: true,
 		onSelectedChange: (newSelection) => {
+			if (!items) return;
 			const newValue = newSelection.next ? newSelection.next?.value : undefined;
 			value = newValue;
 			onChange && onChange(newValue);
@@ -64,6 +65,7 @@
 	});
 
 	const clearSelection = () => {
+		if (!items) return;
 		clearValue = true;
 		value = undefined;
 		createValue = undefined;
@@ -71,8 +73,13 @@
 	};
 
 	const setCreate = () => {
+		if (!items) return;
 		clearValue = false;
 		value = undefined;
+		$open = false;
+		if (targetCreate === undefined || targetCreate.length === 0) {
+			targetCreate = createDesc;
+		}
 		createValue = targetCreate;
 	};
 
@@ -84,6 +91,7 @@
 	};
 
 	const updateSelection = (id: string | undefined | null) => {
+		if (!items) return;
 		if (id) {
 			const selection = items.find((item) => item.id === id);
 			if (!selection) {
@@ -109,11 +117,13 @@
 	};
 
 	//Updates selection when the external value changes.
-	$: updateSelection(value);
+	$: items && updateSelection(value);
 
-	$: filteredItems = $touchedInput
-		? filterItems(items, $inputValue.toLowerCase())
-		: items.slice(0, maxItemsDisplay);
+	$: filteredItems = !items
+		? undefined
+		: $touchedInput
+			? filterItems(items, $inputValue.toLowerCase())
+			: items.slice(0, maxItemsDisplay);
 	$: selectedVal = $selected ? $selected.value : undefined;
 	$: updateTargetCreate($inputValue);
 </script>
@@ -133,7 +143,11 @@
 	{/if}
 
 	<div class="flex w-full flex-col gap-2 @md:flex-row">
-		{#if createValue !== undefined}
+		{#if !items}
+			<div class="flex flex-row items-center gap-2">
+				<Spinner size="4" /><P size="sm" weight="semibold" class="text-gray-400">Loading...</P>
+			</div>
+		{:else if createValue !== undefined}
 			<P size="sm" class="self-center whitespace-nowrap">{createDesc}</P>
 			<Input bind:value={createValue} />
 			<Button outline on:click={cancelCreate}>Cancel</Button>
@@ -183,7 +197,7 @@
 		{/if}
 	</div>
 </div>
-{#if $open}
+{#if $open && items && filteredItems}
 	<ul
 		class="z-[100] flex max-h-[300px] flex-col overflow-hidden rounded-md border bg-gray-50 dark:bg-gray-700"
 		{...$menu}

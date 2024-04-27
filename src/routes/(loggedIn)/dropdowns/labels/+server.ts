@@ -8,7 +8,7 @@ export const GET = async (data) => {
 	authGuard(data);
 	serverPageInfo(data.route.id, data);
 
-	const dropdownData = await tActions.category.listForDropdown({ db: data.locals.db });
+	const dropdownData = await tActions.label.listForDropdown({ db: data.locals.db });
 
 	return text(superjson.stringify(dropdownData));
 };
