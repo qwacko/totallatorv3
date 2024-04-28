@@ -123,7 +123,7 @@
 				</div>
 
 				<P class="flex text-sm font-semibold">Labels To Add</P>
-				{#if $formData.addLabels && $formData.addLabels.length > 0}
+				{#if $formData.addLabels && $formData.addLabels.length > 0 && $labelDropdownData}
 					<div class="flex flex-row flex-wrap gap-2">
 						{#each $formData.addLabels as currentLabel}
 							{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
@@ -154,7 +154,7 @@
 							$formData.removeLabels ? !$formData.removeLabels.includes(item) : true
 						)}
 						<P class="flex text-sm font-semibold">Labels On At Least One Journals</P>
-						{#if useAllLabelIds.length > 0}
+						{#if useAllLabelIds.length > 0 && $labelDropdownData}
 							<div class="flex flex-row flex-wrap gap-2">
 								{#each useAllLabelIds as currentLabel}
 									{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
@@ -179,7 +179,7 @@
 							$formData.removeLabels ? !$formData.removeLabels.includes(item) : true
 						)}
 						<P class="flex text-sm font-semibold">Labels On All Journals</P>
-						{#if useCommonLabelIds.length > 0}
+						{#if useCommonLabelIds.length > 0 && $labelDropdownData}
 							<div class="flex flex-row flex-wrap gap-2">
 								{#each useCommonLabelIds as currentLabel}
 									{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
@@ -200,7 +200,7 @@
 					{/if}
 
 					<P class="flex text-sm font-semibold">Labels For Removal</P>
-					{#if $formData.removeLabels && $formData.removeLabels.length > 0}
+					{#if $formData.removeLabels && $formData.removeLabels.length > 0 && $labelDropdownData}
 						<div class="flex flex-row flex-wrap gap-2">
 							{#each $formData.removeLabels as currentLabel}
 								{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
@@ -258,7 +258,7 @@
 				</div>
 
 				<P class="flex text-sm font-semibold">Labels To Set All Journals To Have</P>
-				{#if $formData.labels && $formData.labels.length > 0}
+				{#if $formData.labels && $formData.labels.length > 0 && $labelDropdownData}
 					<div class="flex flex-row flex-wrap gap-2">
 						{#each $formData.labels as currentLabel}
 							{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}

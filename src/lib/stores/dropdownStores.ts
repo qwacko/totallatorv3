@@ -28,7 +28,7 @@ const getDropdownData = <T extends Record<string, any>[]>({
 }: {
 	url: string;
 	prefix: string;
-	updateValue: Writable<T>;
+	updateValue: Writable<T | undefined>;
 }) => {
 	return async (newData: number[]): Promise<T> => {
 		if (!browser) {
@@ -87,7 +87,7 @@ const getDropdownData = <T extends Record<string, any>[]>({
 
 // Tag Dropdown
 export const tagDropdownTime = writable(0);
-export const tagDropdownData = writable<TagDropdownType>([]);
+export const tagDropdownData = writable<TagDropdownType | undefined>();
 export const tagDropdownAsyncData = asyncDerived(
 	[tagDropdownTime],
 	getDropdownData<TagDropdownType>({
@@ -99,7 +99,7 @@ export const tagDropdownAsyncData = asyncDerived(
 
 // Category Dropdown
 export const categoryDropdownTime = writable(0);
-export const categoryDropdownData = writable<CategoryDropdownType>([]);
+export const categoryDropdownData = writable<CategoryDropdownType | undefined>(undefined);
 export const categoryDropdownAsyncData = asyncDerived(
 	[categoryDropdownTime],
 	getDropdownData<CategoryDropdownType>({
@@ -111,7 +111,7 @@ export const categoryDropdownAsyncData = asyncDerived(
 
 // Bill Dropdown
 export const billDropdownTime = writable(0);
-export const billDropdownData = writable<BillDropdownType>([]);
+export const billDropdownData = writable<BillDropdownType | undefined>(undefined);
 export const billDropdownAsyncData = asyncDerived(
 	[billDropdownTime],
 	getDropdownData<BillDropdownType>({
@@ -123,7 +123,7 @@ export const billDropdownAsyncData = asyncDerived(
 
 // Account Dropdown
 export const accountDropdownTime = writable(0);
-export const accountDropdownData = writable<AccountDropdownType>([]);
+export const accountDropdownData = writable<AccountDropdownType | undefined>(undefined);
 export const accountDropdownAsyncData = asyncDerived(
 	[accountDropdownTime],
 	getDropdownData<AccountDropdownType>({
@@ -135,7 +135,7 @@ export const accountDropdownAsyncData = asyncDerived(
 
 // Import Mapping Dropdown
 export const importMappingDropdownTime = writable(0);
-export const importMappingDropdownData = writable<ImportMappingDropdownType>([]);
+export const importMappingDropdownData = writable<ImportMappingDropdownType | undefined>(undefined);
 export const importMappingDropdownAsyncData = asyncDerived(
 	[importMappingDropdownTime],
 	getDropdownData<ImportMappingDropdownType>({
@@ -147,7 +147,7 @@ export const importMappingDropdownAsyncData = asyncDerived(
 
 // Budget Dropdown
 export const budgetDropdownTime = writable(0);
-export const budgetDropdownData = writable<BudgetDropdownType>([]);
+export const budgetDropdownData = writable<BudgetDropdownType | undefined>(undefined);
 export const budgetDropdownAsyncData = asyncDerived(
 	[budgetDropdownTime],
 	getDropdownData<BudgetDropdownType>({
@@ -159,7 +159,7 @@ export const budgetDropdownAsyncData = asyncDerived(
 
 // Label Dropdown
 export const labelDropdownTime = writable(0);
-export const labelDropdownData = writable<LabelDropdownType>([]);
+export const labelDropdownData = writable<LabelDropdownType | undefined>(undefined);
 export const labelDropdownAsyncData = asyncDerived(
 	[labelDropdownTime],
 	getDropdownData<LabelDropdownType>({

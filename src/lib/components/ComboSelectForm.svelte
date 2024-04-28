@@ -23,7 +23,7 @@
 	export let createDesc = 'Create';
 	export let clearable = false;
 
-	export let items: Promise<U[]> | U[];
+	export let items: Promise<U[]> | U[] | undefined;
 	export let itemToOption: OptionFunction<U>;
 	export let itemToDisplay: DisplayFunction<U>;
 

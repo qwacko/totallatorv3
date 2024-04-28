@@ -35,7 +35,7 @@
 
 <div class="flex flex-col gap-2">
 	<P class="flex text-sm font-semibold">Labels</P>
-	{#if $formData.labels && $formData.labels.length > 0}
+	{#if $formData.labels && $formData.labels.length > 0 && $labelDropdownData}
 		<div class="flex flex-row flex-wrap gap-2">
 			{#each $formData.labels as currentLabel}
 				{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
