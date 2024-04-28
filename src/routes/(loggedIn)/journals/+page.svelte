@@ -232,7 +232,6 @@
 						<input type="hidden" value={currentJournal.id} name="journalId" />
 						<ButtonGroup size="xs" class="flex-wrap md:flex-nowrap">
 							<Button
-								disabled={currentJournal.complete}
 								href={urlGenerator({
 									address: '/(loggedIn)/journals/bulkEdit',
 									searchParamsValue: {
