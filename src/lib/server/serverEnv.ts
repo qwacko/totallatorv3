@@ -55,7 +55,10 @@ const serverEnvValidation = z.object({
 	DBLOG_CACHE_SIZE: z.coerce.number().optional().default(1000),
 	DBLOG_CACHE_TIMEOUT: z.coerce.number().optional().default(5000),
 	DBLOG_STORAGE_HOURS: z.coerce.number().optional().default(24),
-	DBLOG_STORAGE_COUNT: z.coerce.number().optional().default(100000)
+	DBLOG_STORAGE_COUNT: z.coerce.number().optional().default(100000),
+	TRANSACTIONLOG_ENABLE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
+	TRANSACTIONLOG_ENABLESTART: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
+	TRANSACTIONLOG_TIME_MS: z.coerce.number().optional().default(100)
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -85,5 +88,8 @@ export const serverEnv = serverEnvValidation.parse({
 	S3_REGION: env.S3_REGION,
 	DBLOG_ENABLE: env.DBLOG_ENABLE,
 	DBLOG_CACHE_SIZE: env.DBLOG_CACHE_SIZE,
-	DBLOG_CACHE_TIMEOUT: env.DBLOG_CACHE_TIMEOUT
+	DBLOG_CACHE_TIMEOUT: env.DBLOG_CACHE_TIMEOUT,
+	TRANSACTIONLOG_ENABLE: env.TRANSACTIONLOG_ENABLE,
+	TRANSACTIONLOG_TIME_MS: env.TRANSACTIONLOG_TIME_MS,
+	TRANSACTIONLOG_ENABLESTART: env.TRANSACTIONLOG_ENABLESTART
 });

@@ -34,6 +34,7 @@ import type { DBDateRangeType } from './helpers/report/filtersToDateRange';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '../dbLogger';
+import { tLogger } from '../transactionLogger';
 
 export const reportActions = {
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
@@ -48,22 +49,25 @@ export const reportActions = {
 		);
 		logging.debug('Filter', reportInfo.filterId);
 
-		await db.transaction(async (trx) => {
-			await reportActions.reportElement.deleteMany({
-				db: trx,
-				ids: reportInfo.reportElements.map((item) => item.id)
-			});
-			if (reportInfo.filterId) {
+		await tLogger(
+			'Delete Report',
+			db.transaction(async (trx) => {
+				await reportActions.reportElement.deleteMany({
+					db: trx,
+					ids: reportInfo.reportElements.map((item) => item.id)
+				});
+				if (reportInfo.filterId) {
+					await dbExecuteLogger(
+						trx.delete(filterTable).where(eq(filterTable.id, reportInfo.filterId)),
+						'Report - Delete - Delete Filter'
+					);
+				}
 				await dbExecuteLogger(
-					trx.delete(filterTable).where(eq(filterTable.id, reportInfo.filterId)),
-					'Report - Delete - Delete Filter'
+					trx.delete(report).where(eq(report.id, id)),
+					'Report - Delete - Delete Report'
 				);
-			}
-			await dbExecuteLogger(
-				trx.delete(report).where(eq(report.id, id)),
-				'Report - Delete - Delete Report'
-			);
-		});
+			})
+		);
 	},
 	create: async ({ db, data }: { db: DBType; data: CreateReportType }) => {
 		const id = nanoid();
@@ -72,17 +76,20 @@ export const reportActions = {
 			data.layout
 		].map((item) => ({ ...item, reportId: id }));
 
-		await db.transaction(async (trx) => {
-			await dbExecuteLogger(
-				trx.insert(report).values({ id, ...data, ...updatedTime() }),
-				'Report - Create - Insert Report'
-			);
+		await tLogger(
+			'Create Report',
+			db.transaction(async (trx) => {
+				await dbExecuteLogger(
+					trx.insert(report).values({ id, ...data, ...updatedTime() }),
+					'Report - Create - Insert Report'
+				);
 
-			await reportActions.reportElement.createMany({
-				db: trx,
-				configurations: reportElementCreationList
-			});
-		});
+				await reportActions.reportElement.createMany({
+					db: trx,
+					configurations: reportElementCreationList
+				});
+			})
+		);
 
 		return id;
 	},
@@ -203,35 +210,38 @@ export const reportActions = {
 		);
 
 		//Update the reportElements
-		await db.transaction(async (trx) => {
-			if (reportElementsToRemove.length > 0) {
-				//Remove old elements
-				await reportActions.reportElement.deleteMany({ db: trx, ids: reportElementsToRemove });
-			}
+		await tLogger(
+			'Update Report Layout',
+			db.transaction(async (trx) => {
+				if (reportElementsToRemove.length > 0) {
+					//Remove old elements
+					await reportActions.reportElement.deleteMany({ db: trx, ids: reportElementsToRemove });
+				}
 
-			if (reportElementsToUpdate.length > 0) {
-				//Update Existing ELements
-				await Promise.all(
-					reportElementsToUpdate.map(async (currentReportElement) => {
-						await dbExecuteLogger(
-							trx
-								.update(reportElement)
-								.set(currentReportElement)
-								.where(eq(reportElement.id, currentReportElement.id)),
-							'Report - Update Layout - Update Element'
-						);
-					})
-				);
-			}
+				if (reportElementsToUpdate.length > 0) {
+					//Update Existing ELements
+					await Promise.all(
+						reportElementsToUpdate.map(async (currentReportElement) => {
+							await dbExecuteLogger(
+								trx
+									.update(reportElement)
+									.set(currentReportElement)
+									.where(eq(reportElement.id, currentReportElement.id)),
+								'Report - Update Layout - Update Element'
+							);
+						})
+					);
+				}
 
-			if (reportElementsToAdd.length > 0) {
-				//Create New Elements
-				await reportActions.reportElement.createMany({
-					db: trx,
-					configurations: reportElementsToAdd
-				});
-			}
-		});
+				if (reportElementsToAdd.length > 0) {
+					//Create New Elements
+					await reportActions.reportElement.createMany({
+						db: trx,
+						configurations: reportElementsToAdd
+					});
+				}
+			})
+		);
 	},
 	addFilter: async ({ db, id }: { db: DBType; id: string }) => {
 		const reportConfig = await reportActions.getSimpleReportConfig({ db, id });
@@ -246,19 +256,22 @@ export const reportActions = {
 
 		const filterId = nanoid();
 
-		await db.transaction(async (trx) => {
-			await reportActions.filter.create({ db: trx, id: filterId });
+		await tLogger(
+			'Add Filter',
+			db.transaction(async (trx) => {
+				await reportActions.filter.create({ db: trx, id: filterId });
 
-			await dbExecuteLogger(
-				trx
-					.update(report)
-					.set({
-						filterId
-					})
-					.where(eq(report.id, id)),
-				'Report - Add Filter - Update Report'
-			);
-		});
+				await dbExecuteLogger(
+					trx
+						.update(report)
+						.set({
+							filterId
+						})
+						.where(eq(report.id, id)),
+					'Report - Add Filter - Update Report'
+				);
+			})
+		);
 
 		return;
 	},
@@ -283,13 +296,16 @@ export const reportActions = {
 			throw new Error("Report Doesn't Have  Filter");
 		}
 
-		await db.transaction(async (trx) => {
-			await reportActions.filter.update({
-				db: trx,
-				filterId,
-				filterConfig: filter
-			});
-		});
+		await tLogger(
+			'Update Filter',
+			db.transaction(async (trx) => {
+				await reportActions.filter.update({
+					db: trx,
+					filterId,
+					filterConfig: filter
+				});
+			})
+		);
 
 		return;
 	},
@@ -487,20 +503,23 @@ export const reportActions = {
 
 			const newFilterId = nanoid();
 
-			await db.transaction(async (trx) => {
-				await reportActions.filter.create({ db: trx, id: newFilterId });
+			await tLogger(
+				'Add Filter',
+				db.transaction(async (trx) => {
+					await reportActions.filter.create({ db: trx, id: newFilterId });
 
-				await dbExecuteLogger(
-					trx.insert(filtersToReportConfigs).values({
-						id: nanoid(),
-						reportElementConfigId: configId,
-						filterId: newFilterId,
-						order: newFilterOrder,
-						...updatedTime()
-					}),
-					'Report Element Configuration - Add Filter - Insert'
-				);
-			});
+					await dbExecuteLogger(
+						trx.insert(filtersToReportConfigs).values({
+							id: nanoid(),
+							reportElementConfigId: configId,
+							filterId: newFilterId,
+							order: newFilterOrder,
+							...updatedTime()
+						}),
+						'Report Element Configuration - Add Filter - Insert'
+					);
+				})
+			);
 		},
 		updateFilter: async ({
 			db,
@@ -539,13 +558,16 @@ export const reportActions = {
 				throw new Error('Filter not found on configuration');
 			}
 
-			await db.transaction(async (trx) => {
-				await reportActions.filter.update({
-					db: trx,
-					filterId,
-					filterConfig: filter
-				});
-			});
+			await tLogger(
+				'Update Filter',
+				db.transaction(async (trx) => {
+					await reportActions.filter.update({
+						db: trx,
+						filterId,
+						filterConfig: filter
+					});
+				})
+			);
 
 			return;
 		},
@@ -584,19 +606,22 @@ export const reportActions = {
 				throw new Error('Filter not found');
 			}
 
-			await db.transaction(async (trx) => {
-				await dbExecuteLogger(
-					trx
-						.delete(filtersToReportConfigs)
-						.where(eq(filtersToReportConfigs.id, filterToRemove.id)),
-					'Report Element Configuration - Remove Filter - Delete'
-				);
+			await tLogger(
+				'Remove Filter From Element',
+				db.transaction(async (trx) => {
+					await dbExecuteLogger(
+						trx
+							.delete(filtersToReportConfigs)
+							.where(eq(filtersToReportConfigs.id, filterToRemove.id)),
+						'Report Element Configuration - Remove Filter - Delete'
+					);
 
-				await dbExecuteLogger(
-					trx.delete(filterTable).where(eq(filterTable.id, filterId)),
-					'Report Element Configuration - Remove Filter - Delete Filter'
-				);
-			});
+					await dbExecuteLogger(
+						trx.delete(filterTable).where(eq(filterTable.id, filterId)),
+						'Report Element Configuration - Remove Filter - Delete Filter'
+					);
+				})
+			);
 		}
 	},
 	filter: {
@@ -637,19 +662,22 @@ export const reportActions = {
 
 			const filterText = await journalFilterToText({ db, filter: validatedFilter.data });
 
-			await db.transaction(async (trx) => {
-				await dbExecuteLogger(
-					trx
-						.update(filterTable)
-						.set({
-							filter: validatedFilter.data,
-							filterText: filterText.join(' and '),
-							...updatedTime()
-						})
-						.where(eq(filterTable.id, filterId)),
-					'Filter - Update - Update'
-				);
-			});
+			await tLogger(
+				'Filter Update',
+				db.transaction(async (trx) => {
+					await dbExecuteLogger(
+						trx
+							.update(filterTable)
+							.set({
+								filter: validatedFilter.data,
+								filterText: filterText.join(' and '),
+								...updatedTime()
+							})
+							.where(eq(filterTable.id, filterId)),
+						'Filter - Update - Update'
+					);
+				})
+			);
 
 			return;
 		}
@@ -776,47 +804,50 @@ export const reportActions = {
 				'Report Element - Delete Many - Find Filters'
 			);
 
-			await db.transaction(async (trx) => {
-				if (reportElementsToDelete.length > 0) {
-					await dbExecuteLogger(
-						trx
-							.delete(reportElement)
-							.where(inArrayWrapped(reportElement.id, reportElementsToDelete)),
-						'Report Element - Delete Many - Delete Elements'
-					);
-				}
+			await tLogger(
+				'Report Element - Delete Many',
+				db.transaction(async (trx) => {
+					if (reportElementsToDelete.length > 0) {
+						await dbExecuteLogger(
+							trx
+								.delete(reportElement)
+								.where(inArrayWrapped(reportElement.id, reportElementsToDelete)),
+							'Report Element - Delete Many - Delete Elements'
+						);
+					}
 
-				if (reportConfigsToDelete.length > 0) {
-					await dbExecuteLogger(
-						trx
-							.delete(reportElementConfig)
-							.where(inArrayWrapped(reportElementConfig.id, reportConfigsToDelete)),
-						'Report Element - Delete Many - Delete Configs'
-					);
-				}
+					if (reportConfigsToDelete.length > 0) {
+						await dbExecuteLogger(
+							trx
+								.delete(reportElementConfig)
+								.where(inArrayWrapped(reportElementConfig.id, reportConfigsToDelete)),
+							'Report Element - Delete Many - Delete Configs'
+						);
+					}
 
-				if (reportConfigToFiltersToDelete.length > 0) {
-					await dbExecuteLogger(
-						trx.delete(filtersToReportConfigs).where(
-							inArrayWrapped(
-								filtersToReportConfigs.reportElementConfigId,
-								reportConfigToFiltersToDelete.map((item) => item.id)
-							)
-						),
-						'Report Element - Delete Many - Delete Filters'
-					);
+					if (reportConfigToFiltersToDelete.length > 0) {
+						await dbExecuteLogger(
+							trx.delete(filtersToReportConfigs).where(
+								inArrayWrapped(
+									filtersToReportConfigs.reportElementConfigId,
+									reportConfigToFiltersToDelete.map((item) => item.id)
+								)
+							),
+							'Report Element - Delete Many - Delete Filters'
+						);
 
-					await dbExecuteLogger(
-						trx.delete(filterTable).where(
-							inArrayWrapped(
-								filterTable.id,
-								reportConfigToFiltersToDelete.map((item) => item.filterId)
-							)
-						),
-						'Report Element - Delete Many - Delete Filter'
-					);
-				}
-			});
+						await dbExecuteLogger(
+							trx.delete(filterTable).where(
+								inArrayWrapped(
+									filterTable.id,
+									reportConfigToFiltersToDelete.map((item) => item.filterId)
+								)
+							),
+							'Report Element - Delete Many - Delete Filter'
+						);
+					}
+				})
+			);
 		},
 		createMany: async ({
 			db,
@@ -851,16 +882,19 @@ export const reportActions = {
 				})
 			);
 
-			await db.transaction(async (trx) => {
-				await dbExecuteLogger(
-					trx.insert(reportElement).values(reportElementsData),
-					'Report Element - Create Many - Insert Elements'
-				);
-				await dbExecuteLogger(
-					trx.insert(reportElementConfig).values(reportElementsConfigData),
-					'Report Element - Create Many - Insert Configs'
-				);
-			});
+			await tLogger(
+				'Report Element - Create Many',
+				db.transaction(async (trx) => {
+					await dbExecuteLogger(
+						trx.insert(reportElement).values(reportElementsData),
+						'Report Element - Create Many - Insert Elements'
+					);
+					await dbExecuteLogger(
+						trx.insert(reportElementConfig).values(reportElementsConfigData),
+						'Report Element - Create Many - Insert Configs'
+					);
+				})
+			);
 		},
 		get: async ({ db, id }: { db: DBType; id: string }) => {
 			const reportElementData = await dbExecuteLogger(
@@ -890,22 +924,25 @@ export const reportActions = {
 
 			logging.debug('Updating Report Element : ', data);
 
-			await db.transaction(async (trx) => {
-				if (restData.clearTitle) {
-					await dbExecuteLogger(
-						trx.update(reportElement).set({ title: null }).where(eq(reportElement.id, id)),
-						'Report Element - Update - Clear Title'
-					);
-				} else if (restData.title) {
-					await dbExecuteLogger(
-						trx
-							.update(reportElement)
-							.set({ title: restData.title })
-							.where(eq(reportElement.id, id)),
-						'Report Element - Update - Update Title'
-					);
-				}
-			});
+			await tLogger(
+				'Report Element - Update',
+				db.transaction(async (trx) => {
+					if (restData.clearTitle) {
+						await dbExecuteLogger(
+							trx.update(reportElement).set({ title: null }).where(eq(reportElement.id, id)),
+							'Report Element - Update - Clear Title'
+						);
+					} else if (restData.title) {
+						await dbExecuteLogger(
+							trx
+								.update(reportElement)
+								.set({ title: restData.title })
+								.where(eq(reportElement.id, id)),
+							'Report Element - Update - Update Title'
+						);
+					}
+				})
+			);
 
 			return;
 		},
@@ -925,19 +962,22 @@ export const reportActions = {
 
 			const filterId = nanoid();
 
-			await db.transaction(async (trx) => {
-				await reportActions.filter.create({ db: trx, id: filterId });
+			await tLogger(
+				'Report Element - Add Filter',
+				db.transaction(async (trx) => {
+					await reportActions.filter.create({ db: trx, id: filterId });
 
-				await dbExecuteLogger(
-					trx
-						.update(reportElement)
-						.set({
-							filterId
-						})
-						.where(eq(reportElement.id, id)),
-					'Report Element - Add Filter - Update Element'
-				);
-			});
+					await dbExecuteLogger(
+						trx
+							.update(reportElement)
+							.set({
+								filterId
+							})
+							.where(eq(reportElement.id, id)),
+						'Report Element - Add Filter - Update Element'
+					);
+				})
+			);
 
 			return;
 		},
@@ -962,13 +1002,16 @@ export const reportActions = {
 				throw new Error("Report Element Doesn't Have  Filter");
 			}
 
-			await db.transaction(async (trx) => {
-				await reportActions.filter.update({
-					db: trx,
-					filterId,
-					filterConfig: filter
-				});
-			});
+			await tLogger(
+				'Report Element - Update Filter',
+				db.transaction(async (trx) => {
+					await reportActions.filter.update({
+						db: trx,
+						filterId,
+						filterConfig: filter
+					});
+				})
+			);
 
 			return;
 		},
@@ -985,22 +1028,25 @@ export const reportActions = {
 				return;
 			}
 
-			await db.transaction(async (trx) => {
-				await dbExecuteLogger(
-					trx
-						.update(reportElement)
-						.set({
-							filterId: null
-						})
-						.where(eq(reportElement.id, id)),
-					'Report Element - Remove Filter - Update Element'
-				);
+			await tLogger(
+				'Report Element - Remove Filter',
+				db.transaction(async (trx) => {
+					await dbExecuteLogger(
+						trx
+							.update(reportElement)
+							.set({
+								filterId: null
+							})
+							.where(eq(reportElement.id, id)),
+						'Report Element - Remove Filter - Update Element'
+					);
 
-				await dbExecuteLogger(
-					trx.delete(filterTable).where(eq(filterTable.id, filterId)),
-					'Report Element - Remove Filter - Delete Filter'
-				);
-			});
+					await dbExecuteLogger(
+						trx.delete(filterTable).where(eq(filterTable.id, filterId)),
+						'Report Element - Remove Filter - Delete Filter'
+					);
+				})
+			);
 
 			return;
 		}

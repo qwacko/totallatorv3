@@ -22,6 +22,7 @@ import { materializedViewActions } from './materializedViewActions';
 import { labelMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
+import { tLogger } from '../transactionLogger';
 
 export const labelActions = {
 	latestUpdate: async ({ db }: { db: DBType }) => {
@@ -252,39 +253,45 @@ export const labelActions = {
 		return currentLabel && currentLabel.journals.length === 0;
 	},
 	softDelete: async (db: DBType, data: IdSchemaType) => {
-		return db.transaction(async (transDb) => {
-			//If the Label has no journals, then mark as deleted, otherwise do nothing
-			if (await labelActions.canDelete(db, data)) {
-				await dbExecuteLogger(
-					transDb.delete(labelsToJournals).where(eq(labelsToJournals.labelId, data.id)),
-					'Labels - Soft Delete - Delete Links'
-				);
+		return tLogger(
+			'Soft Delete Label',
+			db.transaction(async (transDb) => {
+				//If the Label has no journals, then mark as deleted, otherwise do nothing
+				if (await labelActions.canDelete(db, data)) {
+					await dbExecuteLogger(
+						transDb.delete(labelsToJournals).where(eq(labelsToJournals.labelId, data.id)),
+						'Labels - Soft Delete - Delete Links'
+					);
 
-				await dbExecuteLogger(
-					transDb.delete(label).where(eq(label.id, data.id)),
-					'Labels - Soft Delete'
-				);
-				await materializedViewActions.setRefreshRequired(db);
-			}
+					await dbExecuteLogger(
+						transDb.delete(label).where(eq(label.id, data.id)),
+						'Labels - Soft Delete'
+					);
+					await materializedViewActions.setRefreshRequired(db);
+				}
 
-			return data.id;
-		});
+				return data.id;
+			})
+		);
 	},
 	hardDeleteMany: async (db: DBType, data: IdSchemaType[]) => {
 		if (data.length === 0) return;
 		const idList = data.map((currentData) => currentData.id);
 
-		return await db.transaction(async (transDb) => {
-			await dbExecuteLogger(
-				transDb.delete(labelsToJournals).where(inArrayWrapped(labelsToJournals.labelId, idList)),
-				'Labels - Hard Delete Many - Delete Links'
-			);
+		return await tLogger(
+			'Hard Delete Many Labels',
+			db.transaction(async (transDb) => {
+				await dbExecuteLogger(
+					transDb.delete(labelsToJournals).where(inArrayWrapped(labelsToJournals.labelId, idList)),
+					'Labels - Hard Delete Many - Delete Links'
+				);
 
-			await dbExecuteLogger(
-				transDb.delete(label).where(inArrayWrapped(label.id, idList)),
-				'Labels - Hard Delete Many'
-			);
-		});
+				await dbExecuteLogger(
+					transDb.delete(label).where(inArrayWrapped(label.id, idList)),
+					'Labels - Hard Delete Many'
+				);
+			})
+		);
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	seed: async (db: DBType, count: number) => {

@@ -30,6 +30,7 @@ import { materializedViewActions } from './materializedViewActions';
 import { accountMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
+import { tLogger } from '../transactionLogger';
 
 export const accountActions = {
 	latestUpdate: async ({ db }: { db: DBType }) => {
@@ -269,13 +270,16 @@ export const accountActions = {
 			filter: { ...filter, pageSize: 100000, page: 0 }
 		});
 
-		await db.transaction(async (db) => {
-			await Promise.all(
-				items.data.map(async (item) => {
-					await accountActions.update({ db, data, id: item.id });
-				})
-			);
-		});
+		await tLogger(
+			'Update Many Accounts',
+			db.transaction(async (db) => {
+				await Promise.all(
+					items.data.map(async (item) => {
+						await accountActions.update({ db, data, id: item.id });
+					})
+				);
+			})
+		);
 	},
 	update: async ({ db, data, id }: { db: DBType; data: UpdateAccountSchemaType; id: string }) => {
 		const {
@@ -425,9 +429,15 @@ export const accountActions = {
 			return accountCreateInsertionData(currentAccount, id);
 		});
 
-		await db.transaction(async (trx) => {
-			await dbExecuteLogger(trx.insert(account).values(dataForInsertion), 'Accounts - Create Many');
-		});
+		await tLogger(
+			'Create Many Accounts',
+			db.transaction(async (trx) => {
+				await dbExecuteLogger(
+					trx.insert(account).values(dataForInsertion),
+					'Accounts - Create Many'
+				);
+			})
+		);
 
 		await materializedViewActions.setRefreshRequired(db);
 		return dataForInsertion.map((item) => item.id);

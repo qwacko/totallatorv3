@@ -189,8 +189,8 @@
 					</div>
 				{:else if currentColumn.id === 'thumbnailFilename'}
 					{#if currentRow.thumbnailFilename}
-						<ImageIcon id="b1" />
-						<Popover title={currentRow.originalFilename} triggeredBy="#b1">
+						<ImageIcon id="b1{currentRow.id}" />
+						<Popover title={currentRow.originalFilename} triggeredBy="#b1{currentRow.id}">
 							<FileThumbnail item={currentRow} />
 						</Popover>
 					{/if}

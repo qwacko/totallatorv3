@@ -47,6 +47,7 @@ import { logging } from '$lib/server/logging';
 import { serverEnv } from '$lib/server/serverEnv';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
+import { tLogger } from '../transactionLogger';
 
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -194,13 +195,16 @@ export const backupActions = {
 				`Retention Policy Not Met. Percentage To Delete: ${percentageToDelete}. Max Percentage To Delete: ${maxPercentageToDelete}`
 			);
 		} else if (backupsToDelete.length > 0) {
-			db.transaction(async (trx) => {
-				await Promise.all(
-					backupsToDelete.map(async (backup) => {
-						await backupActions.deleteBackup({ db: trx, id: backup.id });
-					})
-				);
-			});
+			await tLogger(
+				'Trim Backups',
+				db.transaction(async (trx) => {
+					await Promise.all(
+						backupsToDelete.map(async (backup) => {
+							await backupActions.deleteBackup({ db: trx, id: backup.id });
+						})
+					);
+				})
+			);
 
 			logging.info(`Deleted ${backupsToDelete.length} backups`);
 		}
@@ -565,225 +569,238 @@ export const backupActions = {
 		});
 
 		const dataInsertionStart = Date.now();
-		await db.transaction(async (trx) => {
-			//Clear The Database
-			if (includeUsers) {
-				await dbExecuteLogger(trx.delete(user), 'Backup Restore - Delete Users');
-				await dbExecuteLogger(trx.delete(session), 'Backup Restore - Delete Sessions');
-				await dbExecuteLogger(trx.delete(key), 'Backup Restore - Delete Keys');
-			}
-			await dbExecuteLogger(trx.delete(account), 'Backup Restore - Delete Accounts');
-			await dbExecuteLogger(trx.delete(bill), 'Backup Restore - Delete Bills');
-			await dbExecuteLogger(trx.delete(budget), 'Backup Restore - Delete Budgets');
-			await dbExecuteLogger(trx.delete(category), 'Backup Restore - Delete Categories');
-			await dbExecuteLogger(trx.delete(tag), 'Backup Restore - Delete Tags');
-			await dbExecuteLogger(trx.delete(label), 'Backup Restore - Delete Labels');
-			await dbExecuteLogger(trx.delete(transaction), 'Backup Restore - Delete Transactions');
-			await dbExecuteLogger(trx.delete(journalEntry), 'Backup Restore - Delete Journal Entries');
-			await dbExecuteLogger(
-				trx.delete(labelsToJournals),
-				'Backup Restore - Delete Labels To Journals'
-			);
-			await dbExecuteLogger(trx.delete(importMapping), 'Backup Restore - Delete Import Mapping');
-			await dbExecuteLogger(trx.delete(importTable), 'Backup Restore - Delete Import Table');
-			await dbExecuteLogger(
-				trx.delete(importItemDetail),
-				'Backup Restore - Delete Import Item Detail'
-			);
-			await dbExecuteLogger(trx.delete(reusableFilter), 'Backup Restore - Delete Reusable Filter');
-			await dbExecuteLogger(trx.delete(filter), 'Backup Restore - Delete Filter');
-			await dbExecuteLogger(trx.delete(report), 'Backup Restore - Delete Report');
-			await dbExecuteLogger(
-				trx.delete(filtersToReportConfigs),
-				'Backup Restore - Delete Filters To Report Configs'
-			);
-			await dbExecuteLogger(trx.delete(keyValueTable), 'Backup Restore - Delete Key Value Table');
-			await dbExecuteLogger(trx.delete(reportElement), 'Backup Restore - Delete Report Element');
-			await dbExecuteLogger(
-				trx.delete(reportElementConfig),
-				'Backup Restore - Delete Report Element Config'
-			);
-			await dbExecuteLogger(trx.delete(backupTable), 'Backup Restore - Delete Backup Table');
-			await dbExecuteLogger(
-				trx.delete(autoImportTable),
-				'Backup Restore - Delete Auto Import Table'
-			);
-			await dbExecuteLogger(trx.delete(notesTable), 'Backup Restore - Delete Notes Table');
-			await dbExecuteLogger(trx.delete(fileTable), 'Backup Restore - Delete File Table');
-			logging.info(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
-
-			//Update Database from Backup
-			if (includeUsers) {
-				await chunker(checkedBackupData.data.user, 1000, async (data) =>
-					dbExecuteLogger(trx.insert(user).values(data), 'Backup Restore - Insert Users')
+		await tLogger(
+			'Restore Backup',
+			db.transaction(async (trx) => {
+				//Clear The Database
+				if (includeUsers) {
+					await dbExecuteLogger(trx.delete(user), 'Backup Restore - Delete Users');
+					await dbExecuteLogger(trx.delete(session), 'Backup Restore - Delete Sessions');
+					await dbExecuteLogger(trx.delete(key), 'Backup Restore - Delete Keys');
+				}
+				await dbExecuteLogger(trx.delete(account), 'Backup Restore - Delete Accounts');
+				await dbExecuteLogger(trx.delete(bill), 'Backup Restore - Delete Bills');
+				await dbExecuteLogger(trx.delete(budget), 'Backup Restore - Delete Budgets');
+				await dbExecuteLogger(trx.delete(category), 'Backup Restore - Delete Categories');
+				await dbExecuteLogger(trx.delete(tag), 'Backup Restore - Delete Tags');
+				await dbExecuteLogger(trx.delete(label), 'Backup Restore - Delete Labels');
+				await dbExecuteLogger(trx.delete(transaction), 'Backup Restore - Delete Transactions');
+				await dbExecuteLogger(trx.delete(journalEntry), 'Backup Restore - Delete Journal Entries');
+				await dbExecuteLogger(
+					trx.delete(labelsToJournals),
+					'Backup Restore - Delete Labels To Journals'
 				);
-				await chunker(checkedBackupData.data.session, 1000, async (data) =>
-					dbExecuteLogger(trx.insert(session).values(data), 'Backup Restore - Insert Sessions')
+				await dbExecuteLogger(trx.delete(importMapping), 'Backup Restore - Delete Import Mapping');
+				await dbExecuteLogger(trx.delete(importTable), 'Backup Restore - Delete Import Table');
+				await dbExecuteLogger(
+					trx.delete(importItemDetail),
+					'Backup Restore - Delete Import Item Detail'
 				);
-				await chunker(checkedBackupData.data.key, 1000, async (data) =>
-					dbExecuteLogger(trx.insert(key).values(data), 'Backup Restore - Insert Keys')
+				await dbExecuteLogger(
+					trx.delete(reusableFilter),
+					'Backup Restore - Delete Reusable Filter'
 				);
-			}
+				await dbExecuteLogger(trx.delete(filter), 'Backup Restore - Delete Filter');
+				await dbExecuteLogger(trx.delete(report), 'Backup Restore - Delete Report');
+				await dbExecuteLogger(
+					trx.delete(filtersToReportConfigs),
+					'Backup Restore - Delete Filters To Report Configs'
+				);
+				await dbExecuteLogger(trx.delete(keyValueTable), 'Backup Restore - Delete Key Value Table');
+				await dbExecuteLogger(trx.delete(reportElement), 'Backup Restore - Delete Report Element');
+				await dbExecuteLogger(
+					trx.delete(reportElementConfig),
+					'Backup Restore - Delete Report Element Config'
+				);
+				await dbExecuteLogger(trx.delete(backupTable), 'Backup Restore - Delete Backup Table');
+				await dbExecuteLogger(
+					trx.delete(autoImportTable),
+					'Backup Restore - Delete Auto Import Table'
+				);
+				await dbExecuteLogger(trx.delete(notesTable), 'Backup Restore - Delete Notes Table');
+				await dbExecuteLogger(trx.delete(fileTable), 'Backup Restore - Delete File Table');
+				logging.info(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
 
-			await chunker(checkedBackupData.data.account, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(account).values(data), 'Backup Restore - Insert Accounts')
-			);
-			logging.info(`Account Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.bill, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(bill).values(data), 'Backup Restore - Insert Bills')
-			);
-			logging.info(`Bill Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.budget, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(budget).values(data), 'Backup Restore - Insert Budgets')
-			);
-			logging.info(`Budget Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.category, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(category).values(data), 'Backup Restore - Insert Categories')
-			);
-			logging.info(`Category Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.tag, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(tag).values(data), 'Backup Restore - Insert Tags')
-			);
-			logging.info(`Tag Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.label, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(label).values(data), 'Backup Restore - Insert Labels')
-			);
-			logging.info(`Label Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.transaction, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(transaction).values(data),
-					'Backup Restore - Insert Transactions'
-				)
-			);
-			logging.info(`Transaction Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.journalEntry, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(journalEntry).values(data),
-					'Backup Restore - Insert Journal Entries'
-				)
-			);
-			logging.info(`Journal Entry Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.labelsToJournals, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(labelsToJournals).values(data),
-					'Backup Restore - Insert Labels To Journals'
-				)
-			);
-			logging.info(`Labels to Journals Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.importMapping, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(importMapping).values(data),
-					'Backup Restore - Insert Import Mapping'
-				)
-			);
-			logging.info(`Import Mapping Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.importTable, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(importTable).values(data),
-					'Backup Restore - Insert Import Table'
-				)
-			);
-			logging.info(`Import Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.importItemDetail, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(importItemDetail).values(data),
-					'Backup Restore - Insert Import Item Detail'
-				)
-			);
-			logging.info(`Import Item Detail Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.autoImportTable, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(autoImportTable).values(data),
-					'Backup Restore - Insert Auto Import Table'
-				)
-			);
-			logging.info(`Auto Import Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-			await chunker(checkedBackupData.data.reusableFilter, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(reusableFilter).values(data),
-					'Backup Restore - Insert Reusable Filter'
-				)
-			);
-			logging.info(`Reusable Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				//Update Database from Backup
+				if (includeUsers) {
+					await chunker(checkedBackupData.data.user, 1000, async (data) =>
+						dbExecuteLogger(trx.insert(user).values(data), 'Backup Restore - Insert Users')
+					);
+					await chunker(checkedBackupData.data.session, 1000, async (data) =>
+						dbExecuteLogger(trx.insert(session).values(data), 'Backup Restore - Insert Sessions')
+					);
+					await chunker(checkedBackupData.data.key, 1000, async (data) =>
+						dbExecuteLogger(trx.insert(key).values(data), 'Backup Restore - Insert Keys')
+					);
+				}
 
-			await chunker(checkedBackupData.data.filter, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(filter).values(data), 'Backup Restore - Insert Filter')
-			);
-			logging.info(`Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.account, 1000, async (data) =>
+					dbExecuteLogger(trx.insert(account).values(data), 'Backup Restore - Insert Accounts')
+				);
+				logging.info(`Account Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.bill, 1000, async (data) =>
+					dbExecuteLogger(trx.insert(bill).values(data), 'Backup Restore - Insert Bills')
+				);
+				logging.info(`Bill Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.budget, 1000, async (data) =>
+					dbExecuteLogger(trx.insert(budget).values(data), 'Backup Restore - Insert Budgets')
+				);
+				logging.info(`Budget Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.category, 1000, async (data) =>
+					dbExecuteLogger(trx.insert(category).values(data), 'Backup Restore - Insert Categories')
+				);
+				logging.info(`Category Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.tag, 1000, async (data) =>
+					dbExecuteLogger(trx.insert(tag).values(data), 'Backup Restore - Insert Tags')
+				);
+				logging.info(`Tag Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.label, 1000, async (data) =>
+					dbExecuteLogger(trx.insert(label).values(data), 'Backup Restore - Insert Labels')
+				);
+				logging.info(`Label Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.transaction, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(transaction).values(data),
+						'Backup Restore - Insert Transactions'
+					)
+				);
+				logging.info(`Transaction Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.journalEntry, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(journalEntry).values(data),
+						'Backup Restore - Insert Journal Entries'
+					)
+				);
+				logging.info(`Journal Entry Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.labelsToJournals, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(labelsToJournals).values(data),
+						'Backup Restore - Insert Labels To Journals'
+					)
+				);
+				logging.info(
+					`Labels to Journals Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
+				await chunker(checkedBackupData.data.importMapping, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(importMapping).values(data),
+						'Backup Restore - Insert Import Mapping'
+					)
+				);
+				logging.info(`Import Mapping Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.importTable, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(importTable).values(data),
+						'Backup Restore - Insert Import Table'
+					)
+				);
+				logging.info(`Import Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.importItemDetail, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(importItemDetail).values(data),
+						'Backup Restore - Insert Import Item Detail'
+					)
+				);
+				logging.info(
+					`Import Item Detail Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
+				await chunker(checkedBackupData.data.autoImportTable, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(autoImportTable).values(data),
+						'Backup Restore - Insert Auto Import Table'
+					)
+				);
+				logging.info(`Auto Import Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.reusableFilter, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(reusableFilter).values(data),
+						'Backup Restore - Insert Reusable Filter'
+					)
+				);
+				logging.info(`Reusable Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
-			await chunker(checkedBackupData.data.report, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(report).values(data), 'Backup Restore - Insert Report')
-			);
-			logging.info(`Report Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.filter, 1000, async (data) =>
+					dbExecuteLogger(trx.insert(filter).values(data), 'Backup Restore - Insert Filter')
+				);
+				logging.info(`Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
-			await chunker(checkedBackupData.data.filtersToReportConfigs, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(filtersToReportConfigs).values(data),
-					'Backup Restore - Insert Filters To Report Configs'
-				)
-			);
-			logging.info(
-				`Filters To Report Configs Insertions Complete: ${Date.now() - dataInsertionStart}ms`
-			);
+				await chunker(checkedBackupData.data.report, 1000, async (data) =>
+					dbExecuteLogger(trx.insert(report).values(data), 'Backup Restore - Insert Report')
+				);
+				logging.info(`Report Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
-			await chunker(checkedBackupData.data.reportElement, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(reportElement).values(data),
-					'Backup Restore - Insert Report Element'
-				)
-			);
-			logging.info(`Report Element Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.filtersToReportConfigs, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(filtersToReportConfigs).values(data),
+						'Backup Restore - Insert Filters To Report Configs'
+					)
+				);
+				logging.info(
+					`Filters To Report Configs Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
-			await chunker(checkedBackupData.data.reportElementConfig, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(reportElementConfig).values(data),
-					'Backup Restore - Insert Report Element Config'
-				)
-			);
-			logging.info(
-				`Report Element Config Insertions Complete: ${Date.now() - dataInsertionStart}ms`
-			);
+				await chunker(checkedBackupData.data.reportElement, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(reportElement).values(data),
+						'Backup Restore - Insert Report Element'
+					)
+				);
+				logging.info(`Report Element Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
-			await chunker(checkedBackupData.data.keyValueTable, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(keyValueTable).values(data),
-					'Backup Restore - Insert Key Value Table'
-				)
-			);
-			logging.info(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.reportElementConfig, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(reportElementConfig).values(data),
+						'Backup Restore - Insert Report Element Config'
+					)
+				);
+				logging.info(
+					`Report Element Config Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
-			await chunker(checkedBackupData.data.backup, 1000, async (data) =>
-				dbExecuteLogger(
-					trx.insert(backupTable).values(
-						data.map((item) => ({
-							...item,
-							information: combinedBackupInfoSchema.parse(superjson.parse(item.information))
-						}))
-					),
-					'Backup Restore - Insert Backup Table'
-				)
-			);
-			logging.info(`Backup Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.keyValueTable, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(keyValueTable).values(data),
+						'Backup Restore - Insert Key Value Table'
+					)
+				);
+				logging.info(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
-			await chunker(checkedBackupData.data.note, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(notesTable).values(data), 'Backup Restore - Insert Notes Table')
-			);
-			logging.info(`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.backup, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(backupTable).values(
+							data.map((item) => ({
+								...item,
+								information: combinedBackupInfoSchema.parse(superjson.parse(item.information))
+							}))
+						),
+						'Backup Restore - Insert Backup Table'
+					)
+				);
+				logging.info(`Backup Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
-			await chunker(checkedBackupData.data.file, 1000, async (data) =>
-				dbExecuteLogger(trx.insert(fileTable).values(data), 'Backup Restore - Insert File Table')
-			);
-			logging.info(`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				await chunker(checkedBackupData.data.note, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(notesTable).values(data),
+						'Backup Restore - Insert Notes Table'
+					)
+				);
+				logging.info(`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
-			//Mark the backup as having a restored date.
-			await dbExecuteLogger(
-				trx
-					.update(backupTable)
-					.set({ restoreDate: new Date(), ...updatedTime() })
-					.where(eq(backupTable.id, id)),
-				'Backup Restore - Update Backup Table'
-			);
-		});
+				await chunker(checkedBackupData.data.file, 1000, async (data) =>
+					dbExecuteLogger(trx.insert(fileTable).values(data), 'Backup Restore - Insert File Table')
+				);
+				logging.info(`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+				//Mark the backup as having a restored date.
+				await dbExecuteLogger(
+					trx
+						.update(backupTable)
+						.set({ restoreDate: new Date(), ...updatedTime() })
+						.where(eq(backupTable.id, id)),
+					'Backup Restore - Update Backup Table'
+				);
+			})
+		);
 	},
 	refreshList: async ({ db }: { db: DBType }) => {
 		const [backupsInDB, backupFiles] = await Promise.all([
