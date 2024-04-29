@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid';
 import { fixedDelay } from '$lib/server/testingDelay';
 import { hashPassword, checkHashedPassword } from './helpers/hashPassword';
 import { dbExecuteLogger } from '../dbLogger';
+import { tLogger } from '../transactionLogger';
 
 export const userActions = {
 	createUser: async ({
@@ -32,25 +33,28 @@ export const userActions = {
 		const userId = nanoid();
 		const hashedPassword = await hashPassword(password);
 
-		await db.transaction(async (trx) => {
-			await dbExecuteLogger(
-				trx.insert(user).values({
-					id: userId,
-					username: username.toLowerCase(),
-					admin
-				}),
-				'User - Create - Insert'
-			);
+		await tLogger(
+			'Create User',
+			db.transaction(async (trx) => {
+				await dbExecuteLogger(
+					trx.insert(user).values({
+						id: userId,
+						username: username.toLowerCase(),
+						admin
+					}),
+					'User - Create - Insert'
+				);
 
-			await dbExecuteLogger(
-				trx.insert(key).values({
-					id: nanoid(),
-					userId,
-					hashedPassword
-				}),
-				'User - Create - Insert Key'
-			);
-		});
+				await dbExecuteLogger(
+					trx.insert(key).values({
+						id: nanoid(),
+						userId,
+						hashedPassword
+					}),
+					'User - Create - Insert Key'
+				);
+			})
+		);
 
 		return userActions.get({ db, userId });
 	},
@@ -146,10 +150,13 @@ export const userActions = {
 		return userActions.get({ db, userId: foundUser.id });
 	},
 	deleteUser: async ({ db, userId }: { db: DBType; userId: string }) => {
-		await db.transaction(async (trx) => {
-			await dbExecuteLogger(trx.delete(key).where(eq(key.userId, userId)), 'User - Delete - Key');
-			await dbExecuteLogger(trx.delete(user).where(eq(user.id, userId)), 'User - Delete - User');
-		});
+		await tLogger(
+			'Delete User',
+			db.transaction(async (trx) => {
+				await dbExecuteLogger(trx.delete(key).where(eq(key.userId, userId)), 'User - Delete - Key');
+				await dbExecuteLogger(trx.delete(user).where(eq(user.id, userId)), 'User - Delete - User');
+			})
+		);
 	},
 	get: async ({ db, userId }: { db: DBType; userId: string }): Promise<User | undefined> => {
 		const foundUser = (

@@ -16,6 +16,7 @@ import { getData_Common } from './helpers/autoImport/getData_Common';
 import { tActions } from './tActions';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '../dbLogger';
+import { tLogger } from '../transactionLogger';
 
 export const autoImportActions = {
 	list: async ({ db, filter }: { db: DBType; filter: AutoImportFilterSchemaType }) => {
@@ -94,17 +95,23 @@ export const autoImportActions = {
 		return id;
 	},
 	delete: async ({ db, id }: { db: DBType; id: string }) => {
-		await db.transaction(async (trx) => {
-			await dbExecuteLogger(
-				trx.delete(autoImportTable).where(eq(autoImportTable.id, id)),
-				'Auto Import - Delete'
-			);
+		await tLogger(
+			'Delete Auto Import',
+			db.transaction(async (trx) => {
+				await dbExecuteLogger(
+					trx.delete(autoImportTable).where(eq(autoImportTable.id, id)),
+					'Auto Import - Delete'
+				);
 
-			await dbExecuteLogger(
-				trx.update(importTable).set({ autoImportId: null }).where(eq(importTable.autoImportId, id)),
-				'Auto Import - Delete - Update Import'
-			);
-		});
+				await dbExecuteLogger(
+					trx
+						.update(importTable)
+						.set({ autoImportId: null })
+						.where(eq(importTable.autoImportId, id)),
+					'Auto Import - Delete - Update Import'
+				);
+			})
+		);
 	},
 	update: async ({ db, data }: { db: DBType; data: UpdateAutoImportFormSchemaType }) => {
 		const matchingAutoImport = await dbExecuteLogger(
