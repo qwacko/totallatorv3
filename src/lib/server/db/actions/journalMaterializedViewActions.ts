@@ -250,9 +250,20 @@ export const journalMaterializedViewActions = {
 		filter: JournalFilterSchemaInputType;
 		disableRefresh?: boolean;
 	}) => {
-		if (!disableRefresh)
+		const needsRefresh = await materializedViewActions.needsRefresh({
+			db,
+			items: { journals: true }
+		});
+
+		if (!needsRefresh) {
+			return journalMaterialisedList({ db, filter, target: 'materialized' });
+		}
+
+		if (!disableRefresh) {
 			await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
-		return journalMaterialisedList({ db, filter });
+			await journalMaterialisedList({ db, filter, target: 'materialized' });
+		}
+		return journalMaterialisedList({ db, filter, target: 'view' });
 	},
 	listWithCommonData: async ({
 		db,
@@ -263,9 +274,11 @@ export const journalMaterializedViewActions = {
 		filter: JournalFilterSchemaInputType;
 		disableRefresh?: boolean;
 	}) => {
-		if (!disableRefresh)
-			await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
-		const journalInformation = await journalMaterializedViewActions.list({ db, filter });
+		const journalInformation = await journalMaterializedViewActions.list({
+			db,
+			filter,
+			disableRefresh
+		});
 
 		const accountId = getCommonData('accountId', journalInformation.data);
 		const amount = getCommonData('amount', journalInformation.data);

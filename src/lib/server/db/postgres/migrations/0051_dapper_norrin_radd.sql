@@ -5,129 +5,6 @@ DROP INDEX IF EXISTS "materialized_budget_view_index"; --> statement-breakpoint
 DROP INDEX IF EXISTS "materialized_category_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_tag_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_label_view_index"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "journal_view"; --> statement-breakpoint 
-CREATE VIEW "journal_view" AS
-WITH
-  "filessq" AS (
-    SELECT
-      "transaction_id",
-      COUNT("id") AS "file_count"
-    FROM
-      "files"
-    WHERE
-      "files"."transaction_id" IS NOT NULL
-    GROUP BY
-      "files"."transaction_id"
-  ),
-  "notessq" AS (
-    SELECT
-      "transaction_id",
-      COUNT("id") AS "note_count"
-    FROM
-      "notes"
-    WHERE
-      "notes"."transaction_id" IS NOT NULL
-    GROUP BY
-      "notes"."transaction_id"
-  ),
-  "reminderssq" AS (
-    SELECT
-      "transaction_id",
-      COUNT("id") AS "reminder_count"
-    FROM
-      "notes"
-    WHERE
-      (
-        "notes"."type" = 'reminder'
-        AND "notes"."transaction_id" IS NOT NULL
-      )
-    GROUP BY
-      "notes"."transaction_id"
-  )
-SELECT
-  "journal_entry"."id",
-  "journal_entry"."import_id",
-  "journal_entry"."import_detail_id",
-  "journal_entry"."unique_id",
-  "journal_entry"."amount",
-  "transaction"."id" AS "transaction_id",
-  "journal_entry"."description",
-  "journal_entry"."date",
-  "journal_entry"."date_text",
-  "journal_entry"."tag_id",
-  "journal_entry"."bill_id",
-  "journal_entry"."budget_id",
-  "journal_entry"."category_id",
-  "journal_entry"."account_id",
-  "journal_entry"."year_month_day",
-  "journal_entry"."year_week",
-  "journal_entry"."year_month",
-  "journal_entry"."year_quarter",
-  "journal_entry"."year",
-  "journal_entry"."linked",
-  "journal_entry"."reconciled",
-  "journal_entry"."data_checked",
-  "journal_entry"."complete",
-  "journal_entry"."transfer",
-  "journal_entry"."created_at",
-  "journal_entry"."updated_at",
-  "account"."title",
-  "account"."type",
-  "account"."is_cash",
-  "account"."is_net_worth",
-  "account"."account_group",
-  "account"."account_group_2",
-  "account"."account_group_3",
-  "account"."account_group_combined",
-  "account"."account_title_combined",
-  "account"."start_date",
-  "account"."end_date",
-  "account"."status" AS "account_status",
-  "account"."active" AS "account_active",
-  "account"."disabled" AS "account_disabled",
-  "account"."allow_update" AS "account_allow_update",
-  "bill"."title" AS "bill_title",
-  "bill"."status" AS "bill_status",
-  "bill"."active" AS "bill_active",
-  "bill"."disabled" AS "bill_disabled",
-  "bill"."allow_update" AS "bill_allow_update",
-  "budget"."title" AS "budget_title",
-  "budget"."status" AS "budget_status",
-  "budget"."active" AS "budget_active",
-  "budget"."disabled" AS "budget_disabled",
-  "budget"."allow_update" AS "budget_allow_update",
-  "category"."title" AS "category_title",
-  "category"."group" AS "category_group",
-  "category"."single" AS "category_single",
-  "category"."status" AS "category_status",
-  "category"."active" AS "category_active",
-  "category"."disabled" AS "category_disabled",
-  "category"."allow_update" AS "category_allow_update",
-  "tag"."title" AS "tag_title",
-  "tag"."group" AS "tag_group",
-  "tag"."single" AS "tag_single",
-  "tag"."status" AS "tag_status",
-  "tag"."active" AS "tag_active",
-  "tag"."disabled" AS "tag_disabled",
-  "tag"."allow_update" AS "tag_allow_update",
-  "import"."title" AS "import_title",
-  "note_count",
-  "reminder_count",
-  "file_count",
-  TRUE AS "all"
-FROM
-  "journal_entry"
-  LEFT JOIN "transaction" ON "journal_entry"."transaction_id" = "transaction"."id"
-  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
-  LEFT JOIN "bill" ON "journal_entry"."bill_id" = "bill"."id"
-  LEFT JOIN "budget" ON "journal_entry"."budget_id" = "budget"."id"
-  LEFT JOIN "category" ON "journal_entry"."category_id" = "category"."id"
-  LEFT JOIN "tag" ON "journal_entry"."tag_id" = "tag"."id"
-  LEFT JOIN "import" ON "journal_entry"."import_id" = "import"."id"
-  LEFT JOIN "filessq" ON "journal_entry"."transaction_id" = "filessq"."transaction_id"
-  LEFT JOIN "notessq" ON "journal_entry"."transaction_id" = "notessq"."transaction_id"
-  LEFT JOIN "reminderssq" ON "journal_entry"."transaction_id" = "reminderssq"."transaction_id"; --> statement-breakpoint 
-
 DROP MATERIALIZED VIEW IF EXISTS "date_range_materialized_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "date_range_materialized_view" AS
 SELECT
@@ -605,84 +482,131 @@ GROUP BY
 
 DROP MATERIALIZED VIEW IF EXISTS "journal_extended_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "journal_extended_view" AS
+WITH
+  "filessq" AS (
+    SELECT
+      "transaction_id",
+      COUNT("id") AS "file_count"
+    FROM
+      "files"
+    WHERE
+      "files"."transaction_id" IS NOT NULL
+    GROUP BY
+      "files"."transaction_id"
+  ),
+  "notessq" AS (
+    SELECT
+      "transaction_id",
+      COUNT("id") AS "note_count"
+    FROM
+      "notes"
+    WHERE
+      "notes"."transaction_id" IS NOT NULL
+    GROUP BY
+      "notes"."transaction_id"
+  ),
+  "reminderssq" AS (
+    SELECT
+      "transaction_id",
+      COUNT("id") AS "reminder_count"
+    FROM
+      "notes"
+    WHERE
+      (
+        "notes"."type" = 'reminder'
+        AND "notes"."transaction_id" IS NOT NULL
+      )
+    GROUP BY
+      "notes"."transaction_id"
+  )
 SELECT
-  "id",
-  "import_id",
-  "import_detail_id",
-  "unique_id",
-  "amount",
-  "transaction_id",
-  "description",
-  "date",
-  "date_text",
-  "tag_id",
-  "bill_id",
-  "budget_id",
-  "category_id",
-  "account_id",
-  "year_month_day",
-  "year_week",
-  "year_month",
-  "year_quarter",
-  "year",
-  "linked",
-  "reconciled",
-  "data_checked",
-  "complete",
-  "transfer",
-  "created_at",
-  "updated_at",
-  "title",
-  "type",
-  "is_cash",
-  "is_net_worth",
-  "account_group",
-  "account_group_2",
-  "account_group_3",
-  "account_group_combined",
-  "account_title_combined",
-  "start_date",
-  "end_date",
-  "account_status",
-  "account_active",
-  "account_disabled",
-  "account_allow_update",
-  "bill_title",
-  "bill_status",
-  "bill_active",
-  "bill_disabled",
-  "bill_allow_update",
-  "budget_title",
-  "budget_status",
-  "budget_active",
-  "budget_disabled",
-  "budget_allow_update",
-  "category_title",
-  "category_group",
-  "category_single",
-  "category_status",
-  "category_active",
-  "category_disabled",
-  "category_allow_update",
-  "tag_title",
-  "tag_group",
-  "tag_single",
-  "tag_status",
-  "tag_active",
-  "tag_disabled",
-  "tag_allow_update",
-  "import_title",
+  "journal_entry"."id",
+  "journal_entry"."import_id",
+  "journal_entry"."import_detail_id",
+  "journal_entry"."unique_id",
+  "journal_entry"."amount",
+  "transaction"."id" AS "transaction_id",
+  "journal_entry"."description",
+  "journal_entry"."date",
+  "journal_entry"."date_text",
+  "journal_entry"."tag_id",
+  "journal_entry"."bill_id",
+  "journal_entry"."budget_id",
+  "journal_entry"."category_id",
+  "journal_entry"."account_id",
+  "journal_entry"."year_month_day",
+  "journal_entry"."year_week",
+  "journal_entry"."year_month",
+  "journal_entry"."year_quarter",
+  "journal_entry"."year",
+  "journal_entry"."linked",
+  "journal_entry"."reconciled",
+  "journal_entry"."data_checked",
+  "journal_entry"."complete",
+  "journal_entry"."transfer",
+  "journal_entry"."created_at",
+  "journal_entry"."updated_at",
+  "account"."title",
+  "account"."type",
+  "account"."is_cash",
+  "account"."is_net_worth",
+  "account"."account_group",
+  "account"."account_group_2",
+  "account"."account_group_3",
+  "account"."account_group_combined",
+  "account"."account_title_combined",
+  "account"."start_date",
+  "account"."end_date",
+  "account"."status" AS "account_status",
+  "account"."active" AS "account_active",
+  "account"."disabled" AS "account_disabled",
+  "account"."allow_update" AS "account_allow_update",
+  "bill"."title" AS "bill_title",
+  "bill"."status" AS "bill_status",
+  "bill"."active" AS "bill_active",
+  "bill"."disabled" AS "bill_disabled",
+  "bill"."allow_update" AS "bill_allow_update",
+  "budget"."title" AS "budget_title",
+  "budget"."status" AS "budget_status",
+  "budget"."active" AS "budget_active",
+  "budget"."disabled" AS "budget_disabled",
+  "budget"."allow_update" AS "budget_allow_update",
+  "category"."title" AS "category_title",
+  "category"."group" AS "category_group",
+  "category"."single" AS "category_single",
+  "category"."status" AS "category_status",
+  "category"."active" AS "category_active",
+  "category"."disabled" AS "category_disabled",
+  "category"."allow_update" AS "category_allow_update",
+  "tag"."title" AS "tag_title",
+  "tag"."group" AS "tag_group",
+  "tag"."single" AS "tag_single",
+  "tag"."status" AS "tag_status",
+  "tag"."active" AS "tag_active",
+  "tag"."disabled" AS "tag_disabled",
+  "tag"."allow_update" AS "tag_allow_update",
+  "import"."title" AS "import_title",
   "note_count",
   "reminder_count",
   "file_count",
-  "all"
+  TRUE AS "all"
 FROM
-  "journal_view"; --> statement-breakpoint 
+  "journal_entry"
+  LEFT JOIN "transaction" ON "journal_entry"."transaction_id" = "transaction"."id"
+  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
+  LEFT JOIN "bill" ON "journal_entry"."bill_id" = "bill"."id"
+  LEFT JOIN "budget" ON "journal_entry"."budget_id" = "budget"."id"
+  LEFT JOIN "category" ON "journal_entry"."category_id" = "category"."id"
+  LEFT JOIN "tag" ON "journal_entry"."tag_id" = "tag"."id"
+  LEFT JOIN "import" ON "journal_entry"."import_id" = "import"."id"
+  LEFT JOIN "filessq" ON "journal_entry"."transaction_id" = "filessq"."transaction_id"
+  LEFT JOIN "notessq" ON "journal_entry"."transaction_id" = "notessq"."transaction_id"
+  LEFT JOIN "reminderssq" ON "journal_entry"."transaction_id" = "reminderssq"."transaction_id"; --> statement-breakpoint 
 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_journal_view_index" ON "journal_extended_view" ("journal_extended_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_account_view_index" ON "account_materialized_view" ("account_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_bill_view_index" ON "bill_materialized_view" ("bill_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_budget_view_index" ON "budget_materialized_view" ("budget_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_category_view_index" ON "category_materialized_view" ("category_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_tag_view_index" ON "tag_materialized_view" ("tag_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_label_view_index" ON "label_materialized_view" ("label_materialized_view"."id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_journal_view_index" ON "journal_extended_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_account_view_index" ON "account_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_bill_view_index" ON "bill_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_budget_view_index" ON "budget_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_category_view_index" ON "category_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_tag_view_index" ON "tag_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_label_view_index" ON "label_materialized_view" ("id"); --> statement-breakpoint 

@@ -12,7 +12,7 @@ import {
 	labelsToJournals,
 	importItemDetail
 } from '../../../postgres/schema';
-import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
+import { journalExtendedView, journalView } from '../../../postgres/schema/materializedViewSchema';
 import { count as drizzleCount } from 'drizzle-orm';
 import { materializedJournalFilterToQuery } from '../journalMaterializedView/materializedJournalFilterToQuery';
 import { materializedJournalFilterToOrderBy } from '../journalMaterializedView/materializedJournalFilterToOrderBy';
@@ -21,7 +21,7 @@ import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { tActions } from '../../tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
-import { sqlToText } from '../printMaterializedViewList';
+import { sqlToText } from '../sqlToText';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
@@ -95,21 +95,25 @@ const getOtherJournalInfo = async (db: DBType, journalIds: string[]) => {
 
 export const journalMaterialisedList = async ({
 	db,
-	filter
+	filter,
+	target = 'materialized'
 }: {
 	db: DBType;
 	filter: JournalFilterSchemaInputType;
+	target: 'view' | 'materialized';
 }) => {
 	const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
 
 	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
 
-	const andFilter = await materializedJournalFilterToQuery(db, restFilter);
-	const orderBy = materializedJournalFilterToOrderBy(processedFilter);
+	const andFilter = await materializedJournalFilterToQuery(db, restFilter, { target });
+	const orderBy = materializedJournalFilterToOrderBy(processedFilter, target);
+
+	const targetTable = target === 'view' ? journalView : journalExtendedView;
 
 	const journalQueryCore = db
 		.select()
-		.from(journalExtendedView)
+		.from(targetTable)
 		.where(and(...andFilter))
 		.orderBy(...orderBy)
 		.offset(page * pageSize)
@@ -122,8 +126,8 @@ export const journalMaterialisedList = async ({
 	const journalsPromise = dbExecuteLogger(journalQueryCore, 'Journal Materialized - Data');
 
 	const runningTotalInner = db
-		.select({ amount: journalExtendedView.amount })
-		.from(journalExtendedView)
+		.select({ amount: targetTable.amount })
+		.from(targetTable)
 		.where(and(...andFilter))
 		.orderBy(...orderBy)
 		.offset(page * pageSize)
@@ -137,9 +141,9 @@ export const journalMaterialisedList = async ({
 	const resultCount = await dbExecuteLogger(
 		db
 			.select({
-				count: drizzleCount(journalExtendedView.id)
+				count: drizzleCount(targetTable.id)
 			})
-			.from(journalExtendedView)
+			.from(targetTable)
 			.where(and(...andFilter)),
 		'Journal Materialized - Result Count'
 	);

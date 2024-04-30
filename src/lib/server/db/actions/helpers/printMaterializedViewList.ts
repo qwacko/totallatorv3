@@ -1,44 +1,61 @@
-import { SQL, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import {
+	PgView,
 	getMaterializedViewConfig,
+	getViewConfig,
 	type PgMaterializedViewWithSelection
 } from 'drizzle-orm/pg-core';
-import { logging } from '$lib/server/logging';
-import { PgDialect } from 'drizzle-orm/pg-core';
-import { format } from 'sql-formatter';
+import { logging } from '../../../logging';
 import fs from 'fs';
-
-const pgDialect = new PgDialect();
+import { buildMaterializedIndexes, dropMaterializedIndexes } from '../../postgres/schema';
+import { sqlToText } from './sqlToText';
 
 const filename = 'materializedViewCombined.sql';
 
-export const sqlToText = (sqlQuery: SQL<unknown>) => {
-	return format(pgDialect.sqlToQuery(sqlQuery).sql, {
-		language: 'postgresql',
-		dataTypeCase: 'upper',
-		identifierCase: 'upper',
-		functionCase: 'upper',
-		keywordCase: 'upper'
-	});
-};
-
 export const printMaterializedViewList = (
-	materializedList: PgMaterializedViewWithSelection<any, any, any>[]
+	materializedList: PgMaterializedViewWithSelection<any, any, any>[],
+	viewList: PgView<any, any>[]
 ) => {
 	let outputText = '';
+
+	const newlineText = '; --> statement-breakpoint \n';
+
+	const queryText = dropMaterializedIndexes();
+
+	for (let i = 0; i < queryText.length; i++) {
+		outputText += queryText[i] + newlineText;
+	}
+
+	for (let i = viewList.length - 1; i >= 0; i--) {
+		const view = viewList[i];
+
+		outputText +=
+			sqlToText(sql`drop view if exists ${view}`) +
+			newlineText +
+			sqlToText(sql`create view ${view} as ${getViewConfig(view).query}`) +
+			newlineText +
+			'\n';
+	}
 
 	for (let i = materializedList.length - 1; i >= 0; i--) {
 		const materializedView = materializedList[i];
 
 		outputText +=
 			sqlToText(sql`drop materialized view if exists ${materializedView}`) +
-			'; --> statement-breakpoint \n' +
+			newlineText +
 			sqlToText(
 				sql`create materialized view ${materializedView} as ${
 					getMaterializedViewConfig(materializedView).query
 				}`
 			) +
-			'; --> statement-breakpoint \n\n';
+			newlineText +
+			'\n';
+	}
+
+	const createIndexQueryText = buildMaterializedIndexes();
+
+	for (let i = 0; i < createIndexQueryText.length; i++) {
+		outputText += createIndexQueryText[i] + newlineText;
 	}
 
 	//Write To File

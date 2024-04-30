@@ -1,17 +1,5 @@
-import {
-	eq,
-	getTableColumns,
-	type ColumnBaseConfig,
-	type ColumnDataType,
-	sql,
-	count,
-	sum,
-	min,
-	max,
-	isNotNull,
-	and
-} from 'drizzle-orm';
-import { pgMaterializedView, PgColumn, QueryBuilder } from 'drizzle-orm/pg-core';
+import { eq, getTableColumns, sql, count, sum, min, max } from 'drizzle-orm';
+import { pgMaterializedView, PgColumn, pgView } from 'drizzle-orm/pg-core';
 import {
 	labelsToJournals,
 	label,
@@ -22,60 +10,12 @@ import {
 	budget,
 	category,
 	tag,
-	importTable,
-	fileTable,
-	notesTable
+	importTable
 } from './transactionSchema';
-import type { KeysOfCreateFileNoteRelationshipSchemaType } from '$lib/schema/helpers/fileNoteRelationship';
-
-const filesNotesSubquery = (
-	qb: QueryBuilder,
-	target: KeysOfCreateFileNoteRelationshipSchemaType
-) => {
-	const withFileQuery = qb.$with('filessq').as(
-		qb
-			.select({
-				id: fileTable[target],
-				fileCount: count(fileTable.id).as('file_count')
-			})
-			.from(fileTable)
-			.where(isNotNull(fileTable[target]))
-			.groupBy(fileTable[target])
-	);
-
-	const withNoteQuery = qb.$with('notessq').as(
-		qb
-			.select({
-				id: notesTable[target],
-				noteCount: count(notesTable.id).as('note_count')
-			})
-			.from(notesTable)
-			.where(isNotNull(notesTable[target]))
-			.groupBy(notesTable[target])
-	);
-
-	const withReminderQuery = qb.$with('reminderssq').as(
-		qb
-			.select({
-				id: notesTable[target],
-				reminderCount: count(notesTable.id).as('reminder_count')
-			})
-			.from(notesTable)
-			.where(and(eq(notesTable.type, 'reminder'), isNotNull(notesTable[target])))
-			.groupBy(notesTable[target])
-	);
-
-	return { withFileQuery, withNoteQuery, withReminderQuery };
-};
-
-const customAliasedTableColumn = <
-	T extends ColumnBaseConfig<ColumnDataType, string> = ColumnBaseConfig<ColumnDataType, string>
->(
-	column: PgColumn<T>,
-	alias: string
-) => {
-	return sql<typeof column>`${column}`.as(alias) as unknown as typeof column;
-};
+import { sqlToText } from '../../actions/helpers/sqlToText';
+import { filesNotesSubquery } from './filesNotesSubquery';
+import { customAliasedTableColumn } from './customAliasedTableColumn';
+import { materializedViewTableNames } from './materializedViewTableNames';
 
 export const dateRangeMaterializedView = pgMaterializedView('date_range_materialized_view').as(
 	(qb) => {
@@ -88,19 +28,7 @@ export const dateRangeMaterializedView = pgMaterializedView('date_range_material
 	}
 );
 
-export const materializedViewTableNames = {
-	journalExtendedView: 'journal_extended_view',
-	accountMaterializedView: 'account_materialized_view',
-	billMaterializedView: 'bill_materialized_view',
-	budgetMaterializedView: 'budget_materialized_view',
-	categoryMaterializedView: 'category_materialized_view',
-	tagMaterializedView: 'tag_materialized_view',
-	labelMaterializedView: 'label_materialized_view'
-};
-
-export const journalExtendedView = pgMaterializedView(
-	materializedViewTableNames.journalExtendedView
-).as((qb) => {
+export const journalView = pgView('journal_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(
 		qb,
 		'transactionId'
@@ -168,6 +96,10 @@ export const journalExtendedView = pgMaterializedView(
 		.leftJoin(withNoteQuery, eq(journalEntry.transactionId, withNoteQuery.id))
 		.leftJoin(withReminderQuery, eq(journalEntry.transactionId, withReminderQuery.id));
 });
+
+export const journalExtendedView = pgMaterializedView(
+	materializedViewTableNames.journalExtendedView
+).as((qb) => qb.select().from(journalView));
 
 const aggregationColumns = (isAccount: boolean = false) => ({
 	sum: (isAccount
@@ -322,3 +254,80 @@ export const labelMaterializedView = pgMaterializedView(
 		.leftJoin(withReminderQuery, eq(label.id, withReminderQuery.id))
 		.groupBy(label.id);
 });
+
+const viewIndexes = [
+	{
+		title: 'materialized_journal_view_index',
+		isUnique: true,
+		targetTable: sqlToText(sql`${journalExtendedView}`),
+		targetColumn: journalExtendedView.id
+	},
+	{
+		title: 'materialized_account_view_index',
+		isUnique: true,
+		targetTable: sqlToText(sql`${accountMaterializedView}`),
+		targetColumn: accountMaterializedView.id
+	},
+	{
+		title: 'materialized_bill_view_index',
+		isUnique: true,
+		targetTable: sqlToText(sql`${billMaterializedView}`),
+		targetColumn: billMaterializedView.id
+	},
+	{
+		title: 'materialized_budget_view_index',
+		isUnique: true,
+		targetTable: sqlToText(sql`${budgetMaterializedView}`),
+		targetColumn: budgetMaterializedView.id
+	},
+	{
+		title: 'materialized_category_view_index',
+		isUnique: true,
+		targetTable: sqlToText(sql`${categoryMaterializedView}`),
+		targetColumn: categoryMaterializedView.id
+	},
+	{
+		title: 'materialized_tag_view_index',
+		isUnique: true,
+		targetTable: sqlToText(sql`${tagMaterializedView}`),
+		targetColumn: tagMaterializedView.id
+	},
+	{
+		title: 'materialized_label_view_index',
+		isUnique: true,
+		targetTable: sqlToText(sql`${labelMaterializedView}`),
+		targetColumn: labelMaterializedView.id
+	}
+] satisfies {
+	title: string;
+	isUnique: boolean;
+	targetTable: string;
+	targetColumn: PgColumn;
+}[];
+
+export const dropMaterializedIndexes = () => {
+	const queries = viewIndexes.map((item) => {
+		return sqlToText(sql.raw(`DROP INDEX IF EXISTS "${item.title}"`));
+	});
+
+	// console.log(queries.join(''));
+
+	return queries;
+};
+
+export const buildMaterializedIndexes = () => {
+	const queries = viewIndexes.map((item) => {
+		const tableTitle = item.targetTable;
+		const columnTitle = sqlToText(sql`${item.targetColumn}`);
+
+		return sqlToText(
+			sql.raw(
+				`CREATE ${item.isUnique ? 'UNIQUE' : ''} INDEX IF NOT EXISTS "${item.title}" ON ${tableTitle} (${columnTitle})`
+			)
+		);
+	});
+
+	// console.log(queries.join(''));
+
+	return queries;
+};

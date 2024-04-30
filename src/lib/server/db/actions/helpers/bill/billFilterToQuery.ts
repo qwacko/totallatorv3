@@ -3,7 +3,8 @@ import type { DBType } from '../../../db';
 import { bill } from '../../../postgres/schema';
 import {
 	billMaterializedView,
-	journalExtendedView
+	journalExtendedView,
+	journalView
 } from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
 import {
@@ -27,36 +28,49 @@ export const billFilterToQuery = ({
 	target = 'bill'
 }: {
 	filter: BillFilterSchemaWithoutPaginationType;
-	target?: 'materializedJournals' | 'bill' | 'billWithSummary';
+	target?: 'materializedJournals' | 'bill' | 'billWithSummary' | 'viewJournals';
 }) => {
 	const restFilter = processBillTextFilter.process(filter);
 	const includeSummary = target === 'billWithSummary';
+	const viewJournals = target === 'viewJournals';
 	const materializedJournals = target === 'materializedJournals';
+
+	const targetTable = viewJournals
+		? {
+				id: journalView.billId,
+				title: journalView.billTitle,
+				status: journalView.billStatus,
+				disabled: journalView.billDisabled,
+				allowUpdate: journalView.billAllowUpdate,
+				active: journalView.billActive
+			}
+		: materializedJournals
+			? {
+					id: journalExtendedView.billId,
+					title: journalExtendedView.billTitle,
+					status: journalExtendedView.billStatus,
+					disabled: journalExtendedView.billDisabled,
+					allowUpdate: journalExtendedView.billAllowUpdate,
+					active: journalExtendedView.billActive
+				}
+			: billMaterializedView;
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({
 		where,
 		filter: restFilter,
-		idColumn: materializedJournals ? journalExtendedView.billId : billMaterializedView.id,
-		titleColumn: materializedJournals ? journalExtendedView.billTitle : billMaterializedView.title
+		idColumn: targetTable.id,
+		titleColumn: targetTable.title
 	});
 	statusFilterToQueryMapped({
 		where,
 		filter: restFilter,
-		statusColumn: materializedJournals
-			? journalExtendedView.billStatus
-			: billMaterializedView.status,
-		disabledColumn: materializedJournals
-			? journalExtendedView.billDisabled
-			: billMaterializedView.disabled,
-		activeColumn: materializedJournals
-			? journalExtendedView.billActive
-			: billMaterializedView.active,
-		allowUpdateColumn: materializedJournals
-			? journalExtendedView.billAllowUpdate
-			: billMaterializedView.allowUpdate
+		statusColumn: targetTable.status,
+		disabledColumn: targetTable.disabled,
+		activeColumn: targetTable.active,
+		allowUpdateColumn: targetTable.allowUpdate
 	});
-	if (!materializedJournals) {
+	if (!materializedJournals && !viewJournals) {
 		importFilterToQueryMaterialized({
 			where,
 			filter: restFilter,
@@ -67,7 +81,7 @@ export const billFilterToQuery = ({
 		});
 	}
 
-	if (includeSummary) {
+	if (includeSummary && !viewJournals && !materializedJournals) {
 		linkedFileFilterQuery({
 			where,
 			filter: restFilter,
