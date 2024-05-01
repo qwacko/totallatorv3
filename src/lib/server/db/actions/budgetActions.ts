@@ -19,9 +19,9 @@ import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
-import { budgetMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
+import { getCorrectBudgetTable } from './helpers/budget/getCorrectBudgetTable';
 
 export const budgetActions = {
 	latestUpdate: async ({ db }: { db: DBType }) => {
@@ -38,47 +38,42 @@ export const budgetActions = {
 		);
 	},
 	count: async (db: DBType, filter?: BudgetFilterSchemaType) => {
-		await materializedViewActions.conditionalRefresh({ db });
+		const { table, target } = await getCorrectBudgetTable(db);
 		const count = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(budgetMaterializedView.id) })
-				.from(budgetMaterializedView)
-				.where(and(...(filter ? budgetFilterToQuery({ filter, target: 'budget' }) : []))),
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
+				.where(and(...(filter ? budgetFilterToQuery({ filter, target }) : []))),
 			'Budget - Count'
 		);
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
-		await materializedViewActions.conditionalRefresh({ db });
+		const { table } = await getCorrectBudgetTable(db);
 
 		const items = dbExecuteLogger(
-			db
-				.select({ id: budgetMaterializedView.id, journalCount: budgetMaterializedView.count })
-				.from(budgetMaterializedView),
+			db.select({ id: table.id, journalCount: table.count }).from(table),
 			'Budget - List With Transaction Count'
 		);
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: BudgetFilterSchemaType }) => {
-		await materializedViewActions.conditionalRefresh({ db });
+		const { table, target } = await getCorrectBudgetTable(db);
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = budgetFilterToQuery({ filter: restFilter, target: 'budgetWithSummary' });
+		const where = budgetFilterToQuery({ filter: restFilter, target });
 
-		const defaultOrderBy = [
-			asc(budgetMaterializedView.title),
-			desc(budgetMaterializedView.createdAt)
-		];
+		const defaultOrderBy = [asc(table.title), desc(table.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
 						currentOrder.direction === 'asc'
-							? asc(budgetMaterializedView[currentOrder.field])
-							: desc(budgetMaterializedView[currentOrder.field])
+							? asc(table[currentOrder.field])
+							: desc(table[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
@@ -87,7 +82,7 @@ export const budgetActions = {
 		const results = await dbExecuteLogger(
 			db
 				.select()
-				.from(budgetMaterializedView)
+				.from(table)
 				.where(and(...where))
 				.limit(pageSize)
 				.offset(page * pageSize)
@@ -97,8 +92,8 @@ export const budgetActions = {
 
 		const resultCount = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(budgetMaterializedView.id) })
-				.from(budgetMaterializedView)
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
 				.where(and(...where)),
 			'Budget - List - Count'
 		);

@@ -4,7 +4,8 @@ import { account } from '$lib/server/db/postgres/schema';
 import {
 	accountMaterializedView,
 	journalExtendedView,
-	journalView
+	journalView,
+	accountView
 } from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { SQL, eq, gt, ilike, lt, not } from 'drizzle-orm';
 import {
@@ -30,7 +31,7 @@ export const accountFilterToQuery = ({
 	target
 }: {
 	filter: AccountFilterSchemaWithoutPaginationType;
-	target?: 'materializedJournals' | 'account' | 'accountWithSummary' | 'viewJournals';
+	target?: 'materializedJournals' | 'view' | 'materialized' | 'viewJournals';
 }) => {
 	const where: SQL<unknown>[] = [];
 
@@ -38,7 +39,7 @@ export const accountFilterToQuery = ({
 
 	const materializedJournals = target === 'materializedJournals';
 	const viewJournals = target === 'viewJournals';
-	const includeSummary = target === 'accountWithSummary';
+	const includeSummary = target === 'view' || target === 'materialized';
 
 	const selectedTable = viewJournals
 		? {
@@ -78,7 +79,9 @@ export const accountFilterToQuery = ({
 					allowUpdate: journalExtendedView.accountAllowUpdate,
 					active: journalExtendedView.accountActive
 				}
-			: accountMaterializedView;
+			: target === 'view'
+				? accountView
+				: accountMaterializedView;
 
 	idTitleFilterToQueryMapped({
 		where,

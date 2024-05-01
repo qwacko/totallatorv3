@@ -12,7 +12,6 @@ import {
 	labelsToJournals,
 	importItemDetail
 } from '../../../postgres/schema';
-import { journalExtendedView, journalView } from '../../../postgres/schema/materializedViewSchema';
 import { count as drizzleCount } from 'drizzle-orm';
 import { materializedJournalFilterToQuery } from '../journalMaterializedView/materializedJournalFilterToQuery';
 import { materializedJournalFilterToOrderBy } from '../journalMaterializedView/materializedJournalFilterToOrderBy';
@@ -24,6 +23,7 @@ import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefin
 import { sqlToText } from '../sqlToText';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '$lib/server/db/dbLogger';
+import { getCorrectJournalTable } from '../../helpers/journalMaterializedView/getCorrectJournalTable';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -95,21 +95,18 @@ const getOtherJournalInfo = async (db: DBType, journalIds: string[]) => {
 
 export const journalMaterialisedList = async ({
 	db,
-	filter,
-	target = 'materialized'
+	filter
 }: {
 	db: DBType;
 	filter: JournalFilterSchemaInputType;
-	target: 'view' | 'materialized';
 }) => {
 	const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
 
 	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
+	const { table: targetTable, target } = await getCorrectJournalTable(db);
 
 	const andFilter = await materializedJournalFilterToQuery(db, restFilter, { target });
 	const orderBy = materializedJournalFilterToOrderBy(processedFilter, target);
-
-	const targetTable = target === 'view' ? journalView : journalExtendedView;
 
 	const journalQueryCore = db
 		.select()

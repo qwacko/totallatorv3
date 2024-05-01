@@ -4,7 +4,8 @@ import { tag } from '../../../postgres/schema';
 import {
 	journalExtendedView,
 	tagMaterializedView,
-	journalView
+	journalView,
+	tagView
 } from '../../../postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
 import {
@@ -25,13 +26,13 @@ import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const tagFilterToQuery = ({
 	filter,
-	target = 'tag'
+	target = 'view'
 }: {
 	filter: TagFilterSchemaWithoutPaginationType;
-	target?: 'tag' | 'tagWithSummary' | 'materializedJournals' | 'viewJournals';
+	target?: 'view' | 'materialized' | 'materializedJournals' | 'viewJournals';
 }) => {
 	const restFilter = processTagTextFilter.process(filter);
-	const includeSummary = target === 'tagWithSummary';
+	const includeSummary = target === 'view' || target === 'materialized';
 	const viewJournals = target === 'viewJournals';
 	const materializedJournals = target === 'materializedJournals';
 
@@ -57,7 +58,9 @@ export const tagFilterToQuery = ({
 					allowUpdate: journalExtendedView.tagAllowUpdate,
 					active: journalExtendedView.tagActive
 				}
-			: tagMaterializedView;
+			: target === 'view'
+				? tagView
+				: tagMaterializedView;
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({

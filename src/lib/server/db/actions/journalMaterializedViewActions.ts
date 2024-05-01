@@ -1,6 +1,5 @@
-import { SQL, and, avg, count, eq, sql, sum, max } from 'drizzle-orm';
+import { SQL, and, avg, count, sql, sum, max } from 'drizzle-orm';
 import type { DBType } from '../db';
-import { journalExtendedView } from '../postgres/schema/materializedViewSchema';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
 import type {
@@ -17,50 +16,36 @@ import {
 } from './helpers/misc/getCommonData';
 import { getMonthlySummary } from './helpers/summary/getMonthlySummary';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
-import { materializedViewActions } from './materializedViewActions';
 import { dbExecuteLogger } from '../dbLogger';
-
-const logStats = true;
+import { journalEntry } from '../postgres/schema';
+import { getCorrectJournalTable } from './helpers/journalMaterializedView/getCorrectJournalTable';
 
 export const journalMaterializedViewActions = {
 	getLatestUpdateDate: async ({ db }: { db: DBType }) => {
 		const latestUpdateDate = await dbExecuteLogger(
-			db.select({ lastUpdated: max(journalExtendedView.updatedAt) }).from(journalExtendedView),
+			db.select({ lastUpdated: max(journalEntry.updatedAt) }).from(journalEntry),
 			'Journal Materialized - Get Latest Update Date'
 		);
 
 		return latestUpdateDate[0].lastUpdated || new Date();
 	},
-	getById: async (db: DBType, id: string) => {
-		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
-		return dbExecuteLogger(
-			db.select().from(journalExtendedView).where(eq(journalExtendedView.id, id)),
-			'Journal Materialized - Get By Id'
-		);
-	},
 	count: async (db: DBType, filter?: JournalFilterSchemaType) => {
-		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
+		const { table, target } = await getCorrectJournalTable(db);
 		const countQuery = await dbExecuteLogger(
 			db
-				.select({ count: count(journalExtendedView.id) })
-				.from(journalExtendedView)
-				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [sql`true`]))),
+				.select({ count: count(table.id) })
+				.from(table)
+				.where(
+					and(
+						...(filter
+							? await materializedJournalFilterToQuery(db, filter, { target })
+							: [sql`true`])
+					)
+				),
 			'Journal Materialized - Count'
 		);
 
 		return countQuery[0].count;
-	},
-	sum: async (db: DBType, filter?: JournalFilterSchemaType) => {
-		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
-		const sumQuery = await dbExecuteLogger(
-			db
-				.select({ sum: sum(journalExtendedView.id) })
-				.from(journalExtendedView)
-				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [sql`true`]))),
-			'Journal Materialized - Sum'
-		);
-
-		return sumQuery[0].sum;
 	},
 	summary: async ({
 		db,
@@ -73,133 +58,140 @@ export const journalMaterializedViewActions = {
 		startDate?: string;
 		endDate?: string;
 	}) => {
-		await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
+		const { table, target } = await getCorrectJournalTable(db);
+
 		const startDate12Months = new Date();
 		startDate12Months.setMonth(startDate12Months.getMonth() - 12 + 1);
 		const startLast12YearMonth = startDate12Months.toISOString().slice(0, 7);
 		const endLast12YearMonth = new Date().toISOString().slice(0, 7);
 
 		const commonSummary = {
-			count: count(journalExtendedView.id),
-			sum: sum(journalExtendedView.amount).mapWith(Number),
+			count: count(table.id),
+			sum: sum(table.amount).mapWith(Number),
 			sum12Months:
-				sql`sum(CASE WHEN ${journalExtendedView.yearMonth} >= ${startLast12YearMonth} AND ${journalExtendedView.yearMonth} <= ${endLast12YearMonth} then ${journalExtendedView.amount} else 0 END)`.mapWith(
+				sql`sum(CASE WHEN ${table.yearMonth} >= ${startLast12YearMonth} AND ${table.yearMonth} <= ${endLast12YearMonth} then ${table.amount} else 0 END)`.mapWith(
 					Number
 				),
 			sum12MonthsWithoutTransfer:
-				sql`sum(CASE WHEN ${journalExtendedView.yearMonth} >= ${startLast12YearMonth} AND ${journalExtendedView.yearMonth} <= ${endLast12YearMonth} AND ${journalExtendedView.transfer} <> true then ${journalExtendedView.amount} else 0 END)`.mapWith(
+				sql`sum(CASE WHEN ${table.yearMonth} >= ${startLast12YearMonth} AND ${table.yearMonth} <= ${endLast12YearMonth} AND ${table.transfer} <> true then ${table.amount} else 0 END)`.mapWith(
 					Number
 				),
 			sumWithoutTransfer:
-				sql`sum(CASE WHEN ${journalExtendedView.transfer} <> true then ${journalExtendedView.amount} else 0 END)`.mapWith(
+				sql`sum(CASE WHEN ${table.transfer} <> true then ${table.amount} else 0 END)`.mapWith(
 					Number
 				),
-			average: sql`avg(${journalExtendedView.amount})`.mapWith(Number),
-			earliest: sql`min(${journalExtendedView.dateText})`.mapWith(journalExtendedView.dateText),
-			latest: sql`max(${journalExtendedView.dateText})`.mapWith(journalExtendedView.dateText),
-			lastUpdated: sql`max(${journalExtendedView.updatedAt})`.mapWith(journalExtendedView.updatedAt)
+			average: sql`avg(${table.amount})`.mapWith(Number),
+			earliest: sql`min(${table.dateText})`.mapWith(table.dateText),
+			latest: sql`max(${table.dateText})`.mapWith(table.dateText),
+			lastUpdated: sql`max(${table.updatedAt})`.mapWith(table.updatedAt)
 		} satisfies Record<string, SQL<unknown> | AnyPgColumn>;
 
 		const summaryQueryCore = db
 			.select(commonSummary)
-			.from(journalExtendedView)
-			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])));
+			.from(table)
+			.where(
+				and(...(filter ? await materializedJournalFilterToQuery(db, filter, { target }) : []))
+			);
 
 		const tagsQuery = dbExecuteLogger(
 			db
 				.select({
-					id: journalExtendedView.tagId,
-					title: journalExtendedView.tagTitle,
+					id: table.tagId,
+					title: table.tagTitle,
 					...commonSummary
 				})
-				.from(journalExtendedView)
-				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-				.groupBy(journalExtendedView.tagId, journalExtendedView.tagTitle),
+				.from(table)
+				.where(
+					and(...(filter ? await materializedJournalFilterToQuery(db, filter, { target }) : []))
+				)
+				.groupBy(table.tagId, table.tagTitle),
 			'Journal Materialized - Summary - Tags'
 		);
 
 		const categoriesQuery = dbExecuteLogger(
 			db
 				.select({
-					id: journalExtendedView.categoryId,
-					title: journalExtendedView.categoryTitle,
+					id: table.categoryId,
+					title: table.categoryTitle,
 					...commonSummary
 				})
-				.from(journalExtendedView)
-				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-				.groupBy(journalExtendedView.categoryId, journalExtendedView.categoryTitle),
+				.from(table)
+				.where(
+					and(...(filter ? await materializedJournalFilterToQuery(db, filter, { target }) : []))
+				)
+				.groupBy(table.categoryId, table.categoryTitle),
 			'Journal Materialized - Summary - Categories'
 		);
 
 		const billsQuery = dbExecuteLogger(
 			db
 				.select({
-					id: journalExtendedView.billId,
-					title: journalExtendedView.billTitle,
+					id: table.billId,
+					title: table.billTitle,
 					...commonSummary
 				})
-				.from(journalExtendedView)
-				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-				.groupBy(journalExtendedView.billId, journalExtendedView.billTitle),
+				.from(table)
+				.where(
+					and(...(filter ? await materializedJournalFilterToQuery(db, filter, { target }) : []))
+				)
+				.groupBy(table.billId, table.billTitle),
 			'Journal Materialized - Summary - Bills'
 		);
 
 		const budgetsQuery = dbExecuteLogger(
 			db
 				.select({
-					id: journalExtendedView.budgetId,
-					title: journalExtendedView.budgetTitle,
+					id: table.budgetId,
+					title: table.budgetTitle,
 					...commonSummary
 				})
-				.from(journalExtendedView)
-				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-				.groupBy(journalExtendedView.budgetId, journalExtendedView.budgetTitle),
+				.from(table)
+				.where(
+					and(...(filter ? await materializedJournalFilterToQuery(db, filter, { target }) : []))
+				)
+				.groupBy(table.budgetId, table.budgetTitle),
 			'Journal Materialized - Summary - Budgets'
 		);
 
 		const accountsQuery = dbExecuteLogger(
 			db
 				.select({
-					id: journalExtendedView.accountId,
-					title: journalExtendedView.accountTitle,
+					id: table.accountId,
+					title: table.accountTitle,
 					...commonSummary
 				})
-				.from(journalExtendedView)
-				.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-				.groupBy(journalExtendedView.accountId, journalExtendedView.accountTitle),
+				.from(table)
+				.where(
+					and(...(filter ? await materializedJournalFilterToQuery(db, filter, { target }) : []))
+				)
+				.groupBy(table.accountId, table.accountTitle),
 			'Journal Materialized - Summary - Accounts'
 		);
 
 		const monthlyQueryCore = db
 			.select({
-				yearMonth: journalExtendedView.yearMonth,
-				count: count(journalExtendedView.id),
-				sum: sum(journalExtendedView.amount).mapWith(Number),
-				average: avg(journalExtendedView.amount).mapWith(Number),
+				yearMonth: table.yearMonth,
+				count: count(table.id),
+				sum: sum(table.amount).mapWith(Number),
+				average: avg(table.amount).mapWith(Number),
 				positiveSum:
-					sql`SUM(CASE WHEN ${journalExtendedView.amount} > 0 THEN ${journalExtendedView.amount} ELSE 0 END)`.mapWith(
-						Number
-					),
-				positiveCount:
-					sql`SUM(CASE WHEN ${journalExtendedView.amount} > 0 THEN 1 ELSE 0 END)`.mapWith(Number),
+					sql`SUM(CASE WHEN ${table.amount} > 0 THEN ${table.amount} ELSE 0 END)`.mapWith(Number),
+				positiveCount: sql`SUM(CASE WHEN ${table.amount} > 0 THEN 1 ELSE 0 END)`.mapWith(Number),
 				negativeSum:
-					sql`SUM(CASE WHEN ${journalExtendedView.amount} < 0 THEN ${journalExtendedView.amount} ELSE 0 END)`.mapWith(
-						Number
-					),
-				negativeCount:
-					sql`SUM(CASE WHEN ${journalExtendedView.amount} < 0 THEN 1 ELSE 0 END)`.mapWith(Number),
+					sql`SUM(CASE WHEN ${table.amount} < 0 THEN ${table.amount} ELSE 0 END)`.mapWith(Number),
+				negativeCount: sql`SUM(CASE WHEN ${table.amount} < 0 THEN 1 ELSE 0 END)`.mapWith(Number),
 				positiveSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalExtendedView.amount} > 0 AND ${journalExtendedView.transfer} = false THEN ${journalExtendedView.amount} ELSE 0 END)`.mapWith(
+					sql`SUM(CASE WHEN ${table.amount} > 0 AND ${table.transfer} = false THEN ${table.amount} ELSE 0 END)`.mapWith(
 						Number
 					),
 				negativeSumNonTransfer:
-					sql`SUM(CASE WHEN ${journalExtendedView.amount} < 0 AND ${journalExtendedView.transfer} = false THEN ${journalExtendedView.amount} ELSE 0 END)`.mapWith(
+					sql`SUM(CASE WHEN ${table.amount} < 0 AND ${table.transfer} = false THEN ${table.amount} ELSE 0 END)`.mapWith(
 						Number
 					)
 			})
-			.from(journalExtendedView)
-			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter) : [])))
-			.groupBy(journalExtendedView.yearMonth);
+			.from(table)
+			.where(and(...(filter ? await materializedJournalFilterToQuery(db, filter, { target }) : [])))
+			.groupBy(table.yearMonth);
 
 		const summaryQuery = (
 			await dbExecuteLogger(summaryQueryCore, 'Journal Materialized - Summary - Summary Core')
@@ -250,20 +242,7 @@ export const journalMaterializedViewActions = {
 		filter: JournalFilterSchemaInputType;
 		disableRefresh?: boolean;
 	}) => {
-		const needsRefresh = await materializedViewActions.needsRefresh({
-			db,
-			items: { journals: true }
-		});
-
-		if (!needsRefresh) {
-			return journalMaterialisedList({ db, filter, target: 'materialized' });
-		}
-
-		if (!disableRefresh) {
-			await materializedViewActions.conditionalRefresh({ db, logStats, items: { journals: true } });
-			await journalMaterialisedList({ db, filter, target: 'materialized' });
-		}
-		return journalMaterialisedList({ db, filter, target: 'view' });
+		return journalMaterialisedList({ db, filter });
 	},
 	listWithCommonData: async ({
 		db,

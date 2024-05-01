@@ -19,9 +19,9 @@ import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
-import { billMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
+import { getCorrectBillTable } from './helpers/bill/getCorrectBillTable';
 
 export const billActions = {
 	latestUpdate: async ({ db }: { db: DBType }) => {
@@ -35,42 +35,40 @@ export const billActions = {
 		return dbExecuteLogger(db.query.bill.findFirst({ where: eq(bill.id, id) }), 'Bill - Get By Id');
 	},
 	count: async (db: DBType, filter?: BillFilterSchemaType) => {
-		await materializedViewActions.conditionalRefresh({ db });
+		const { table, target } = await getCorrectBillTable(db);
 		const count = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(bill.id) })
-				.from(billMaterializedView)
-				.where(and(...(filter ? billFilterToQuery({ filter, target: 'billWithSummary' }) : []))),
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
+				.where(and(...(filter ? billFilterToQuery({ filter, target }) : []))),
 			'Bill - Count'
 		);
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
-		await materializedViewActions.conditionalRefresh({ db });
+		const { table } = await getCorrectBillTable(db);
 		const items = dbExecuteLogger(
-			db
-				.select({ id: billMaterializedView.id, journalCount: billMaterializedView.count })
-				.from(billMaterializedView),
+			db.select({ id: table.id, journalCount: table.count }).from(table),
 			'Bill - List With Transaction Count'
 		);
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: BillFilterSchemaType }) => {
-		await materializedViewActions.conditionalRefresh({ db, items: { bill: true } });
+		const { table, target } = await getCorrectBillTable(db);
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = billFilterToQuery({ filter: restFilter, target: 'billWithSummary' });
+		const where = billFilterToQuery({ filter: restFilter, target });
 
-		const defaultOrderBy = [asc(billMaterializedView.title), desc(billMaterializedView.createdAt)];
+		const defaultOrderBy = [asc(table.title), desc(table.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
 						currentOrder.direction === 'asc'
-							? asc(billMaterializedView[currentOrder.field])
-							: desc(billMaterializedView[currentOrder.field])
+							? asc(table[currentOrder.field])
+							: desc(table[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
@@ -79,7 +77,7 @@ export const billActions = {
 		const results = await dbExecuteLogger(
 			db
 				.select()
-				.from(billMaterializedView)
+				.from(table)
 				.where(and(...where))
 				.limit(pageSize)
 				.offset(page * pageSize)
@@ -89,8 +87,8 @@ export const billActions = {
 
 		const resultCount = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(bill.id) })
-				.from(billMaterializedView)
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
 				.where(and(...where)),
 			'Bill - List - Count'
 		);

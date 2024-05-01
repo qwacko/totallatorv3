@@ -26,23 +26,28 @@ export const printMaterializedViewList = (
 		outputText += queryText[i] + newlineText;
 	}
 
+	for (let i = materializedList.length - 1; i >= 0; i--) {
+		outputText +=
+			sqlToText(sql`drop materialized view if exists ${materializedList[i]}`) + newlineText;
+	}
+
+	outputText += '\n';
+
+	for (let i = viewList.length - 1; i >= 0; i--) {
+		outputText += sqlToText(sql`drop view if exists ${viewList[i]}`) + newlineText;
+	}
+
+	outputText += '\n';
+
 	for (let i = viewList.length - 1; i >= 0; i--) {
 		const view = viewList[i];
-
 		outputText +=
-			sqlToText(sql`drop view if exists ${view}`) +
-			newlineText +
-			sqlToText(sql`create view ${view} as ${getViewConfig(view).query}`) +
-			newlineText +
-			'\n';
+			sqlToText(sql`create view ${view} as ${getViewConfig(view).query}`) + newlineText + '\n';
 	}
 
 	for (let i = materializedList.length - 1; i >= 0; i--) {
 		const materializedView = materializedList[i];
-
 		outputText +=
-			sqlToText(sql`drop materialized view if exists ${materializedView}`) +
-			newlineText +
 			sqlToText(
 				sql`create materialized view ${materializedView} as ${
 					getMaterializedViewConfig(materializedView).query

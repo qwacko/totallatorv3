@@ -3,6 +3,7 @@ import type { DBType } from '$lib/server/db/db';
 import { category } from '$lib/server/db/postgres/schema';
 import {
 	categoryMaterializedView,
+	categoryView,
 	journalExtendedView,
 	journalView
 } from '$lib/server/db/postgres/schema/materializedViewSchema';
@@ -26,13 +27,13 @@ import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const categoryFilterToQuery = ({
 	filter,
-	target = 'category'
+	target = 'view'
 }: {
 	filter: Omit<CategoryFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
-	target?: 'category' | 'categoryWithSummary' | 'materializedJournals' | 'viewJournals';
+	target?: 'view' | 'materialized' | 'materializedJournals' | 'viewJournals';
 }) => {
 	const restFilter = processCategoryTextFilter.process(filter);
-	const includeSummary = target === 'categoryWithSummary';
+	const includeSummary = target === 'view' || target === 'materialized';
 	const viewJournals = target === 'viewJournals';
 	const materializedJournals = target === 'materializedJournals';
 
@@ -58,7 +59,9 @@ export const categoryFilterToQuery = ({
 					allowUpdate: journalExtendedView.categoryAllowUpdate,
 					active: journalExtendedView.categoryActive
 				}
-			: categoryMaterializedView;
+			: target === 'view'
+				? categoryView
+				: categoryMaterializedView;
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({

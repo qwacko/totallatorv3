@@ -3,6 +3,7 @@ import type { DBType } from '../../../db';
 import { bill } from '../../../postgres/schema';
 import {
 	billMaterializedView,
+	billView,
 	journalExtendedView,
 	journalView
 } from '../../../postgres/schema/materializedViewSchema';
@@ -25,13 +26,13 @@ import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const billFilterToQuery = ({
 	filter,
-	target = 'bill'
+	target = 'view'
 }: {
 	filter: BillFilterSchemaWithoutPaginationType;
-	target?: 'materializedJournals' | 'bill' | 'billWithSummary' | 'viewJournals';
+	target?: 'materializedJournals' | 'view' | 'materialized' | 'viewJournals';
 }) => {
 	const restFilter = processBillTextFilter.process(filter);
-	const includeSummary = target === 'billWithSummary';
+	const includeSummary = target === 'view' || target === 'materialized';
 	const viewJournals = target === 'viewJournals';
 	const materializedJournals = target === 'materializedJournals';
 
@@ -53,7 +54,9 @@ export const billFilterToQuery = ({
 					allowUpdate: journalExtendedView.billAllowUpdate,
 					active: journalExtendedView.billActive
 				}
-			: billMaterializedView;
+			: target === 'view'
+				? billView
+				: billMaterializedView;
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({

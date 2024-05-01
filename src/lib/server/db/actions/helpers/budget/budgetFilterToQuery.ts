@@ -3,6 +3,7 @@ import type { DBType } from '../../../db';
 import { budget } from '../../../postgres/schema';
 import {
 	budgetMaterializedView,
+	budgetView,
 	journalExtendedView,
 	journalView
 } from '../../../postgres/schema/materializedViewSchema';
@@ -25,13 +26,13 @@ import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const budgetFilterToQuery = ({
 	filter,
-	target = 'budget'
+	target = 'view'
 }: {
 	filter: BudgetFilterSchemaWithoutPaginationType;
-	target?: 'budget' | 'budgetWithSummary' | 'materializedJournals' | 'viewJournals';
+	target?: 'view' | 'materialized' | 'materializedJournals' | 'viewJournals';
 }) => {
 	const restFilter = processBudgetTextFilter.process(filter);
-	const includeSummary = target === 'budgetWithSummary';
+	const includeSummary = target === 'view' || target === 'materialized';
 	const viewJournals = target === 'viewJournals';
 	const materializedJournals = target === 'materializedJournals';
 
@@ -53,7 +54,9 @@ export const budgetFilterToQuery = ({
 					allowUpdate: journalExtendedView.budgetAllowUpdate,
 					active: journalExtendedView.budgetActive
 				}
-			: budgetMaterializedView;
+			: target === 'view'
+				? budgetView
+				: budgetMaterializedView;
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({
