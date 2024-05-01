@@ -28,8 +28,6 @@ WORKDIR /app
 # RUN apk add --update --no-cache python3 make g++
 # RUN ln -sf python3 /usr/bin/python
 
-
-ENV DATABASE_FILE ./dev.db
 ENV NODE_ENV production
 
 
