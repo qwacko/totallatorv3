@@ -105,7 +105,7 @@ export const dbLoggerCreate = ({
 		const start = Date.now();
 		const returnData = await query.execute();
 
-		const responseSize = JSON.stringify(returnData).length;
+		const responseSize = returnData ? JSON.stringify(returnData).length : 0;
 		const end = Date.now();
 		const time = end - start;
 		const queryInfo = query.toSQL();

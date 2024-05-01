@@ -136,7 +136,6 @@ export const createTestWrapper = async ({
 		it(name, async () => {
 			const id = nanoid();
 
-			// expect("this").toEqual("That")
 			if (beforeEach) await beforeEach(db, id);
 			await testFunction(db, id);
 			if (afterEach) await afterEach(db, id);

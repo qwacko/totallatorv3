@@ -1,3 +1,5 @@
+import { logging } from '$lib/server/logging';
+
 export const materializedViewRefreshRateLimiter = ({
 	timeout,
 	performRefresh
@@ -6,7 +8,6 @@ export const materializedViewRefreshRateLimiter = ({
 	performRefresh: () => Promise<boolean>;
 }) => {
 	let timeoutTrigger: NodeJS.Timeout | undefined;
-	let lastUpdate: number;
 
 	const triggerRefresh = async () => {
 		performRefresh();
@@ -19,7 +20,7 @@ export const materializedViewRefreshRateLimiter = ({
 
 		timeoutTrigger = setTimeout(() => {
 			triggerRefresh().then(() => {
-				lastUpdate = Date.now();
+				logging.debug('Materialized View Refreshed');
 			});
 		}, timeout);
 	};

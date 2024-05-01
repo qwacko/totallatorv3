@@ -34,7 +34,7 @@ describe('Account Filter To Query', () => {
 				type: ['asset', 'liability'],
 				countMax: 10
 			},
-			target: 'accountWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -141,7 +141,7 @@ describe('Account Filter To Query', () => {
 			filter: {
 				countMax: 10
 			},
-			target: 'account'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -159,7 +159,7 @@ describe('Account Filter To Query', () => {
 				endDateAfter: '2020-00-00',
 				startDateBefore: "this isn't a date"
 			},
-			target: 'account'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -180,7 +180,7 @@ describe('Account Filter To Query', () => {
 			filter: {
 				idArray: []
 			},
-			target: 'account'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -197,7 +197,7 @@ describe('Account Filter To Query', () => {
 			filter: {
 				importIdArray: []
 			},
-			target: 'account'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -214,7 +214,7 @@ describe('Account Filter To Query', () => {
 			filter: {
 				importDetailIdArray: []
 			},
-			target: 'account'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -233,7 +233,7 @@ describe('Account Filter To Query', () => {
 			filter: {
 				type: []
 			},
-			target: 'account'
+			target: 'materialized'
 		});
 
 		const query = qb
