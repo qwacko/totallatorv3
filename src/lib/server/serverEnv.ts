@@ -58,7 +58,8 @@ const serverEnvValidation = z.object({
 	DBLOG_STORAGE_COUNT: z.coerce.number().optional().default(100000),
 	TRANSACTIONLOG_ENABLE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TRANSACTIONLOG_ENABLESTART: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
-	TRANSACTIONLOG_TIME_MS: z.coerce.number().optional().default(100)
+	TRANSACTIONLOG_TIME_MS: z.coerce.number().optional().default(100),
+	CONCURRENT_REFRESH: parseEnvStringToBoolean({ defaultBoolean: true, optional: true })
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -91,5 +92,6 @@ export const serverEnv = serverEnvValidation.parse({
 	DBLOG_CACHE_TIMEOUT: env.DBLOG_CACHE_TIMEOUT,
 	TRANSACTIONLOG_ENABLE: env.TRANSACTIONLOG_ENABLE,
 	TRANSACTIONLOG_TIME_MS: env.TRANSACTIONLOG_TIME_MS,
-	TRANSACTIONLOG_ENABLESTART: env.TRANSACTIONLOG_ENABLESTART
+	TRANSACTIONLOG_ENABLESTART: env.TRANSACTIONLOG_ENABLESTART,
+	CONCURRENT_REFRESH: env.CONCURRENT_REFRESH
 });

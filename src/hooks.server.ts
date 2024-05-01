@@ -10,9 +10,16 @@ import { serverEnv } from '$lib/server/serverEnv';
 import { sequence } from '@sveltejs/kit/hooks';
 
 import { db } from '$lib/server/db/db';
+import { materializedViewRefreshRateLimiter } from '$lib/server/db/actions/helpers/journalMaterializedView/materializedViewRefreshRateLimiter';
+import { tActions } from '$lib/server/db/actions/tActions';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 initateCronJobs();
+
+export const viewRefresh = materializedViewRefreshRateLimiter({
+	timeout: 5000,
+	performRefresh: async () => tActions.materializedViews.conditionalRefresh({ db })
+});
 
 const handleAuth: Handle = async ({ event, resolve }) => {
 	const sessionId = event.cookies.get(auth.sessionCookieName);

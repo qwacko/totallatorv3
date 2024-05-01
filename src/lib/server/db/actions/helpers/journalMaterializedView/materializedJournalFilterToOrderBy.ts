@@ -1,20 +1,22 @@
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
 import { asc, desc, SQL } from 'drizzle-orm';
-import { journalExtendedView } from '../../../postgres/schema/materializedViewSchema';
-
-const defaultOrderBy = [
-	desc(journalExtendedView.amount),
-	desc(journalExtendedView.createdAt),
-	desc(journalExtendedView.id)
-];
+import { journalExtendedView, journalView } from '../../../postgres/schema/materializedViewSchema';
 
 export const materializedJournalFilterToOrderBy = (
-	filter: JournalFilterSchemaType
+	filter: JournalFilterSchemaType,
+	target: 'materialized' | 'view' = 'materialized'
 ): SQL<unknown>[] => {
 	const { orderBy } = filter;
 
+	const targetTable = target === 'view' ? journalView : journalExtendedView;
+	const defaultOrderBy = [
+		desc(targetTable.amount),
+		desc(targetTable.createdAt),
+		desc(targetTable.id)
+	];
+
 	if (!orderBy) {
-		return [desc(journalExtendedView.date), ...defaultOrderBy];
+		return [desc(targetTable.date), ...defaultOrderBy];
 	}
 	const processedOrderBy = orderBy.map((currentOrder) => {
 		if (
@@ -27,18 +29,18 @@ export const materializedJournalFilterToOrderBy = (
 			currentOrder.field === 'reconciled'
 		) {
 			if (currentOrder.direction === 'asc') {
-				return asc(journalExtendedView[currentOrder.field]);
+				return asc(targetTable[currentOrder.field]);
 			}
-			return desc(journalExtendedView[currentOrder.field]);
+			return desc(targetTable[currentOrder.field]);
 		}
 		if (currentOrder.field === 'accountName') {
 			if (currentOrder.direction === 'asc') {
-				return asc(journalExtendedView.accountTitle);
+				return asc(targetTable.accountTitle);
 			}
-			return desc(journalExtendedView.accountTitle);
+			return desc(targetTable.accountTitle);
 		}
 
-		return desc(journalExtendedView.date);
+		return desc(targetTable.date);
 	});
 
 	return [...processedOrderBy, ...defaultOrderBy];

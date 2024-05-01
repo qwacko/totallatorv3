@@ -5,484 +5,7 @@ DROP INDEX IF EXISTS "materialized_budget_view_index"; --> statement-breakpoint
 DROP INDEX IF EXISTS "materialized_category_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_tag_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_label_view_index"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "date_range_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "label_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "category_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "budget_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "bill_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "tag_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "account_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "journal_extended_view"; --> statement-breakpoint 
-
-DROP VIEW IF EXISTS "label_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "category_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "budget_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "bill_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "tag_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "account_view"; --> statement-breakpoint 
 DROP VIEW IF EXISTS "journal_view"; --> statement-breakpoint 
-
-CREATE VIEW "label_view" AS
-WITH
-  "filessq" AS (
-    SELECT
-      "label_id",
-      COUNT("id") AS "file_count"
-    FROM
-      "files"
-    WHERE
-      "files"."label_id" IS NOT NULL
-    GROUP BY
-      "files"."label_id"
-  ),
-  "notessq" AS (
-    SELECT
-      "label_id",
-      COUNT("id") AS "note_count"
-    FROM
-      "notes"
-    WHERE
-      "notes"."label_id" IS NOT NULL
-    GROUP BY
-      "notes"."label_id"
-  ),
-  "reminderssq" AS (
-    SELECT
-      "label_id",
-      COUNT("id") AS "reminder_count"
-    FROM
-      "notes"
-    WHERE
-      (
-        "notes"."type" = 'reminder'
-        AND "notes"."label_id" IS NOT NULL
-      )
-    GROUP BY
-      "notes"."label_id"
-  )
-SELECT
-  "label"."id",
-  "label"."import_id",
-  "label"."label_import_detail_id",
-  "label"."title",
-  "label"."status",
-  "label"."active",
-  "label"."disabled",
-  "label"."allow_update",
-  "label"."created_at",
-  "label"."updated_at",
-  SUM(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
-      ELSE 0
-    END
-  ) AS "sum",
-  COUNT(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN 1
-      ELSE NULL
-    END
-  ) AS "count",
-  MIN("journal_entry"."date") AS "firstDate",
-  MAX("journal_entry"."date") AS "lastDate",
-  MAX("note_count") AS "note_count",
-  MAX("reminder_count") AS "reminder_count",
-  MAX("file_count") AS "file_count"
-FROM
-  "label"
-  LEFT JOIN "labels_to_journals" ON "label"."id" = "labels_to_journals"."label_id"
-  LEFT JOIN "journal_entry" ON "labels_to_journals"."journal_id" = "journal_entry"."id"
-  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
-  LEFT JOIN "filessq" ON "label"."id" = "filessq"."label_id"
-  LEFT JOIN "notessq" ON "label"."id" = "notessq"."label_id"
-  LEFT JOIN "reminderssq" ON "label"."id" = "reminderssq"."label_id"
-GROUP BY
-  "label"."id"; --> statement-breakpoint 
-
-CREATE VIEW "category_view" AS
-WITH
-  "filessq" AS (
-    SELECT
-      "category_id",
-      COUNT("id") AS "file_count"
-    FROM
-      "files"
-    WHERE
-      "files"."category_id" IS NOT NULL
-    GROUP BY
-      "files"."category_id"
-  ),
-  "notessq" AS (
-    SELECT
-      "category_id",
-      COUNT("id") AS "note_count"
-    FROM
-      "notes"
-    WHERE
-      "notes"."category_id" IS NOT NULL
-    GROUP BY
-      "notes"."category_id"
-  ),
-  "reminderssq" AS (
-    SELECT
-      "category_id",
-      COUNT("id") AS "reminder_count"
-    FROM
-      "notes"
-    WHERE
-      (
-        "notes"."type" = 'reminder'
-        AND "notes"."category_id" IS NOT NULL
-      )
-    GROUP BY
-      "notes"."category_id"
-  )
-SELECT
-  "category"."id",
-  "category"."import_id",
-  "category"."category_import_detail_id",
-  "category"."title",
-  "category"."group",
-  "category"."single",
-  "category"."status",
-  "category"."active",
-  "category"."disabled",
-  "category"."allow_update",
-  "category"."created_at",
-  "category"."updated_at",
-  SUM(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
-      ELSE 0
-    END
-  ) AS "sum",
-  COUNT(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN 1
-      ELSE NULL
-    END
-  ) AS "count",
-  MIN("journal_entry"."date") AS "firstDate",
-  MAX("journal_entry"."date") AS "lastDate",
-  MAX("note_count") AS "note_count",
-  MAX("reminder_count") AS "reminder_count",
-  MAX("file_count") AS "file_count"
-FROM
-  "category"
-  LEFT JOIN "journal_entry" ON "category"."id" = "journal_entry"."category_id"
-  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
-  LEFT JOIN "filessq" ON "category"."id" = "filessq"."category_id"
-  LEFT JOIN "notessq" ON "category"."id" = "notessq"."category_id"
-  LEFT JOIN "reminderssq" ON "category"."id" = "reminderssq"."category_id"
-GROUP BY
-  "category"."id"; --> statement-breakpoint 
-
-CREATE VIEW "budget_view" AS
-WITH
-  "filessq" AS (
-    SELECT
-      "budget_id",
-      COUNT("id") AS "file_count"
-    FROM
-      "files"
-    WHERE
-      "files"."budget_id" IS NOT NULL
-    GROUP BY
-      "files"."budget_id"
-  ),
-  "notessq" AS (
-    SELECT
-      "budget_id",
-      COUNT("id") AS "note_count"
-    FROM
-      "notes"
-    WHERE
-      "notes"."budget_id" IS NOT NULL
-    GROUP BY
-      "notes"."budget_id"
-  ),
-  "reminderssq" AS (
-    SELECT
-      "budget_id",
-      COUNT("id") AS "reminder_count"
-    FROM
-      "notes"
-    WHERE
-      (
-        "notes"."type" = 'reminder'
-        AND "notes"."budget_id" IS NOT NULL
-      )
-    GROUP BY
-      "notes"."budget_id"
-  )
-SELECT
-  "budget"."id",
-  "budget"."import_id",
-  "budget"."budget_import_detail_id",
-  "budget"."title",
-  "budget"."status",
-  "budget"."active",
-  "budget"."disabled",
-  "budget"."allow_update",
-  "budget"."created_at",
-  "budget"."updated_at",
-  SUM(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
-      ELSE 0
-    END
-  ) AS "sum",
-  COUNT(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN 1
-      ELSE NULL
-    END
-  ) AS "count",
-  MIN("journal_entry"."date") AS "firstDate",
-  MAX("journal_entry"."date") AS "lastDate",
-  MAX("note_count") AS "note_count",
-  MAX("reminder_count") AS "reminder_count",
-  MAX("file_count") AS "file_count"
-FROM
-  "budget"
-  LEFT JOIN "journal_entry" ON "budget"."id" = "journal_entry"."budget_id"
-  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
-  LEFT JOIN "filessq" ON "budget"."id" = "filessq"."budget_id"
-  LEFT JOIN "notessq" ON "budget"."id" = "notessq"."budget_id"
-  LEFT JOIN "reminderssq" ON "budget"."id" = "reminderssq"."budget_id"
-GROUP BY
-  "budget"."id"; --> statement-breakpoint 
-
-CREATE VIEW "bill_view" AS
-WITH
-  "filessq" AS (
-    SELECT
-      "bill_id",
-      COUNT("id") AS "file_count"
-    FROM
-      "files"
-    WHERE
-      "files"."bill_id" IS NOT NULL
-    GROUP BY
-      "files"."bill_id"
-  ),
-  "notessq" AS (
-    SELECT
-      "bill_id",
-      COUNT("id") AS "note_count"
-    FROM
-      "notes"
-    WHERE
-      "notes"."bill_id" IS NOT NULL
-    GROUP BY
-      "notes"."bill_id"
-  ),
-  "reminderssq" AS (
-    SELECT
-      "bill_id",
-      COUNT("id") AS "reminder_count"
-    FROM
-      "notes"
-    WHERE
-      (
-        "notes"."type" = 'reminder'
-        AND "notes"."bill_id" IS NOT NULL
-      )
-    GROUP BY
-      "notes"."bill_id"
-  )
-SELECT
-  "bill"."id",
-  "bill"."import_id",
-  "bill"."bill_import_detail_id",
-  "bill"."title",
-  "bill"."status",
-  "bill"."active",
-  "bill"."disabled",
-  "bill"."allow_update",
-  "bill"."created_at",
-  "bill"."updated_at",
-  SUM(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
-      ELSE 0
-    END
-  ) AS "sum",
-  COUNT(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN 1
-      ELSE NULL
-    END
-  ) AS "count",
-  MIN("journal_entry"."date") AS "firstDate",
-  MAX("journal_entry"."date") AS "lastDate",
-  MAX("note_count") AS "note_count",
-  MAX("reminder_count") AS "reminder_count",
-  MAX("file_count") AS "file_count"
-FROM
-  "bill"
-  LEFT JOIN "journal_entry" ON "bill"."id" = "journal_entry"."bill_id"
-  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
-  LEFT JOIN "filessq" ON "bill"."id" = "filessq"."bill_id"
-  LEFT JOIN "notessq" ON "bill"."id" = "notessq"."bill_id"
-  LEFT JOIN "reminderssq" ON "bill"."id" = "reminderssq"."bill_id"
-GROUP BY
-  "bill"."id"; --> statement-breakpoint 
-
-CREATE VIEW "tag_view" AS
-WITH
-  "filessq" AS (
-    SELECT
-      "tag_id",
-      COUNT("id") AS "file_count"
-    FROM
-      "files"
-    WHERE
-      "files"."tag_id" IS NOT NULL
-    GROUP BY
-      "files"."tag_id"
-  ),
-  "notessq" AS (
-    SELECT
-      "tag_id",
-      COUNT("id") AS "note_count"
-    FROM
-      "notes"
-    WHERE
-      "notes"."tag_id" IS NOT NULL
-    GROUP BY
-      "notes"."tag_id"
-  ),
-  "reminderssq" AS (
-    SELECT
-      "tag_id",
-      COUNT("id") AS "reminder_count"
-    FROM
-      "notes"
-    WHERE
-      (
-        "notes"."type" = 'reminder'
-        AND "notes"."tag_id" IS NOT NULL
-      )
-    GROUP BY
-      "notes"."tag_id"
-  )
-SELECT
-  "tag"."id",
-  "tag"."import_id",
-  "tag"."tag_import_detail_id",
-  "tag"."title",
-  "tag"."group",
-  "tag"."single",
-  "tag"."status",
-  "tag"."active",
-  "tag"."disabled",
-  "tag"."allow_update",
-  "tag"."created_at",
-  "tag"."updated_at",
-  SUM(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
-      ELSE 0
-    END
-  ) AS "sum",
-  COUNT(
-    CASE
-      WHEN "account"."type" IN ('asset', 'liability') THEN 1
-      ELSE NULL
-    END
-  ) AS "count",
-  MIN("journal_entry"."date") AS "firstDate",
-  MAX("journal_entry"."date") AS "lastDate",
-  MAX("note_count") AS "note_count",
-  MAX("reminder_count") AS "reminder_count",
-  MAX("file_count") AS "file_count"
-FROM
-  "tag"
-  LEFT JOIN "journal_entry" ON "tag"."id" = "journal_entry"."tag_id"
-  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
-  LEFT JOIN "filessq" ON "tag"."id" = "filessq"."tag_id"
-  LEFT JOIN "notessq" ON "tag"."id" = "notessq"."tag_id"
-  LEFT JOIN "reminderssq" ON "tag"."id" = "reminderssq"."tag_id"
-GROUP BY
-  "tag"."id"; --> statement-breakpoint 
-
-CREATE VIEW "account_view" AS
-WITH
-  "filessq" AS (
-    SELECT
-      "account_id",
-      COUNT("id") AS "file_count"
-    FROM
-      "files"
-    WHERE
-      "files"."account_id" IS NOT NULL
-    GROUP BY
-      "files"."account_id"
-  ),
-  "notessq" AS (
-    SELECT
-      "account_id",
-      COUNT("id") AS "note_count"
-    FROM
-      "notes"
-    WHERE
-      "notes"."account_id" IS NOT NULL
-    GROUP BY
-      "notes"."account_id"
-  ),
-  "reminderssq" AS (
-    SELECT
-      "account_id",
-      COUNT("id") AS "reminder_count"
-    FROM
-      "notes"
-    WHERE
-      (
-        "notes"."type" = 'reminder'
-        AND "notes"."account_id" IS NOT NULL
-      )
-    GROUP BY
-      "notes"."account_id"
-  )
-SELECT
-  "account"."id",
-  "account"."import_id",
-  "account"."account_import_detail_id",
-  "account"."title",
-  "account"."type",
-  "account"."is_cash",
-  "account"."is_net_worth",
-  "account"."account_group",
-  "account"."account_group_2",
-  "account"."account_group_3",
-  "account"."account_group_combined",
-  "account"."account_title_combined",
-  "account"."start_date",
-  "account"."end_date",
-  "account"."status",
-  "account"."active",
-  "account"."disabled",
-  "account"."allow_update",
-  "account"."created_at",
-  "account"."updated_at",
-  SUM("journal_entry"."amount") AS "sum",
-  COUNT("journal_entry"."id") AS "count",
-  MIN("journal_entry"."date") AS "firstDate",
-  MAX("journal_entry"."date") AS "lastDate",
-  MAX("note_count") AS "note_count",
-  MAX("reminder_count") AS "reminder_count",
-  MAX("file_count") AS "file_count"
-FROM
-  "account"
-  LEFT JOIN "journal_entry" ON "account"."id" = "journal_entry"."account_id"
-  LEFT JOIN "import" ON "journal_entry"."import_id" = "import"."id"
-  LEFT JOIN "filessq" ON "account"."id" = "filessq"."account_id"
-  LEFT JOIN "notessq" ON "account"."id" = "notessq"."account_id"
-  LEFT JOIN "reminderssq" ON "account"."id" = "reminderssq"."account_id"
-GROUP BY
-  "account"."id"; --> statement-breakpoint 
-
 CREATE VIEW "journal_view" AS
 WITH
   "filessq" AS (
@@ -605,6 +128,7 @@ FROM
   LEFT JOIN "notessq" ON "journal_entry"."transaction_id" = "notessq"."transaction_id"
   LEFT JOIN "reminderssq" ON "journal_entry"."transaction_id" = "reminderssq"."transaction_id"; --> statement-breakpoint 
 
+DROP MATERIALIZED VIEW IF EXISTS "date_range_materialized_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "date_range_materialized_view" AS
 SELECT
   MIN("date") AS "minDate",
@@ -612,152 +136,474 @@ SELECT
 FROM
   "journal_entry"; --> statement-breakpoint 
 
+DROP MATERIALIZED VIEW IF EXISTS "label_materialized_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "label_materialized_view" AS
+WITH
+  "filessq" AS (
+    SELECT
+      "label_id",
+      COUNT("id") AS "file_count"
+    FROM
+      "files"
+    WHERE
+      "files"."label_id" IS NOT NULL
+    GROUP BY
+      "files"."label_id"
+  ),
+  "notessq" AS (
+    SELECT
+      "label_id",
+      COUNT("id") AS "note_count"
+    FROM
+      "notes"
+    WHERE
+      "notes"."label_id" IS NOT NULL
+    GROUP BY
+      "notes"."label_id"
+  ),
+  "reminderssq" AS (
+    SELECT
+      "label_id",
+      COUNT("id") AS "reminder_count"
+    FROM
+      "notes"
+    WHERE
+      (
+        "notes"."type" = 'reminder'
+        AND "notes"."label_id" IS NOT NULL
+      )
+    GROUP BY
+      "notes"."label_id"
+  )
 SELECT
-  "id",
-  "import_id",
-  "label_import_detail_id",
-  "title",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
+  "label"."id",
+  "label"."import_id",
+  "label"."label_import_detail_id",
+  "label"."title",
+  "label"."status",
+  "label"."active",
+  "label"."disabled",
+  "label"."allow_update",
+  "label"."created_at",
+  "label"."updated_at",
+  SUM(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
+      ELSE 0
+    END
+  ) AS "sum",
+  COUNT(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN 1
+      ELSE NULL
+    END
+  ) AS "count",
+  MIN("journal_entry"."date") AS "firstDate",
+  MAX("journal_entry"."date") AS "lastDate",
+  MAX("note_count") AS "note_count",
+  MAX("reminder_count") AS "reminder_count",
+  MAX("file_count") AS "file_count"
 FROM
-  "label_view"; --> statement-breakpoint 
+  "label"
+  LEFT JOIN "labels_to_journals" ON "label"."id" = "labels_to_journals"."label_id"
+  LEFT JOIN "journal_entry" ON "labels_to_journals"."journal_id" = "journal_entry"."id"
+  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
+  LEFT JOIN "filessq" ON "label"."id" = "filessq"."label_id"
+  LEFT JOIN "notessq" ON "label"."id" = "notessq"."label_id"
+  LEFT JOIN "reminderssq" ON "label"."id" = "reminderssq"."label_id"
+GROUP BY
+  "label"."id"; --> statement-breakpoint 
 
+DROP MATERIALIZED VIEW IF EXISTS "category_materialized_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "category_materialized_view" AS
+WITH
+  "filessq" AS (
+    SELECT
+      "category_id",
+      COUNT("id") AS "file_count"
+    FROM
+      "files"
+    WHERE
+      "files"."category_id" IS NOT NULL
+    GROUP BY
+      "files"."category_id"
+  ),
+  "notessq" AS (
+    SELECT
+      "category_id",
+      COUNT("id") AS "note_count"
+    FROM
+      "notes"
+    WHERE
+      "notes"."category_id" IS NOT NULL
+    GROUP BY
+      "notes"."category_id"
+  ),
+  "reminderssq" AS (
+    SELECT
+      "category_id",
+      COUNT("id") AS "reminder_count"
+    FROM
+      "notes"
+    WHERE
+      (
+        "notes"."type" = 'reminder'
+        AND "notes"."category_id" IS NOT NULL
+      )
+    GROUP BY
+      "notes"."category_id"
+  )
 SELECT
-  "id",
-  "import_id",
-  "category_import_detail_id",
-  "title",
-  "group",
-  "single",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
+  "category"."id",
+  "category"."import_id",
+  "category"."category_import_detail_id",
+  "category"."title",
+  "category"."group",
+  "category"."single",
+  "category"."status",
+  "category"."active",
+  "category"."disabled",
+  "category"."allow_update",
+  "category"."created_at",
+  "category"."updated_at",
+  SUM(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
+      ELSE 0
+    END
+  ) AS "sum",
+  COUNT(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN 1
+      ELSE NULL
+    END
+  ) AS "count",
+  MIN("journal_entry"."date") AS "firstDate",
+  MAX("journal_entry"."date") AS "lastDate",
+  MAX("note_count") AS "note_count",
+  MAX("reminder_count") AS "reminder_count",
+  MAX("file_count") AS "file_count"
 FROM
-  "category_view"; --> statement-breakpoint 
+  "category"
+  LEFT JOIN "journal_entry" ON "category"."id" = "journal_entry"."category_id"
+  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
+  LEFT JOIN "filessq" ON "category"."id" = "filessq"."category_id"
+  LEFT JOIN "notessq" ON "category"."id" = "notessq"."category_id"
+  LEFT JOIN "reminderssq" ON "category"."id" = "reminderssq"."category_id"
+GROUP BY
+  "category"."id"; --> statement-breakpoint 
 
+DROP MATERIALIZED VIEW IF EXISTS "budget_materialized_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "budget_materialized_view" AS
+WITH
+  "filessq" AS (
+    SELECT
+      "budget_id",
+      COUNT("id") AS "file_count"
+    FROM
+      "files"
+    WHERE
+      "files"."budget_id" IS NOT NULL
+    GROUP BY
+      "files"."budget_id"
+  ),
+  "notessq" AS (
+    SELECT
+      "budget_id",
+      COUNT("id") AS "note_count"
+    FROM
+      "notes"
+    WHERE
+      "notes"."budget_id" IS NOT NULL
+    GROUP BY
+      "notes"."budget_id"
+  ),
+  "reminderssq" AS (
+    SELECT
+      "budget_id",
+      COUNT("id") AS "reminder_count"
+    FROM
+      "notes"
+    WHERE
+      (
+        "notes"."type" = 'reminder'
+        AND "notes"."budget_id" IS NOT NULL
+      )
+    GROUP BY
+      "notes"."budget_id"
+  )
 SELECT
-  "id",
-  "import_id",
-  "budget_import_detail_id",
-  "title",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
+  "budget"."id",
+  "budget"."import_id",
+  "budget"."budget_import_detail_id",
+  "budget"."title",
+  "budget"."status",
+  "budget"."active",
+  "budget"."disabled",
+  "budget"."allow_update",
+  "budget"."created_at",
+  "budget"."updated_at",
+  SUM(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
+      ELSE 0
+    END
+  ) AS "sum",
+  COUNT(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN 1
+      ELSE NULL
+    END
+  ) AS "count",
+  MIN("journal_entry"."date") AS "firstDate",
+  MAX("journal_entry"."date") AS "lastDate",
+  MAX("note_count") AS "note_count",
+  MAX("reminder_count") AS "reminder_count",
+  MAX("file_count") AS "file_count"
 FROM
-  "budget_view"; --> statement-breakpoint 
+  "budget"
+  LEFT JOIN "journal_entry" ON "budget"."id" = "journal_entry"."budget_id"
+  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
+  LEFT JOIN "filessq" ON "budget"."id" = "filessq"."budget_id"
+  LEFT JOIN "notessq" ON "budget"."id" = "notessq"."budget_id"
+  LEFT JOIN "reminderssq" ON "budget"."id" = "reminderssq"."budget_id"
+GROUP BY
+  "budget"."id"; --> statement-breakpoint 
 
+DROP MATERIALIZED VIEW IF EXISTS "bill_materialized_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "bill_materialized_view" AS
+WITH
+  "filessq" AS (
+    SELECT
+      "bill_id",
+      COUNT("id") AS "file_count"
+    FROM
+      "files"
+    WHERE
+      "files"."bill_id" IS NOT NULL
+    GROUP BY
+      "files"."bill_id"
+  ),
+  "notessq" AS (
+    SELECT
+      "bill_id",
+      COUNT("id") AS "note_count"
+    FROM
+      "notes"
+    WHERE
+      "notes"."bill_id" IS NOT NULL
+    GROUP BY
+      "notes"."bill_id"
+  ),
+  "reminderssq" AS (
+    SELECT
+      "bill_id",
+      COUNT("id") AS "reminder_count"
+    FROM
+      "notes"
+    WHERE
+      (
+        "notes"."type" = 'reminder'
+        AND "notes"."bill_id" IS NOT NULL
+      )
+    GROUP BY
+      "notes"."bill_id"
+  )
 SELECT
-  "id",
-  "import_id",
-  "bill_import_detail_id",
-  "title",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
+  "bill"."id",
+  "bill"."import_id",
+  "bill"."bill_import_detail_id",
+  "bill"."title",
+  "bill"."status",
+  "bill"."active",
+  "bill"."disabled",
+  "bill"."allow_update",
+  "bill"."created_at",
+  "bill"."updated_at",
+  SUM(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
+      ELSE 0
+    END
+  ) AS "sum",
+  COUNT(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN 1
+      ELSE NULL
+    END
+  ) AS "count",
+  MIN("journal_entry"."date") AS "firstDate",
+  MAX("journal_entry"."date") AS "lastDate",
+  MAX("note_count") AS "note_count",
+  MAX("reminder_count") AS "reminder_count",
+  MAX("file_count") AS "file_count"
 FROM
-  "bill_view"; --> statement-breakpoint 
+  "bill"
+  LEFT JOIN "journal_entry" ON "bill"."id" = "journal_entry"."bill_id"
+  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
+  LEFT JOIN "filessq" ON "bill"."id" = "filessq"."bill_id"
+  LEFT JOIN "notessq" ON "bill"."id" = "notessq"."bill_id"
+  LEFT JOIN "reminderssq" ON "bill"."id" = "reminderssq"."bill_id"
+GROUP BY
+  "bill"."id"; --> statement-breakpoint 
 
+DROP MATERIALIZED VIEW IF EXISTS "tag_materialized_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "tag_materialized_view" AS
+WITH
+  "filessq" AS (
+    SELECT
+      "tag_id",
+      COUNT("id") AS "file_count"
+    FROM
+      "files"
+    WHERE
+      "files"."tag_id" IS NOT NULL
+    GROUP BY
+      "files"."tag_id"
+  ),
+  "notessq" AS (
+    SELECT
+      "tag_id",
+      COUNT("id") AS "note_count"
+    FROM
+      "notes"
+    WHERE
+      "notes"."tag_id" IS NOT NULL
+    GROUP BY
+      "notes"."tag_id"
+  ),
+  "reminderssq" AS (
+    SELECT
+      "tag_id",
+      COUNT("id") AS "reminder_count"
+    FROM
+      "notes"
+    WHERE
+      (
+        "notes"."type" = 'reminder'
+        AND "notes"."tag_id" IS NOT NULL
+      )
+    GROUP BY
+      "notes"."tag_id"
+  )
 SELECT
-  "id",
-  "import_id",
-  "tag_import_detail_id",
-  "title",
-  "group",
-  "single",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
+  "tag"."id",
+  "tag"."import_id",
+  "tag"."tag_import_detail_id",
+  "tag"."title",
+  "tag"."group",
+  "tag"."single",
+  "tag"."status",
+  "tag"."active",
+  "tag"."disabled",
+  "tag"."allow_update",
+  "tag"."created_at",
+  "tag"."updated_at",
+  SUM(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN "journal_entry"."amount"
+      ELSE 0
+    END
+  ) AS "sum",
+  COUNT(
+    CASE
+      WHEN "account"."type" IN ('asset', 'liability') THEN 1
+      ELSE NULL
+    END
+  ) AS "count",
+  MIN("journal_entry"."date") AS "firstDate",
+  MAX("journal_entry"."date") AS "lastDate",
+  MAX("note_count") AS "note_count",
+  MAX("reminder_count") AS "reminder_count",
+  MAX("file_count") AS "file_count"
 FROM
-  "tag_view"; --> statement-breakpoint 
+  "tag"
+  LEFT JOIN "journal_entry" ON "tag"."id" = "journal_entry"."tag_id"
+  LEFT JOIN "account" ON "journal_entry"."account_id" = "account"."id"
+  LEFT JOIN "filessq" ON "tag"."id" = "filessq"."tag_id"
+  LEFT JOIN "notessq" ON "tag"."id" = "notessq"."tag_id"
+  LEFT JOIN "reminderssq" ON "tag"."id" = "reminderssq"."tag_id"
+GROUP BY
+  "tag"."id"; --> statement-breakpoint 
 
+DROP MATERIALIZED VIEW IF EXISTS "account_materialized_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "account_materialized_view" AS
+WITH
+  "filessq" AS (
+    SELECT
+      "account_id",
+      COUNT("id") AS "file_count"
+    FROM
+      "files"
+    WHERE
+      "files"."account_id" IS NOT NULL
+    GROUP BY
+      "files"."account_id"
+  ),
+  "notessq" AS (
+    SELECT
+      "account_id",
+      COUNT("id") AS "note_count"
+    FROM
+      "notes"
+    WHERE
+      "notes"."account_id" IS NOT NULL
+    GROUP BY
+      "notes"."account_id"
+  ),
+  "reminderssq" AS (
+    SELECT
+      "account_id",
+      COUNT("id") AS "reminder_count"
+    FROM
+      "notes"
+    WHERE
+      (
+        "notes"."type" = 'reminder'
+        AND "notes"."account_id" IS NOT NULL
+      )
+    GROUP BY
+      "notes"."account_id"
+  )
 SELECT
-  "id",
-  "import_id",
-  "account_import_detail_id",
-  "title",
-  "type",
-  "is_cash",
-  "is_net_worth",
-  "account_group",
-  "account_group_2",
-  "account_group_3",
-  "account_group_combined",
-  "account_title_combined",
-  "start_date",
-  "end_date",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
+  "account"."id",
+  "account"."import_id",
+  "account"."account_import_detail_id",
+  "account"."title",
+  "account"."type",
+  "account"."is_cash",
+  "account"."is_net_worth",
+  "account"."account_group",
+  "account"."account_group_2",
+  "account"."account_group_3",
+  "account"."account_group_combined",
+  "account"."account_title_combined",
+  "account"."start_date",
+  "account"."end_date",
+  "account"."status",
+  "account"."active",
+  "account"."disabled",
+  "account"."allow_update",
+  "account"."created_at",
+  "account"."updated_at",
+  SUM("journal_entry"."amount") AS "sum",
+  COUNT("journal_entry"."id") AS "count",
+  MIN("journal_entry"."date") AS "firstDate",
+  MAX("journal_entry"."date") AS "lastDate",
+  MAX("note_count") AS "note_count",
+  MAX("reminder_count") AS "reminder_count",
+  MAX("file_count") AS "file_count"
 FROM
-  "account_view"; --> statement-breakpoint 
+  "account"
+  LEFT JOIN "journal_entry" ON "account"."id" = "journal_entry"."account_id"
+  LEFT JOIN "import" ON "journal_entry"."import_id" = "import"."id"
+  LEFT JOIN "filessq" ON "account"."id" = "filessq"."account_id"
+  LEFT JOIN "notessq" ON "account"."id" = "notessq"."account_id"
+  LEFT JOIN "reminderssq" ON "account"."id" = "reminderssq"."account_id"
+GROUP BY
+  "account"."id"; --> statement-breakpoint 
 
+DROP MATERIALIZED VIEW IF EXISTS "journal_extended_view"; --> statement-breakpoint 
 CREATE MATERIALIZED VIEW "journal_extended_view" AS
 SELECT
   "id",
@@ -833,10 +679,10 @@ SELECT
 FROM
   "journal_view"; --> statement-breakpoint 
 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_journal_view_index" ON "journal_extended_view" ("journal_extended_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_account_view_index" ON "account_materialized_view" ("account_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_bill_view_index" ON "bill_materialized_view" ("bill_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_budget_view_index" ON "budget_materialized_view" ("budget_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_category_view_index" ON "category_materialized_view" ("category_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_tag_view_index" ON "tag_materialized_view" ("tag_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_label_view_index" ON "label_materialized_view" ("label_materialized_view"."id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_journal_view_index" ON "journal_extended_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_account_view_index" ON "account_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_bill_view_index" ON "bill_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_budget_view_index" ON "budget_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_category_view_index" ON "category_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_tag_view_index" ON "tag_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_label_view_index" ON "label_materialized_view" ("id"); --> statement-breakpoint 

@@ -4,6 +4,7 @@ import { db } from './db';
 import { queryLogTable } from './postgres/schema';
 import { tActions } from './actions/tActions';
 import { serverEnv } from '../serverEnv';
+import { PgRaw } from 'drizzle-orm/pg-core/query-builders/raw';
 
 type QueryCache = {
 	title?: string;
@@ -59,6 +60,40 @@ export const dbLoggerCreate = ({
 		await storeQueries(queriesToStore);
 	};
 
+	const executeRaw = async <T>(query: PgRaw<T>, title?: string) => {
+		if (disable) {
+			return query;
+		}
+
+		const startDate = new Date();
+		const start = Date.now();
+		const returnData = await query;
+
+		const responseSize = JSON.stringify(returnData).length;
+		const end = Date.now();
+		const time = end - start;
+		const queryInfo = query.getQuery();
+
+		queryInformation.push({
+			title,
+			query: queryInfo.sql,
+			time: startDate,
+			duration: time,
+			params: queryInfo.params,
+			size: responseSize
+		});
+
+		if (queryInformation.length > localCacheSize) {
+			cleanup();
+		}
+
+		// Perform cleanup action on timeout
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(cleanup, localCacheTimeout);
+
+		return returnData;
+	};
+
 	const execute = async <T>(
 		query: { execute: () => Promise<T>; toSQL: () => Query },
 		title?: string
@@ -70,7 +105,7 @@ export const dbLoggerCreate = ({
 		const start = Date.now();
 		const returnData = await query.execute();
 
-		const responseSize = JSON.stringify(returnData).length;
+		const responseSize = returnData ? JSON.stringify(returnData).length : 0;
 		const end = Date.now();
 		const time = end - start;
 		const queryInfo = query.toSQL();
@@ -98,7 +133,8 @@ export const dbLoggerCreate = ({
 	return {
 		triggerClean: cleanup,
 		getQueries: () => queryInformation,
-		execute
+		execute,
+		executeRaw
 	};
 };
 
@@ -127,3 +163,4 @@ const dbLogger = dbLoggerCreate({
 });
 
 export const dbExecuteLogger = dbLogger.execute;
+export const dbExecuteRawLogger = dbLogger.executeRaw;

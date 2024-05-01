@@ -13,8 +13,8 @@ import {
 describe('labelFilterToQuery', () => {
 	const qb = new QueryBuilder();
 	it('Filter Returns A Good Value', () => {
-		const returnValue = labelFilterToQuery(
-			{
+		const returnValue = labelFilterToQuery({
+			filter: {
 				id: 'id',
 				idArray: ['idArray1', 'idArray2'],
 				title: 'title',
@@ -26,8 +26,8 @@ describe('labelFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			true
-		);
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()
@@ -80,14 +80,14 @@ describe('labelFilterToQuery', () => {
 	});
 
 	it('Boolean Filters Work In Other Direction', () => {
-		const returnValue = labelFilterToQuery(
-			{
+		const returnValue = labelFilterToQuery({
+			filter: {
 				disabled: true,
 				allowUpdate: false,
 				active: true
 			},
-			true
-		);
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()
@@ -109,7 +109,7 @@ describe('labelFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = labelFilterToQuery({}, true);
+		const returnValue = labelFilterToQuery({ filter: {}, target: 'materialized' });
 
 		const query = qb
 			.select()
@@ -121,13 +121,13 @@ describe('labelFilterToQuery', () => {
 	});
 
 	it('Blank Title and ID Return A Blank Value', () => {
-		const returnValue = labelFilterToQuery(
-			{
+		const returnValue = labelFilterToQuery({
+			filter: {
 				id: '',
 				title: ''
 			},
-			true
-		);
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()
@@ -139,12 +139,12 @@ describe('labelFilterToQuery', () => {
 	});
 
 	it("If include summary is turned off, then count max doesn't have impact", () => {
-		const returnValue = labelFilterToQuery(
-			{
+		const returnValue = labelFilterToQuery({
+			filter: {
 				countMax: 10
 			},
-			false
-		);
+			target: 'original'
+		});
 
 		const query = qb
 			.select()
@@ -156,12 +156,12 @@ describe('labelFilterToQuery', () => {
 	});
 
 	it('Id Array is not used if the array is empty', () => {
-		const returnValue = labelFilterToQuery(
-			{
+		const returnValue = labelFilterToQuery({
+			filter: {
 				idArray: []
 			},
-			false
-		);
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()
@@ -173,12 +173,12 @@ describe('labelFilterToQuery', () => {
 	});
 
 	it('Import Id Array is not used if the array is empty', () => {
-		const returnValue = labelFilterToQuery(
-			{
+		const returnValue = labelFilterToQuery({
+			filter: {
 				importIdArray: []
 			},
-			false
-		);
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()
@@ -190,12 +190,12 @@ describe('labelFilterToQuery', () => {
 	});
 
 	it('Import Detail Id Array is not used if the array is empty', () => {
-		const returnValue = labelFilterToQuery(
-			{
+		const returnValue = labelFilterToQuery({
+			filter: {
 				importDetailIdArray: []
 			},
-			false
-		);
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()
@@ -207,12 +207,12 @@ describe('labelFilterToQuery', () => {
 	});
 
 	it('Filtering for disabled items works correctly', () => {
-		const returnValue = labelFilterToQuery(
-			{
+		const returnValue = labelFilterToQuery({
+			filter: {
 				disabled: true
 			},
-			false
-		);
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()

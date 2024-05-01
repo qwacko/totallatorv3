@@ -3,7 +3,9 @@ import type { DBType } from '$lib/server/db/db';
 import { category } from '$lib/server/db/postgres/schema';
 import {
 	categoryMaterializedView,
-	journalExtendedView
+	categoryView,
+	journalExtendedView,
+	journalView
 } from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { SQL, eq } from 'drizzle-orm';
 
@@ -25,48 +27,61 @@ import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const categoryFilterToQuery = ({
 	filter,
-	target = 'category'
+	target = 'view'
 }: {
 	filter: Omit<CategoryFilterSchemaType, 'page' | 'pageSize' | 'orderBy'>;
-	target?: 'category' | 'categoryWithSummary' | 'materializedJournals';
+	target?: 'view' | 'materialized' | 'materializedJournals' | 'viewJournals';
 }) => {
 	const restFilter = processCategoryTextFilter.process(filter);
-	const includeSummary = target === 'categoryWithSummary';
+	const includeSummary = target === 'view' || target === 'materialized';
+	const viewJournals = target === 'viewJournals';
 	const materializedJournals = target === 'materializedJournals';
+
+	const targetTable = viewJournals
+		? {
+				id: journalView.categoryId,
+				title: journalView.categoryTitle,
+				single: journalView.categorySingle,
+				group: journalView.categoryGroup,
+				status: journalView.categoryStatus,
+				disabled: journalView.categoryDisabled,
+				allowUpdate: journalView.categoryAllowUpdate,
+				active: journalView.categoryActive
+			}
+		: materializedJournals
+			? {
+					id: journalExtendedView.categoryId,
+					title: journalExtendedView.categoryTitle,
+					single: journalExtendedView.categorySingle,
+					group: journalExtendedView.categoryGroup,
+					status: journalExtendedView.categoryStatus,
+					disabled: journalExtendedView.categoryDisabled,
+					allowUpdate: journalExtendedView.categoryAllowUpdate,
+					active: journalExtendedView.categoryActive
+				}
+			: target === 'view'
+				? categoryView
+				: categoryMaterializedView;
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({
 		where,
 		filter: restFilter,
-		idColumn: materializedJournals ? journalExtendedView.categoryId : categoryMaterializedView.id,
-		titleColumn: materializedJournals
-			? journalExtendedView.categoryTitle
-			: categoryMaterializedView.title,
-		groupColumn: materializedJournals
-			? journalExtendedView.categoryGroup
-			: categoryMaterializedView.group,
-		singleColumn: materializedJournals
-			? journalExtendedView.categorySingle
-			: categoryMaterializedView.single
+		idColumn: targetTable.id,
+		titleColumn: targetTable.title,
+		groupColumn: targetTable.group,
+		singleColumn: targetTable.single
 	});
 	statusFilterToQueryMapped({
 		where,
 		filter: restFilter,
-		statusColumn: materializedJournals
-			? journalExtendedView.categoryStatus
-			: categoryMaterializedView.status,
-		disabledColumn: materializedJournals
-			? journalExtendedView.categoryDisabled
-			: categoryMaterializedView.disabled,
-		activeColumn: materializedJournals
-			? journalExtendedView.categoryActive
-			: categoryMaterializedView.active,
-		allowUpdateColumn: materializedJournals
-			? journalExtendedView.categoryAllowUpdate
-			: categoryMaterializedView.allowUpdate
+		statusColumn: targetTable.status,
+		disabledColumn: targetTable.disabled,
+		activeColumn: targetTable.active,
+		allowUpdateColumn: targetTable.allowUpdate
 	});
 
-	if (!materializedJournals) {
+	if (!materializedJournals && !viewJournals) {
 		importFilterToQueryMaterialized({
 			where,
 			filter: restFilter,
@@ -77,7 +92,7 @@ export const categoryFilterToQuery = ({
 		});
 	}
 
-	if (includeSummary) {
+	if (includeSummary && !viewJournals && !materializedJournals) {
 		linkedFileFilterQuery({
 			where,
 			filter: restFilter,

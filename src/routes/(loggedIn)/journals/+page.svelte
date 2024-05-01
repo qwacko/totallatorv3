@@ -34,7 +34,6 @@
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import BulkJournalActions from './BulkJournalActions.svelte';
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import NotesButton from '../../../lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
@@ -170,11 +169,6 @@
 					allCount={data.journals.count}
 					searchParams={$urlStore.searchParams}
 				/>
-				{#await data.streamed.refresh}
-					<LoadingSpinner loadingText="Refreshing..." />
-				{:then}
-					<div />
-				{/await}
 			</svelte:fragment>
 			<svelte:fragment slot="filterButtons">
 				<FilterDropdown

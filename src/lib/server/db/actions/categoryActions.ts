@@ -20,9 +20,9 @@ import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
-import { categoryMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
+import { getCorrectCategoryTable } from './helpers/category/getCorrectCategoryTable';
 
 export const categoryActions = {
 	latestUpdate: async ({ db }: { db: DBType }) => {
@@ -39,46 +39,42 @@ export const categoryActions = {
 		);
 	},
 	count: async (db: DBType, filter?: CategoryFilterSchemaType) => {
-		materializedViewActions.conditionalRefresh({ db });
+		const { table, target } = await getCorrectCategoryTable(db);
+
 		const count = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(categoryMaterializedView.id) })
-				.from(categoryMaterializedView)
-				.where(and(...(filter ? categoryFilterToQuery({ filter, target: 'category' }) : []))),
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
+				.where(and(...(filter ? categoryFilterToQuery({ filter, target }) : []))),
 			'Category - Count'
 		);
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
-		materializedViewActions.conditionalRefresh({ db });
+		const { table } = await getCorrectCategoryTable(db);
 		const items = dbExecuteLogger(
-			db
-				.select({ id: categoryMaterializedView.id, journalCount: categoryMaterializedView.count })
-				.from(categoryMaterializedView),
+			db.select({ id: table.id, journalCount: table.count }).from(table),
 			'Category - List With Transaction Count'
 		);
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: CategoryFilterSchemaType }) => {
-		materializedViewActions.conditionalRefresh({ db });
+		const { table, target } = await getCorrectCategoryTable(db);
+
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = categoryFilterToQuery({ filter: restFilter, target: 'categoryWithSummary' });
+		const where = categoryFilterToQuery({ filter: restFilter, target });
 
-		const defaultOrderBy = [
-			asc(categoryMaterializedView.group),
-			asc(categoryMaterializedView.single),
-			desc(categoryMaterializedView.createdAt)
-		];
+		const defaultOrderBy = [asc(table.group), asc(table.single), desc(table.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
 						currentOrder.direction === 'asc'
-							? asc(categoryMaterializedView[currentOrder.field])
-							: desc(categoryMaterializedView[currentOrder.field])
+							? asc(table[currentOrder.field])
+							: desc(table[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
@@ -87,7 +83,7 @@ export const categoryActions = {
 		const results = await dbExecuteLogger(
 			db
 				.select()
-				.from(categoryMaterializedView)
+				.from(table)
 				.where(and(...where))
 				.limit(pageSize)
 				.offset(page * pageSize)
@@ -97,8 +93,8 @@ export const categoryActions = {
 
 		const resultCount = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(category.id) })
-				.from(categoryMaterializedView)
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
 				.where(and(...where)),
 			'Category - List - Count'
 		);

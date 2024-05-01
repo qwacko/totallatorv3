@@ -27,10 +27,10 @@ import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
-import { accountMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';
+import { getCorrectAccountTable } from './helpers/account/getCorrectAccountTable';
 
 export const accountActions = {
 	latestUpdate: async ({ db }: { db: DBType }) => {
@@ -47,30 +47,31 @@ export const accountActions = {
 		);
 	},
 	count: async (db: DBType, filter?: AccountFilterSchemaType) => {
+		const { table, target } = await getCorrectAccountTable(db);
+
 		const count = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(account.id) })
-				.from(accountMaterializedView)
-				.where(and(...(filter ? accountFilterToQuery({ filter: filter, target: 'account' }) : []))),
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
+				.where(and(...(filter ? accountFilterToQuery({ filter: filter, target }) : []))),
 			'Accounts - Count'
 		);
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
-		await materializedViewActions.conditionalRefresh({ db });
+		const { table } = await getCorrectAccountTable(db);
 
 		const items = dbExecuteLogger(
-			db
-				.select({ id: accountMaterializedView.id, journalCount: accountMaterializedView.count })
-				.from(accountMaterializedView),
+			db.select({ id: table.id, journalCount: table.count }).from(table),
 			'Accounts - List With Transaction Count'
 		);
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter?: AccountFilterSchemaType }) => {
-		await materializedViewActions.conditionalRefresh({ db });
+		const { table, target } = await getCorrectAccountTable(db);
+
 		const {
 			page = 0,
 			pageSize = 10,
@@ -78,17 +79,14 @@ export const accountActions = {
 			...restFilter
 		} = filter || { page: 10, pageSize: 10 };
 
-		const where = accountFilterToQuery({ filter: restFilter, target: 'accountWithSummary' });
-		const defaultOrderBy = [
-			asc(accountMaterializedView.title),
-			desc(accountMaterializedView.createdAt)
-		];
+		const where = accountFilterToQuery({ filter: restFilter, target });
+		const defaultOrderBy = [asc(table.title), desc(table.createdAt)];
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
 						currentOrder.direction === 'asc'
-							? asc(accountMaterializedView[currentOrder.field])
-							: desc(accountMaterializedView[currentOrder.field])
+							? asc(table[currentOrder.field])
+							: desc(table[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
@@ -97,7 +95,7 @@ export const accountActions = {
 		const results = await dbExecuteLogger(
 			db
 				.select()
-				.from(accountMaterializedView)
+				.from(table)
 				.where(and(...where))
 				.limit(pageSize)
 				.offset(page * pageSize)
@@ -107,8 +105,8 @@ export const accountActions = {
 
 		const resultCount = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(account.id) })
-				.from(accountMaterializedView)
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
 				.where(and(...where)),
 			'Accounts - List - Count'
 		);

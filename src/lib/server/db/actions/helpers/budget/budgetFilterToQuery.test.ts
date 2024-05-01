@@ -26,7 +26,7 @@ describe('budgetFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			target: 'budgetWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -86,7 +86,7 @@ describe('budgetFilterToQuery', () => {
 				allowUpdate: false,
 				active: true
 			},
-			target: 'budgetWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -109,7 +109,7 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = budgetFilterToQuery({ filter: {}, target: 'budgetWithSummary' });
+		const returnValue = budgetFilterToQuery({ filter: {}, target: 'materialized' });
 
 		const query = qb
 			.select()
@@ -126,7 +126,7 @@ describe('budgetFilterToQuery', () => {
 				id: '',
 				title: ''
 			},
-			target: 'budgetWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -143,7 +143,7 @@ describe('budgetFilterToQuery', () => {
 			filter: {
 				countMax: 10
 			},
-			target: 'budget'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -160,7 +160,7 @@ describe('budgetFilterToQuery', () => {
 			filter: {
 				idArray: []
 			},
-			target: 'budget'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -177,7 +177,7 @@ describe('budgetFilterToQuery', () => {
 			filter: {
 				importIdArray: []
 			},
-			target: 'budget'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -194,7 +194,7 @@ describe('budgetFilterToQuery', () => {
 			filter: {
 				importDetailIdArray: []
 			},
-			target: 'budget'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -211,7 +211,7 @@ describe('budgetFilterToQuery', () => {
 			filter: {
 				disabled: true
 			},
-			target: 'budget'
+			target: 'materialized'
 		});
 
 		const query = qb

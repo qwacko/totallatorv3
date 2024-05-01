@@ -3,7 +3,9 @@ import type { DBType } from '$lib/server/db/db';
 import { account } from '$lib/server/db/postgres/schema';
 import {
 	accountMaterializedView,
-	journalExtendedView
+	journalExtendedView,
+	journalView,
+	accountView
 } from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { SQL, eq, gt, ilike, lt, not } from 'drizzle-orm';
 import {
@@ -29,35 +31,57 @@ export const accountFilterToQuery = ({
 	target
 }: {
 	filter: AccountFilterSchemaWithoutPaginationType;
-	target?: 'materializedJournals' | 'account' | 'accountWithSummary';
+	target?: 'materializedJournals' | 'view' | 'materialized' | 'viewJournals';
 }) => {
 	const where: SQL<unknown>[] = [];
 
 	const intFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(filter)));
 
 	const materializedJournals = target === 'materializedJournals';
-	const includeSummary = target === 'accountWithSummary';
+	const viewJournals = target === 'viewJournals';
+	const includeSummary = target === 'view' || target === 'materialized';
 
-	const selectedTable = materializedJournals
+	const selectedTable = viewJournals
 		? {
-				id: journalExtendedView.accountId,
-				title: journalExtendedView.accountTitle,
-				accountGroup: journalExtendedView.accountGroup,
-				accountGroup2: journalExtendedView.accountGroup2,
-				accountGroup3: journalExtendedView.accountGroup3,
-				accountGroupCombined: journalExtendedView.accountGroupCombined,
-				accountTitleCombined: journalExtendedView.accountTitleCombined,
-				startDate: journalExtendedView.accountStartDate,
-				endDate: journalExtendedView.accountEndDate,
-				type: journalExtendedView.accountType,
-				isCash: journalExtendedView.accountIsCash,
-				isNetWorth: journalExtendedView.accountIsNetWorth,
-				status: journalExtendedView.accountStatus,
-				disabled: journalExtendedView.accountDisabled,
-				allowUpdate: journalExtendedView.accountAllowUpdate,
-				active: journalExtendedView.accountActive
+				id: journalView.accountId,
+				title: journalView.accountTitle,
+				accountGroup: journalView.accountGroup,
+				accountGroup2: journalView.accountGroup2,
+				accountGroup3: journalView.accountGroup3,
+				accountGroupCombined: journalView.accountGroupCombined,
+				accountTitleCombined: journalView.accountTitleCombined,
+				startDate: journalView.accountStartDate,
+				endDate: journalView.accountEndDate,
+				type: journalView.accountType,
+				isCash: journalView.accountIsCash,
+				isNetWorth: journalView.accountIsNetWorth,
+				status: journalView.accountStatus,
+				disabled: journalView.accountDisabled,
+				allowUpdate: journalView.accountAllowUpdate,
+				active: journalView.accountActive
 			}
-		: accountMaterializedView;
+		: materializedJournals
+			? {
+					id: journalExtendedView.accountId,
+					title: journalExtendedView.accountTitle,
+					accountGroup: journalExtendedView.accountGroup,
+					accountGroup2: journalExtendedView.accountGroup2,
+					accountGroup3: journalExtendedView.accountGroup3,
+					accountGroupCombined: journalExtendedView.accountGroupCombined,
+					accountTitleCombined: journalExtendedView.accountTitleCombined,
+					startDate: journalExtendedView.accountStartDate,
+					endDate: journalExtendedView.accountEndDate,
+					type: journalExtendedView.accountType,
+					isCash: journalExtendedView.accountIsCash,
+					isNetWorth: journalExtendedView.accountIsNetWorth,
+					status: journalExtendedView.accountStatus,
+					disabled: journalExtendedView.accountDisabled,
+					allowUpdate: journalExtendedView.accountAllowUpdate,
+					active: journalExtendedView.accountActive
+				}
+			: target === 'view'
+				? accountView
+				: accountMaterializedView;
 
 	idTitleFilterToQueryMapped({
 		where,
@@ -165,7 +189,7 @@ export const accountFilterToQuery = ({
 		where.push(gt(selectedTable.endDate, intFilter.endDateAfter));
 	if (intFilter.endDateBefore !== undefined)
 		where.push(lt(selectedTable.endDate, intFilter.endDateBefore));
-	if (!materializedJournals) {
+	if (!materializedJournals && !viewJournals) {
 		importFilterToQueryMaterialized({
 			where,
 			filter: intFilter,

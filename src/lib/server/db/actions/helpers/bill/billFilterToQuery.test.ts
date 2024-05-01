@@ -26,7 +26,7 @@ describe('billFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			target: 'billWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -86,7 +86,7 @@ describe('billFilterToQuery', () => {
 				allowUpdate: false,
 				active: true
 			},
-			target: 'billWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -109,7 +109,7 @@ describe('billFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = billFilterToQuery({ filter: {}, target: 'billWithSummary' });
+		const returnValue = billFilterToQuery({ filter: {}, target: 'materialized' });
 
 		const query = qb
 			.select()
@@ -126,7 +126,7 @@ describe('billFilterToQuery', () => {
 				id: '',
 				title: ''
 			},
-			target: 'billWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -143,7 +143,7 @@ describe('billFilterToQuery', () => {
 			filter: {
 				countMax: 10
 			},
-			target: 'bill'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -160,7 +160,7 @@ describe('billFilterToQuery', () => {
 			filter: {
 				idArray: []
 			},
-			target: 'bill'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -177,7 +177,7 @@ describe('billFilterToQuery', () => {
 			filter: {
 				importIdArray: []
 			},
-			target: 'bill'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -194,7 +194,7 @@ describe('billFilterToQuery', () => {
 			filter: {
 				importDetailIdArray: []
 			},
-			target: 'bill'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -211,7 +211,7 @@ describe('billFilterToQuery', () => {
 			filter: {
 				disabled: true
 			},
-			target: 'bill'
+			target: 'materialized'
 		});
 
 		const query = qb

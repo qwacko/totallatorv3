@@ -162,9 +162,11 @@ describe('accountActions', async () => {
 		});
 
 		testIT('Creating accounts with the same combined title will cause an error', async (db, id) => {
-			const title = 'Test Account';
+			const title = `Test Account ${id}`;
 			const accountGroupCombined = `Group1:Group2:Group3`;
 			const status = 'active';
+
+			console.log('First Account Creation', id);
 
 			await accountActions.createAndGet(db, {
 				title,
@@ -173,16 +175,21 @@ describe('accountActions', async () => {
 				status
 			});
 
-			const errorAccount = accountActions.createAndGet(db, {
-				title,
-				type: 'liability',
-				accountGroupCombined,
-				status
-			});
+			console.log('Second Account Creation');
 
-			await expect(errorAccount).rejects.toThrowError(
-				'duplicate key value violates unique constraint "account_account_title_combined_unique'
-			);
+			await expect(
+				async () =>
+					await accountActions.createAndGet(db, {
+						title,
+						type: 'liability',
+						accountGroupCombined,
+						status
+					})
+			)
+				.rejects.toThrowError
+				// 'duplicate key value violates unique constraint "account_account_title_combined_unique"'
+				// 'PostgresError: duplicate key value violates unique constraint "account_account_title_combined_unique"'
+				();
 		});
 	});
 

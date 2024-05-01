@@ -14,62 +14,74 @@ import {
 } from '../misc/filterToQueryImportCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
-import { labelMaterializedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
+import {
+	labelMaterializedView,
+	labelView
+} from '$lib/server/db/postgres/schema/materializedViewSchema';
 import { processLabelTextFilter } from './labelTextFilter';
 import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
 import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
-export const labelFilterToQuery = (
-	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>,
-	includeSummary: boolean = false
-) => {
+export const labelFilterToQuery = ({
+	filter,
+	target = 'view'
+}: {
+	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>;
+	target: 'view' | 'materialized' | 'original';
+}) => {
+	const includeSummary = target === 'materialized' || target === 'view';
 	const restFilter = processLabelTextFilter.process(filter);
+
+	const targetTable =
+		target === 'original' ? label : target === 'view' ? labelView : labelMaterializedView;
 
 	const where: SQL<unknown>[] = [];
 	idTitleFilterToQueryMapped({
 		where,
 		filter: restFilter,
-		idColumn: labelMaterializedView.id,
-		titleColumn: labelMaterializedView.title
+		idColumn: targetTable.id,
+		titleColumn: targetTable.title
 	});
 	statusFilterToQueryMapped({
 		where,
 		filter: restFilter,
-		statusColumn: labelMaterializedView.status,
-		disabledColumn: labelMaterializedView.disabled,
-		activeColumn: labelMaterializedView.active,
-		allowUpdateColumn: labelMaterializedView.allowUpdate
+		statusColumn: targetTable.status,
+		disabledColumn: targetTable.disabled,
+		activeColumn: targetTable.active,
+		allowUpdateColumn: targetTable.allowUpdate
 	});
 	importFilterToQueryMaterialized({
 		where,
 		filter: restFilter,
 		table: {
-			importId: labelMaterializedView.importId,
-			importDetailId: labelMaterializedView.importDetailId
+			importId: targetTable.importId,
+			importDetailId: targetTable.importDetailId
 		}
 	});
 
 	if (includeSummary) {
+		const summaryTable = target === 'view' ? labelView : labelMaterializedView;
+
 		linkedFileFilterQuery({
 			where,
 			filter: restFilter,
-			fileCountColumn: labelMaterializedView.fileCount
+			fileCountColumn: summaryTable.fileCount
 		});
 		linkedNoteFilterQuery({
 			where,
 			filter: restFilter,
-			noteCountColumn: labelMaterializedView.noteCount,
-			reminderCountColumn: labelMaterializedView.reminderCount
+			noteCountColumn: summaryTable.noteCount,
+			reminderCountColumn: summaryTable.reminderCount
 		});
 		summaryFilterToQueryMaterialized({
 			where,
 			filter: restFilter,
 			table: {
-				count: labelMaterializedView.count,
-				sum: labelMaterializedView.sum,
-				firstDate: labelMaterializedView.firstDate,
-				lastDate: labelMaterializedView.lastDate
+				count: summaryTable.count,
+				sum: summaryTable.sum,
+				firstDate: summaryTable.firstDate,
+				lastDate: summaryTable.lastDate
 			}
 		});
 	}
@@ -88,7 +100,7 @@ export const labelFilterToSubQuery = ({
 }) => {
 	const restFilter = processLabelTextFilter.process(filter);
 
-	const labelFilter = labelFilterToQuery(restFilter, includeSummary);
+	const labelFilter = labelFilterToQuery({ filter: restFilter, target: 'original' });
 	const labelIdsSubquery = db
 		.select({ id: journalEntry.id })
 		.from(labelsToJournals)

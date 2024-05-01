@@ -35,9 +35,6 @@ export const load = async (data) => {
 
 	return {
 		journals: journalData,
-		streamed: {
-			refresh: tActions.materializedViews.conditionalRefresh({ db, logStats: true })
-		},
 		filterText,
 		filterDropdown
 	};

@@ -28,7 +28,7 @@ describe('categoryFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			target: 'categoryWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -96,7 +96,7 @@ describe('categoryFilterToQuery', () => {
 				allowUpdate: false,
 				active: true
 			},
-			target: 'categoryWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -119,7 +119,7 @@ describe('categoryFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = categoryFilterToQuery({ filter: {}, target: 'categoryWithSummary' });
+		const returnValue = categoryFilterToQuery({ filter: {}, target: 'materialized' });
 
 		const query = qb
 			.select()
@@ -136,7 +136,7 @@ describe('categoryFilterToQuery', () => {
 				id: '',
 				title: ''
 			},
-			target: 'categoryWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -153,7 +153,7 @@ describe('categoryFilterToQuery', () => {
 			filter: {
 				countMax: 10
 			},
-			target: 'category'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -170,7 +170,7 @@ describe('categoryFilterToQuery', () => {
 			filter: {
 				idArray: []
 			},
-			target: 'category'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -187,7 +187,7 @@ describe('categoryFilterToQuery', () => {
 			filter: {
 				importIdArray: []
 			},
-			target: 'category'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -204,7 +204,7 @@ describe('categoryFilterToQuery', () => {
 			filter: {
 				importDetailIdArray: []
 			},
-			target: 'category'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -223,7 +223,7 @@ describe('categoryFilterToQuery', () => {
 			filter: {
 				disabled: true
 			},
-			target: 'category'
+			target: 'materialized'
 		});
 
 		const query = qb

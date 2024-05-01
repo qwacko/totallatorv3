@@ -14,7 +14,14 @@ import {
 	categoryMaterializedView,
 	budgetMaterializedView,
 	labelMaterializedView,
-	dateRangeMaterializedView
+	dateRangeMaterializedView,
+	journalView,
+	accountView,
+	tagView,
+	billView,
+	budgetView,
+	categoryView,
+	labelView
 } from './postgres/schema/materializedViewSchema';
 import { printMaterializedViewList } from './actions/helpers/printMaterializedViewList';
 
@@ -48,6 +55,7 @@ export type DBType = typeof db;
 if (!serverEnv.TEST_ENV && serverEnv.POSTGRES_URL) {
 	logging.info('Migrating DB!!');
 	await migrate(migrationDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
+	logging.info('DB Migration Complete');
 } else if (!serverEnv.POSTGRES_URL) {
 	logging.warn('No POSTGRES_URL found, skipping migration!');
 } else if (serverEnv.TEST_ENV) {
@@ -56,14 +64,17 @@ if (!serverEnv.TEST_ENV && serverEnv.POSTGRES_URL) {
 
 //Print Materialized View Logic if DEV
 if (serverEnv.DEV) {
-	printMaterializedViewList([
-		journalExtendedView,
-		accountMaterializedView,
-		tagMaterializedView,
-		billMaterializedView,
-		budgetMaterializedView,
-		categoryMaterializedView,
-		labelMaterializedView,
-		dateRangeMaterializedView
-	]);
+	printMaterializedViewList(
+		[
+			journalExtendedView,
+			accountMaterializedView,
+			tagMaterializedView,
+			billMaterializedView,
+			budgetMaterializedView,
+			categoryMaterializedView,
+			labelMaterializedView,
+			dateRangeMaterializedView
+		],
+		[journalView, accountView, tagView, billView, budgetView, categoryView, labelView]
+	);
 }

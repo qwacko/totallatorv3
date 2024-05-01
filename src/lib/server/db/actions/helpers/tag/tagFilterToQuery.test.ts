@@ -28,7 +28,7 @@ describe('tagFilterToQuery', () => {
 				importDetailIdArray: ['importDetailId1', 'importDetailId2'],
 				countMax: 10
 			},
-			target: 'tagWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -96,7 +96,7 @@ describe('tagFilterToQuery', () => {
 				allowUpdate: false,
 				active: true
 			},
-			target: 'tagWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -119,7 +119,7 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = tagFilterToQuery({ filter: {}, target: 'tagWithSummary' });
+		const returnValue = tagFilterToQuery({ filter: {}, target: 'materialized' });
 
 		const query = qb
 			.select()
@@ -136,7 +136,7 @@ describe('tagFilterToQuery', () => {
 				id: '',
 				title: ''
 			},
-			target: 'tagWithSummary'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -153,7 +153,7 @@ describe('tagFilterToQuery', () => {
 			filter: {
 				countMax: 10
 			},
-			target: 'tag'
+			target: 'materializedJournals'
 		});
 
 		const query = qb
@@ -162,7 +162,7 @@ describe('tagFilterToQuery', () => {
 			.where(and(...returnValue))
 			.toSQL();
 
-		expect(query.sql).not.toContain('"summary"."count" <= $');
+		expect(query.sql).not.toContain('"count" <= $');
 	});
 
 	it('Id Array is not used if the array is empty', () => {
@@ -170,7 +170,7 @@ describe('tagFilterToQuery', () => {
 			filter: {
 				idArray: []
 			},
-			target: 'tag'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -187,7 +187,7 @@ describe('tagFilterToQuery', () => {
 			filter: {
 				importIdArray: []
 			},
-			target: 'tag'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -204,7 +204,7 @@ describe('tagFilterToQuery', () => {
 			filter: {
 				importDetailIdArray: []
 			},
-			target: 'tag'
+			target: 'materialized'
 		});
 
 		const query = qb
@@ -221,7 +221,7 @@ describe('tagFilterToQuery', () => {
 			filter: {
 				disabled: true
 			},
-			target: 'tag'
+			target: 'materialized'
 		});
 
 		const query = qb

@@ -6,23 +6,15 @@ DROP INDEX IF EXISTS "materialized_category_view_index"; --> statement-breakpoin
 DROP INDEX IF EXISTS "materialized_tag_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_label_view_index"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "date_range_materialized_view"; --> statement-breakpoint 
+CREATE MATERIALIZED VIEW "date_range_materialized_view" AS
+SELECT
+  MIN("date") AS "minDate",
+  MAX("date") AS "maxDate"
+FROM
+  "journal_entry"; --> statement-breakpoint 
+
 DROP MATERIALIZED VIEW IF EXISTS "label_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "category_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "budget_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "bill_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "tag_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "account_materialized_view"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "journal_extended_view"; --> statement-breakpoint 
-
-DROP VIEW IF EXISTS "label_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "category_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "budget_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "bill_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "tag_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "account_view"; --> statement-breakpoint 
-DROP VIEW IF EXISTS "journal_view"; --> statement-breakpoint 
-
-CREATE VIEW "label_view" AS
+CREATE MATERIALIZED VIEW "label_materialized_view" AS
 WITH
   "filessq" AS (
     SELECT
@@ -99,7 +91,8 @@ FROM
 GROUP BY
   "label"."id"; --> statement-breakpoint 
 
-CREATE VIEW "category_view" AS
+DROP MATERIALIZED VIEW IF EXISTS "category_materialized_view"; --> statement-breakpoint 
+CREATE MATERIALIZED VIEW "category_materialized_view" AS
 WITH
   "filessq" AS (
     SELECT
@@ -177,7 +170,8 @@ FROM
 GROUP BY
   "category"."id"; --> statement-breakpoint 
 
-CREATE VIEW "budget_view" AS
+DROP MATERIALIZED VIEW IF EXISTS "budget_materialized_view"; --> statement-breakpoint 
+CREATE MATERIALIZED VIEW "budget_materialized_view" AS
 WITH
   "filessq" AS (
     SELECT
@@ -253,7 +247,8 @@ FROM
 GROUP BY
   "budget"."id"; --> statement-breakpoint 
 
-CREATE VIEW "bill_view" AS
+DROP MATERIALIZED VIEW IF EXISTS "bill_materialized_view"; --> statement-breakpoint 
+CREATE MATERIALIZED VIEW "bill_materialized_view" AS
 WITH
   "filessq" AS (
     SELECT
@@ -329,7 +324,8 @@ FROM
 GROUP BY
   "bill"."id"; --> statement-breakpoint 
 
-CREATE VIEW "tag_view" AS
+DROP MATERIALIZED VIEW IF EXISTS "tag_materialized_view"; --> statement-breakpoint 
+CREATE MATERIALIZED VIEW "tag_materialized_view" AS
 WITH
   "filessq" AS (
     SELECT
@@ -407,7 +403,8 @@ FROM
 GROUP BY
   "tag"."id"; --> statement-breakpoint 
 
-CREATE VIEW "account_view" AS
+DROP MATERIALIZED VIEW IF EXISTS "account_materialized_view"; --> statement-breakpoint 
+CREATE MATERIALIZED VIEW "account_materialized_view" AS
 WITH
   "filessq" AS (
     SELECT
@@ -483,7 +480,8 @@ FROM
 GROUP BY
   "account"."id"; --> statement-breakpoint 
 
-CREATE VIEW "journal_view" AS
+DROP MATERIALIZED VIEW IF EXISTS "journal_extended_view"; --> statement-breakpoint 
+CREATE MATERIALIZED VIEW "journal_extended_view" AS
 WITH
   "filessq" AS (
     SELECT
@@ -605,238 +603,10 @@ FROM
   LEFT JOIN "notessq" ON "journal_entry"."transaction_id" = "notessq"."transaction_id"
   LEFT JOIN "reminderssq" ON "journal_entry"."transaction_id" = "reminderssq"."transaction_id"; --> statement-breakpoint 
 
-CREATE MATERIALIZED VIEW "date_range_materialized_view" AS
-SELECT
-  MIN("date") AS "minDate",
-  MAX("date") AS "maxDate"
-FROM
-  "journal_entry"; --> statement-breakpoint 
-
-CREATE MATERIALIZED VIEW "label_materialized_view" AS
-SELECT
-  "id",
-  "import_id",
-  "label_import_detail_id",
-  "title",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
-FROM
-  "label_view"; --> statement-breakpoint 
-
-CREATE MATERIALIZED VIEW "category_materialized_view" AS
-SELECT
-  "id",
-  "import_id",
-  "category_import_detail_id",
-  "title",
-  "group",
-  "single",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
-FROM
-  "category_view"; --> statement-breakpoint 
-
-CREATE MATERIALIZED VIEW "budget_materialized_view" AS
-SELECT
-  "id",
-  "import_id",
-  "budget_import_detail_id",
-  "title",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
-FROM
-  "budget_view"; --> statement-breakpoint 
-
-CREATE MATERIALIZED VIEW "bill_materialized_view" AS
-SELECT
-  "id",
-  "import_id",
-  "bill_import_detail_id",
-  "title",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
-FROM
-  "bill_view"; --> statement-breakpoint 
-
-CREATE MATERIALIZED VIEW "tag_materialized_view" AS
-SELECT
-  "id",
-  "import_id",
-  "tag_import_detail_id",
-  "title",
-  "group",
-  "single",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
-FROM
-  "tag_view"; --> statement-breakpoint 
-
-CREATE MATERIALIZED VIEW "account_materialized_view" AS
-SELECT
-  "id",
-  "import_id",
-  "account_import_detail_id",
-  "title",
-  "type",
-  "is_cash",
-  "is_net_worth",
-  "account_group",
-  "account_group_2",
-  "account_group_3",
-  "account_group_combined",
-  "account_title_combined",
-  "start_date",
-  "end_date",
-  "status",
-  "active",
-  "disabled",
-  "allow_update",
-  "created_at",
-  "updated_at",
-  "sum",
-  "count",
-  "firstDate",
-  "lastDate",
-  "note_count",
-  "reminder_count",
-  "file_count"
-FROM
-  "account_view"; --> statement-breakpoint 
-
-CREATE MATERIALIZED VIEW "journal_extended_view" AS
-SELECT
-  "id",
-  "import_id",
-  "import_detail_id",
-  "unique_id",
-  "amount",
-  "transaction_id",
-  "description",
-  "date",
-  "date_text",
-  "tag_id",
-  "bill_id",
-  "budget_id",
-  "category_id",
-  "account_id",
-  "year_month_day",
-  "year_week",
-  "year_month",
-  "year_quarter",
-  "year",
-  "linked",
-  "reconciled",
-  "data_checked",
-  "complete",
-  "transfer",
-  "created_at",
-  "updated_at",
-  "title",
-  "type",
-  "is_cash",
-  "is_net_worth",
-  "account_group",
-  "account_group_2",
-  "account_group_3",
-  "account_group_combined",
-  "account_title_combined",
-  "start_date",
-  "end_date",
-  "account_status",
-  "account_active",
-  "account_disabled",
-  "account_allow_update",
-  "bill_title",
-  "bill_status",
-  "bill_active",
-  "bill_disabled",
-  "bill_allow_update",
-  "budget_title",
-  "budget_status",
-  "budget_active",
-  "budget_disabled",
-  "budget_allow_update",
-  "category_title",
-  "category_group",
-  "category_single",
-  "category_status",
-  "category_active",
-  "category_disabled",
-  "category_allow_update",
-  "tag_title",
-  "tag_group",
-  "tag_single",
-  "tag_status",
-  "tag_active",
-  "tag_disabled",
-  "tag_allow_update",
-  "import_title",
-  "note_count",
-  "reminder_count",
-  "file_count",
-  "all"
-FROM
-  "journal_view"; --> statement-breakpoint 
-
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_journal_view_index" ON "journal_extended_view" ("journal_extended_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_account_view_index" ON "account_materialized_view" ("account_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_bill_view_index" ON "bill_materialized_view" ("bill_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_budget_view_index" ON "budget_materialized_view" ("budget_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_category_view_index" ON "category_materialized_view" ("category_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_tag_view_index" ON "tag_materialized_view" ("tag_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_label_view_index" ON "label_materialized_view" ("label_materialized_view"."id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_journal_view_index" ON "journal_extended_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_account_view_index" ON "account_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_bill_view_index" ON "bill_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_budget_view_index" ON "budget_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_category_view_index" ON "category_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_tag_view_index" ON "tag_materialized_view" ("id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_label_view_index" ON "label_materialized_view" ("id"); --> statement-breakpoint 

@@ -19,10 +19,10 @@ import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
-import { labelMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';
+import { getCorrectLabelTable } from './helpers/label/getCorrectLabelTable';
 
 export const labelActions = {
 	latestUpdate: async ({ db }: { db: DBType }) => {
@@ -39,45 +39,40 @@ export const labelActions = {
 		);
 	},
 	count: async (db: DBType, filter?: LabelFilterSchemaType) => {
-		materializedViewActions.conditionalRefresh({ db });
+		const { table, target } = await getCorrectLabelTable(db);
 		const count = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(labelMaterializedView.id) })
-				.from(labelMaterializedView)
-				.where(and(...(filter ? labelFilterToQuery(filter) : []))),
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
+				.where(and(...(filter ? labelFilterToQuery({ filter, target }) : []))),
 			'Labels - Count'
 		);
 
 		return count[0].count;
 	},
 	listWithTransactionCount: async (db: DBType) => {
-		materializedViewActions.conditionalRefresh({ db });
+		const { table } = await getCorrectLabelTable(db);
 		const items = dbExecuteLogger(
-			db
-				.select({ id: labelMaterializedView.id, journalCount: labelMaterializedView.count })
-				.from(labelMaterializedView),
+			db.select({ id: table.id, journalCount: table.count }).from(table),
 			'Labels - List With Transaction Count'
 		);
 
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: LabelFilterSchemaType }) => {
-		materializedViewActions.conditionalRefresh({ db });
+		const { table, target } = await getCorrectLabelTable(db);
 		const { page = 0, pageSize = 10, orderBy } = filter;
 
-		const where = labelFilterToQuery(filter, true);
+		const where = labelFilterToQuery({ filter, target });
 
-		const defaultOrderBy = [
-			asc(labelMaterializedView.title),
-			desc(labelMaterializedView.createdAt)
-		];
+		const defaultOrderBy = [asc(table.title), desc(table.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
 						currentOrder.direction === 'asc'
-							? asc(labelMaterializedView[currentOrder.field])
-							: desc(labelMaterializedView[currentOrder.field])
+							? asc(table[currentOrder.field])
+							: desc(table[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
@@ -86,7 +81,7 @@ export const labelActions = {
 		const results = await dbExecuteLogger(
 			db
 				.select()
-				.from(labelMaterializedView)
+				.from(table)
 				.where(and(...where))
 				.limit(pageSize)
 				.offset(page * pageSize)
@@ -96,8 +91,8 @@ export const labelActions = {
 
 		const resultCount = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(labelMaterializedView.id) })
-				.from(labelMaterializedView)
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
 				.where(and(...where)),
 			'Labels - List - Count'
 		);

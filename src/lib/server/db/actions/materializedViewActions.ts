@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { reusableFilter } from '../postgres/schema';
 import {
@@ -14,7 +14,9 @@ import {
 
 import { booleanKeyValueStore } from './helpers/keyValueStore';
 import { logging } from '$lib/server/logging';
-import { dbExecuteLogger } from '../dbLogger';
+import { dbExecuteRawLogger, dbExecuteLogger } from '../dbLogger';
+import { serverEnv } from '$lib/server/serverEnv';
+import { viewRefresh } from '../../../../hooks.server';
 
 const refreshRequiredStore = booleanKeyValueStore('journalExtendedViewRefresh', true);
 const accountRefreshRequiredStore = booleanKeyValueStore('accountViewRefresh', true);
@@ -34,7 +36,7 @@ const timePromise = async <T>(title: string, enable: boolean | undefined, fn: ()
 	const endTime = Date.now();
 
 	if (logRefreshTime) {
-		logging.debug(`${title} took ${endTime - startTime}ms`);
+		logging.info(`${title} took ${endTime - startTime}ms`);
 	}
 
 	return result;
@@ -60,6 +62,9 @@ const itemsDefault = {
 	label: true
 };
 
+const useConcurrentRefresh =
+	serverEnv.CONCURRENT_REFRESH === undefined ? true : serverEnv.CONCURRENT_REFRESH;
+
 export const materializedViewActions = {
 	refresh: async ({
 		db,
@@ -71,72 +76,113 @@ export const materializedViewActions = {
 	}) => {
 		await Promise.all([
 			timePromise('Journal Extended View Refresh', items.journals, async () => {
-				await dbExecuteLogger(
-					db.refreshMaterializedView(journalExtendedView),
-					'View Refresh - Journal Extended View'
-				);
+				if (useConcurrentRefresh) {
+					await dbExecuteRawLogger(
+						db.execute(sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${journalExtendedView}`),
+						'View Refresh - Journal Extended View (Concurrent)'
+					);
+				} else {
+					await dbExecuteLogger(
+						db.refreshMaterializedView(journalExtendedView),
+						'View Refresh - Journal Extended View'
+					);
+				}
 				await refreshRequiredStore.set(db, false);
 			}),
 			timePromise('Account View Refresh', items.account, async () => {
-				await dbExecuteLogger(
-					db.refreshMaterializedView(accountMaterializedView),
-					'View Refresh - Account View'
-				);
+				if (useConcurrentRefresh) {
+					await dbExecuteRawLogger(
+						db.execute(sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${accountMaterializedView}`),
+						'View Refresh - Account View (Concurrent)'
+					);
+				} else {
+					await dbExecuteLogger(
+						db.refreshMaterializedView(accountMaterializedView),
+						'View Refresh - Account View'
+					);
+				}
 				await accountRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Tag View Refresh', items.tag, async () => {
-				await dbExecuteLogger(
-					db.refreshMaterializedView(tagMaterializedView),
-					'View Refresh - Tag View'
-				);
+				if (useConcurrentRefresh) {
+					await dbExecuteRawLogger(
+						db.execute(sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${tagMaterializedView}`),
+						'View Refresh - Tag View (Concurrent)'
+					);
+				} else {
+					await dbExecuteLogger(
+						db.refreshMaterializedView(tagMaterializedView),
+						'View Refresh - Tag View'
+					);
+				}
 				await tagRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Bill View Refresh', items.bill, async () => {
-				await dbExecuteLogger(
-					db.refreshMaterializedView(billMaterializedView),
-					'View Refresh - Bill View'
-				);
+				if (useConcurrentRefresh) {
+					await dbExecuteRawLogger(
+						db.execute(sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${billMaterializedView}`),
+						'View Refresh - Bill View (Concurrent)'
+					);
+				} else {
+					await dbExecuteLogger(
+						db.refreshMaterializedView(billMaterializedView),
+						'View Refresh - Bill View'
+					);
+				}
 				await billRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Budget View Refresh', items.budget, async () => {
-				await dbExecuteLogger(
-					db.refreshMaterializedView(budgetMaterializedView),
-					'View Refresh - Budget View'
-				);
+				if (useConcurrentRefresh) {
+					await dbExecuteRawLogger(
+						db.execute(sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${budgetMaterializedView}`),
+						'View Refresh - Budget View (Concurrent)'
+					);
+				} else {
+					await dbExecuteLogger(
+						db.refreshMaterializedView(budgetMaterializedView),
+						'View Refresh - Budget View'
+					);
+				}
 				await budgetRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Category View Refresh', items.category, async () => {
-				await dbExecuteLogger(
-					db.refreshMaterializedView(categoryMaterializedView),
-					'View Refresh - Category View'
-				);
+				if (useConcurrentRefresh) {
+					await dbExecuteRawLogger(
+						db.execute(sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${categoryMaterializedView}`),
+						'View Refresh - Category View (Concurrent)'
+					);
+				} else {
+					await dbExecuteLogger(
+						db.refreshMaterializedView(categoryMaterializedView),
+						'View Refresh - Category View'
+					);
+				}
 				await categoryRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Label View Refresh', items.label, async () => {
-				await dbExecuteLogger(
-					db.refreshMaterializedView(labelMaterializedView),
-					'View Refresh - Label View'
-				);
+				if (useConcurrentRefresh) {
+					await dbExecuteRawLogger(
+						db.execute(sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${labelMaterializedView}`),
+						'View Refresh - Label View (Concurrent)'
+					);
+				} else {
+					await dbExecuteLogger(
+						db.refreshMaterializedView(labelMaterializedView),
+						'View Refresh - Label View'
+					);
+				}
 				await labelRefreshRequiredStore.set(db, false);
 			}),
 			timePromise('Date Time View Refresh', items.label, async () => {
+				await dateTimeRefreshRequiredStore.set(db, false);
 				await dbExecuteLogger(
 					db.refreshMaterializedView(dateRangeMaterializedView),
 					'View Refresh - Date Time View'
 				);
-				await dateTimeRefreshRequiredStore.set(db, false);
 			})
 		]);
 	},
-	conditionalRefresh: async ({
-		db,
-		logStats = false,
-		items = itemsDefault
-	}: {
-		db: DBType;
-		logStats?: boolean;
-		items?: itemsType;
-	}) => {
+	needsRefresh: async ({ db, items = itemsDefault }: { db: DBType; items?: itemsType }) => {
 		const itemsRequiringUpdate = {
 			account: await accountRefreshRequiredStore.get(db),
 			tag: await tagRefreshRequiredStore.get(db),
@@ -150,6 +196,19 @@ export const materializedViewActions = {
 		const needsUpdate = Object.keys(items).some(
 			(key) => itemsRequiringUpdate[key as any as keyof typeof itemsRequiringUpdate]
 		);
+
+		return needsUpdate;
+	},
+	conditionalRefresh: async ({
+		db,
+		logStats = false,
+		items = itemsDefault
+	}: {
+		db: DBType;
+		logStats?: boolean;
+		items?: itemsType;
+	}) => {
+		const needsUpdate = await materializedViewActions.needsRefresh({ db, items });
 
 		if (!needsUpdate) return false;
 
@@ -174,5 +233,7 @@ export const materializedViewActions = {
 				'Set Refresh Required - True'
 			)
 		]);
+
+		viewRefresh.updateLastRequest();
 	}
 };

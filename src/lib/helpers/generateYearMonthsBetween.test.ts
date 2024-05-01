@@ -24,9 +24,7 @@ describe('generateYearMonthsBetween', () => {
 describe('generateYearMonthsBeforeToday', () => {
 	it('should generate year-months for a given number of months before today', () => {
 		const today = new Date();
-		const year = today.getFullYear();
-		const month = today.getMonth() + 1; // Months are 0-indexed in JavaScript
-		const currentYearMonth = `${year}-${month.toString().padStart(2, '0')}`;
+		const currentYearMonth = today.toISOString().slice(0, 7);
 
 		const result = generateYearMonthsBeforeToday(2);
 		expect(result).toContain(currentYearMonth);
@@ -37,6 +35,4 @@ describe('generateYearMonthsBeforeToday', () => {
 		const result = generateYearMonthsBeforeToday(0);
 		expect(result).toEqual([]);
 	});
-
-	// Add more tests as needed for other scenarios and edge cases
 });

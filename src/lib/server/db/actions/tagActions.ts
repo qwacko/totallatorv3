@@ -20,9 +20,9 @@ import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
-import { tagMaterializedView } from '../postgres/schema/materializedViewSchema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
+import { getCorrectTagTable } from './helpers/tag/getCorrectTagTable';
 
 export const tagActions = {
 	latestUpdate: async ({ db }: { db: DBType }) => {
@@ -36,13 +36,13 @@ export const tagActions = {
 		return dbExecuteLogger(db.query.tag.findFirst({ where: eq(tag.id, id) }), 'Tags - Get By Id');
 	},
 	count: async (db: DBType, filter?: TagFilterSchemaType) => {
-		materializedViewActions.conditionalRefresh({ db });
-		const where = filter ? tagFilterToQuery({ filter, target: 'tag' }) : [];
+		const { table, target } = await getCorrectTagTable(db);
+		const where = filter ? tagFilterToQuery({ filter, target }) : [];
 
 		const result = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(tagMaterializedView.id) })
-				.from(tagMaterializedView)
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
 				.where(and(...where)),
 			'Tags - Count'
 		);
@@ -62,24 +62,20 @@ export const tagActions = {
 		return items;
 	},
 	list: async ({ db, filter }: { db: DBType; filter: TagFilterSchemaType }) => {
-		materializedViewActions.conditionalRefresh({ db });
+		const { table, target } = await getCorrectTagTable(db);
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
-		const where = tagFilterToQuery({ filter: restFilter, target: 'tagWithSummary' });
+		const where = tagFilterToQuery({ filter: restFilter, target });
 
-		const defaultOrderBy = [
-			asc(tagMaterializedView.group),
-			asc(tagMaterializedView.single),
-			desc(tagMaterializedView.createdAt)
-		];
+		const defaultOrderBy = [asc(table.group), asc(table.single), desc(table.createdAt)];
 
 		const orderByResult = orderBy
 			? [
 					...orderBy.map((currentOrder) =>
 						currentOrder.direction === 'asc'
-							? asc(tagMaterializedView[currentOrder.field])
-							: desc(tagMaterializedView[currentOrder.field])
+							? asc(table[currentOrder.field])
+							: desc(table[currentOrder.field])
 					),
 					...defaultOrderBy
 				]
@@ -88,7 +84,7 @@ export const tagActions = {
 		const results = await dbExecuteLogger(
 			db
 				.select()
-				.from(tagMaterializedView)
+				.from(table)
 				.where(and(...where))
 				.limit(pageSize)
 				.offset(page * pageSize)
@@ -98,8 +94,8 @@ export const tagActions = {
 
 		const resultCount = await dbExecuteLogger(
 			db
-				.select({ count: drizzleCount(tag.id) })
-				.from(tagMaterializedView)
+				.select({ count: drizzleCount(table.id) })
+				.from(table)
 				.where(and(...where)),
 			'Tags - List - Count'
 		);
