@@ -24,15 +24,9 @@ import {
 	labelView
 } from './postgres/schema/materializedViewSchema';
 import { printMaterializedViewList } from './actions/helpers/printMaterializedViewList';
+import { building } from '$app/environment';
 
 const usedURL = serverEnv.POSTGRES_URL;
-
-const migrationClient = postgres(usedURL || '', { max: 1 });
-const migrationDB = drizzle(migrationClient);
-export const postgresDatabase = postgres(usedURL || '', {
-	debug: serverEnv.DEV,
-	max: serverEnv.POSTGRES_MAX_CONNECTIONS
-});
 
 const enableLogger = serverEnv.DB_QUERY_LOG;
 
@@ -44,6 +38,11 @@ class MyLogger implements Logger {
 	}
 }
 
+export const postgresDatabase = postgres(building ? '' : usedURL || '', {
+	debug: serverEnv.DEV,
+	max: serverEnv.POSTGRES_MAX_CONNECTIONS
+});
+
 export const db = drizzle(postgresDatabase, {
 	schema,
 	logger: new MyLogger()
@@ -52,8 +51,12 @@ export const db = drizzle(postgresDatabase, {
 export type DBType = typeof db;
 
 //Only Migrate If not TEST_ENV and if there is a POSTGRES_URL
-if (!serverEnv.TEST_ENV && serverEnv.POSTGRES_URL) {
+if (building) {
+	logging.warn('Building, skipping migration!');
+} else if (!serverEnv.TEST_ENV && serverEnv.POSTGRES_URL) {
 	logging.info('Migrating DB!!');
+	const migrationClient = postgres(usedURL || '', { max: 1 });
+	const migrationDB = drizzle(migrationClient);
 	await migrate(migrationDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
 	logging.info('DB Migration Complete');
 } else if (!serverEnv.POSTGRES_URL) {
