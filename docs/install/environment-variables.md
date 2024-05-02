@@ -50,6 +50,22 @@ Sets the number of months to retain automatically created backups for after crea
 
 Set maximum timeout that imports can take before a timeout error is generated.
 
+### `CONCURRENT_REFRESH`
+
+- Type: `boolean`
+- Default: `true`
+
+Type of refreshing for database summaries (increasing performance). If `true` then the database is refreshed without locking the database. This is intended to make the refresh less likely to cause database performance issues.
+
+### `VIEW_REFRESH_TIMEOUT`
+
+- Type: `number`
+- Default: `20000`
+
+Time in milliseconds to wait for no more DB updates to be made before refreshing the views. When the refresh is finished navigation and viewing of transactions are faster. This setting is a tradeoff between speed of data access and database / server load.
+
+Note that this is also the time after data is updated before reports will also be updated to show correct data.
+
 ## Monitoring
 
 ### `LOGGING`
@@ -106,7 +122,7 @@ Enable / Disable database query logging. Should normally be turned off as this c
 
 Size of cache of DB Queries to retain in memory before forcing a flush to the database.
 
-### DB_LOG_CACHE_TIMEOUT
+### DBLOG_CACHE_TIMEOUT
 
 - Type: `number`
 - Default: `5000`
@@ -126,6 +142,27 @@ Number of hours to retain database logs for in the database.
 - Default: `100000`
 
 Number of database logs to retain in the database.
+
+### TRANSACTIONLOG_ENABLE
+
+- Type: `boolean`
+- Default: `false`
+
+Enable / Disable Logging Of DB Transactions. Intended to be used for discovering if there are extended locks on the database that prevent reads / writes. Generally turned off.
+
+### TRANSACTIONLOG_ENABLESTART
+
+- Type: `boolean`
+- Default: `false`
+
+When doing transaction logging, this enables logging the start of the transaction as well as the time at the end.
+
+### TRANSACTIONLOG_TIME_MS
+
+- Type: `number`
+- Default: `100`
+
+Threshold above which to log the transaction time in milliseconds.
 
 ## Scheduled Tasks
 

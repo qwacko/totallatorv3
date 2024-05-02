@@ -59,7 +59,8 @@ const serverEnvValidation = z.object({
 	TRANSACTIONLOG_ENABLE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TRANSACTIONLOG_ENABLESTART: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TRANSACTIONLOG_TIME_MS: z.coerce.number().optional().default(100),
-	CONCURRENT_REFRESH: parseEnvStringToBoolean({ defaultBoolean: true, optional: true })
+	CONCURRENT_REFRESH: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
+	VIEW_REFRESH_TIMEOUT: z.coerce.number().optional().default(20000)
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -93,5 +94,6 @@ export const serverEnv = serverEnvValidation.parse({
 	TRANSACTIONLOG_ENABLE: env.TRANSACTIONLOG_ENABLE,
 	TRANSACTIONLOG_TIME_MS: env.TRANSACTIONLOG_TIME_MS,
 	TRANSACTIONLOG_ENABLESTART: env.TRANSACTIONLOG_ENABLESTART,
-	CONCURRENT_REFRESH: env.CONCURRENT_REFRESH
+	CONCURRENT_REFRESH: env.CONCURRENT_REFRESH,
+	VIEW_REFRESH_TIMEOUT: env.VIEW_REFRESH_TIMEOUT
 });

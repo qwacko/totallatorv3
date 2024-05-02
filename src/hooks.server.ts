@@ -17,7 +17,7 @@ import { tActions } from '$lib/server/db/actions/tActions';
 initateCronJobs();
 
 export const viewRefresh = materializedViewRefreshRateLimiter({
-	timeout: 5000,
+	timeout: serverEnv.VIEW_REFRESH_TIMEOUT,
 	performRefresh: async () => tActions.materializedViews.conditionalRefresh({ db })
 });
 
