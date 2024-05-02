@@ -234,6 +234,6 @@ export const materializedViewActions = {
 			)
 		]);
 
-		viewRefresh.updateLastRequest();
+		viewRefresh && viewRefresh.updateLastRequest();
 	}
 };
