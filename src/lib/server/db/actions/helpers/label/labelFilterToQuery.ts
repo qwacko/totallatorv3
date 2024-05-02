@@ -100,7 +100,7 @@ export const labelFilterToSubQuery = ({
 }) => {
 	const restFilter = processLabelTextFilter.process(filter);
 
-	const labelFilter = labelFilterToQuery({ filter: restFilter, target: 'original' });
+	const labelFilter = labelFilterToQuery({ filter: restFilter, target: 'materialized' });
 	const labelIdsSubquery = db
 		.select({ id: journalEntry.id })
 		.from(labelsToJournals)
