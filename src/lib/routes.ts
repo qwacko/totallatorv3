@@ -47,6 +47,10 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// ----------------------------------------
 		'/(loggedIn)/dev/bulkLoad': {},
 
+		// Settings
+		// ----------------------------------------
+		'/(loggedIn)/settings': {},
+
 		// Imports
 		// ----------------------------------------
 		'/(loggedIn)/import': { searchParamsValidation: importFilterSchema.optional().catch({}).parse },

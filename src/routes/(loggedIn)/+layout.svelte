@@ -25,6 +25,7 @@
 	import UpdateDropdowns from '$lib/stores/UpdateDropdowns.svelte';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import MenuIcon from '$lib/components/icons/MenuIcon.svelte';
+	import SettingsIcon from '$lib/components/icons/SettingsIcon.svelte';
 	import FilterSelectionModal from '$lib/components/FilterSelectionModal.svelte';
 
 	export let data;
@@ -48,6 +49,7 @@
 	$: pageIsFiles = $page.route.id?.startsWith('/(loggedIn)/files');
 	$: pageIsQueryLog = $page.route.id?.startsWith('/(loggedIn)/queries/list');
 	$: pageIsGroupedQueries = $page.route.id?.startsWith('/(loggedIn)/queries/grouped');
+	$: pageIsSettings = $page.route.id?.startsWith('/(loggedIn)/settings');
 
 	$: pageMap = [
 		{
@@ -164,6 +166,12 @@
 						active: pageIsUsers,
 						icon: UsersIcon,
 						href: urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } })
+					},
+					{
+						label: 'Settings',
+						active: pageIsSettings,
+						icon: SettingsIcon,
+						href: urlGenerator({ address: '/(loggedIn)/settings' })
 					}
 				]
 			: []),
@@ -264,8 +272,13 @@
 		/>
 		<Button outline>Config</Button>
 		<Dropdown>
-			{#each pageMap as currentPage}
-				<DropdownItem href={currentPage.href.url}>
+			{#each pageMap as currentPage, i}
+				<DropdownItem
+					href={currentPage.href.url}
+					class="{currentPage.active ? 'bg-primary-600 text-primary-200' : ''} {i === 0
+						? 'rounded-t-lg'
+						: ''}"
+				>
 					<div class="flex flex-row items-center gap-2">
 						<svelte:component this={currentPage.icon} />{currentPage.label}
 					</div>
