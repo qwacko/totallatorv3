@@ -110,7 +110,7 @@ export const cronJobs: CronJob[] = [
 		name: 'Clean Old Imports',
 		schedule: '0 1 * * *',
 		job: async () => {
-			await tActions.import.autoCleanAll({ db, retainDays: 30 });
+			await tActions.import.autoCleanAll({ db, retainDays: serverEnv.IMPORT_RETENTION_DAYS });
 		}
 	},
 	{

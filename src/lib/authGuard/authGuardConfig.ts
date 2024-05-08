@@ -84,6 +84,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		},
 		'/(loggedIn)/backup/download/[filename]': { ...adminOnlyConfig },
 
+		// Settings Actions
+		// ----------------------------------------
+		'/(loggedIn)/settings': {
+			...adminOnlyConfig
+		},
+
 		// Dev Actions
 		// ----------------------------------------
 		'/(loggedIn)/dev/bulkLoad': {
