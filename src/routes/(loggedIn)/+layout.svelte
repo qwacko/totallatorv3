@@ -272,8 +272,13 @@
 		/>
 		<Button outline>Config</Button>
 		<Dropdown>
-			{#each pageMap as currentPage}
-				<DropdownItem href={currentPage.href.url}>
+			{#each pageMap as currentPage, i}
+				<DropdownItem
+					href={currentPage.href.url}
+					class="{currentPage.active ? 'bg-primary-600 text-primary-200' : ''} {i === 0
+						? 'rounded-t-lg'
+						: ''}"
+				>
 					<div class="flex flex-row items-center gap-2">
 						<svelte:component this={currentPage.icon} />{currentPage.label}
 					</div>
