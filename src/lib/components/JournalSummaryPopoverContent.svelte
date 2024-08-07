@@ -60,7 +60,7 @@
 		}
 	}).url;
 
-	$: latestYearMonth = generateYearMonthsBeforeToday(12);
+	let latestYearMonth = generateYearMonthsBeforeToday(12);
 	$: last12Months = filterTrendData({ data: item.monthlySummary, dates: latestYearMonth });
 
 	$: formatter = getCurrencyFormatter($currencyFormat);
@@ -208,6 +208,6 @@
 				<JournalEntryIcon />
 			</Button>
 		{/if}
-		<div class="flex flex-grow" />
+		<div class="flex flex-grow"></div>
 	</div>
 {/if}

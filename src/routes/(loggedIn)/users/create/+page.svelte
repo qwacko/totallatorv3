@@ -66,7 +66,7 @@
 		<ErrorText message={$message} />
 		<div class="flex flex-row gap-2">
 			<Button type="submit" color="blue">Create</Button>
-			<div class="flex flex-grow" />
+			<div class="flex flex-grow"></div>
 			<Button
 				href={urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } }).url}
 				outline

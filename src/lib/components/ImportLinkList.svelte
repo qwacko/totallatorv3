@@ -22,7 +22,7 @@
 			<div class="flex">
 				<Heading tag="h4">{title}</Heading>
 			</div>
-			<div class="flex grow" />
+			<div class="flex grow"></div>
 			<Button
 				color="light"
 				href={urlGenerator({ address: '/(loggedIn)/import', searchParamsValue: filter }).url}
@@ -42,7 +42,7 @@
 					<P weight="light" class="flex">
 						{currentImport.detail.createdAt.toISOString().slice(0, 10)}
 					</P>
-					<div class="flex grow" />
+					<div class="flex grow" ></div>
 					<Badge color={importStatusToColour(currentImport.detail.status)}>
 						{importStatusToTest(currentImport.detail.status)}
 					</Badge>

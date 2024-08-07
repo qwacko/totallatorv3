@@ -140,7 +140,7 @@
 			<FilterTextDisplay text={filterText} />
 		</div>
 	{/if}
-	<div class="hidden flex-grow items-center md:flex" />
+	<div class="hidden flex-grow items-center md:flex"></div>
 	<div class="flex flex-row gap-2">
 		{#if $$slots.filterModal}
 			<Button size="sm" class="flex p-2" color="light" on:click={() => (filterOpened = true)}>

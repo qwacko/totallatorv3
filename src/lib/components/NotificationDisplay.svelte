@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { notificationStore, type Notification } from '$lib/stores/notificationStore';
-	import { Button, Toast } from 'flowbite-svelte';
+	import { Toast } from 'flowbite-svelte';
 	import { blur } from 'svelte/transition';
 	import SuccessIcon from './icons/SuccessIcon.svelte';
-	import CancelIcon from './icons/CancelIcon.svelte';
 	import ErrorIcon from './icons/ErrorIcon.svelte';
 	import WarningIcon from './icons/WarningIcon.svelte';
 	import InfoIcon from './icons/InfoIcon.svelte';
@@ -75,9 +74,6 @@
 
 <div class="fixed bottom-5 right-5 flex w-96 flex-col-reverse gap-4">
 	{#each usedNotifications as notification}
-		{@const percentUsed = notification.duration
-			? (time - notification.creationTime.getTime()) / notification.duration
-			: undefined}
 		<Toast
 			class=" w-full hover:shadow-lg"
 			color={notification.type === 'success'
@@ -89,6 +85,8 @@
 						: 'blue'}
 			transition={blur}
 			params={{ amount: 10 }}
+			dismissable={notification.dismissable}
+			on:close={() => notificationStore.dismiss(notification.id)}
 		>
 			<svelte:fragment slot="icon">
 				{#if notification.type === 'success'}
@@ -107,7 +105,7 @@
 
 			{notification.message}
 
-			<svelte:fragment slot="close-button">
+			<!-- <svelte:fragment slot="close-button">
 				{#if notification.dismissable}
 					{#if percentUsed}
 						<Button
@@ -138,7 +136,7 @@
 						<CancelIcon class="text-gray-600" />
 					</Button>
 				{/if}
-			</svelte:fragment>
+			</svelte:fragment> -->
 		</Toast>
 	{/each}
 </div>

@@ -28,7 +28,7 @@
 		}
 	});
 
-	$: webManifestLink = pwaInfo ? pwaInfo.webManifest.linkTag : '';
+	let webManifestLink = pwaInfo ? pwaInfo.webManifest.linkTag : '';
 </script>
 
 <svelte:head>

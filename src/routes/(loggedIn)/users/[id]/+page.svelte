@@ -41,7 +41,7 @@
 			{#if data.currentUser.admin}
 				(Admin)
 			{/if}
-			<div class="flex flex-grow" />
+			<div class="flex flex-grow"></div>
 			{#if data.canSetAdmin}
 				<form action="?/setAdmin" method="POST" use:enhance>
 					<Button outline type="submit">Set Admin</Button>

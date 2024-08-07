@@ -30,7 +30,7 @@
 		onBrushSelected
 	}}
 	aria-roledescription="chart"
-/>
+></div>
 
 <style>
 	.chart {
