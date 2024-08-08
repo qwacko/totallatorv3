@@ -1,14 +1,23 @@
 <script lang="ts">
 	import { Button, Spinner } from 'flowbite-svelte';
+	import type { ComponentProps } from 'svelte';
 
-	export let loading = false;
-	export let message: string;
-	export let loadingMessage: string | undefined = undefined;
+	type ButtonProps = ComponentProps<Button>;
 
-	$: useLoadingMessage = loadingMessage || message || 'Loading...';
+	const {
+		loading = false,
+		message,
+		loadingMessage = undefined,
+		...restProps
+	}: { loading?: boolean; message: string; loadingMessage?: string | undefined } & Omit<
+		ButtonProps,
+		'disabled'
+	> = $props();
+
+	let useLoadingMessage = $derived(loadingMessage || message || 'Loading...');
 </script>
 
-<Button disabled={loading} {...$$restProps}>
+<Button disabled={loading} {...restProps}>
 	{#if loading}
 		<div class="flex flex-row items-center gap-2">
 			<Spinner size="6" class="p-1" />{useLoadingMessage}

@@ -7,17 +7,20 @@
 	import { P, Button } from 'flowbite-svelte';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 
-	export let data;
+	const { data } = $props();
 
-	let loading = false;
+	let loading = $state(false);
 </script>
 
-<CustomHeader pageTitle="Delete Import Linked Items" filterText={data.info.importInfo.import.title} />
+<CustomHeader
+	pageTitle="Delete Import Linked Items"
+	filterText={data.info.importInfo.import.title}
+/>
 
 <PageLayout title="Delete Import Linked Items" subtitle={data.info.importInfo.import.title}>
 	<P>
-		Delete items linked to import {data.info.importInfo.import.title}? This will leave the import for
-		future reuse.
+		Delete items linked to import {data.info.importInfo.import.title}? This will leave the import
+		for future reuse.
 	</P>
 	<Button
 		href={urlGenerator({ address: '/(loggedIn)/import/[id]', paramsValue: { id: data.id } }).url}

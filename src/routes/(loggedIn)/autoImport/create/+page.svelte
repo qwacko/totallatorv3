@@ -7,7 +7,7 @@
 	import AutoImportForm from '../AutoImportForm.svelte';
 	import type { AutoImportFormProxy } from '../autoImportFormProxy';
 
-	export let data;
+	const {data} = $props()
 
 	const form = superForm(data.form);
 
@@ -29,10 +29,10 @@
 		autoClean: formFieldProxy(form, 'autoClean')
 	};
 
-	$: message = form.message;
-	$: enhance = form.enhance;
+	const message = $derived(form.message);
+	const enhance = $derived(form.enhance);
 
-	let importing = false;
+	let importing = $state(false);
 </script>
 
 <CustomHeader pageTitle="New Auto Import" />

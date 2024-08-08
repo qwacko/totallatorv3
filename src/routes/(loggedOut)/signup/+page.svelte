@@ -7,7 +7,7 @@
 	import { urlGenerator } from '$lib/routes.js';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
-	export let data;
+	const { data } = $props();
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 </script>
 

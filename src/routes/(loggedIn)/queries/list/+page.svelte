@@ -14,8 +14,8 @@
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 	import { sizeToText } from '$lib/helpers/sizeToText';
 
-	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/queries/list', $page);
+	const {data} = $props()
+	const urlInfo = $derived(pageInfo('/(loggedIn)/queries/list', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/queries/list',

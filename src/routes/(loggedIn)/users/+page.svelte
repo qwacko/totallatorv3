@@ -15,9 +15,9 @@
 	import { page } from '$app/stores';
 	import TablePagination from '$lib/components/TablePagination.svelte';
 
-	export let data;
+	const {data} = $props();;
 
-	$: urlInfo = pageInfo('/(loggedIn)/users', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/users', $page));
 </script>
 
 <CustomHeader pageTitle="Users" numPages={data.numPages} pageNumber={data.page} />

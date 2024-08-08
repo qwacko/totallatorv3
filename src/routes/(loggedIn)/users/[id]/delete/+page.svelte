@@ -6,7 +6,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 
-	export let data;
+	const {data} = $props();
 </script>
 
 <CustomHeader pageTitle="Delete User" filterText={$page.params.id} />

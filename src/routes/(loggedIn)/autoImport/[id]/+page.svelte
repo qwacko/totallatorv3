@@ -14,7 +14,7 @@
 	import { urlGenerator } from '$lib/routes';
 	import ImportLinkList from '$lib/components/ImportLinkList.svelte';
 
-	export let data;
+	const {data} = $props();
 
 	const form = superForm(data.form, {
 		onSubmit: () => {
@@ -43,12 +43,12 @@
 		autoClean: formFieldProxy(form, 'autoClean')
 	};
 
-	$: title = data.autoImportDetail.title;
+	const title = $derived(data.autoImportDetail.title);
 
-	let updatingEnabled = false;
-	let errorMessage: string | undefined = undefined;
+	let updatingEnabled = $state(false);
+	let errorMessage = $state<string | undefined>(undefined);
 
-	$: enhanceForm = form.enhance;
+	const enhanceForm = $derived(form.enhance);
 </script>
 
 <CustomHeader pageTitle={title} />

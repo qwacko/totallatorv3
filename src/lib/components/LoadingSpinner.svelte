@@ -1,7 +1,7 @@
-<script>
+<script lang="ts">
 	import { Badge, Spinner } from 'flowbite-svelte';
 
-	export let loadingText = 'Loading...';
+	const { loadingText = 'Loading...' }: { loadingText?: string } = $props();
 </script>
 
 <Badge class="flex flex-row gap-2" color="blue">

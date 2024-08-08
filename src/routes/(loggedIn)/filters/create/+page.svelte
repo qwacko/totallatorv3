@@ -10,17 +10,17 @@
 	import TextInput from '$lib/components/TextInput.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
-	export let data;
+	const { data } = $props();
 
-	$: form = superForm(data.form);
+	const form = $derived(superForm(data.form));
 
-	$: enhance = form.enhance;
-	$: formData = form.form;
-	$: formErrors = form.errors;
-	$: updateTitle = (newTitle: string) => {
+	const enhance = $derived(form.enhance);
+	const formData = $derived(form.form);
+	const formErrors = $derived(form.errors);
+	const updateTitle = $derived((newTitle: string) => {
 		$formData.title = newTitle;
-	};
-	$: message = form.message;
+	});
+	const message = $derived(form.message);
 </script>
 
 <CustomHeader pageTitle="Create Reusable Filter" />

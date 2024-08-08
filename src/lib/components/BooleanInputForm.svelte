@@ -6,21 +6,31 @@
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<T, unknown>;
-	export let field: FormPathLeaves<T>;
-	export let wrapperClass: string | undefined = undefined;
-	export let title: string | null;
-
-	export let onTitle: string = 'True';
-	export let offTitle: string = 'False';
-	export let clearTitle: string = 'Clear';
-	export let hideClear: boolean = false;
-
-	export let disabled: boolean = false;
+	const {
+		form,
+		field,
+		wrapperClass = undefined,
+		title,
+		onTitle = 'True',
+		offTitle = 'False',
+		clearTitle = 'Clear',
+		hideClear = false,
+		disabled = false
+	}: {
+		form: SuperForm<T, unknown>;
+		field: FormPathLeaves<T>;
+		wrapperClass?: string;
+		title: string | null;
+		onTitle?: string;
+		offTitle?: string;
+		clearTitle?: string;
+		hideClear?: boolean;
+		disabled?: boolean;
+	} = $props();
 
 	const { value } = formFieldProxy(form, field);
 
-	$: booleanValue = value as Writable<boolean | undefined>;
+	const booleanValue = $derived(value as Writable<boolean | undefined>);
 </script>
 
 <BooleanFilterButtons

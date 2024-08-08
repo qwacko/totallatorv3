@@ -27,8 +27,8 @@
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
-	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
+	const {data} = $props();
+	const urlInfo = $derived( pageInfo('/(loggedIn)/accounts', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/accounts',
@@ -41,7 +41,7 @@
 		updateDelay: 1000
 	});
 
-	let filterOpened = false;
+	let filterOpened = $state(false);
 
 	onNavigate(() => {
 		filterOpened = false;

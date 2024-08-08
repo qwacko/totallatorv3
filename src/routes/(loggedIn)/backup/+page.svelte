@@ -21,17 +21,17 @@
 	import ActionButton from '$lib/components/ActionButton.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
-	$: urlInfo = pageInfo('/(loggedIn)/backup', $page);
+	const {data} = $props()
 
-	export let data;
+	const urlInfo = $derived(pageInfo('/(loggedIn)/backup', $page));
 
-	let backupName: undefined | string = undefined;
+	let backupName = $state<string|undefined>(undefined);
 
-	$: displayFiles = data.backupFiles;
+	const displayFiles = $derived(data.backupFiles);
 
-	let creatingBackup = false;
-	let refreshing = false;
-	let tidyingBackups = false;
+	let creatingBackup = $state(false);
+	let refreshing = $state(false);
+	let tidyingBackups = $state(false);
 </script>
 
 <CustomHeader pageTitle="Backups" numPages={data.numPages} pageNumber={data.page} />

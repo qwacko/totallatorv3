@@ -9,7 +9,7 @@
 	import { urlGenerator } from '$lib/routes';
 	import ImportLinkList from '$lib/components/ImportLinkList.svelte';
 
-	export let data;
+	const {data} = $props()
 
 	const form = superForm(data.form);
 	const detailForm = superForm(data.detailForm, {

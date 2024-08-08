@@ -39,11 +39,11 @@
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 
-	export let data;
+	const {data} = $props()
 
-	$: urlInfo = pageInfo('/(loggedIn)/journals', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/journals', $page));
 
-	let filterOpened = false;
+	let filterOpened = $state(false);
 
 	onNavigate(() => {
 		filterOpened = false;

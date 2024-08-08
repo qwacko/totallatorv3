@@ -11,14 +11,14 @@
 	import CloneJournalLinksForm from './CloneJournalLinksForm.svelte';
 	import CloneJournalForm from './CloneJournalForm.svelte';
 
-	export let data;
+	const {data} = $props()
 
-	$: urlInfo = pageInfo('/(loggedIn)/journals/clone', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/journals/clone', $page));
 
 	const form = superForm(data.form);
 
-	$: enhance = form.enhance;
-	$: tainted = form.tainted;
+	const enhance = $derived(form.enhance);
+	const tainted = $derived(form.tainted);
 </script>
 
 <CustomHeader

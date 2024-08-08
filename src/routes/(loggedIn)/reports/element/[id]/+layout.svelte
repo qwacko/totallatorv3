@@ -15,9 +15,9 @@
 	import ReportElementConfigForm from '$lib/components/report/ReportElementConfigForm.svelte';
 	import ReportElementConfigFiltersForm from '$lib/components/report/ReportElementConfigFiltersForm.svelte';
 
-	export let data;
+	const {data, children} = $props();
 
-	let filterOpen = false;
+	let filterOpen = $state(false);
 
 	const {
 		form,
@@ -167,5 +167,5 @@
 		elementData={data.elementData}
 	/>
 
-	<slot />
+	{@render children()}
 </PageLayout>

@@ -4,13 +4,13 @@
 	import { Badge  } from 'flowbite-svelte';
 	import FileLinkingCard from '$lib/components/FileLinkingCard.svelte';
 
-	export let data;
+	const {data} = $props()
 
 
-	$: keys = Object.keys(data.searchParams).map((key) => ({
+	const keys = $derived(Object.keys(data.searchParams).map((key) => ({
 		key,
 		value: data.searchParams[key as keyof typeof data.searchParams]
-	}));
+	})));
 </script>
 
 <CustomHeader pageTitle="Link Unlinked Files" />

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 
-	export let title: string | undefined = undefined;
+	const { title = undefined }: { title: string | undefined } = $props();
 
-	$: titleSplit = combinedTitleSplit({ title });
+	const titleSplit = $derived(combinedTitleSplit({ title }));
 </script>
 
 {#if titleSplit.group || titleSplit.single}

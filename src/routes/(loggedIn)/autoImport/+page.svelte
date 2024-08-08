@@ -20,8 +20,10 @@
 	import { enhance } from '$app/forms';
 	import NotesButton from '$lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
+	
+	const {data} = $props();
 
-	$: urlInfo = pageInfo('/(loggedIn)/autoImport', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/autoImport', $page));
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/autoImport',
 		pageInfo: page,
@@ -33,7 +35,6 @@
 		updateDelay: 500
 	});
 
-	export let data;
 </script>
 
 <CustomHeader pageTitle="Auto Imports" numPages={data.list.pageCount} pageNumber={data.list.page} />

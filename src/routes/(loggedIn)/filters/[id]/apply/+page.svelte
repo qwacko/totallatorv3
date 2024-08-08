@@ -5,7 +5,7 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import { P, Button } from 'flowbite-svelte';
 
-	export let data;
+	const { data } = $props();
 </script>
 
 <CustomHeader pageTitle="Apply Reusable Filter {data.filter.title}" />

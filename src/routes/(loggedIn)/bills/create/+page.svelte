@@ -9,10 +9,10 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms';
 
-	export let data;
+	const {data} = $props()
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
-	$: urlInfo = pageInfo('/(loggedIn)/bills/create', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/bills/create', $page));
 </script>
 
 <CustomHeader pageTitle="Create Bill" />

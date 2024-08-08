@@ -6,7 +6,6 @@
 	import ErrorIcon from './icons/ErrorIcon.svelte';
 	import WarningIcon from './icons/WarningIcon.svelte';
 	import InfoIcon from './icons/InfoIcon.svelte';
-	import { onDestroy } from 'svelte';
 
 	const notifications = notificationStore;
 
@@ -60,16 +59,6 @@
 		: [];
 
 	$: usedNotifications = [...$notifications, ...otherNotifications].reverse();
-
-	let time = new Date().getTime();
-
-	const interval = setInterval(() => {
-		time = new Date().getTime();
-	}, 50);
-
-	onDestroy(() => {
-		clearInterval(interval);
-	});
 </script>
 
 <div class="fixed bottom-5 right-5 flex w-96 flex-col-reverse gap-4">

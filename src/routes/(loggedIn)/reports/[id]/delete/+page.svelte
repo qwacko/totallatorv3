@@ -6,9 +6,9 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	export let data;
+	const { data } = $props();
 
-	let loading = false;
+	let loading = $state(false);
 </script>
 
 <CustomHeader pageTitle="Delete Report" filterText={data.reportInfo.title} />

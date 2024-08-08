@@ -17,19 +17,19 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
-	export let data;
+	const {data} = $props()
 
-	$: urlInfo = pageInfo('/(loggedIn)/journals/bulkEdit', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/journals/bulkEdit', $page));
 
 	const form = superForm(data.form, {
 		validators: zodClient(updateJournalSchema)
 	});
 
-	$: enhance = form.enhance;
-	$: formData = form.form;
+	const enhance = $derived(form.enhance);
+	const formData = $derived(form.form);
 
-	$: titleText =
-		data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`;
+	const titleText =
+		$derived(data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`);
 </script>
 
 <CustomHeader pageTitle={titleText} filterText={data.filterText} />

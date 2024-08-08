@@ -6,8 +6,10 @@
 		options?: { title: string; selected: boolean }[];
 	};
 
-	export let data: DisplaySettingItem[];
-	export let rawData: Record<string, any> | undefined = undefined;
+	const {
+		data,
+		rawData
+	}: { data: DisplaySettingItem[]; rawData: Record<string, any> | undefined } = $props();
 </script>
 
 <div class="flex flex-row gap-2">

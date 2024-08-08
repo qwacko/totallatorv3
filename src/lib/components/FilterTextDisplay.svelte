@@ -2,9 +2,9 @@
 	import { P } from 'flowbite-svelte';
 	import FilterIcon from './icons/FilterIcon.svelte';
 
-	export let text: string[];
+	const { text }: { text: string[] } = $props();
 
-	$: textJoined = text.join(' and ');
+	const textJoined = $derived(text.join(' and '));
 </script>
 
 <div class="flex flex-row gap-4 text-gray-200">

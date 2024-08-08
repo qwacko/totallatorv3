@@ -1,14 +1,19 @@
 <script lang="ts">
-	export let filterText: string[] | string | undefined = undefined;
-	export let pageTitle: string;
-	export let pageNumber: number | undefined = undefined;
-	export let numPages: number | undefined = undefined;
+	const {
+		filterText = undefined,
+		pageTitle,
+		pageNumber = undefined,
+		numPages = undefined
+	}: {
+		filterText?: string[] | string | undefined;
+		pageTitle: string;
+		pageNumber?: number | undefined;
+		numPages?: number | undefined;
+	} = $props();
 
-	$: filterTextJoined = filterText
-		? Array.isArray(filterText)
-			? filterText.join(' and ')
-			: filterText
-		: undefined;
+	const filterTextJoined = $derived(
+		filterText ? (Array.isArray(filterText) ? filterText.join(' and ') : filterText) : undefined
+	);
 </script>
 
 <svelte:head>

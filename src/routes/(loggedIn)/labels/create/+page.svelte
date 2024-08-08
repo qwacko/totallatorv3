@@ -9,11 +9,11 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms';
 
-	export let data;
+	const {data} = $props()
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
-	$: urlInfo = pageInfo('/(loggedIn)/labels/create', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/labels/create', $page));
 </script>
 
 <CustomHeader pageTitle="New Label" />

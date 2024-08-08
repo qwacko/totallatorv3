@@ -13,14 +13,14 @@
 	import { page } from '$app/stores';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
-	export let data;
+	const {data} = $props()
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
-	$: urlInfo = pageInfo('/(loggedIn)/budgets/[id]', $page);
-	$: deleteURL = urlGenerator({
+	const urlInfo = $derived(pageInfo('/(loggedIn)/budgets/[id]', $page));
+	const deleteURL = $derived(urlGenerator({
 		address: '/(loggedIn)/budgets/[id]/delete',
 		paramsValue: { id: data.budget.id }
-	}).url;
+	}).url);
 </script>
 
 <CustomHeader pageTitle="Edit Budget" filterText={data.budget.title} />

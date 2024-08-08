@@ -2,13 +2,12 @@
 	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
 	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
 	import type { ReportLayoutIds } from '$lib/schema/reportSchema';
-
-	export let format: ReportLayoutIds;
-
 	import { reportLayoutOptions } from './reportLayoutOptions';
 
-	$: currentConfiguration = (reportLayoutOptions[format] || reportLayoutOptions.default).sort(
-		(a, b) => a.order - b.order
+	const { format }: { format: ReportLayoutIds } = $props();
+
+	const currentConfiguration = $derived(
+		(reportLayoutOptions[format] || reportLayoutOptions.default).sort((a, b) => a.order - b.order)
 	);
 </script>
 

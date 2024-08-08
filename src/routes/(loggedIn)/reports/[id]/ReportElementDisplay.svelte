@@ -3,12 +3,11 @@
 	import type { GetReportConfigResult } from '$lib/server/db/actions/reportActions';
 	import { Badge } from 'flowbite-svelte';
 
-	export let id: string;
-	export let data: GetReportConfigResult;
+	const { id, data }: { id: string; data: GetReportConfigResult } = $props();
 
-	$: thisData = data?.reportElementsWithData
-		? data.reportElementsWithData.find((d) => d.id === id)
-		: undefined;
+	const thisData = $derived(
+		data?.reportElementsWithData ? data.reportElementsWithData.find((d) => d.id === id) : undefined
+	);
 </script>
 
 {#if !thisData}

@@ -16,9 +16,9 @@
 	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
 	import { importProgressToText } from '../importProgressToText';
 
-	export let data;
+	const {data} = $props()
 
-	$: if (browser) {
+	$effect(() => {if (browser) {
 		if (
 			data.streaming.data.detail.status === 'importing' ||
 			data.streaming.data.detail.status === 'awaitingImport'
@@ -27,7 +27,7 @@
 				invalidateAll();
 			}, 2000);
 		}
-	}
+	}})
 </script>
 
 <CustomHeader pageTitle="Import" filterText={data.info.importInfo.import.title} />

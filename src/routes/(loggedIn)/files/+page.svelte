@@ -28,8 +28,8 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/files', $page);
+	const {data} = $props()
+	const urlInfo = $derived(pageInfo('/(loggedIn)/files', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/files',
@@ -42,9 +42,9 @@
 		updateDelay: 500
 	});
 
-	let filterOpened = false;
+	let filterOpened = $state(false);
 
-	let checkingFiles = false;
+	let checkingFiles = $state(false);
 
 	onNavigate(() => {
 		filterOpened = false;

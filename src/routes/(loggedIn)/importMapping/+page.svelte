@@ -15,9 +15,9 @@
 	import { enhance } from '$app/forms';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 
-	export let data;
+	const {data} = $props()
 
-	$: urlInfo = pageInfo('/(loggedIn)/importMapping', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/importMapping', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/importMapping',
@@ -30,7 +30,7 @@
 		updateDelay: 500
 	});
 
-	let filterOpened = false;
+	let filterOpened = $state(false);
 
 	onNavigate(() => {
 		filterOpened = false;

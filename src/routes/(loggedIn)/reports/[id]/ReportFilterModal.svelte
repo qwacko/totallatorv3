@@ -5,10 +5,10 @@
 	import { enhance } from '$app/forms';
 	import { defaultCustomEnhance } from '$lib/helpers/customEnhance';
 
-	export let filter: JournalFilterSchemaWithoutPaginationType | undefined;
+	const {filter}:{filter: JournalFilterSchemaWithoutPaginationType | undefined} = $props();
 
-	let filterModalOpened = false;
-	let loading = false;
+	let filterModalOpened = $state(false);
+	let loading = $state(false);
 </script>
 
 <FilterModal

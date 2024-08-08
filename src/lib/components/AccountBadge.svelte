@@ -10,47 +10,56 @@
 	import { urlGenerator } from '$lib/routes';
 	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 
-	export let accountInfo: {
-		id: string | null;
-		type: AccountTypeEnumType | null;
-		title: string | null;
-		accountGroupCombinedTitle: string | null;
-	};
+	const {
+		accountInfo,
+		currentFilter,
+		payeeFilter = false
+	}: {
+		accountInfo: {
+			id: string | null;
+			type: AccountTypeEnumType | null;
+			title: string | null;
+			accountGroupCombinedTitle: string | null;
+		};
+		payeeFilter?: boolean;
+		currentFilter: JournalFilterSchemaType;
+	} = $props();
 
-	export let currentFilter: JournalFilterSchemaType;
-	export let payeeFilter = false;
+	let opened = $state(false);
 
-	let opened = false;
+	const filterURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...currentFilter,
+				...(payeeFilter
+					? { payee: { id: accountInfo.id || undefined } }
+					: {
+							account: {
+								id: accountInfo.id || undefined,
+								type: [...accountTypeEnum]
+							}
+						})
+			}
+		}).url
+	);
 
-	$: filterURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...currentFilter,
-			...(payeeFilter
-				? { payee: { id: accountInfo.id || undefined } }
-				: {
-						account: {
-							id: accountInfo.id || undefined,
-							type: [...accountTypeEnum]
-						}
-					})
-		}
-	}).url;
-
-	$: viewURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...defaultJournalFilter(),
-			...(payeeFilter
-				? { payee: { id: accountInfo.id || undefined } }
-				: {
-						account: {
-							id: accountInfo.id || undefined,
-							type: [...accountTypeEnum]
-						}
-					})
-		}
-	}).url;
+	const viewURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...defaultJournalFilter(),
+				...(payeeFilter
+					? { payee: { id: accountInfo.id || undefined } }
+					: {
+							account: {
+								id: accountInfo.id || undefined,
+								type: [...accountTypeEnum]
+							}
+						})
+			}
+		}).url
+	);
 </script>
 
 {#if accountInfo.id && accountInfo.title && accountInfo.type}

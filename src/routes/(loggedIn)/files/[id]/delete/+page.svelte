@@ -7,8 +7,8 @@
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 
-	export let data;
-	let deleting = false;
+	const {data} = $props()
+	let deleting = $state(false);
 </script>
 
 <CustomHeader pageTitle="Edit File" filterText={data.file.title || data.file.originalFilename} />

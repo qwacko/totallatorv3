@@ -7,9 +7,9 @@
 	import { P, Button } from 'flowbite-svelte';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 
-	export let data;
+	const {data} = $props()
 
-	let loading = false;
+	let loading = $state(false);
 </script>
 
 <CustomHeader pageTitle="Forget Import" filterText={data.info.importInfo.import.title} />

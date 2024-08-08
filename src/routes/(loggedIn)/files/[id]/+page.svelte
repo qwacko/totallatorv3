@@ -9,18 +9,18 @@
 	import TextInput from '$lib/components/TextInput.svelte';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	export let data;
-	let updating = false;
+	const {data} = $props()
+	let updating = $state(false);
 
 	const { enhance, form, constraints, errors } = superForm(data.form, {
 		onSubmit: () => (updating = true),
 		onResult: () => (updating = false)
 	});
 
-	$: deleteURL = urlGenerator({
+	const deleteURL = $derived(urlGenerator({
 		address: '/(loggedIn)/files/[id]/delete',
 		paramsValue: { id: data.file.id }
-	}).url;
+	}).url);
 </script>
 
 <CustomHeader pageTitle="Edit File" filterText={data.file.title || data.file.originalFilename} />

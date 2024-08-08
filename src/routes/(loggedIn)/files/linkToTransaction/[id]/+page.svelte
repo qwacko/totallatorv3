@@ -5,9 +5,9 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { Badge, Heading } from 'flowbite-svelte';
 
-	export let data;
+	const {data} = $props();
 
-	$: keys = [
+	const keys = $derived([
 		{ key: 'accountId', value: null },
 		{ key: 'autoImportId', value: null },
 		{ key: 'billId', value: null },
@@ -18,7 +18,7 @@
 		{ key: 'reportId', value: null },
 		{ key: 'tagId', value: null },
 		{ key: 'transactionId', value: data.transactionId }
-	];
+	]);
 </script>
 
 <CustomHeader pageTitle="Link To Transaction" />

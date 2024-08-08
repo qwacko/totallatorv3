@@ -6,31 +6,39 @@
 	import { defaultJournalFilter, type JournalFilterSchemaType } from '$lib/schema/journalSchema';
 	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 
-	export let data: { billId: string | null; billTitle: string | null };
+	const {
+		data,
+		currentFilter
+	}: {
+		data: { billId: string | null; billTitle: string | null };
+		currentFilter: JournalFilterSchemaType;
+	} = $props();
 
-	export let currentFilter: JournalFilterSchemaType;
+	let opened = $state(false);
 
-	let opened = false;
-
-	$: filterURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...currentFilter,
-			bill: {
-				id: data.billId || undefined
+	const filterURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...currentFilter,
+				bill: {
+					id: data.billId || undefined
+				}
 			}
-		}
-	}).url;
+		}).url
+	);
 
-	$: viewURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...defaultJournalFilter(),
-			bill: {
-				id: data.billId || undefined
+	const viewURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...defaultJournalFilter(),
+				bill: {
+					id: data.billId || undefined
+				}
 			}
-		}
-	}).url;
+		}).url
+	);
 </script>
 
 {#if data.billTitle && data.billId}

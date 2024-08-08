@@ -15,18 +15,18 @@
 	import { statusEnumSelection } from '$lib/schema/statusSchema.js';
 	import CancelIcon from '$lib/components/icons/CancelIcon.svelte';
 
-	export let data;
+	const { data } = $props();
 
-	$: urlInfo = pageInfo('/(loggedIn)/accounts/bulkEdit', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/accounts/bulkEdit', $page));
 
 	const form = superForm(data.form, {});
 
-	let updateAccountGrouping = false;
+	let updateAccountGrouping = $state(false);
 
-	$: titleText = `Update ${data.numberItems} Accounts`;
-	$: enhance = form.enhance;
-	$: formData = form.form;
-	$: formErrors = form.errors;
+	const titleText = $derived(`Update ${data.numberItems} Accounts`);
+	const enhance = $derived(form.enhance);
+	const formData = $derived(form.form);
+	const formErrors = $derived(form.errors);
 </script>
 
 <CustomHeader pageTitle={titleText} filterText={data.filterText} />

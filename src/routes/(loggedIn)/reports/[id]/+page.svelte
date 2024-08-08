@@ -20,12 +20,12 @@
 	import { browser } from '$app/environment';
 	import ReportFilterModal from './ReportFilterModal.svelte';
 
-	export let data;
+	const { data } = $props();
 
-	let edit = false;
-	let saving = false;
+	let edit = $state(false);
+	let saving = $state(false);
 
-	$: urlInfo = pageInfo('/(loggedIn)/accounts', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/accounts', $page));
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/reports/[id]',
 		pageInfo: page,
@@ -37,8 +37,8 @@
 		updateDelay: 500
 	});
 
-	$: reportData = reportLayoutStore(data.report);
-	$: reportLayoutStringStore = reportData.reportLayoutStringStore;
+	const reportData = $derived(reportLayoutStore(data.report));
+	const reportLayoutStringStore = $derived(reportData.reportLayoutStringStore);
 
 	const updateDateSpan = (event: Event) => {
 		const targetDateSpan = (event.target as HTMLSelectElement).value as DateSpanEnumType;
@@ -113,9 +113,7 @@
 					{data.report.filter.filterText}
 				</div>
 			{/if}
-			<ReportFilterModal
-				filter={data.report.filter?.filter}
-			/>
+			<ReportFilterModal filter={data.report.filter?.filter} />
 			<div class="flex">
 				<Select
 					value={data.dateSpan}
@@ -141,7 +139,7 @@
 	<RawDataModal data={data.report} dev={data.dev} />
 	<RawDataModal data={$reportLayoutStringStore} dev={data.dev} />
 	<ReportGridWrapper size="xl">
-		{#each $reportData.reportElements as { cols, rows, title, id, order }}
+		{#each $reportData.reportElements as { cols, rows, title, id, order } ,index}
 			<ReportGridItem {cols} {rows} highlightOnHover={false}>
 				<div class="flex h-full w-full flex-col gap-2">
 					<div class="item-stretch flex flex-grow flex-row gap-2">
@@ -199,7 +197,7 @@
 
 				<svelte:fragment slot="titleLeft">
 					{#if edit}
-						<Input tag="h4" class="mr-2" bind:value={title} />
+						<Input tag="h4" class="mr-2" bind:value={$reportData.reportElements[index].title} />
 					{:else if title}
 						<Heading tag="h4" class="mr-2">{title}</Heading>
 					{/if}

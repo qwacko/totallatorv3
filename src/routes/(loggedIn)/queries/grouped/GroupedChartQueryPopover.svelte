@@ -5,18 +5,20 @@
 	import type { EChartsOption } from 'echarts';
 	import Chart from '$lib/components/chart/Chart.svelte';
 
-	export let data: {
-		timeBuckets: Record<string, number>;
-	};
+	const {
+		data
+	}: {
+		data: {
+			timeBuckets: Record<string, number>;
+		};
+	} = $props();
 
-	let chartConfig: EChartsOption | undefined;
-
-	$: chartConfig = {
+	const chartConfig = $derived<EChartsOption>({
 		xAxis: {
 			type: 'category',
 			show: false,
 			boundaryGap: false
-		},
+		},		
 		yAxis: {
 			type: 'value',
 			show: false
@@ -35,7 +37,7 @@
 				animation: false
 			}
 		]
-	};
+	});
 </script>
 
 <Button size="xs"><ChartIcon /></Button>

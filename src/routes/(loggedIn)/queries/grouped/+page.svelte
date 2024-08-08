@@ -13,8 +13,8 @@
 	import DbQueryIcon from '$lib/components/icons/DBQueryIcon.svelte';
 	import { sizeToText } from '$lib/helpers/sizeToText';
 
-	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/queries/grouped', $page);
+	const {data} = $props()
+	const urlInfo = $derived(pageInfo('/(loggedIn)/queries/grouped', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/queries/grouped',

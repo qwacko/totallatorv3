@@ -12,11 +12,11 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import { pageInfo } from '$lib/routes';
 
-	export let data;
+	const {data} = $props();
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
-	$: urlInfo = pageInfo('/(loggedIn)/categories/create', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/categories/create', $page));
 </script>
 
 <CustomHeader pageTitle="New Category" />

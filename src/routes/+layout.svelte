@@ -9,9 +9,11 @@
 
 	updatePageStore();
 
-	export let data;
+	const { data, children } = $props();
 
-	$: authGuardFrontend($page, { admin: data.user?.admin || false, user: data.user ? true : false });
+	$effect(() => {
+		authGuardFrontend($page, { admin: data.user?.admin || false, user: data.user ? true : false });
+	});
 
 	onMount(async () => {
 		if (pwaInfo && !dev) {
@@ -34,4 +36,4 @@
 <svelte:head>
 	{@html webManifestLink}
 </svelte:head>
-<slot />
+{@render children()}

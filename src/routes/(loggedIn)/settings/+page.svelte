@@ -3,17 +3,17 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import { AccordionItem, Accordion } from 'flowbite-svelte';
 	import DisplaySettingGroup from './DisplaySettingGroup.svelte';
-	export let data;
+	const {data} = $props();
 
-	let openConfig = true;
-	let openBackup = true;
-	let openImport = true;
-	let openDev = true;
-	let openLogging = true;
-	let opendbLogging = true;
-	let openDB = true;
-	let openStorage = true;
-	let openS3 = true;
+	let openConfig = $state(true);
+	let openBackup = $state(true);
+	let openImport = $state(true);
+	let openDev = $state(true);
+	let openLogging = $state(true);
+	let opendbLogging = $state(true);
+	let openDB = $state(true);
+	let openStorage = $state(true);
+	let openS3 = $state(true);
 
 	const trueFalseToButtons = (
 		value: boolean,

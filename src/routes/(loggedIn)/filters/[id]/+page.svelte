@@ -15,29 +15,29 @@
 	import ApplyFilterIcon from '$lib/components/icons/ApplyFilterIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 
-	export let data;
+	const {data} = $props();
 
 	onNavigate(() => {
 		changeModal = false;
 		filterModal = false;
 	});
 
-	$: form = superForm(data.form, {
+	const form = $derived(superForm(data.form, {
 		onResult: () => {
 			changeModal = false;
 			filterModal = false;
 		}
-	});
+	}));
 
-	let changeModal = false;
-	let filterModal = false;
+	let changeModal = $state(false);
+	let filterModal = $state(false);
 
-	$: enhance = form.enhance;
-	$: formData = form.form;
-	$: formErrors = form.errors;
-	$: updateTitle = (newTitle: string) => {
+	const enhance = $derived(form.enhance);
+	const formData = $derived(form.form);
+	const formErrors = $derived(form.errors);
+	const updateTitle = $derived((newTitle: string) => {
 		$formData.title = newTitle;
-	};
+	});
 </script>
 
 <CustomHeader pageTitle="Update Reusable Filter" />
