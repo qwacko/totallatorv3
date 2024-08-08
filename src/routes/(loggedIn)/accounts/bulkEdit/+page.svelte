@@ -33,7 +33,6 @@
 
 <PageLayout title={titleText}>
 	<FilterTextDisplay text={data.filterText} />
-	<Heading tag="h3">Set Journal State</Heading>
 	<form method="post" class="grid grid-cols-1 gap-4 md:grid-cols-2" use:enhance>
 		<PreviousUrlInput name="prevPage" />
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
