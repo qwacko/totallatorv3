@@ -7,7 +7,7 @@
 	import AutoImportForm from '../AutoImportForm.svelte';
 	import type { AutoImportFormProxy } from '../autoImportFormProxy';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const form = superForm(data.form);
 
@@ -42,10 +42,7 @@
 		<Badge>Error : {$message}</Badge>
 	{/if}
 	<form use:enhance method="post" class="flex flex-col gap-2">
-		<AutoImportForm
-			{proxyForm}
-			disabled={importing}
-		/>
+		<AutoImportForm {proxyForm} disabled={importing} />
 
 		<ActionButton type="submit" loading={importing} message="Create" loadingMessage="Creating..." />
 	</form>

@@ -6,7 +6,7 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import { Button } from 'flowbite-svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 </script>
 
 <CustomHeader pageTitle="Delete Import Mapping" filterText={data.importMapping.title} />

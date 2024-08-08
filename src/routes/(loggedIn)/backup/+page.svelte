@@ -21,11 +21,11 @@
 	import ActionButton from '$lib/components/ActionButton.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/backup', $page));
 
-	let backupName = $state<string|undefined>(undefined);
+	let backupName = $state<string | undefined>(undefined);
 
 	const displayFiles = $derived(data.backupFiles);
 

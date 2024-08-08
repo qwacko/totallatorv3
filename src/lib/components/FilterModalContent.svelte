@@ -15,7 +15,7 @@
 	import TagFilter from './filters/TagFilter.svelte';
 	import LabelFilter from './filters/LabelFilter.svelte';
 	import PayeeFilter from './filters/PayeeFilter.svelte';
-	import {untrack} from 'svelte';
+	import { untrack } from 'svelte';
 
 	let {
 		currentFilter,
@@ -41,7 +41,10 @@
 
 		//Added to make 'url" be used, otherwise there is an error'
 		if (false) {
-			console.log('URL: ', untrack(() => url));
+			console.log(
+				'URL: ',
+				untrack(() => url)
+			);
 		}
 	});
 </script>

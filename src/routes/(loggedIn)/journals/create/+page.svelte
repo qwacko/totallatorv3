@@ -14,7 +14,7 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const form = superForm(data.form);
 
@@ -46,7 +46,7 @@
 		<DateInputForm title="Date" {form} field="date" />
 		<CurrencyInputForm title="Amount" {form} field="amount" />
 		<CreateTransactionLinksForm {form} />
-		<CreateTransactionLabelsForm {form}  />
+		<CreateTransactionLabelsForm {form} />
 		<Button class="mt-4 md:col-span-2" type="submit">Create Transaction</Button>
 		<Button class="mt-4 md:col-span-2" on:click={() => form.reset()}>Reset</Button>
 		<ErrorText message={$message} />

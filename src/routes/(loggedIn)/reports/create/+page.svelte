@@ -19,7 +19,7 @@
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	const {data} = $props();
+	const { data } = $props();
 
 	const formAll = superForm(data.form, {
 		onSubmit: () => (loading = true),
@@ -32,7 +32,7 @@
 	const message = $derived(formAll.message);
 	const enhance = $derived(formAll.enhance);
 
-	const  urlInfo = $derived(pageInfo('/(loggedIn)/reports/create', $page));
+	const urlInfo = $derived(pageInfo('/(loggedIn)/reports/create', $page));
 
 	let loading = $state(false);
 </script>

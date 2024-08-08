@@ -1,5 +1,5 @@
 import { logging } from '../logging';
-import type {  BackupSchemaRev09Type } from './backupSchema.Rev09';
+import type { BackupSchemaRev09Type } from './backupSchema.Rev09';
 import type { BackupSchemaRev10Type } from './backupSchema.Rev10';
 
 export const backupSchemaMigrate_09to10Information = (
@@ -11,7 +11,8 @@ export const backupSchemaMigrate_09to10Information = (
 			...backup09Information.information,
 			itemCount: {
 				...backup09Information.information.itemCount,
-				numberFiles: 0, numberNotes: 0
+				numberFiles: 0,
+				numberNotes: 0
 			}
 		}
 	};
@@ -50,7 +51,7 @@ export const backupSchemaMigrate_09to10 = (
 			filtersToReportConfigs: backup09.data.filtersToReportConfigs,
 			keyValueTable: backup09.data.keyValueTable,
 			reportElementConfig: backup09.data.reportElementConfig,
-			backup: backup09.data.backup, 
+			backup: backup09.data.backup,
 			note: [],
 			file: []
 		}

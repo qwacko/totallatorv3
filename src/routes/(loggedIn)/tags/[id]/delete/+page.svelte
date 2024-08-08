@@ -5,7 +5,7 @@
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import { Button } from 'flowbite-svelte';
 
-	const {data} = $props();
+	const { data } = $props();
 </script>
 
 <CustomHeader pageTitle="Delete Tag" filterText={data.tag.title} />

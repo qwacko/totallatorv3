@@ -15,7 +15,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms';
 
-	const {data} = $props();
+	const { data } = $props();
 
 	let loading = $state(false);
 

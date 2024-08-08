@@ -28,28 +28,36 @@
 	import SettingsIcon from '$lib/components/icons/SettingsIcon.svelte';
 	import FilterSelectionModal from '$lib/components/FilterSelectionModal.svelte';
 
-	const {data, children} = $props()
+	const { data, children } = $props();
 
-	$effect(() => {$userInfoUpdateStore = data.user});
+	$effect(() => {
+		$userInfoUpdateStore = data.user;
+	});
 
 	const pageIsBills = $derived($page.route.id?.startsWith('/(loggedIn)/bills'));
-	const pageIsTags = $derived($page.route.id?.startsWith('/(loggedIn)/tags'))
-	const pageIsLabels = $derived($page.route.id?.startsWith('/(loggedIn)/labels'))
-	const pageIsBudgets = $derived($page.route.id?.startsWith('/(loggedIn)/budgets'))
-	const pageIsCategories = $derived($page.route.id?.startsWith('/(loggedIn)/categories'))
-	const pageIsAccounts = $derived($page.route.id?.startsWith('/(loggedIn)/accounts'))
-	const pageIsDev = $derived($page.route.id?.startsWith('/(loggedIn)/dev'))
-	const pageIsImportMapping = $derived($page.route.id?.startsWith('/(loggedIn)/importMapping'))
-	const pageIsAutoImport = $derived($page.route.id?.startsWith('/(loggedIn)/autoImport'))
-	const pageIsImport = $derived($page.route.id?.startsWith('/(loggedIn)/import') && !pageIsImportMapping)
-	const pageIsBackup = $derived($page.route.id?.startsWith('/(loggedIn)/backup'))
-	const pageIsCurrentUser = $derived(data.user?.id ? $page.url.toString().includes(data.user.id) : false)
-	const pageIsUsers = $derived($page.route.id?.startsWith('/(loggedIn)/users') && !pageIsCurrentUser)
-	const pageIsFilters = $derived($page.route.id?.startsWith('/(loggedIn)/filters'))
-	const pageIsFiles = $derived($page.route.id?.startsWith('/(loggedIn)/files'))
-	const pageIsQueryLog = $derived($page.route.id?.startsWith('/(loggedIn)/queries/list'))
-	const pageIsGroupedQueries = $derived($page.route.id?.startsWith('/(loggedIn)/queries/grouped'))
-	const pageIsSettings = $derived($page.route.id?.startsWith('/(loggedIn)/settings'))
+	const pageIsTags = $derived($page.route.id?.startsWith('/(loggedIn)/tags'));
+	const pageIsLabels = $derived($page.route.id?.startsWith('/(loggedIn)/labels'));
+	const pageIsBudgets = $derived($page.route.id?.startsWith('/(loggedIn)/budgets'));
+	const pageIsCategories = $derived($page.route.id?.startsWith('/(loggedIn)/categories'));
+	const pageIsAccounts = $derived($page.route.id?.startsWith('/(loggedIn)/accounts'));
+	const pageIsDev = $derived($page.route.id?.startsWith('/(loggedIn)/dev'));
+	const pageIsImportMapping = $derived($page.route.id?.startsWith('/(loggedIn)/importMapping'));
+	const pageIsAutoImport = $derived($page.route.id?.startsWith('/(loggedIn)/autoImport'));
+	const pageIsImport = $derived(
+		$page.route.id?.startsWith('/(loggedIn)/import') && !pageIsImportMapping
+	);
+	const pageIsBackup = $derived($page.route.id?.startsWith('/(loggedIn)/backup'));
+	const pageIsCurrentUser = $derived(
+		data.user?.id ? $page.url.toString().includes(data.user.id) : false
+	);
+	const pageIsUsers = $derived(
+		$page.route.id?.startsWith('/(loggedIn)/users') && !pageIsCurrentUser
+	);
+	const pageIsFilters = $derived($page.route.id?.startsWith('/(loggedIn)/filters'));
+	const pageIsFiles = $derived($page.route.id?.startsWith('/(loggedIn)/files'));
+	const pageIsQueryLog = $derived($page.route.id?.startsWith('/(loggedIn)/queries/list'));
+	const pageIsGroupedQueries = $derived($page.route.id?.startsWith('/(loggedIn)/queries/grouped'));
+	const pageIsSettings = $derived($page.route.id?.startsWith('/(loggedIn)/settings'));
 
 	const pageMap = $derived([
 		{

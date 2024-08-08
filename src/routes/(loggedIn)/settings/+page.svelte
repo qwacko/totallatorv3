@@ -3,7 +3,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import { AccordionItem, Accordion } from 'flowbite-svelte';
 	import DisplaySettingGroup from './DisplaySettingGroup.svelte';
-	const {data} = $props();
+	const { data } = $props();
 
 	let openConfig = $state(true);
 	let openBackup = $state(true);

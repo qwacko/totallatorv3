@@ -23,7 +23,7 @@
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/labels', $page));
 
 	const urlStore = pageInfoStore({
@@ -57,10 +57,7 @@
 			Create
 		</Button>
 	{/snippet}
-	<JournalSummaryWithFetch
-		filter={{ label: data.searchParams }}
-		latestUpdate={data.latestUpdate}
-	/>
+	<JournalSummaryWithFetch filter={{ label: data.searchParams }} latestUpdate={data.latestUpdate} />
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.title}
@@ -101,7 +98,7 @@
 			bind:shownColumns={$labelColumnsStore}
 			rowColour={(row) => (row.disabled ? 'grey' : undefined)}
 		>
-			{#snippet slotCustomBodyCell({row: currentRow, currentColumn})}
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/labels/[id]',
@@ -176,7 +173,7 @@
 				</div>
 			{/snippet}
 			{#snippet slotFilterModal()}
-				<LabelFilter bind:filter={$urlStore.searchParams}  />
-				{/snippet}
+				<LabelFilter bind:filter={$urlStore.searchParams} />
+			{/snippet}
 		</CustomTable>{/if}
 </PageLayout>

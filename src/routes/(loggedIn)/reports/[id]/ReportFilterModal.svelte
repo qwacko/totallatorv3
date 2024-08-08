@@ -5,7 +5,7 @@
 	import { enhance } from '$app/forms';
 	import { defaultCustomEnhance } from '$lib/helpers/customEnhance';
 
-	const {filter}:{filter: JournalFilterSchemaWithoutPaginationType | undefined} = $props();
+	const { filter }: { filter: JournalFilterSchemaWithoutPaginationType | undefined } = $props();
 
 	let filterModalOpened = $state(false);
 	let loading = $state(false);
@@ -17,7 +17,7 @@
 	currentFilter={filter ? filter : {}}
 	hideDates={false}
 >
-	{#snippet slotFooterContents({activeFilter})}
+	{#snippet slotFooterContents({ activeFilter })}
 		<form
 			action="?/updateFilter"
 			method="post"

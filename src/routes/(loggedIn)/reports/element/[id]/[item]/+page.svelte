@@ -19,7 +19,7 @@
 	import BooleanInputForm from '$lib/components/BooleanInputForm.svelte';
 	import { reportConfigPartNegativeDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartNegativeDisplayEnum';
 
-	const {data} = $props();
+	const { data } = $props();
 
 	let loading = $state(false);
 

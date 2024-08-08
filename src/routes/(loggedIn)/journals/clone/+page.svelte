@@ -11,7 +11,7 @@
 	import CloneJournalLinksForm from './CloneJournalLinksForm.svelte';
 	import CloneJournalForm from './CloneJournalForm.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/journals/clone', $page));
 

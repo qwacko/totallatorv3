@@ -16,18 +16,20 @@
 	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
 	import { importProgressToText } from '../importProgressToText';
 
-	const {data} = $props()
+	const { data } = $props();
 
-	$effect(() => {if (browser) {
-		if (
-			data.streaming.data.detail.status === 'importing' ||
-			data.streaming.data.detail.status === 'awaitingImport'
-		) {
-			setTimeout(() => {
-				invalidateAll();
-			}, 2000);
+	$effect(() => {
+		if (browser) {
+			if (
+				data.streaming.data.detail.status === 'importing' ||
+				data.streaming.data.detail.status === 'awaitingImport'
+			) {
+				setTimeout(() => {
+					invalidateAll();
+				}, 2000);
+			}
 		}
-	}})
+	});
 </script>
 
 <CustomHeader pageTitle="Import" filterText={data.info.importInfo.import.title} />

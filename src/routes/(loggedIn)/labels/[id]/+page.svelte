@@ -13,15 +13,17 @@
 	import { page } from '$app/stores';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/labels/[id]', $page));
-	const deleteURL = $derived(urlGenerator({
-		address: '/(loggedIn)/labels/[id]/delete',
-		paramsValue: { id: data.label.id }
-	}).url);
+	const deleteURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/labels/[id]/delete',
+			paramsValue: { id: data.label.id }
+		}).url
+	);
 </script>
 
 <CustomHeader pageTitle="Label" filterText={data.label.title} />

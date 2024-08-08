@@ -12,7 +12,7 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/filters', $page));
 
@@ -41,7 +41,9 @@
 	let now = $state(new Date()); // This will be updated every second
 
 	// Reactive statement to calculate time since refresh
-	const timeSinceRefreshSeconds = $derived(Math.floor((now.getTime() - refreshTime.getTime()) / 1000));
+	const timeSinceRefreshSeconds = $derived(
+		Math.floor((now.getTime() - refreshTime.getTime()) / 1000)
+	);
 
 	// Set an interval to update 'now' every second
 	setInterval(() => {

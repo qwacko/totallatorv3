@@ -14,7 +14,7 @@
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 	import { sizeToText } from '$lib/helpers/sizeToText';
 
-	const {data} = $props()
+	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/queries/list', $page));
 
 	const urlStore = pageInfoStore({
@@ -97,7 +97,7 @@
 			]}
 			bind:shownColumns={$queryColumnsStore}
 		>
-			{#snippet slotCustomBodyCell({row: currentRow, currentColumn})}
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					<div class="flex flex-row justify-center">
 						<ButtonGroup>

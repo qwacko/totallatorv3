@@ -7,7 +7,7 @@
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 
-	const {data} = $props()
+	const { data } = $props();
 	let deleting = $state(false);
 </script>
 

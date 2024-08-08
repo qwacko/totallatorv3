@@ -12,7 +12,7 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import { pageInfo } from '$lib/routes';
 
-	const {data} = $props();
+	const { data } = $props();
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 

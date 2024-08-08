@@ -31,7 +31,7 @@
 		<div class="flex flex-row items-center gap-6 self-center">
 			<div class="flex flex-col gap-1">
 				<FilterModal currentFilter={filter || defaultJournalFilter()} bind:opened={filterModal}>
-					{#snippet slotFooterContents({activeFilter})}
+					{#snippet slotFooterContents({ activeFilter })}
 						<Button on:click={() => (filterModal = false)} outline>Cancel</Button>
 						<div class="flex-grow"></div>
 

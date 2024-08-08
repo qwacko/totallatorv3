@@ -7,7 +7,7 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	let loading = $state(false);
 </script>

@@ -7,8 +7,9 @@
 	import { accountDropdownData } from '$lib/stores/dropdownStores.js';
 	import type { AccountDropdownType } from '$lib/server/db/actions/accountActions';
 
-	let { filter = $bindable() }: { filter: { id?: string; idArray?: string[]; title?: string } | undefined } =
-		$props();
+	let {
+		filter = $bindable()
+	}: { filter: { id?: string; idArray?: string[]; title?: string } | undefined } = $props();
 
 	const idToString = (id: string) => {
 		if ($accountDropdownData) {

@@ -11,7 +11,10 @@
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
-	const {form, hideAccount = false}:{form: SuperForm<UpdateJournalSchemaType>;hideAccount?: boolean;} = $props();
+	const {
+		form,
+		hideAccount = false
+	}: { form: SuperForm<UpdateJournalSchemaType>; hideAccount?: boolean } = $props();
 
 	const formData = $derived(form.form);
 </script>

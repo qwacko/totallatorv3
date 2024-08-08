@@ -15,7 +15,7 @@
 	import { page } from '$app/stores';
 	import TablePagination from '$lib/components/TablePagination.svelte';
 
-	const {data} = $props();;
+	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/users', $page));
 </script>

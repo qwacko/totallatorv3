@@ -6,7 +6,10 @@
 	import { browser } from '$app/environment';
 	import { untrack } from 'svelte';
 
-	const { data , class: className = ''}: { data: ReportConfigPartWithData_Sparkline, class?: string } = $props();
+	const {
+		data,
+		class: className = ''
+	}: { data: ReportConfigPartWithData_Sparkline; class?: string } = $props();
 
 	const type: 'area' | 'bar' =
 		data.type === 'sparkline' ? 'area' : data.type === 'sparklinebar' ? 'bar' : 'area';

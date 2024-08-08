@@ -17,7 +17,7 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/journals/bulkEdit', $page));
 
@@ -28,8 +28,9 @@
 	const enhance = $derived(form.enhance);
 	const formData = $derived(form.form);
 
-	const titleText =
-		$derived(data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`);
+	const titleText = $derived(
+		data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`
+	);
 </script>
 
 <CustomHeader pageTitle={titleText} filterText={data.filterText} />

@@ -15,7 +15,10 @@ export const groupedQueryLogOrderByToSQL = ({
 	const orderByResult = orderBy
 		? [
 				...orderBy.map((currentOrder) => {
-					let field = currentOrder.field === "title" ?  queryLogTitleTable.title : subquery[currentOrder.field];
+					let field =
+						currentOrder.field === 'title'
+							? queryLogTitleTable.title
+							: subquery[currentOrder.field];
 
 					return currentOrder.direction === 'asc' ? asc(field) : desc(field);
 				}),

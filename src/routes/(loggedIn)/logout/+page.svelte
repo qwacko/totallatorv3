@@ -4,7 +4,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 
-	const {data} = $props()
+	const { data } = $props();
 </script>
 
 <CustomHeader pageTitle="Logout {data.user?.name}" />

@@ -39,7 +39,7 @@
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/journals', $page));
 
@@ -163,7 +163,7 @@
 			]}
 			bind:shownColumns={$journalColumnsStore}
 		>
-			{#snippet slotBulkActions({selectedIds})}
+			{#snippet slotBulkActions({ selectedIds })}
 				<BulkJournalActions
 					{selectedIds}
 					allCount={data.journals.count}
@@ -222,7 +222,7 @@
 					/>
 				{/if}
 			{/snippet}
-			{#snippet slotCustomBodyCell({row: currentJournal, currentColumn})}
+			{#snippet slotCustomBodyCell({ row: currentJournal, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					<form action="?/update" method="post" use:enhance>
 						<input type="hidden" value={currentJournal.id} name="journalId" />
@@ -428,7 +428,7 @@
 					</div>
 				{/if}
 			{/snippet}
-			{#snippet slotHeaderItem({currentColumn})}
+			{#snippet slotHeaderItem({ currentColumn })}
 				{#if $urlStore.searchParams}
 					{#if currentColumn.id === 'description'}
 						<DropdownItem>

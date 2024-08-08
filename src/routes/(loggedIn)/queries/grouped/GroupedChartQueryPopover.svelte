@@ -18,7 +18,7 @@
 			type: 'category',
 			show: false,
 			boundaryGap: false
-		},		
+		},
 		yAxis: {
 			type: 'value',
 			show: false

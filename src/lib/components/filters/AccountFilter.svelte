@@ -8,12 +8,10 @@
 	import AccountTypeFilter from './AccountTypeFilter.svelte';
 	import BooleanFilterButtons from './BooleanFilterButtons.svelte';
 	import DateInput from '../DateInput.svelte';
-	import {
-		accountDropdownData,
-	} from '$lib/stores/dropdownStores.js';
+	import { accountDropdownData } from '$lib/stores/dropdownStores.js';
 	import type { AccountDropdownType } from '$lib/server/db/actions/accountActions';
 
-	let {filter = $bindable()} : { filter: AccountFilterSchemaType | undefined} = $props();
+	let { filter = $bindable() }: { filter: AccountFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
 		if ($accountDropdownData) {

@@ -28,7 +28,7 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/files', $page));
 
 	const urlStore = pageInfoStore({
@@ -156,7 +156,7 @@
 			]}
 			bind:shownColumns={$fileColumnsStore}
 		>
-			{#snippet slotCustomBodyCell({row: currentRow, currentColumn})}
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					{@const deleteURL = urlGenerator({
 						address: '/(loggedIn)/files/[id]/delete',

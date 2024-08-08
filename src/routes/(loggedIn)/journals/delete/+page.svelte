@@ -9,7 +9,7 @@
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/journals/clone', $page));
 </script>

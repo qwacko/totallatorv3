@@ -1,16 +1,17 @@
 <script lang="ts">
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import { Badge  } from 'flowbite-svelte';
+	import { Badge } from 'flowbite-svelte';
 	import FileLinkingCard from '$lib/components/FileLinkingCard.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
-
-	const keys = $derived(Object.keys(data.searchParams).map((key) => ({
-		key,
-		value: data.searchParams[key as keyof typeof data.searchParams]
-	})));
+	const keys = $derived(
+		Object.keys(data.searchParams).map((key) => ({
+			key,
+			value: data.searchParams[key as keyof typeof data.searchParams]
+		}))
+	);
 </script>
 
 <CustomHeader pageTitle="Link Unlinked Files" />

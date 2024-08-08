@@ -9,7 +9,7 @@
 	import { convertNumberToText } from '$lib/helpers/convertNumberToText';
 	import { groupedDataToTree } from './groupedDataToTree';
 
-	const { data } :{ data: ReportConfigPartWithData_NonTimeGraph } = $props();
+	const { data }: { data: ReportConfigPartWithData_NonTimeGraph } = $props();
 
 	const updateOptions = ({
 		readData,

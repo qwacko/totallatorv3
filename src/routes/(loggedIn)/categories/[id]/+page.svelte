@@ -13,15 +13,17 @@
 	import { page } from '$app/stores';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/categories/[id]', $page));
-	const deleteURL = $derived(urlGenerator({
-		address: '/(loggedIn)/categories/[id]/delete',
-		paramsValue: { id: data.category.id }
-	}).url);
+	const deleteURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/categories/[id]/delete',
+			paramsValue: { id: data.category.id }
+		}).url
+	);
 </script>
 
 <CustomHeader pageTitle="Edit Category" filterText={data.category.title} />

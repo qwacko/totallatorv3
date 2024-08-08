@@ -5,7 +5,7 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { Badge, Heading } from 'flowbite-svelte';
 
-	const {data} = $props();
+	const { data } = $props();
 
 	const keys = $derived([
 		{ key: 'accountId', value: null },

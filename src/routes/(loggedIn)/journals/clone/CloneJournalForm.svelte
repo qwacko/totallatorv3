@@ -6,7 +6,7 @@
 	import DateInputForm from '$lib/components/DateInputForm.svelte';
 	import CurrencyInputForm from '$lib/components/CurrencyInputForm.svelte';
 
-	const {form} : {form: SuperForm<CloneJournalUpdateSchemaType>}= $props();
+	const { form }: { form: SuperForm<CloneJournalUpdateSchemaType> } = $props();
 </script>
 
 <TextInputForm title="Description" {form} field="description" />

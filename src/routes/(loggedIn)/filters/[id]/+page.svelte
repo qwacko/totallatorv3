@@ -15,19 +15,21 @@
 	import ApplyFilterIcon from '$lib/components/icons/ApplyFilterIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 
-	const {data} = $props();
+	const { data } = $props();
 
 	onNavigate(() => {
 		changeModal = false;
 		filterModal = false;
 	});
 
-	const form = $derived(superForm(data.form, {
-		onResult: () => {
-			changeModal = false;
-			filterModal = false;
-		}
-	}));
+	const form = $derived(
+		superForm(data.form, {
+			onResult: () => {
+				changeModal = false;
+				filterModal = false;
+			}
+		})
+	);
 
 	let changeModal = $state(false);
 	let filterModal = $state(false);
@@ -47,8 +49,12 @@
 		<Button
 			outline
 			color="blue"
-			href={urlGenerator({ address: '/(loggedIn)/filters/[id]/apply', paramsValue: {id:data.id} }).url}
-			disabled={(data.numberResults === 0 )|| (!$formData.applyAutomatically && !$formData.applyFollowingImport)}
+			href={urlGenerator({
+				address: '/(loggedIn)/filters/[id]/apply',
+				paramsValue: { id: data.id }
+			}).url}
+			disabled={data.numberResults === 0 ||
+				(!$formData.applyAutomatically && !$formData.applyFollowingImport)}
 		>
 			<ApplyFilterIcon />
 		</Button>

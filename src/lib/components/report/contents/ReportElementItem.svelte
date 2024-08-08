@@ -6,7 +6,7 @@
 	import ReportElementContentsString from './ReportElementContentsString.svelte';
 	import ReportElementContentsTimeline from './ReportElementContentsTimeline.svelte';
 
-	const {data} : { data: ReportElementItemData | undefined} = $props();;
+	const { data }: { data: ReportElementItemData | undefined } = $props();
 </script>
 
 {#if data}

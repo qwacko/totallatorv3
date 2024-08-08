@@ -2,7 +2,7 @@
 	import { Modal, Button } from 'flowbite-svelte';
 	import { format } from 'sql-formatter';
 
-	const {data} : {data: { query?: string | null; params?: string | null }} = $props();
+	const { data }: { data: { query?: string | null; params?: string | null } } = $props();
 
 	let modalOpened = $state(false);
 

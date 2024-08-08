@@ -40,19 +40,8 @@ const currencyFormatEnum = ['USD', 'GBP', 'INR', 'AUD', 'EUR'] as const;
 const dateFormatEnum = ['YYYY-MM-DD', 'MM/DD/YY', 'MM/DD/YYYY', 'DD/MM/YY', 'DD/MM/YYYY'] as const;
 
 const fileReasonEnum = ['receipt', 'invoice', 'report', 'info'] as const;
-const fileTypeEnum = [
-	'pdf',
-	'jpg',
-	'png',
-	'webp',
-	'gif',
-	'avif',
-	'tiff',
-	'svg',
-	'other'
-] as const;
+const fileTypeEnum = ['pdf', 'jpg', 'png', 'webp', 'gif', 'avif', 'tiff', 'svg', 'other'] as const;
 const noteTypeEnum = ['info', 'reminder'] as const;
-
 
 const idColumn = { id: z.string() };
 
@@ -101,258 +90,264 @@ const linkedNoteFilterSchema = z.object({
 	reminder: z.boolean().optional()
 });
 
+const accountFilterSchema = z
+	.object({
+		textFilter: z.string().optional(),
+		id: z.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		title: z.coerce.string().optional(),
+		titleArray: z.array(z.coerce.string()).optional(),
+		excludeTitleArray: z.array(z.coerce.string()).optional(),
+		type: z
+			.array(z.enum(accountTypeEnum))
+			.optional()
+			.transform((e) => (e && e.length === 0 ? undefined : e)),
+		excludeType: z
+			.array(z.enum(accountTypeEnum))
+			.optional()
+			.transform((e) => (e && e.length === 0 ? undefined : e)),
+		accountGroup: z.coerce.string().optional(),
+		accountGroupArray: z.array(z.coerce.string()).optional(),
+		excludeAccountGroupArray: z.array(z.coerce.string()).optional(),
+		accountGroup2: z.coerce.string().optional(),
+		accountGroup2Array: z.array(z.coerce.string()).optional(),
+		excludeAccountGroup2Array: z.array(z.coerce.string()).optional(),
+		accountGroup3: z.coerce.string().optional(),
+		accountGroup3Array: z.array(z.coerce.string()).optional(),
+		excludeAccountGroup3Array: z.array(z.coerce.string()).optional(),
+		accountGroupCombined: z.coerce.string().optional(),
+		accountGroupCombinedArray: z.array(z.string()).optional(),
+		excludeAccountGroupCombinedArray: z.array(z.string()).optional(),
+		accountTitleCombined: z.coerce.string().optional(),
+		accountTitleCombinedArray: z.array(z.string()).optional(),
+		excludeAccountTitleCombinedArray: z.array(z.string()).optional(),
+		status: z.enum(statusEnum).optional(),
+		statusArray: z.array(z.enum(statusEnum)).optional(),
+		excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
+		disabled: z.boolean().optional(),
+		allowUpdate: z.boolean().optional(),
+		active: z.boolean().optional(),
+		isCash: z.coerce.boolean().optional(),
+		isNetWorth: z.coerce.boolean().optional(),
+		startDateBefore: dateStringSchema.optional(),
+		startDateAfter: dateStringSchema.optional(),
+		endDateBefore: dateStringSchema.optional(),
+		endDateAfter: dateStringSchema.optional(),
+		importIdArray: z.array(z.string()).optional(),
+		excludeImportIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+		excludeImportDetailIdArray: z.array(z.string()).optional(),
 
-const accountFilterSchema = z.object({
-	textFilter: z.string().optional(),
-	id: z.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	title: z.coerce.string().optional(),
-	titleArray: z.array(z.coerce.string()).optional(),
-	excludeTitleArray: z.array(z.coerce.string()).optional(),
-	type: z
-		.array(z.enum(accountTypeEnum))
-		.optional()
-		.transform((e) => (e && e.length === 0 ? undefined : e)),
-	excludeType: z
-		.array(z.enum(accountTypeEnum))
-		.optional()
-		.transform((e) => (e && e.length === 0 ? undefined : e)),
-	accountGroup: z.coerce.string().optional(),
-	accountGroupArray: z.array(z.coerce.string()).optional(),
-	excludeAccountGroupArray: z.array(z.coerce.string()).optional(),
-	accountGroup2: z.coerce.string().optional(),
-	accountGroup2Array: z.array(z.coerce.string()).optional(),
-	excludeAccountGroup2Array: z.array(z.coerce.string()).optional(),
-	accountGroup3: z.coerce.string().optional(),
-	accountGroup3Array: z.array(z.coerce.string()).optional(),
-	excludeAccountGroup3Array: z.array(z.coerce.string()).optional(),
-	accountGroupCombined: z.coerce.string().optional(),
-	accountGroupCombinedArray: z.array(z.string()).optional(),
-	excludeAccountGroupCombinedArray: z.array(z.string()).optional(),
-	accountTitleCombined: z.coerce.string().optional(),
-	accountTitleCombinedArray: z.array(z.string()).optional(),
-	excludeAccountTitleCombinedArray: z.array(z.string()).optional(),
-	status: z.enum(statusEnum).optional(),
-	statusArray: z.array(z.enum(statusEnum)).optional(),
-	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
-	disabled: z.boolean().optional(),
-	allowUpdate: z.boolean().optional(),
-	active: z.boolean().optional(),
-	isCash: z.coerce.boolean().optional(),
-	isNetWorth: z.coerce.boolean().optional(),
-	startDateBefore: dateStringSchema.optional(),
-	startDateAfter: dateStringSchema.optional(),
-	endDateBefore: dateStringSchema.optional(),
-	endDateAfter: dateStringSchema.optional(),
-	importIdArray: z.array(z.string()).optional(),
-	excludeImportIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	excludeImportDetailIdArray: z.array(z.string()).optional(),
+		//Summary Info Filters
+		...summaryFilterProperties
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
-	//Summary Info Filters
-	...summaryFilterProperties
-})
-.merge(linkedFileFilterSchema)
-.merge(linkedNoteFilterSchema);
+const tagFilterSchema = z
+	.object({
+		textFilter: z.string().optional(),
+		id: z.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		title: z.coerce.string().optional(),
+		titleArray: z.array(z.coerce.string()).optional(),
+		excludeTitleArray: z.array(z.coerce.string()).optional(),
+		group: z.coerce.string().optional(),
+		groupArray: z.array(z.coerce.string()).optional(),
+		excludeGroupArray: z.array(z.coerce.string()).optional(),
+		single: z.coerce.string().optional(),
+		singleArray: z.array(z.coerce.string()).optional(),
+		excludeSingleArray: z.array(z.coerce.string()).optional(),
+		status: z.enum(statusEnum).optional(),
+		statusArray: z.array(z.enum(statusEnum)).optional(),
+		excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
+		disabled: z.boolean().optional(),
+		allowUpdate: z.boolean().optional(),
+		active: z.boolean().optional(),
+		importIdArray: z.array(z.string()).optional(),
+		excludeImportIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+		excludeImportDetailIdArray: z.array(z.string()).optional(),
 
-const tagFilterSchema = z.object({
-	textFilter: z.string().optional(),
-	id: z.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	title: z.coerce.string().optional(),
-	titleArray: z.array(z.coerce.string()).optional(),
-	excludeTitleArray: z.array(z.coerce.string()).optional(),
-	group: z.coerce.string().optional(),
-	groupArray: z.array(z.coerce.string()).optional(),
-	excludeGroupArray: z.array(z.coerce.string()).optional(),
-	single: z.coerce.string().optional(),
-	singleArray: z.array(z.coerce.string()).optional(),
-	excludeSingleArray: z.array(z.coerce.string()).optional(),
-	status: z.enum(statusEnum).optional(),
-	statusArray: z.array(z.enum(statusEnum)).optional(),
-	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
-	disabled: z.boolean().optional(),
-	allowUpdate: z.boolean().optional(),
-	active: z.boolean().optional(),
-	importIdArray: z.array(z.string()).optional(),
-	excludeImportIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	excludeImportDetailIdArray: z.array(z.string()).optional(),
+		//Summary Info Filters
+		...summaryFilterProperties
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
-	//Summary Info Filters
-	...summaryFilterProperties
-})
-.merge(linkedFileFilterSchema)
-.merge(linkedNoteFilterSchema);
+const billFilterSchema = z
+	.object({
+		textFilter: z.string().optional(),
+		id: z.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		title: z.coerce.string().optional(),
+		titleArray: z.array(z.coerce.string()).optional(),
+		excludeTitleArray: z.array(z.coerce.string()).optional(),
+		status: z.enum(statusEnum).optional(),
+		statusArray: z.array(z.enum(statusEnum)).optional(),
+		excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
+		disabled: z.boolean().optional(),
+		allowUpdate: z.boolean().optional(),
+		active: z.boolean().optional(),
+		importIdArray: z.array(z.string()).optional(),
+		excludeImportIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+		excludeImportDetailIdArray: z.array(z.string()).optional(),
 
-const billFilterSchema = z.object({
-	textFilter: z.string().optional(),
-	id: z.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	title: z.coerce.string().optional(),
-	titleArray: z.array(z.coerce.string()).optional(),
-	excludeTitleArray: z.array(z.coerce.string()).optional(),
-	status: z.enum(statusEnum).optional(),
-	statusArray: z.array(z.enum(statusEnum)).optional(),
-	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
-	disabled: z.boolean().optional(),
-	allowUpdate: z.boolean().optional(),
-	active: z.boolean().optional(),
-	importIdArray: z.array(z.string()).optional(),
-	excludeImportIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	excludeImportDetailIdArray: z.array(z.string()).optional(),
+		//Summary Info Filters
+		...summaryFilterProperties
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
-	//Summary Info Filters
-	...summaryFilterProperties
-})
-.merge(linkedFileFilterSchema)
-.merge(linkedNoteFilterSchema);
+const budgetFilterSchema = z
+	.object({
+		textFilter: z.string().optional(),
+		id: z.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		title: z.coerce.string().optional(),
+		titleArray: z.array(z.coerce.string()).optional(),
+		excludeTitleArray: z.array(z.coerce.string()).optional(),
+		status: z.enum(statusEnum).optional(),
+		statusArray: z.array(z.enum(statusEnum)).optional(),
+		excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
+		disabled: z.boolean().optional(),
+		allowUpdate: z.boolean().optional(),
+		active: z.boolean().optional(),
+		importIdArray: z.array(z.string()).optional(),
+		excludeImportIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+		excludeImportDetailIdArray: z.array(z.string()).optional(),
 
-const budgetFilterSchema = z.object({
-	textFilter: z.string().optional(),
-	id: z.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	title: z.coerce.string().optional(),
-	titleArray: z.array(z.coerce.string()).optional(),
-	excludeTitleArray: z.array(z.coerce.string()).optional(),
-	status: z.enum(statusEnum).optional(),
-	statusArray: z.array(z.enum(statusEnum)).optional(),
-	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
-	disabled: z.boolean().optional(),
-	allowUpdate: z.boolean().optional(),
-	active: z.boolean().optional(),
-	importIdArray: z.array(z.string()).optional(),
-	excludeImportIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	excludeImportDetailIdArray: z.array(z.string()).optional(),
+		//Summary Info Filters
+		...summaryFilterProperties
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
-	//Summary Info Filters
-	...summaryFilterProperties
-})
-.merge(linkedFileFilterSchema)
-.merge(linkedNoteFilterSchema);
+const categoryFilterSchema = z
+	.object({
+		textFilter: z.string().optional(),
+		id: z.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		title: z.coerce.string().optional(),
+		titleArray: z.array(z.coerce.string()).optional(),
+		excludeTitleArray: z.array(z.coerce.string()).optional(),
+		group: z.coerce.string().optional(),
+		groupArray: z.array(z.coerce.string()).optional(),
+		excludeGroupArray: z.array(z.coerce.string()).optional(),
+		single: z.coerce.string().optional(),
+		singleArray: z.array(z.coerce.string()).optional(),
+		excludeSingleArray: z.array(z.coerce.string()).optional(),
+		status: z.enum(statusEnum).optional(),
+		statusArray: z.array(z.enum(statusEnum)).optional(),
+		excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
+		disabled: z.boolean().optional(),
+		allowUpdate: z.boolean().optional(),
+		active: z.boolean().optional(),
+		importIdArray: z.array(z.string()).optional(),
+		excludeImportIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+		excludeImportDetailIdArray: z.array(z.string()).optional(),
 
-const categoryFilterSchema = z.object({
-	textFilter: z.string().optional(),
-	id: z.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	title: z.coerce.string().optional(),
-	titleArray: z.array(z.coerce.string()).optional(),
-	excludeTitleArray: z.array(z.coerce.string()).optional(),
-	group: z.coerce.string().optional(),
-	groupArray: z.array(z.coerce.string()).optional(),
-	excludeGroupArray: z.array(z.coerce.string()).optional(),
-	single: z.coerce.string().optional(),
-	singleArray: z.array(z.coerce.string()).optional(),
-	excludeSingleArray: z.array(z.coerce.string()).optional(),
-	status: z.enum(statusEnum).optional(),
-	statusArray: z.array(z.enum(statusEnum)).optional(),
-	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
-	disabled: z.boolean().optional(),
-	allowUpdate: z.boolean().optional(),
-	active: z.boolean().optional(),
-	importIdArray: z.array(z.string()).optional(),
-	excludeImportIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	excludeImportDetailIdArray: z.array(z.string()).optional(),
+		//Summary Info Filters
+		...summaryFilterProperties
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
-	//Summary Info Filters
-	...summaryFilterProperties
-})
-.merge(linkedFileFilterSchema)
-.merge(linkedNoteFilterSchema);
+const labelFilterSchema = z
+	.object({
+		textFilter: z.string().optional(),
+		id: z.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		title: z.coerce.string().optional(),
+		titleArray: z.array(z.string()).optional(),
+		excludeTitleArray: z.array(z.string()).optional(),
+		status: z.enum(statusEnum).optional(),
+		statusArray: z.array(z.enum(statusEnum)).optional(),
+		excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
+		disabled: z.boolean().optional(),
+		allowUpdate: z.boolean().optional(),
+		active: z.boolean().optional(),
+		importIdArray: z.array(z.string()).optional(),
+		excludeImportIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+		excludeImportDetailIdArray: z.array(z.string()).optional(),
 
-const labelFilterSchema = z.object({
-	textFilter: z.string().optional(),
-	id: z.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	title: z.coerce.string().optional(),
-	titleArray: z.array(z.string()).optional(),
-	excludeTitleArray: z.array(z.string()).optional(),
-	status: z.enum(statusEnum).optional(),
-	statusArray: z.array(z.enum(statusEnum)).optional(),
-	excludeStatusArray: z.array(z.enum(statusEnum)).optional(),
-	disabled: z.boolean().optional(),
-	allowUpdate: z.boolean().optional(),
-	active: z.boolean().optional(),
-	importIdArray: z.array(z.string()).optional(),
-	excludeImportIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	excludeImportDetailIdArray: z.array(z.string()).optional(),
+		//Summary Info Filters
+		...summaryFilterProperties
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
-	//Summary Info Filters
-	...summaryFilterProperties
-})
-.merge(linkedFileFilterSchema)
-.merge(linkedNoteFilterSchema);
-
-const journalFilterSchemaWithoutPagination = z.object({
-	textFilter: z.coerce.string().optional(),
-	id: z.coerce.string().optional(),
-	excludeId: z.coerce.string().optional(),
-	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
-	transactionIdArray: z.array(z.string()).optional(),
-	excludeTransactionIdArray: z.array(z.string()).optional(),
-	dateSpan: z.enum(dateSpanEnum).optional().nullable(),
-	dateBefore: dateStringSchema.optional().nullable(),
-	dateAfter: dateStringSchema.optional().nullable(),
-	maxAmount: z.number().optional(),
-	minAmount: z.number().optional(),
-	yearMonth: z.array(z.string()).optional(),
-	excludeYearMonth: z.array(z.string()).optional(),
-	description: z.coerce.string().optional().nullable(),
-	descriptionArray: z.array(z.string()).optional(),
-	excludeDescription: z.coerce.string().optional(),
-	excludeDescriptionArray: z.array(z.string()).optional(),
-	transfer: z.coerce.boolean().optional(),
-	linked: z.coerce.boolean().optional(),
-	reconciled: z.coerce.boolean().optional(),
-	dataChecked: z.coerce.boolean().optional(),
-	complete: z.boolean().optional(),
-	importIdArray: z.array(z.string()).optional(),
-	importDetailIdArray: z.array(z.string()).optional(),
-	payee: z
-		.object({
-			id: z.string().optional(),
-			idArray: z.array(z.string()).optional(),
-			title: z.string().optional(),
-			titleArray: z.array(z.string()).optional()
-		})
-		.optional(),
-	excludePayee: z
-		.object({
-			id: z.string().optional(),
-			idArray: z.array(z.string()).optional(),
-			title: z.string().optional(),
-			titleArray: z.array(z.string()).optional()
-		})
-		.optional(),
-	account: accountFilterSchema
-		.optional()
-		.default({ type: ['asset', 'liability'] })
-		.optional(),
-	excludeAccount: accountFilterSchema.optional(),
-	tag: tagFilterSchema.optional(),
-	excludeTag: tagFilterSchema.optional(),
-	bill: billFilterSchema.optional(),
-	excludeBill: billFilterSchema.optional(),
-	budget: budgetFilterSchema.optional(),
-	excludeBudget: budgetFilterSchema.optional(),
-	category: categoryFilterSchema.optional(),
-	excludeCategory: categoryFilterSchema.optional(),
-	label: labelFilterSchema.optional(),
-	excludeLabel: labelFilterSchema.optional()
-})
-.merge(linkedFileFilterSchema)
-.merge(linkedNoteFilterSchema);
+const journalFilterSchemaWithoutPagination = z
+	.object({
+		textFilter: z.coerce.string().optional(),
+		id: z.coerce.string().optional(),
+		excludeId: z.coerce.string().optional(),
+		idArray: z.array(z.string()).optional(),
+		excludeIdArray: z.array(z.string()).optional(),
+		transactionIdArray: z.array(z.string()).optional(),
+		excludeTransactionIdArray: z.array(z.string()).optional(),
+		dateSpan: z.enum(dateSpanEnum).optional().nullable(),
+		dateBefore: dateStringSchema.optional().nullable(),
+		dateAfter: dateStringSchema.optional().nullable(),
+		maxAmount: z.number().optional(),
+		minAmount: z.number().optional(),
+		yearMonth: z.array(z.string()).optional(),
+		excludeYearMonth: z.array(z.string()).optional(),
+		description: z.coerce.string().optional().nullable(),
+		descriptionArray: z.array(z.string()).optional(),
+		excludeDescription: z.coerce.string().optional(),
+		excludeDescriptionArray: z.array(z.string()).optional(),
+		transfer: z.coerce.boolean().optional(),
+		linked: z.coerce.boolean().optional(),
+		reconciled: z.coerce.boolean().optional(),
+		dataChecked: z.coerce.boolean().optional(),
+		complete: z.boolean().optional(),
+		importIdArray: z.array(z.string()).optional(),
+		importDetailIdArray: z.array(z.string()).optional(),
+		payee: z
+			.object({
+				id: z.string().optional(),
+				idArray: z.array(z.string()).optional(),
+				title: z.string().optional(),
+				titleArray: z.array(z.string()).optional()
+			})
+			.optional(),
+		excludePayee: z
+			.object({
+				id: z.string().optional(),
+				idArray: z.array(z.string()).optional(),
+				title: z.string().optional(),
+				titleArray: z.array(z.string()).optional()
+			})
+			.optional(),
+		account: accountFilterSchema
+			.optional()
+			.default({ type: ['asset', 'liability'] })
+			.optional(),
+		excludeAccount: accountFilterSchema.optional(),
+		tag: tagFilterSchema.optional(),
+		excludeTag: tagFilterSchema.optional(),
+		bill: billFilterSchema.optional(),
+		excludeBill: billFilterSchema.optional(),
+		budget: budgetFilterSchema.optional(),
+		excludeBudget: budgetFilterSchema.optional(),
+		category: categoryFilterSchema.optional(),
+		excludeCategory: categoryFilterSchema.optional(),
+		label: labelFilterSchema.optional(),
+		excludeLabel: labelFilterSchema.optional()
+	})
+	.merge(linkedFileFilterSchema)
+	.merge(linkedNoteFilterSchema);
 
 const reportElementLayoutEnum = [
 	'singleItem',
@@ -508,8 +503,6 @@ export const autoImportAkahu = z.object({
 	lookbackDays: z.number().optional().default(5)
 });
 
-
-
 export const autoImportCombinedSchema = z.union([autoImportSaltEdgeSchema, autoImportAkahu]);
 
 const pageSizeEnum = ['sm', 'lg', 'xs', 'xl'] as const;
@@ -543,7 +536,7 @@ export const backupSchemaRev10 = z.object({
 			numberBackups: z.number(),
 			numberAutoImport: z.number(),
 			numberNotes: z.number(),
-			numberFiles: z.number(),
+			numberFiles: z.number()
 		})
 	}),
 	data: z.object({
@@ -879,7 +872,7 @@ export const backupSchemaRev10 = z.object({
 				reportElementId: z.string().nullable()
 			})
 		),
-		file:  z.array(
+		file: z.array(
 			z.object({
 				...idColumn,
 				...timestampColumns,
@@ -904,7 +897,7 @@ export const backupSchemaRev10 = z.object({
 				reportId: z.string().nullable(),
 				reportElementId: z.string().nullable()
 			})
-		),
+		)
 	})
 });
 

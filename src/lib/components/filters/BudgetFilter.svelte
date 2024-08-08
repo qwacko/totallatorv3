@@ -5,11 +5,10 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { BudgetFilterSchemaType } from '$lib/schema/budgetSchema';
-	import { budgetDropdownData, } from '$lib/stores/dropdownStores.js'
+	import { budgetDropdownData } from '$lib/stores/dropdownStores.js';
 	import type { BudgetDropdownType } from '$lib/server/db/actions/budgetActions';
 
-
-	let {filter = $bindable()} : { filter: BudgetFilterSchemaType | undefined} = $props();
+	let { filter = $bindable() }: { filter: BudgetFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
 		if ($budgetDropdownData) {

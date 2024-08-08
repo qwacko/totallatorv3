@@ -19,7 +19,6 @@
 		class?: string;
 	} = $props();
 
-
 	const checkHL = (item: ItemType) => {
 		if (highlightId && item) {
 			return item.id === highlightId;
