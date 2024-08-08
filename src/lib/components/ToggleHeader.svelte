@@ -13,16 +13,7 @@
 	} = $props();
 
 	const allSelected = $derived(visibleIds.filter((id) => !selectedIds.includes(id)).length === 0);
-	let checked = $state(selectedIds.length > 0);
-
-	$effect(() => {
-		if (selectedIds.length > 0 && !checked) {
-			checked = true;
-		}
-		if (selectedIds.length === 0 && checked) {
-			checked = false;
-		}
-	});
+	let checked = $derived(selectedIds.length > 0);
 
 	const toggleAll = () => {
 		if (allSelected) {
@@ -32,16 +23,16 @@
 		}
 	};
 
-	const filterSelected = (allowedIds: string[]) => {
-		if (onlyVisibleAllowed) {
-			selectedIds = allowedIds.filter((id) => selectedIds.includes(id));
-		}
-	};
-
 	//On visible Ids being changed, update the selected IDs.
 	$effect(() => {
-		untrack(() => filterSelected)(visibleIds);
+		if (onlyVisibleAllowed) {
+			const idsToDrop = selectedIds.filter((id) => !visibleIds.includes(id));
+
+			if (idsToDrop.length > 0) {
+				selectedIds = selectedIds.filter((id) => visibleIds.includes(id));
+			}
+		}
 	});
 </script>
 
-<Checkbox bind:checked on:click={toggleAll} />
+<Checkbox {checked} on:click={toggleAll} />

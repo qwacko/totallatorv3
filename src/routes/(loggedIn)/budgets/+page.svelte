@@ -23,7 +23,7 @@
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/budgets', $page));
 
 	const urlStore = pageInfoStore({
@@ -106,7 +106,7 @@
 			bind:shownColumns={$budgetColumnsStore}
 			rowColour={(row) => (row.disabled ? 'grey' : undefined)}
 		>
-			{#snippet slotCustomBodyCell({row: currentRow, currentColumn})}
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/budgets/[id]',
@@ -182,7 +182,7 @@
 				</div>
 			{/snippet}
 			{#snippet slotFilterModal()}
-				<BudgetFilter bind:filter={$urlStore.searchParams}  />
+				<BudgetFilter bind:filter={$urlStore.searchParams} />
 			{/snippet}
 		</CustomTable>
 	{/if}
