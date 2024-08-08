@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Checkbox } from 'flowbite-svelte';
-	import { untrack } from 'svelte';
 
 	let {
 		selectedIds = $bindable(),
