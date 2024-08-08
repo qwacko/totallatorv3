@@ -11,9 +11,9 @@
 	import { fileRelationshipKeys } from '$lib/schema/helpers/fileNoteRelationship';
 	import FileThumbnail from './FileThumbnail.svelte';
 
-	export let currentFile: GroupedFilesType[number];
+	const { currentFile }: { currentFile: GroupedFilesType[number] } = $props();
 
-	let updating = false;
+	let updating = $state(false);
 </script>
 
 <Timeline order="activity">
@@ -34,14 +34,17 @@
 				<P weight="light" size="sm">
 					{new Date(currentFile.createdAt).toISOString().slice(0, 10)}
 				</P>
-					<Button
-						href={urlGenerator({address:"/(loggedIn)/files/[id]/delete", paramsValue: {id:currentFile.id}}).url}
-						outline
-						color="red"
-						class="rounded-lg border p-2"
-					>
+				<Button
+					href={urlGenerator({
+						address: '/(loggedIn)/files/[id]/delete',
+						paramsValue: { id: currentFile.id }
+					}).url}
+					outline
+					color="red"
+					class="rounded-lg border p-2"
+				>
 					<DeleteIcon />
-					</Button>
+				</Button>
 				<form
 					method="post"
 					action="?/updateFile"

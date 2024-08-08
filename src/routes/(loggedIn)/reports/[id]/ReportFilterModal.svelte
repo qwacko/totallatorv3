@@ -17,7 +17,7 @@
 	currentFilter={filter ? filter : {}}
 	hideDates={false}
 >
-	<svelte:fragment slot="footerContents" let:activeFilter>
+	{#snippet slotFooterContents({activeFilter})}
 		<form
 			action="?/updateFilter"
 			method="post"
@@ -30,5 +30,5 @@
 			<Button on:click={() => (filterModalOpened = false)} outline>Cancel</Button>
 			<Button type="submit" disabled={loading}>Update</Button>
 		</form>
-	</svelte:fragment>
+	{/snippet}
 </FilterModal>

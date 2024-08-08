@@ -10,25 +10,28 @@
 	import { urlGenerator } from '$lib/routes';
 	import LinkIcon from './icons/LinkIcon.svelte';
 
-	export let files: GroupedFilesType;
-	export let target: CreateFileNoteRelationshipSchemaType;
-	export let transactionId: string | undefined = undefined;
 
-	let creating = false;
+	const {files, target, transactionId}: {
 
-	let modal = false;
+	files: GroupedFilesType;
+	 target: CreateFileNoteRelationshipSchemaType;
+	 transactionId?: string ;} = $props();
 
-	$: targetItems = Object.keys(target).map((key) => ({
+	let creating = $state(false);
+
+	let modal = $state(false);
+
+	const targetItems = $derived(Object.keys(target).map((key) => ({
 		key,
 		value: target[key as keyof typeof target]
-	}));
+	})));
 
-	$: linkURL = transactionId
+	const linkURL = $derived(transactionId
 		? urlGenerator({
 				address: '/(loggedIn)/files/linkToTransaction/[id]',
 				paramsValue: { id: transactionId }
 			}).url
-		: urlGenerator({ address: '/(loggedIn)/files/linkUnlinked', searchParamsValue: target }).url;
+		: urlGenerator({ address: '/(loggedIn)/files/linkUnlinked', searchParamsValue: target }).url);
 </script>
 
 <Button on:click={() => (modal = true)} color="primary" outline={files.length === 0} class="p-2">

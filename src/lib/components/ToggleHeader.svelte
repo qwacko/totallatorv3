@@ -1,19 +1,28 @@
 <script lang="ts">
 	import { Checkbox } from 'flowbite-svelte';
+	import { untrack } from 'svelte';
 
-	export let selectedIds: string[];
-	export let visibleIds: string[];
-	export let onlyVisibleAllowed = true;
+	let {
+		selectedIds = $bindable(),
+		visibleIds,
+		onlyVisibleAllowed = true
+	}: {
+		selectedIds: string[];
+		visibleIds: string[];
+		onlyVisibleAllowed?: boolean;
+	} = $props();
 
-	$: allSelected = visibleIds.filter((id) => !selectedIds.includes(id)).length === 0;
-	let checked = selectedIds.length > 0;
+	const allSelected = $derived(visibleIds.filter((id) => !selectedIds.includes(id)).length === 0);
+	let checked = $state(selectedIds.length > 0);
 
-	$: if (selectedIds.length > 0 && !checked) {
-		checked = true;
-	}
-	$: if (selectedIds.length === 0 && checked) {
-		checked = false;
-	}
+	$effect(() => {
+		if (selectedIds.length > 0 && !checked) {
+			checked = true;
+		}
+		if (selectedIds.length === 0 && checked) {
+			checked = false;
+		}
+	});
 
 	const toggleAll = () => {
 		if (allSelected) {
@@ -30,7 +39,9 @@
 	};
 
 	//On visible Ids being changed, update the selected IDs.
-	$: filterSelected(visibleIds);
+	$effect(() => {
+		untrack(() => filterSelected)(visibleIds);
+	});
 </script>
 
 <Checkbox bind:checked on:click={toggleAll} />

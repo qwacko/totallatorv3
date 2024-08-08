@@ -2,7 +2,7 @@
 	import type { ReportConfigPartWithData_String } from '$lib/server/db/actions/helpers/report/getData';
 	import { Badge, Spinner, Tooltip } from 'flowbite-svelte';
 
-	export let data: ReportConfigPartWithData_String;
+	const {data}: { data: ReportConfigPartWithData_String} = $props();
 </script>
 
 <div class="flex h-full w-full items-center justify-center">

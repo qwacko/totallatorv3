@@ -37,7 +37,7 @@
 <CustomHeader pageTitle="Backups" numPages={data.numPages} pageNumber={data.page} />
 
 <PageLayout title="Backups" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button href={urlGenerator({ address: '/(loggedIn)/backup/import' }).url} outline color="green">
 			Import
 		</Button>
@@ -71,7 +71,7 @@
 				outline
 			/>
 		</form>
-	</svelte:fragment>
+	{/snippet}
 	{#if data.numberOfBackups > 0}
 		<div class="flex flex-row justify-center">
 			<TablePagination

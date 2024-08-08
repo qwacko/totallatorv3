@@ -6,14 +6,23 @@
 	import { Button } from 'flowbite-svelte';
 	import ComboSelect from '../ComboSelect.svelte';
 
-	export let idArray: string[] | undefined;
-	export let title: string;
-	export let lookupItems: T[] | undefined = undefined;
-	export let idToString: ((id: string) => string) | undefined = undefined;
-	export let itemToOption: OptionFunction<T> | undefined = undefined;
-	export let itemToDisplay: DisplayFunction<T> | undefined = undefined;
+	let {
+		idArray = $bindable(),
+		title,
+		lookupItems,
+		idToString,
+		itemToOption,
+		itemToDisplay
+	}: {
+		idArray: string[] | undefined;
+		title: string;
+		lookupItems?: T[];
+		idToString?: (id: string) => string;
+		itemToOption?: OptionFunction<T>;
+		itemToDisplay?: DisplayFunction<T>;
+	} = $props();
 
-	let comboId = '';
+	let comboId = $state('');
 </script>
 
 {#if (idArray && idArray.length > 0) || (lookupItems && lookupItems.length > 0)}

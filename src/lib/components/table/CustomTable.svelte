@@ -1,14 +1,9 @@
 <script lang="ts">
 	import ToggleFromArray from '../ToggleFromArray.svelte';
-
 	import ToggleHeader from '../ToggleHeader.svelte';
-
 	import TableColumnDropdown from './TableColumnDropdown.svelte';
-
 	import OrderDropDown from '../OrderDropDown.svelte';
-
 	import FilterTextDisplay from '../FilterTextDisplay.svelte';
-
 	import DisplayCurrency from '../DisplayCurrency.svelte';
 
 	import {
@@ -26,7 +21,6 @@
 	} from 'flowbite-svelte';
 
 	import type { OrderByType } from '$lib/helpers/orderByHelper';
-
 	import type { TableColumnsConfig } from './tableTypes';
 	import TablePagination from '../TablePagination.svelte';
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
@@ -34,6 +28,7 @@
 	import HighlightText from '../HighlightText.svelte';
 	import CustomTableHeadCell from './CustomTableHeadCell.svelte';
 	import ArrowDownIcon from '../icons/ArrowDownIcon.svelte';
+	import type { Snippet } from 'svelte';
 
 	type OrderKeys = $$Generic<string>;
 	type DataTitles = $$Generic<string>;
@@ -41,67 +36,115 @@
 	type IDs = $$Generic<string>;
 	type RowData = $$Generic<Record<DataTitles, unknown>>;
 
-	export let noneFoundText = 'No Items Found';
-	export let data: RowData[];
-	export let columns: TableColumnsConfig<OrderKeys, RowData, IDs>;
-	export let currentOrder: OrderByType<OrderKeys> | undefined = undefined;
-	export let paginationInfo:
-		| {
-				page: number;
-				count: number;
-				perPage: number;
-				buttonCount: number;
-				urlForPage: (pageNumber: number) => string;
-		  }
-		| undefined = undefined;
-	export let onSortURL: ((newSort: OrderByType<OrderKeys>) => string) | undefined = undefined;
+	type FilterType = Partial<
+		Record<
+			FilterKeys,
+			| string
+			| boolean
+			| number
+			| string[]
+			| undefined
+			| null
+			| OrderByType<OrderKeys>
+			| Partial<Record<string, any>>
+		>
+	>;
 
-	export let filterText: string[] | undefined = undefined;
-	export let filterModalTitle = 'Filter';
+	let {
+		noneFoundText = 'No Items Found',
+		data,
+		columns,
+		currentOrder = undefined,
+		paginationInfo,
+		onSortURL,
+		filterText,
+		filterModalTitle = 'Filter',
+		currentFilter,
+		shownColumns = $bindable(),
+		hideTopPagination = false,
+		hideBottomPagination = false,
+		highlightText = '',
+		highlightTextColumns = [],
+		rowColour = () => undefined,
+		bulkSelection = false,
+		selectedIds = $bindable([]),
+		rowToId,
+		numberRows = $bindable(10),
+		numberRowsOptions = [10, 25, 50, 100],
+		onNumberRowsUpdate = () => {},
+		filterOpened = $bindable(false),
+		slotFilter,
+		slotBulkActions,
+		slotFilterModal,
+		slotFilterButtons,
+		slotHeaderItem,
+		slotCustomBodyCell
+	}: {
+		noneFoundText?: string;
+		data: RowData[];
+		columns: TableColumnsConfig<OrderKeys, RowData, IDs>;
+		currentOrder?: OrderByType<OrderKeys> | undefined;
+		paginationInfo?: {
+			page: number;
+			count: number;
+			perPage: number;
+			buttonCount: number;
+			urlForPage: (pageNumber: number) => string;
+		};
+		onSortURL?: (newSort: OrderByType<OrderKeys>) => string;
+		filterText?: string[];
+		filterModalTitle?: string;
+		currentFilter?: FilterType;
+		shownColumns: IDs[];
+		hideTopPagination?: boolean;
+		hideBottomPagination?: boolean;
+		highlightText?: string | null | undefined;
+		highlightTextColumns?: IDs[];
+		rowColour?: (row: RowData) => undefined | 'grey';
+		bulkSelection?: boolean;
+		selectedIds?: string[];
+		rowToId?: (row: RowData) => string;
+		numberRows?: number;
+		numberRowsOptions?: number[];
+		onNumberRowsUpdate?: (newNumberRows: number) => void;
+		filterOpened?: boolean;
+		slotFilter?: Snippet;
+		slotBulkActions?: Snippet<
+			[{ selectedIds: string[]; updateSelectedIds: (selectedIds: string[]) => string[] }]
+		>;
+		slotFilterModal?: Snippet<
+			[
+				{
+					currentFilter: FilterType | undefined;
+					filterOpened: boolean;
+					updateFilterOpened: (newValue: boolean) => void;
+				}
+			]
+		>;
+		slotFilterButtons?: Snippet;
+		slotHeaderItem?: Snippet<
+			[{ currentColumn: TableColumnsConfig<OrderKeys, RowData, IDs>[number] }]
+		>;
+		slotCustomBodyCell?: Snippet<
+			[{ currentColumn: TableColumnsConfig<OrderKeys, RowData, IDs>[number]; row: RowData }]
+		>;
+	} = $props();
 
-	export let currentFilter:
-		| Partial<
-				Record<
-					FilterKeys,
-					| string
-					| boolean
-					| number
-					| string[]
-					| undefined
-					| null
-					| OrderByType<OrderKeys>
-					| Partial<Record<string, any>>
-				>
-		  >
-		| undefined = undefined;
-	export let shownColumns: IDs[];
-	export let hideTopPagination: boolean = false;
-	export let hideBottomPagination: boolean = false;
-	export let highlightText: string | null | undefined = '';
-	export let highlightTextColumns: IDs[] = [];
-	export let rowColour: (row: RowData) => undefined | 'grey' = () => undefined;
-	export let bulkSelection: boolean = false;
-	export let selectedIds: string[] = [];
-	export let rowToId: ((row: RowData) => string) | undefined = undefined;
 	const updateSelectedIds = (newValue: string[]) => (selectedIds = newValue);
 
-	export let numberRows: number = 10;
-	export let numberRowsOptions: number[] = [10, 25, 50, 100];
-	export let onNumberRowsUpdate: (newNumberRows: number) => void = () => {};
-
-	$: sortOptions = filterNullUndefinedAndDuplicates(
-		columns.filter((item) => item.sortKey).map((item) => item.sortKey)
+	const sortOptions = $derived(
+		filterNullUndefinedAndDuplicates(
+			columns.filter((item) => item.sortKey).map((item) => item.sortKey)
+		)
 	);
 
-	export let filterOpened = false;
-
-	$: visibleIds = filterNullUndefinedAndDuplicates(
-		data.map((item) => (rowToId ? rowToId(item) : undefined))
+	const visibleIds = $derived(
+		filterNullUndefinedAndDuplicates(data.map((item) => (rowToId ? rowToId(item) : undefined)))
 	);
 
 	const updateFilterOpened = (newValue: boolean) => (filterOpened = newValue);
 	const columnIdToTitle = (id: string) => columns.find((item) => item.id === id)?.title || id;
-	$: allColumnIds = columns.map((item) => item.id);
+	const allColumnIds = $derived(columns.map((item) => item.id));
 </script>
 
 {#if paginationInfo && data.length > 0 && !hideTopPagination}
@@ -124,7 +167,7 @@
 		</Dropdown>
 	</div>
 {/if}
-<slot name="filter" />
+{#if slotFilter}{@render slotFilter()}{/if}
 
 {#if filterText}
 	<div class="flex xl:hidden">
@@ -132,8 +175,8 @@
 	</div>
 {/if}
 <div class="flex flex-col items-center gap-2 md:flex-row">
-	{#if $$slots.bulkActions}
-		<slot name="bulkActions" {selectedIds} {updateSelectedIds} />
+	{#if slotBulkActions}
+		{@render slotBulkActions({ selectedIds, updateSelectedIds })}
 	{/if}
 	{#if filterText}
 		<div class="hidden xl:flex">
@@ -142,12 +185,12 @@
 	{/if}
 	<div class="hidden flex-grow items-center md:flex"></div>
 	<div class="flex flex-row gap-2">
-		{#if $$slots.filterModal}
+		{#if slotFilterModal}
 			<Button size="sm" class="flex p-2" color="light" on:click={() => (filterOpened = true)}>
 				<FilterIcon />
 			</Button>
 			<Modal bind:open={filterOpened} size="lg" title={filterModalTitle} outsideclose>
-				<slot name="filterModal" {currentFilter} {filterOpened} {updateFilterOpened} />
+				{@render slotFilterModal({ currentFilter, filterOpened, updateFilterOpened })}
 			</Modal>
 		{/if}
 
@@ -160,7 +203,9 @@
 			/>
 		{/if}
 		<TableColumnDropdown bind:shownColumns {columnIdToTitle} columnIds={allColumnIds} />
-		<slot name="filterButtons" />
+		{#if slotFilterButtons}
+			{@render slotFilterButtons()}
+		{/if}
 	</div>
 </div>
 
@@ -186,9 +231,11 @@
 							filterActive={currentColumn.filterActive}
 							{onSortURL}
 						>
-							<svelte:fragment slot="dropdown">
-								<slot name="headerItem" {currentColumn} />
-							</svelte:fragment>
+							{#snippet slotDropdown()}
+								{#if slotHeaderItem}
+									{@render slotHeaderItem({ currentColumn })}
+								{/if}
+							{/snippet}
 						</CustomTableHeadCell>
 					{/if}
 				{/each}
@@ -220,7 +267,11 @@
 									</TableBodyCell>
 								{:else}
 									<TableBodyCell>
-										<slot name="customBodyCell" {currentColumn} {row}>No Content</slot>
+										{#if slotCustomBodyCell}
+											{@render slotCustomBodyCell({ currentColumn, row })}
+										{:else}
+											No Content
+										{/if}
 									</TableBodyCell>
 								{/if}
 							{/if}
@@ -268,8 +319,10 @@
 										/>
 									{:else if currentColumn.rowToCurrency}
 										<DisplayCurrency {...currentColumn.rowToCurrency(row)} />
+									{:else if slotCustomBodyCell}
+										{@render slotCustomBodyCell({ currentColumn, row })}
 									{:else}
-										<slot name="customBodyCell" {currentColumn} {row}>No Content</slot>
+										No Content
 									{/if}
 								{/if}
 							</div>

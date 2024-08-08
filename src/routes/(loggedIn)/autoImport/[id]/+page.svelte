@@ -14,7 +14,7 @@
 	import { urlGenerator } from '$lib/routes';
 	import ImportLinkList from '$lib/components/ImportLinkList.svelte';
 
-	const {data} = $props();
+	const { data } = $props();
 
 	const form = superForm(data.form, {
 		onSubmit: () => {
@@ -54,7 +54,7 @@
 <CustomHeader pageTitle={title} />
 
 <PageLayout {title}>
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<form
 			action="?/enableDisable"
 			method="post"
@@ -92,7 +92,7 @@
 				/>
 			</ButtonGroup>
 		</form>
-	</svelte:fragment>
+	{/snippet}
 	{#if errorMessage}
 		<Badge color="red" title="Error">{errorMessage}</Badge>
 	{/if}

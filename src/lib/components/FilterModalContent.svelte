@@ -15,16 +15,35 @@
 	import TagFilter from './filters/TagFilter.svelte';
 	import LabelFilter from './filters/LabelFilter.svelte';
 	import PayeeFilter from './filters/PayeeFilter.svelte';
+	import {untrack} from 'svelte';
 
-	export let currentFilter: F;
-	export let urlFromFilter: ((filter: F) => string) | undefined = undefined;
-	export let hideSubmit = false;
-	export let url = '';
-	export let activeFilter: F = currentFilter;
-	export let hideDates = false;
+	let {
+		currentFilter,
+		urlFromFilter,
+		hideSubmit = false,
+		url = $bindable(''),
+		activeFilter = $bindable(currentFilter),
+		hideDates = false
+	}: {
+		currentFilter: F;
+		urlFromFilter?: (filter: F) => string;
+		hideSubmit?: boolean;
+		url?: string;
+		activeFilter?: F;
+		hideDates?: boolean;
+	} = $props();
 
-	$: activeFilter = currentFilter;
-	$: url = urlFromFilter ? urlFromFilter(activeFilter) : '';
+	$effect(() => {
+		activeFilter = currentFilter;
+	});
+	$effect(() => {
+		url = urlFromFilter ? urlFromFilter(activeFilter) : '';
+
+		//Added to make 'url" be used, otherwise there is an error'
+		if (false) {
+			console.log('URL: ', untrack(() => url));
+		}
+	});
 </script>
 
 <div class="flex flex-col gap-6">

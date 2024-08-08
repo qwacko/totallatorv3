@@ -13,7 +13,7 @@
 	import DbQueryIcon from '$lib/components/icons/DBQueryIcon.svelte';
 	import { sizeToText } from '$lib/helpers/sizeToText';
 
-	const {data} = $props()
+	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/queries/grouped', $page));
 
 	const urlStore = pageInfoStore({
@@ -36,11 +36,11 @@
 />
 
 <PageLayout title="Grouped Queries Log" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/labels/create' }).url}>
 			Create
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			filterText={data.filterText}
@@ -152,7 +152,7 @@
 			]}
 			bind:shownColumns={$groupedQueryColumnsStore}
 		>
-			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/queries/list',
@@ -172,8 +172,8 @@
 						</ButtonGroup>
 					</div>
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -184,6 +184,6 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
+			{/snippet}
 		</CustomTable>{/if}
 </PageLayout>

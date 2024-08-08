@@ -7,7 +7,7 @@
 		downloadTypeToString
 	} from '$lib/schema/downloadTypeSchema';
 
-	export let urlGenerator: (dType: DownloadTypeEnumType) => string;
+	const { urlGenerator }: { urlGenerator: (dType: DownloadTypeEnumType) => string } = $props();
 </script>
 
 <Button size="sm" class="flex p-2" color="blue" outline>

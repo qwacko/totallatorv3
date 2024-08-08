@@ -2,18 +2,29 @@
 	import type { ImportDetail } from '$lib/server/db/actions/importActions';
 	import { Badge } from 'flowbite-svelte';
 
-	export let importData: ImportDetail;
-	export let hideZero: boolean = false;
+	const {
+		importData,
+		hideZero = false
+	}: {
+		importData: ImportDetail;
+		hideZero?: boolean;
+	} = $props();
 
-	$: errorCount = importData.detail.importDetails.filter((d) => d.status === 'error').length;
-	$: importErrorCount = importData.detail.importDetails.filter(
-		(d) => d.status === 'importError'
-	).length;
-	$: processCount = importData.detail.importDetails.filter((d) => d.status === 'processed').length;
-	$: importCount = importData.detail.importDetails.filter((d) => d.status === 'imported').length;
-	$: duplicateCount = importData.detail.importDetails.filter(
-		(d) => d.status === 'duplicate'
-	).length;
+	const errorCount = $derived(
+		importData.detail.importDetails.filter((d) => d.status === 'error').length
+	);
+	const importErrorCount = $derived(
+		importData.detail.importDetails.filter((d) => d.status === 'importError').length
+	);
+	const processCount = $derived(
+		importData.detail.importDetails.filter((d) => d.status === 'processed').length
+	);
+	const importCount = $derived(
+		importData.detail.importDetails.filter((d) => d.status === 'imported').length
+	);
+	const duplicateCount = $derived(
+		importData.detail.importDetails.filter((d) => d.status === 'duplicate').length
+	);
 </script>
 
 {#if !hideZero || processCount > 0}

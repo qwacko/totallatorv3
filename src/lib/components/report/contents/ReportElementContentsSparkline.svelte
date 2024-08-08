@@ -9,7 +9,7 @@
 	import type { currencyFormatType } from '$lib/schema/userSchema';
 	import { currencyFormat } from '$lib/stores/userInfoStore';
 
-	export let data: ReportConfigPartWithData_Sparkline;
+	const { data }: { data: ReportConfigPartWithData_Sparkline } = $props();
 
 	const updateOptions = ({
 		readData,

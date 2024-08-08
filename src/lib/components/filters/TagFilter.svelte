@@ -5,11 +5,10 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { TagFilterSchemaType } from '$lib/schema/tagSchema';
-	import { tagDropdownData } from '$lib/stores/dropdownStores.js'
+	import { tagDropdownData } from '$lib/stores/dropdownStores.js';
 	import type { TagDropdownType } from '$lib/server/db/actions/tagActions';
 
-
-	export let filter: TagFilterSchemaType | undefined;
+	let { filter = $bindable() }: { filter: TagFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
 		if ($tagDropdownData) {

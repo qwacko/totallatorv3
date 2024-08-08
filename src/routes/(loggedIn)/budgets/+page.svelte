@@ -52,7 +52,7 @@
 />
 
 <PageLayout title="Budgets" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button
 			href={urlGenerator({ address: '/(loggedIn)/budgets/create' }).url}
 			color="light"
@@ -60,7 +60,7 @@
 		>
 			Create
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	<JournalSummaryWithFetch
 		filter={{ budget: data.searchParams }}
 		latestUpdate={data.latestUpdate}
@@ -106,7 +106,7 @@
 			bind:shownColumns={$budgetColumnsStore}
 			rowColour={(row) => (row.disabled ? 'grey' : undefined)}
 		>
-			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#snippet slotCustomBodyCell({row: currentRow, currentColumn})}
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/budgets/[id]',
@@ -159,8 +159,8 @@
 						</form>
 					</div>
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filterButtons">
+			{/snippet}
+			{#snippet slotFilterButtons()}
 				<DownloadDropdown
 					urlGenerator={(downloadType) =>
 						urlGenerator({
@@ -168,8 +168,8 @@
 							searchParamsValue: { ...$urlStore.searchParams, downloadType }
 						}).url}
 				/>
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -180,10 +180,10 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
-			<svelte:fragment slot="filterModal">
+			{/snippet}
+			{#snippet slotFilterModal()}
 				<BudgetFilter bind:filter={$urlStore.searchParams}  />
-			</svelte:fragment>
+			{/snippet}
 		</CustomTable>
 	{/if}
 </PageLayout>

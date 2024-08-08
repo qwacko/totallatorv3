@@ -16,10 +16,10 @@
 	import IdFilter from './IDFilter.svelte';
 	import SelectInput from '../SelectInput.svelte';
 
-	export let activeFilter: F;
-	export let hideDates = false;
-	let yearMonth: string = '';
-	let excludeYearMonth: string = '';
+	let { activeFilter = $bindable(), hideDates = false }: { activeFilter: F; hideDates?: boolean } =
+		$props();
+	let yearMonth = $state<string>('');
+	let excludeYearMonth = $state<string>('');
 </script>
 
 <div class="flex flex-col gap-2">

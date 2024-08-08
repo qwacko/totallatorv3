@@ -9,11 +9,19 @@
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 
-	export let filter: JournalFilterSchemaType | undefined;
-	export let filterModal: boolean = false;
-	export let id: string;
-	export let numberResults: number;
-	export let filterText: string[] | undefined;
+	let {
+		filter,
+		filterModal = $bindable(false),
+		id,
+		numberResults,
+		filterText
+	}: {
+		filter: JournalFilterSchemaType | undefined;
+		filterModal?: boolean;
+		id: string;
+		numberResults: number;
+		filterText: string[] | undefined;
+	} = $props();
 </script>
 
 <input type="hidden" name="id" value={id} />
@@ -22,11 +30,8 @@
 		<P class="self-center" weight="semibold">Filter</P>
 		<div class="flex flex-row items-center gap-6 self-center">
 			<div class="flex flex-col gap-1">
-				<FilterModal
-					currentFilter={filter || defaultJournalFilter()}
-					bind:opened={filterModal}
-				>
-					<svelte:fragment slot="footerContents" let:activeFilter>
+				<FilterModal currentFilter={filter || defaultJournalFilter()} bind:opened={filterModal}>
+					{#snippet slotFooterContents({activeFilter})}
 						<Button on:click={() => (filterModal = false)} outline>Cancel</Button>
 						<div class="flex-grow"></div>
 
@@ -43,7 +48,7 @@
 							<PreviousUrlInput name="prevPage" routeBased />
 							<Button type="submit">Apply</Button>
 						</form>
-					</svelte:fragment>
+					{/snippet}
 				</FilterModal>
 				<Button
 					href={urlGenerator({

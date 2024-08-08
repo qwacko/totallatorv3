@@ -10,11 +10,36 @@
 	import { fly } from 'svelte/transition';
 	import HighlightText from './HighlightText.svelte';
 	import { Button, Input, Label, P, Spinner } from 'flowbite-svelte';
+	import { untrack } from 'svelte';
 
 	const maxItemsDisplay = 20;
 
-	export let items: T[] | undefined = undefined;
-	export let filterItems: (data: T[], target: string) => T[] = (items, search) => {
+	type FilterFunction<U extends IDRecord> = (data: U[], target: string) => U[];
+
+	type PropsType = {
+		items: T[] | undefined;
+		filterItems?: FilterFunction<T>;
+		placeholder?: string;
+		title?: string | null;
+		itemToOption: OptionFunction<T>;
+		itemToDisplay: DisplayFunction<T>;
+		highlightSearch?: boolean;
+		value: string | undefined | null;
+		onChange?: (data: string | undefined) => void;
+		name?: string;
+		clearValue?: boolean;
+		clearable?: boolean;
+		clearName?: string;
+		creatable?: boolean;
+		createValue?: string | undefined | null;
+		createName?: string;
+		createDesc?: string;
+		tainted?: boolean;
+		highlightTainted?: boolean;
+		class?: string;
+	};
+
+	const defaultFilterItems: FilterFunction<T> = (items, search) => {
 		return items
 			.filter((item) => {
 				const display = itemToDisplay(item);
@@ -25,25 +50,29 @@
 			})
 			.slice(0, maxItemsDisplay);
 	};
-	export let placeholder = 'Select Item...';
-	export let title: string | undefined | null;
-	export let itemToOption: OptionFunction<T>;
-	export let itemToDisplay: DisplayFunction<T>;
-	export let highlightSearch = true;
-	export let value: string | undefined | null;
-	export let onChange: undefined | ((data: string | undefined) => void) = undefined;
-	export let name: string | undefined = undefined;
-	export let clearValue: boolean | undefined = undefined;
-	export let clearable = false;
-	export let clearName: string | undefined = undefined;
 
-	export let creatable = false;
-	export let createValue: string | undefined | null = undefined;
-	export let createName: string | undefined = undefined;
-	export let createDesc = 'Create';
-
-	export let tainted: boolean | undefined = undefined;
-	export let highlightTainted: boolean = true;
+	let {
+		items,
+		filterItems = defaultFilterItems,
+		placeholder = 'Select Item...',
+		title,
+		itemToOption,
+		itemToDisplay,
+		highlightSearch = true,
+		value = $bindable(),
+		onChange,
+		name,
+		clearValue = $bindable(),
+		clearable = false,
+		clearName,
+		creatable = false,
+		createValue = $bindable(),
+		createName,
+		createDesc = 'Create',
+		tainted,
+		highlightTainted = true,
+		class: className = ''
+	}: PropsType = $props();
 
 	const {
 		elements: { menu, input, option, label },
@@ -108,7 +137,7 @@
 		}
 	};
 
-	let targetCreate: string = '';
+	let targetCreate = $state<string>('');
 
 	const updateTargetCreate = (newTarget: string | undefined) => {
 		if (newTarget && newTarget.length > 0) {
@@ -117,18 +146,24 @@
 	};
 
 	//Updates selection when the external value changes.
-	$: items && updateSelection(value);
+	$effect(() => {
+		items && untrack(() => updateSelection)(value);
+	});
 
-	$: filteredItems = !items
-		? undefined
-		: $touchedInput
-			? filterItems(items, $inputValue.toLowerCase())
-			: items.slice(0, maxItemsDisplay);
-	$: selectedVal = $selected ? $selected.value : undefined;
-	$: updateTargetCreate($inputValue);
+	const filteredItems = $derived(
+		!items
+			? undefined
+			: $touchedInput
+				? filterItems(items, $inputValue.toLowerCase())
+				: items.slice(0, maxItemsDisplay)
+	);
+	const selectedVal = $derived($selected ? $selected.value : undefined);
+	$effect(() => {
+		untrack(() => updateTargetCreate)($inputValue);
+	});
 </script>
 
-<div class="flex flex-col gap-2 {$$props.class} @container">
+<div class="flex flex-col gap-2 {className} @container">
 	{#if name && selectedVal}
 		<input type="hidden" {name} value={selectedVal} />
 	{/if}
@@ -204,7 +239,7 @@
 		use:menu
 		transition:fly={{ duration: 150, y: -5 }}
 	>
-		<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 		<div class="flex max-h-full flex-col gap-0 overflow-y-auto px-2 py-2 text-black" tabindex="0">
 			{#each filteredItems as currentItem (currentItem.id)}
 				{@const currentItemDisplay = itemToDisplay(currentItem)}

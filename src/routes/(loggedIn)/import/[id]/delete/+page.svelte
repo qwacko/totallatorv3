@@ -7,9 +7,9 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	export let data;
+	const {data} = $props()
 
-	export let loading = false;
+	let loading = $state(false);
 </script>
 
 <CustomHeader pageTitle="Delete Import" filterText={data.info.importInfo.import.title} />
@@ -35,6 +35,7 @@
 			class="flex w-full"
 			message="Forget Import"
 			loadingMessage="Forgetting..."
+			{loading}
 		/>
 	</form>
 </PageLayout>

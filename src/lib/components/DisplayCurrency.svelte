@@ -2,12 +2,17 @@
 	import { getCurrencyFormatter } from '$lib/schema/userSchema';
 	import { currencyFormat } from '$lib/stores/userInfoStore';
 
-	export let amount: number | undefined;
-	export let positiveGreen = false;
+	const {
+		amount,
+		positiveGreen = false
+	}: {
+		amount: number | undefined;
+		positiveGreen?: boolean;
+	} = $props();
 
-	$: formatter = getCurrencyFormatter($currencyFormat);
-	$: negative = amount && amount < 0;
-	$: positive = !negative && positiveGreen;
+	const formatter = $derived(getCurrencyFormatter($currencyFormat));
+	const negative = $derived(amount && amount < 0);
+	const positive = $derived(!negative && positiveGreen);
 </script>
 
 <div class:text-red-600={negative} class:text-green-400={positive}>

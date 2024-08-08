@@ -7,10 +7,17 @@
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import type { UpdateJournalSchemaType } from '$lib/schema/journalSchema';
 
-	export let modificationFormData: SuperValidated<UpdateJournalSchemaType>;
-	export let changeModal: boolean = false;
-	export let id: string;
-	export let changeText: string[] | undefined;
+	let {
+		modificationFormData,
+		changeModal = $bindable(false),
+		id,
+		changeText
+	}: {
+		modificationFormData: SuperValidated<UpdateJournalSchemaType>;
+		changeModal: boolean;
+		id: string;
+		changeText: string[] | undefined;
+	} = $props();
 
 	const form = superForm(modificationFormData, {
 		onResult: () => {
@@ -18,8 +25,8 @@
 		}
 	});
 
-	$: modificationFormValue = form.form;
-	$: enhance = form.enhance;
+	const modificationFormValue = $derived(form.form);
+	const enhance = $derived(form.enhance);
 </script>
 
 <div class="flex flex-col gap-2">

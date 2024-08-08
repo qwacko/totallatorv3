@@ -8,7 +8,7 @@
 	import { billDropdownData } from '$lib/stores/dropdownStores.js';
 	import type { BillDropdownType } from '$lib/server/db/actions/billActions';
 
-	export let filter: BillFilterSchemaType | undefined;
+	let { filter = $bindable() }: { filter: BillFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
 		if ($billDropdownData) {
@@ -34,7 +34,7 @@
 		if ($billDropdownData) {
 			const matchingItem = $billDropdownData.find((item) => item.id === data.id);
 			if (matchingItem) {
-				return {  title: matchingItem.title };
+				return { title: matchingItem.title };
 			}
 		}
 		return { title: data.id };

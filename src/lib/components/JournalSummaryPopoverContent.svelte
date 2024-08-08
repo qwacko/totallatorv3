@@ -25,12 +25,19 @@
 	import TimeAndTransferButtons from './journalSummary/TimeAndTransferButtons.svelte';
 	import { currencyFormat } from '$lib/stores/userInfoStore';
 
-	export let item: SummaryCacheSchemaDataType;
-	export let summaryFilter: DeepPartialWithoutArray<
-		Omit<JournalFilterSchemaInputType, 'orderBy' | 'page' | 'pageSize'>
-	> = {};
-	export let showJournalLink = false;
-	export let loading: boolean | undefined;
+	const {
+		item,
+		summaryFilter = {},
+		showJournalLink = false,
+		loading
+	}: {
+		item: SummaryCacheSchemaDataType;
+		summaryFilter?: DeepPartialWithoutArray<
+			Omit<JournalFilterSchemaInputType, 'orderBy' | 'page' | 'pageSize'>
+		>;
+		showJournalLink?: boolean;
+		loading: boolean | undefined;
+	} = $props();
 
 	const chartHeight = '250';
 
@@ -52,20 +59,24 @@
 		await goto(newURL);
 	};
 
-	$: href = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...defaultJournalFilter(),
-			...summaryFilter
-		}
-	}).url;
+	const href = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...defaultJournalFilter(),
+				...summaryFilter
+			}
+		}).url
+	);
 
 	let latestYearMonth = generateYearMonthsBeforeToday(12);
-	$: last12Months = filterTrendData({ data: item.monthlySummary, dates: latestYearMonth });
+	const last12Months = $derived(
+		filterTrendData({ data: item.monthlySummary, dates: latestYearMonth })
+	);
 
-	$: formatter = getCurrencyFormatter($currencyFormat);
+	const formatter = $derived(getCurrencyFormatter($currencyFormat));
 
-	$: yearChange = last12Months.reduce((prev, current) => prev + current.sum, 0);
+	const yearChange = $derived(last12Months.reduce((prev, current) => prev + current.sum, 0));
 </script>
 
 {#if $showSummaryStore}

@@ -2,15 +2,20 @@
 	import type { ReportElementDataForUse } from '$lib/server/db/actions/reportActions';
 	import ReportItemWrapperCombined from '../ReportItemWrapperCombined.svelte';
 
-	export let data: ReportElementDataForUse;
-	export let itemLinkGenerator: (
-		data: ReportElementDataForUse['itemData'][number]
-	) => string | undefined = () => undefined;
-	export let showLayout: boolean = false;
-	export let highlightId: string | undefined = undefined;
+	const {
+		data,
+		itemLinkGenerator = () => undefined,
+		showLayout = false,
+		highlightId = undefined
+	}: {
+		data: ReportElementDataForUse;
+		itemLinkGenerator?: (data: ReportElementDataForUse['itemData'][number]) => string | undefined;
+		showLayout?: boolean;
+		highlightId?: string | undefined;
+	} = $props();
 
-	$: items = data.itemData.sort((a, b) => (a?.order || 30) - (b?.order || 30));
-	$: layout = data.elementConfig.reportElementConfig.layout;
+	const items = $derived(data.itemData.sort((a, b) => (a?.order || 30) - (b?.order || 30)));
+	const layout = $derived(data.elementConfig.reportElementConfig.layout);
 </script>
 
 {#if layout === 'singleItem'}

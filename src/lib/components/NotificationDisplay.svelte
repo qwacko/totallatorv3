@@ -58,7 +58,7 @@
 			]
 		: [];
 
-	$: usedNotifications = [...$notifications, ...otherNotifications].reverse();
+	const usedNotifications = $derived([...$notifications, ...otherNotifications].reverse());
 </script>
 
 <div class="fixed bottom-5 right-5 flex w-96 flex-col-reverse gap-4">

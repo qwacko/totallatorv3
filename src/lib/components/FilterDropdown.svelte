@@ -10,35 +10,43 @@
 		type JournalFilterSchemaType
 	} from '$lib/schema/journalSchema';
 	import type { ReusableFilterDropdownListType } from '$lib/server/db/actions/reusableFilterActions';
-	import {
-		Button,
-		Dropdown,
-		DropdownDivider,
-		DropdownItem,
-	} from 'flowbite-svelte';
+	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 
-	export let filters: ReusableFilterDropdownListType;
-	export let updateFilter: (filter: JournalFilterSchemaType) => string;
-	export let newFilter: (filter: JournalFilterSchemaType) => string;
-	export let currentFilter: JournalFilterSchemaType;
-	export let hideIcon = false;
-	export let showDefaultJournalFilters = false;
-	export let buttonText: string | undefined = undefined;
-	export let hideButton: boolean = false;
-	export let placement:   'top'
-  | 'top-start'
-  | 'top-end'
-  | 'right'
-  | 'right-start'
-  | 'right-end'
-  | 'bottom'
-  | 'bottom-start'
-  | 'bottom-end'
-  | 'left'
-  | 'left-start'
-  | 'left-end' | undefined = undefined;
+	const {
+		filters,
+		updateFilter,
+		newFilter,
+		currentFilter,
+		hideIcon = false,
+		showDefaultJournalFilters = false,
+		buttonText,
+		hideButton,
+		placement
+	}: {
+		filters: ReusableFilterDropdownListType;
+		updateFilter: (filter: JournalFilterSchemaType) => string;
+		newFilter: (filter: JournalFilterSchemaType) => string;
+		currentFilter: JournalFilterSchemaType;
+		hideIcon?: boolean;
+		showDefaultJournalFilters?: boolean;
+		buttonText?: string;
+		hideButton?: boolean;
+		placement?:
+			| 'top'
+			| 'top-start'
+			| 'top-end'
+			| 'right'
+			| 'right-start'
+			| 'right-end'
+			| 'bottom'
+			| 'bottom-start'
+			| 'bottom-end'
+			| 'left'
+			| 'left-start'
+			| 'left-end';
+	} = $props();
 
-	$: filterKeys = Object.keys(filters).sort((a, b) => a.localeCompare(b));
+	const filterKeys = $derived(Object.keys(filters).sort((a, b) => a.localeCompare(b)));
 
 	const filterToURL = (
 		filter: Pick<ReusableFilterDropdownListType[string][number], 'filter' | 'modificationType'>

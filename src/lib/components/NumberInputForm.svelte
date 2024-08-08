@@ -1,21 +1,37 @@
 <script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
 	import NumberInput from './NumberInput.svelte';
-
 	import type { Writable } from 'svelte/store';
-
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
+	import type { ComponentProps } from 'svelte';
 
-	export let form: SuperForm<T, unknown>;
-	export let field: FormPathLeaves<T>;
-	export let wrapperClass: string | undefined = undefined;
-	export let title: string | null;
-	export let highlightTainted: boolean | undefined = true;
-	export let numberDecimals: 0 | 1 | 2 = 0;
+	type NumberInputProps = ComponentProps<NumberInput>;
+
+	const {
+		form,
+		field,
+		wrapperClass,
+		title,
+		highlightTainted = true,
+		numberDecimals = 0,
+		class: className = '',
+		...restProps
+	}: {
+		form: SuperForm<T, unknown>;
+		field: FormPathLeaves<T>;
+		wrapperClass?: string;
+		title: string | null;
+		highlightTainted?: boolean;
+		numberDecimals?: 0 | 1 | 2;
+		class?: string;
+	} & Omit<
+		NumberInputProps,
+		'title' | 'name' | 'numberDecimals' | 'value' | 'errorMessage' | 'tainted' | 'highlightTainted'
+	> = $props();
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
 
-	$: stringValue = value as Writable<number>;
+	const stringValue = $derived(value as Writable<number>);
 </script>
 
 <NumberInput
@@ -27,10 +43,10 @@
 	tainted={$tainted}
 	{highlightTainted}
 	aria-invalid={$errors ? 'true' : undefined}
-	class={$$props.class}
+	class={className}
 	{wrapperClass}
 	on:blur
 	on:keypress
 	{...$constraints}
-	{...$$restProps}
+	{...restProps}
 />

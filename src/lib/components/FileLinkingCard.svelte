@@ -5,17 +5,22 @@
 	import LinkIcon from './icons/LinkIcon.svelte';
 	import FileThumbnail from './FileThumbnail.svelte';
 
-	export let item: {
-		title: string | null;
-		originalFilename: string;
-		thumbnailFilename?: string | null;
-		id: string;
-	};
-	export let keys: { key: string; value: string | null | undefined }[];
+	const {
+		item,
+		keys
+	}: {
+		item: {
+			title: string | null;
+			originalFilename: string;
+			thumbnailFilename?: string | null;
+			id: string;
+		};
+		keys: { key: string; value: string | null | undefined }[];
+	} = $props();
 
-	let linking = false;
+	let linking = $state(false);
 
-	$: keyLength = keys.length;
+	const keyLength = $derived(keys.length);
 </script>
 
 <div class="flex flex-col gap-2 rounded-lg border border-gray-500 p-4 shadow-lg">

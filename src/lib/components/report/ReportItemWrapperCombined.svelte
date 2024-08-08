@@ -5,10 +5,20 @@
 
 	type ItemType = ReportElementDataForUse['itemData'][number];
 
-	export let item: ItemType;
-	export let itemLinkGenerator: (data: ItemType) => string | undefined = () => undefined;
-	export let showLayout: boolean = false;
-	export let highlightId: string | undefined = undefined;
+	const {
+		item,
+		itemLinkGenerator = () => undefined,
+		showLayout = false,
+		highlightId = undefined,
+		class: className = undefined
+	}: {
+		item: ItemType;
+		itemLinkGenerator?: (data: ItemType) => string | undefined;
+		showLayout?: boolean;
+		highlightId?: string | undefined;
+		class?: string;
+	} = $props();
+
 
 	const checkHL = (item: ItemType) => {
 		if (highlightId && item) {
@@ -20,7 +30,7 @@
 </script>
 
 <ReportItemWrapper
-	class={$$props.class}
+	class={className}
 	href={itemLinkGenerator(item)}
 	{showLayout}
 	highlight={checkHL(item)}

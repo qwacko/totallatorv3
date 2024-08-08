@@ -69,7 +69,7 @@
 />
 
 <PageLayout title="Journals" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button
 			color="light"
 			outline
@@ -80,7 +80,7 @@
 		>
 			<PlusIcon />
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	<JournalSummaryWithFetch
 		filter={data.searchParamsWithoutPagination}
 		latestUpdate={data.latestUpdate}
@@ -163,44 +163,46 @@
 			]}
 			bind:shownColumns={$journalColumnsStore}
 		>
-			<svelte:fragment slot="bulkActions" let:selectedIds>
+			{#snippet slotBulkActions({selectedIds})}
 				<BulkJournalActions
 					{selectedIds}
 					allCount={data.journals.count}
 					searchParams={$urlStore.searchParams}
 				/>
-			</svelte:fragment>
-			<svelte:fragment slot="filterButtons">
-				<FilterDropdown
-					filters={data.filterDropdown}
-					newFilter={(newFilter) =>
-						urlGenerator({
-							address: '/(loggedIn)/journals',
-							searchParamsValue: {
-								...newFilter,
-								page: $urlStore.searchParams?.page || 0,
-								pageSize: $urlStore.searchParams?.pageSize || 10
-							}
-						}).url}
-					updateFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
-					currentFilter={$urlStore.searchParams}
-				/>
-				<DownloadDropdown
-					urlGenerator={(downloadType) => {
-						if ($urlStore.searchParams) {
-							return urlGenerator({
-								address: '/(loggedIn)/journals/download',
+			{/snippet}
+			{#snippet slotFilterButtons()}
+				{#if $urlStore.searchParams}
+					<FilterDropdown
+						filters={data.filterDropdown}
+						newFilter={(newFilter) =>
+							urlGenerator({
+								address: '/(loggedIn)/journals',
 								searchParamsValue: {
-									...$urlStore.searchParams,
-									downloadType
+									...newFilter,
+									page: $urlStore.searchParams?.page || 0,
+									pageSize: $urlStore.searchParams?.pageSize || 10
 								}
-							}).url;
-						}
-						return '';
-					}}
-				/>
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+							}).url}
+						updateFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
+						currentFilter={$urlStore.searchParams}
+					/>
+					<DownloadDropdown
+						urlGenerator={(downloadType) => {
+							if ($urlStore.searchParams) {
+								return urlGenerator({
+									address: '/(loggedIn)/journals/download',
+									searchParamsValue: {
+										...$urlStore.searchParams,
+										downloadType
+									}
+								}).url;
+							}
+							return '';
+						}}
+					/>
+				{/if}
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -211,16 +213,16 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
-			<svelte:fragment slot="filterModal">
+			{/snippet}
+			{#snippet slotFilterModal()}
 				{#if $urlStore.searchParams}
 					<FilterModalContent
 						currentFilter={$urlStore.searchParams}
 						urlFromFilter={(newFilter) => urlInfo.updateParams({ searchParams: newFilter }).url}
 					/>
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="customBodyCell" let:row={currentJournal} let:currentColumn>
+			{/snippet}
+			{#snippet slotCustomBodyCell({row: currentJournal, currentColumn})}
 				{#if currentColumn.id === 'actions'}
 					<form action="?/update" method="post" use:enhance>
 						<input type="hidden" value={currentJournal.id} name="journalId" />
@@ -425,8 +427,8 @@
 						{/each}
 					</div>
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="headerItem" let:currentColumn>
+			{/snippet}
+			{#snippet slotHeaderItem({currentColumn})}
 				{#if $urlStore.searchParams}
 					{#if currentColumn.id === 'description'}
 						<DropdownItem>
@@ -459,7 +461,7 @@
 						</DropdownItem>
 					{/if}
 				{/if}
-			</svelte:fragment>
+			{/snippet}
 		</CustomTable>
 	{/if}
 </PageLayout>

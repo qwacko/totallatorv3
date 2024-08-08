@@ -8,7 +8,7 @@
 	import {  categoryDropdownData } from '$lib/stores/dropdownStores.js'
 	import type { CategoryDropdownType } from '$lib/server/db/actions/categoryActions';
 
-	export let filter: CategoryFilterSchemaType | undefined;
+	let {filter = $bindable()} : { filter: CategoryFilterSchemaType | undefined;} = $props()
 
 	const idToString = (id: string) => {
 		if ($categoryDropdownData) {

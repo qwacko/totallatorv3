@@ -6,30 +6,39 @@
 	import { defaultJournalFilter, type JournalFilterSchemaType } from '$lib/schema/journalSchema';
 	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 
-	export let data: { tagId: string | null; tagTitle: string | null };
-	export let currentFilter: JournalFilterSchemaType;
+	const {
+		data,
+		currentFilter
+	}: {
+		data: { tagId: string | null; tagTitle: string | null };
+		currentFilter: JournalFilterSchemaType;
+	} = $props();
 
-	let opened = false;
+	let opened = $state(false);
 
-	$: filterURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...currentFilter,
-			tag: {
-				id: data.tagId || undefined
+	const filterURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...currentFilter,
+				tag: {
+					id: data.tagId || undefined
+				}
 			}
-		}
-	}).url;
+		}).url
+	);
 
-	$: viewURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...defaultJournalFilter(),
-			tag: {
-				id: data.tagId || undefined
+	const viewURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...defaultJournalFilter(),
+				tag: {
+					id: data.tagId || undefined
+				}
 			}
-		}
-	}).url;
+		}).url
+	);
 </script>
 
 {#if data.tagTitle && data.tagId}

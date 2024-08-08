@@ -57,7 +57,7 @@
 />
 
 <PageLayout title="Reusable Filters" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button
 			href={urlGenerator({ address: '/(loggedIn)/filters/create', searchParamsValue: {} }).url}
 			outline
@@ -115,7 +115,7 @@
 				/>
 			{/await}
 		</form>
-	</svelte:fragment>
+	{/snippet}
 
 	{#if $urlStore.searchParams}
 		{#await data.streamed.filters}

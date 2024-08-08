@@ -15,7 +15,7 @@
 	import ReportElementConfigForm from '$lib/components/report/ReportElementConfigForm.svelte';
 	import ReportElementConfigFiltersForm from '$lib/components/report/ReportElementConfigFiltersForm.svelte';
 
-	const {data, children} = $props();
+	const { data, children } = $props();
 
 	let filterOpen = $state(false);
 
@@ -41,7 +41,7 @@
 <CustomHeader pageTitle={data.elementData.title || 'Report Element'} />
 
 <PageLayout title={data.elementData.title || 'Report Element'} size="lg">
-	<svelte:fragment slot="left">
+	{#snippet slotLeft()}
 		<Button
 			outline
 			href={urlGenerator({
@@ -52,7 +52,7 @@
 		>
 			<ArrowLeftIcon />
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	<Heading tag="h4">Report Information</Heading>
 	<RawDataModal data={data.elementData} dev={data.dev} />
 	<div class="flex flex-row gap-2">
@@ -92,11 +92,8 @@
 
 	{#if data.elementData.filter}
 		<div class="flex flex-row items-center gap-2">
-			<FilterModal
-				currentFilter={data.elementData.filter.filter}
-				bind:opened={filterOpen}
-			>
-				<svelte:fragment slot="footerContents" let:activeFilter>
+			<FilterModal currentFilter={data.elementData.filter.filter} bind:opened={filterOpen}>
+				{#snippet slotFooterContents({ activeFilter })}
 					<Button on:click={() => (filterOpen = false)} outline>Cancel</Button>
 					<div class="flex-grow"></div>
 					<form
@@ -121,7 +118,7 @@
 						<input type="hidden" name="filterText" value={JSON.stringify(activeFilter)} />
 						<Button type="submit">Update Filter</Button>
 					</form>
-				</svelte:fragment>
+				{/snippet}
 			</FilterModal>
 			<form
 				action="{urlGenerator({
@@ -163,9 +160,7 @@
 		elementId={data.elementData.id}
 	/>
 
-	<ReportElementConfigFiltersForm
-		elementData={data.elementData}
-	/>
+	<ReportElementConfigFiltersForm elementData={data.elementData} />
 
 	{@render children()}
 </PageLayout>

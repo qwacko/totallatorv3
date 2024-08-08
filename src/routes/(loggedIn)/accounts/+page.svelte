@@ -27,8 +27,8 @@
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
-	const {data} = $props();
-	const urlInfo = $derived( pageInfo('/(loggedIn)/accounts', $page));
+	const { data } = $props();
+	const urlInfo = $derived(pageInfo('/(loggedIn)/accounts', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/accounts',
@@ -55,7 +55,7 @@
 	numPages={data.accounts.pageCount}
 />
 <PageLayout title="Accounts" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button
 			href={urlGenerator({ address: '/(loggedIn)/accounts/create' }).url}
 			class="flex self-center"
@@ -64,7 +64,7 @@
 		>
 			Create
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	<JournalSummaryWithFetch
 		filter={{ account: data.searchParams }}
 		latestUpdate={data.latestUpdate}
@@ -146,7 +146,7 @@
 		rowToId={(row) => row.id}
 		bulkSelection
 	>
-		<svelte:fragment slot="bulkActions" let:selectedIds>
+		{#snippet slotBulkActions({ selectedIds })}
 			<ButtonGroup>
 				<Button
 					size="xs"
@@ -173,8 +173,8 @@
 					<EditIcon /> All Matching
 				</Button>
 			</ButtonGroup>
-		</svelte:fragment>
-		<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+		{/snippet}
+		{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 			{#if currentColumn.id === 'actions'}
 				{@const detailURL = urlGenerator({
 					address: '/(loggedIn)/accounts/bulkEdit',
@@ -236,8 +236,8 @@
 					</form>
 				</div>
 			{/if}
-		</svelte:fragment>
-		<svelte:fragment slot="filterButtons">
+		{/snippet}
+		{#snippet slotFilterButtons()}
 			<DownloadDropdown
 				urlGenerator={(downloadType) =>
 					urlGenerator({
@@ -245,8 +245,8 @@
 						searchParamsValue: { ...$urlStore.searchParams, downloadType }
 					}).url}
 			/>
-		</svelte:fragment>
-		<svelte:fragment slot="filter">
+		{/snippet}
+		{#snippet slotFilter()}
 			<div class="flex flex-col gap-2 md:flex-row">
 				{#if $urlStore.searchParams}
 					<Input
@@ -264,9 +264,9 @@
 					</div>
 				{/if}
 			</div>
-		</svelte:fragment>
-		<svelte:fragment slot="filterModal">
-			<AccountFilter bind:filter={$urlStore.searchParams}  />
-		</svelte:fragment>
+		{/snippet}
+		{#snippet slotFilterModal()}
+			<AccountFilter bind:filter={$urlStore.searchParams} />
+		{/snippet}
 	</CustomTable>
 </PageLayout>

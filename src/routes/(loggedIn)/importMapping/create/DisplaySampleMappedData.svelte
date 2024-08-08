@@ -5,19 +5,22 @@
 
 	import { Badge, Button, Fileupload } from 'flowbite-svelte';
 	import Papa from 'papaparse';
+	import { untrack } from 'svelte';
 	import { z } from 'zod';
 
-	export let mappingConfig: ImportMappingDetailSchema;
+	let {
+		mappingConfig,
+		csvData = $bindable(undefined)
+	}: { mappingConfig: ImportMappingDetailSchema; csvData?: Record<string, any>[] | undefined } =
+		$props();
 
-	export let csvData: Record<string, any>[] | undefined = undefined;
+	const rowsToSkip = $derived(mappingConfig.rowsToSkip);
 
-	$: rowsToSkip = mappingConfig.rowsToSkip;
+	let rowNumber = $state(1);
+	let currentFile = $state<File | undefined>(undefined);
+	let importErrorMessage = $state<string | undefined>(undefined);
 
-	let rowNumber = 1;
-	let currentFile: File | undefined = undefined;
-	let importErrorMessage: string | undefined = undefined;
-
-	$: numberRows = csvData?.length ?? 1;
+	let numberRows = $state(csvData?.length ?? 1);
 
 	const processFile = (file: File, numRows: number) => {
 		importErrorMessage = undefined;
@@ -69,11 +72,10 @@
 			} catch (e) {
 				importErrorMessage = 'Import Error';
 			}
-
 		}
 	};
 
-	$: currentFile && processFile(currentFile, rowsToSkip);
+	$effect(() => currentFile && untrack(() => processFile)(currentFile, rowsToSkip));
 
 	const updateFileValue = (event: Event) => {
 		if (event?.target) {

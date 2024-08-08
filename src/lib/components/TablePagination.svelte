@@ -7,13 +7,21 @@
 	import ChevronRight from '~icons/mdi-light/chevron-right';
 	import ArrowDownIcon from './icons/ArrowDownIcon.svelte';
 
-	export let page: number;
-	export let count: number;
-	export let perPage: number;
-	export let buttonCount: number = 5;
-	export let urlForPage: (pageNumber: number) => string;
+	const {
+		page,
+		count,
+		perPage,
+		buttonCount = 5,
+		urlForPage
+	}: {
+		page: number;
+		count: number;
+		perPage: number;
+		buttonCount?: number;
+		urlForPage: (pageNumber: number) => string;
+	} = $props();
 
-	$: paginationInfo = paginationHelper({ page, count, perPage, buttonCount });
+	const paginationInfo = $derived(paginationHelper({ page, count, perPage, buttonCount }));
 </script>
 
 <div class="flex sm:hidden">

@@ -9,35 +9,40 @@
 	import { Button, Modal } from 'flowbite-svelte';
 	import FilterIcon from './icons/FilterIcon.svelte';
 	import FilterModalContent from './FilterModalContent.svelte';
+	import type { Snippet } from 'svelte';
 
+	let {
+		currentFilter,
+		urlFromFilter,
+		opened = $bindable(false),
+		hideDates = false,
+		modalTitle = 'Journal Filter',
+		slotFooterContents
+	}: {
+		currentFilter: F;
+		urlFromFilter?: (filter: F) => string;
+		opened?: boolean;
+		hideDates?: boolean;
+		modalTitle?: string;
+		slotFooterContents?: Snippet<[{ activeFilter: F }]>;
+	} = $props();
 
-	export let currentFilter: F;
-	export let urlFromFilter: ((filter: F) => string) | undefined = undefined;
-	export let opened = false;
-	export let hideDates = false;
-	export let modalTitle = 'Journal Filter';
-
-	let url = '';
-
-	let activeFilter = currentFilter;
+	let url = $state('');
+	let activeFilter = $state(currentFilter);
 </script>
 
 <Button color="light" on:click={() => (opened = true)}>
 	<FilterIcon />
 </Button>
 <Modal bind:open={opened} size="lg" title={modalTitle} outsideclose>
-	<FilterModalContent
-		{currentFilter}
-		{urlFromFilter}
-		{hideDates}
-		bind:url
-		bind:activeFilter
-	/>
+	<FilterModalContent {currentFilter} {urlFromFilter} {hideDates} bind:url bind:activeFilter />
 	<svelte:fragment slot="footer">
-		<slot name="footerContents" {activeFilter}>
+		{#if slotFooterContents}
+			{@render slotFooterContents({ activeFilter })}
+		{:else}
 			<Button on:click={() => (opened = false)} outline>Cancel</Button>
 			<div class="flex-grow"></div>
 			<Button href={url}>Apply</Button>
-		</slot>
+		{/if}
 	</svelte:fragment>
 </Modal>

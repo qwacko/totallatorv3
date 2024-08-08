@@ -1,8 +1,13 @@
 <script lang="ts">
 	import { Checkbox } from 'flowbite-svelte';
 
-	export let id: string | undefined;
-	export let selectedIds: string[];
+	let {
+		id,
+		selectedIds = $bindable()
+	}: {
+		id: string | undefined;
+		selectedIds: string[];
+	} = $props();
 
 	const toggle = () => {
 		if (!id) return;

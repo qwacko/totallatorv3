@@ -3,10 +3,17 @@
 	import { Button, TableHeadCell } from 'flowbite-svelte';
 	import SortIcon from './SortIcon.svelte';
 
-	export let currentOrder: OrderByType<Options> | undefined;
-	export let orderKey: Options;
-	export let updateOrderByToURL: (newOrder: OrderByType<Options>) => string;
-	export let title: string;
+	const {
+		currentOrder,
+		orderKey,
+		updateOrderByToURL,
+		title
+	}: {
+		currentOrder: OrderByType<Options> | undefined;
+		orderKey: Options;
+		updateOrderByToURL: (newOrder: OrderByType<Options>) => string;
+		title: string;
+	} = $props();
 </script>
 
 <TableHeadCell>

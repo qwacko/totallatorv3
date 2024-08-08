@@ -7,10 +7,17 @@
 	import { Button, Dropdown, DropdownDivider, DropdownItem, Spinner } from 'flowbite-svelte';
 	import DropdownItemForm from '$lib/components/DropdownItemForm.svelte';
 
-	export let importMappingId: string;
-	export let autoImportId: string;
-	export let filename: string;
-	export let loading = false;
+	let {
+		importMappingId,
+		autoImportId,
+		filename,
+		loading = $bindable(false)
+	}: {
+		importMappingId: string;
+		autoImportId: string;
+		filename: string;
+		loading?: boolean;
+	} = $props();
 </script>
 
 <Button color="light" size="sm" class="flex flex-row gap-2">
@@ -42,7 +49,7 @@
 		errorMessage="Failed to Update Sample Data"
 	>
 		<ImportIcon /> Update Sample Data
-		<svelte:fragment slot="loading"><Spinner />Updating...</svelte:fragment>
+		{#snippet slotLoading()}<Spinner />Updating...{/snippet}
 	</DropdownItemForm>
 	<DropdownItemForm action="?/trigger" bind:loading class="flex flex-row gap-2">
 		<ImportIcon /> Trigger Import

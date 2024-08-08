@@ -53,7 +53,7 @@
 <CustomHeader pageTitle="Report - {$reportData.title}" />
 
 <PageLayout title={$reportData.title} size={$reportData.size}>
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		{#if edit}
 			<Button
 				color="red"
@@ -134,12 +134,12 @@
 				<DeleteIcon />
 			</Button>
 		{/if}
-	</svelte:fragment>
+	{/snippet}
 
 	<RawDataModal data={data.report} dev={data.dev} />
 	<RawDataModal data={$reportLayoutStringStore} dev={data.dev} />
 	<ReportGridWrapper size="xl">
-		{#each $reportData.reportElements as { cols, rows, title, id, order } ,index}
+		{#each $reportData.reportElements as { cols, rows, title, id, order }, index}
 			<ReportGridItem {cols} {rows} highlightOnHover={false}>
 				<div class="flex h-full w-full flex-col gap-2">
 					<div class="item-stretch flex flex-grow flex-row gap-2">
@@ -195,14 +195,14 @@
 					{/if}
 				</div>
 
-				<svelte:fragment slot="titleLeft">
+				{#snippet slotTitleLeft()}
 					{#if edit}
 						<Input tag="h4" class="mr-2" bind:value={$reportData.reportElements[index].title} />
 					{:else if title}
 						<Heading tag="h4" class="mr-2">{title}</Heading>
 					{/if}
-				</svelte:fragment>
-				<svelte:fragment slot="titleRight">
+				{/snippet}
+				{#snippet slotTitleRight()}
 					{#if edit}
 						<div class="flex flex-row gap-2">
 							<Button
@@ -243,7 +243,7 @@
 							<EditIcon />
 						</a>
 					{/if}
-				</svelte:fragment>
+				{/snippet}
 			</ReportGridItem>
 		{/each}
 	</ReportGridWrapper>

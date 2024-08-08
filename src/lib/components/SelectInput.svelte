@@ -1,15 +1,30 @@
 <script lang="ts">
 	import { Select } from 'flowbite-svelte';
 	import LabelWrapper from './LabelWrapper.svelte';
+	import type { ComponentProps } from 'svelte';
 
-	export let errorMessage: string | string[] | null | undefined;
-	export let title: string | null;
-	export let name: string;
-	export let required: boolean | undefined | null = undefined;
-	export let value: string | undefined | null;
-	export let wrapperClass: string | undefined = undefined;
+	type SelectProps = ComponentProps<Select>;
+
+	let {
+		errorMessage,
+		title,
+		name,
+		required,
+		value = $bindable(),
+		wrapperClass,
+		class: className = '',
+		...restProps
+	}: {
+		errorMessage: string | string[] | null | undefined;
+		title: string | null;
+		name: string;
+		required?: boolean | null;
+		value: string | undefined | null;
+		wrapperClass?: string;
+		class?: string;
+	} & Omit<SelectProps, 'value' | 'name' | 'required'> = $props();
 </script>
 
 <LabelWrapper {title} {errorMessage} {required} {wrapperClass}>
-	<Select bind:value {...$$restProps} {name} {required} class={$$props.class} on:change on:input />
+	<Select bind:value {...restProps} {name} {required} class={className} on:change on:input />
 </LabelWrapper>

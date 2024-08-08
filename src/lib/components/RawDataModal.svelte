@@ -3,15 +3,25 @@
 	import CodeIcon from '~icons/mdi/xml';
 	import MoreIcon from './icons/MoreIcon.svelte';
 
-	export let data: unknown;
-	export let title = 'Raw Data';
-	export let dev = false;
-	export let buttonText: string | undefined = undefined;
-	export let color: ButtonColorType | undefined = undefined;
-	export let outline = false;
-	export let icon: 'more' | 'code' = 'code';
+	const {
+		data,
+		title = 'Raw Data',
+		dev = false,
+		buttonText,
+		color,
+		outline = false,
+		icon = 'code'
+	}: {
+		data: unknown;
+		title?: string;
+		dev?: boolean;
+		buttonText?: string;
+		color?: ButtonColorType;
+		outline?: boolean;
+		icon?: 'more' | 'code';
+	} = $props();
 
-	let open = false;
+	let open = $state(false);
 </script>
 
 {#if dev}

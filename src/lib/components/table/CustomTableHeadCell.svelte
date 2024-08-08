@@ -4,23 +4,39 @@
 	import DeleteIcon from '../icons/DeleteIcon.svelte';
 	import type { OrderByType } from '$lib/helpers/orderByHelper';
 	import FilterIcon from '../icons/FilterIcon.svelte';
+	import type { Snippet } from 'svelte';
 
 	type OrderKeys = $$Generic<string>;
 
-	export let title: string;
-	export let currentSort: OrderByType<OrderKeys> | undefined = undefined;
-	export let sortKey: OrderKeys | undefined = undefined;
-	export let onSortURL: ((newSort: OrderByType<OrderKeys>) => string) | undefined = undefined;
-	export let showDropdown: boolean = false;
-	export let filterActive: boolean | undefined = undefined;
+	const {
+		title,
+		currentSort = undefined,
+		sortKey = undefined,
+		onSortURL = undefined,
+		showDropdown = false,
+		filterActive = undefined,
+		slotDropdown
+	}: {
+		title: string;
+		currentSort?: OrderByType<OrderKeys> | undefined;
+		sortKey?: OrderKeys | undefined;
+		onSortURL?: ((newSort: OrderByType<OrderKeys>) => string) | undefined;
+		showDropdown?: boolean;
+		filterActive?: boolean | undefined;
+		slotDropdown?: Snippet;
+	} = $props();
 
-	$: showDropdownCalculated = sortKey !== undefined || showDropdown;
+	const showDropdownCalculated = $derived(sortKey !== undefined || showDropdown);
 
-	$: isAscending = currentSort?.find((sort) => sort.field === sortKey)?.direction === 'asc';
-	$: isDescending = currentSort?.find((sort) => sort.field === sortKey)?.direction === 'desc';
-	$: isNone = currentSort?.find((sort) => sort.field === sortKey) === undefined;
+	const isAscending = $derived(
+		currentSort?.find((sort) => sort.field === sortKey)?.direction === 'asc'
+	);
+	const isDescending = $derived(
+		currentSort?.find((sort) => sort.field === sortKey)?.direction === 'desc'
+	);
+	const isNone = $derived(currentSort?.find((sort) => sort.field === sortKey) === undefined);
 
-	$: setAscendingURL = (): string => {
+	const setAscendingURL = $derived((): string => {
 		if (!onSortURL || !sortKey) return '';
 		if (currentSort) {
 			if (isNone) {
@@ -38,9 +54,9 @@
 		}
 
 		return '';
-	};
+	});
 
-	$: setDescendingURL = (): string => {
+	const setDescendingURL = $derived((): string => {
 		if (!onSortURL || !sortKey) return '';
 		if (currentSort) {
 			if (isNone) {
@@ -58,18 +74,18 @@
 		}
 
 		return '';
-	};
+	});
 
-	$: setNoneURL = (): string => {
+	const setNoneURL = $derived((): string => {
 		if (!onSortURL || !sortKey) return '';
 		if (currentSort) {
 			return onSortURL(currentSort.filter((sort) => sort.field !== sortKey));
 		}
 
 		return '';
-	};
+	});
 
-	let opened = false;
+	let opened = $state(false);
 </script>
 
 <TableHeadCell
@@ -129,7 +145,7 @@
 					</Button>
 				</DropdownItem>
 			{/if}
-			<slot name="dropdown" />
+			{#if slotDropdown}{@render slotDropdown()}{/if}
 		</Dropdown>
 	{/if}
 </TableHeadCell>

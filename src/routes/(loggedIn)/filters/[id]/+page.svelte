@@ -43,7 +43,7 @@
 <CustomHeader pageTitle="Update Reusable Filter" />
 
 <PageLayout title="Update Reusable Filter" size="lg" routeBasedBack>
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button
 			outline
 			color="blue"
@@ -52,7 +52,7 @@
 		>
 			<ApplyFilterIcon />
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	<RawDataModal {data} dev={data.dev} />
 	<form use:enhance method="POST" action="?/update" class="flex flex-col gap-4">
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">

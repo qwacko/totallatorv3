@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { PageSizeIds } from '$lib/schema/pageSizeSchema';
+	import type { Snippet } from 'svelte';
 
-	export let size: PageSizeIds = 'lg';
+	const { size = 'lg', children }: { size?: PageSizeIds; children: Snippet } = $props();
 </script>
 
 <div
@@ -11,5 +12,5 @@
 	class:auto-rows-[150px]={size === 'lg'}
 	class:auto-rows-[200px]={size === 'xl'}
 >
-	<slot />
+	{@render children()}
 </div>

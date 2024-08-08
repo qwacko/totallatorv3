@@ -6,14 +6,13 @@
 	import { urlGenerator } from '$lib/routes';
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 
-	export let data: { duration: number; time: Date; title: string | null; id: string }[];
+	const { data }: { data: { duration: number; time: Date; title: string | null; id: string }[] } =
+		$props();
 
-	let chartConfig: EChartsOption | undefined;
+	const minTime = $derived(Math.min(...data.map((item) => item.time.getTime())));
+	const maxTime = $derived(Math.max(...data.map((item) => item.time.getTime())));
 
-	$: minTime = Math.min(...data.map((item) => item.time.getTime()));
-	$: maxTime = Math.max(...data.map((item) => item.time.getTime()));
-
-	$: chartConfig = {
+	const chartConfig = $derived<EChartsOption>({
 		toolbox: {
 			feature: {
 				brush: {
@@ -66,9 +65,9 @@
 				symbolSize: 5
 			}
 		]
-	};
+	});
 
-	let selectedData: Parameters<EChartsBrushSelectedHandler>[0] | undefined = undefined;
+	let selectedData = $state<Parameters<EChartsBrushSelectedHandler>[0] | undefined>(undefined);
 
 	const onBrushSelected: EChartsBrushSelectedHandler = (params) => {
 		selectedData = params;

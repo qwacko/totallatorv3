@@ -9,7 +9,7 @@
 	import type { BudgetDropdownType } from '$lib/server/db/actions/budgetActions';
 
 
-	export let filter: BudgetFilterSchemaType | undefined;
+	let {filter = $bindable()} : { filter: BudgetFilterSchemaType | undefined} = $props();
 
 	const idToString = (id: string) => {
 		if ($budgetDropdownData) {

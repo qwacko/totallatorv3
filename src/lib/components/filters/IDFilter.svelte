@@ -2,8 +2,10 @@
 	import { Button } from 'flowbite-svelte';
 	import CancelIcon from '../icons/CancelIcon.svelte';
 
-	export let id: string | undefined;
-	export let idToString: ((id: string) => string) | undefined = undefined;
+	let {
+		id = $bindable(),
+		idToString = undefined
+	}: { id: string | undefined; idToString?: ((id: string) => string) | undefined } = $props();
 </script>
 
 {#if id}

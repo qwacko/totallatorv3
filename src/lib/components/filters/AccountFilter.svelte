@@ -13,7 +13,7 @@
 	} from '$lib/stores/dropdownStores.js';
 	import type { AccountDropdownType } from '$lib/server/db/actions/accountActions';
 
-	export let filter: AccountFilterSchemaType | undefined;
+	let {filter = $bindable()} : { filter: AccountFilterSchemaType | undefined} = $props();
 
 	const idToString = (id: string) => {
 		if ($accountDropdownData) {

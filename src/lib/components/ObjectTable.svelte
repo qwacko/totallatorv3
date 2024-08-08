@@ -11,16 +11,22 @@
 	} from 'flowbite-svelte';
 	import HighlightText from './HighlightText.svelte';
 
-	export let data: Record<
-		string,
-		| { text?: string | string[] | undefined; error?: string }
-		| string
-		| string[]
-		| number
-		| undefined
-	>;
-	export let highlightText: string | undefined = undefined;
-	export let hideUndefined: boolean = false;
+	const {
+		data,
+		highlightText = undefined,
+		hideUndefined = false
+	}: {
+		data: Record<
+			string,
+			| { text?: string | string[] | undefined; error?: string }
+			| string
+			| string[]
+			| number
+			| undefined
+		>;
+		highlightText?: string;
+		hideUndefined?: boolean;
+	} = $props();
 </script>
 
 <Table>

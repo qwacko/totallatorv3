@@ -11,19 +11,29 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 
-	export let shown = false;
-	export let filters: ReusableFilterDropdownListType;
-	export let updateFilter: (filter: JournalFilterSchemaType) => string;
-	export let newFilter: (filter: JournalFilterSchemaType) => string;
-	export let showDefaultJournalFilters = false;
+	let {
+		shown = $bindable(false),
+		filters,
+		updateFilter,
+		newFilter,
+		showDefaultJournalFilters = false
+	}: {
+		shown?: boolean;
+		filters: ReusableFilterDropdownListType;
+		updateFilter: (filter: JournalFilterSchemaType) => string;
+		newFilter: (filter: JournalFilterSchemaType) => string;
+		showDefaultJournalFilters?: boolean;
+	} = $props();
 
-	$: filterKeys = Object.keys(filters).sort((a, b) => a.localeCompare(b));
+	const filterKeys = $derived(Object.keys(filters).sort((a, b) => a.localeCompare(b)));
 
-	let selectedKey: string | undefined = undefined;
+	let selectedKey = $state<string | undefined>(undefined);
 
-	$: if (!shown && selectedKey) {
-		selectedKey = undefined;
-	}
+	$effect(() => {
+		if (!shown && selectedKey) {
+			selectedKey = undefined;
+		}
+	});
 
 	const filterToURL = (
 		filter: Pick<ReusableFilterDropdownListType[string][number], 'filter' | 'modificationType'>

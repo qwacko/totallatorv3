@@ -20,15 +20,25 @@
 	import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
-	export let dataForTable: Awaited<ReturnType<(typeof reusableFilterActions)['list']>>;
-	export let filterText: string[];
-	export let searchParams: ReusableFilterFilterSchemaType | undefined;
-	export let dev: boolean;
-	export let urlForPage: (value: number) => string;
-	export let urlForSort: (value: ReusableFilterFilterSchemaType['orderBy']) => string;
-	export let loading: boolean;
+	let {
+		dataForTable,
+		filterText,
+		searchParams = $bindable(),
+		dev,
+		urlForPage,
+		urlForSort,
+		loading
+	}: {
+		dataForTable: Awaited<ReturnType<(typeof reusableFilterActions)['list']>>;
+		filterText: string[];
+		searchParams: ReusableFilterFilterSchemaType | undefined;
+		dev: boolean;
+		urlForPage: (value: number) => string;
+		urlForSort: (value: ReusableFilterFilterSchemaType['orderBy']) => string;
+		loading: boolean;
+	} = $props();
 
-	let filterOpened = false;
+	let filterOpened = $state(false);
 
 	onNavigate(() => {
 		filterOpened = false;
@@ -143,7 +153,7 @@
 			}
 		]}
 	>
-		<svelte:fragment slot="customBodyCell" let:currentColumn let:row>
+		{#snippet slotCustomBodyCell({ currentColumn, row })}
 			{#if currentColumn.id === 'actions'}
 				<ButtonGroup>
 					<Button
@@ -222,8 +232,8 @@
 					</div>
 				{/if}
 			{/if}
-		</svelte:fragment>
-		<svelte:fragment slot="filter">
+		{/snippet}
+		{#snippet slotFilter()}
 			<div class="flex flex-row gap-2">
 				{#if searchParams}
 					<Input
@@ -234,54 +244,58 @@
 					/>
 				{/if}
 			</div>
-		</svelte:fragment>
+		{/snippet}
 
-		<svelte:fragment slot="headerItem" let:currentColumn>
-			{#if currentColumn.id === 'group'}
-				<DropdownItem>
-					<Input type="text" bind:value={searchParams.group} placeholder="Group Filter" />
-				</DropdownItem>
-			{:else if currentColumn.id === 'title'}
-				<DropdownItem>
-					<Input type="text" bind:value={searchParams.title} placeholder="Title Filter" />
-				</DropdownItem>
-			{:else if currentColumn.id === 'filterText'}
-				<DropdownItem>
-					<Input type="text" bind:value={searchParams.filterText} placeholder="Filter Filter" />
-				</DropdownItem>
-			{:else if currentColumn.id === 'changeText'}
-				<DropdownItem>
-					<Input type="text" bind:value={searchParams.changeText} placeholder="Change Filter" />
-				</DropdownItem>
-			{:else if currentColumn.id === 'applyAutomatically'}
-				<DropdownItem>
-					<BooleanFilterButtons
-						bind:value={searchParams.applyAutomatically}
-						onTitle="Y"
-						offTitle="N"
-					/>
-				</DropdownItem>
-			{:else if currentColumn.id === 'applyFollowingImport'}
-				<DropdownItem>
-					<BooleanFilterButtons
-						bind:value={searchParams.applyFollowingImport}
-						onTitle="Y"
-						offTitle="N"
-					/>
-				</DropdownItem>
-			{:else if currentColumn.id === 'listed'}
-				<DropdownItem>
-					<BooleanFilterButtons bind:value={searchParams.listed} onTitle="Y" offTitle="N" />
-				</DropdownItem>
+		{#snippet slotHeaderItem({ currentColumn })}
+			{#if searchParams}
+				{#if currentColumn.id === 'group'}
+					<DropdownItem>
+						<Input type="text" bind:value={searchParams.group} placeholder="Group Filter" />
+					</DropdownItem>
+				{:else if currentColumn.id === 'title'}
+					<DropdownItem>
+						<Input type="text" bind:value={searchParams.title} placeholder="Title Filter" />
+					</DropdownItem>
+				{:else if currentColumn.id === 'filterText'}
+					<DropdownItem>
+						<Input type="text" bind:value={searchParams.filterText} placeholder="Filter Filter" />
+					</DropdownItem>
+				{:else if currentColumn.id === 'changeText'}
+					<DropdownItem>
+						<Input type="text" bind:value={searchParams.changeText} placeholder="Change Filter" />
+					</DropdownItem>
+				{:else if currentColumn.id === 'applyAutomatically'}
+					<DropdownItem>
+						<BooleanFilterButtons
+							bind:value={searchParams.applyAutomatically}
+							onTitle="Y"
+							offTitle="N"
+						/>
+					</DropdownItem>
+				{:else if currentColumn.id === 'applyFollowingImport'}
+					<DropdownItem>
+						<BooleanFilterButtons
+							bind:value={searchParams.applyFollowingImport}
+							onTitle="Y"
+							offTitle="N"
+						/>
+					</DropdownItem>
+				{:else if currentColumn.id === 'listed'}
+					<DropdownItem>
+						<BooleanFilterButtons bind:value={searchParams.listed} onTitle="Y" offTitle="N" />
+					</DropdownItem>
+				{/if}
 			{/if}
-		</svelte:fragment>
-		<svelte:fragment slot="filterModal">
-			<ReusableFilterFilter bind:filter={searchParams} />
-		</svelte:fragment>
-		<svelte:fragment slot="bulkActions">
+		{/snippet}
+		{#snippet slotFilterModal()}
+			{#if searchParams}
+				<ReusableFilterFilter bind:filter={searchParams} />
+			{/if}
+		{/snippet}
+		{#snippet slotBulkActions()}
 			{#if loading}
 				<LoadingSpinner loadingText="Updating Count..." />
 			{/if}
-		</svelte:fragment>
+		{/snippet}
 	</CustomTable>
 {/if}

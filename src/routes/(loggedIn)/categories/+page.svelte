@@ -23,7 +23,7 @@
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/categories', $page));
 
 	const urlStore = pageInfoStore({
@@ -52,7 +52,7 @@
 />
 
 <PageLayout title="Categories" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button
 			color="light"
 			outline
@@ -60,7 +60,7 @@
 		>
 			Create
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	<JournalSummaryWithFetch
 		filter={{ category: data.searchParams }}
 		latestUpdate={data.latestUpdate}
@@ -120,7 +120,7 @@
 			bind:shownColumns={$categoryColumnsStore}
 			rowColour={(row) => (row.disabled ? 'grey' : undefined)}
 		>
-			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/categories/[id]',
@@ -173,8 +173,8 @@
 						</form>
 					</div>
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filterButtons">
+			{/snippet}
+			{#snippet slotFilterButtons()}
 				<DownloadDropdown
 					urlGenerator={(downloadType) =>
 						urlGenerator({
@@ -182,8 +182,8 @@
 							searchParamsValue: { ...$urlStore.searchParams, downloadType }
 						}).url}
 				/>
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -194,11 +194,9 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
-			<svelte:fragment slot="filterModal">
-				<CategoryFilter
-					bind:filter={$urlStore.searchParams}
-				/>
-			</svelte:fragment>
+			{/snippet}
+			{#snippet slotFilterModal()}
+				<CategoryFilter bind:filter={$urlStore.searchParams} />
+			{/snippet}
 		</CustomTable>{/if}
 </PageLayout>

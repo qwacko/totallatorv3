@@ -13,18 +13,18 @@
 	import type { currencyFormatType } from '$lib/schema/userSchema';
 	import { currencyFormat } from '$lib/stores/userInfoStore';
 
-	export let data: ReportConfigPartWithData_TimeGraph;
+	const { data }: { data: ReportConfigPartWithData_TimeGraph } = $props();
 
-	let width = 0;
-	let height = 0;
+	let width = $state(0);
+	let height = $state(0);
 
-	$: showXAxis = height > 300;
-	$: showYAxis = width > 800;
+	const showXAxis = $derived(height > 300);
+	const showYAxis = $derived(width > 800);
 
-	$: dynamicConfig = {
+	const dynamicConfig = $derived({
 		showXAxis,
 		showYAxis
-	};
+	});
 
 	const updateOptions = ({
 		readData,

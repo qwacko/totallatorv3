@@ -15,7 +15,7 @@
 	import { enhance } from '$app/forms';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 
-	const {data} = $props()
+	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/importMapping', $page));
 
@@ -45,7 +45,7 @@
 />
 
 <PageLayout title="Import Mapping" size="lg">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button
 			href={urlGenerator({ address: '/(loggedIn)/importMapping/create' }).url}
 			color="light"
@@ -53,7 +53,7 @@
 		>
 			Create
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
@@ -97,7 +97,7 @@
 				}
 			]}
 		>
-			<svelte:fragment slot="customBodyCell" let:currentColumn let:row>
+			{#snippet slotCustomBodyCell({ currentColumn, row })}
 				{#if currentColumn.id === 'actions'}
 					<form use:enhance method="post">
 						<input type="hidden" name="importMappingId" value={row.id} />
@@ -138,8 +138,8 @@
 						/>
 					{/if}
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -150,30 +150,28 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
-
-			<svelte:fragment slot="headerItem" let:currentColumn>
-				{#if currentColumn.id === 'title'}
-					<DropdownItem>
-						<Input
-							type="text"
-							bind:value={$urlStore.searchParams.title}
-							placeholder="Title Filter"
-						/>
-					</DropdownItem>
-				{:else if currentColumn.id === 'configuration'}
-					<DropdownItem>
-						<Input
-							type="text"
-							bind:value={$urlStore.searchParams.configuration}
-							placeholder="Configuration Filter"
-						/>
-					</DropdownItem>
+			{/snippet}
+			{#snippet slotHeaderItem({ currentColumn })}
+				{#if $urlStore.searchParams}
+					{#if currentColumn.id === 'title'}
+						<DropdownItem>
+							<Input
+								type="text"
+								bind:value={$urlStore.searchParams.title}
+								placeholder="Title Filter"
+							/>
+						</DropdownItem>
+					{:else if currentColumn.id === 'configuration'}
+						<DropdownItem>
+							<Input
+								type="text"
+								bind:value={$urlStore.searchParams.configuration}
+								placeholder="Configuration Filter"
+							/>
+						</DropdownItem>
+					{/if}
 				{/if}
-			</svelte:fragment>
-			<!-- <svelte:fragment slot="filterModal">
-				<ReusableFilterFilter bind:filter={$urlStore.searchParams} />
-			</svelte:fragment> -->
+			{/snippet}
 		</CustomTable>
 	{/if}
 </PageLayout>

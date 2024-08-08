@@ -3,9 +3,9 @@
 	import { onMount } from 'svelte';
 	import type { SvelteComponent } from 'svelte';
 	import type { EChartsOption } from 'echarts';
-	let ChartComponent: typeof SvelteComponent<{ options: EChartsOption }> | undefined;
+	let ChartComponent = $state<typeof SvelteComponent<{ options: EChartsOption }> | undefined>();
 
-	export let options: EChartsOption;
+	const { options }: { options: EChartsOption } = $props();
 
 	onMount(async () => {
 		const { Chart } = await import('svelte-echarts');

@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { urlGenerator } from '$lib/routes';
 
-	export let item: {
-		thumbnailFilename?: string | undefined | null;
-		id: string;
-		originalFilename: string;
-	};
-
-	export let size: 'sm' | 'md' | 'lg' = 'md';
+	const {
+		item,
+		size = 'md'
+	}: {
+		item: {
+			thumbnailFilename?: string | undefined | null;
+			id: string;
+			originalFilename: string;
+		};
+		size?: 'sm' | 'md' | 'lg';
+	} = $props();
 </script>
 
 {#if item.thumbnailFilename}

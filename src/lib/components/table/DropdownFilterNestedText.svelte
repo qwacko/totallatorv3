@@ -1,8 +1,10 @@
 <script lang="ts" generics="Keys extends string">
 	import { DropdownItem, Input, Button } from 'flowbite-svelte';
 
-	export let params: Partial<Record<Keys, string>> | undefined;
-	export let key: Keys;
+	let {
+		params = $bindable(),
+		key
+	}: { params: Partial<Record<Keys, string>> | undefined; key: Keys } = $props();
 
 	const enableParams = () => {
 		if (!params) {

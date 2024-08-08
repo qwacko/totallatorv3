@@ -51,11 +51,11 @@
 <CustomHeader pageTitle="Imports" />
 
 <PageLayout title="Imports" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button color="light" href={urlGenerator({ address: '/(loggedIn)/import/create' }).url} outline>
 			Add
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
@@ -163,7 +163,7 @@
 			bind:shownColumns={$importColumnsStore}
 			rowColour={() => undefined}
 		>
-			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/import/[id]',
@@ -211,8 +211,8 @@
 						<Badge color="yellow">Manual</Badge>
 					{/if}
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -223,6 +223,6 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
+			{/snippet}
 		</CustomTable>{/if}
 </PageLayout>

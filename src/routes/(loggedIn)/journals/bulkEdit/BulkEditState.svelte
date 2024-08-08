@@ -7,12 +7,21 @@
 	import { Button, ButtonGroup } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 
-	export let complete: boolean | undefined;
-	export let reconciled: boolean | undefined;
-	export let dataChecked: boolean | undefined;
-	export let filter: Record<string, any> | undefined;
-	export let currentPage: string;
-	export let canEdit: boolean;
+	const {
+		complete,
+		reconciled,
+		dataChecked,
+		filter,
+		currentPage,
+		canEdit
+	}: {
+		complete: boolean | undefined;
+		reconciled: boolean | undefined;
+		dataChecked: boolean | undefined;
+		filter: Record<string, any> | undefined;
+		currentPage: string;
+		canEdit: boolean;
+	} = $props();
 </script>
 
 {#if filter}
