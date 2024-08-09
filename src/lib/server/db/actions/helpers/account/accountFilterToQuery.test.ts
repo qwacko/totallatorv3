@@ -1,9 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { accountFilterToQuery, accountFilterToText } from './accountFilterToQuery';
 import { and } from 'drizzle-orm';
 import { account } from '../../../postgres/schema';
 import { QueryBuilder } from 'drizzle-orm/pg-core';
-import { clearTestDB, createTestWrapper, getTestDB, initialiseTestDB } from '../../../test/dbTest';
+import {
+	clearTestDB,
+	createTestWrapper,
+	getTestDB,
+	initialiseTestDB,
+	closeTestDB
+} from '../../../test/dbTest';
 import { accountMaterializedView } from '$lib/server/db/postgres/schema/materializedViewSchema';
 
 describe('Account Filter To Query', () => {
@@ -247,10 +253,20 @@ describe('Account Filter To Query', () => {
 });
 
 describe('Account Filter To Text', async () => {
-	const db = await getTestDB();
+	let db: undefined | Awaited<ReturnType<typeof getTestDB>> = undefined;
+
+	beforeAll(async () => {
+		db = await getTestDB();
+	});
+	afterAll(async () => {
+		if (db) {
+			await closeTestDB(db);
+			db = undefined;
+		}
+	});
 
 	const testIT = await createTestWrapper({
-		db: db.testDB,
+		getDB: () => (db ? db.testDB : undefined),
 		beforeEach: async (db, id) => {
 			await clearTestDB(db);
 			await initialiseTestDB({ db, accounts: true, id });

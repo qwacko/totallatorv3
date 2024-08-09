@@ -58,7 +58,8 @@ export default defineConfig(({ mode }) => {
 			maxConcurrency: 1,
 			maxWorkers: 1,
 			testTimeout: 3000,
-			poolOptions: { threads: { singleThread: true } }
+			pool: 'forks',
+			poolOptions: { forks: { singleFork: true } }
 		}
 	};
 });

@@ -1,10 +1,11 @@
 import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
 import { budget } from '../../../postgres/schema';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { and } from 'drizzle-orm';
 import {
 	clearTestDB,
+	closeTestDB,
 	createTestWrapper,
 	getTestDB,
 	initialiseTestDB
@@ -226,10 +227,20 @@ describe('budgetFilterToQuery', () => {
 });
 
 describe('Budget Filter To Text', async () => {
-	const db = await getTestDB();
+	let db: undefined | Awaited<ReturnType<typeof getTestDB>> = undefined;
+
+	beforeAll(async () => {
+		db = await getTestDB();
+	});
+	afterAll(async () => {
+		if (db) {
+			await closeTestDB(db);
+			db = undefined;
+		}
+	});
 
 	const testIT = await createTestWrapper({
-		db: db.testDB,
+		getDB: () => (db ? db.testDB : undefined),
 		beforeEach: async (db, id) => {
 			await clearTestDB(db);
 			await initialiseTestDB({ db, budgets: true, id });
