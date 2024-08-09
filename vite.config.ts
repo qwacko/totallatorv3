@@ -58,7 +58,7 @@ export default defineConfig(({ mode }) => {
 			maxConcurrency: 1,
 			maxWorkers: 1,
 			testTimeout: 3000,
-			poolOptions: { threads: { minThreads: 1, maxThreads: 1 } }
+			poolOptions: { threads: { maxThreads: 1 } }
 		}
 	};
 });
