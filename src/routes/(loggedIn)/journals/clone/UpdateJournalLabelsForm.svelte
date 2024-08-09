@@ -9,14 +9,19 @@
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<UpdateJournalSchemaType> | SuperForm<CloneJournalUpdateSchemaType>;
+	const {
+		form,
+		allLabelIds,
+		commonLabelIds
+	}: {
+		form: SuperForm<UpdateJournalSchemaType> | SuperForm<CloneJournalUpdateSchemaType>;
+		allLabelIds: string[];
+		commonLabelIds: string[];
+	} = $props();
 
-	export let allLabelIds: string[];
-	export let commonLabelIds: string[];
+	let currentLabelId = $state<string | undefined>(undefined);
 
-	let currentLabelId: string | undefined = undefined;
-
-	$: formData = form.form;
+	const formData = $derived(form.form);
 
 	const removeLabelToggle = (labelId: string | undefined) => {
 		$formData.labels = undefined;
@@ -67,22 +72,26 @@
 		}
 	};
 
-	$: if ($formData.clearLabels) {
-		$formData.labels = undefined;
-		$formData.addLabels = undefined;
-		$formData.removeLabels = undefined;
-	}
+	$effect(() => {
+		if ($formData.clearLabels) {
+			$formData.labels = undefined;
+			$formData.addLabels = undefined;
+			$formData.removeLabels = undefined;
+		}
+	});
 
-	$: addCurrentLabel = () => addLabelToggle(currentLabelId);
-	$: addSetLabel = () => setLabelToggle(currentLabelId);
+	const addCurrentLabel = $derived(() => addLabelToggle(currentLabelId));
+	const addSetLabel = $derived(() => setLabelToggle(currentLabelId));
 
 	const clearCurrentLabel = () => ($formData.addLabels = undefined);
 	const clearSetLabel = () => ($formData.labels = undefined);
 
-	$: enableAdd =
-		currentLabelId && (!$formData.addLabels || !$formData.addLabels.includes(currentLabelId));
-	$: enableSet =
-		currentLabelId && (!$formData.labels || !$formData.labels.includes(currentLabelId));
+	const enableAdd = $derived(
+		currentLabelId && (!$formData.addLabels || !$formData.addLabels.includes(currentLabelId))
+	);
+	const enableSet = $derived(
+		currentLabelId && (!$formData.labels || !$formData.labels.includes(currentLabelId))
+	);
 </script>
 
 <div class="col-span-1 md:col-span-2">

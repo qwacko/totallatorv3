@@ -2,10 +2,10 @@
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import type { SvelteComponent } from 'svelte';
-	import type { EChartsOptions } from 'svelte-echarts';
-	let ChartComponent: typeof SvelteComponent<{ options: EChartsOptions }> | undefined;
+	import type { EChartsOption } from 'echarts';
+	let ChartComponent = $state<typeof SvelteComponent<{ options: EChartsOption }> | undefined>();
 
-	export let options: EChartsOptions;
+	const { options }: { options: EChartsOption } = $props();
 
 	onMount(async () => {
 		const { Chart } = await import('svelte-echarts');

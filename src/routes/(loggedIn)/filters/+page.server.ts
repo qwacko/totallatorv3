@@ -38,7 +38,7 @@ export const load = async (data) => {
 	};
 };
 
-export let actions = {
+export const actions = {
 	refreshAll: async ({ locals }) => {
 		const db = locals.db;
 

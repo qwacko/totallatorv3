@@ -1,11 +1,21 @@
 <script lang="ts">
 	import { Label } from 'flowbite-svelte';
 	import ErrorText from './ErrorText.svelte';
+	import type { Snippet } from 'svelte';
 
-	export let errorMessage: string | string[] | null | undefined;
-	export let title: string | null;
-	export let required: boolean | undefined | null = undefined;
-	export let wrapperClass: string | undefined = undefined;
+	const {
+		errorMessage,
+		title,
+		required,
+		wrapperClass,
+		children
+	}: {
+		errorMessage?: string | string[] | null;
+		title: string | null;
+		required?: boolean | null;
+		wrapperClass?: string;
+		children?: Snippet;
+	} = $props();
 </script>
 
 <Label class="space-y-2 {wrapperClass}">
@@ -20,6 +30,8 @@
 			</div>
 		</span>
 	{/if}
-	<slot />
+	{#if children}
+		{@render children()}
+	{/if}
 	<ErrorText message={errorMessage} />
 </Label>

@@ -7,7 +7,7 @@
 	import CurrencyInputForm from '$lib/components/CurrencyInputForm.svelte';
 	import BooleanSetClearForm from '$lib/components/BooleanSetClearForm.svelte';
 
-	export let form: SuperForm<UpdateJournalSchemaType>;
+	const { form }: { form: SuperForm<UpdateJournalSchemaType> } = $props();
 </script>
 
 <TextInputForm title="Description" {form} field="description" />

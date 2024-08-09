@@ -2,13 +2,26 @@
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from './ActionButton.svelte';
+	import type { ComponentProps, Snippet } from 'svelte';
 
-	export let action: string;
-	export let wrapperClass: string | undefined = undefined;
-	export let message: string;
-	export let loadingMessage: string | undefined = undefined;
+	type ButtonProps = ComponentProps<ActionButton>;
 
-	let loading = false;
+	const {
+		action,
+		wrapperClass,
+		message,
+		loadingMessage,
+		children,
+		...restProps
+	}: {
+		action: string;
+		wrapperClass?: string;
+		message: string;
+		loadingMessage?: string;
+		children?: Snippet;
+	} & Omit<ButtonProps, 'type' | 'loading' | 'message' | 'loadingMessage'> = $props();
+
+	let loading = $state(false);
 </script>
 
 <form
@@ -19,6 +32,8 @@
 	})}
 	class={wrapperClass}
 >
-	<ActionButton type="submit" {loading} {message} {loadingMessage} {...$$restProps} />
-	<slot />
+	<ActionButton type="submit" {loading} {message} {loadingMessage} {...restProps} />
+	{#if children}
+		{@render children()}
+	{/if}
 </form>

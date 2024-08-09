@@ -1,16 +1,33 @@
-import { beforeAll, describe, expect } from 'vitest';
+import { afterAll, beforeAll, describe, expect } from 'vitest';
 import { accountActions } from './accountActions';
-import { getTestDB, initialiseTestDB, createTestWrapper, clearTestDB } from '../test/dbTest';
+import {
+	getTestDB,
+	initialiseTestDB,
+	createTestWrapper,
+	clearTestDB,
+	closeTestDB
+} from '../test/dbTest';
 import { account } from '../postgres/schema';
 import { eq } from 'drizzle-orm';
 import { journalActions } from './journalActions';
 import { materializedViewActions } from './materializedViewActions';
 
 describe('accountActions', async () => {
-	const db = await getTestDB();
+	let db: undefined | Awaited<ReturnType<typeof getTestDB>> = undefined;
+
+	beforeAll(async () => {
+		db = await getTestDB();
+		await clearTestDB(db.testDB);
+	});
+	afterAll(async () => {
+		if (db) {
+			await closeTestDB(db);
+			db = undefined;
+		}
+	});
 
 	const testIT = await createTestWrapper({
-		db: db.testDB,
+		getDB: () => (db ? db.testDB : undefined),
 		beforeEach: async (db, id) => {
 			await clearTestDB(db);
 			await initialiseTestDB({ db, accounts: true, id });
@@ -26,10 +43,6 @@ describe('accountActions', async () => {
 			});
 			await materializedViewActions.setRefreshRequired(db);
 		}
-	});
-
-	beforeAll(async () => {
-		await clearTestDB(db.testDB);
 	});
 
 	describe('createAccount', async () => {

@@ -1,15 +1,27 @@
 <script lang="ts">
 	import BooleanButtons from '../BooleanButtons.svelte';
 
-	export let value: boolean | undefined;
-	export let onTitle: string = 'True';
-	export let offTitle: string = 'False';
-	export let clearTitle: string = 'Clear';
-	export let title: string | null | undefined = undefined;
-	export let name: string | undefined = undefined;
-	export let hideClear: boolean = false;
-	export let wrapperClass = '';
-	export let disabled: boolean = false;
+	let {
+		value = $bindable(),
+		onTitle = 'True',
+		offTitle = 'False',
+		clearTitle = 'Clear',
+		title,
+		name,
+		hideClear = false,
+		wrapperClass = '',
+		disabled = false
+	}: {
+		value: boolean | undefined;
+		onTitle?: string;
+		offTitle?: string;
+		clearTitle?: string;
+		title?: string | null | undefined;
+		name?: string | undefined;
+		hideClear?: boolean;
+		wrapperClass?: string;
+		disabled?: boolean;
+	} = $props();
 
 	const updateValue = (newValue: boolean | undefined) => {
 		value = newValue;

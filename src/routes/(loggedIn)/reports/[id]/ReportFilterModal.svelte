@@ -5,10 +5,10 @@
 	import { enhance } from '$app/forms';
 	import { defaultCustomEnhance } from '$lib/helpers/customEnhance';
 
-	export let filter: JournalFilterSchemaWithoutPaginationType | undefined;
+	const { filter }: { filter: JournalFilterSchemaWithoutPaginationType | undefined } = $props();
 
-	let filterModalOpened = false;
-	let loading = false;
+	let filterModalOpened = $state(false);
+	let loading = $state(false);
 </script>
 
 <FilterModal
@@ -17,7 +17,7 @@
 	currentFilter={filter ? filter : {}}
 	hideDates={false}
 >
-	<svelte:fragment slot="footerContents" let:activeFilter>
+	{#snippet slotFooterContents({ activeFilter })}
 		<form
 			action="?/updateFilter"
 			method="post"
@@ -30,5 +30,5 @@
 			<Button on:click={() => (filterModalOpened = false)} outline>Cancel</Button>
 			<Button type="submit" disabled={loading}>Update</Button>
 		</form>
-	</svelte:fragment>
+	{/snippet}
 </FilterModal>

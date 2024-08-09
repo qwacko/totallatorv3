@@ -2,12 +2,11 @@
 	import { Modal, Button } from 'flowbite-svelte';
 	import { format } from 'sql-formatter';
 
-	export let data: { query?: string | null; params?: string | null };
+	const { data }: { data: { query?: string | null; params?: string | null } } = $props();
 
-	let modalOpened = false;
+	let modalOpened = $state(false);
 
-	// $: params = data.params ? JSON.parse(data.params) : '';
-	$: formattedQuery = data.query ? format(data.query, { language: 'postgresql' }) : '';
+	const formattedQuery = $derived(data.query ? format(data.query, { language: 'postgresql' }) : '');
 </script>
 
 <Button size="xs" on:click={() => (modalOpened = true)}>+</Button>

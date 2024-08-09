@@ -1,12 +1,22 @@
 <script lang="ts">
 	import { Badge } from 'flowbite-svelte';
+	import type { ComponentProps } from 'svelte';
 
-	export let href: string;
-	export let id: string;
-	export let items: Promise<{ id: string; count: number }[]>;
+	type BadgeProps = ComponentProps<Badge>;
+
+	const {
+		href,
+		id,
+		items,
+		...restProps
+	}: {
+		href: string;
+		id: string;
+		items: Promise<{ id: string; count: number }[]>;
+	} & Omit<BadgeProps, 'href'> = $props();
 </script>
 
-<Badge {href} {...$$restProps}>
+<Badge {href} {...restProps}>
 	{#await items}
 		...
 	{:then resolvedItems}

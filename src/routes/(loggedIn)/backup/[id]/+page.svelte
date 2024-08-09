@@ -10,16 +10,16 @@
 	import CancelIcon from '$lib/components/icons/CancelIcon.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 
-	export let data;
+	const { data } = $props();
 
-	$: filename = data.backupInformation.filename;
-	$: title = `Backup - ${data.backupInformation.title}`;
+	const filename = $derived(data.backupInformation.filename);
+	const title = $derived(`Backup - ${data.backupInformation.title}`);
 
-	let restoring = false;
-	let deleting = false;
-	let editingTitle = false;
-	let editSubmission = false;
-	let updatingLocked = false;
+	let restoring = $state(false);
+	let deleting = $state(false);
+	let editingTitle = $state(false);
+	let editSubmission = $state(false);
+	let updatingLocked = $state(false);
 </script>
 
 <CustomHeader pageTitle={title} />

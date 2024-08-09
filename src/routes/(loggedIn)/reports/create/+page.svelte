@@ -19,22 +19,22 @@
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	export let data;
+	const { data } = $props();
 
 	const formAll = superForm(data.form, {
 		onSubmit: () => (loading = true),
 		onResult: () => (loading = false)
 	});
 
-	$: form = formAll.form;
-	$: errors = formAll.errors;
-	$: constraints = formAll.constraints;
-	$: message = formAll.message;
-	$: enhance = formAll.enhance;
+	const form = $derived(formAll.form);
+	const errors = $derived(formAll.errors);
+	const constraints = $derived(formAll.constraints);
+	const message = $derived(formAll.message);
+	const enhance = $derived(formAll.enhance);
 
-	$: urlInfo = pageInfo('/(loggedIn)/reports/create', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/reports/create', $page));
 
-	let loading = false;
+	let loading = $state(false);
 </script>
 
 <CustomHeader pageTitle="New Report" />

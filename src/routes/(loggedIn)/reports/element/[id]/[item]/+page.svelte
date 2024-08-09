@@ -19,9 +19,9 @@
 	import BooleanInputForm from '$lib/components/BooleanInputForm.svelte';
 	import { reportConfigPartNegativeDisplayDropdown } from '$lib/schema/reportHelpers/reportConfigPartNegativeDisplayEnum';
 
-	export let data;
+	const { data } = $props();
 
-	let loading = false;
+	let loading = $state(false);
 
 	const form = superForm(data.itemForm, {
 		...superFormNotificationHelper({
@@ -32,11 +32,11 @@
 		})
 	});
 
-	$: enhance = form.enhance;
-	$: errors = form.errors;
-	$: formData = form.form;
+	const enhance = $derived(form.enhance);
+	const errors = $derived(form.errors);
+	const formData = $derived(form.form);
 
-	$: itemTypeInfo = reportConfigPartTypeInfo[$formData.type];
+	const itemTypeInfo = $derived(reportConfigPartTypeInfo[$formData.type]);
 </script>
 
 <ReportGridWrapper size="xl">

@@ -4,17 +4,21 @@
 	import type { ReportConfigPartWithData_Sparkline } from '$lib/server/db/actions/helpers/report/getData';
 	import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 	import { browser } from '$app/environment';
+	import { untrack } from 'svelte';
 
-	export let data: ReportConfigPartWithData_Sparkline;
+	const {
+		data,
+		class: className = ''
+	}: { data: ReportConfigPartWithData_Sparkline; class?: string } = $props();
 
 	const type: 'area' | 'bar' =
 		data.type === 'sparkline' ? 'area' : data.type === 'sparklinebar' ? 'bar' : 'area';
 
-	let width: number | undefined;
-	let height: number | undefined;
+	let width = $state<number | undefined>();
+	let height = $state<number | undefined>();
 
-	let options: ApexOptions | undefined = undefined;
-	let errorMessage: string | undefined;
+	let options = $state<ApexOptions | undefined>(undefined);
+	let errorMessage = $state<string | undefined>();
 
 	const updateOptions = async (
 		data: ReportConfigPartWithData_Sparkline['data'],
@@ -119,7 +123,9 @@
 		};
 	};
 
-	$: updateOptions(data.data, width || 0, height || 0);
+	$effect(() => {
+		untrack(() => updateOptions)(data.data, width || 0, height || 0);
+	});
 </script>
 
 <div class="relative flex grow self-stretch" bind:clientWidth={width} bind:clientHeight={height}>
@@ -128,7 +134,7 @@
 		<Tooltip>{errorMessage}</Tooltip>
 	{:else if width > 0 && height > 0}
 		{#if options}
-			<Chart {options} class="absolute {$$props.class}" key={`${width}-${height}`} />
+			<Chart {options} class="absolute {className}" key={`${width}-${height}`} />
 		{:else}
 			<div class="flex h-full w-full place-content-center place-items-center">
 				<Spinner />

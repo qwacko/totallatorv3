@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { Alert } from 'flowbite-svelte';
 
-	export let message: string | string[] | null = null;
-	export let title: string | null = null;
+	const {
+		message = null,
+		title = null
+	}: { message?: string | string[] | null; title?: string | null } = $props();
 </script>
 
 {#if message && message.length > 0}

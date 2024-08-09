@@ -11,9 +11,9 @@
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<CreateSimpleTransactionType>;
+	const { form }: { form: SuperForm<CreateSimpleTransactionType> } = $props();
 
-	$: formData = form.form;
+	const formData = $derived(form.form);
 </script>
 
 <ComboSelectForm

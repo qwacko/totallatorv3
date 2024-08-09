@@ -6,11 +6,11 @@
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<CreateSimpleTransactionType>;
+	const { form }: { form: SuperForm<CreateSimpleTransactionType> } = $props();
 
-	let currentLabelId: string | undefined = undefined;
+	let currentLabelId = $state<string | undefined>(undefined);
 
-	$: formData = form.form;
+	const formData = $derived(form.form);
 
 	const setLabelToggle = (labelId: string | undefined) => {
 		if (labelId) {
@@ -26,11 +26,11 @@
 		}
 	};
 
-	$: addSetLabel = () => setLabelToggle(currentLabelId);
+	const addSetLabel = $derived(() => setLabelToggle(currentLabelId));
 	const clearSetLabel = () => ($formData.labels = undefined);
-
-	$: enableSet =
-		currentLabelId && (!$formData.labels || !$formData.labels.includes(currentLabelId));
+	const enableSet = $derived(
+		currentLabelId && (!$formData.labels || !$formData.labels.includes(currentLabelId))
+	);
 </script>
 
 <div class="flex flex-col gap-2">

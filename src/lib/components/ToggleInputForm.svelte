@@ -4,12 +4,21 @@
 	import ActionButton from '$lib/components/ActionButton.svelte';
 	import { ButtonGroup, type Colors } from 'flowbite-svelte';
 
-	export let loading = false;
-	export let action: string;
-	export let currentValue: boolean;
-	export let onTitle: string = 'On';
-	export let offTitle: string = 'Off';
-	export let color: Colors = 'primary';
+	let {
+		loading = $bindable(false),
+		action,
+		currentValue,
+		onTitle = 'On',
+		offTitle = 'Off',
+		color = 'primary'
+	}: {
+		loading?: boolean;
+		action: string;
+		currentValue: boolean;
+		onTitle?: string;
+		offTitle?: string;
+		color?: Colors;
+	} = $props();
 </script>
 
 <form

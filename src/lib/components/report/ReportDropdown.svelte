@@ -4,7 +4,7 @@
 	import ArrowRightIcon from '../icons/ArrowRightIcon.svelte';
 	import { urlGenerator } from '$lib/routes';
 
-	export let items: ReportDropdownType;
+	const { items }: { items: ReportDropdownType } = $props();
 </script>
 
 <Button class="p-2" outline>Reports</Button>

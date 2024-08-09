@@ -14,16 +14,16 @@
 	import DateInputForm from '$lib/components/DateInputForm.svelte';
 	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
 
-	export let data;
+	const { data } = $props();
 
 	const form = superForm(data.form);
 
-	$: urlInfo = pageInfo('/(loggedIn)/accounts/create', $page);
-	$: formData = form.form;
-	$: formErrors = form.errors;
-	$: enhance = form.enhance;
-	$: constraints = form.constraints;
-	$: message = form.message;
+	const urlInfo = $derived(pageInfo('/(loggedIn)/accounts/create', $page));
+	const formData = $derived(form.form);
+	const formErrors = $derived(form.errors);
+	const enhance = $derived(form.enhance);
+	const constraints = $derived(form.constraints);
+	const message = $derived(form.message);
 </script>
 
 <CustomHeader pageTitle="New Account" />

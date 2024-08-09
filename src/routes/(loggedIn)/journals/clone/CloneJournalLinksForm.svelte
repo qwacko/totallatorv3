@@ -1,14 +1,22 @@
 <script lang="ts">
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
 	import type { CloneJournalUpdateSchemaType } from '$lib/schema/journalSchema';
-	import { accountDropdownData, tagDropdownData, billDropdownData, budgetDropdownData,  categoryDropdownData } from '$lib/stores/dropdownStores.js'
+	import {
+		accountDropdownData,
+		tagDropdownData,
+		billDropdownData,
+		budgetDropdownData,
+		categoryDropdownData
+	} from '$lib/stores/dropdownStores.js';
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<CloneJournalUpdateSchemaType>;
-	export let hideAccount: boolean = false;
+	const {
+		form,
+		hideAccount = false
+	}: { form: SuperForm<CloneJournalUpdateSchemaType>; hideAccount?: boolean } = $props();
 
-	$: formData = form.form;
+	const formData = $derived(form.form);
 </script>
 
 {#if !hideAccount}

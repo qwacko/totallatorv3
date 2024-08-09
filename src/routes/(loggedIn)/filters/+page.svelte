@@ -12,9 +12,9 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	export let data;
+	const { data } = $props();
 
-	$: urlInfo = pageInfo('/(loggedIn)/filters', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/filters', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/filters',
@@ -27,21 +27,23 @@
 		updateDelay: 500
 	});
 
-	$: tableConfig = {
+	const tableConfig = $derived({
 		dev: data.dev,
 		filterText: data.filterText,
 		urlForPage: (value: number) => urlInfo.updateParams({ searchParams: { page: value } }).url,
 		urlForSort: (newSort: ReusableFilterFilterSchemaType['orderBy']) =>
 			urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url
-	};
+	});
 
-	let refreshingSome = false;
-	let refreshingAll = false;
-	let refreshTime = new Date();
-	let now = new Date(); // This will be updated every second
+	let refreshingSome = $state(false);
+	let refreshingAll = $state(false);
+	let refreshTime = $state(new Date());
+	let now = $state(new Date()); // This will be updated every second
 
 	// Reactive statement to calculate time since refresh
-	$: timeSinceRefreshSeconds = Math.floor((now.getTime() - refreshTime.getTime()) / 1000);
+	const timeSinceRefreshSeconds = $derived(
+		Math.floor((now.getTime() - refreshTime.getTime()) / 1000)
+	);
 
 	// Set an interval to update 'now' every second
 	setInterval(() => {
@@ -57,7 +59,7 @@
 />
 
 <PageLayout title="Reusable Filters" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button
 			href={urlGenerator({ address: '/(loggedIn)/filters/create', searchParamsValue: {} }).url}
 			outline
@@ -115,7 +117,7 @@
 				/>
 			{/await}
 		</form>
-	</svelte:fragment>
+	{/snippet}
 
 	{#if $urlStore.searchParams}
 		{#await data.streamed.filters}

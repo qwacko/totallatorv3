@@ -28,8 +28,8 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/files', $page);
+	const { data } = $props();
+	const urlInfo = $derived(pageInfo('/(loggedIn)/files', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/files',
@@ -42,9 +42,9 @@
 		updateDelay: 500
 	});
 
-	let filterOpened = false;
+	let filterOpened = $state(false);
 
-	let checkingFiles = false;
+	let checkingFiles = $state(false);
 
 	onNavigate(() => {
 		filterOpened = false;
@@ -59,7 +59,7 @@
 />
 
 <PageLayout title="Files" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<form
 			method="post"
 			use:enhance={customEnhance({
@@ -79,7 +79,7 @@
 		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/files/create' }).url}>
 			Create
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			filterText={data.filterText}
@@ -156,7 +156,7 @@
 			]}
 			bind:shownColumns={$fileColumnsStore}
 		>
-			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					{@const deleteURL = urlGenerator({
 						address: '/(loggedIn)/files/[id]/delete',
@@ -306,8 +306,8 @@
 				{:else if currentColumn.id === 'reason'}
 					<Badge>{fileReasonToText(currentRow.reason)}</Badge>
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -318,6 +318,6 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
+			{/snippet}
 		</CustomTable>{/if}
 </PageLayout>

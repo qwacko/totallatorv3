@@ -7,14 +7,25 @@
 		type EChartsBrushSelectedHandler
 	} from './chartable';
 
-	export let options: EChartsOption;
-	export let theme: string | undefined = undefined;
-	export let renderer: 'canvas' | 'svg' = 'canvas';
-	export let onClick: EChartsClickHandler | undefined = undefined;
-	export let onMouseOut: EChartsClickHandler | undefined = undefined;
-	export let onMouseOver: EChartsClickHandler | undefined = undefined;
-	export let onBrushEnd: EChartsBrushEndHandler | undefined = undefined;
-	export let onBrushSelected: EChartsBrushSelectedHandler | undefined = undefined;
+	const {
+		options,
+		theme,
+		renderer = 'canvas',
+		onClick,
+		onMouseOut,
+		onMouseOver,
+		onBrushEnd,
+		onBrushSelected
+	}: {
+		options: EChartsOption;
+		theme?: string;
+		renderer?: 'canvas' | 'svg';
+		onClick?: EChartsClickHandler;
+		onMouseOut?: EChartsClickHandler;
+		onMouseOver?: EChartsClickHandler;
+		onBrushEnd?: EChartsBrushEndHandler;
+		onBrushSelected?: EChartsBrushSelectedHandler;
+	} = $props();
 </script>
 
 <div
@@ -30,7 +41,7 @@
 		onBrushSelected
 	}}
 	aria-roledescription="chart"
-/>
+></div>
 
 <style>
 	.chart {

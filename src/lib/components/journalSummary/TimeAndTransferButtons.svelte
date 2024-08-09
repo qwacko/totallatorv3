@@ -2,7 +2,7 @@
 	import type { popoverViewSetting } from '$lib/stores/popoverView';
 	import { Button, ButtonGroup } from 'flowbite-svelte';
 
-	export let config: popoverViewSetting;
+	let { config = $bindable() }: { config: popoverViewSetting } = $props();
 </script>
 
 <div class="flex flex-row gap-2">

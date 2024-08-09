@@ -2,7 +2,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { importTypeEnum, importTypeToTitle } from '$lib/schema/importSchema';
-	import {  Fileupload } from 'flowbite-svelte';
+	import { Fileupload } from 'flowbite-svelte';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 	import { superForm } from 'sveltekit-superforms';
 	import BooleanInputForm from '$lib/components/BooleanInputForm.svelte';
@@ -10,7 +10,7 @@
 	import LabelWrapper from '$lib/components/LabelWrapper.svelte';
 	import { superFormNotificationHelper } from '$lib/stores/notificationHelpers';
 
-	export let data;
+	const { data } = $props();
 
 	const form = superForm(data.form, {
 		...superFormNotificationHelper({
@@ -20,9 +20,9 @@
 			invalidate: true
 		})
 	});
-	$: formData = form.form;
-	$: enhance = form.enhance;
-	$: errors = form.errors;
+	const formData = $derived(form.form);
+	const enhance = $derived(form.enhance);
+	const errors = $derived(form.errors);
 
 	const updateFile = (e: CustomEvent<any>) => {
 		if ((e?.currentTarget as HTMLInputElement)?.files) {
@@ -30,11 +30,11 @@
 		}
 	};
 
-	let importing = false;
-	let redirecting = false;
+	let importing = $state(false);
+	let redirecting = $state(false);
 
-	$: isMappedImport = $formData.importType === 'mappedImport';
-	$: isTransactionImport = $formData.importType === 'transaction';
+	const isMappedImport = $derived($formData.importType === 'mappedImport');
+	const isTransactionImport = $derived($formData.importType === 'transaction');
 </script>
 
 <CustomHeader pageTitle="New Import" />

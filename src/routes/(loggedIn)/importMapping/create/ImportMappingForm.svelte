@@ -9,21 +9,33 @@
 	import DisplaySampleMappedData from './DisplaySampleMappedData.svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
-	import { accountDropdownData, tagDropdownData, billDropdownData, budgetDropdownData,  categoryDropdownData } from '$lib/stores/dropdownStores.js'
+	import {
+		accountDropdownData,
+		tagDropdownData,
+		billDropdownData,
+		budgetDropdownData,
+		categoryDropdownData
+	} from '$lib/stores/dropdownStores.js';
 
-	export let form: SuperForm<ImportMappingCreateFormSchema>;
-	export let detailForm: SuperForm<ImportMappingDetailSchema>;
-	export let submitButtonText: string;
+	let {
+		form,
+		detailForm,
+		submitButtonText,
+		csvData = $bindable()
+	}: {
+		form: SuperForm<ImportMappingCreateFormSchema>;
+		detailForm: SuperForm<ImportMappingDetailSchema>;
+		submitButtonText: string;
+		csvData?: Record<string, unknown>[];
+	} = $props();
 
 	let formElement: HTMLFormElement;
 
-	export let csvData: Record<string, unknown>[] | undefined = undefined;
+	const formEnhance = $derived(form.enhance);
+	const formMessage = $derived(form.message);
+	const formErrors = $derived(form.errors);
 
-	$: formEnhance = form.enhance;
-	$: formMessage = form.message;
-	$: formErrors = form.errors;
-
-	$: detailFormData = detailForm.form;
+	const detailFormData = $derived(detailForm.form);
 </script>
 
 <form bind:this={formElement} use:formEnhance method="post" class="flex flex-col gap-4">

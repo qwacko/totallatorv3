@@ -9,9 +9,9 @@
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
-	export let data;
+	const { data } = $props();
 
-	$: urlInfo = pageInfo('/(loggedIn)/journals/clone', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/journals/clone', $page));
 </script>
 
 <CustomHeader pageTitle="Delete {data.journals.count} Journals" filterText={data.filterText} />

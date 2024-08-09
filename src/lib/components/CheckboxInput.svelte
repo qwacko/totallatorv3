@@ -1,13 +1,26 @@
 <script lang="ts">
 	import { Label, Checkbox } from 'flowbite-svelte';
 	import ErrorText from './ErrorText.svelte';
+	import type { ComponentProps } from 'svelte';
 
-	export let errorMessage: string | string[] | null | undefined;
-	export let title: string | null | undefined = undefined;
-	export let displayText: string | null | undefined = undefined;
-	export let name: string;
-	export let required: boolean | undefined | null = undefined;
-	export let value: boolean | undefined;
+	type CheckboxProps = ComponentProps<Checkbox>;
+
+	let {
+		errorMessage,
+		title = undefined,
+		displayText = undefined,
+		name,
+		required = undefined,
+		value = $bindable(),
+		...restProps
+	}: {
+		errorMessage: string | string[] | null | undefined;
+		title?: string | null | undefined;
+		displayText?: string | null | undefined;
+		name: string;
+		required?: boolean | undefined | null;
+		value: boolean | undefined;
+	} & Omit<CheckboxProps, 'checked' | 'name' | 'required'> = $props();
 </script>
 
 <Label class="space-y-2">
@@ -22,7 +35,7 @@
 			</div>
 		</span>
 	{/if}
-	<Checkbox checked={value} {...$$restProps} {name} {required} on:change={() => (value = !value)}>
+	<Checkbox checked={value} {...restProps} {name} {required} on:change={() => (value = !value)}>
 		{displayText ? displayText : ''}
 	</Checkbox>
 	<ErrorText message={errorMessage} />

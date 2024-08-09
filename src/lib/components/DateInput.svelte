@@ -3,19 +3,37 @@
 	import ErrorText from './ErrorText.svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
 	import CancelIcon from './icons/CancelIcon.svelte';
+	import type { ComponentProps } from 'svelte';
 
-	export let errorMessage: string | string[] | null | undefined;
-	export let title: string | null;
-	export let name: string;
-	export let required: boolean | undefined | null = undefined;
-	export let value: string | null | undefined;
-	export let clearable = true;
-	export let tainted: boolean | undefined = undefined;
-	export let highlightTainted: boolean | undefined = undefined;
-	export let flexGrow: boolean = false;
+	type InputProps = ComponentProps<Input>;
 
-	$: usedValue = value ? value : '';
-	$: clearableVisible = clearable && value;
+	let {
+		errorMessage,
+		title,
+		name,
+		required,
+		value = $bindable(),
+		clearable = true,
+		tainted,
+		highlightTainted,
+		flexGrow = false,
+		class: className = '',
+		...restProps
+	}: {
+		errorMessage: string | string[] | null | undefined;
+		title: string | null;
+		name: string;
+		required?: boolean | null;
+		value: string | null | undefined;
+		clearable?: boolean;
+		tainted?: boolean;
+		highlightTainted?: boolean;
+		flexGrow?: boolean;
+		class?: string;
+	} & Omit<InputProps, 'name' | 'required'> = $props();
+
+	const usedValue = $derived(value ? value : '');
+	const clearableVisible = $derived(clearable && value);
 
 	const handleUpdate: ChangeEventHandler<HTMLInputElement> = (e) => {
 		const { target } = e;
@@ -39,10 +57,10 @@
 		</span>
 	{/if}
 	<Input
-		{...$$restProps}
+		{...restProps}
 		{name}
 		{required}
-		class="{$$props.class} {highlightTainted && tainted ? 'ring-2' : ''} "
+		class="{className} {highlightTainted && tainted ? 'ring-2' : ''} "
 		let:props
 	>
 		<Button
@@ -55,7 +73,7 @@
 		>
 			<CancelIcon />
 		</Button>
-		<input type="date" value={usedValue} on:change={handleUpdate} {...props} />
+		<input type="date" value={usedValue} onchange={handleUpdate} {...props} />
 	</Input>
 	<ErrorText message={errorMessage} />
 </Label>

@@ -3,7 +3,7 @@
 	import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
 	import BooleanFilterButtons from './BooleanFilterButtons.svelte';
 
-	export let filter: ReusableFilterFilterSchemaType;
+	let { filter = $bindable() }: { filter: ReusableFilterFilterSchemaType } = $props();
 </script>
 
 <TextInput bind:value={filter.title} name="title" title="Title" errorMessage="" />

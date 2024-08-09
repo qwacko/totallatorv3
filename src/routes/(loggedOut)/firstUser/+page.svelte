@@ -6,7 +6,7 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
-	export let data;
+	const { data } = $props();
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 </script>
 

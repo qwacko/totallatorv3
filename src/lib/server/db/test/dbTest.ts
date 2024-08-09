@@ -35,7 +35,7 @@ const genTestDB = async () => {
 		}
 	}
 
-	const postgresDatabase = postgres(useURL, { max: 10 });
+	const postgresDatabase = postgres(useURL, { max: 30 });
 
 	const testDB = drizzle(postgresDatabase, { schema, logger: new MyLogger() });
 
@@ -44,13 +44,15 @@ const genTestDB = async () => {
 	return { testDB, postgresDatabase };
 };
 
-const testDBPromise = genTestDB();
+// const testDBPromise = genTestDB();
 
 export const getTestDB = async () => {
-	return await testDBPromise;
+	return await genTestDB();
 };
 
 export const closeTestDB = async (data: Awaited<ReturnType<typeof getTestDB>>) => {
+	console.log('Closing Test DB');
+	await data.postgresDatabase.end();
 	// await data.postgresDatabase.end();
 };
 
@@ -126,15 +128,21 @@ export const initialiseTestDB = async ({
 export const createTestWrapper = async ({
 	beforeEach,
 	afterEach,
-	db
+	getDB
 }: {
 	beforeEach?: (db: DBType, id: string) => Promise<void>;
 	afterEach?: (db: DBType, id: string) => Promise<void>;
-	db: DBType;
+	getDB: () => DBType | undefined;
 }) => {
 	return (name: string, testFunction: (db: DBType, id: string) => Promise<void>) => {
 		it(name, async () => {
 			const id = nanoid();
+			const db = getDB();
+
+			if (!db) {
+				console.log('No DB');
+				return;
+			}
 
 			if (beforeEach) await beforeEach(db, id);
 			await testFunction(db, id);

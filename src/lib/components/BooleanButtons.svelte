@@ -1,14 +1,23 @@
 <script lang="ts">
 	import { Button, ButtonGroup } from 'flowbite-svelte';
 
-	export let value: boolean | undefined;
-	export let setNew: (newValue: boolean | undefined) => void;
-
-	export let onTitle: string = 'True';
-	export let offTitle: string = 'False';
-	export let clearTitle: string = 'Clear';
-	export let hideClear: boolean = false;
-	export let disabled: boolean = false;
+	const {
+		value,
+		setNew,
+		onTitle = 'True',
+		offTitle = 'False',
+		clearTitle = 'Clear',
+		hideClear = false,
+		disabled = false
+	}: {
+		value: boolean | undefined;
+		setNew: (newValue: boolean | undefined) => void;
+		onTitle?: string;
+		offTitle?: string;
+		clearTitle?: string;
+		hideClear?: boolean;
+		disabled?: boolean;
+	} = $props();
 </script>
 
 <ButtonGroup>

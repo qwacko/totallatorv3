@@ -9,11 +9,11 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms';
 
-	export let data;
+	const { data } = $props();
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
-	$: urlInfo = pageInfo('/(loggedIn)/budgets/create', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/budgets/create', $page));
 </script>
 
 <CustomHeader pageTitle="New Budget" />

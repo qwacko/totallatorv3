@@ -3,7 +3,7 @@
 	import type { ReportConfigPartWithData_NumberCurrency } from '$lib/server/db/actions/helpers/report/getData';
 	import { Badge, Spinner, Tooltip } from 'flowbite-svelte';
 
-	export let data: ReportConfigPartWithData_NumberCurrency;
+	const { data }: { data: ReportConfigPartWithData_NumberCurrency } = $props();
 </script>
 
 <div class="flex h-full w-full items-center justify-center">

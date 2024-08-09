@@ -1,20 +1,35 @@
 <script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
 	import DateInput from './DateInput.svelte';
-
 	import type { Writable } from 'svelte/store';
-
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
+	import type { ComponentProps } from 'svelte';
 
-	export let form: SuperForm<T, unknown>;
-	export let field: FormPathLeaves<T>;
-	export let wrapperClass: string | undefined = undefined;
-	export let title: string | null;
-	export let highlightTainted: boolean | undefined = true;
+	type DateInputProps = ComponentProps<DateInput>;
+
+	const {
+		form,
+		field,
+		wrapperClass,
+		title,
+		highlightTainted = true,
+		class: className = '',
+		...restProps
+	}: {
+		form: SuperForm<T, unknown>;
+		field: FormPathLeaves<T>;
+		wrapperClass?: string;
+		title: string | null;
+		highlightTainted?: boolean;
+		class?: string;
+	} & Omit<
+		DateInputProps,
+		'title' | 'name' | 'value' | 'errorMessage' | 'tainted' | 'highlighTainted'
+	> = $props();
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
 
-	$: stringValue = value as Writable<string>;
+	const stringValue = $derived(value as Writable<string>);
 </script>
 
 <DateInput
@@ -25,10 +40,10 @@
 	tainted={$tainted}
 	{highlightTainted}
 	aria-invalid={$errors ? 'true' : undefined}
-	class={$$props.class}
+	class={className}
 	{wrapperClass}
 	on:blur
 	on:keypress
 	{...$constraints}
-	{...$$restProps}
+	{...restProps}
 />

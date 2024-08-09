@@ -1,19 +1,18 @@
 <script lang="ts">
 	import { Checkbox } from 'flowbite-svelte';
 
-	export let selectedIds: string[];
-	export let visibleIds: string[];
-	export let onlyVisibleAllowed = true;
+	let {
+		selectedIds = $bindable(),
+		visibleIds,
+		onlyVisibleAllowed = true
+	}: {
+		selectedIds: string[];
+		visibleIds: string[];
+		onlyVisibleAllowed?: boolean;
+	} = $props();
 
-	$: allSelected = visibleIds.filter((id) => !selectedIds.includes(id)).length === 0;
-	let checked = selectedIds.length > 0;
-
-	$: if (selectedIds.length > 0 && !checked) {
-		checked = true;
-	}
-	$: if (selectedIds.length === 0 && checked) {
-		checked = false;
-	}
+	const allSelected = $derived(visibleIds.filter((id) => !selectedIds.includes(id)).length === 0);
+	let checked = $derived(selectedIds.length > 0);
 
 	const toggleAll = () => {
 		if (allSelected) {
@@ -23,14 +22,16 @@
 		}
 	};
 
-	const filterSelected = (allowedIds: string[]) => {
-		if (onlyVisibleAllowed) {
-			selectedIds = allowedIds.filter((id) => selectedIds.includes(id));
-		}
-	};
-
 	//On visible Ids being changed, update the selected IDs.
-	$: filterSelected(visibleIds);
+	$effect(() => {
+		if (onlyVisibleAllowed) {
+			const idsToDrop = selectedIds.filter((id) => !visibleIds.includes(id));
+
+			if (idsToDrop.length > 0) {
+				selectedIds = selectedIds.filter((id) => visibleIds.includes(id));
+			}
+		}
+	});
 </script>
 
-<Checkbox bind:checked on:click={toggleAll} />
+<Checkbox {checked} on:click={toggleAll} />

@@ -10,25 +10,35 @@
 	import { urlGenerator } from '$lib/routes';
 	import LinkIcon from './icons/LinkIcon.svelte';
 
-	export let files: GroupedFilesType;
-	export let target: CreateFileNoteRelationshipSchemaType;
-	export let transactionId: string | undefined = undefined;
+	const {
+		files,
+		target,
+		transactionId
+	}: {
+		files: GroupedFilesType;
+		target: CreateFileNoteRelationshipSchemaType;
+		transactionId?: string;
+	} = $props();
 
-	let creating = false;
+	let creating = $state(false);
 
-	let modal = false;
+	let modal = $state(false);
 
-	$: targetItems = Object.keys(target).map((key) => ({
-		key,
-		value: target[key as keyof typeof target]
-	}));
+	const targetItems = $derived(
+		Object.keys(target).map((key) => ({
+			key,
+			value: target[key as keyof typeof target]
+		}))
+	);
 
-	$: linkURL = transactionId
-		? urlGenerator({
-				address: '/(loggedIn)/files/linkToTransaction/[id]',
-				paramsValue: { id: transactionId }
-			}).url
-		: urlGenerator({ address: '/(loggedIn)/files/linkUnlinked', searchParamsValue: target }).url;
+	const linkURL = $derived(
+		transactionId
+			? urlGenerator({
+					address: '/(loggedIn)/files/linkToTransaction/[id]',
+					paramsValue: { id: transactionId }
+				}).url
+			: urlGenerator({ address: '/(loggedIn)/files/linkUnlinked', searchParamsValue: target }).url
+	);
 </script>
 
 <Button on:click={() => (modal = true)} color="primary" outline={files.length === 0} class="p-2">

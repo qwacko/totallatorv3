@@ -5,30 +5,40 @@
 	import { urlGenerator } from '$lib/routes';
 	import { defaultJournalFilter, type JournalFilterSchemaType } from '$lib/schema/journalSchema';
 	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
-	export let data: { categoryId: string | null; categoryTitle: string | null };
-	export let currentFilter: JournalFilterSchemaType;
 
-	let opened = false;
+	const {
+		data,
+		currentFilter
+	}: {
+		data: { categoryId: string | null; categoryTitle: string | null };
+		currentFilter: JournalFilterSchemaType;
+	} = $props();
 
-	$: filterURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...currentFilter,
-			category: {
-				id: data.categoryId || undefined
+	let opened = $state(false);
+
+	const filterURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...currentFilter,
+				category: {
+					id: data.categoryId || undefined
+				}
 			}
-		}
-	}).url;
+		}).url
+	);
 
-	$: viewURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...defaultJournalFilter(),
-			category: {
-				id: data.categoryId || undefined
+	const viewURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...defaultJournalFilter(),
+				category: {
+					id: data.categoryId || undefined
+				}
 			}
-		}
-	}).url;
+		}).url
+	);
 </script>
 
 {#if data.categoryTitle && data.categoryId}

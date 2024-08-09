@@ -15,9 +15,9 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms';
 
-	export let data;
+	const { data } = $props();
 
-	let loading = false;
+	let loading = $state(false);
 
 	const form = superForm(data.form, {
 		...superFormNotificationHelper({
@@ -28,9 +28,9 @@
 		})
 	});
 
-	$: enhance = form.enhance;
-	$: formData = form.form;
-	$: errors = form.errors;
+	const enhance = $derived(form.enhance);
+	const formData = $derived(form.form);
+	const errors = $derived(form.errors);
 </script>
 
 <CustomHeader pageTitle="User - {data ? data.currentUser.name : ''}" />
@@ -41,7 +41,7 @@
 			{#if data.currentUser.admin}
 				(Admin)
 			{/if}
-			<div class="flex flex-grow" />
+			<div class="flex flex-grow"></div>
 			{#if data.canSetAdmin}
 				<form action="?/setAdmin" method="POST" use:enhance>
 					<Button outline type="submit">Set Admin</Button>

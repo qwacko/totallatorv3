@@ -5,16 +5,30 @@
 
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
+	import type { ComponentProps } from 'svelte';
 
-	export let form: SuperForm<T, unknown>;
-	export let field: FormPathLeaves<T>;
-	export let wrapperClass: string | undefined = undefined;
-	export let title: string | null;
-	export let highlightTainted: boolean | undefined = true;
+	type CurrencyInputProps = ComponentProps<CurrencyInput>;
+
+	const {
+		form,
+		field,
+		wrapperClass = undefined,
+		title,
+		highlightTainted = true,
+		class: className = undefined,
+		...restProps
+	}: {
+		form: SuperForm<T, unknown>;
+		field: FormPathLeaves<T>;
+		wrapperClass?: string | undefined;
+		title: string | null;
+		highlightTainted?: boolean | undefined;
+		class?: string;
+	} & Omit<CurrencyInputProps, 'name'> = $props();
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
 
-	$: stringValue = value as Writable<number>;
+	const stringValue = $derived(value as Writable<number>);
 </script>
 
 <CurrencyInput
@@ -25,10 +39,10 @@
 	tainted={$tainted}
 	{highlightTainted}
 	aria-invalid={$errors ? 'true' : undefined}
-	class={$$props.class}
+	class={className}
 	{wrapperClass}
 	on:blur
 	on:keypress
 	{...$constraints}
-	{...$$restProps}
+	{...restProps}
 />

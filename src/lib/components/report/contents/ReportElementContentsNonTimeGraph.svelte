@@ -9,7 +9,7 @@
 	import { convertNumberToText } from '$lib/helpers/convertNumberToText';
 	import { groupedDataToTree } from './groupedDataToTree';
 
-	export let data: ReportConfigPartWithData_NonTimeGraph;
+	const { data }: { data: ReportConfigPartWithData_NonTimeGraph } = $props();
 
 	const updateOptions = ({
 		readData,
@@ -41,7 +41,6 @@
 			dataGrouping4: data.itemGrouping4,
 			negativeDisplay: data.negativeDisplay
 		});
-
 
 		const valueFormatter: OptionsDataFormatter = (value) => {
 			if (!value) return '';

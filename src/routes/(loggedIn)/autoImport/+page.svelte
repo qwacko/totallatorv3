@@ -21,7 +21,9 @@
 	import NotesButton from '$lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
 
-	$: urlInfo = pageInfo('/(loggedIn)/autoImport', $page);
+	const { data } = $props();
+
+	const urlInfo = $derived(pageInfo('/(loggedIn)/autoImport', $page));
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/autoImport',
 		pageInfo: page,
@@ -32,14 +34,12 @@
 		},
 		updateDelay: 500
 	});
-
-	export let data;
 </script>
 
 <CustomHeader pageTitle="Auto Imports" numPages={data.list.pageCount} pageNumber={data.list.page} />
 
 <PageLayout title="Auto Imports" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button
 			href={urlGenerator({ address: '/(loggedIn)/autoImport/create' }).url}
 			outline
@@ -47,7 +47,7 @@
 		>
 			New
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	{#if $urlStore.searchParams && data.filter}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.title}
@@ -131,7 +131,7 @@
 			currentOrder={data.filter.orderBy}
 			currentFilter={data.filter}
 		>
-			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#snippet slotCustomBodyCell({ currentColumn, row: currentRow })}
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/autoImport/[id]',
@@ -205,8 +205,8 @@
 						<Badge color="yellow">Manual</Badge>
 					{/if}
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -217,7 +217,7 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
+			{/snippet}
 		</CustomTable>
 	{/if}
 </PageLayout>

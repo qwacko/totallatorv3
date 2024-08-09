@@ -8,7 +8,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms';
 
-	export let data;
+	const { data } = $props();
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form, {
 		onResult: async ({ result }) => {
@@ -66,7 +66,7 @@
 		<ErrorText message={$message} />
 		<div class="flex flex-row gap-2">
 			<Button type="submit" color="blue">Create</Button>
-			<div class="flex flex-grow" />
+			<div class="flex flex-grow"></div>
 			<Button
 				href={urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } }).url}
 				outline

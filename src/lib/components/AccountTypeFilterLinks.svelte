@@ -5,8 +5,13 @@
 	} from '$lib/schema/accountTypeSchema';
 	import { Button, ButtonGroup } from 'flowbite-svelte';
 
-	export let type: AccountTypeEnumType[] | undefined = undefined;
-	export let generateURL: (data: AccountTypeEnumType[] | undefined) => string;
+	const {
+		type = $bindable(undefined),
+		generateURL
+	}: {
+		type: AccountTypeEnumType[] | undefined;
+		generateURL: (data: AccountTypeEnumType[] | undefined) => string;
+	} = $props();
 
 	const toggleArray = (title: AccountTypeEnumType) => {
 		if (type && type.length > 0) {

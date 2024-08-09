@@ -1,10 +1,24 @@
 <script lang="ts">
 	import { Heading } from 'flowbite-svelte';
+	import type { Snippet } from 'svelte';
 
-	export let rows: number = 1;
-	export let cols: number = 1;
-	export let highlightOnHover: boolean = false;
-	export let title: string | undefined | null = undefined;
+	const {
+		rows = 1,
+		cols = 1,
+		highlightOnHover = false,
+		title = undefined,
+		slotTitleLeft,
+		slotTitleRight,
+		children
+	}: {
+		rows?: number;
+		cols?: number;
+		highlightOnHover?: boolean;
+		title?: string | null | undefined;
+		slotTitleLeft?: Snippet;
+		slotTitleRight?: Snippet;
+		children?: Snippet;
+	} = $props();
 </script>
 
 <div
@@ -25,11 +39,11 @@
 	class:row-span-6={rows === 6}
 >
 	<div class="flex w-full flex-row justify-between self-center">
-		<slot name="titleLeft" />
+		{#if slotTitleLeft}{@render slotTitleLeft()}{/if}
 		{#if title}
 			<Heading class="text-left" tag="h4">{title}</Heading>
 		{/if}
-		<slot name="titleRight" />
+		{#if slotTitleRight}{@render slotTitleRight()}{/if}
 	</div>
-	<slot />
+	{#if children}{@render children()}{/if}
 </div>

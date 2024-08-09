@@ -2,12 +2,21 @@
 	import { enhance } from '$app/forms';
 	import { Button, Heading } from 'flowbite-svelte';
 
-	export let title: string;
-	export let currentCount: number;
-	export let deletableCount: number;
-	export let createAction: string;
-	export let deleteAction: string;
-	export let includeHigher: boolean = false;
+	const {
+		title,
+		currentCount,
+		deletableCount,
+		createAction,
+		deleteAction,
+		includeHigher = false
+	}: {
+		title: string;
+		currentCount: number;
+		deletableCount: number;
+		createAction: string;
+		deleteAction: string;
+		includeHigher?: boolean;
+	} = $props();
 
 	const creationOptions = [
 		{ title: '+ 10', count: 10 },

@@ -11,11 +11,17 @@
 	import TextInput from '../TextInput.svelte';
 	import { urlGenerator } from '$lib/routes';
 
-	export let formData: SuperValidated<UpdateReportConfigurationType>;
-	export let reusable: boolean;
-	export let elementId: string;
+	const {
+		formData,
+		reusable,
+		elementId
+	}: {
+		formData: SuperValidated<UpdateReportConfigurationType>;
+		reusable: boolean;
+		elementId: string;
+	} = $props();
 
-	let loading = false;
+	let loading = $state(false);
 
 	const configForm = superForm(formData, {
 		timeoutMs: 500,
@@ -27,9 +33,9 @@
 		})
 	});
 
-	$: form = configForm.form;
-	$: enhance = configForm.enhance;
-	$: errors = configForm.errors;
+	const form = $derived(configForm.form);
+	const enhance = $derived(configForm.enhance);
+	const errors = $derived(configForm.errors);
 
 	let formItem: HTMLFormElement;
 </script>

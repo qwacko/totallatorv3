@@ -14,8 +14,8 @@
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
 	import { sizeToText } from '$lib/helpers/sizeToText';
 
-	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/queries/list', $page);
+	const { data } = $props();
+	const urlInfo = $derived(pageInfo('/(loggedIn)/queries/list', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/queries/list',
@@ -97,7 +97,7 @@
 			]}
 			bind:shownColumns={$queryColumnsStore}
 		>
-			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					<div class="flex flex-row justify-center">
 						<ButtonGroup>
@@ -183,8 +183,8 @@
 						</Dropdown>
 					</div>
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -204,6 +204,6 @@
 						Clear Filter
 					</Button>
 				</div>
-			</svelte:fragment>
+			{/snippet}
 		</CustomTable>{/if}
 </PageLayout>

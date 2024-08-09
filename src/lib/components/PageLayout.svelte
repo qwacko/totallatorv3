@@ -1,16 +1,33 @@
 <script lang="ts">
 	import type { PageSizeIds } from '$lib/schema/pageSizeSchema';
+	import type { Snippet } from 'svelte';
 	import PrevPageButton from './PrevPageButton.svelte';
 	import ArrowLeftIcon from './icons/ArrowLeftIcon.svelte';
 
-	export let title: string | undefined = undefined;
-	export let subtitle: string | undefined = undefined;
-	export let size: PageSizeIds = 'lg';
-	export let hideBackButton = false;
-	export let routeBasedBack = false;
+	const {
+		title,
+		subtitle,
+		size = 'lg',
+		hideBackButton = false,
+		routeBasedBack = false,
+		class: className = '',
+		children,
+		slotLeft,
+		slotRight
+	}: {
+		title?: string;
+		subtitle?: string;
+		size?: PageSizeIds;
+		hideBackButton?: boolean;
+		routeBasedBack?: boolean;
+		class?: string;
+		children?: Snippet;
+		slotLeft?: Snippet;
+		slotRight?: Snippet;
+	} = $props();
 </script>
 
-<div class="mb-10 flex w-full justify-center px-4 {$$props.class}">
+<div class="mb-10 flex w-full justify-center px-4 {className}">
 	<div
 		class="flex w-full flex-col items-stretch gap-4"
 		class:max-w-4xl={size === 'lg'}
@@ -19,24 +36,24 @@
 	>
 		<div class="flex flex-row gap-2">
 			<div class="flex flex-grow basis-0">
-				<slot name="left">
-					{#if !hideBackButton}
-						<PrevPageButton color="light" outline routeBased={routeBasedBack}>
-							<ArrowLeftIcon />
-						</PrevPageButton>
-					{/if}
-				</slot>
+				{#if slotLeft}{@render slotLeft()}{:else if !hideBackButton}
+					<PrevPageButton color="light" outline routeBased={routeBasedBack}>
+						<ArrowLeftIcon />
+					</PrevPageButton>
+				{/if}
 			</div>
 			{#if title}
 				<h3 class="flex justify-center text-2xl font-bold md:text-4xl">{title}</h3>
 			{/if}
 			<div class="flex flex-grow basis-0 flex-row justify-end gap-2">
-				<slot name="right" />
+				{#if slotRight}{@render slotRight()}{/if}
 			</div>
 		</div>
 		{#if subtitle}
 			<h5 class="flex justify-center text-xl font-bold">{subtitle}</h5>
 		{/if}
-		<slot />
+		{#if children}
+			{@render children()}
+		{/if}
 	</div>
 </div>

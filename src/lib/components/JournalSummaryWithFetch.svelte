@@ -9,34 +9,43 @@
 	import JournalSummaryPopoverContent from './JournalSummaryPopoverContent.svelte';
 	import EyeIcon from './icons/EyeIcon.svelte';
 
-	export let filter: JournalFilterSchemaWithoutPaginationType;
-	export let latestUpdate: Date;
+	const {
+		filter,
+		latestUpdate
+	}: {
+		filter: JournalFilterSchemaWithoutPaginationType;
+		latestUpdate: Date;
+	} = $props();
 
-	let cachedData: undefined | SummaryCacheSchemaDataType = undefined;
+	let cachedData = $state<undefined | SummaryCacheSchemaDataType>(undefined);
 
-	$: dataURL = urlGenerator({
-		address: '/(loggedIn)/journals/summaryData',
-		searchParamsValue: filter
-	}).url;
-	$: latestUpdateString = latestUpdate.toISOString();
+	const dataURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals/summaryData',
+			searchParamsValue: filter
+		}).url
+	);
+	const latestUpdateString = $derived(latestUpdate.toISOString());
 
-	let updating = false;
+	let updating = $state(false);
 
-	$: if ($showSummaryStore && browser && latestUpdateString) {
-		updating = true;
-		fetch(dataURL)
-			.then((response) => response.text())
-			.then((data) => {
-				cachedData = SuperJSON.parse(data) as SummaryCacheSchemaDataType;
-				updating = false;
-			})
-			.catch((error) => {
-				console.error('Error:', error);
-			})
-			.finally(() => {
-				updating = false;
-			});
-	}
+	$effect(() => {
+		if ($showSummaryStore && browser && latestUpdateString) {
+			updating = true;
+			fetch(dataURL)
+				.then((response) => response.text())
+				.then((data) => {
+					cachedData = SuperJSON.parse(data) as SummaryCacheSchemaDataType;
+					updating = false;
+				})
+				.catch((error) => {
+					console.error('Error:', error);
+				})
+				.finally(() => {
+					updating = false;
+				});
+		}
+	});
 </script>
 
 {#if !$showSummaryStore || !cachedData}

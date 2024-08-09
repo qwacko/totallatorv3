@@ -7,13 +7,20 @@
 	import { modifyOrderBy, type OrderByType } from '$lib/helpers/orderByHelper';
 	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 
-	export let options: T[];
-	export let optionToTitle: (option: T) => string;
-	export let currentSort: OrderByType<T> | undefined;
-	export let onSortURL: (sort: OrderByType<T>) => string;
+	const {
+		options,
+		optionToTitle,
+		currentSort,
+		onSortURL
+	}: {
+		options: T[];
+		optionToTitle: (option: T) => string;
+		currentSort: OrderByType<T> | undefined;
+		onSortURL: (sort: OrderByType<T>) => string;
+	} = $props();
 
-	$: sortKeys = currentSort ? currentSort.map((sort) => sort.field) : [];
-	$: remainingSort = options.filter((option) => !sortKeys.includes(option));
+	const sortKeys = $derived(currentSort ? currentSort.map((sort) => sort.field) : []);
+	const remainingSort = $derived(options.filter((option) => !sortKeys.includes(option)));
 </script>
 
 <Button outline class="flex p-2"><SortingIcon /></Button>

@@ -7,9 +7,9 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
 
-	export let data;
+	const { data } = $props();
 
-	export let loading = false;
+	let loading = $state(false);
 </script>
 
 <CustomHeader pageTitle="Delete Auto Import" filterText={data.autoImportDetail.title} />
@@ -36,6 +36,7 @@
 			class="flex w-full"
 			message="Delete Auto Import"
 			loadingMessage="Deleting..."
+			{loading}
 		/>
 	</form>
 </PageLayout>

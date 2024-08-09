@@ -13,9 +13,15 @@
 	} from '$lib/schema/journalSchema';
 	import { P, ButtonGroup, Button, Dropdown, DropdownItem } from 'flowbite-svelte';
 
-	export let selectedIds: string[];
-	export let searchParams: JournalFilterSchemaType | undefined;
-	export let allCount: number;
+	const {
+		selectedIds,
+		searchParams,
+		allCount
+	}: {
+		selectedIds: string[];
+		searchParams: JournalFilterSchemaType | undefined;
+		allCount: number;
+	} = $props();
 </script>
 
 <div class="flex flex-row items-center gap-2">

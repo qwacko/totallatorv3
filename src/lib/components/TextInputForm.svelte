@@ -9,20 +9,41 @@
 	import TextInput from './TextInput.svelte';
 	import CancelIcon from './icons/CancelIcon.svelte';
 
-	export let form: SuperForm<T, unknown>;
-	export let field: FormPathLeaves<T>;
-	export let wrapperClass: string | undefined = undefined;
-	export let outerWrapperClass: string | undefined = undefined;
-	export let title: string | null;
-	export let highlightTainted: boolean | undefined = true;
-	export let clearable: boolean = false;
-	export let clearField: FormPathLeaves<T> = field;
+	import { untrack, type ComponentProps } from 'svelte';
+
+	type TextInputProps = ComponentProps<TextInput>;
+
+	const {
+		form,
+		field,
+		wrapperClass,
+		outerWrapperClass,
+		title,
+		highlightTainted = true,
+		clearable = false,
+		clearField = field,
+		class: className = '',
+		...restProps
+	}: {
+		form: SuperForm<T, unknown>;
+		field: FormPathLeaves<T>;
+		wrapperClass?: string;
+		outerWrapperClass?: string;
+		title: string | null;
+		highlightTainted?: boolean;
+		clearable?: boolean;
+		clearField?: FormPathLeaves<T>;
+		class?: string;
+	} & Omit<
+		TextInputProps,
+		'title' | 'name' | 'value' | 'errorMessage' | 'tainted' | 'highlightTainted' | 'wrapperClass'
+	> = $props();
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
 	const { value: clearValueOriginal } = formFieldProxy(form, clearField);
 
-	$: stringValue = value as Writable<string>;
-	$: clearValue = clearValueOriginal as Writable<boolean | undefined>;
+	const stringValue = $derived(value as Writable<string>);
+	const clearValue = $derived(clearValueOriginal as Writable<boolean | undefined>);
 
 	const updateStringValue = (newValue: string) => {
 		if (clearable && newValue !== '' && $clearValue) {
@@ -36,7 +57,9 @@
 		}
 	};
 
-	$: clearable && updateStringValue($stringValue);
+	$effect(() => {
+		clearable && untrack(() => updateStringValue)($stringValue);
+	});
 </script>
 
 <div class="flex w-full flex-row gap-2 {outerWrapperClass ? outerWrapperClass : ''}">
@@ -48,12 +71,12 @@
 		tainted={$tainted}
 		{highlightTainted}
 		aria-invalid={$errors ? 'true' : undefined}
-		class={$$props.class}
+		class={className}
 		wrapperClass="flex-grow {wrapperClass}"
 		on:blur
 		on:keypress
 		{...$constraints}
-		{...$$restProps}
+		{...restProps}
 	/>
 	{#if clearable}
 		<Button class="flex self-end py-3" outline={$clearValue === false} on:click={updateClearValue}>

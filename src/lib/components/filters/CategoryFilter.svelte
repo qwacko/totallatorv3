@@ -5,10 +5,10 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { CategoryFilterSchemaType } from '$lib/schema/categorySchema';
-	import {  categoryDropdownData } from '$lib/stores/dropdownStores.js'
+	import { categoryDropdownData } from '$lib/stores/dropdownStores.js';
 	import type { CategoryDropdownType } from '$lib/server/db/actions/categoryActions';
 
-	export let filter: CategoryFilterSchemaType | undefined;
+	let { filter = $bindable() }: { filter: CategoryFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
 		if ($categoryDropdownData) {

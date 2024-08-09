@@ -23,23 +23,41 @@
 		importMappingDropdownAsyncData
 	} from './dropdownStores.js';
 
-	export let dataUpdated: {
-		tags: number;
-		bills: number;
-		budgets: number;
-		categories: number;
-		accounts: number;
-		labels: number;
-		importMappings: number;
-	};
+	const {
+		dataUpdated
+	}: {
+		dataUpdated: {
+			tags: number;
+			bills: number;
+			budgets: number;
+			categories: number;
+			accounts: number;
+			labels: number;
+			importMappings: number;
+		};
+	} = $props();
 
-	$: $tagDropdownTime = dataUpdated.tags;
-	$: $accountDropdownTime = dataUpdated.accounts;
-	$: $billDropdownTime = dataUpdated.bills;
-	$: $budgetDropdownTime = dataUpdated.budgets;
-	$: $categoryDropdownTime = dataUpdated.categories;
-	$: $labelDropdownTime = dataUpdated.labels;
-	$: $importMappingDropdownTime = dataUpdated.importMappings;
+	$effect(() => {
+		$tagDropdownTime = dataUpdated.tags;
+	});
+	$effect(() => {
+		$accountDropdownTime = dataUpdated.accounts;
+	});
+	$effect(() => {
+		$billDropdownTime = dataUpdated.bills;
+	});
+	$effect(() => {
+		$budgetDropdownTime = dataUpdated.budgets;
+	});
+	$effect(() => {
+		$categoryDropdownTime = dataUpdated.categories;
+	});
+	$effect(() => {
+		$labelDropdownTime = dataUpdated.labels;
+	});
+	$effect(() => {
+		$importMappingDropdownTime = dataUpdated.importMappings;
+	});
 </script>
 
 <div class="hidden">

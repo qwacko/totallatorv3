@@ -10,9 +10,15 @@
 	import DeleteIcon from '../icons/DeleteIcon.svelte';
 	import ColumnOrderIcon from '../icons/ColumnOrderIcon.svelte';
 
-	export let columnIds: string[] = [];
-	export let shownColumns: string[] = [];
-	export let columnIdToTitle: (columnId: string) => string;
+	let {
+		columnIds = [],
+		shownColumns = $bindable([]),
+		columnIdToTitle
+	}: {
+		columnIds: string[];
+		shownColumns: string[];
+		columnIdToTitle: (columnId: string) => string;
+	} = $props();
 
 	const addColumnToShownColumns = (columnId: string) => {
 		if (!shownColumns.includes(columnId)) {
@@ -48,7 +54,7 @@
 		}
 	};
 
-	$: remainingColumns = columnIds.filter((c) => !shownColumns.includes(c));
+	const remainingColumns = $derived(columnIds.filter((c) => !shownColumns.includes(c)));
 </script>
 
 <Button class="flex p-2" outline><ColumnOrderIcon /></Button>

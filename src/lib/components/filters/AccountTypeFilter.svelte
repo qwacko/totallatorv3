@@ -2,12 +2,13 @@
 	import type { AccountTypeEnumType } from '$lib/schema/accountTypeSchema';
 	import { Button, ButtonGroup } from 'flowbite-svelte';
 
-	export let accountTypes: AccountTypeEnumType[] | undefined;
+	let { accountTypes = $bindable() }: { accountTypes: AccountTypeEnumType[] | undefined } =
+		$props();
 
-	$: assetExists = accountTypes?.includes('asset');
-	$: liabilityExists = accountTypes?.includes('liability');
-	$: incomeExists = accountTypes?.includes('income');
-	$: expenseExists = accountTypes?.includes('expense');
+	const assetExists = $derived(accountTypes?.includes('asset'));
+	const liabilityExists = $derived(accountTypes?.includes('liability'));
+	const incomeExists = $derived(accountTypes?.includes('income'));
+	const expenseExists = $derived(accountTypes?.includes('expense'));
 
 	const toggleItem = (item: AccountTypeEnumType) => {
 		if (!accountTypes) {
@@ -27,12 +28,12 @@
 		}
 	};
 
-	$: buttonList = [
+	const buttonList = $derived([
 		{ exists: assetExists, title: 'Asset', toggle: () => toggleItem('asset') },
 		{ exists: liabilityExists, title: 'Liability', toggle: () => toggleItem('liability') },
 		{ exists: incomeExists, title: 'Income', toggle: () => toggleItem('income') },
 		{ exists: expenseExists, title: 'Expense', toggle: () => toggleItem('expense') }
-	];
+	]);
 </script>
 
 <div class="flex flex-col gap-2">

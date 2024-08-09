@@ -13,16 +13,18 @@
 	import { Button } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms';
 
-	export let data;
+	const { data } = $props();
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
-	$: urlInfo = pageInfo('/(loggedIn)/tags/[id]', $page);
+	const urlInfo = $derived(pageInfo('/(loggedIn)/tags/[id]', $page));
 
-	$: deleteURL = urlGenerator({
-		address: '/(loggedIn)/tags/[id]/delete',
-		paramsValue: { id: data.tag.id }
-	}).url;
+	const deleteURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/tags/[id]/delete',
+			paramsValue: { id: data.tag.id }
+		}).url
+	);
 </script>
 
 <CustomHeader pageTitle="Edit Tag" filterText={data.tag.title} />

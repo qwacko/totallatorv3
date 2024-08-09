@@ -8,7 +8,7 @@
 	import { labelDropdownData } from '$lib/stores/dropdownStores.js';
 	import type { LabelDropdownType } from '$lib/server/db/actions/labelActions';
 
-	export let filter: LabelFilterSchemaType | undefined;
+	let { filter = $bindable() }: { filter: LabelFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
 		if ($labelDropdownData) {

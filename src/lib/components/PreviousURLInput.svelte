@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { pageStore, routeStore } from '$lib/prevPageStore';
-	export let name = 'previousURL';
-	export let routeBased = false;
+
+	const {
+		name = 'previousURL',
+		routeBased = false
+	}: {
+		name?: string;
+		routeBased?: boolean;
+	} = $props();
 </script>
 
 {#if routeBased}

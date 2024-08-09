@@ -23,8 +23,8 @@
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
-	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/tags', $page);
+	const { data } = $props();
+	const urlInfo = $derived(pageInfo('/(loggedIn)/tags', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/tags',
@@ -37,7 +37,7 @@
 		updateDelay: 500
 	});
 
-	let filterOpened = false;
+	let filterOpened = $state(false);
 
 	onNavigate(() => {
 		filterOpened = false;
@@ -52,11 +52,11 @@
 />
 
 <PageLayout title="Tags" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/tags/create' }).url}>
 			Create
 		</Button>
-	</svelte:fragment>
+	{/snippet}
 	<JournalSummaryWithFetch filter={{ tag: data.searchParams }} latestUpdate={data.latestUpdate} />
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
@@ -112,7 +112,7 @@
 			bind:shownColumns={$tagColumnsStore}
 			rowColour={(row) => (row.disabled ? 'grey' : undefined)}
 		>
-			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/tags/[id]',
@@ -166,8 +166,8 @@
 						</form>
 					</div>
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filterButtons">
+			{/snippet}
+			{#snippet slotFilterButtons()}
 				<DownloadDropdown
 					urlGenerator={(downloadType) =>
 						urlGenerator({
@@ -175,8 +175,8 @@
 							searchParamsValue: { ...$urlStore.searchParams, downloadType }
 						}).url}
 				/>
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -187,9 +187,9 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
-			<svelte:fragment slot="filterModal">
+			{/snippet}
+			{#snippet slotFilterModal()}
 				<TagFilter bind:filter={$urlStore.searchParams} />
-			</svelte:fragment>
+			{/snippet}
 		</CustomTable>{/if}
 </PageLayout>

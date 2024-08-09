@@ -6,7 +6,7 @@
 	import ImportMappingForm from './ImportMappingForm.svelte';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
-	export let data;
+	const { data } = $props();
 
 	const form = superForm(data.form);
 	const detailForm = superForm(data.detailForm, {

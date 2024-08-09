@@ -10,28 +10,45 @@
 
 	import ComboSelect from './ComboSelect.svelte';
 
-	export let form: SuperForm<T, unknown>;
-	export let field: FormPathLeaves<T>;
-	export let clearField: FormPathLeaves<T> | undefined = undefined;
-	export let placeholder = 'Select Item...';
-	export let highlightSearch = true;
-	export let title: string | null | undefined;
-	export let highlightTainted: boolean | undefined = true;
-	export let clearValue: boolean | undefined = undefined;
-	export let createField: FormPathLeaves<T> | undefined = undefined;
-	export let createValue: string | undefined | null = undefined;
-	export let createDesc = 'Create';
-	export let clearable = false;
-
-	export let items: Promise<U[]> | U[] | undefined;
-	export let itemToOption: OptionFunction<U>;
-	export let itemToDisplay: DisplayFunction<U>;
+	let {
+		form,
+		field,
+		clearField,
+		placeholder = 'Select Item...',
+		highlightSearch = true,
+		title,
+		highlightTainted = true,
+		clearValue = $bindable(),
+		createField,
+		createValue = $bindable(),
+		createDesc = 'Create',
+		clearable = false,
+		items,
+		itemToOption,
+		itemToDisplay
+	}: {
+		form: SuperForm<T, unknown>;
+		field: FormPathLeaves<T>;
+		clearField?: FormPathLeaves<T>;
+		placeholder?: string;
+		highlightSearch?: boolean;
+		title: string | null | undefined;
+		highlightTainted?: boolean;
+		clearValue?: boolean;
+		createField?: FormPathLeaves<T>;
+		createValue?: string | null;
+		createDesc?: string;
+		clearable?: boolean;
+		items?: Promise<U[]> | U[];
+		itemToOption: OptionFunction<U>;
+		itemToDisplay: DisplayFunction<U>;
+	} = $props();
 
 	const { value, tainted } = formFieldProxy(form, field);
 
-	$: stringValue = value as Writable<string | undefined>;
-	$: inClearable = clearField !== undefined || clearable;
-	$: creatable = createField !== undefined;
+	const stringValue = $derived(value as Writable<string | undefined>);
+	const inClearable = $derived(clearField !== undefined || clearable);
+	const creatable = $derived(createField !== undefined);
 </script>
 
 {#await items then resolvedItems}

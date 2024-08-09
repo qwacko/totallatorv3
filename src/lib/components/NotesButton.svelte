@@ -18,21 +18,25 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from './ActionButton.svelte';
 
-	export let notes: GroupedNotesType;
-	export let target: CreateFileNoteRelationshipSchemaType;
+	const {
+		notes,
+		target
+	}: { notes: GroupedNotesType; target: CreateFileNoteRelationshipSchemaType } = $props();
 
-	let creating = false;
+	let creating = $state(false);
 
-	let modal = false;
+	let modal = $state(false);
 
-	$: targetItems = Object.keys(target).map((key) => ({
-		key,
-		value: target[key as keyof typeof target]
-	}));
+	const targetItems = $derived(
+		Object.keys(target).map((key) => ({
+			key,
+			value: target[key as keyof typeof target]
+		}))
+	);
 
-	$: hasReminder = notes.some((note) => note.type === 'reminder');
+	const hasReminder = $derived(notes.some((note) => note.type === 'reminder'));
 
-	let currentType: NoteTypeType = 'info';
+	let currentType = $state<NoteTypeType>('info');
 </script>
 
 <Button

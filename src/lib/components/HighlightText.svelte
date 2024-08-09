@@ -1,7 +1,9 @@
 <script lang="ts">
-	export let text = '';
-	export let searchText: string | null | undefined = '';
-	export let highlight = true;
+	const {
+		text = '',
+		searchText = '',
+		highlight = true
+	}: { text?: string; searchText?: string | null | undefined; highlight?: boolean } = $props();
 
 	const regexEscape = (s: string) => {
 		return s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');

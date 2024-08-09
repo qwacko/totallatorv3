@@ -9,15 +9,13 @@
 	import { enhance } from '$app/forms';
 	import ActionButton from '../ActionButton.svelte';
 
+	const { elementData }: { elementData: ReportElementData } = $props();
 
-	export let elementData: ReportElementData;
-
-	$: locked = elementData && elementData.reportElementConfig.locked;
-	let loading: boolean[] = [];
-	let removeLoading: boolean[] = [];
-	let addLoading = false;
-
-	let filterOpen: boolean[] = [];
+	const locked = $derived(elementData && elementData.reportElementConfig.locked);
+	let loading = $state<boolean[]>([]);
+	let removeLoading = $state<boolean[]>([]);
+	let addLoading = $state(false);
+	let filterOpen = $state<boolean[]>([]);
 </script>
 
 {#if elementData}
@@ -32,7 +30,7 @@
 					bind:opened={filterOpen[index]}
 					hideDates
 				>
-					<svelte:fragment slot="footerContents" let:activeFilter>
+					{#snippet slotFooterContents({ activeFilter })}
 						<Button on:click={() => (filterOpen[index] = false)} outline>Cancel</Button>
 						<div class="flex-grow"></div>
 						<form
@@ -65,7 +63,7 @@
 								loadingMessage="Updating Filter..."
 							/>
 						</form>
-					</svelte:fragment>
+					{/snippet}
 				</FilterModal>
 				<form
 					action="{urlGenerator({

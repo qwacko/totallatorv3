@@ -5,7 +5,7 @@
 	import BulkCreateDisplay from './BulkCreateDisplay.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 
-	export let data;
+	const { data } = $props();
 </script>
 
 <CustomHeader pageTitle="Bulk Load Actions" />

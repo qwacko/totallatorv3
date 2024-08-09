@@ -8,22 +8,33 @@
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
 
-	export let form: SuperForm<T, unknown>;
-	export let setField: FormPathLeaves<T>;
-	export let clearField: FormPathLeaves<T>;
-	export let wrapperClass: string | undefined = undefined;
-	export let title: string | null;
-
-	export let onTitle: string = 'True';
-	export let offTitle: string = 'False';
-	export let clearTitle: string = 'Clear';
-	export let hideClear: boolean = false;
+	const {
+		form,
+		setField,
+		clearField,
+		wrapperClass = undefined,
+		title,
+		onTitle = 'True',
+		offTitle = 'False',
+		clearTitle = 'Clear',
+		hideClear = false
+	}: {
+		form: SuperForm<T, unknown>;
+		setField: FormPathLeaves<T>;
+		clearField: FormPathLeaves<T>;
+		wrapperClass?: string;
+		title: string | null;
+		onTitle?: string;
+		offTitle?: string;
+		clearTitle?: string;
+		hideClear?: boolean;
+	} = $props();
 
 	const { value: setValue } = formFieldProxy(form, setField);
 	const { value: clearValue } = formFieldProxy(form, clearField);
 
-	$: booleanSetValue = setValue as Writable<string | boolean | undefined>;
-	$: booleanClearValue = clearValue as Writable<string | boolean | undefined>;
+	const booleanSetValue = $derived(setValue as Writable<string | boolean | undefined>);
+	const booleanClearValue = $derived(clearValue as Writable<string | boolean | undefined>);
 
 	onMount(() => {
 		if ($booleanSetValue === true || $booleanSetValue === 'true') {
@@ -33,7 +44,7 @@
 		}
 	});
 
-	let booleanValue: boolean | undefined = undefined;
+	let booleanValue = $state<boolean | undefined>(undefined);
 
 	const updateValue = (newValue: boolean | undefined) => {
 		if (newValue === true) {

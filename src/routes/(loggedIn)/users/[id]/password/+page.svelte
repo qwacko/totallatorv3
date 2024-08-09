@@ -8,7 +8,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 
-	export let data;
+	const { data } = $props();
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 </script>
@@ -40,9 +40,9 @@
 
 		<ErrorText message={$message} />
 		<div class="flex flex-row gap-2">
-			<div class="flex flex-grow" />
+			<div class="flex flex-grow"></div>
 			<Button type="submit" style="primary">Update</Button>
-			<div class="flex flex-grow" />
+			<div class="flex flex-grow"></div>
 			<Button
 				href={urlGenerator({
 					address: '/(loggedIn)/users/[id]',
@@ -52,7 +52,7 @@
 			>
 				Cancel
 			</Button>
-			<div class="flex flex-grow" />
+			<div class="flex flex-grow"></div>
 		</div>
 	</form>
 </PageLayout>

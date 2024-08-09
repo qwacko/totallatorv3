@@ -9,7 +9,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual(accountFilter);
 	});
@@ -21,7 +23,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			...accountFilter,
@@ -37,7 +41,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			...accountFilter,
@@ -53,7 +59,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			...accountFilter,
@@ -73,7 +81,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			...accountFilter,
@@ -93,7 +103,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			importIdArray: ['2', '7', '8'],
@@ -111,7 +123,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			...accountFilter,
@@ -128,7 +142,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			...accountFilter,
@@ -154,7 +170,9 @@ describe('processAccountTextFilter', () => {
 			isCash: true
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			...accountFilter,
@@ -176,7 +194,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			...accountFilter,
@@ -198,7 +218,9 @@ describe('processAccountTextFilter', () => {
 			importIdArray: ['2']
 		};
 
-		const processedFilter = processAccountTextFilter.process(JSON.parse(JSON.stringify(accountFilter)));
+		const processedFilter = processAccountTextFilter.process(
+			JSON.parse(JSON.stringify(accountFilter))
+		);
 
 		expect(processedFilter).toEqual({
 			...accountFilter,

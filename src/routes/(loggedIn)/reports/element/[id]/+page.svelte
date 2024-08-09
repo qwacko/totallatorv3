@@ -4,7 +4,7 @@
 	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
 	import { urlGenerator } from '$lib/routes';
 
-	export let data;
+	const { data } = $props();
 </script>
 
 <ReportGridWrapper size="xl">

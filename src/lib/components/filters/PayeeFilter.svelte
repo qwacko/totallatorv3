@@ -4,12 +4,12 @@
 	import FilterIdArray from './FilterIdArray.svelte';
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
-	import { accountDropdownData } from '$lib/stores/dropdownStores.js'
+	import { accountDropdownData } from '$lib/stores/dropdownStores.js';
 	import type { AccountDropdownType } from '$lib/server/db/actions/accountActions';
 
-
-	export let filter: { id?: string; idArray?: string[]; title?: string } | undefined;
-	
+	let {
+		filter = $bindable()
+	}: { filter: { id?: string; idArray?: string[]; title?: string } | undefined } = $props();
 
 	const idToString = (id: string) => {
 		if ($accountDropdownData) {

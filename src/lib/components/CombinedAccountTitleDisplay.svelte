@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { combinedAccountTitleSplitRequired } from '$lib/helpers/combinedAccountTitleSplit';
 
-	export let title: string;
-	export let accountGroupCombined: string;
+	const { title, accountGroupCombined }: { title: string; accountGroupCombined: string } = $props();
 
-	$: titleSplit = combinedAccountTitleSplitRequired({ title, accountGroupCombined });
+	const titleSplit = $derived(combinedAccountTitleSplitRequired({ title, accountGroupCombined }));
 </script>
 
 <div class="flex flex-col gap-1">

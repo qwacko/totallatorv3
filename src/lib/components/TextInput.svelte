@@ -1,15 +1,32 @@
 <script lang="ts">
 	import { Input, Label } from 'flowbite-svelte';
 	import ErrorText from './ErrorText.svelte';
+	import type { ComponentProps } from 'svelte';
 
-	export let errorMessage: string | string[] | null | undefined;
-	export let title: string | null;
-	export let name: string;
-	export let required: boolean | undefined | null = undefined;
-	export let value: string | undefined | null;
-	export let wrapperClass: string | undefined = undefined;
-	export let tainted: boolean | undefined = undefined;
-	export let highlightTainted: boolean | undefined = undefined;
+	type InputProps = ComponentProps<Input>;
+
+	let {
+		errorMessage,
+		title,
+		name,
+		required,
+		value = $bindable(),
+		wrapperClass,
+		tainted,
+		highlightTainted,
+		class: className = '',
+		...restProps
+	}: {
+		errorMessage: string | string[] | null | undefined;
+		title: string | null;
+		name: string;
+		required?: boolean | undefined | null;
+		value: string | undefined | null;
+		wrapperClass?: string;
+		tainted?: boolean;
+		highlightTainted?: boolean;
+		class?: string;
+	} & Omit<InputProps, 'value' | 'name' | 'required'> = $props();
 </script>
 
 <div class="flex flex-col gap-2 {wrapperClass}">
@@ -27,10 +44,10 @@
 	{/if}
 	<Input
 		bind:value
-		{...$$restProps}
+		{...restProps}
 		{name}
 		{required}
-		class="{$$props.class} {highlightTainted && tainted ? 'ring-2' : ''} "
+		class="{className} {highlightTainted && tainted ? 'ring-2' : ''} "
 		on:blur
 		on:keypress
 	/>

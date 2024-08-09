@@ -12,11 +12,19 @@
 	import { Accordion, AccordionItem } from 'flowbite-svelte';
 	import { importMappingDropdownData } from '$lib/stores/dropdownStores.js';
 
-	export let proxyForm: AutoImportFormProxy;
-	export let disabled = false;
-	export let lockType = false;
-	export let hideEnabled = false;
-	export let closeAccordian = false;
+	const {
+		proxyForm,
+		disabled = false,
+		lockType = false,
+		hideEnabled = false,
+		closeAccordian = false
+	}: {
+		proxyForm: AutoImportFormProxy;
+		disabled?: boolean;
+		lockType?: boolean;
+		hideEnabled?: boolean;
+		closeAccordian?: boolean;
+	} = $props();
 
 	const { value: typeValue, errors: typeErrors } = proxyForm.type;
 	const { value: titleValue, errors: titleErrors } = proxyForm.title;
@@ -34,7 +42,7 @@
 	const { value: autoProcessValue } = proxyForm.autoProcess;
 	const { value: autoCleanValue } = proxyForm.autoClean;
 
-	$: formElements = autoImportFormItemDisplay[$typeValue];
+	const formElements = $derived(autoImportFormItemDisplay[$typeValue]);
 </script>
 
 <TextInput

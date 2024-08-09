@@ -17,9 +17,9 @@
 		categoryDropdownData
 	} from '$lib/stores/dropdownStores.js';
 
-	export let data;
+	const { data } = $props();
 
-	let loading = false;
+	let loading = $state(false);
 
 	const form = superForm(
 		data.form,
@@ -30,11 +30,11 @@
 			invalidate: true
 		})
 	);
-	$: enhance = form.enhance;
-	$: message = form.message;
+	const enhance = $derived(form.enhance);
+	const message = $derived(form.message);
 
 	type LinkedItemOptions = 'account' | 'label' | 'category' | 'budget' | 'tag' | 'bill' | 'none';
-	let linkedItem: LinkedItemOptions = 'none';
+	let linkedItem = $state<LinkedItemOptions>('none');
 	const linkedItemDropdownOptions = {
 		account: { id: 'account', name: 'Account' },
 		label: { id: 'label', name: 'Label' },

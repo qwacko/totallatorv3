@@ -3,11 +3,26 @@
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import { onError, onSuccess } from '$lib/stores/notificationHelpers';
 	import { DropdownItem, Spinner } from 'flowbite-svelte';
+	import type { ComponentProps, Snippet } from 'svelte';
 
-	export let loading: boolean;
-	export let successMessage: string | undefined = undefined;
-	export let errorMessage: string | undefined = undefined;
-	export let action: string;
+	type DropdownItemProps = ComponentProps<DropdownItem>;
+
+	let {
+		loading = $bindable(),
+		successMessage,
+		errorMessage,
+		action,
+		children,
+		slotLoading,
+		...restProps
+	}: {
+		loading: boolean;
+		successMessage?: string;
+		errorMessage?: string;
+		action: string;
+		children?: Snippet;
+		slotLoading?: Snippet;
+	} & Omit<DropdownItemProps, 'type' | 'submit'> = $props();
 </script>
 
 <form
@@ -28,11 +43,17 @@
 		}
 	})}
 >
-	<DropdownItem disabled={loading} type="submit" class="flex flex-row gap-2" {...$$restProps}>
+	<DropdownItem disabled={loading} type="submit" class="flex flex-row gap-2" {...restProps}>
 		{#if loading}
-			<slot name="loading"><Spinner />Loading...</slot>
+			{#if slotLoading}
+				{@render slotLoading()}
+			{:else}
+				<Spinner />Loading...
+			{/if}
+		{:else if children}
+			{@render children()}
 		{:else}
-			<slot>Action</slot>
+			Action
 		{/if}
 	</DropdownItem>
 </form>

@@ -23,8 +23,8 @@
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 
-	export let data;
-	$: urlInfo = pageInfo('/(loggedIn)/labels', $page);
+	const { data } = $props();
+	const urlInfo = $derived(pageInfo('/(loggedIn)/labels', $page));
 
 	const urlStore = pageInfoStore({
 		routeId: '/(loggedIn)/labels',
@@ -37,7 +37,7 @@
 		updateDelay: 500
 	});
 
-	let filterOpened = false;
+	let filterOpened = $state(false);
 
 	onNavigate(() => {
 		filterOpened = false;
@@ -52,15 +52,12 @@
 />
 
 <PageLayout title="Labels" size="xl">
-	<svelte:fragment slot="right">
+	{#snippet slotRight()}
 		<Button color="light" outline href={urlGenerator({ address: '/(loggedIn)/labels/create' }).url}>
 			Create
 		</Button>
-	</svelte:fragment>
-	<JournalSummaryWithFetch
-		filter={{ label: data.searchParams }}
-		latestUpdate={data.latestUpdate}
-	/>
+	{/snippet}
+	<JournalSummaryWithFetch filter={{ label: data.searchParams }} latestUpdate={data.latestUpdate} />
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			highlightText={$urlStore.searchParams?.title}
@@ -101,7 +98,7 @@
 			bind:shownColumns={$labelColumnsStore}
 			rowColour={(row) => (row.disabled ? 'grey' : undefined)}
 		>
-			<svelte:fragment slot="customBodyCell" let:row={currentRow} let:currentColumn>
+			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					{@const detailURL = urlGenerator({
 						address: '/(loggedIn)/labels/[id]',
@@ -153,8 +150,8 @@
 						</form>
 					</div>
 				{/if}
-			</svelte:fragment>
-			<svelte:fragment slot="filterButtons">
+			{/snippet}
+			{#snippet slotFilterButtons()}
 				<DownloadDropdown
 					urlGenerator={(downloadType) =>
 						urlGenerator({
@@ -162,8 +159,8 @@
 							searchParamsValue: { ...$urlStore.searchParams, downloadType }
 						}).url}
 				/>
-			</svelte:fragment>
-			<svelte:fragment slot="filter">
+			{/snippet}
+			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
 						<Input
@@ -174,9 +171,9 @@
 						/>
 					{/if}
 				</div>
-			</svelte:fragment>
-			<svelte:fragment slot="filterModal">
-				<LabelFilter bind:filter={$urlStore.searchParams}  />
-			</svelte:fragment>
+			{/snippet}
+			{#snippet slotFilterModal()}
+				<LabelFilter bind:filter={$urlStore.searchParams} />
+			{/snippet}
 		</CustomTable>{/if}
 </PageLayout>

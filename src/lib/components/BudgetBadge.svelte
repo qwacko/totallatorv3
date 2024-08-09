@@ -6,30 +6,39 @@
 	import BudgetIcon from './icons/BudgetIcon.svelte';
 	import JournalEntryIcon from './icons/JournalEntryIcon.svelte';
 
-	export let data: { budgetId: string | null; budgetTitle: string | null };
-	export let currentFilter: JournalFilterSchemaType;
+	const {
+		data,
+		currentFilter
+	}: {
+		data: { budgetId: string | null; budgetTitle: string | null };
+		currentFilter: JournalFilterSchemaType;
+	} = $props();
 
-	let opened = false;
+	let opened = $state(false);
 
-	$: filterURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...currentFilter,
-			budget: {
-				id: data.budgetId || undefined
+	const filterURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...currentFilter,
+				budget: {
+					id: data.budgetId || undefined
+				}
 			}
-		}
-	}).url;
+		}).url
+	);
 
-	$: viewURL = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...defaultJournalFilter(),
-			budget: {
-				id: data.budgetId || undefined
+	const viewURL = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...defaultJournalFilter(),
+				budget: {
+					id: data.budgetId || undefined
+				}
 			}
-		}
-	}).url;
+		}).url
+	);
 </script>
 
 {#if data.budgetTitle && data.budgetId}
