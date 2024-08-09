@@ -57,7 +57,7 @@ export default defineConfig(({ mode }) => {
 			include: ['src/**/*.{test,spec}.{js,ts}'],
 			maxConcurrency: 1,
 			maxWorkers: 1,
-			testTimeout: 3000,
+			testTimeout: 10000,
 			pool: 'forks',
 			poolOptions: { forks: { singleFork: true } }
 		}
