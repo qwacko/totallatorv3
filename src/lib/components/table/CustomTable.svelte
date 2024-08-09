@@ -190,7 +190,9 @@
 				<FilterIcon />
 			</Button>
 			<Modal bind:open={filterOpened} size="lg" title={filterModalTitle} outsideclose>
-				{@render slotFilterModal({ currentFilter, filterOpened, updateFilterOpened })}
+				{#if filterOpened}
+					{@render slotFilterModal({ currentFilter, filterOpened, updateFilterOpened })}
+				{/if}
 			</Modal>
 		{/if}
 
