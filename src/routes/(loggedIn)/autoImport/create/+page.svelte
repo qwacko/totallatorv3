@@ -29,8 +29,8 @@
 		autoClean: formFieldProxy(form, 'autoClean')
 	};
 
-	const message = $derived(form.message);
-	const enhance = $derived(form.enhance);
+	const message = form.message;
+	const enhance = form.enhance;
 
 	let importing = $state(false);
 </script>

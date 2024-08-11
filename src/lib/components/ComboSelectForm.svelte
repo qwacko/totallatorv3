@@ -39,36 +39,34 @@
 		createValue?: string | null;
 		createDesc?: string;
 		clearable?: boolean;
-		items?: Promise<U[]> | U[];
+		items?: U[];
 		itemToOption: OptionFunction<U>;
 		itemToDisplay: DisplayFunction<U>;
 	} = $props();
 
 	const { value, tainted } = formFieldProxy(form, field);
 
-	const stringValue = $derived(value as Writable<string | undefined>);
+	const stringValue = value as Writable<string | undefined>;
 	const inClearable = $derived(clearField !== undefined || clearable);
 	const creatable = $derived(createField !== undefined);
 </script>
 
-{#await items then resolvedItems}
-	<ComboSelect
-		bind:value={$stringValue}
-		{title}
-		clearable={inClearable}
-		{creatable}
-		{placeholder}
-		{createDesc}
-		items={resolvedItems}
-		{itemToOption}
-		{itemToDisplay}
-		tainted={$tainted}
-		name={field}
-		clearName={clearField}
-		createName={createField}
-		bind:clearValue
-		bind:createValue
-		{highlightTainted}
-		{highlightSearch}
-	/>
-{/await}
+<ComboSelect
+	bind:value={$stringValue}
+	{title}
+	clearable={inClearable}
+	{creatable}
+	{placeholder}
+	{createDesc}
+	{items}
+	{itemToOption}
+	{itemToDisplay}
+	tainted={$tainted}
+	name={field}
+	clearName={clearField}
+	createName={createField}
+	bind:clearValue
+	bind:createValue
+	{highlightTainted}
+	{highlightSearch}
+/>

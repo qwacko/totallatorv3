@@ -7,7 +7,7 @@
 		billDropdownData,
 		budgetDropdownData,
 		categoryDropdownData
-	} from '$lib/stores/dropdownStores.js';
+	} from '$lib/stores/dropdownStores.svelte.js';
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
@@ -16,14 +16,14 @@
 		hideAccount = false
 	}: { form: SuperForm<UpdateJournalSchemaType>; hideAccount?: boolean } = $props();
 
-	const formData = $derived(form.form);
+	const formData = form.form;
 </script>
 
 {#if !hideAccount}
 	<ComboSelectForm
 		{form}
 		title="Account"
-		items={$accountDropdownData}
+		items={accountDropdownData.value}
 		field="accountId"
 		placeholder="Select Account..."
 		itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -35,7 +35,7 @@
 	<ComboSelectForm
 		{form}
 		title="Payee"
-		items={$accountDropdownData}
+		items={accountDropdownData.value}
 		field="otherAccountId"
 		placeholder="Select Payee..."
 		itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -48,7 +48,7 @@
 <ComboSelectForm
 	{form}
 	title="Tag"
-	items={$tagDropdownData}
+	items={tagDropdownData.value}
 	field="tagId"
 	clearField="tagClear"
 	bind:clearValue={$formData.tagClear}
@@ -59,10 +59,11 @@
 	bind:createValue={$formData.tagTitle}
 	createDesc="New Tag"
 />
+
 <ComboSelectForm
 	{form}
 	title="Category"
-	items={$categoryDropdownData}
+	items={categoryDropdownData.value}
 	field="categoryId"
 	clearField="categoryClear"
 	bind:clearValue={$formData.categoryClear}
@@ -76,7 +77,7 @@
 <ComboSelectForm
 	{form}
 	title="Bill"
-	items={$billDropdownData}
+	items={billDropdownData.value}
 	field="billId"
 	clearField="billClear"
 	bind:clearValue={$formData.billClear}
@@ -90,7 +91,7 @@
 <ComboSelectForm
 	{form}
 	title="Budget"
-	items={$budgetDropdownData}
+	items={budgetDropdownData.value}
 	field="budgetId"
 	clearField="budgetClear"
 	bind:clearValue={$formData.budgetClear}

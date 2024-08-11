@@ -2,7 +2,7 @@
 	import ComboSelect from '$lib/components/ComboSelect.svelte';
 	import type { CreateSimpleTransactionType } from '$lib/schema/journalSchema';
 	import { Button, P } from 'flowbite-svelte';
-	import { labelDropdownData } from '$lib/stores/dropdownStores.js';
+	import { labelDropdownData } from '$lib/stores/dropdownStores.svelte.js';
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
@@ -10,7 +10,7 @@
 
 	let currentLabelId = $state<string | undefined>(undefined);
 
-	const formData = $derived(form.form);
+	const formData = form.form;
 
 	const setLabelToggle = (labelId: string | undefined) => {
 		if (labelId) {
@@ -35,10 +35,10 @@
 
 <div class="flex flex-col gap-2">
 	<P class="flex text-sm font-semibold">Labels</P>
-	{#if $formData.labels && $formData.labels.length > 0 && $labelDropdownData}
+	{#if $formData.labels && $formData.labels.length > 0 && labelDropdownData.value}
 		<div class="flex flex-row flex-wrap gap-2">
 			{#each $formData.labels as currentLabel}
-				{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
+				{@const labelDetail = labelDropdownData.value.find((item) => item.id === currentLabel)}
 				{#if labelDetail}
 					<div>
 						<input type="hidden" name="labels" value={labelDetail.id} />
@@ -52,7 +52,7 @@
 	{/if}
 	<div class="flex flex-row gap-2">
 		<ComboSelect
-			items={$labelDropdownData}
+			items={labelDropdownData.value}
 			placeholder="Label Selection..."
 			bind:value={currentLabelId}
 			title=""

@@ -15,7 +15,7 @@
 		billDropdownData,
 		budgetDropdownData,
 		categoryDropdownData
-	} from '$lib/stores/dropdownStores.js';
+	} from '$lib/stores/dropdownStores.svelte.js';
 
 	let {
 		form,
@@ -31,11 +31,11 @@
 
 	let formElement: HTMLFormElement;
 
-	const formEnhance = $derived(form.enhance);
-	const formMessage = $derived(form.message);
-	const formErrors = $derived(form.errors);
+	const formEnhance = form.enhance;
+	const formMessage = form.message;
+	const formErrors = form.errors;
 
-	const detailFormData = $derived(detailForm.form);
+	const detailFormData = detailForm.form;
 </script>
 
 <form bind:this={formElement} use:formEnhance method="post" class="flex flex-col gap-4">
@@ -90,7 +90,7 @@
 					title="From Account"
 					field="fromAccountId"
 					placeholder="From Account"
-					items={$accountDropdownData}
+					items={accountDropdownData.value}
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -111,7 +111,7 @@
 					title="To Account"
 					field="toAccountId"
 					placeholder="To Account"
-					items={$accountDropdownData}
+					items={accountDropdownData.value}
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -136,7 +136,7 @@
 					title="Category"
 					field="categoryId"
 					placeholder="Category"
-					items={$categoryDropdownData}
+					items={categoryDropdownData.value}
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -161,7 +161,7 @@
 					title="Tag"
 					field="tagId"
 					placeholder="Tag"
-					items={$tagDropdownData}
+					items={tagDropdownData.value}
 					itemToDisplay={(item) => ({ title: item.title, group: item.group })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -186,7 +186,7 @@
 					title="Bill"
 					field="billId"
 					placeholder="Bill"
-					items={$billDropdownData}
+					items={billDropdownData.value}
 					itemToDisplay={(item) => ({ title: item.title })}
 					itemToOption={(item) => ({
 						label: item.title,
@@ -210,7 +210,7 @@
 					title="Budget"
 					field="budgetId"
 					placeholder="Budget"
-					items={$budgetDropdownData}
+					items={budgetDropdownData.value}
 					itemToDisplay={(item) => ({ title: item.title })}
 					itemToOption={(item) => ({
 						label: item.title,

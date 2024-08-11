@@ -1,27 +1,21 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import {
-		tagDropdownTime,
 		tagDropdownData,
-		tagDropdownAsyncData,
-		accountDropdownTime,
+		tagDropdownUpdateData,
 		accountDropdownData,
-		accountDropdownAsyncData,
-		billDropdownTime,
+		accountDropdownUpdateData,
 		billDropdownData,
-		billDropdownAsyncData,
-		budgetDropdownTime,
+		billDropdownUpdateData,
 		budgetDropdownData,
-		budgetDropdownAsyncData,
-		categoryDropdownTime,
+		budgetDropdownUpdateData,
 		categoryDropdownData,
-		categoryDropdownAsyncData,
-		labelDropdownTime,
+		categoryDropdownUpdateData,
 		labelDropdownData,
-		labelDropdownAsyncData,
-		importMappingDropdownTime,
+		labelDropdownUpdateData,
 		importMappingDropdownData,
-		importMappingDropdownAsyncData
-	} from './dropdownStores.js';
+		importMappingDropdownUpdateData
+	} from './dropdownStores.svelte.js';
 
 	const {
 		dataUpdated
@@ -38,41 +32,34 @@
 	} = $props();
 
 	$effect(() => {
-		$tagDropdownTime = dataUpdated.tags;
+		untrack(() => tagDropdownUpdateData)(dataUpdated.tags);
 	});
 	$effect(() => {
-		$accountDropdownTime = dataUpdated.accounts;
+		untrack(() => accountDropdownUpdateData)(dataUpdated.accounts);
 	});
 	$effect(() => {
-		$billDropdownTime = dataUpdated.bills;
+		untrack(() => billDropdownUpdateData)(dataUpdated.bills);
 	});
 	$effect(() => {
-		$budgetDropdownTime = dataUpdated.budgets;
+		untrack(() => budgetDropdownUpdateData)(dataUpdated.budgets);
 	});
 	$effect(() => {
-		$categoryDropdownTime = dataUpdated.categories;
+		untrack(() => categoryDropdownUpdateData)(dataUpdated.categories);
 	});
 	$effect(() => {
-		$labelDropdownTime = dataUpdated.labels;
+		untrack(() => labelDropdownUpdateData)(dataUpdated.labels);
 	});
 	$effect(() => {
-		$importMappingDropdownTime = dataUpdated.importMappings;
+		untrack(() => importMappingDropdownUpdateData)(dataUpdated.importMappings);
 	});
 </script>
 
 <div class="hidden">
-	{$tagDropdownAsyncData}
-	{$accountDropdownAsyncData}
-	{$billDropdownAsyncData}
-	{$budgetDropdownAsyncData}
-	{$categoryDropdownAsyncData}
-	{$labelDropdownAsyncData}
-	{$importMappingDropdownAsyncData}
-	{$tagDropdownData}
-	{$accountDropdownData}
-	{$billDropdownData}
-	{$budgetDropdownData}
-	{$categoryDropdownData}
-	{$labelDropdownData}
-	{$importMappingDropdownData}
+	{tagDropdownData.value}
+	{accountDropdownData.value}
+	{billDropdownData.value}
+	{budgetDropdownData.value}
+	{categoryDropdownData.value}
+	{labelDropdownData.value}
+	{importMappingDropdownData.value}
 </div>

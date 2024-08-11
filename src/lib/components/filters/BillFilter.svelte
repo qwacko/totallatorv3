@@ -5,14 +5,14 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { BillFilterSchemaType } from '$lib/schema/billSchema';
-	import { billDropdownData } from '$lib/stores/dropdownStores.js';
+	import { billDropdownData } from '$lib/stores/dropdownStores.svelte.js';
 	import type { BillDropdownType } from '$lib/server/db/actions/billActions';
 
 	let { filter = $bindable() }: { filter: BillFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
-		if ($billDropdownData) {
-			const matchingItem = $billDropdownData.find((item) => item.id === id);
+		if (billDropdownData.value) {
+			const matchingItem = billDropdownData.value.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -21,8 +21,8 @@
 	};
 
 	const itemToOption = (data: BillDropdownType[number]): SelectionType => {
-		if ($billDropdownData) {
-			const matchingItem = $billDropdownData.find((item) => item.id === data.id);
+		if (billDropdownData.value) {
+			const matchingItem = billDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -31,8 +31,8 @@
 	};
 
 	const itemToDisplay = (data: BillDropdownType[number]): { group?: string; title: string } => {
-		if ($billDropdownData) {
-			const matchingItem = $billDropdownData.find((item) => item.id === data.id);
+		if (billDropdownData.value) {
+			const matchingItem = billDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { title: matchingItem.title };
 			}
@@ -58,7 +58,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Bill IDs"
-			lookupItems={$billDropdownData}
+			lookupItems={billDropdownData.value}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

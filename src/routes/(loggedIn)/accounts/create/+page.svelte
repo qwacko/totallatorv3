@@ -19,11 +19,11 @@
 	const form = superForm(data.form);
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/accounts/create', $page));
-	const formData = $derived(form.form);
-	const formErrors = $derived(form.errors);
-	const enhance = $derived(form.enhance);
-	const constraints = $derived(form.constraints);
-	const message = $derived(form.message);
+	const formData = form.form;
+	const formErrors = form.errors;
+	const enhance = form.enhance
+	const constraints = form.constraints
+	const message = form.message;
 </script>
 
 <CustomHeader pageTitle="New Account" />

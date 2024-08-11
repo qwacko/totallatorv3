@@ -5,14 +5,14 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { CategoryFilterSchemaType } from '$lib/schema/categorySchema';
-	import { categoryDropdownData } from '$lib/stores/dropdownStores.js';
+	import { categoryDropdownData } from '$lib/stores/dropdownStores.svelte.js';
 	import type { CategoryDropdownType } from '$lib/server/db/actions/categoryActions';
 
 	let { filter = $bindable() }: { filter: CategoryFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
-		if ($categoryDropdownData) {
-			const matchingItem = $categoryDropdownData.find((item) => item.id === id);
+		if (categoryDropdownData.value) {
+			const matchingItem = categoryDropdownData.value.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -21,8 +21,8 @@
 	};
 
 	const itemToOption = (data: CategoryDropdownType[number]): SelectionType => {
-		if ($categoryDropdownData) {
-			const matchingItem = $categoryDropdownData.find((item) => item.id === data.id);
+		if (categoryDropdownData.value) {
+			const matchingItem = categoryDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -31,8 +31,8 @@
 	};
 
 	const itemToDisplay = (data: CategoryDropdownType[number]): { group?: string; title: string } => {
-		if ($categoryDropdownData) {
-			const matchingItem = $categoryDropdownData.find((item) => item.id === data.id);
+		if (categoryDropdownData.value) {
+			const matchingItem = categoryDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { group: matchingItem.group, title: matchingItem.title };
 			}
@@ -58,7 +58,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Category IDs"
-			lookupItems={$categoryDropdownData}
+			lookupItems={categoryDropdownData.value}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

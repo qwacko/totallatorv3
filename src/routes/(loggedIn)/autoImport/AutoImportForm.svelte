@@ -10,7 +10,7 @@
 	import BooleanFilterButtons from '$lib/components/filters/BooleanFilterButtons.svelte';
 	import NumberInput from '$lib/components/NumberInput.svelte';
 	import { Accordion, AccordionItem } from 'flowbite-svelte';
-	import { importMappingDropdownData } from '$lib/stores/dropdownStores.js';
+	import { importMappingDropdownData } from '$lib/stores/dropdownStores.svelte.js';
 
 	const {
 		proxyForm,
@@ -60,12 +60,12 @@
 	{/if}
 	<input type="hidden" name="enabled" value={$enabledValue} />
 
-	{#if $importMappingDropdownData}
+	{#if importMappingDropdownData.value}
 		<SelectInput
 			title="Import Mapping"
 			name="importMappingId"
 			bind:value={$importMappingIdValue}
-			items={$importMappingDropdownData.map((t) => ({ name: t.title, value: t.id }))}
+			items={importMappingDropdownData.value.map((t) => ({ name: t.title, value: t.id }))}
 			placeholder="Select Import Mapping..."
 			required
 			errorMessage={$importMappingIdErrors}

@@ -15,7 +15,7 @@
 		budgetDropdownData,
 		labelDropdownData,
 		categoryDropdownData
-	} from '$lib/stores/dropdownStores.js';
+	} from '$lib/stores/dropdownStores.svelte.js';
 
 	const { data } = $props();
 
@@ -30,8 +30,8 @@
 			invalidate: true
 		})
 	);
-	const enhance = $derived(form.enhance);
-	const message = $derived(form.message);
+	const enhance = form.enhance;
+	const message = form.message;
 
 	type LinkedItemOptions = 'account' | 'label' | 'category' | 'budget' | 'tag' | 'bill' | 'none';
 	let linkedItem = $state<LinkedItemOptions>('none');
@@ -81,7 +81,7 @@
 			<ComboSelectForm
 				{form}
 				title="Account"
-				items={$accountDropdownData}
+				items={accountDropdownData.value}
 				field="accountId"
 				placeholder="Select Account..."
 				itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -91,7 +91,7 @@
 			<ComboSelectForm
 				{form}
 				title="Label"
-				items={$labelDropdownData}
+				items={labelDropdownData.value}
 				field="labelId"
 				placeholder="Select Label..."
 				itemToDisplay={(item) => ({ title: item.title })}
@@ -101,7 +101,7 @@
 			<ComboSelectForm
 				{form}
 				title="Category"
-				items={$categoryDropdownData}
+				items={categoryDropdownData.value}
 				field="categoryId"
 				placeholder="Select Category..."
 				itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -111,7 +111,7 @@
 			<ComboSelectForm
 				{form}
 				title="Budget"
-				items={$budgetDropdownData}
+				items={budgetDropdownData.value}
 				field="budgetId"
 				placeholder="Select Budget..."
 				itemToDisplay={(item) => ({ title: item.title })}
@@ -121,7 +121,7 @@
 			<ComboSelectForm
 				{form}
 				title="Tag"
-				items={$tagDropdownData}
+				items={tagDropdownData.value}
 				field="tagId"
 				placeholder="Select Tag..."
 				itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -131,7 +131,7 @@
 			<ComboSelectForm
 				{form}
 				title="Bill"
-				items={$billDropdownData}
+				items={billDropdownData.value}
 				field="billId"
 				placeholder="Select Bill..."
 				itemToDisplay={(item) => ({ title: item.title })}

@@ -42,8 +42,8 @@
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
 	const { value: clearValueOriginal } = formFieldProxy(form, clearField);
 
-	const stringValue = $derived(value as Writable<string>);
-	const clearValue = $derived(clearValueOriginal as Writable<boolean | undefined>);
+	const stringValue = value as Writable<string>;
+	const clearValue = clearValueOriginal as Writable<boolean | undefined>;
 
 	const updateStringValue = (newValue: string) => {
 		if (clearable && newValue !== '' && $clearValue) {

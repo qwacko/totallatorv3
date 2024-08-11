@@ -25,8 +25,8 @@
 		}
 	});
 
-	const modificationFormValue = $derived(form.form);
-	const enhance = $derived(form.enhance);
+	const modificationFormValue = form.form;
+	const enhance = form.enhance;
 </script>
 
 <div class="flex flex-col gap-2">

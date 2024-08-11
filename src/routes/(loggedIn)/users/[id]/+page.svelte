@@ -28,9 +28,9 @@
 		})
 	});
 
-	const enhance = $derived(form.enhance);
-	const formData = $derived(form.form);
-	const errors = $derived(form.errors);
+	const enhance = form.enhance;
+	const formData = form.form;
+	const errors = form.errors;
 </script>
 
 <CustomHeader pageTitle="User - {data ? data.currentUser.name : ''}" />

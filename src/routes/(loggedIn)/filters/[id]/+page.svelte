@@ -22,21 +22,27 @@
 		filterModal = false;
 	});
 
-	const form = $derived(
-		superForm(data.form, {
+	const { enhance, formErrors, formData } = $derived.by(() => {
+		const newForm = superForm(data.form, {
 			onResult: () => {
 				changeModal = false;
 				filterModal = false;
 			}
-		})
-	);
+		});
+		return {
+			form: newForm,
+			enhance: newForm.enhance,
+			formErrors: newForm.errors,
+			formData: newForm.form
+		};
+	});
 
 	let changeModal = $state(false);
 	let filterModal = $state(false);
 
-	const enhance = $derived(form.enhance);
-	const formData = $derived(form.form);
-	const formErrors = $derived(form.errors);
+	// const enhance = form.enhance;
+	// const formData = form.form;
+	// const formErrors = form.errors;
 	const updateTitle = $derived((newTitle: string) => {
 		$formData.title = newTitle;
 	});

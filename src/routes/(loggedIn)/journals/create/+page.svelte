@@ -19,10 +19,10 @@
 	const form = superForm(data.form);
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/journals/create', $page));
-	const enhance = $derived(form.enhance);
-	const message = $derived(form.message);
-	const formData = $derived(form.form);
-	const testData = $derived(form.tainted);
+	const enhance = form.enhance;
+	const message = form.message;
+	const formData = form.form;
+	const testData = form.tainted;
 </script>
 
 <CustomHeader pageTitle="Create Transaction" />

@@ -5,14 +5,14 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { TagFilterSchemaType } from '$lib/schema/tagSchema';
-	import { tagDropdownData } from '$lib/stores/dropdownStores.js';
+	import { tagDropdownData } from '$lib/stores/dropdownStores.svelte.js';
 	import type { TagDropdownType } from '$lib/server/db/actions/tagActions';
 
 	let { filter = $bindable() }: { filter: TagFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
-		if ($tagDropdownData) {
-			const matchingItem = $tagDropdownData.find((item) => item.id === id);
+		if (tagDropdownData.value) {
+			const matchingItem = tagDropdownData.value.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -21,8 +21,8 @@
 	};
 
 	const itemToOption = (data: TagDropdownType[number]): SelectionType => {
-		if ($tagDropdownData) {
-			const matchingItem = $tagDropdownData.find((item) => item.id === data.id);
+		if (tagDropdownData.value) {
+			const matchingItem = tagDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -31,8 +31,8 @@
 	};
 
 	const itemToDisplay = (data: TagDropdownType[number]): { group?: string; title: string } => {
-		if ($tagDropdownData) {
-			const matchingItem = $tagDropdownData.find((item) => item.id === data.id);
+		if (tagDropdownData.value) {
+			const matchingItem = tagDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { group: matchingItem.group, title: matchingItem.title };
 			}
@@ -58,7 +58,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Tag IDs"
-			lookupItems={$tagDropdownData}
+			lookupItems={tagDropdownData.value}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

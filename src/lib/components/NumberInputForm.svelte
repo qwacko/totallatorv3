@@ -31,7 +31,7 @@
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
 
-	const stringValue = $derived(value as Writable<number>);
+	const stringValue = value as Writable<number>;
 </script>
 
 <NumberInput

@@ -12,15 +12,21 @@
 
 	const { data } = $props();
 
-	const form = $derived(superForm(data.form));
+	const { formData, formErrors, enhance, message } = $derived.by(() => {
+		const newForm = superForm(data.form);
 
-	const enhance = $derived(form.enhance);
-	const formData = $derived(form.form);
-	const formErrors = $derived(form.errors);
+		return {
+			form: newForm,
+			enhance: newForm.enhance,
+			formData: newForm.form,
+			formErrors: newForm.errors,
+			message: newForm.message
+		};
+	});
+
 	const updateTitle = $derived((newTitle: string) => {
 		$formData.title = newTitle;
 	});
-	const message = $derived(form.message);
 </script>
 
 <CustomHeader pageTitle="Create Reusable Filter" />

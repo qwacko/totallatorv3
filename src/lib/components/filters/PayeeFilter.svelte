@@ -4,7 +4,7 @@
 	import FilterIdArray from './FilterIdArray.svelte';
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
-	import { accountDropdownData } from '$lib/stores/dropdownStores.js';
+	import { accountDropdownData } from '$lib/stores/dropdownStores.svelte.js';
 	import type { AccountDropdownType } from '$lib/server/db/actions/accountActions';
 
 	let {
@@ -12,8 +12,8 @@
 	}: { filter: { id?: string; idArray?: string[]; title?: string } | undefined } = $props();
 
 	const idToString = (id: string) => {
-		if ($accountDropdownData) {
-			const matchingItem = $accountDropdownData.find((item) => item.id === id);
+		if (accountDropdownData.value) {
+			const matchingItem = accountDropdownData.value.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -22,8 +22,8 @@
 	};
 
 	const itemToOption = (data: AccountDropdownType[number]): SelectionType => {
-		if ($accountDropdownData) {
-			const matchingItem = $accountDropdownData.find((item) => item.id === data.id);
+		if (accountDropdownData.value) {
+			const matchingItem = accountDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -32,8 +32,8 @@
 	};
 
 	const itemToDisplay = (data: AccountDropdownType[number]): { group?: string; title: string } => {
-		if ($accountDropdownData) {
-			const matchingItem = $accountDropdownData.find((item) => item.id === data.id);
+		if (accountDropdownData.value) {
+			const matchingItem = accountDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { group: matchingItem.group, title: matchingItem.title };
 			}
@@ -51,7 +51,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Account IDs"
-			lookupItems={$accountDropdownData}
+			lookupItems={accountDropdownData.value}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

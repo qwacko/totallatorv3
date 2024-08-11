@@ -16,6 +16,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { zodClient } from 'sveltekit-superforms/adapters';
+	import BulkEditRecommendations from './BulkEditRecommendations.svelte';
 
 	const { data } = $props();
 
@@ -25,8 +26,8 @@
 		validators: zodClient(updateJournalSchema)
 	});
 
-	const enhance = $derived(form.enhance);
-	const formData = $derived(form.form);
+	const enhance = form.enhance;
+	const formData = form.form;
 
 	const titleText = $derived(
 		data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`
@@ -52,6 +53,7 @@
 			message="At Least One Journal Is Complete So Can Only Update Journal Labels"
 			title="Complete Journals Present"
 		/>{/if}
+	<BulkEditRecommendations target={{ type: 'description', description: $formData.description }} />
 	<form method="post" class="grid grid-cols-1 gap-2 md:grid-cols-2" action="?/update" use:enhance>
 		<PreviousUrlInput name="prevPage" />
 		<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />

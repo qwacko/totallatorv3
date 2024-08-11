@@ -20,9 +20,9 @@
 			invalidate: true
 		})
 	});
-	const formData = $derived(form.form);
-	const enhance = $derived(form.enhance);
-	const errors = $derived(form.errors);
+	const formData = form.form;
+	const enhance = form.enhance;
+	const errors = form.errors;
 
 	const updateFile = (e: CustomEvent<any>) => {
 		if ((e?.currentTarget as HTMLInputElement)?.files) {

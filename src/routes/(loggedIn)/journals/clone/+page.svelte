@@ -17,8 +17,8 @@
 
 	const form = superForm(data.form);
 
-	const enhance = $derived(form.enhance);
-	const tainted = $derived(form.tainted);
+	const enhance = form.enhance;
+	const tainted = form.tainted;
 </script>
 
 <CustomHeader

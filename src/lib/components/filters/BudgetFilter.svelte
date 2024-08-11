@@ -5,14 +5,14 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { BudgetFilterSchemaType } from '$lib/schema/budgetSchema';
-	import { budgetDropdownData } from '$lib/stores/dropdownStores.js';
+	import { budgetDropdownData } from '$lib/stores/dropdownStores.svelte.js';
 	import type { BudgetDropdownType } from '$lib/server/db/actions/budgetActions';
 
 	let { filter = $bindable() }: { filter: BudgetFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
-		if ($budgetDropdownData) {
-			const matchingItem = $budgetDropdownData.find((item) => item.id === id);
+		if (budgetDropdownData.value) {
+			const matchingItem = budgetDropdownData.value.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -21,8 +21,8 @@
 	};
 
 	const itemToOption = (data: BudgetDropdownType[number]): SelectionType => {
-		if ($budgetDropdownData) {
-			const matchingItem = $budgetDropdownData.find((item) => item.id === data.id);
+		if (budgetDropdownData.value) {
+			const matchingItem = budgetDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -31,8 +31,8 @@
 	};
 
 	const itemToDisplay = (data: BudgetDropdownType[number]): { group?: string; title: string } => {
-		if ($budgetDropdownData) {
-			const matchingItem = $budgetDropdownData.find((item) => item.id === data.id);
+		if (budgetDropdownData.value) {
+			const matchingItem = budgetDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { title: matchingItem.title };
 			}
@@ -58,7 +58,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Budget IDs"
-			lookupItems={$budgetDropdownData}
+			lookupItems={budgetDropdownData.value}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

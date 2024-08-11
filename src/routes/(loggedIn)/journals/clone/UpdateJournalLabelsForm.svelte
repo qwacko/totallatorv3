@@ -5,7 +5,7 @@
 		UpdateJournalSchemaType
 	} from '$lib/schema/journalSchema';
 	import { Badge, Button, Checkbox, Heading, P, TabItem, Tabs } from 'flowbite-svelte';
-	import { labelDropdownData } from '$lib/stores/dropdownStores.js';
+	import { labelDropdownData } from '$lib/stores/dropdownStores.svelte.js';
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
@@ -21,7 +21,7 @@
 
 	let currentLabelId = $state<string | undefined>(undefined);
 
-	const formData = $derived(form.form);
+	const formData = form.form;
 
 	const removeLabelToggle = (labelId: string | undefined) => {
 		$formData.labels = undefined;
@@ -73,25 +73,45 @@
 	};
 
 	$effect(() => {
-		if ($formData.clearLabels) {
+		if (
+			$formData.clearLabels &&
+			($formData.labels !== undefined ||
+				$formData.addLabels !== undefined ||
+				$formData.removeLabels !== undefined)
+		) {
 			$formData.labels = undefined;
 			$formData.addLabels = undefined;
 			$formData.removeLabels = undefined;
 		}
 	});
 
-	const addCurrentLabel = $derived(() => addLabelToggle(currentLabelId));
-	const addSetLabel = $derived(() => setLabelToggle(currentLabelId));
+	const addableLabels = $derived.by(() => {
+		if (labelDropdownData.value) {
+			return labelDropdownData.value
+				.filter((item) => {
+					if ($formData.addLabels) {
+						return !$formData.addLabels.includes(item.id);
+					}
+					return true;
+				})
+				.sort((a, b) => a.title.localeCompare(b.title));
+		}
+		return undefined;
+	});
 
-	const clearCurrentLabel = () => ($formData.addLabels = undefined);
-	const clearSetLabel = () => ($formData.labels = undefined);
-
-	const enableAdd = $derived(
-		currentLabelId && (!$formData.addLabels || !$formData.addLabels.includes(currentLabelId))
-	);
-	const enableSet = $derived(
-		currentLabelId && (!$formData.labels || !$formData.labels.includes(currentLabelId))
-	);
+	const settableLabels = $derived.by(() => {
+		if (labelDropdownData.value) {
+			return labelDropdownData.value
+				.filter((item) => {
+					if ($formData.labels) {
+						return !$formData.labels.includes(item.id);
+					}
+					return true;
+				})
+				.sort((a, b) => a.title.localeCompare(b.title));
+		}
+		return undefined;
+	});
 </script>
 
 <div class="col-span-1 md:col-span-2">
@@ -106,7 +126,7 @@
 			<div class="flex flex-col gap-6">
 				<div class="flex flex-row gap-2">
 					<ComboSelect
-						items={$labelDropdownData}
+						items={addableLabels}
 						placeholder="Label Selection..."
 						bind:value={currentLabelId}
 						title="Label"
@@ -117,25 +137,22 @@
 						})}
 						itemToDisplay={(item) => ({ title: item.title })}
 						class=" flex flex-grow"
+						onChange={(data) => {
+							if (data) {
+								addLabelToggle(data);
+								currentLabelId = undefined;
+							}
+						}}
 					/>
-					<Button on:click={addCurrentLabel} disabled={!enableAdd} class="h-min self-end">
-						Add
-					</Button>
-					<Button
-						on:click={clearCurrentLabel}
-						disabled={!($formData.addLabels && $formData.addLabels.length > 0)}
-						class="h-min self-end"
-						outline
-					>
-						Clear
-					</Button>
 				</div>
 
 				<P class="flex text-sm font-semibold">Labels To Add</P>
-				{#if $formData.addLabels && $formData.addLabels.length > 0 && $labelDropdownData}
+				{#if $formData.addLabels && $formData.addLabels.length > 0 && labelDropdownData.value}
 					<div class="flex flex-row flex-wrap gap-2">
 						{#each $formData.addLabels as currentLabel}
-							{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
+							{@const labelDetail = labelDropdownData.value.find(
+								(item) => item.id === currentLabel
+							)}
 							{#if labelDetail}
 								<div>
 									<input type="hidden" name="addLabels" value={labelDetail.id} />
@@ -163,10 +180,12 @@
 							$formData.removeLabels ? !$formData.removeLabels.includes(item) : true
 						)}
 						<P class="flex text-sm font-semibold">Labels On At Least One Journals</P>
-						{#if useAllLabelIds.length > 0 && $labelDropdownData}
+						{#if useAllLabelIds.length > 0 && labelDropdownData.value}
 							<div class="flex flex-row flex-wrap gap-2">
 								{#each useAllLabelIds as currentLabel}
-									{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
+									{@const labelDetail = labelDropdownData.value.find(
+										(item) => item.id === currentLabel
+									)}
 									{#if labelDetail}
 										<Button
 											size="xs"
@@ -188,10 +207,12 @@
 							$formData.removeLabels ? !$formData.removeLabels.includes(item) : true
 						)}
 						<P class="flex text-sm font-semibold">Labels On All Journals</P>
-						{#if useCommonLabelIds.length > 0 && $labelDropdownData}
+						{#if useCommonLabelIds.length > 0 && labelDropdownData.value}
 							<div class="flex flex-row flex-wrap gap-2">
 								{#each useCommonLabelIds as currentLabel}
-									{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
+									{@const labelDetail = labelDropdownData.value.find(
+										(item) => item.id === currentLabel
+									)}
 									{#if labelDetail}
 										<Button
 											size="xs"
@@ -209,10 +230,12 @@
 					{/if}
 
 					<P class="flex text-sm font-semibold">Labels For Removal</P>
-					{#if $formData.removeLabels && $formData.removeLabels.length > 0 && $labelDropdownData}
+					{#if $formData.removeLabels && $formData.removeLabels.length > 0 && labelDropdownData.value}
 						<div class="flex flex-row flex-wrap gap-2">
 							{#each $formData.removeLabels as currentLabel}
-								{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
+								{@const labelDetail = labelDropdownData.value.find(
+									(item) => item.id === currentLabel
+								)}
 								{#if labelDetail}
 									<input type="hidden" name="removeLabels" value={labelDetail.id} />
 									<Button
@@ -243,7 +266,7 @@
 			<div class="flex flex-col gap-6">
 				<div class="flex flex-row gap-2">
 					<ComboSelect
-						items={$labelDropdownData}
+						items={settableLabels}
 						placeholder="Label Selection..."
 						bind:value={currentLabelId}
 						title="Label"
@@ -254,23 +277,22 @@
 						})}
 						itemToDisplay={(item) => ({ title: item.title })}
 						class=" flex flex-grow"
+						onChange={(data) => {
+							if (data) {
+								setLabelToggle(data);
+								currentLabelId = undefined;
+							}
+						}}
 					/>
-					<Button on:click={addSetLabel} disabled={!enableSet} class="h-min self-end">Add</Button>
-					<Button
-						on:click={clearSetLabel}
-						disabled={!($formData.labels && $formData.labels.length > 0)}
-						class="h-min self-end"
-						outline
-					>
-						Clear
-					</Button>
 				</div>
 
 				<P class="flex text-sm font-semibold">Labels To Set All Journals To Have</P>
-				{#if $formData.labels && $formData.labels.length > 0 && $labelDropdownData}
+				{#if $formData.labels && $formData.labels.length > 0 && labelDropdownData.value}
 					<div class="flex flex-row flex-wrap gap-2">
 						{#each $formData.labels as currentLabel}
-							{@const labelDetail = $labelDropdownData.find((item) => item.id === currentLabel)}
+							{@const labelDetail = labelDropdownData.value.find(
+								(item) => item.id === currentLabel
+							)}
 							{#if labelDetail}
 								<div>
 									<input type="hidden" name="labels" value={labelDetail.id} />

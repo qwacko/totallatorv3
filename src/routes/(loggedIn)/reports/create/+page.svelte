@@ -26,11 +26,11 @@
 		onResult: () => (loading = false)
 	});
 
-	const form = $derived(formAll.form);
-	const errors = $derived(formAll.errors);
-	const constraints = $derived(formAll.constraints);
-	const message = $derived(formAll.message);
-	const enhance = $derived(formAll.enhance);
+	const form = formAll.form;
+	const errors = formAll.errors;
+	const constraints = formAll.constraints;
+	const message = formAll.message;
+	const enhance = formAll.enhance;
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/reports/create', $page));
 

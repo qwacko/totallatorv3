@@ -33,8 +33,8 @@
 	const { value: setValue } = formFieldProxy(form, setField);
 	const { value: clearValue } = formFieldProxy(form, clearField);
 
-	const booleanSetValue = $derived(setValue as Writable<string | boolean | undefined>);
-	const booleanClearValue = $derived(clearValue as Writable<string | boolean | undefined>);
+	const booleanSetValue = setValue as Writable<string | boolean | undefined>;
+	const booleanClearValue = clearValue as Writable<string | boolean | undefined>;
 
 	onMount(() => {
 		if ($booleanSetValue === true || $booleanSetValue === 'true') {

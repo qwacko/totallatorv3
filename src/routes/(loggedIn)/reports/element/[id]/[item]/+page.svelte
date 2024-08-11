@@ -32,9 +32,9 @@
 		})
 	});
 
-	const enhance = $derived(form.enhance);
-	const errors = $derived(form.errors);
-	const formData = $derived(form.form);
+	const enhance = form.enhance;
+	const errors = form.errors;
+	const formData = form.form;
 
 	const itemTypeInfo = $derived(reportConfigPartTypeInfo[$formData.type]);
 </script>

@@ -48,7 +48,7 @@
 	let updatingEnabled = $state(false);
 	let errorMessage = $state<string | undefined>(undefined);
 
-	const enhanceForm = $derived(form.enhance);
+	const enhanceForm = form.enhance;
 </script>
 
 <CustomHeader pageTitle={title} />

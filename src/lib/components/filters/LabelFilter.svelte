@@ -5,14 +5,14 @@
 	import type { SelectionType } from '../ComboSelectTypes';
 	import TextInput from '../TextInput.svelte';
 	import type { LabelFilterSchemaType } from '$lib/schema/labelSchema';
-	import { labelDropdownData } from '$lib/stores/dropdownStores.js';
+	import { labelDropdownData } from '$lib/stores/dropdownStores.svelte.js';
 	import type { LabelDropdownType } from '$lib/server/db/actions/labelActions';
 
 	let { filter = $bindable() }: { filter: LabelFilterSchemaType | undefined } = $props();
 
 	const idToString = (id: string) => {
-		if ($labelDropdownData) {
-			const matchingItem = $labelDropdownData.find((item) => item.id === id);
+		if (labelDropdownData.value) {
+			const matchingItem = labelDropdownData.value.find((item) => item.id === id);
 			if (matchingItem) {
 				return matchingItem.title;
 			}
@@ -21,8 +21,8 @@
 	};
 
 	const itemToOption = (data: LabelDropdownType[number]): SelectionType => {
-		if ($labelDropdownData) {
-			const matchingItem = $labelDropdownData.find((item) => item.id === data.id);
+		if (labelDropdownData.value) {
+			const matchingItem = labelDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { label: matchingItem.title, value: matchingItem.id, disabled: false };
 			}
@@ -31,8 +31,8 @@
 	};
 
 	const itemToDisplay = (data: LabelDropdownType[number]): { group?: string; title: string } => {
-		if ($labelDropdownData) {
-			const matchingItem = $labelDropdownData.find((item) => item.id === data.id);
+		if (labelDropdownData.value) {
+			const matchingItem = labelDropdownData.value.find((item) => item.id === data.id);
 			if (matchingItem) {
 				return { title: matchingItem.title };
 			}
@@ -58,7 +58,7 @@
 		<FilterIdArray
 			bind:idArray={filter.idArray}
 			title="Label IDs"
-			lookupItems={$labelDropdownData}
+			lookupItems={labelDropdownData.value}
 			{idToString}
 			{itemToDisplay}
 			{itemToOption}

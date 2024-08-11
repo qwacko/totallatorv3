@@ -7,19 +7,19 @@
 		billDropdownData,
 		budgetDropdownData,
 		categoryDropdownData
-	} from '$lib/stores/dropdownStores.js';
+	} from '$lib/stores/dropdownStores.svelte.js';
 
 	import type { SuperForm } from 'sveltekit-superforms';
 
 	const { form }: { form: SuperForm<CreateSimpleTransactionType> } = $props();
 
-	const formData = $derived(form.form);
+	const formData = form.form;
 </script>
 
 <ComboSelectForm
 	{form}
 	title="From Account"
-	items={$accountDropdownData}
+	items={accountDropdownData.value}
 	field="fromAccountId"
 	placeholder="Select Account..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -30,7 +30,7 @@
 <ComboSelectForm
 	{form}
 	title="To Account"
-	items={$accountDropdownData}
+	items={accountDropdownData.value}
 	field="toAccountId"
 	placeholder="Select Account..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -42,7 +42,7 @@
 <ComboSelectForm
 	{form}
 	title="Tag"
-	items={$tagDropdownData}
+	items={tagDropdownData.value}
 	field="tagId"
 	placeholder="Select Tag..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -53,7 +53,7 @@
 <ComboSelectForm
 	{form}
 	title="Category"
-	items={$categoryDropdownData}
+	items={categoryDropdownData.value}
 	field="categoryId"
 	placeholder="Select Category..."
 	itemToDisplay={(item) => ({ title: item.title, group: item.group })}
@@ -64,7 +64,7 @@
 <ComboSelectForm
 	{form}
 	title="Bill"
-	items={$billDropdownData}
+	items={billDropdownData.value}
 	field="billId"
 	placeholder="Select Bill..."
 	itemToDisplay={(item) => ({ title: item.title })}
@@ -75,7 +75,7 @@
 <ComboSelectForm
 	{form}
 	title="Budget"
-	items={$budgetDropdownData}
+	items={budgetDropdownData.value}
 	field="budgetId"
 	placeholder="Select Budget..."
 	itemToDisplay={(item) => ({ title: item.title })}
