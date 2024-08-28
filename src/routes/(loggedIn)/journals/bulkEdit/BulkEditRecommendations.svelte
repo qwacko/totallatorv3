@@ -1,42 +1,49 @@
 <script lang="ts">
-	// import { urlGenerator } from '$lib/routes';
-	// import { e } from 'mathjs';
-	// import SuperJSON from 'superjson';
+	import { urlGenerator } from '$lib/routes';
+	import type { JournalRecommendationSchemaType } from '$lib/schema/journalRecommendationSchema';
+	import type { JournalRecommendationsReturnType } from '$lib/server/db/actions/journalMaterializedViewActions';
+	import SuperJSON from 'superjson';
 	import { untrack } from 'svelte';
-
-	type TargetType =
-		| { type: 'account'; accountId: string | undefined }
-		| { type: 'description'; description: string | undefined };
 
 	const {
 		target
 	}: {
-		target: TargetType;
+		target: JournalRecommendationSchemaType;
 	} = $props();
 
-	// let updating = $state(false);
-	// let data = $state<string[]>([]);
+	let updating = $state(false);
+	let debounceTimer: NodeJS.Timeout | undefined = undefined;
+	const debounceTimeout = 500;
 
-	const updateData = (request: TargetType) => {
-		// updating = true;
-		// if (target.type === 'description') {
-		// 	data = [target.description || ''];
-		// } else {
-		// 	data = [target.accountId || ''];
-		// }
-		// updating = false;
-		// fetch(dataURL)
-		// 	.then((response) => response.text())
-		// 	.then((newData) => {
-		// 		data = SuperJSON.parse(newData) as string[];
-		// 		updating = false;
-		// 	})
-		// 	.catch((error) => {
-		// 		console.error('Error:', error);
-		// 	})
-		// 	.finally(() => {
-		// 		updating = false;
-		// 	});
+	const updateData = (request: JournalRecommendationSchemaType) => {
+		updating = true;
+
+		if (debounceTimer) {
+			clearTimeout(debounceTimer);
+		}
+
+		debounceTimer = setTimeout(() => {
+			const dataURL = urlGenerator({
+				address: '/(loggedIn)/journals/bulkEdit/recommendations',
+				searchParamsValue: request
+			});
+
+			fetch(dataURL.url)
+				.then((response) => response.text())
+				.then((newData) => {
+					const receivedJSON = SuperJSON.parse(
+						newData
+					) as unknown as JournalRecommendationsReturnType;
+					console.log('data', receivedJSON);
+					updating = false;
+				})
+				.catch((error) => {
+					console.error('Error:', error);
+				})
+				.finally(() => {
+					updating = false;
+				});
+		}, debounceTimeout);
 	};
 
 	$effect(() => {
@@ -45,5 +52,10 @@
 	});
 </script>
 
-Bulk Reccomendations Go Here
-<pre>{JSON.stringify(target)}</pre>
+Bulk Recomendations Go Here
+
+{#if updating}
+	<p>Updating...</p>
+{:else}
+	<p>Updated</p>
+{/if}

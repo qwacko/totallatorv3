@@ -19,6 +19,8 @@ const dropdownDataValidation = z.object({
 //Refresh Every Hour Even If No New Data Received
 const maximumRefresh = 1000 * 60 * 60;
 
+const logDropdownUpdates = false;
+
 const getOrRefreshDropdownData = async <T extends Record<string, any>[]>({
 	prefix,
 	targetTime,
@@ -53,21 +55,23 @@ const getOrRefreshDropdownData = async <T extends Record<string, any>[]>({
 		storedDropdownValidated.data.storedTime + maximumRefresh < nowTime;
 
 	if (needsRefresh) {
-		console.log(`Updating ${prefix} dropdown data...`);
-		if (!dataIsValid) {
-			console.log(`No valid data found for ${prefix} dropdown data...`);
-		}
-		if (!storedDropdownValidated) {
-			console.log(`No stored data found for ${prefix} dropdown data...`);
-		}
-		if (storedDropdownValidated?.data && currentTime > storedDropdownValidated.data.updatedTime) {
-			console.log(`Data is outdated for ${prefix} dropdown data...`);
-		}
-		if (
-			storedDropdownValidated?.data &&
-			storedDropdownValidated.data.storedTime + maximumRefresh < nowTime
-		) {
-			console.log(`Data is older than maximum refresh time for ${prefix} dropdown data...`);
+		if (logDropdownUpdates) {
+			console.log(`Updating ${prefix} dropdown data...`);
+			if (!dataIsValid) {
+				console.log(`No valid data found for ${prefix} dropdown data...`);
+			}
+			if (!storedDropdownValidated) {
+				console.log(`No stored data found for ${prefix} dropdown data...`);
+			}
+			if (storedDropdownValidated?.data && currentTime > storedDropdownValidated.data.updatedTime) {
+				console.log(`Data is outdated for ${prefix} dropdown data...`);
+			}
+			if (
+				storedDropdownValidated?.data &&
+				storedDropdownValidated.data.storedTime + maximumRefresh < nowTime
+			) {
+				console.log(`Data is older than maximum refresh time for ${prefix} dropdown data...`);
+			}
 		}
 
 		const data = await fetch(url);

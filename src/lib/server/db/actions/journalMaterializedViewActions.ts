@@ -1,6 +1,7 @@
-import { SQL, and, avg, count, sql, sum, max } from 'drizzle-orm';
+import { SQL, and, avg, count, sql, sum, max, eq, or } from 'drizzle-orm';
 import type { DBType } from '../db';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { desc } from 'drizzle-orm';
 import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
 import type {
 	JournalFilterSchemaInputType,
@@ -17,8 +18,11 @@ import {
 import { getMonthlySummary } from './helpers/summary/getMonthlySummary';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { dbExecuteLogger } from '../dbLogger';
-import { journalEntry } from '../postgres/schema';
+import { importItemDetail, journalEntry } from '../postgres/schema';
 import { getCorrectJournalTable } from './helpers/journalMaterializedView/getCorrectJournalTable';
+import type { JournalRecommendationSchemaType } from '$lib/schema/journalRecommendationSchema';
+import { tActions } from './tActions';
+import { customAliasedTableColumn } from '../postgres/schema/customAliasedTableColumn';
 
 export const journalMaterializedViewActions = {
 	getLatestUpdateDate: async ({ db }: { db: DBType }) => {
@@ -298,5 +302,84 @@ export const journalMaterializedViewActions = {
 				...labelData
 			}
 		};
+	},
+	getRecommendations: async ({
+		db,
+		query
+	}: {
+		db: DBType;
+		query: JournalRecommendationSchemaType | undefined;
+	}) => {
+		if (!query) {
+			return undefined;
+		}
+
+		await tActions.import.updateImportDescriptions({ db });
+
+		const { table } = await getCorrectJournalTable(db);
+		console.log(query);
+		if (query.type === 'account' && query.accountId) {
+			const subquery = db
+				.select({
+					tagId: table.tagId,
+					categoryId: table.categoryId,
+					billId: table.billId,
+					budgetId: table.budgetId,
+					description: table.description,
+					count: count(table.id).as('count')
+				})
+				.from(table)
+				.where(eq(table.accountId, query.accountId))
+				.groupBy(table.tagId, table.categoryId, table.billId, table.budgetId, table.description)
+				.as('subquery');
+
+			const results = await db.select().from(subquery).limit(5).orderBy(desc(subquery.count));
+
+			return { type: query.type, data: results };
+		} else if (query.type === 'description' && query.description && query.description.length > 0) {
+			const subquery = db
+				.select({
+					tagId: table.tagId,
+					categoryId: table.categoryId,
+					billId: table.billId,
+					budgetId: table.budgetId,
+					description: customAliasedTableColumn(table.description, 'journal_description'),
+					count: count(table.id).as('count'),
+					accountId: table.accountId,
+					importDescription: importItemDetail.descriptionFromImport
+				})
+				.from(table)
+				.leftJoin(
+					importItemDetail,
+					or(eq(table.id, importItemDetail.relationId), eq(table.id, importItemDetail.relation2Id))
+				)
+				.where(eq(table.dataChecked, true))
+				.groupBy(
+					table.tagId,
+					table.categoryId,
+					table.billId,
+					table.budgetId,
+					table.description,
+					table.accountId,
+					importItemDetail.descriptionFromImport
+				)
+				.as('subquery');
+
+			const results = await db
+				.select()
+				.from(subquery)
+				.limit(5)
+				.where(eq(subquery.importDescription, query.description))
+				.orderBy(desc(subquery.count));
+
+			return {
+				type: query.type,
+				data: results
+			};
+		}
 	}
 };
+
+export type JournalRecommendationsReturnType = ReturnType<
+	(typeof journalMaterializedViewActions)['getRecommendations']
+>;

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "importDetail_description_idx" ON "import_item_detail" USING btree ("description");

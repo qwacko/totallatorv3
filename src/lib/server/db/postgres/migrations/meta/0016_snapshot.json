@@ -1,2078 +1,2855 @@
 {
-	"id": "4fc7ed4b-ac18-44b3-a92d-7d00a718ab37",
-	"prevId": "267aefc1-7d5f-46a3-af96-1afc85addfec",
-	"version": "5",
-	"dialect": "pg",
-	"tables": {
-		"user_key": {
-			"name": "user_key",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"user_id": {
-					"name": "user_id",
-					"type": "varchar(62)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"hashed_password": {
-					"name": "hashed_password",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {
-				"user_key_user_id_user_id_fk": {
-					"name": "user_key_user_id_user_id_fk",
-					"tableFrom": "user_key",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"user_session": {
-			"name": "user_session",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(128)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"user_id": {
-					"name": "user_id",
-					"type": "varchar(61)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"active_expires": {
-					"name": "active_expires",
-					"type": "bigint",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"idle_expires": {
-					"name": "idle_expires",
-					"type": "bigint",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {
-				"user_session_user_id_user_id_fk": {
-					"name": "user_session_user_id_user_id_fk",
-					"tableFrom": "user_session",
-					"tableTo": "user",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"user": {
-			"name": "user",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(60)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"name": {
-					"name": "name",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'New User'"
-				},
-				"username": {
-					"name": "username",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"admin": {
-					"name": "admin",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"currencyFormat": {
-					"name": "currencyFormat",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'USD'"
-				},
-				"dateFormat": {
-					"name": "dateFormat",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'YYYY-MM-DD'"
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"user_username_unique": {
-					"name": "user_username_unique",
-					"nullsNotDistinct": false,
-					"columns": ["username"]
-				}
-			}
-		},
-		"account": {
-			"name": "account",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"import_id": {
-					"name": "import_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"account_import_detail_id": {
-					"name": "account_import_detail_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"type": {
-					"name": "type",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'expense'"
-				},
-				"is_cash": {
-					"name": "is_cash",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"is_net_worth": {
-					"name": "is_net_worth",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"account_group": {
-					"name": "account_group",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"account_group_2": {
-					"name": "account_group_2",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"account_group_3": {
-					"name": "account_group_3",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"account_group_combined": {
-					"name": "account_group_combined",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"account_title_combined": {
-					"name": "account_title_combined",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"start_date": {
-					"name": "start_date",
-					"type": "varchar(10)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"end_date": {
-					"name": "end_date",
-					"type": "varchar(10)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"summary_id": {
-					"name": "summary_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'active'"
-				},
-				"active": {
-					"name": "active",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"disabled": {
-					"name": "disabled",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"allow_update": {
-					"name": "allow_update",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"account_title_idx": {
-					"name": "account_title_idx",
-					"columns": ["title"],
-					"isUnique": false
-				},
-				"account_type_idx": {
-					"name": "account_type_idx",
-					"columns": ["type"],
-					"isUnique": false
-				},
-				"account_is_cash_idx": {
-					"name": "account_is_cash_idx",
-					"columns": ["is_cash"],
-					"isUnique": false
-				},
-				"account_is_net_worth_idx": {
-					"name": "account_is_net_worth_idx",
-					"columns": ["is_net_worth"],
-					"isUnique": false
-				},
-				"account_account_group_combined_idx": {
-					"name": "account_account_group_combined_idx",
-					"columns": ["account_group_combined"],
-					"isUnique": false
-				},
-				"account_account_title_combined_idx": {
-					"name": "account_account_title_combined_idx",
-					"columns": ["account_title_combined"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"account_account_title_combined_unique": {
-					"name": "account_account_title_combined_unique",
-					"nullsNotDistinct": false,
-					"columns": ["account_title_combined"]
-				}
-			}
-		},
-		"bill": {
-			"name": "bill",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"import_id": {
-					"name": "import_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"bill_import_detail_id": {
-					"name": "bill_import_detail_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"summary_id": {
-					"name": "summary_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'active'"
-				},
-				"active": {
-					"name": "active",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"disabled": {
-					"name": "disabled",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"allow_update": {
-					"name": "allow_update",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"bill_title_idx": {
-					"name": "bill_title_idx",
-					"columns": ["title"],
-					"isUnique": false
-				},
-				"bill_summary_id_idx": {
-					"name": "bill_summary_id_idx",
-					"columns": ["summary_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"bill_title_unique": {
-					"name": "bill_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
-				}
-			}
-		},
-		"budget": {
-			"name": "budget",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"import_id": {
-					"name": "import_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"budget_import_detail_id": {
-					"name": "budget_import_detail_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"summary_id": {
-					"name": "summary_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'active'"
-				},
-				"active": {
-					"name": "active",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"disabled": {
-					"name": "disabled",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"allow_update": {
-					"name": "allow_update",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"budget_title_idx": {
-					"name": "budget_title_idx",
-					"columns": ["title"],
-					"isUnique": false
-				},
-				"budget_summary_id_idx": {
-					"name": "budget_summary_id_idx",
-					"columns": ["summary_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"budget_title_unique": {
-					"name": "budget_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
-				}
-			}
-		},
-		"category": {
-			"name": "category",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"import_id": {
-					"name": "import_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"category_import_detail_id": {
-					"name": "category_import_detail_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"group": {
-					"name": "group",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"single": {
-					"name": "single",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"summary_id": {
-					"name": "summary_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'active'"
-				},
-				"active": {
-					"name": "active",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"disabled": {
-					"name": "disabled",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"allow_update": {
-					"name": "allow_update",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"category_title_idx": {
-					"name": "category_title_idx",
-					"columns": ["title"],
-					"isUnique": false
-				},
-				"category_group_idx": {
-					"name": "category_group_idx",
-					"columns": ["group"],
-					"isUnique": false
-				},
-				"category_single_idx": {
-					"name": "category_single_idx",
-					"columns": ["single"],
-					"isUnique": false
-				},
-				"category_summary_id_idx": {
-					"name": "category_summary_id_idx",
-					"columns": ["summary_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"category_title_unique": {
-					"name": "category_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
-				}
-			}
-		},
-		"single_filter": {
-			"name": "single_filter",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"filter": {
-					"name": "filter",
-					"type": "jsonb",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"filter_text": {
-					"name": "filter_text",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"filter_filter_text_idx": {
-					"name": "filter_filter_text_idx",
-					"columns": ["filter_text"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"import_item_detail": {
-			"name": "import_item_detail",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"import_id": {
-					"name": "import_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'error'"
-				},
-				"duplicate_id": {
-					"name": "duplicate_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"unique_id": {
-					"name": "unique_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"relation_id": {
-					"name": "relation_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"relation_2_id": {
-					"name": "relation_2_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"import_info": {
-					"name": "import_info",
-					"type": "json",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"processed_info": {
-					"name": "processed_info",
-					"type": "json",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"error_info": {
-					"name": "error_info",
-					"type": "json",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"importDetail_import_idx": {
-					"name": "importDetail_import_idx",
-					"columns": ["import_id"],
-					"isUnique": false
-				},
-				"importDetail_duplicate_idx": {
-					"name": "importDetail_duplicate_idx",
-					"columns": ["duplicate_id"],
-					"isUnique": false
-				},
-				"importDetail_relation_idx": {
-					"name": "importDetail_relation_idx",
-					"columns": ["relation_id"],
-					"isUnique": false
-				},
-				"importDetail_relation_2_idx": {
-					"name": "importDetail_relation_2_idx",
-					"columns": ["relation_2_id"],
-					"isUnique": false
-				},
-				"importDetail_status_idx": {
-					"name": "importDetail_status_idx",
-					"columns": ["status"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"import_mapping": {
-			"name": "import_mapping",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"configuration": {
-					"name": "configuration",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"sample_data": {
-					"name": "sample_data",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"import": {
-			"name": "import",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"filename": {
-					"name": "filename",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"check_imported_only": {
-					"name": "check_imported_only",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'error'"
-				},
-				"source": {
-					"name": "source",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'csv'"
-				},
-				"type": {
-					"name": "type",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'transaction'"
-				},
-				"mapped_import_id": {
-					"name": "mapped_import_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"error_info": {
-					"name": "error_info",
-					"type": "json",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"label_status_idx": {
-					"name": "label_status_idx",
-					"columns": ["status"],
-					"isUnique": false
-				},
-				"label_source_idx": {
-					"name": "label_source_idx",
-					"columns": ["source"],
-					"isUnique": false
-				},
-				"label_type_idx": {
-					"name": "label_type_idx",
-					"columns": ["type"],
-					"isUnique": false
-				},
-				"label_mapped_import_idx": {
-					"name": "label_mapped_import_idx",
-					"columns": ["mapped_import_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"journal_entry": {
-			"name": "journal_entry",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"import_id": {
-					"name": "import_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"import_detail_id": {
-					"name": "import_detail_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"unique_id": {
-					"name": "unique_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"amount": {
-					"name": "amount",
-					"type": "numeric(20, 4)",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"transaction_id": {
-					"name": "transaction_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"description": {
-					"name": "description",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"date": {
-					"name": "date",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"date_text": {
-					"name": "date_text",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"tag_id": {
-					"name": "tag_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"bill_id": {
-					"name": "bill_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"budget_id": {
-					"name": "budget_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"category_id": {
-					"name": "category_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"account_id": {
-					"name": "account_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"year_month_day": {
-					"name": "year_month_day",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"year_week": {
-					"name": "year_week",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"year_month": {
-					"name": "year_month",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"year_quarter": {
-					"name": "year_quarter",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"year": {
-					"name": "year",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"linked": {
-					"name": "linked",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"reconciled": {
-					"name": "reconciled",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"data_checked": {
-					"name": "data_checked",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"complete": {
-					"name": "complete",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"transfer": {
-					"name": "transfer",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"journalEntry_created_at_idx": {
-					"name": "journalEntry_created_at_idx",
-					"columns": ["created_at"],
-					"isUnique": false
-				},
-				"journalEntry_transaction_id_idx": {
-					"name": "journalEntry_transaction_id_idx",
-					"columns": ["transaction_id"],
-					"isUnique": false
-				},
-				"journalEntry_date_amount_idx": {
-					"name": "journalEntry_date_amount_idx",
-					"columns": ["date", "amount"],
-					"isUnique": false
-				},
-				"journalEntry_date_idx": {
-					"name": "journalEntry_date_idx",
-					"columns": ["date"],
-					"isUnique": false
-				},
-				"journalEntry_date_text_idx": {
-					"name": "journalEntry_date_text_idx",
-					"columns": ["date_text"],
-					"isUnique": false
-				},
-				"journalEntry_description_idx": {
-					"name": "journalEntry_description_idx",
-					"columns": ["description"],
-					"isUnique": false
-				},
-				"journalEntry_transfer_idx": {
-					"name": "journalEntry_transfer_idx",
-					"columns": ["transfer"],
-					"isUnique": false
-				},
-				"journalEntry_complete_idx": {
-					"name": "journalEntry_complete_idx",
-					"columns": ["complete"],
-					"isUnique": false
-				},
-				"journalEntry_reconciled_idx": {
-					"name": "journalEntry_reconciled_idx",
-					"columns": ["reconciled"],
-					"isUnique": false
-				},
-				"journalEntry_data_checked_idx": {
-					"name": "journalEntry_data_checked_idx",
-					"columns": ["data_checked"],
-					"isUnique": false
-				},
-				"journalEntry_account_id_idx": {
-					"name": "journalEntry_account_id_idx",
-					"columns": ["account_id"],
-					"isUnique": false
-				},
-				"journalEntry_bill_id_idx": {
-					"name": "journalEntry_bill_id_idx",
-					"columns": ["bill_id"],
-					"isUnique": false
-				},
-				"journalEntry_budget_id_idx": {
-					"name": "journalEntry_budget_id_idx",
-					"columns": ["budget_id"],
-					"isUnique": false
-				},
-				"journalEntry_category_id_idx": {
-					"name": "journalEntry_category_id_idx",
-					"columns": ["category_id"],
-					"isUnique": false
-				},
-				"journalEntry_tag_id_idx": {
-					"name": "journalEntry_tag_id_idx",
-					"columns": ["tag_id"],
-					"isUnique": false
-				},
-				"journalEntry_import_id_idx": {
-					"name": "journalEntry_import_id_idx",
-					"columns": ["import_id"],
-					"isUnique": false
-				},
-				"journalEntry_import_detail_id_idx": {
-					"name": "journalEntry_import_detail_id_idx",
-					"columns": ["import_detail_id"],
-					"isUnique": false
-				},
-				"journalEntry_year_month_idx": {
-					"name": "journalEntry_year_month_idx",
-					"columns": ["year_month"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"key_value_table": {
-			"name": "key_value_table",
-			"schema": "",
-			"columns": {
-				"key": {
-					"name": "key",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"value": {
-					"name": "value",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"key_value_table_key_unique": {
-					"name": "key_value_table_key_unique",
-					"nullsNotDistinct": false,
-					"columns": ["key"]
-				}
-			}
-		},
-		"label": {
-			"name": "label",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"import_id": {
-					"name": "import_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"label_import_detail_id": {
-					"name": "label_import_detail_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"summary_id": {
-					"name": "summary_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'active'"
-				},
-				"active": {
-					"name": "active",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"disabled": {
-					"name": "disabled",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"allow_update": {
-					"name": "allow_update",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"label_title_unique": {
-					"name": "label_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
-				}
-			}
-		},
-		"labels_to_journals": {
-			"name": "labels_to_journals",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"label_id": {
-					"name": "label_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"journal_id": {
-					"name": "journal_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"label_idx": {
-					"name": "label_idx",
-					"columns": ["label_id"],
-					"isUnique": false
-				},
-				"journal_idx": {
-					"name": "journal_idx",
-					"columns": ["journal_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"labels_to_journals_journal_id_label_id_unique": {
-					"name": "labels_to_journals_journal_id_label_id_unique",
-					"nullsNotDistinct": false,
-					"columns": ["journal_id", "label_id"]
-				}
-			}
-		},
-		"report": {
-			"name": "report",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"group": {
-					"name": "group",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"size": {
-					"name": "size",
-					"type": "report_size",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'xl'"
-				},
-				"locked": {
-					"name": "locked",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"filter_id": {
-					"name": "filter_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"report_title_idx": {
-					"name": "report_title_idx",
-					"columns": ["title"],
-					"isUnique": false
-				},
-				"report_group_idx": {
-					"name": "report_group_idx",
-					"columns": ["group"],
-					"isUnique": false
-				},
-				"report_title_group_idx": {
-					"name": "report_title_group_idx",
-					"columns": ["title", "group"],
-					"isUnique": false
-				},
-				"report_locked_idx": {
-					"name": "report_locked_idx",
-					"columns": ["locked"],
-					"isUnique": false
-				},
-				"report_filter_idx": {
-					"name": "report_filter_idx",
-					"columns": ["filter_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"report_element": {
-			"name": "report_element",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"report_id": {
-					"name": "report_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"rows": {
-					"name": "rows",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"cols": {
-					"name": "cols",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"order": {
-					"name": "order",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"report_element_config_id": {
-					"name": "report_element_config_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"filter_id": {
-					"name": "filter_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"report_element_config_idx": {
-					"name": "report_element_config_idx",
-					"columns": ["report_element_config_id"],
-					"isUnique": false
-				},
-				"report_idx": {
-					"name": "report_idx",
-					"columns": ["report_id"],
-					"isUnique": false
-				},
-				"report_element_filter_idx": {
-					"name": "report_element_filter_idx",
-					"columns": ["filter_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"report_element_config": {
-			"name": "report_element_config",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"group": {
-					"name": "group",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"locked": {
-					"name": "locked",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"reusable": {
-					"name": "reusable",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"filter_id": {
-					"name": "filter_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"configuration": {
-					"name": "configuration",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"configuration_text": {
-					"name": "configuration_text",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"report_element_config_title_idx": {
-					"name": "report_element_config_title_idx",
-					"columns": ["title"],
-					"isUnique": false
-				},
-				"report_element_config_group_idx": {
-					"name": "report_element_config_group_idx",
-					"columns": ["group"],
-					"isUnique": false
-				},
-				"report_element_config_reusable_idx": {
-					"name": "report_element_config_reusable_idx",
-					"columns": ["reusable"],
-					"isUnique": false
-				},
-				"report_element_config_title_group_idx": {
-					"name": "report_element_config_title_group_idx",
-					"columns": ["title", "group"],
-					"isUnique": false
-				},
-				"report_element_config_locked_idx": {
-					"name": "report_element_config_locked_idx",
-					"columns": ["locked"],
-					"isUnique": false
-				},
-				"report_element_config_filter_idx": {
-					"name": "report_element_config_filter_idx",
-					"columns": ["filter_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"filter": {
-			"name": "filter",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"group": {
-					"name": "group",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"journal_count": {
-					"name": "journal_count",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"can_apply": {
-					"name": "can_apply",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"needs_update": {
-					"name": "needs_update",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"apply_automatically": {
-					"name": "apply_automatically",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"apply_following_import": {
-					"name": "apply_following_import",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"listed": {
-					"name": "listed",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"modification_type": {
-					"name": "modification_type",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false,
-					"default": "'replace'"
-				},
-				"filter": {
-					"name": "filter",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"filter_text": {
-					"name": "filter_text",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"change": {
-					"name": "change",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"change_text": {
-					"name": "change_text",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"filter_title_idx": {
-					"name": "filter_title_idx",
-					"columns": ["title"],
-					"isUnique": false
-				},
-				"filter_group_idx": {
-					"name": "filter_group_idx",
-					"columns": ["group"],
-					"isUnique": false
-				},
-				"filter_can_apply_idx": {
-					"name": "filter_can_apply_idx",
-					"columns": ["can_apply"],
-					"isUnique": false
-				},
-				"filter_needs_update_idx": {
-					"name": "filter_needs_update_idx",
-					"columns": ["needs_update"],
-					"isUnique": false
-				},
-				"filter_apply_automatically_idx": {
-					"name": "filter_apply_automatically_idx",
-					"columns": ["apply_automatically"],
-					"isUnique": false
-				},
-				"filter_apply_following_import_idx": {
-					"name": "filter_apply_following_import_idx",
-					"columns": ["apply_following_import"],
-					"isUnique": false
-				},
-				"filter_listed_idx": {
-					"name": "filter_listed_idx",
-					"columns": ["listed"],
-					"isUnique": false
-				},
-				"filter_modification_type_idx": {
-					"name": "filter_modification_type_idx",
-					"columns": ["modification_type"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"summary": {
-			"name": "summary",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"type": {
-					"name": "type",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"needs_update": {
-					"name": "needs_update",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"relation_id": {
-					"name": "relation_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"sum": {
-					"name": "sum",
-					"type": "numeric(20, 4)",
-					"primaryKey": false,
-					"notNull": false,
-					"default": 0
-				},
-				"count": {
-					"name": "count",
-					"type": "numeric(20, 4)",
-					"primaryKey": false,
-					"notNull": false,
-					"default": 0
-				},
-				"first_date": {
-					"name": "first_date",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"last_date": {
-					"name": "last_date",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"summary_type_idx": {
-					"name": "summary_type_idx",
-					"columns": ["type"],
-					"isUnique": false
-				},
-				"summary_relation_idx": {
-					"name": "summary_relation_idx",
-					"columns": ["relation_id"],
-					"isUnique": false
-				},
-				"summary_needs_update_idx": {
-					"name": "summary_needs_update_idx",
-					"columns": ["needs_update"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		},
-		"tag": {
-			"name": "tag",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"import_id": {
-					"name": "import_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"tag_import_detail_id": {
-					"name": "tag_import_detail_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"title": {
-					"name": "title",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"group": {
-					"name": "group",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"single": {
-					"name": "single",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"summary_id": {
-					"name": "summary_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'active'"
-				},
-				"active": {
-					"name": "active",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"disabled": {
-					"name": "disabled",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"allow_update": {
-					"name": "allow_update",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"tag_title_idx": {
-					"name": "tag_title_idx",
-					"columns": ["title"],
-					"isUnique": false
-				},
-				"tag_group_idx": {
-					"name": "tag_group_idx",
-					"columns": ["group"],
-					"isUnique": false
-				},
-				"tag_single_idx": {
-					"name": "tag_single_idx",
-					"columns": ["single"],
-					"isUnique": false
-				},
-				"tag_summary_id_idx": {
-					"name": "tag_summary_id_idx",
-					"columns": ["summary_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"tag_title_unique": {
-					"name": "tag_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
-				}
-			}
-		},
-		"transaction": {
-			"name": "transaction",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "timestamp",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "now()"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "timestamp (6) with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
-		}
-	},
-	"enums": {
-		"report_size": {
-			"name": "report_size",
-			"values": {
-				"sm": "sm",
-				"lg": "lg",
-				"xs": "xs",
-				"xl": "xl"
-			}
-		}
-	},
-	"schemas": {},
-	"_meta": {
-		"schemas": {},
-		"tables": {},
-		"columns": {}
-	}
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.user_key": {
+      "name": "user_key",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(62)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hashed_password": {
+          "name": "hashed_password",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_key_user_id_user_id_fk": {
+          "name": "user_key_user_id_user_id_fk",
+          "tableFrom": "user_key",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "tableTo": "user",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.user_session": {
+      "name": "user_session",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(128)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(61)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active_expires": {
+          "name": "active_expires",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idle_expires": {
+          "name": "idle_expires",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_session_user_id_user_id_fk": {
+          "name": "user_session_user_id_user_id_fk",
+          "tableFrom": "user_session",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "tableTo": "user",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.user": {
+      "name": "user",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(60)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'New User'"
+        },
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "admin": {
+          "name": "admin",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "currencyFormat": {
+          "name": "currencyFormat",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'USD'"
+        },
+        "dateFormat": {
+          "name": "dateFormat",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'YYYY-MM-DD'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_username_unique": {
+          "name": "user_username_unique",
+          "columns": [
+            "username"
+          ],
+          "nullsNotDistinct": false
+        }
+      }
+    },
+    "public.account": {
+      "name": "account",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_import_detail_id": {
+          "name": "account_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'expense'"
+        },
+        "is_cash": {
+          "name": "is_cash",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_net_worth": {
+          "name": "is_net_worth",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "account_group": {
+          "name": "account_group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_2": {
+          "name": "account_group_2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_3": {
+          "name": "account_group_3",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_combined": {
+          "name": "account_group_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_title_combined": {
+          "name": "account_title_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "summary_id": {
+          "name": "summary_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "account_title_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "account_title_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "account_type_idx": {
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "account_type_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "account_is_cash_idx": {
+          "columns": [
+            {
+              "expression": "is_cash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "account_is_cash_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "account_is_net_worth_idx": {
+          "columns": [
+            {
+              "expression": "is_net_worth",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "account_is_net_worth_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "account_account_group_combined_idx": {
+          "columns": [
+            {
+              "expression": "account_group_combined",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "account_account_group_combined_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "account_account_title_combined_idx": {
+          "columns": [
+            {
+              "expression": "account_title_combined",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "account_account_title_combined_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "account_account_title_combined_unique": {
+          "name": "account_account_title_combined_unique",
+          "columns": [
+            "account_title_combined"
+          ],
+          "nullsNotDistinct": false
+        }
+      }
+    },
+    "public.bill": {
+      "name": "bill",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_import_detail_id": {
+          "name": "bill_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "summary_id": {
+          "name": "summary_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bill_title_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "bill_title_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "bill_summary_id_idx": {
+          "columns": [
+            {
+              "expression": "summary_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "bill_summary_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "bill_title_unique": {
+          "name": "bill_title_unique",
+          "columns": [
+            "title"
+          ],
+          "nullsNotDistinct": false
+        }
+      }
+    },
+    "public.budget": {
+      "name": "budget",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget_import_detail_id": {
+          "name": "budget_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "summary_id": {
+          "name": "summary_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "budget_title_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "budget_title_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "budget_summary_id_idx": {
+          "columns": [
+            {
+              "expression": "summary_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "budget_summary_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "budget_title_unique": {
+          "name": "budget_title_unique",
+          "columns": [
+            "title"
+          ],
+          "nullsNotDistinct": false
+        }
+      }
+    },
+    "public.category": {
+      "name": "category",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_import_detail_id": {
+          "name": "category_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "single": {
+          "name": "single",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "summary_id": {
+          "name": "summary_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "category_title_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "category_title_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "category_group_idx": {
+          "columns": [
+            {
+              "expression": "group",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "category_group_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "category_single_idx": {
+          "columns": [
+            {
+              "expression": "single",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "category_single_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "category_summary_id_idx": {
+          "columns": [
+            {
+              "expression": "summary_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "category_summary_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "category_title_unique": {
+          "name": "category_title_unique",
+          "columns": [
+            "title"
+          ],
+          "nullsNotDistinct": false
+        }
+      }
+    },
+    "public.single_filter": {
+      "name": "single_filter",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filter": {
+          "name": "filter",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filter_text": {
+          "name": "filter_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "filter_filter_text_idx": {
+          "columns": [
+            {
+              "expression": "filter_text",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "filter_filter_text_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.import_item_detail": {
+      "name": "import_item_detail",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'error'"
+        },
+        "duplicate_id": {
+          "name": "duplicate_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unique_id": {
+          "name": "unique_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "relation_id": {
+          "name": "relation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "relation_2_id": {
+          "name": "relation_2_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "import_info": {
+          "name": "import_info",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "processed_info": {
+          "name": "processed_info",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error_info": {
+          "name": "error_info",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "importDetail_import_idx": {
+          "columns": [
+            {
+              "expression": "import_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "importDetail_import_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "importDetail_duplicate_idx": {
+          "columns": [
+            {
+              "expression": "duplicate_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "importDetail_duplicate_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "importDetail_relation_idx": {
+          "columns": [
+            {
+              "expression": "relation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "importDetail_relation_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "importDetail_relation_2_idx": {
+          "columns": [
+            {
+              "expression": "relation_2_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "importDetail_relation_2_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "importDetail_status_idx": {
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "importDetail_status_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.import_mapping": {
+      "name": "import_mapping",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "configuration": {
+          "name": "configuration",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sample_data": {
+          "name": "sample_data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.import": {
+      "name": "import",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filename": {
+          "name": "filename",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "check_imported_only": {
+          "name": "check_imported_only",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'error'"
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'csv'"
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'transaction'"
+        },
+        "mapped_import_id": {
+          "name": "mapped_import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error_info": {
+          "name": "error_info",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "label_status_idx": {
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "label_status_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "label_source_idx": {
+          "columns": [
+            {
+              "expression": "source",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "label_source_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "label_type_idx": {
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "label_type_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "label_mapped_import_idx": {
+          "columns": [
+            {
+              "expression": "mapped_import_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "label_mapped_import_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.journal_entry": {
+      "name": "journal_entry",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "import_detail_id": {
+          "name": "import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unique_id": {
+          "name": "unique_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(20, 4)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_text": {
+          "name": "date_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_id": {
+          "name": "bill_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget_id": {
+          "name": "budget_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_month_day": {
+          "name": "year_month_day",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_week": {
+          "name": "year_week",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_month": {
+          "name": "year_month",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_quarter": {
+          "name": "year_quarter",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "linked": {
+          "name": "linked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "reconciled": {
+          "name": "reconciled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "data_checked": {
+          "name": "data_checked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "complete": {
+          "name": "complete",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "transfer": {
+          "name": "transfer",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "journalEntry_created_at_idx": {
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_created_at_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_transaction_id_idx": {
+          "columns": [
+            {
+              "expression": "transaction_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_transaction_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_date_amount_idx": {
+          "columns": [
+            {
+              "expression": "date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "amount",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_date_amount_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_date_idx": {
+          "columns": [
+            {
+              "expression": "date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_date_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_date_text_idx": {
+          "columns": [
+            {
+              "expression": "date_text",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_date_text_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_description_idx": {
+          "columns": [
+            {
+              "expression": "description",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_description_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_transfer_idx": {
+          "columns": [
+            {
+              "expression": "transfer",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_transfer_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_complete_idx": {
+          "columns": [
+            {
+              "expression": "complete",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_complete_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_reconciled_idx": {
+          "columns": [
+            {
+              "expression": "reconciled",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_reconciled_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_data_checked_idx": {
+          "columns": [
+            {
+              "expression": "data_checked",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_data_checked_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_account_id_idx": {
+          "columns": [
+            {
+              "expression": "account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_account_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_bill_id_idx": {
+          "columns": [
+            {
+              "expression": "bill_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_bill_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_budget_id_idx": {
+          "columns": [
+            {
+              "expression": "budget_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_budget_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_category_id_idx": {
+          "columns": [
+            {
+              "expression": "category_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_category_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_tag_id_idx": {
+          "columns": [
+            {
+              "expression": "tag_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_tag_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_import_id_idx": {
+          "columns": [
+            {
+              "expression": "import_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_import_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_import_detail_id_idx": {
+          "columns": [
+            {
+              "expression": "import_detail_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_import_detail_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journalEntry_year_month_idx": {
+          "columns": [
+            {
+              "expression": "year_month",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journalEntry_year_month_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.key_value_table": {
+      "name": "key_value_table",
+      "schema": "",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "key_value_table_key_unique": {
+          "name": "key_value_table_key_unique",
+          "columns": [
+            "key"
+          ],
+          "nullsNotDistinct": false
+        }
+      }
+    },
+    "public.label": {
+      "name": "label",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "label_import_detail_id": {
+          "name": "label_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "summary_id": {
+          "name": "summary_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "label_title_unique": {
+          "name": "label_title_unique",
+          "columns": [
+            "title"
+          ],
+          "nullsNotDistinct": false
+        }
+      }
+    },
+    "public.labels_to_journals": {
+      "name": "labels_to_journals",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "label_id": {
+          "name": "label_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "journal_id": {
+          "name": "journal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "label_idx": {
+          "columns": [
+            {
+              "expression": "label_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "label_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "journal_idx": {
+          "columns": [
+            {
+              "expression": "journal_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "journal_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "labels_to_journals_journal_id_label_id_unique": {
+          "name": "labels_to_journals_journal_id_label_id_unique",
+          "columns": [
+            "journal_id",
+            "label_id"
+          ],
+          "nullsNotDistinct": false
+        }
+      }
+    },
+    "public.report": {
+      "name": "report",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "size": {
+          "name": "size",
+          "type": "report_size",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'xl'"
+        },
+        "locked": {
+          "name": "locked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "filter_id": {
+          "name": "filter_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "report_title_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_title_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_group_idx": {
+          "columns": [
+            {
+              "expression": "group",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_group_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_title_group_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "group",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_title_group_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_locked_idx": {
+          "columns": [
+            {
+              "expression": "locked",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_locked_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_filter_idx": {
+          "columns": [
+            {
+              "expression": "filter_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_filter_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.report_element": {
+      "name": "report_element",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rows": {
+          "name": "rows",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "cols": {
+          "name": "cols",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "report_element_config_id": {
+          "name": "report_element_config_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "filter_id": {
+          "name": "filter_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "report_element_config_idx": {
+          "columns": [
+            {
+              "expression": "report_element_config_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_element_config_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_idx": {
+          "columns": [
+            {
+              "expression": "report_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_element_filter_idx": {
+          "columns": [
+            {
+              "expression": "filter_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_element_filter_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.report_element_config": {
+      "name": "report_element_config",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "locked": {
+          "name": "locked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "reusable": {
+          "name": "reusable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "filter_id": {
+          "name": "filter_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "configuration": {
+          "name": "configuration",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "configuration_text": {
+          "name": "configuration_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "report_element_config_title_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_element_config_title_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_element_config_group_idx": {
+          "columns": [
+            {
+              "expression": "group",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_element_config_group_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_element_config_reusable_idx": {
+          "columns": [
+            {
+              "expression": "reusable",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_element_config_reusable_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_element_config_title_group_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "group",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_element_config_title_group_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_element_config_locked_idx": {
+          "columns": [
+            {
+              "expression": "locked",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_element_config_locked_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "report_element_config_filter_idx": {
+          "columns": [
+            {
+              "expression": "filter_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "report_element_config_filter_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.filter": {
+      "name": "filter",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "journal_count": {
+          "name": "journal_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "can_apply": {
+          "name": "can_apply",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "needs_update": {
+          "name": "needs_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "apply_automatically": {
+          "name": "apply_automatically",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "apply_following_import": {
+          "name": "apply_following_import",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "listed": {
+          "name": "listed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "modification_type": {
+          "name": "modification_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'replace'"
+        },
+        "filter": {
+          "name": "filter",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filter_text": {
+          "name": "filter_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "change": {
+          "name": "change",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "change_text": {
+          "name": "change_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "filter_title_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "filter_title_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "filter_group_idx": {
+          "columns": [
+            {
+              "expression": "group",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "filter_group_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "filter_can_apply_idx": {
+          "columns": [
+            {
+              "expression": "can_apply",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "filter_can_apply_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "filter_needs_update_idx": {
+          "columns": [
+            {
+              "expression": "needs_update",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "filter_needs_update_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "filter_apply_automatically_idx": {
+          "columns": [
+            {
+              "expression": "apply_automatically",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "filter_apply_automatically_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "filter_apply_following_import_idx": {
+          "columns": [
+            {
+              "expression": "apply_following_import",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "filter_apply_following_import_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "filter_listed_idx": {
+          "columns": [
+            {
+              "expression": "listed",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "filter_listed_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "filter_modification_type_idx": {
+          "columns": [
+            {
+              "expression": "modification_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "filter_modification_type_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.summary": {
+      "name": "summary",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "needs_update": {
+          "name": "needs_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "relation_id": {
+          "name": "relation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sum": {
+          "name": "sum",
+          "type": "numeric(20, 4)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "count": {
+          "name": "count",
+          "type": "numeric(20, 4)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "first_date": {
+          "name": "first_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_date": {
+          "name": "last_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "summary_type_idx": {
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "summary_type_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "summary_relation_idx": {
+          "columns": [
+            {
+              "expression": "relation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "summary_relation_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "summary_needs_update_idx": {
+          "columns": [
+            {
+              "expression": "needs_update",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "summary_needs_update_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.tag": {
+      "name": "tag",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tag_import_detail_id": {
+          "name": "tag_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "single": {
+          "name": "single",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "summary_id": {
+          "name": "summary_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "tag_title_idx": {
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "tag_title_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "tag_group_idx": {
+          "columns": [
+            {
+              "expression": "group",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "tag_group_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "tag_single_idx": {
+          "columns": [
+            {
+              "expression": "single",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "tag_single_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        },
+        "tag_summary_id_idx": {
+          "columns": [
+            {
+              "expression": "summary_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "with": {},
+          "name": "tag_summary_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "tag_title_unique": {
+          "name": "tag_title_unique",
+          "columns": [
+            "title"
+          ],
+          "nullsNotDistinct": false
+        }
+      }
+    },
+    "public.transaction": {
+      "name": "transaction",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "public.report_size": {
+      "name": "report_size",
+      "schema": "public",
+      "values": [
+        "sm",
+        "lg",
+        "xs",
+        "xl"
+      ]
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "id": "4fc7ed4b-ac18-44b3-a92d-7d00a718ab37",
+  "prevId": "267aefc1-7d5f-46a3-af96-1afc85addfec",
+  "sequences": {}
 }

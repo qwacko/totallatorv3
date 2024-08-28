@@ -566,6 +566,7 @@ export const importItemDetail = pgTable(
 	{
 		...idColumn,
 		importId: text('import_id').notNull(),
+		descriptionFromImport: text('description'),
 		status: text('status', { enum: importDetailStatusEnum }).notNull().default('error'),
 		statusText: text('status_text'),
 		duplicateId: text('duplicate_id'),
@@ -573,7 +574,7 @@ export const importItemDetail = pgTable(
 		relationId: text('relation_id'),
 		relation2Id: text('relation_2_id'),
 		importInfo: json('import_info'),
-		processedInfo: json('processed_info').$type<
+		processedInfo: jsonb('processed_info').$type<
 			| {
 					dataToUse?: Record<string, unknown>;
 					source?: Record<string, unknown>;
@@ -581,7 +582,7 @@ export const importItemDetail = pgTable(
 			  }
 			| undefined
 		>(),
-		errorInfo: json('error_info').$type<
+		errorInfo: jsonb('error_info').$type<
 			| {
 					error?: Record<string, unknown>;
 					errors?: string[];
@@ -595,7 +596,8 @@ export const importItemDetail = pgTable(
 		duplicateIdx: index('importDetail_duplicate_idx').on(t.duplicateId),
 		relationIdx: index('importDetail_relation_idx').on(t.relationId),
 		relation2Idx: index('importDetail_relation_2_idx').on(t.relation2Id),
-		statusIdx: index('importDetail_status_idx').on(t.status)
+		statusIdx: index('importDetail_status_idx').on(t.status),
+		descriptionIdx: index('importDetail_description_idx').on(t.descriptionFromImport)
 	})
 );
 

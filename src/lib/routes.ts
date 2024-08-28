@@ -24,6 +24,7 @@ import { autoImportFilterSchema } from './schema/autoImportSchema';
 import { createFileNoteRelationshipSchema } from './schema/helpers/fileNoteRelationship';
 import { fileFilterSchema } from './schema/fileSchema';
 import { groupedQueryLogFilter, queryLogFilterSchema } from './schema/queryLogSchema';
+import { journalRecommendationSchema } from './schema/journalRecommendationSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -90,6 +91,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		},
 		'/(loggedIn)/journals/bulkEdit': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse
+		},
+		'/(loggedIn)/journals/bulkEdit/recommendations': {
+			searchParamsValidation: journalRecommendationSchema.parse
 		},
 		'/(loggedIn)/journals/create': {
 			searchParamsValidation: journalFilterSchema.optional().catch(defaultJournalFilter()).parse

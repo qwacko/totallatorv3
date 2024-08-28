@@ -1,0 +1,1 @@
+ALTER TABLE "import_item_detail" ADD COLUMN "description" text;

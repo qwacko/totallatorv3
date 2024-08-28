@@ -1,4 +1,6 @@
 {
+  "id": "ba402a4c-e2c2-4c5c-9fe2-39215afcf86b",
+  "prevId": "447160e7-cb9c-4f2a-82ec-12af55f2f4b2",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -30,25 +32,25 @@
         "user_key_user_id_user_id_fk": {
           "name": "user_key_user_id_user_id_fk",
           "tableFrom": "user_key",
+          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "user_key_user_id_unique": {
           "name": "user_key_user_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "user_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -80,15 +82,15 @@
         "user_session_user_id_user_id_fk": {
           "name": "user_session_user_id_user_id_fk",
           "tableFrom": "user_session",
+          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -145,10 +147,10 @@
       "uniqueConstraints": {
         "user_username_unique": {
           "name": "user_username_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "username"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -287,6 +289,7 @@
       },
       "indexes": {
         "account_title_idx": {
+          "name": "account_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -295,13 +298,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_type_idx": {
+          "name": "account_type_idx",
           "columns": [
             {
               "expression": "type",
@@ -310,13 +313,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_is_cash_idx": {
+          "name": "account_is_cash_idx",
           "columns": [
             {
               "expression": "is_cash",
@@ -325,13 +328,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_is_cash_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_is_net_worth_idx": {
+          "name": "account_is_net_worth_idx",
           "columns": [
             {
               "expression": "is_net_worth",
@@ -340,13 +343,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_is_net_worth_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_account_group_combined_idx": {
+          "name": "account_account_group_combined_idx",
           "columns": [
             {
               "expression": "account_group_combined",
@@ -355,13 +358,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_account_group_combined_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_account_title_combined_idx": {
+          "name": "account_account_title_combined_idx",
           "columns": [
             {
               "expression": "account_title_combined",
@@ -370,11 +373,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_account_title_combined_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -382,10 +384,10 @@
       "uniqueConstraints": {
         "account_account_title_combined_unique": {
           "name": "account_account_title_combined_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "account_title_combined"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -449,6 +451,20 @@
           "primaryKey": false,
           "notNull": false
         },
+        "auto_process": {
+          "name": "auto_process",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "auto_clean": {
+          "name": "auto_clean",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
         "config": {
           "name": "config",
           "type": "jsonb",
@@ -458,6 +474,7 @@
       },
       "indexes": {
         "auto_import_mapped_import_idx": {
+          "name": "auto_import_mapped_import_idx",
           "columns": [
             {
               "expression": "mapped_import_id",
@@ -466,13 +483,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "auto_import_mapped_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "auto_import_frequency_idx": {
+          "name": "auto_import_frequency_idx",
           "columns": [
             {
               "expression": "frequency",
@@ -481,13 +498,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "auto_import_frequency_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "auto_import_title_idx": {
+          "name": "auto_import_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -496,13 +513,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "auto_import_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "auto_import_type_idx": {
+          "name": "auto_import_type_idx",
           "columns": [
             {
               "expression": "type",
@@ -511,11 +528,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "auto_import_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -613,10 +629,10 @@
       "uniqueConstraints": {
         "backup_table_filename_unique": {
           "name": "backup_table_filename_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "filename"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -692,6 +708,7 @@
       },
       "indexes": {
         "bill_title_idx": {
+          "name": "bill_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -700,11 +717,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "bill_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -712,10 +728,10 @@
       "uniqueConstraints": {
         "bill_title_unique": {
           "name": "bill_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -791,6 +807,7 @@
       },
       "indexes": {
         "budget_title_idx": {
+          "name": "budget_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -799,11 +816,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "budget_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -811,10 +827,10 @@
       "uniqueConstraints": {
         "budget_title_unique": {
           "name": "budget_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -902,6 +918,7 @@
       },
       "indexes": {
         "category_title_idx": {
+          "name": "category_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -910,13 +927,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "category_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "category_group_idx": {
+          "name": "category_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -925,13 +942,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "category_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "category_single_idx": {
+          "name": "category_single_idx",
           "columns": [
             {
               "expression": "single",
@@ -940,11 +957,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "category_single_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -952,12 +968,402 @@
       "uniqueConstraints": {
         "category_title_unique": {
           "name": "category_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
+    },
+    "public.files": {
+      "name": "files",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "original_filename": {
+          "name": "original_filename",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filename": {
+          "name": "filename",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "thumbnail_filename": {
+          "name": "thumbnail_filename",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "size": {
+          "name": "size",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_exists": {
+          "name": "file_exists",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "linked": {
+          "name": "linked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_id": {
+          "name": "bill_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget_id": {
+          "name": "budget_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "label_id": {
+          "name": "label_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "auto_import_id": {
+          "name": "auto_import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_element_id": {
+          "name": "report_element_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "file_reason_idx": {
+          "name": "file_reason_idx",
+          "columns": [
+            {
+              "expression": "reason",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_title_idx": {
+          "name": "file_title_idx",
+          "columns": [
+            {
+              "expression": "title",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_filename_idx": {
+          "name": "file_filename_idx",
+          "columns": [
+            {
+              "expression": "filename",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_type_idx": {
+          "name": "file_type_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_size_idx": {
+          "name": "file_size_idx",
+          "columns": [
+            {
+              "expression": "size",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_file_exists_idx": {
+          "name": "file_file_exists_idx",
+          "columns": [
+            {
+              "expression": "file_exists",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_transaction_idx": {
+          "name": "file_transaction_idx",
+          "columns": [
+            {
+              "expression": "transaction_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_account_idx": {
+          "name": "file_account_idx",
+          "columns": [
+            {
+              "expression": "account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_bill_idx": {
+          "name": "file_bill_idx",
+          "columns": [
+            {
+              "expression": "bill_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_budget_idx": {
+          "name": "file_budget_idx",
+          "columns": [
+            {
+              "expression": "budget_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_category_idx": {
+          "name": "file_category_idx",
+          "columns": [
+            {
+              "expression": "category_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_tag_idx": {
+          "name": "file_tag_idx",
+          "columns": [
+            {
+              "expression": "tag_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_label_idx": {
+          "name": "file_label_idx",
+          "columns": [
+            {
+              "expression": "label_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_auto_import_idx": {
+          "name": "file_auto_import_idx",
+          "columns": [
+            {
+              "expression": "auto_import_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_report_idx": {
+          "name": "file_report_idx",
+          "columns": [
+            {
+              "expression": "report_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "file_report_element_idx": {
+          "name": "file_report_element_idx",
+          "columns": [
+            {
+              "expression": "report_element_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
     },
     "public.single_filter": {
       "name": "single_filter",
@@ -997,6 +1403,7 @@
       },
       "indexes": {
         "filter_filter_text_idx": {
+          "name": "filter_filter_text_idx",
           "columns": [
             {
               "expression": "filter_text",
@@ -1005,11 +1412,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_filter_text_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -1061,6 +1467,7 @@
       },
       "indexes": {
         "report_element_config__from_filter_idx": {
+          "name": "report_element_config__from_filter_idx",
           "columns": [
             {
               "expression": "report_element_config_id",
@@ -1069,13 +1476,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config__from_filter_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_idx": {
+          "name": "filter_idx",
           "columns": [
             {
               "expression": "filter_id",
@@ -1084,11 +1491,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -1096,19 +1502,19 @@
       "uniqueConstraints": {
         "filters_to_report_configs_report_element_config_id_filter_id_unique": {
           "name": "filters_to_report_configs_report_element_config_id_filter_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "report_element_config_id",
             "filter_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "filters_to_report_configs_report_element_config_id_order_unique": {
           "name": "filters_to_report_configs_report_element_config_id_order_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "report_element_config_id",
             "order"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -1173,13 +1579,13 @@
         },
         "processed_info": {
           "name": "processed_info",
-          "type": "json",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
         "error_info": {
           "name": "error_info",
-          "type": "json",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -1199,6 +1605,7 @@
       },
       "indexes": {
         "importDetail_import_idx": {
+          "name": "importDetail_import_idx",
           "columns": [
             {
               "expression": "import_id",
@@ -1207,13 +1614,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "importDetail_duplicate_idx": {
+          "name": "importDetail_duplicate_idx",
           "columns": [
             {
               "expression": "duplicate_id",
@@ -1222,13 +1629,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_duplicate_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "importDetail_relation_idx": {
+          "name": "importDetail_relation_idx",
           "columns": [
             {
               "expression": "relation_id",
@@ -1237,13 +1644,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_relation_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "importDetail_relation_2_idx": {
+          "name": "importDetail_relation_2_idx",
           "columns": [
             {
               "expression": "relation_2_id",
@@ -1252,13 +1659,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_relation_2_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "importDetail_status_idx": {
+          "name": "importDetail_status_idx",
           "columns": [
             {
               "expression": "status",
@@ -1267,11 +1674,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_status_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -1419,10 +1825,18 @@
           "type": "json",
           "primaryKey": false,
           "notNull": false
+        },
+        "import_status": {
+          "name": "import_status",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'null'::jsonb"
         }
       },
       "indexes": {
         "label_status_idx": {
+          "name": "label_status_idx",
           "columns": [
             {
               "expression": "status",
@@ -1431,13 +1845,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_status_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "label_source_idx": {
+          "name": "label_source_idx",
           "columns": [
             {
               "expression": "source",
@@ -1446,13 +1860,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_source_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "label_type_idx": {
+          "name": "label_type_idx",
           "columns": [
             {
               "expression": "type",
@@ -1461,13 +1875,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "label_mapped_import_idx": {
+          "name": "label_mapped_import_idx",
           "columns": [
             {
               "expression": "mapped_import_id",
@@ -1476,13 +1890,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_mapped_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "import_auto_import_idx": {
+          "name": "import_auto_import_idx",
           "columns": [
             {
               "expression": "auto_import_id",
@@ -1491,11 +1905,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "import_auto_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -1672,6 +2085,7 @@
       },
       "indexes": {
         "journalEntry_created_at_idx": {
+          "name": "journalEntry_created_at_idx",
           "columns": [
             {
               "expression": "created_at",
@@ -1680,13 +2094,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_created_at_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_transaction_id_idx": {
+          "name": "journalEntry_transaction_id_idx",
           "columns": [
             {
               "expression": "transaction_id",
@@ -1695,13 +2109,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_transaction_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_date_amount_idx": {
+          "name": "journalEntry_date_amount_idx",
           "columns": [
             {
               "expression": "date",
@@ -1716,13 +2130,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_date_amount_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_date_idx": {
+          "name": "journalEntry_date_idx",
           "columns": [
             {
               "expression": "date",
@@ -1731,13 +2145,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_date_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_date_text_idx": {
+          "name": "journalEntry_date_text_idx",
           "columns": [
             {
               "expression": "date_text",
@@ -1746,13 +2160,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_date_text_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_description_idx": {
+          "name": "journalEntry_description_idx",
           "columns": [
             {
               "expression": "description",
@@ -1761,13 +2175,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_description_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_transfer_idx": {
+          "name": "journalEntry_transfer_idx",
           "columns": [
             {
               "expression": "transfer",
@@ -1776,13 +2190,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_transfer_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_complete_idx": {
+          "name": "journalEntry_complete_idx",
           "columns": [
             {
               "expression": "complete",
@@ -1791,13 +2205,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_complete_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_reconciled_idx": {
+          "name": "journalEntry_reconciled_idx",
           "columns": [
             {
               "expression": "reconciled",
@@ -1806,13 +2220,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_reconciled_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_data_checked_idx": {
+          "name": "journalEntry_data_checked_idx",
           "columns": [
             {
               "expression": "data_checked",
@@ -1821,13 +2235,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_data_checked_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_account_id_idx": {
+          "name": "journalEntry_account_id_idx",
           "columns": [
             {
               "expression": "account_id",
@@ -1836,13 +2250,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_account_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_bill_id_idx": {
+          "name": "journalEntry_bill_id_idx",
           "columns": [
             {
               "expression": "bill_id",
@@ -1851,13 +2265,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_bill_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_budget_id_idx": {
+          "name": "journalEntry_budget_id_idx",
           "columns": [
             {
               "expression": "budget_id",
@@ -1866,13 +2280,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_budget_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_category_id_idx": {
+          "name": "journalEntry_category_id_idx",
           "columns": [
             {
               "expression": "category_id",
@@ -1881,13 +2295,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_category_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_tag_id_idx": {
+          "name": "journalEntry_tag_id_idx",
           "columns": [
             {
               "expression": "tag_id",
@@ -1896,13 +2310,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_tag_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_import_id_idx": {
+          "name": "journalEntry_import_id_idx",
           "columns": [
             {
               "expression": "import_id",
@@ -1911,13 +2325,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_import_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_import_detail_id_idx": {
+          "name": "journalEntry_import_detail_id_idx",
           "columns": [
             {
               "expression": "import_detail_id",
@@ -1926,13 +2340,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_import_detail_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_year_month_idx": {
+          "name": "journalEntry_year_month_idx",
           "columns": [
             {
               "expression": "year_month",
@@ -1941,11 +2355,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_year_month_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -1975,10 +2388,10 @@
       "uniqueConstraints": {
         "key_value_table_key_unique": {
           "name": "key_value_table_key_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "key"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -2058,10 +2471,10 @@
       "uniqueConstraints": {
         "label_title_unique": {
           "name": "label_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -2103,6 +2516,7 @@
       },
       "indexes": {
         "label_idx": {
+          "name": "label_idx",
           "columns": [
             {
               "expression": "label_id",
@@ -2111,13 +2525,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journal_idx": {
+          "name": "journal_idx",
           "columns": [
             {
               "expression": "journal_id",
@@ -2126,11 +2540,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journal_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -2138,13 +2551,338 @@
       "uniqueConstraints": {
         "labels_to_journals_journal_id_label_id_unique": {
           "name": "labels_to_journals_journal_id_label_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "journal_id",
             "label_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
+    },
+    "public.notes": {
+      "name": "notes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'info'"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_id": {
+          "name": "bill_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget_id": {
+          "name": "budget_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "label_id": {
+          "name": "label_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "file_id": {
+          "name": "file_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "auto_import_id": {
+          "name": "auto_import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_element_id": {
+          "name": "report_element_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "note_note_idx": {
+          "name": "note_note_idx",
+          "columns": [
+            {
+              "expression": "note",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_type_idx": {
+          "name": "note_type_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_transaction_idx": {
+          "name": "note_transaction_idx",
+          "columns": [
+            {
+              "expression": "transaction_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_account_idx": {
+          "name": "note_account_idx",
+          "columns": [
+            {
+              "expression": "account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_bill_idx": {
+          "name": "note_bill_idx",
+          "columns": [
+            {
+              "expression": "bill_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_budget_idx": {
+          "name": "note_budget_idx",
+          "columns": [
+            {
+              "expression": "budget_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_category_idx": {
+          "name": "note_category_idx",
+          "columns": [
+            {
+              "expression": "category_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_tag_idx": {
+          "name": "note_tag_idx",
+          "columns": [
+            {
+              "expression": "tag_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_label_idx": {
+          "name": "note_label_idx",
+          "columns": [
+            {
+              "expression": "label_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_created_by_idx": {
+          "name": "note_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_file_idx": {
+          "name": "note_file_idx",
+          "columns": [
+            {
+              "expression": "file_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_auto_import_idx": {
+          "name": "note_auto_import_idx",
+          "columns": [
+            {
+              "expression": "auto_import_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_report_idx": {
+          "name": "note_report_idx",
+          "columns": [
+            {
+              "expression": "report_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "note_report_element_idx": {
+          "name": "note_report_element_idx",
+          "columns": [
+            {
+              "expression": "report_element_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
     },
     "public.report": {
       "name": "report",
@@ -2184,6 +2922,7 @@
         "size": {
           "name": "size",
           "type": "report_size",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'xl'"
@@ -2204,6 +2943,7 @@
       },
       "indexes": {
         "report_title_idx": {
+          "name": "report_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -2212,13 +2952,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_group_idx": {
+          "name": "report_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -2227,13 +2967,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_title_group_idx": {
+          "name": "report_title_group_idx",
           "columns": [
             {
               "expression": "title",
@@ -2248,13 +2988,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_title_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_locked_idx": {
+          "name": "report_locked_idx",
           "columns": [
             {
               "expression": "locked",
@@ -2263,13 +3003,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_locked_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_filter_idx": {
+          "name": "report_filter_idx",
           "columns": [
             {
               "expression": "filter_id",
@@ -2278,11 +3018,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_filter_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -2360,6 +3099,7 @@
       },
       "indexes": {
         "report_element_config_idx": {
+          "name": "report_element_config_idx",
           "columns": [
             {
               "expression": "report_element_config_id",
@@ -2368,13 +3108,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_idx": {
+          "name": "report_idx",
           "columns": [
             {
               "expression": "report_id",
@@ -2383,13 +3123,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_filter_idx": {
+          "name": "report_element_filter_idx",
           "columns": [
             {
               "expression": "filter_id",
@@ -2398,11 +3138,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_filter_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -2474,6 +3213,7 @@
       },
       "indexes": {
         "report_element_config_title_idx": {
+          "name": "report_element_config_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -2482,13 +3222,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_config_group_idx": {
+          "name": "report_element_config_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -2497,13 +3237,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_config_reusable_idx": {
+          "name": "report_element_config_reusable_idx",
           "columns": [
             {
               "expression": "reusable",
@@ -2512,13 +3252,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_reusable_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_config_title_group_idx": {
+          "name": "report_element_config_title_group_idx",
           "columns": [
             {
               "expression": "title",
@@ -2533,13 +3273,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_title_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_config_locked_idx": {
+          "name": "report_element_config_locked_idx",
           "columns": [
             {
               "expression": "locked",
@@ -2548,11 +3288,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_locked_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -2670,6 +3409,7 @@
       },
       "indexes": {
         "filter_title_idx": {
+          "name": "filter_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -2678,13 +3418,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_group_idx": {
+          "name": "filter_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -2693,13 +3433,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_can_apply_idx": {
+          "name": "filter_can_apply_idx",
           "columns": [
             {
               "expression": "can_apply",
@@ -2708,13 +3448,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_can_apply_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_needs_update_idx": {
+          "name": "filter_needs_update_idx",
           "columns": [
             {
               "expression": "needs_update",
@@ -2723,13 +3463,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_needs_update_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_apply_automatically_idx": {
+          "name": "filter_apply_automatically_idx",
           "columns": [
             {
               "expression": "apply_automatically",
@@ -2738,13 +3478,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_apply_automatically_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_apply_following_import_idx": {
+          "name": "filter_apply_following_import_idx",
           "columns": [
             {
               "expression": "apply_following_import",
@@ -2753,13 +3493,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_apply_following_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_listed_idx": {
+          "name": "filter_listed_idx",
           "columns": [
             {
               "expression": "listed",
@@ -2768,13 +3508,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_listed_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_modification_type_idx": {
+          "name": "filter_modification_type_idx",
           "columns": [
             {
               "expression": "modification_type",
@@ -2783,11 +3523,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_modification_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -2878,6 +3617,7 @@
       },
       "indexes": {
         "tag_title_idx": {
+          "name": "tag_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -2886,13 +3626,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "tag_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "tag_group_idx": {
+          "name": "tag_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -2901,13 +3641,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "tag_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "tag_single_idx": {
+          "name": "tag_single_idx",
           "columns": [
             {
               "expression": "single",
@@ -2916,11 +3656,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "tag_single_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -2928,10 +3667,10 @@
       "uniqueConstraints": {
         "tag_title_unique": {
           "name": "tag_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -2963,6 +3702,115 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
+    },
+    "public.query_contents": {
+      "name": "query_contents",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(60)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "query": {
+          "name": "query",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.query_log": {
+      "name": "query_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(60)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title_id": {
+          "name": "title_id",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "query": {
+          "name": "query",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "query_id": {
+          "name": "query_id",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "time": {
+          "name": "time",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duration": {
+          "name": "duration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "params": {
+          "name": "params",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "size": {
+          "name": "size",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.query_log_title": {
+      "name": "query_log_title",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(60)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
     }
   },
   "enums": {
@@ -2978,12 +3826,10 @@
     }
   },
   "schemas": {},
+  "sequences": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "0e104973-a461-4875-871c-23960ce0e8a9",
-  "prevId": "fd8d0c8e-dd5c-4d0e-a76b-6c5f3f8c232f",
-  "sequences": {}
+    "tables": {}
+  }
 }

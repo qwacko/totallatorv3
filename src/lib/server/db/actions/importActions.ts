@@ -15,7 +15,7 @@ import {
 	tag
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, not, count as drizzleCount, lt } from 'drizzle-orm';
+import { eq, and, not, count as drizzleCount, lt, isNull } from 'drizzle-orm';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { z, type ZodSchema } from 'zod';
@@ -859,6 +859,30 @@ export const importActions = {
 				'Import - Clean - Delete Not Imported'
 			);
 		}
+	},
+	updateImportDescriptions: async ({ db }: { db: DBType }) => {
+		const importDetails = await dbExecuteLogger(
+			db
+				.select()
+				.from(importItemDetail)
+				.where(isNull(importItemDetail.descriptionFromImport))
+				.limit(100),
+			'Import - Update Import Descriptions - Get Items To Be Updated'
+		);
+
+		await Promise.all(
+			importDetails.map(async (item) => {
+				const importDescription = (item.processedInfo?.dataToUse?.description || '') as string;
+
+				await dbExecuteLogger(
+					db
+						.update(importItemDetail)
+						.set({ descriptionFromImport: importDescription })
+						.where(eq(importItemDetail.id, item.id)),
+					'Import - Update Import Descriptions - Update Details'
+				);
+			})
+		);
 	}
 };
 
