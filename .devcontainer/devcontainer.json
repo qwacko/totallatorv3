@@ -1,0 +1,66 @@
+// .devcontainer/devcontainer.json
+{
+	"name": "Totallator v3", // Choose a descriptive name
+
+	// Configure container build using the Dockerfile
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": "..",
+		// Pass build arguments to the Dockerfile
+		"args": {
+			"USER_UID": "1001",
+			"USER_GID": "1001"
+			// Removed NODE_VERSION argument
+		}
+	},
+
+	// Set the workspace folder inside the container
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
+
+	// Specify the user the container should run as. Match the USERNAME in Dockerfile.
+	"remoteUser": "vscode", // Or 'coder' if you changed it in the Dockerfile
+
+	// Ports to forward automatically. Adjust as needed for your Go app and Bun processes.
+	"forwardPorts": [3000],
+
+	// Commands to run after the container is created but before VS Code connects.
+	// Good for installing dependencies.
+	"postCreateCommand": "pnpm install",
+
+	// Optional: Commands to run after attaching VS Code.
+	// "postAttachCommand": "modd",
+
+	// VS Code specific settings and extensions
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"terminal.integrated.profiles.linux": {
+					"bash": {
+						"path": "/bin/bash"
+					}
+				},
+				// Files settings
+				"files.eol": "\n",
+				// Editor settings
+				"editor.formatOnSave": true
+			},
+			// Recommended extensions
+			"extensions": [
+				"svelte.svelte-vscode", // Svelte support
+				"ms-vscode.vscode-typescript-next", // TypeScript support
+				"ms-azuretools.vscode-docker", // Docker integration
+				"EditorConfig.EditorConfig", // Maintain consistent coding styles
+				"redhat.vscode-yaml", // YAML editing support
+				"GitHub.copilot", // GitHub Copilot for AI assistance
+				"esbenp.prettier-vscode", // Prettier for code formatting
+				"streetsidesoftware.code-spell-checker", // Spell checking
+				"eamodio.gitlens", // GitLens for Git insights
+				"bradlc.vscode-tailwindcss" // Tailwind CSS support (if using Tailwind)
+			]
+		}
+	}
+	// --- Coder Specific Considerations ---
+	// Coder automatically handles things like dotfiles and secrets/env vars.
+}
