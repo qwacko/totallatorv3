@@ -17,5 +17,7 @@ export const GET = async (data) => {
 		query: searchParams
 	});
 
+	console.log('Recommendation Returned', recommendationData);
+
 	return text(superjson.stringify(recommendationData));
 };

@@ -322,15 +322,29 @@ export const journalMaterializedViewActions = {
 			const subquery = db
 				.select({
 					tagId: table.tagId,
+					tagTitle: table.tagTitle,
 					categoryId: table.categoryId,
+					categoryTitle: table.categoryTitle,
 					billId: table.billId,
+					billTitle: table.billTitle,
 					budgetId: table.budgetId,
+					budgetTitle: table.budgetTitle,
 					description: table.description,
 					count: count(table.id).as('count')
 				})
 				.from(table)
 				.where(eq(table.accountId, query.accountId))
-				.groupBy(table.tagId, table.categoryId, table.billId, table.budgetId, table.description)
+				.groupBy(
+					table.tagId,
+					table.tagTitle,
+					table.categoryId,
+					table.categoryTitle,
+					table.billId,
+					table.billTitle,
+					table.budgetId,
+					table.budgetTitle,
+					table.description
+				)
 				.as('subquery');
 
 			const results = await db.select().from(subquery).limit(5).orderBy(desc(subquery.count));
@@ -340,12 +354,17 @@ export const journalMaterializedViewActions = {
 			const subquery = db
 				.select({
 					tagId: table.tagId,
+					tagTitle: table.tagTitle,
 					categoryId: table.categoryId,
+					categoryTitle: table.categoryTitle,
 					billId: table.billId,
+					billTitle: table.billTitle,
 					budgetId: table.budgetId,
+					budgetTitle: table.budgetTitle,
 					description: customAliasedTableColumn(table.description, 'journal_description'),
 					count: count(table.id).as('count'),
 					accountId: table.accountId,
+					accountTitle: table.accountTitle,
 					importDescription: importItemDetail.descriptionFromImport
 				})
 				.from(table)
@@ -356,11 +375,16 @@ export const journalMaterializedViewActions = {
 				.where(eq(table.dataChecked, true))
 				.groupBy(
 					table.tagId,
+					table.tagTitle,
 					table.categoryId,
+					table.categoryTitle,
 					table.billId,
+					table.billTitle,
 					table.budgetId,
+					table.budgetTitle,
 					table.description,
 					table.accountId,
+					table.accountTitle,
 					importItemDetail.descriptionFromImport
 				)
 				.as('subquery');
@@ -380,6 +404,6 @@ export const journalMaterializedViewActions = {
 	}
 };
 
-export type JournalRecommendationsReturnType = ReturnType<
-	(typeof journalMaterializedViewActions)['getRecommendations']
+export type JournalRecommendationsReturnType = Awaited<
+	ReturnType<(typeof journalMaterializedViewActions)['getRecommendations']>
 >;

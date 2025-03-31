@@ -54,7 +54,7 @@
 			title="Complete Journals Present"
 		/>{/if}
 	<BulkEditRecommendations target={{ type: 'description', description: $formData.description }} />
-	<BulkEditRecommendations target={{ type: 'account', accountId: $formData.accountId }} />
+	<BulkEditRecommendations target={{ type: 'account', accountId: $formData.otherAccountId }} />
 	<form method="post" class="grid grid-cols-1 gap-2 md:grid-cols-2" action="?/update" use:enhance>
 		<PreviousUrlInput name="prevPage" />
 		<input type="hidden" name="filter" value={JSON.stringify(urlInfo.current.searchParams)} />
