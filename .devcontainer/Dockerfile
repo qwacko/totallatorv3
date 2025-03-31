@@ -3,14 +3,14 @@
 FROM node:20-bookworm
 
 
-ARG USER=vscode
+ARG USERNAME=vscode
 ARG USER_UID=1000
-ARG USER_GID=1000
+ARG USER_GID=$USER_UID
 
-ARG USER_HOME=/home/${USER}
+ARG USER_HOME=/home/${USERNAME}
 
 WORKDIR /app
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+RUN apt-get update  \
     && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
