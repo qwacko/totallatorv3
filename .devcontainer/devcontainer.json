@@ -1,22 +1,23 @@
 // .devcontainer/devcontainer.json
 {
 	"name": "Totallator v3", // Choose a descriptive name
-
+	"dockerComposeFile": "./docker-compose.yaml", // Path to your Docker Compose file
+	"service": "app",
 	// Configure container build using the Dockerfile
-	"build": {
-		"dockerfile": "Dockerfile",
-		"context": "..",
-		// Pass build arguments to the Dockerfile
-		"args": {
-			"USER_UID": "1001",
-			"USER_GID": "1001"
-			// Removed NODE_VERSION argument
-		}
-	},
+	// "build": {
+	// 	"dockerfile": "Dockerfile",
+	// 	"context": "..",
+	// 	// Pass build arguments to the Dockerfile
+	// 	"args": {
+	// 		"USER_UID": "1001",
+	// 		"USER_GID": "1001"
+	// 		// Removed NODE_VERSION argument
+	// 	}
+	// },
 
 	// Set the workspace folder inside the container
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
+	// "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
 
 	// Specify the user the container should run as. Match the USERNAME in Dockerfile.
 	"remoteUser": "vscode", // Or 'coder' if you changed it in the Dockerfile

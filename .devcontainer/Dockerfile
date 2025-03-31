@@ -35,6 +35,6 @@ RUN groupadd --gid $USER_GID $USERNAME \
 
 
 USER ${USER}
-WORKDIR ${USER_HOME}
+WORKDIR /workspaces
 
 EXPOSE 3000
