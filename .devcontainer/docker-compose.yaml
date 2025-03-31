@@ -15,5 +15,19 @@ services:
     # volumes:
     #   - ..:/workspaces:cached
     command: sleep infinity
-    # depends_on:
-    #   - postgres
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=totallatorv3
+      - PGDATA=/data/postgres
+    volumes:
+      - db_data:/data/postgres
+    restart: unless-stopped
+
+volumes:
+  db_data:

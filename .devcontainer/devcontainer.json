@@ -16,7 +16,7 @@
 	// },
 
 	// Set the workspace folder inside the container
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"workspaceFolder": "/workspaces",
 	// "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
 
 	// Specify the user the container should run as. Match the USERNAME in Dockerfile.
