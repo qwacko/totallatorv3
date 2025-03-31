@@ -7,7 +7,7 @@ ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-ARG USER_HOME=/home/${USER}
+ARG USER_HOME=/home/${USERNAME}
 
 WORKDIR /app
 RUN apt-get update  \
