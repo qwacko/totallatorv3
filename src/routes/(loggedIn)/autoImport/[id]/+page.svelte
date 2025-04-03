@@ -69,7 +69,7 @@
 				}
 			})}
 		>
-			<ButtonGroup outline>
+			<ButtonGroup>
 				<ActionButton
 					type="submit"
 					color="green"

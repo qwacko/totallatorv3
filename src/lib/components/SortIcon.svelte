@@ -4,7 +4,7 @@
 	import NoOrderIcon from '~icons/bi/dash';
 	import type { ComponentProps } from 'svelte';
 
-	type IconProps = ComponentProps<AscendingIcon>;
+	type IconProps = ComponentProps<typeof AscendingIcon>;
 
 	const {
 		direction,

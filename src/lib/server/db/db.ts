@@ -48,7 +48,10 @@ export const db = drizzle(postgresDatabase, {
 	logger: new MyLogger()
 });
 
-export type DBType = typeof db;
+export type CoreDBType = typeof db;
+export type TransactionType = Parameters<Parameters<CoreDBType['transaction']>[0]>[0];
+export type DBType = CoreDBType | TransactionType;
+// export type DBOrTransactionType = DBType | TransactionType;
 
 //Only Migrate If not TEST_ENV and if there is a POSTGRES_URL
 if (building) {

@@ -36,7 +36,15 @@
 		class?: string;
 	} & Omit<
 		TextInputProps,
-		'title' | 'name' | 'value' | 'errorMessage' | 'tainted' | 'highlightTainted' | 'wrapperClass'
+		| 'title'
+		| 'name'
+		| 'value'
+		| 'errorMessage'
+		| 'tainted'
+		| 'highlightTainted'
+		| 'wrapperClass'
+		| 'form'
+		| 'field'
 	> = $props();
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);

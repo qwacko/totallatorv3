@@ -4,7 +4,7 @@
 	import ActionButton from './ActionButton.svelte';
 	import type { ComponentProps, Snippet } from 'svelte';
 
-	type ButtonProps = ComponentProps<ActionButton>;
+	type ButtonProps = ComponentProps<typeof ActionButton>;
 
 	const {
 		action,

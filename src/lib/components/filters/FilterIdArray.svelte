@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { IDRecord, OptionFunction, DisplayFunction } from './../ComboSelectTypes';
 </script>
 

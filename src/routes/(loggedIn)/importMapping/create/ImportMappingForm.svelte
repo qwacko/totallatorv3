@@ -23,7 +23,7 @@
 		submitButtonText,
 		csvData = $bindable()
 	}: {
-		form: SuperForm<ImportMappingCreateFormSchema>;
+		form: SuperForm<ImportMappingCreateFormSchema, any>;
 		detailForm: SuperForm<ImportMappingDetailSchema>;
 		submitButtonText: string;
 		csvData?: Record<string, unknown>[];
