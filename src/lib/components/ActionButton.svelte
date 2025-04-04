@@ -9,10 +9,11 @@
 		message,
 		loadingMessage = undefined,
 		...restProps
-	}: { loading?: boolean; message: string; loadingMessage?: string | undefined } & Omit<
-		ButtonProps,
-		'disabled'
-	> = $props();
+	}: {
+		loading?: boolean;
+		message: string;
+		loadingMessage?: string | undefined;
+	} & ButtonProps = $props();
 
 	let useLoadingMessage = $derived(loadingMessage || message || 'Loading...');
 </script>

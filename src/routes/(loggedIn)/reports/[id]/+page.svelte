@@ -197,7 +197,7 @@
 
 				{#snippet slotTitleLeft()}
 					{#if edit}
-						<Input tag="h4" class="mr-2" bind:value={$reportData.reportElements[index].title} />
+						<Input class="mr-2" bind:value={$reportData.reportElements[index].title} />
 					{:else if title}
 						<Heading tag="h4" class="mr-2">{title}</Heading>
 					{/if}

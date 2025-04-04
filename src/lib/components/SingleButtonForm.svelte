@@ -19,7 +19,7 @@
 		message: string;
 		loadingMessage?: string;
 		children?: Snippet;
-	} & Omit<ButtonProps, 'type' | 'loading' | 'message' | 'loadingMessage'> = $props();
+	} & ButtonProps = $props();
 
 	let loading = $state(false);
 </script>
