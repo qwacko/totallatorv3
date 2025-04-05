@@ -21,7 +21,7 @@
 {#if layout === 'singleItem'}
 	<div class="flex h-full w-full items-stretch">
 		<ReportItemWrapperCombined
-			class="flex flex-grow"
+			class="flex grow"
 			item={items[0]}
 			{itemLinkGenerator}
 			{showLayout}
@@ -35,14 +35,14 @@
 		class:flex-col={layout === 'twoItemsVertical'}
 	>
 		<ReportItemWrapperCombined
-			class="flex flex-grow basis-0"
+			class="flex grow basis-0"
 			item={items[0]}
 			{itemLinkGenerator}
 			{showLayout}
 			{highlightId}
 		/>
 		<ReportItemWrapperCombined
-			class="flex flex-grow basis-0"
+			class="flex grow basis-0"
 			item={items[1]}
 			{itemLinkGenerator}
 			{showLayout}
@@ -77,7 +77,7 @@
 			/>
 		</div>
 		<ReportItemWrapperCombined
-			class="flex flex-grow"
+			class="flex grow"
 			item={items[2]}
 			{itemLinkGenerator}
 			{showLayout}

@@ -221,7 +221,7 @@
 				}).url}
 			bind:shown={filterSelectionModalOpened}
 		/>
-		<div class="flex flex-grow"></div>
+		<div class="flex grow"></div>
 		<Button outline><MenuIcon /></Button>
 		<Dropdown>
 			<DropdownItem

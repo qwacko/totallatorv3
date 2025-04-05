@@ -65,7 +65,7 @@
 				<input type="hidden" name={currentItem.key} value={currentItem.value} />
 			{/each}
 			<input type="hidden" name="reason" value="info" />
-			<Fileupload name="file" class="flex flex-grow rounded-lg" disabled={creating} />
+			<Fileupload name="file" class="flex grow rounded-lg" disabled={creating} />
 
 			<ActionButton
 				class="rounded-lg"

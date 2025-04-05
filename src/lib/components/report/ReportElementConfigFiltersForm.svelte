@@ -32,7 +32,7 @@
 				>
 					{#snippet slotFooterContents({ activeFilter })}
 						<Button on:click={() => (filterOpen[index] = false)} outline>Cancel</Button>
-						<div class="flex-grow"></div>
+						<div class="grow"></div>
 						<form
 							action="{urlGenerator({
 								address: '/(loggedIn)/reports/element/[id]',

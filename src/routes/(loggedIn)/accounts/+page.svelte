@@ -253,7 +253,7 @@
 						type="text"
 						bind:value={$urlStore.searchParams.textFilter}
 						placeholder="Filter by Title"
-						class="flex flex-grow"
+						class="flex grow"
 					/>
 					<div class="flex self-center">
 						<AccountTypeFilterLinks

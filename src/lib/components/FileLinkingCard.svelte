@@ -28,7 +28,7 @@
 		{item.title ? item.title : item.originalFilename}
 	</div>
 	<FileThumbnail {item} />
-	<div class="flex flex-grow"></div>
+	<div class="flex grow"></div>
 	<form
 		method="post"
 		action="?/updateFile"
@@ -45,7 +45,7 @@
 			type="submit"
 			color="blue"
 			outline
-			class="flex flex-grow flex-row gap-2 self-stretch rounded-lg border"
+			class="flex grow flex-row gap-2 self-stretch rounded-lg border"
 			disabled={linking || keyLength === 0}
 		>
 			{#if linking}<Spinner class="h-3 w-3" />{/if}<LinkIcon />

@@ -37,14 +37,14 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	<div class="flex text-sm font-semibold text-primary-900">Account Type</div>
+	<div class="text-primary-900 flex text-sm font-semibold">Account Type</div>
 	<ButtonGroup>
 		{#each buttonList as currentButton}
 			<Button
 				outline={currentButton.exists !== true}
 				color="primary"
 				on:click={currentButton.toggle}
-				class="flex flex-grow basis-0"
+				class="flex grow basis-0"
 			>
 				{currentButton.title}
 			</Button>
@@ -53,7 +53,7 @@
 			outline={Boolean(accountTypes)}
 			color="primary"
 			on:click={() => (accountTypes = undefined)}
-			class="flex flex-grow basis-0"
+			class="flex grow basis-0"
 		>
 			Clear
 		</Button>

@@ -95,7 +95,7 @@
 					<JournalEntryIcon />
 				</Button>
 			{/if}
-			<div class="flex flex-grow flex-col items-end gap-0.5">
+			<div class="flex grow flex-col items-end gap-0.5">
 				<div class="flex text-lg">
 					<DisplayCurrency amount={item.sum} />
 				</div>
@@ -219,6 +219,6 @@
 				<JournalEntryIcon />
 			</Button>
 		{/if}
-		<div class="flex flex-grow"></div>
+		<div class="flex grow"></div>
 	</div>
 {/if}

@@ -37,11 +37,7 @@
 	{#if !hideDates}
 		<div class="flex text-sm font-semibold text-black">Year Month</div>
 		<div class="flex flex-row gap-1">
-			<Input
-				bind:value={yearMonth}
-				class="flex flex-grow"
-				placeholder="year-month (i.e. 2020-12)..."
-			/>
+			<Input bind:value={yearMonth} class="flex grow" placeholder="year-month (i.e. 2020-12)..." />
 			<Button
 				on:click={() =>
 					activeFilter.yearMonth
@@ -72,7 +68,7 @@
 		<div class="flex flex-row gap-1">
 			<Input
 				bind:value={excludeYearMonth}
-				class="flex flex-grow"
+				class="flex grow"
 				placeholder="year-month (i.e. 2020-12)..."
 			/>
 			<Button
@@ -133,7 +129,7 @@
 			</Button>
 		{:else}
 			<div class="flex flex-row gap-2">
-				<div class="flex flex-grow">
+				<div class="flex grow">
 					<SelectInput
 						bind:value={activeFilter.dateSpan}
 						title="Fixed Date Span"

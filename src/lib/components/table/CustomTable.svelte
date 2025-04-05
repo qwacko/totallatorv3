@@ -183,7 +183,7 @@
 			<FilterTextDisplay text={filterText} />
 		</div>
 	{/if}
-	<div class="hidden flex-grow items-center md:flex"></div>
+	<div class="hidden grow items-center md:flex"></div>
 	<div class="flex flex-row gap-2">
 		{#if slotFilterModal}
 			<Button size="sm" class="flex p-2" color="light" on:click={() => (filterOpened = true)}>
@@ -294,22 +294,22 @@
 				{@const thisRowColour = rowColour(row)}
 				{@const isGrey = thisRowColour === 'grey'}
 				<div
-					class="flex flex-col border-l border-r border-t border-gray-500 p-2 first:rounded-t-lg last:rounded-b-lg last:border-b"
+					class="flex flex-col border-t border-r border-l border-gray-500 p-2 first:rounded-t-lg last:rounded-b-lg last:border-b"
 					class:bg-primary-50={isGrey}
 				>
 					{#if bulkSelection}
-						<div class="flex flex-row gap-2 self-start p-2 text-primary-400">
+						<div class="text-primary-400 flex flex-row gap-2 self-start p-2">
 							<ToggleFromArray id={rowToId ? rowToId(row) : undefined} bind:selectedIds />
 							Selected
 						</div>
 					{/if}
-					<div class="flex flex-grow flex-col items-center gap-1 self-stretch">
+					<div class="flex grow flex-col items-center gap-1 self-stretch">
 						{#each shownColumns as column}
 							{@const currentColumn = columns.find((item) => item.id === column)}
 							<div class="flex flex-row items-center gap-2">
 								{#if currentColumn}
 									{#if currentColumn.showTitleOnMobile}
-										<div class="flex text-primary-400">
+										<div class="text-primary-400 flex">
 											{currentColumn.title} :
 										</div>
 									{/if}

@@ -35,7 +35,7 @@
 		class:max-w-xs={size === 'xs'}
 	>
 		<div class="flex flex-row gap-2">
-			<div class="flex flex-grow basis-0">
+			<div class="flex grow basis-0">
 				{#if slotLeft}{@render slotLeft()}{:else if !hideBackButton}
 					<PrevPageButton color="light" outline routeBased={routeBasedBack}>
 						<ArrowLeftIcon />
@@ -45,7 +45,7 @@
 			{#if title}
 				<h3 class="flex justify-center text-2xl font-bold md:text-4xl">{title}</h3>
 			{/if}
-			<div class="flex flex-grow basis-0 flex-row justify-end gap-2">
+			<div class="flex grow basis-0 flex-row justify-end gap-2">
 				{#if slotRight}{@render slotRight()}{/if}
 			</div>
 		</div>

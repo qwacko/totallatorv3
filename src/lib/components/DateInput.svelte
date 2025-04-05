@@ -43,7 +43,7 @@
 	};
 </script>
 
-<Label class="space-y-2 {flexGrow && 'flex flex-grow basis-0 flex-col gap-0.5'}">
+<Label class="space-y-2 {flexGrow && 'flex grow basis-0 flex-col gap-0.5'}">
 	{#if title}
 		<span class="flex flex-row gap-1">
 			<div>

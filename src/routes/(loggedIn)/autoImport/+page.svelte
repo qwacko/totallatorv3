@@ -213,7 +213,7 @@
 							type="text"
 							bind:value={$urlStore.searchParams.title}
 							placeholder="Filter by Title"
-							class="flex flex-grow"
+							class="flex grow"
 						/>
 					{/if}
 				</div>

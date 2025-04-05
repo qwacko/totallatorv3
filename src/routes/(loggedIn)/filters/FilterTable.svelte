@@ -240,7 +240,7 @@
 						type="text"
 						bind:value={searchParams.multipleText}
 						placeholder="Filter by Group / Title / Filter / Change"
-						class="flex flex-grow"
+						class="flex grow"
 					/>
 				{/if}
 			</div>

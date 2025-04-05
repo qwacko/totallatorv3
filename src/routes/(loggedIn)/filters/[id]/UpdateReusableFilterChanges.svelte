@@ -45,7 +45,7 @@
 						</div>
 						<svelte:fragment slot="footer">
 							<Button on:click={() => (changeModal = false)} outline>Cancel</Button>
-							<div class="flex-grow"></div>
+							<div class="grow"></div>
 							<PreviousUrlInput name="prevPage" routeBased />
 							<input type="hidden" name="id" value={id} />
 							<Button type="submit">Update</Button>

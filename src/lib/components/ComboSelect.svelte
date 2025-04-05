@@ -187,7 +187,7 @@
 			<Input bind:value={createValue} />
 			<Button outline on:click={cancelCreate}>Cancel</Button>
 		{:else}
-			<div class="relative flex flex-grow">
+			<div class="relative flex grow">
 				<input
 					{...$input}
 					use:input
@@ -212,7 +212,7 @@
 				{#if creatable && createValue === undefined}
 					<Button
 						on:click={setCreate}
-						class="flex flex-grow basis-0 @md:flex-grow-0 @md:whitespace-nowrap"
+						class="flex grow basis-0 @md:grow-0 @md:whitespace-nowrap"
 						color="light"
 					>
 						{createDesc}
@@ -221,7 +221,7 @@
 				{#if clearable}
 					<Button
 						on:click={clearSelection}
-						class="flex flex-grow basis-0 @md:flex-grow-0 @md:whitespace-nowrap"
+						class="flex grow basis-0 @md:grow-0 @md:whitespace-nowrap"
 						color="light"
 						disabled={clearValue}
 					>

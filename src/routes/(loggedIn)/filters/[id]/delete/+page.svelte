@@ -17,8 +17,8 @@
 		<div class="flex">Are you sure you want to delete reusable filter : {data.filter.title}?</div>
 
 		<div class="flex flex-row gap-4 pt-4">
-			<PrevPageButton class="flex flex-grow" outline>Cancel</PrevPageButton>
-			<Button type="submit" color="red" class="flex flex-grow">Delete</Button>
+			<PrevPageButton class="flex grow" outline>Cancel</PrevPageButton>
+			<Button type="submit" color="red" class="flex grow">Delete</Button>
 		</div>
 	</form>
 </PageLayout>

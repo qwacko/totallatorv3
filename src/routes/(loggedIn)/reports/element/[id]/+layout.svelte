@@ -77,7 +77,7 @@
 			name="title"
 			bind:value={$form.title}
 			{...$constraints.title}
-			wrapperClass="flex flex-grow"
+			wrapperClass="flex grow"
 		/>
 		<Button
 			on:click={() => {
@@ -95,7 +95,7 @@
 			<FilterModal currentFilter={data.elementData.filter.filter} bind:opened={filterOpen}>
 				{#snippet slotFooterContents({ activeFilter })}
 					<Button on:click={() => (filterOpen = false)} outline>Cancel</Button>
-					<div class="flex-grow"></div>
+					<div class="grow"></div>
 					<form
 						action="{urlGenerator({
 							address: '/(loggedIn)/reports/element/[id]',

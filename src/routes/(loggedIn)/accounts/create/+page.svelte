@@ -45,7 +45,7 @@
 			errorMessage={$formErrors.type}
 			name="type"
 			title="Type"
-			wrapperClass="flex-grow"
+			wrapperClass="grow"
 		/>
 		{#if $formData.type === 'asset' || $formData.type === 'liability' || $formData.type === undefined}
 			<TextInput

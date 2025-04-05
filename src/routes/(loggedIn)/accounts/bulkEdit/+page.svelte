@@ -5,7 +5,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import FilterTextDisplay from '$lib/components/FilterTextDisplay.svelte';
-	import { Button,  Toggle } from 'flowbite-svelte';
+	import { Button, Toggle } from 'flowbite-svelte';
 	import PreviousUrlInput from '$lib/components/PreviousURLInput.svelte';
 	import TextInputForm from '$lib/components/TextInputForm.svelte';
 	import DateInputForm from '$lib/components/DateInputForm.svelte';
@@ -60,7 +60,7 @@
 				errorMessage={$formErrors.type}
 				name="type"
 				title="Type"
-				wrapperClass="flex-grow"
+				wrapperClass="grow"
 			/>
 			<Button
 				type="button"

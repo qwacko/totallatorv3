@@ -80,7 +80,6 @@
 		"@square/svelte-store": "^1.0.18",
 		"@sveltejs/adapter-node": "^5.2.12",
 		"@tailwindcss/container-queries": "^0.1.1",
-		"@tailwindcss/postcss": "^4.1.1",
 		"@tailwindcss/vite": "^4.1.1",
 		"akahu": "^2.0.0",
 		"cronstrue": "^2.57.0",

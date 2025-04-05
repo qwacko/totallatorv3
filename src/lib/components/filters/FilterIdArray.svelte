@@ -49,7 +49,7 @@
 				title=""
 				{itemToOption}
 				{itemToDisplay}
-				class="flex flex-grow"
+				class="flex grow"
 			/>
 			<Button
 				on:click={() => {

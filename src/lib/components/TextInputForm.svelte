@@ -80,7 +80,7 @@
 		{highlightTainted}
 		aria-invalid={$errors ? 'true' : undefined}
 		class={className}
-		wrapperClass="flex-grow {wrapperClass}"
+		wrapperClass="grow {wrapperClass}"
 		on:blur
 		on:keypress
 		{...$constraints}

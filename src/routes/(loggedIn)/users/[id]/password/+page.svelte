@@ -40,9 +40,9 @@
 
 		<ErrorText message={$message} />
 		<div class="flex flex-row gap-2">
-			<div class="flex flex-grow"></div>
+			<div class="flex grow"></div>
 			<Button type="submit" style="primary">Update</Button>
-			<div class="flex flex-grow"></div>
+			<div class="flex grow"></div>
 			<Button
 				href={urlGenerator({
 					address: '/(loggedIn)/users/[id]',
@@ -52,7 +52,7 @@
 			>
 				Cancel
 			</Button>
-			<div class="flex flex-grow"></div>
+			<div class="flex grow"></div>
 		</div>
 	</form>
 </PageLayout>

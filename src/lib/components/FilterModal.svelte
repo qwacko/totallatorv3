@@ -41,7 +41,7 @@
 			{@render slotFooterContents({ activeFilter })}
 		{:else}
 			<Button on:click={() => (opened = false)} outline>Cancel</Button>
-			<div class="flex-grow"></div>
+			<div class="grow"></div>
 			<Button href={url}>Apply</Button>
 		{/if}
 	</svelte:fragment>

@@ -138,7 +138,7 @@
 				itemToOption={(item) => ({ label: item.title, value: item.id, disabled: !item.enabled })}
 			/>
 		{/if}
-		<Fileupload name="file" class="flex flex-grow rounded-lg" disabled={loading} />
+		<Fileupload name="file" class="flex grow rounded-lg" disabled={loading} />
 		<Button type="submit" disabled={loading}>Upload</Button>
 		<ErrorText message={$message} />
 	</form>

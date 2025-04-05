@@ -190,7 +190,7 @@
 							type="text"
 							bind:value={$urlStore.searchParams.textFilter}
 							placeholder="Filter..."
-							class="flex flex-grow"
+							class="flex grow"
 						/>
 					{/if}
 				</div>

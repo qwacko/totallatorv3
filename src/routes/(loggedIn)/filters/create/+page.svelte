@@ -34,7 +34,7 @@
 			<input type="hidden" name="filter" value={$formData.filter} />
 			{#if $formData.change}<input type="hidden" name="change" value={$formData.change} />{/if}
 			<div class="col-span-1 flex flex-row gap-2 md:col-span-2">
-				<div class="flex-grow">
+				<div class="grow">
 					<TextInput
 						name="title"
 						bind:value={$formData.title}
@@ -56,7 +56,7 @@
 				</Button>
 			</div>
 			<div class="col-span-1 flex flex-row gap-2 md:col-span-2">
-				<div class="flex-grow">
+				<div class="grow">
 					<TextInput
 						name="group"
 						bind:value={$formData.group}
