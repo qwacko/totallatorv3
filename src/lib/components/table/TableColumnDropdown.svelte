@@ -62,7 +62,7 @@
 	{#each shownColumns as currentColumn}
 		<DropdownItem>
 			<div class="flex flex-row gap-2">
-				<div class="flex flex-grow pr-8">{columnIdToTitle(currentColumn)}</div>
+				<div class="flex grow pr-8">{columnIdToTitle(currentColumn)}</div>
 				<Button class="border-0 p-1" outline on:click={() => moveColumnUp(currentColumn)}>
 					<ArrowKeyUp />
 				</Button>

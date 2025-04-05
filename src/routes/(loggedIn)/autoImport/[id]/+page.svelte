@@ -69,12 +69,11 @@
 				}
 			})}
 		>
-			<ButtonGroup outline>
+			<ButtonGroup>
 				<ActionButton
 					type="submit"
 					color="green"
 					name="enable"
-					value={true}
 					outline={!data.autoImportDetail.enabled}
 					message="Enabled"
 					loadingMessage=" "
@@ -84,7 +83,6 @@
 					type="submit"
 					color="red"
 					name="disable"
-					value={true}
 					outline={data.autoImportDetail.enabled}
 					message="Disabled"
 					loadingMessage=" "

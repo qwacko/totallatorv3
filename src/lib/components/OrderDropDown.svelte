@@ -33,7 +33,7 @@
 			id="dropdown-item{sort.field}"
 		>
 			<SortIcon direction={sort.direction} />
-			<div class="flex flex-grow whitespace-nowrap">{optionToTitle(sort.field)}</div>
+			<div class="flex grow whitespace-nowrap">{optionToTitle(sort.field)}</div>
 			<Button
 				color="none"
 				href={onSortURL(modifyOrderBy(currentSort, sort.field, 'remove'))}

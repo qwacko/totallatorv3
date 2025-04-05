@@ -146,7 +146,7 @@
 							type="text"
 							bind:value={$urlStore.searchParams.combinedText}
 							placeholder="Filter by Title / Configuration"
-							class="flex flex-grow"
+							class="flex grow"
 						/>
 					{/if}
 				</div>

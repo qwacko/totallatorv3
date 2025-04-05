@@ -142,8 +142,8 @@
 		{#each $reportData.reportElements as { cols, rows, title, id, order }, index}
 			<ReportGridItem {cols} {rows} highlightOnHover={false}>
 				<div class="flex h-full w-full flex-col gap-2">
-					<div class="item-stretch flex flex-grow flex-row gap-2">
-						<div class="flex flex-grow place-content-center content-center self-stretch">
+					<div class="item-stretch flex grow flex-row gap-2">
+						<div class="flex grow place-content-center content-center self-stretch">
 							<ReportElementDisplay {id} data={data.report} />
 						</div>
 						{#if edit}
@@ -197,7 +197,7 @@
 
 				{#snippet slotTitleLeft()}
 					{#if edit}
-						<Input tag="h4" class="mr-2" bind:value={$reportData.reportElements[index].title} />
+						<Input class="mr-2" bind:value={$reportData.reportElements[index].title} />
 					{:else if title}
 						<Heading tag="h4" class="mr-2">{title}</Heading>
 					{/if}

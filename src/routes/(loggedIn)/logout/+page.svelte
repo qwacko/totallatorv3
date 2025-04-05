@@ -10,6 +10,6 @@
 <CustomHeader pageTitle="Logout {data.user?.name}" />
 <PageLayout title="Logout {data.user?.name}">
 	<form method="post" class="flex flex-row justify-center" use:enhance>
-		<Button type="submit" color="primary" size="lg" block>Logout</Button>
+		<Button type="submit" color="primary" size="lg">Logout</Button>
 	</form>
 </PageLayout>

@@ -19,3 +19,4 @@ docker-compose.yml
 core
 docs/.vitepress/dist
 docs/.vitepress/cache
+.pnpm-store

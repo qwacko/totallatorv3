@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { IDRecord, OptionFunction, DisplayFunction } from './ComboSelectTypes';
 </script>
 
@@ -187,20 +187,20 @@
 			<Input bind:value={createValue} />
 			<Button outline on:click={cancelCreate}>Cancel</Button>
 		{:else}
-			<div class="relative flex flex-grow">
+			<div class="relative flex grow">
 				<input
 					{...$input}
 					use:input
-					class="block w-full rounded-lg border border-gray-300 bg-gray-50
-            p-2.5 text-sm text-gray-900
-            focus:border-primary-500 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600
-            dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500 {tainted &&
+					class="focus:border-primary-500 focus:ring-primary-500 dark:focus:border-primary-500 dark:focus:ring-primary-500 block w-full
+            rounded-lg border border-gray-300
+            bg-gray-50 p-2.5 text-sm text-gray-900 disabled:cursor-not-allowed
+            disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 {tainted &&
 					highlightTainted
 						? 'ring-2'
 						: ''}"
 					{placeholder}
 				/>
-				<div class="text-magnum-900 absolute right-2 top-1/2 z-10 -translate-y-1/2">
+				<div class="text-magnum-900 absolute top-1/2 right-2 z-10 -translate-y-1/2">
 					{#if $open}
 						<ChevronUp class="square-4" />
 					{:else}
@@ -212,7 +212,7 @@
 				{#if creatable && createValue === undefined}
 					<Button
 						on:click={setCreate}
-						class="flex flex-grow basis-0 @md:flex-grow-0 @md:whitespace-nowrap"
+						class="flex grow basis-0 @md:grow-0 @md:whitespace-nowrap"
 						color="light"
 					>
 						{createDesc}
@@ -221,7 +221,7 @@
 				{#if clearable}
 					<Button
 						on:click={clearSelection}
-						class="flex flex-grow basis-0 @md:flex-grow-0 @md:whitespace-nowrap"
+						class="flex grow basis-0 @md:grow-0 @md:whitespace-nowrap"
 						color="light"
 						disabled={clearValue}
 					>
@@ -251,11 +251,11 @@
 					{...$option(currentItemOption)}
 					use:option
 					class="data-[highlighted]:bg-magnum-200 data-[highlighted]:text-magnum-900 relative cursor-pointer scroll-my-2 rounded-md py-2
-        pl-4 pr-4
+        pr-4 pl-4
           data-[disabled]:opacity-50 {currentHighlighted ? 'bg-gray-200' : ''}"
 				>
 					{#if currentSelected}
-						<div class="check text-magnum-900 absolute left-2 top-1/2 z-10">
+						<div class="check text-magnum-900 absolute top-1/2 left-2 z-10">
 							<Check class="square-4" />
 						</div>
 					{/if}

@@ -24,12 +24,12 @@
 		<div class="flex">Are you sure you want to delete report {data.reportInfo.title}?</div>
 
 		<div class="flex flex-row gap-4 pt-4">
-			<PrevPageButton class="flex flex-grow" outline>Cancel</PrevPageButton>
+			<PrevPageButton class="flex grow" outline>Cancel</PrevPageButton>
 			<ActionButton
 				{loading}
 				message="Delete"
 				loadingMessage="Deleting..."
-				class="flex flex-grow"
+				class="flex grow"
 				color="red"
 				type="submit"
 			/>

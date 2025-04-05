@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
-	import { ButtonGroup, type Colors } from 'flowbite-svelte';
+	import { ButtonGroup, type ButtonColorType } from 'flowbite-svelte';
 
 	let {
 		loading = $bindable(false),
@@ -17,7 +17,7 @@
 		currentValue: boolean;
 		onTitle?: string;
 		offTitle?: string;
-		color?: Colors;
+		color?: ButtonColorType;
 	} = $props();
 </script>
 

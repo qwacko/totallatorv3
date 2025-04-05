@@ -219,7 +219,7 @@
 							type="text"
 							bind:value={$urlStore.searchParams.textFilter}
 							placeholder="Filter by Title / Mapping"
-							class="flex flex-grow"
+							class="flex grow"
 						/>
 					{/if}
 				</div>

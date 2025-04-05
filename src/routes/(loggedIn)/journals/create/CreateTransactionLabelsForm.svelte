@@ -62,7 +62,7 @@
 				disabled: !item.enabled
 			})}
 			itemToDisplay={(item) => ({ title: item.title })}
-			class=" flex flex-grow"
+			class=" flex grow"
 		/>
 		<Button on:click={addSetLabel} disabled={!enableSet} class="h-min self-end">Add</Button>
 		<Button

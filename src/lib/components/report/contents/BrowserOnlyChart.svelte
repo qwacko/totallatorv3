@@ -14,7 +14,7 @@
 </script>
 
 {#if ChartComponent && browser}
-	<svelte:component this={ChartComponent} {options} />
+	<ChartComponent {options} />
 {:else}
 	<p>Loading...</p>
 {/if}

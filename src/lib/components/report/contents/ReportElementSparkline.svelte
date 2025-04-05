@@ -134,7 +134,9 @@
 		<Tooltip>{errorMessage}</Tooltip>
 	{:else if width > 0 && height > 0}
 		{#if options}
-			<Chart {options} class="absolute {className}" key={`${width}-${height}`} />
+			{#key `${width}-${height}`}
+				<Chart {options} class="absolute {className}" />
+			{/key}
 		{:else}
 			<div class="flex h-full w-full place-content-center place-items-center">
 				<Spinner />

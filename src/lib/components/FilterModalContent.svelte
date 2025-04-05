@@ -50,12 +50,7 @@
 </script>
 
 <div class="flex flex-col gap-6">
-	<Input
-		bind:value={activeFilter.textFilter}
-		name="textFilter"
-		title="Text Filter"
-		errorMessage=""
-	/>
+	<Input bind:value={activeFilter.textFilter} name="textFilter" title="Text Filter" />
 	<Accordion>
 		<AccordionItem>
 			<svelte:fragment slot="header">Journal Entry</svelte:fragment>

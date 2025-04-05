@@ -97,7 +97,6 @@
 		<ActionButton
 			type="submit"
 			loading={importing || redirecting}
-			text="Upload"
 			message="Upload"
 			loadingMessage={importing ? 'Uploading...' : 'Redirecting...'}
 		/>

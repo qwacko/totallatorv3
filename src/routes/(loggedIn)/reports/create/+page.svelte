@@ -73,7 +73,7 @@
 						on:click={() => {
 							$form.layout = getPreviousReportLayoutOption($form.layout);
 						}}
-						class="flex flex-grow basis-0 gap-2"
+						class="flex grow basis-0 gap-2"
 						color="primary"
 						outline
 					>
@@ -83,7 +83,7 @@
 						on:click={() => {
 							$form.layout = getNextReportLayoutOption($form.layout);
 						}}
-						class="flex flex-grow basis-0 gap-2"
+						class="flex grow basis-0 gap-2"
 						color="primary"
 						outline
 					>
@@ -97,7 +97,7 @@
 			{loading}
 			message="Create"
 			loadingMessage="Creating..."
-			class="flex flex-grow"
+			class="flex grow"
 			type="submit"
 		/>
 		<ErrorText message={$message} />

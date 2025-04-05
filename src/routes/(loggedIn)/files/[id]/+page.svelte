@@ -39,8 +39,8 @@
 	>
 		<input type="hidden" name="id" value={data.file.id} />
 		<TextInput
-			class="flex flex-grow"
-			wrapperClass="flex flex-grow"
+			class="flex grow"
+			wrapperClass="flex grow"
 			title="Title"
 			name="title"
 			bind:value={$form.title}

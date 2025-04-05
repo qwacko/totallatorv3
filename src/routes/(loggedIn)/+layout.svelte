@@ -201,7 +201,7 @@
 <UpdateDropdowns dataUpdated={data.dataUpdated} />
 
 <div class="flex flex-col justify-stretch p-2">
-	<div class="flex flex-row gap-2 pb-8 pt-4 md:hidden">
+	<div class="flex flex-row gap-2 pt-4 pb-8 md:hidden">
 		<FilterSelectionModal
 			showDefaultJournalFilters
 			filters={data.filterDropdown}
@@ -221,7 +221,7 @@
 				}).url}
 			bind:shown={filterSelectionModalOpened}
 		/>
-		<div class="flex flex-grow"></div>
+		<div class="flex grow"></div>
 		<Button outline><MenuIcon /></Button>
 		<Dropdown>
 			<DropdownItem
@@ -242,7 +242,7 @@
 				{#each pageMap as currentPage}
 					<DropdownItem href={currentPage.href.url}>
 						<div class="flex flex-row items-center gap-2">
-							<svelte:component this={currentPage.icon} />{currentPage.label}
+							<currentPage.icon />{currentPage.label}
 						</div>
 					</DropdownItem>
 				{/each}
@@ -252,7 +252,7 @@
 		</Dropdown>
 	</div>
 
-	<div class="hidden flex-row flex-wrap justify-center gap-2 pb-8 pt-4 md:flex">
+	<div class="hidden flex-row flex-wrap justify-center gap-2 pt-4 pb-8 md:flex">
 		<Button href={urlGenerator({ address: '/(loggedIn)/files/create' }).url} outline size="xs">
 			<FileIcon />
 		</Button>
@@ -281,6 +281,7 @@
 		<Button outline>Config</Button>
 		<Dropdown>
 			{#each pageMap as currentPage, i}
+				{@const DisplayIcon = currentPage.icon}
 				<DropdownItem
 					href={currentPage.href.url}
 					class="{currentPage.active ? 'bg-primary-600 text-primary-200' : ''} {i === 0
@@ -288,7 +289,7 @@
 						: ''}"
 				>
 					<div class="flex flex-row items-center gap-2">
-						<svelte:component this={currentPage.icon} />{currentPage.label}
+						<DisplayIcon />{currentPage.label}
 					</div>
 				</DropdownItem>
 			{/each}

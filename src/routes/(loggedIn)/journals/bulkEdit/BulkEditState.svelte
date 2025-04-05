@@ -35,7 +35,7 @@
 					type="submit"
 					name="action"
 					value="incomplete"
-					class="flex-grow basis-0 flex-row gap-2"
+					class="grow basis-0 flex-row gap-2"
 					disabled={complete === false}
 				>
 					<CompleteIcon />Incomplete
@@ -44,7 +44,7 @@
 					type="submit"
 					name="action"
 					value="complete"
-					class="flex-grow basis-0 flex-row gap-2"
+					class="grow basis-0 flex-row gap-2"
 					disabled={complete === true}
 				>
 					<CompleteIcon />Complete
@@ -55,7 +55,7 @@
 					type="submit"
 					name="action"
 					value="unreconciled"
-					class="flex-grow basis-0 flex-row gap-2"
+					class="grow basis-0 flex-row gap-2"
 					disabled={reconciled === false || !canEdit}
 				>
 					<ReconciledIcon />Unreconciled
@@ -64,7 +64,7 @@
 					type="submit"
 					name="action"
 					value="reconciled"
-					class="flex-grow basis-0 flex-row gap-2"
+					class="grow basis-0 flex-row gap-2"
 					disabled={reconciled === true || !canEdit}
 				>
 					<ReconciledIcon />Reconciled
@@ -75,7 +75,7 @@
 					type="submit"
 					name="action"
 					value="dataNotChecked"
-					class="flex-grow basis-0 flex-row gap-2"
+					class="grow basis-0 flex-row gap-2"
 					disabled={dataChecked === false || !canEdit}
 				>
 					<DataCheckedIcon />Data Not Checked
@@ -84,7 +84,7 @@
 					type="submit"
 					name="action"
 					value="dataChecked"
-					class="flex-grow basis-0 flex-row gap-2"
+					class="grow basis-0 flex-row gap-2"
 					disabled={dataChecked === true || !canEdit}
 				>
 					<DataCheckedIcon />Data Checked

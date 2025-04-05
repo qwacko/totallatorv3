@@ -5,7 +5,7 @@
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
 	import type { ComponentProps } from 'svelte';
 
-	type DateInputProps = ComponentProps<DateInput>;
+	type DateInputProps = ComponentProps<typeof DateInput>;
 
 	const {
 		form,
@@ -24,7 +24,16 @@
 		class?: string;
 	} & Omit<
 		DateInputProps,
-		'title' | 'name' | 'value' | 'errorMessage' | 'tainted' | 'highlighTainted'
+		| 'title'
+		| 'name'
+		| 'value'
+		| 'errorMessage'
+		| 'tainted'
+		| 'highlighTainted'
+		| 'form'
+		| 'field'
+		| 'wrapperClass'
+		| 'class'
 	> = $props();
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
@@ -42,8 +51,6 @@
 	aria-invalid={$errors ? 'true' : undefined}
 	class={className}
 	{wrapperClass}
-	on:blur
-	on:keypress
 	{...$constraints}
 	{...restProps}
 />

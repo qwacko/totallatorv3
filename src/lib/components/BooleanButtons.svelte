@@ -25,7 +25,7 @@
 		outline={value !== true}
 		color="primary"
 		on:click={() => setNew(true)}
-		class="flex flex-grow basis-0"
+		class="flex grow basis-0"
 		{disabled}
 	>
 		{onTitle}
@@ -34,7 +34,7 @@
 		outline={value !== false}
 		color="primary"
 		on:click={() => setNew(false)}
-		class="flex flex-grow basis-0"
+		class="flex grow basis-0"
 		{disabled}
 	>
 		{offTitle}
@@ -44,7 +44,7 @@
 			outline={value !== undefined}
 			color="primary"
 			on:click={() => setNew(undefined)}
-			class="flex flex-grow basis-0"
+			class="flex grow basis-0"
 			{disabled}
 		>
 			{clearTitle}

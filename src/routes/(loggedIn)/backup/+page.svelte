@@ -153,7 +153,7 @@
 		<form
 			action="?/backup"
 			method="post"
-			class="flex flex-grow flex-row gap-2"
+			class="flex grow flex-row gap-2"
 			use:enhance={defaultCustomEnhance({
 				updateLoading: (loading) => (creatingBackup = loading),
 				defaultSuccessMessage: 'Successfully Created Backup'
@@ -163,7 +163,7 @@
 				bind:value={backupName}
 				name="backupName"
 				placeholder="Backup Name"
-				class="flex flex-grow"
+				class="flex grow"
 				disabled={creatingBackup}
 			/>
 			<ActionButton

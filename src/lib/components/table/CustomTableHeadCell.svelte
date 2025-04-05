@@ -89,7 +89,7 @@
 </script>
 
 <TableHeadCell
-	class="{showDropdownCalculated ? 'hover:cursor-pointer hover:bg-primary-200' : ''} p-0"
+	class="{showDropdownCalculated ? 'hover:bg-primary-200 hover:cursor-pointer' : ''} p-0"
 >
 	<button class="flex h-full w-full items-center gap-2 p-4">
 		<P size="xs" weight="bold" class="text-primary-600  " space="tight">
@@ -109,7 +109,7 @@
 		<Dropdown bind:open={opened}>
 			{#if sortKey !== undefined}
 				<DropdownItem class="flex flex-row items-center gap-2">
-					<div class="flex flex-grow pr-4">Sorting</div>
+					<div class="flex grow pr-4">Sorting</div>
 					<Button
 						data-sveltekit-noscroll
 						data-sveltekit-keepfocus

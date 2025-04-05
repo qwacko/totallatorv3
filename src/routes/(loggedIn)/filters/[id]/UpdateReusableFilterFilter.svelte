@@ -33,7 +33,7 @@
 				<FilterModal currentFilter={filter || defaultJournalFilter()} bind:opened={filterModal}>
 					{#snippet slotFooterContents({ activeFilter })}
 						<Button on:click={() => (filterModal = false)} outline>Cancel</Button>
-						<div class="flex-grow"></div>
+						<div class="grow"></div>
 
 						<form
 							method="post"

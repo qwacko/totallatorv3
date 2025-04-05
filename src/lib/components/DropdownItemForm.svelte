@@ -22,7 +22,7 @@
 		action: string;
 		children?: Snippet;
 		slotLoading?: Snippet;
-	} & Omit<DropdownItemProps, 'type' | 'submit'> = $props();
+	} & DropdownItemProps = $props();
 </script>
 
 <form

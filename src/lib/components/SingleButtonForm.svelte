@@ -4,7 +4,7 @@
 	import ActionButton from './ActionButton.svelte';
 	import type { ComponentProps, Snippet } from 'svelte';
 
-	type ButtonProps = ComponentProps<ActionButton>;
+	type ButtonProps = ComponentProps<typeof ActionButton>;
 
 	const {
 		action,
@@ -19,7 +19,7 @@
 		message: string;
 		loadingMessage?: string;
 		children?: Snippet;
-	} & Omit<ButtonProps, 'type' | 'loading' | 'message' | 'loadingMessage'> = $props();
+	} & ButtonProps = $props();
 
 	let loading = $state(false);
 </script>

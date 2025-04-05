@@ -35,7 +35,13 @@
 			</div>
 		</span>
 	{/if}
-	<Checkbox checked={value} {...restProps} {name} {required} on:change={() => (value = !value)}>
+	<Checkbox
+		checked={value}
+		{...restProps}
+		{name}
+		required={required || undefined}
+		on:change={() => (value = !value)}
+	>
 		{displayText ? displayText : ''}
 	</Checkbox>
 	<ErrorText message={errorMessage} />

@@ -26,7 +26,17 @@
 		class?: string;
 	} & Omit<
 		NumberInputProps,
-		'title' | 'name' | 'numberDecimals' | 'value' | 'errorMessage' | 'tainted' | 'highlightTainted'
+		| 'title'
+		| 'name'
+		| 'numberDecimals'
+		| 'value'
+		| 'errorMessage'
+		| 'tainted'
+		| 'highlightTainted'
+		| 'form'
+		| 'field'
+		| 'wrapperClass'
+		| 'class'
 	> = $props();
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);

@@ -24,7 +24,10 @@
 		title: string | null;
 		highlightTainted?: boolean | undefined;
 		class?: string;
-	} & Omit<CurrencyInputProps, 'name'> = $props();
+	} & Omit<
+		CurrencyInputProps,
+		'name' | 'form' | 'field' | 'wrapperClass' | 'title' | 'class'
+	> = $props();
 
 	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
 
