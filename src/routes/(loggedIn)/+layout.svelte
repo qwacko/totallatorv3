@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { DarkMode } from 'flowbite-svelte';
 	import AccountIcon from '$lib/components/icons/AccountIcon.svelte';
 	import BillIcon from '$lib/components/icons/BillIcon.svelte';
 	import BudgetIcon from '$lib/components/icons/BudgetIcon.svelte';
@@ -294,8 +295,10 @@
 				</DropdownItem>
 			{/each}
 			<DropdownDivider />
+
 			<DropdownItem href={urlGenerator({ address: '/(loggedIn)/logout' }).url}>Logout</DropdownItem>
 		</Dropdown>
+		<DarkMode />
 	</div>
 	{@render children()}
 	<NotificationDisplay />

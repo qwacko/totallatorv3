@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { notificationStore, type Notification } from '$lib/stores/notificationStore';
-	import { Toast } from 'flowbite-svelte';
+	import { Heading, Toast } from 'flowbite-svelte';
 	import { blur } from 'svelte/transition';
 	import SuccessIcon from './icons/SuccessIcon.svelte';
 	import ErrorIcon from './icons/ErrorIcon.svelte';
@@ -61,7 +61,7 @@
 	const usedNotifications = $derived([...$notifications, ...otherNotifications].reverse());
 </script>
 
-<div class="fixed bottom-5 right-5 flex w-96 flex-col-reverse gap-4">
+<div class="fixed right-5 bottom-5 flex w-96 flex-col-reverse gap-4">
 	{#each usedNotifications as notification}
 		<Toast
 			class=" w-full hover:shadow-lg"
@@ -89,7 +89,7 @@
 				{/if}
 			</svelte:fragment>
 			{#if notification.title}
-				<h1 class="text-sm font-bold">{notification.title}</h1>
+				<Heading tag="h1" class="text-sm font-bold"></Heading>
 			{/if}
 
 			{notification.message}

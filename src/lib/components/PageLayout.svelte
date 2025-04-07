@@ -3,6 +3,7 @@
 	import type { Snippet } from 'svelte';
 	import PrevPageButton from './PrevPageButton.svelte';
 	import ArrowLeftIcon from './icons/ArrowLeftIcon.svelte';
+	import { Heading } from 'flowbite-svelte';
 
 	const {
 		title,
@@ -43,14 +44,18 @@
 				{/if}
 			</div>
 			{#if title}
-				<h3 class="flex justify-center text-2xl font-bold md:text-4xl">{title}</h3>
+				<Heading tag="h3" class="flex grow basis-0 justify-center text-2xl font-bold md:text-4xl">
+					{title}
+				</Heading>
 			{/if}
 			<div class="flex grow basis-0 flex-row justify-end gap-2">
 				{#if slotRight}{@render slotRight()}{/if}
 			</div>
 		</div>
 		{#if subtitle}
-			<h5 class="flex justify-center text-xl font-bold">{subtitle}</h5>
+			<Heading tag="h5" class="flex justify-center text-xl font-bold">
+				{subtitle}
+			</Heading>
 		{/if}
 		{#if children}
 			{@render children()}
