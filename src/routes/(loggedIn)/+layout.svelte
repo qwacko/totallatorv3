@@ -223,6 +223,7 @@
 			bind:shown={filterSelectionModalOpened}
 		/>
 		<div class="flex grow"></div>
+		<DarkMode />
 		<Button outline><MenuIcon /></Button>
 		<Dropdown>
 			<DropdownItem
