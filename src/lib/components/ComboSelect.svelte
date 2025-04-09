@@ -240,7 +240,10 @@
 		transition:fly={{ duration: 150, y: -5 }}
 	>
 		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-		<div class="flex max-h-full flex-col gap-0 overflow-y-auto px-2 py-2 text-black" tabindex="0">
+		<div
+			class="flex max-h-full flex-col gap-0 overflow-y-auto px-2 py-2 text-black dark:text-gray-700"
+			tabindex="0"
+		>
 			{#each filteredItems as currentItem (currentItem.id)}
 				{@const currentItemDisplay = itemToDisplay(currentItem)}
 				{@const currentHighlighted = $isHighlighted(currentItem.id)}
