@@ -209,6 +209,12 @@ Note _all_ these settings must be set in order for S3 to work. The same settings
 
 - Type: `string`
 
+### S3_DISABLE_CHECKSUM`
+
+- Type: `boolean`
+- Default: `false`
+- Disables the checksum check when uploading to S3. This is useful for some S3 providers that do not support checksums. It currently is necessary for Backblaze B2
+
 ## Development
 
 Various environment settings that can be used during development (some may also be used in production).

@@ -27,6 +27,12 @@ const fileHandler = (address: string, title: string) => {
 		logging.debug(`${title} FileHandler Initiation : S3 : Bucket = ${bucket}, Prefix = ${prefix}`);
 
 		const client = new S3Client({
+			requestChecksumCalculation: serverEnv.S3_DISABLE_CHECKSUM
+				? 'WHEN_REQUIRED'
+				: 'WHEN_SUPPORTED',
+			responseChecksumValidation: serverEnv.S3_DISABLE_CHECKSUM
+				? 'WHEN_REQUIRED'
+				: 'WHEN_SUPPORTED',
 			credentials: {
 				accessKeyId: serverEnv.S3_ACCESS_KEY_ID,
 				secretAccessKey: serverEnv.S3_SECRET_ACCESS_KEY
