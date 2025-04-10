@@ -82,6 +82,7 @@
 		"@tailwindcss/container-queries": "^0.1.1",
 		"@tailwindcss/vite": "^4.1.1",
 		"akahu": "^2.0.0",
+		"better-auth": "^1.2.5",
 		"cronstrue": "^2.57.0",
 		"devalue": "^5.1.1",
 		"drizzle-orm": "^0.41.0",

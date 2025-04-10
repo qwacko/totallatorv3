@@ -62,7 +62,9 @@ const serverEnvValidation = z.object({
 	TRANSACTIONLOG_ENABLESTART: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TRANSACTIONLOG_TIME_MS: z.coerce.number().optional().default(100),
 	CONCURRENT_REFRESH: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
-	VIEW_REFRESH_TIMEOUT: z.coerce.number().optional().default(20000)
+	VIEW_REFRESH_TIMEOUT: z.coerce.number().optional().default(20000),
+	BETTER_AUTH_SECRET: z.string(),
+	BETTER_AUTH_URL: z.string()
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -99,5 +101,7 @@ export const serverEnv = serverEnvValidation.parse({
 	TRANSACTIONLOG_TIME_MS: env.TRANSACTIONLOG_TIME_MS,
 	TRANSACTIONLOG_ENABLESTART: env.TRANSACTIONLOG_ENABLESTART,
 	CONCURRENT_REFRESH: env.CONCURRENT_REFRESH,
-	VIEW_REFRESH_TIMEOUT: env.VIEW_REFRESH_TIMEOUT
+	VIEW_REFRESH_TIMEOUT: env.VIEW_REFRESH_TIMEOUT,
+	BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET,
+	BETTER_AUTH_URL: env.BETTER_AUTH_URL
 });
