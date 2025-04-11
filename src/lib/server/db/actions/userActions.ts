@@ -2,7 +2,7 @@ import { updateUserSchema, type updateUserSchemaType } from '$lib/schema/userSch
 import { eq } from 'drizzle-orm';
 import type { DBType } from '../db';
 import { key, user } from '../postgres/schema/userSchema';
-import { type User } from 'lucia';
+import type { User } from '$lib/server/auth';
 import { nanoid } from 'nanoid';
 import { fixedDelay } from '$lib/server/testingDelay';
 import { hashPassword, checkHashedPassword } from './helpers/hashPassword';
