@@ -28,6 +28,8 @@ export const session = pgTable('user_session', {
 	}).notNull()
 });
 
+export type SessionDBType = typeof session.$inferSelect;
+
 export const key = pgTable('user_key', {
 	id: varchar('id', { length: 255 }).primaryKey(),
 	userId: varchar('user_id', { length: 62 })

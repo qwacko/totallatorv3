@@ -1,10 +1,11 @@
-import { auth } from '$lib/server/lucia';
+import { auth } from '$lib/server/auth';
 import { fail, redirect, type Cookies } from '@sveltejs/kit';
 import { setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupSchema } from '$lib/schema/signupSchema';
 import { logging } from '$lib/server/logging';
 import { userActions } from './db/actions/userActions';
+import type { RequestEvent } from '@sveltejs/kit';
 
 export const createUserHandler = async ({
 	request,
@@ -13,7 +14,7 @@ export const createUserHandler = async ({
 	setSession = false,
 	cookies
 }: {
-	request: Request;
+	request: RequestEvent;
 	locals: App.Locals;
 	admin: boolean;
 	setSession?: boolean;
@@ -38,13 +39,9 @@ export const createUserHandler = async ({
 		}
 
 		if (setSession) {
-			const session = await auth.createSession(user.id, {});
-			const sessionCookie = auth.createSessionCookie(session.id);
-
-			cookies.set(sessionCookie.name, sessionCookie.value, {
-				path: '.',
-				...sessionCookie.attributes
-			});
+			const token = auth.generateSessionToken();
+			const session = await auth.createSession(locals.db, token, user.id);
+			auth.setSessionTokenCookie(request, token, session.expiresAt);
 		}
 	} catch (e) {
 		logging.error('Error creating user', e);

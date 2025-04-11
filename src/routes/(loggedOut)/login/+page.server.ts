@@ -1,4 +1,4 @@
-import { auth } from '$lib/server/lucia';
+import { auth } from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
 
 import type { Actions } from './$types';
@@ -18,7 +18,8 @@ export const load = async (data) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, cookies }) => {
+	default: async (request) => {
+		const { locals } = request;
 		const form = await superValidate(request, zod(loginSchema));
 
 		if (!form.valid) {
@@ -35,13 +36,9 @@ export const actions: Actions = {
 				throw new Error('User not found');
 			}
 
-			const session = await auth.createSession(user.id, {});
-			const sessionCookie = auth.createSessionCookie(session.id);
-
-			cookies.set(sessionCookie.name, sessionCookie.value, {
-				path: '.',
-				...sessionCookie.attributes
-			});
+			const token = auth.generateSessionToken();
+			const session = await auth.createSession(locals.db, token, user.id);
+			auth.setSessionTokenCookie(request, token, session.expiresAt);
 		} catch (e) {
 			logging.error('Error Logging In', e);
 			return setMessage(form, 'Incorrect username or password', { status: 400 });

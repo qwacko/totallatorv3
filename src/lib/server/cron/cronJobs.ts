@@ -2,7 +2,7 @@ import { updateManyTransferInfo } from '../db/actions/helpers/journal/updateTran
 import { tActions } from '../db/actions/tActions';
 import { db } from '../db/db';
 import { logging } from '../logging';
-import { auth } from '../lucia';
+import { auth } from '../auth';
 import { serverEnv } from '../serverEnv';
 import type { CronJob } from './cron';
 
@@ -86,7 +86,7 @@ export const cronJobs: CronJob[] = [
 		name: 'Cleanup Sessions',
 		schedule: '0 0 * * *',
 		job: async () => {
-			await auth.deleteExpiredSessions();
+			await auth.deleteExpiredSessions(db);
 		}
 	},
 	{
