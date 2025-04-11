@@ -209,7 +209,7 @@ Note _all_ these settings must be set in order for S3 to work. The same settings
 
 - Type: `string`
 
-### S3_DISABLE_CHECKSUM`
+### `S3_DISABLE_CHECKSUM`
 
 - Type: `boolean`
 - Default: `false`
