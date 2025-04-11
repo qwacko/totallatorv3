@@ -18,7 +18,13 @@ export const load = async (data) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, cookies }) => {
-		return createUserHandler({ request, locals, admin: false, setSession: true, cookies });
+	default: async (request) => {
+		return createUserHandler({
+			request,
+			locals: request.locals,
+			admin: false,
+			setSession: true,
+			cookies: request.cookies
+		});
 	}
 };

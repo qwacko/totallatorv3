@@ -1,4 +1,4 @@
-import type { User } from 'lucia';
+import type { User } from '$lib/server/auth';
 import { derived, writable } from 'svelte/store';
 
 export const userInfoUpdateStore = writable<User | undefined>();

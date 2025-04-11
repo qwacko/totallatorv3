@@ -3,7 +3,7 @@ import { initateCronJobs } from '$lib/server/cron/cron';
 import { dbNoAdmins } from '$lib/server/db/actions/firstUser';
 import { logging } from '$lib/server/logging';
 
-import { auth } from '$lib/server/lucia';
+import { auth } from '$lib/server/auth';
 import { redirect, type Handle } from '@sveltejs/kit';
 
 import { serverEnv } from '$lib/server/serverEnv';
@@ -25,28 +25,20 @@ export const viewRefresh = building
 		});
 
 const handleAuth: Handle = async ({ event, resolve }) => {
-	const sessionId = event.cookies.get(auth.sessionCookieName);
-	if (!sessionId) {
+	const sessionToken = event.cookies.get(auth.sessionCookieName);
+	if (!sessionToken) {
 		event.locals.user = undefined;
 		event.locals.session = undefined;
 		return resolve(event);
 	}
 
-	const { session, user } = await auth.validateSession(sessionId);
-	if (session && session.fresh) {
-		const sessionCookie = auth.createSessionCookie(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+	const { session, user } = await auth.validateSessionToken(db, sessionToken);
+	if (session !== null) {
+		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+	} else {
+		auth.deleteSessionTokenCookie(event);
 	}
-	if (!session) {
-		const sessionCookie = auth.createBlankSessionCookie();
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
-	}
+
 	event.locals.user = user || undefined;
 	event.locals.session = session || undefined;
 	return resolve(event);

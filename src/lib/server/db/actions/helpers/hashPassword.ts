@@ -1,4 +1,3 @@
-import { LegacyScrypt } from 'lucia';
 import { hash, verify } from '@node-rs/argon2';
 
 export const hashPassword = async (password: string) => {
@@ -20,10 +19,6 @@ export const checkHashedPassword = async (
 	if (hashedPassword.startsWith('argon2:')) {
 		const valid = await verify(hashedPassword.substring(7), password);
 		return { valid, needsRefresh: false };
-	}
-	if (hashedPassword.startsWith('s2:')) {
-		const valid = await new LegacyScrypt().verify(hashedPassword, password);
-		return { valid, needsRefresh: true };
 	}
 	return { valid: false, needsRefresh: false };
 };

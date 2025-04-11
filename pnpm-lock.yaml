@@ -20,9 +20,6 @@ importers:
       '@flystorage/local-fs':
         specifier: ^1.0.1
         version: 1.0.1
-      '@lucia-auth/adapter-drizzle':
-        specifier: ^1.1.0
-        version: 1.1.0(drizzle-orm@0.41.0(gel@2.0.1)(postgres@3.4.5))(lucia@3.2.2)
       '@melt-ui/svelte':
         specifier: ^0.86.6
         version: 0.86.6(svelte@5.25.3)
@@ -65,9 +62,6 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
-      lucia:
-        specifier: ^3.2.2
-        version: 3.2.2
       mathjs:
         specifier: ^14.4.0
         version: 14.4.0
@@ -1836,12 +1830,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
-
-  '@lucia-auth/adapter-drizzle@1.1.0':
-    resolution: {integrity: sha512-iCTnZWvfI5lLZOdUHZYiXA1jaspIFEeo2extLxQ3DjP3uOVys7IPwBi7zezLIRu9dhro4H4Kji+7gSYyjcef2A==}
-    peerDependencies:
-      drizzle-orm: '>= 0.29 <1'
-      lucia: 3.x
 
   '@melt-ui/svelte@0.86.6':
     resolution: {integrity: sha512-Jer+M7DgIwT5IHfTayb4Iw/fkkxWNmC/mqn/nMh9JrbPbkxmyabfLQnhJ+JDn5HK77f84j34lubO3iqFtYAfMg==}
@@ -4429,9 +4417,6 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
-
-  lucia@3.2.2:
-    resolution: {integrity: sha512-P1FlFBGCMPMXu+EGdVD9W4Mjm0DqsusmKgO7Xc33mI5X1bklmsQb0hfzPhXomQr9waWIBDsiOjvr1e6BTaUqpA==}
 
   luxon@3.6.1:
     resolution: {integrity: sha512-tJLxrKJhO2ukZ5z0gyjY1zPh3Rh88Ej9P7jNrZiHMUXHae1yvI2imgOZtL1TO8TW6biMMKfTtAOoEJANgtWBMQ==}
@@ -7708,11 +7693,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@lucia-auth/adapter-drizzle@1.1.0(drizzle-orm@0.41.0(gel@2.0.1)(postgres@3.4.5))(lucia@3.2.2)':
-    dependencies:
-      drizzle-orm: 0.41.0(gel@2.0.1)(postgres@3.4.5)
-      lucia: 3.2.2
-
   '@melt-ui/svelte@0.86.6(svelte@5.25.3)':
     dependencies:
       '@floating-ui/core': 1.6.9
@@ -10617,11 +10597,6 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
-
-  lucia@3.2.2:
-    dependencies:
-      '@oslojs/crypto': 1.0.1
-      '@oslojs/encoding': 1.1.0
 
   luxon@3.6.1: {}
 
