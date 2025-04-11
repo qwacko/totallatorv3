@@ -35,6 +35,8 @@ import type { CombinedBackupSchemaInfoType } from '$lib/server/backups/backupSch
 import { noteTypeEnum } from '../../../../schema/enum/noteTypeEnum';
 import { fileReasonEnum } from '../../../../schema/enum/fileReasonEnum';
 import { fileTypeEnum } from '../../../../schema/enum/fileTypeEnum';
+import { timestampColumns } from './helpers/timestampColumns';
+import { idColumn } from './helpers/idColumn';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -48,11 +50,6 @@ const moneyType = customType<{ data: number }>({
 	}
 });
 
-const timestampColumns = {
-	createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-	updatedAt: timestamp('updated_at', { precision: 6, withTimezone: true, mode: 'date' }).notNull()
-};
-
 const importColumns = (identifier?: string) => ({
 	importId: text('import_id'),
 	importDetailId: text(`${identifier ? identifier : ''}${identifier ? '_' : ''}import_detail_id`)
@@ -63,10 +60,6 @@ const statusColumns = {
 	active: boolean('active').notNull().default(true),
 	disabled: boolean('disabled').notNull().default(true),
 	allowUpdate: boolean('allow_update').notNull().default(true)
-};
-
-const idColumn = {
-	id: text('id').primaryKey().notNull()
 };
 
 export const account = pgTable(
