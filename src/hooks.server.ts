@@ -51,7 +51,6 @@ const handleRoute: Handle = async ({ event, resolve }) => {
 	//Update the locals to have the DB
 	event.locals.db = db;
 
-	const start = Date.now();
 	const timeLimit = serverEnv.PAGE_TIMEOUT_MS;
 	const timeout = setTimeout(() => {
 		// logging.error(`Request took longer than ${timeLimit}ms to resolve`, {
