@@ -48,6 +48,7 @@ import { serverEnv } from '$lib/server/serverEnv';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';
+import { materializedViewActions } from './materializedViewActions';
 
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -765,17 +766,29 @@ export const backupActions = {
 				);
 				logging.info(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
-				await chunker(checkedBackupData.data.backup, 1000, async (data) =>
+				await chunker(checkedBackupData.data.backup, 1000, async (data) => {
 					dbExecuteLogger(
 						trx.insert(backupTable).values(
-							data.map((item) => ({
-								...item,
-								information: combinedBackupInfoSchema.parse(superjson.parse(item.information))
-							}))
+							data.map((item, rowNo) => {
+								const parsedInformation = superjson.parse(item.information);
+
+								//@ts-expect-error I know the data strcuture, and this is correct
+								if (parsedInformation?.information?.createdAt) {
+									//@ts-expect-error I know the data strcuture, and this is correct
+									parsedInformation.information.createdAt = new Date(
+										//@ts-expect-error I know the data strcuture, and this is correct
+										parsedInformation.information.createdAt
+									);
+								}
+								return {
+									...item,
+									information: combinedBackupInfoSchema.parse(parsedInformation)
+								};
+							})
 						),
 						'Backup Restore - Insert Backup Table'
-					)
-				);
+					);
+				});
 				logging.info(`Backup Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 				await chunker(checkedBackupData.data.note, 1000, async (data) =>
@@ -801,6 +814,8 @@ export const backupActions = {
 				);
 			})
 		);
+		logging.info(`Backup Restored - ${backup.filename} - ${backup.createdAt.toISOString()}`);
+		materializedViewActions.setRefreshRequired(db);
 	},
 	refreshList: async ({ db }: { db: DBType }) => {
 		const [backupsInDB, backupFiles] = await Promise.all([
