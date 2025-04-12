@@ -24,6 +24,9 @@ export const viewRefresh = building
 			performRefresh: async () => tActions.materializedViews.conditionalRefresh({ db })
 		});
 
+// Set Refresh Required on Startup in case there are any changes
+tActions.materializedViews.setRefreshRequired(db);
+
 const handleAuth: Handle = async ({ event, resolve }) => {
 	const sessionToken = event.cookies.get(auth.sessionCookieName);
 	if (!sessionToken) {
@@ -51,11 +54,11 @@ const handleRoute: Handle = async ({ event, resolve }) => {
 	const start = Date.now();
 	const timeLimit = serverEnv.PAGE_TIMEOUT_MS;
 	const timeout = setTimeout(() => {
-		logging.error(`Request took longer than ${timeLimit}ms to resolve`, {
-			request: event.request,
-			elapsedTime: Date.now() - start,
-			requestURL: event.request.url
-		});
+		// logging.error(`Request took longer than ${timeLimit}ms to resolve`, {
+		// 	request: event.request,
+		// 	elapsedTime: Date.now() - start,
+		// 	requestURL: event.request.url
+		// });
 	}, timeLimit);
 
 	const noAdmin = await dbNoAdmins(event.locals.db);
