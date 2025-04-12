@@ -25,7 +25,7 @@ export const viewRefresh = building
 		});
 
 // Set Refresh Required on Startup in case there are any changes
-tActions.materializedViews.setRefreshRequired(db);
+if (!building) tActions.materializedViews.setRefreshRequired(db);
 
 const handleAuth: Handle = async ({ event, resolve }) => {
 	const sessionToken = event.cookies.get(auth.sessionCookieName);
