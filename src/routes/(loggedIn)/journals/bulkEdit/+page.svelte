@@ -17,6 +17,8 @@
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import RecommendationDisplay from '$lib/components/RecommendationDisplay.svelte';
+	import type { RecommendationType } from '$lib/server/db/actions/journalMaterializedViewActions';
+	import { tick } from 'svelte';
 
 	const { data } = $props();
 
@@ -32,6 +34,27 @@
 	const titleText = $derived(
 		data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`
 	);
+
+	const updateFromRecommendation = (rec: RecommendationType) => {
+		$formData = {
+			...$formData,
+			billId: rec.journalBillId,
+			tagId: rec.journalTagId,
+			budgetId: rec.journalBudgetId,
+			categoryId: rec.journalCategoryId,
+			otherAccountId: rec.payeeAccountId,
+			description: rec.journalDescription,
+			clearDataChecked: false,
+			setDataChecked: true
+		};
+	};
+
+	const updateAndSaveFromRecommendation = (rec: RecommendationType) => {
+		updateFromRecommendation(rec);
+		tick().then(() => {
+			form.submit();
+		});
+	};
 </script>
 
 <CustomHeader pageTitle={titleText} filterText={data.filterText} />
@@ -49,7 +72,11 @@
 		canEdit={data.selectedJournals.canEdit}
 	/>
 	<Heading tag="h3">Update Data</Heading>
-	<RecommendationDisplay recommendations={data.recommendations} />
+	<RecommendationDisplay
+		recommendations={data.recommendations}
+		update={updateFromRecommendation}
+		updateAndSave={updateAndSaveFromRecommendation}
+	/>
 
 	{#if !data.selectedJournals.canEdit}<ErrorText
 			message="At Least One Journal Is Complete So Can Only Update Journal Labels"

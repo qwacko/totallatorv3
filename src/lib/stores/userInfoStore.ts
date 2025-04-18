@@ -22,3 +22,7 @@ export const userInfoStore = derived(userInfoUpdateStore, ($userInfoStore) => {
 export const currencyFormat = derived(userInfoStore, ($userInfoStore) => {
 	return $userInfoStore.currencyFormat;
 });
+
+export const userDateFormat = derived(userInfoStore, ($userInfoStore) => {
+	return $userInfoStore.dateFormat;
+});

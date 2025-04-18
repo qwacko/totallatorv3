@@ -355,6 +355,9 @@ export const journalMaterializedViewActions = {
 						journalTagId: table.tagId,
 						journalAccountId: table.accountId,
 						journalDescription: table.description,
+						journalDate: table.date,
+						journalAmount: table.amount,
+						journalDataChecked: table.dataChecked,
 						payeeAccountId: sql<string>`${journalEntry.accountId}`.as('payeeAccountId'),
 						checkSimilarity:
 							sql<number>`similarity(${importCheckMaterializedView}.${importCheckMaterializedView.description}, ${description})`.as(
@@ -383,7 +386,7 @@ export const journalMaterializedViewActions = {
 					.where(
 						and(
 							eq(table.accountId, targetJournal.accountId),
-							table.dataChecked,
+							eq(table.dataChecked, true),
 							sql`similarity(${importCheckMaterializedView}.${importCheckMaterializedView.description}, ${description}) > ${similarityThreshold}`
 						)
 					)
@@ -403,11 +406,11 @@ export const journalMaterializedViewActions = {
 					])
 					.from(sq)
 					.orderBy(desc(sq.checkSimilarity))
-					.limit(5);
+					.limit(4);
 			})()
 		);
 
-		console.log('recommendation', recommendation);
+		// console.log('recommendation', recommendation);
 
 		if (recommendation.length === 0) {
 			return;
@@ -425,6 +428,9 @@ export type RecommendationType = {
 	journalTagId?: string;
 	journalAccountId: string;
 	journalDescription: string;
+	journalDate: Date;
+	journalAmount: number;
+	journalDataChecked: boolean;
 	payeeAccountId: string;
 	checkSimilarity: number;
 	checkDescription: string;
