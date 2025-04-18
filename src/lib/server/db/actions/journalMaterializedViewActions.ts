@@ -17,8 +17,11 @@ import {
 import { getMonthlySummary } from './helpers/summary/getMonthlySummary';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { dbExecuteLogger } from '../dbLogger';
-import { importCheckMaterializedView, journalEntry } from '../postgres/schema';
-import { getCorrectJournalTable } from './helpers/journalMaterializedView/getCorrectJournalTable';
+import { journalEntry } from '../postgres/schema';
+import {
+	getCorrectImportCheckTable,
+	getCorrectJournalTable
+} from './helpers/journalMaterializedView/getCorrectJournalTable';
 
 import { z } from 'zod';
 
@@ -343,6 +346,7 @@ export const journalMaterializedViewActions = {
 		const description = validated.data.description;
 
 		const { table } = await getCorrectJournalTable(db);
+		const { table: importCheckTable } = await getCorrectImportCheckTable(db);
 
 		const recommendation = await dbExecuteLogger(
 			(() => {
@@ -360,22 +364,18 @@ export const journalMaterializedViewActions = {
 						journalDataChecked: table.dataChecked,
 						payeeAccountId: sql<string>`${journalEntry.accountId}`.as('payeeAccountId'),
 						checkSimilarity:
-							sql<number>`similarity(${importCheckMaterializedView}.${importCheckMaterializedView.description}, ${description})`.as(
+							sql<number>`similarity(${importCheckTable}.${importCheckTable.description}, ${description})`.as(
 								'similarity'
 							),
-						checkDescription:
-							sql<string>`${importCheckMaterializedView}.${importCheckMaterializedView.description}`.as(
-								'checkDescription'
-							),
+						checkDescription: sql<string>`${importCheckTable}.${importCheckTable.description}`.as(
+							'checkDescription'
+						),
 						searchDescription: sql<string>`${description}::text`
 							.mapWith(String)
 							.as('searchDescription')
 					})
 					.from(table)
-					.leftJoin(
-						importCheckMaterializedView,
-						eq(table.importDetailId, importCheckMaterializedView.id)
-					)
+					.leftJoin(importCheckTable, eq(table.importDetailId, importCheckTable.id))
 					.leftJoin(
 						journalEntry,
 						and(
@@ -387,7 +387,7 @@ export const journalMaterializedViewActions = {
 						and(
 							eq(table.accountId, targetJournal.accountId),
 							eq(table.dataChecked, true),
-							sql`similarity(${importCheckMaterializedView}.${importCheckMaterializedView.description}, ${description}) > ${similarityThreshold}`
+							sql`similarity(${importCheckTable}.${importCheckTable.description}, ${description}) > ${similarityThreshold}`
 						)
 					)
 					.as('sq');
@@ -409,8 +409,6 @@ export const journalMaterializedViewActions = {
 					.limit(4);
 			})()
 		);
-
-		// console.log('recommendation', recommendation);
 
 		if (recommendation.length === 0) {
 			return;
