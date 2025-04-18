@@ -16,6 +16,7 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { zodClient } from 'sveltekit-superforms/adapters';
+	import RecommendationDisplay from '$lib/components/RecommendationDisplay.svelte';
 
 	const { data } = $props();
 
@@ -48,6 +49,8 @@
 		canEdit={data.selectedJournals.canEdit}
 	/>
 	<Heading tag="h3">Update Data</Heading>
+	<RecommendationDisplay recommendations={data.recommendations} />
+
 	{#if !data.selectedJournals.canEdit}<ErrorText
 			message="At Least One Journal Is Complete So Can Only Update Journal Labels"
 			title="Complete Journals Present"

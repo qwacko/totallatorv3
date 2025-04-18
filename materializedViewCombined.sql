@@ -5,6 +5,8 @@ DROP INDEX IF EXISTS "materialized_budget_view_index"; --> statement-breakpoint
 DROP INDEX IF EXISTS "materialized_category_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_tag_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_label_view_index"; --> statement-breakpoint 
+DROP INDEX IF EXISTS "materialized_import_check_view_index"; --> statement-breakpoint 
+DROP INDEX IF EXISTS "materialized_import_check_description_index"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "date_range_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "label_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "category_materialized_view"; --> statement-breakpoint 
@@ -840,3 +842,5 @@ CREATE UNIQUE INDEX IF NOT EXISTS "materialized_budget_view_index" ON "budget_ma
 CREATE UNIQUE INDEX IF NOT EXISTS "materialized_category_view_index" ON "category_materialized_view" ("category_materialized_view"."id"); --> statement-breakpoint 
 CREATE UNIQUE INDEX IF NOT EXISTS "materialized_tag_view_index" ON "tag_materialized_view" ("tag_materialized_view"."id"); --> statement-breakpoint 
 CREATE UNIQUE INDEX IF NOT EXISTS "materialized_label_view_index" ON "label_materialized_view" ("label_materialized_view"."id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_import_check_view_index" ON "import_check_materialized_view" ("import_check_materialized_view"."id"); --> statement-breakpoint 
+CREATE INDEX IF NOT EXISTS "materialized_import_check_description_index" ON "date_range_materialized_view" ("description"); --> statement-breakpoint 

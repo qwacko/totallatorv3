@@ -5,5 +5,6 @@ export const materializedViewTableNames = {
 	budgetMaterializedView: 'budget_materialized_view',
 	categoryMaterializedView: 'category_materialized_view',
 	tagMaterializedView: 'tag_materialized_view',
-	labelMaterializedView: 'label_materialized_view'
+	labelMaterializedView: 'label_materialized_view',
+	importCheckMaterializedView: 'import_check_materialized_view'
 };

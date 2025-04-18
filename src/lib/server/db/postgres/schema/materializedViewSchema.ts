@@ -1,4 +1,16 @@
-import { eq, getTableColumns, sql, count, sum, min, max } from 'drizzle-orm';
+import {
+	eq,
+	getTableColumns,
+	sql,
+	count,
+	sum,
+	min,
+	max,
+	isNotNull,
+	SQL,
+	and,
+	or
+} from 'drizzle-orm';
 import { pgMaterializedView, PgColumn, pgView } from 'drizzle-orm/pg-core';
 import {
 	labelsToJournals,
@@ -10,7 +22,8 @@ import {
 	budget,
 	category,
 	tag,
-	importTable
+	importTable,
+	importItemDetail
 } from './transactionSchema';
 import { sqlToText } from '../../actions/helpers/sqlToText';
 import { filesNotesSubquery } from './filesNotesSubquery';
@@ -267,6 +280,32 @@ export const labelMaterializedView = pgMaterializedView(
 	materializedViewTableNames.labelMaterializedView
 ).as((qb) => qb.select().from(labelView));
 
+export const importCheckView = pgView('import_check_view').as((qb) => {
+	return qb
+		.select({
+			id: importItemDetail.id,
+			createdAt: importItemDetail.createdAt,
+			relationId: importItemDetail.relationId,
+			relation2Id: importItemDetail.relation2Id,
+			description: sql<string>`processed_info->'dataToUse'->>'description'`
+				.mapWith(String)
+				.as('description')
+		})
+		.from(importItemDetail)
+		.where(
+			and(
+				isNotNull(sql<string>`processed_info->'dataToUse'->>'description'`),
+				or(isNotNull(importItemDetail.relationId), isNotNull(importItemDetail.relation2Id))
+			)
+		);
+});
+
+export const importCheckMaterializedView = pgMaterializedView(
+	materializedViewTableNames.importCheckMaterializedView
+).as((qb) => {
+	return qb.select().from(importCheckView);
+});
+
 const viewIndexes = [
 	{
 		title: 'materialized_journal_view_index',
@@ -309,12 +348,24 @@ const viewIndexes = [
 		isUnique: true,
 		targetTable: sqlToText(sql`${labelMaterializedView}`),
 		targetColumn: labelMaterializedView.id
+	},
+	{
+		title: 'materialized_import_check_view_index',
+		isUnique: true,
+		targetTable: sqlToText(sql`${importCheckMaterializedView}`),
+		targetColumn: importCheckMaterializedView.id
+	},
+	{
+		title: 'materialized_import_check_description_index',
+		isUnique: false,
+		targetTable: sqlToText(sql`${dateRangeMaterializedView}`),
+		targetColumn: importCheckMaterializedView.description
 	}
 ] satisfies {
 	title: string;
 	isUnique: boolean;
 	targetTable: string;
-	targetColumn: PgColumn;
+	targetColumn: PgColumn | SQL.Aliased;
 }[];
 
 export const dropMaterializedIndexes = () => {

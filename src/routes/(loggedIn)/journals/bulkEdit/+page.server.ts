@@ -23,6 +23,11 @@ export const load = async (data) => {
 		filter: pageInfo.current.searchParams || defaultJournalFilter()
 	});
 
+	const recommendations = tActions.journalView.listRecommendations({
+		db,
+		journals: journalData.journals.data
+	});
+
 	const {
 		allLabelIds,
 		commonLabelIds,
@@ -49,6 +54,7 @@ export const load = async (data) => {
 	);
 
 	return {
+		recommendations,
 		selectedJournals: {
 			reconciled: journalData.common.reconciled,
 			complete: journalData.common.complete,

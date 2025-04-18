@@ -1,4 +1,4 @@
-import { SQL, and, avg, count, sql, sum, max } from 'drizzle-orm';
+import { SQL, and, avg, count, sql, sum, max, not, eq, desc } from 'drizzle-orm';
 import type { DBType } from '../db';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
@@ -17,8 +17,10 @@ import {
 import { getMonthlySummary } from './helpers/summary/getMonthlySummary';
 import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
 import { dbExecuteLogger } from '../dbLogger';
-import { journalEntry } from '../postgres/schema';
+import { importCheckMaterializedView, journalEntry } from '../postgres/schema';
 import { getCorrectJournalTable } from './helpers/journalMaterializedView/getCorrectJournalTable';
+
+import { z } from 'zod';
 
 export const journalMaterializedViewActions = {
 	getLatestUpdateDate: async ({ db }: { db: DBType }) => {
@@ -298,5 +300,133 @@ export const journalMaterializedViewActions = {
 				...labelData
 			}
 		};
+	},
+	listRecommendations: async ({
+		db,
+		journals,
+		similarityThreshold = 0.3
+	}: {
+		db: DBType;
+		similarityThreshold?: number;
+		journals: {
+			id: string;
+			description: string;
+			dataChecked: boolean;
+			accountId: string;
+			importDetail?: { dataToUse?: any } | null;
+		}[];
+	}): Promise<undefined | RecommendationType[]> => {
+		if (journals.length !== 1) {
+			return;
+		}
+
+		const targetJournal = journals[0];
+
+		if (targetJournal.dataChecked) {
+			return;
+		}
+
+		if (!targetJournal?.importDetail?.dataToUse) {
+			return;
+		}
+
+		const validator = z.object({
+			description: z.string()
+		});
+
+		const validated = validator.safeParse(targetJournal.importDetail.dataToUse);
+
+		if (!validated.success) {
+			return;
+		}
+
+		const description = validated.data.description;
+
+		const { table } = await getCorrectJournalTable(db);
+
+		const recommendation = await dbExecuteLogger(
+			(() => {
+				const sq = db
+					.select({
+						journalId: table.id,
+						journalBillId: table.billId,
+						journalBudgetId: table.budgetId,
+						journalCategoryId: table.categoryId,
+						journalTagId: table.tagId,
+						journalAccountId: table.accountId,
+						journalDescription: table.description,
+						payeeAccountId: sql<string>`${journalEntry.accountId}`.as('payeeAccountId'),
+						checkSimilarity:
+							sql<number>`similarity(${importCheckMaterializedView}.${importCheckMaterializedView.description}, ${description})`.as(
+								'similarity'
+							),
+						checkDescription:
+							sql<string>`${importCheckMaterializedView}.${importCheckMaterializedView.description}`.as(
+								'checkDescription'
+							),
+						searchDescription: sql<string>`${description}::text`
+							.mapWith(String)
+							.as('searchDescription')
+					})
+					.from(table)
+					.leftJoin(
+						importCheckMaterializedView,
+						eq(table.importDetailId, importCheckMaterializedView.id)
+					)
+					.leftJoin(
+						journalEntry,
+						and(
+							eq(sql`${table}.${table.transactionId}`, journalEntry.transactionId),
+							not(eq(table.id, journalEntry.id))
+						)
+					)
+					.where(
+						and(
+							eq(table.accountId, targetJournal.accountId),
+							table.dataChecked,
+							sql`similarity(${importCheckMaterializedView}.${importCheckMaterializedView.description}, ${description}) > ${similarityThreshold}`
+						)
+					)
+					.as('sq');
+
+				return db
+					.selectDistinctOn([
+						sq.journalBillId,
+						sq.journalBudgetId,
+						sq.journalTagId,
+						sq.journalCategoryId,
+						sq.checkDescription,
+						sq.checkSimilarity,
+						sq.payeeAccountId,
+						sq.journalAccountId,
+						sq.journalDescription
+					])
+					.from(sq)
+					.orderBy(desc(sq.checkSimilarity))
+					.limit(5);
+			})()
+		);
+
+		console.log('recommendation', recommendation);
+
+		if (recommendation.length === 0) {
+			return;
+		}
+
+		return recommendation;
 	}
+};
+
+export type RecommendationType = {
+	journalId: string;
+	journalBillId?: string;
+	journalBudgetId?: string;
+	journalCategoryId?: string;
+	journalTagId?: string;
+	journalAccountId: string;
+	journalDescription: string;
+	payeeAccountId: string;
+	checkSimilarity: number;
+	checkDescription: string;
+	searchDescription: string;
 };

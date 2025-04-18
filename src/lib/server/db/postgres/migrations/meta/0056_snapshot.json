@@ -1,4 +1,6 @@
 {
+  "id": "ee0bdd5d-20c3-4210-9c01-73a66d20feae",
+  "prevId": "107d0c1c-ba87-464f-9de7-b9cb5acdd3c2",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -30,30 +32,30 @@
         "user_key_user_id_user_id_fk": {
           "name": "user_key_user_id_user_id_fk",
           "tableFrom": "user_key",
+          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "user_key_user_id_unique": {
           "name": "user_key_user_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "user_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.user_session": {
       "name": "user_session",
@@ -83,22 +85,22 @@
         "user_session_user_id_user_id_fk": {
           "name": "user_session_user_id_user_id_fk",
           "tableFrom": "user_session",
+          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.user": {
       "name": "user",
@@ -151,15 +153,15 @@
       "uniqueConstraints": {
         "user_username_unique": {
           "name": "user_username_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "username"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.account": {
       "name": "account",
@@ -296,6 +298,7 @@
       },
       "indexes": {
         "account_title_idx": {
+          "name": "account_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -304,13 +307,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_type_idx": {
+          "name": "account_type_idx",
           "columns": [
             {
               "expression": "type",
@@ -319,13 +322,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_is_cash_idx": {
+          "name": "account_is_cash_idx",
           "columns": [
             {
               "expression": "is_cash",
@@ -334,13 +337,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_is_cash_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_is_net_worth_idx": {
+          "name": "account_is_net_worth_idx",
           "columns": [
             {
               "expression": "is_net_worth",
@@ -349,13 +352,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_is_net_worth_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_account_group_combined_idx": {
+          "name": "account_account_group_combined_idx",
           "columns": [
             {
               "expression": "account_group_combined",
@@ -364,13 +367,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_account_group_combined_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "account_account_title_combined_idx": {
+          "name": "account_account_title_combined_idx",
           "columns": [
             {
               "expression": "account_title_combined",
@@ -379,11 +382,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_account_title_combined_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -391,15 +393,15 @@
       "uniqueConstraints": {
         "account_account_title_combined_unique": {
           "name": "account_account_title_combined_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "account_title_combined"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.auto_import": {
       "name": "auto_import",
@@ -484,6 +486,7 @@
       },
       "indexes": {
         "auto_import_mapped_import_idx": {
+          "name": "auto_import_mapped_import_idx",
           "columns": [
             {
               "expression": "mapped_import_id",
@@ -492,13 +495,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "auto_import_mapped_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "auto_import_frequency_idx": {
+          "name": "auto_import_frequency_idx",
           "columns": [
             {
               "expression": "frequency",
@@ -507,13 +510,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "auto_import_frequency_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "auto_import_title_idx": {
+          "name": "auto_import_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -522,13 +525,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "auto_import_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "auto_import_type_idx": {
+          "name": "auto_import_type_idx",
           "columns": [
             {
               "expression": "type",
@@ -537,19 +540,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "auto_import_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.backup_table": {
       "name": "backup_table",
@@ -642,15 +644,15 @@
       "uniqueConstraints": {
         "backup_table_filename_unique": {
           "name": "backup_table_filename_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "filename"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.bill": {
       "name": "bill",
@@ -724,6 +726,7 @@
       },
       "indexes": {
         "bill_title_idx": {
+          "name": "bill_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -732,11 +735,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "bill_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -744,15 +746,15 @@
       "uniqueConstraints": {
         "bill_title_unique": {
           "name": "bill_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.budget": {
       "name": "budget",
@@ -826,6 +828,7 @@
       },
       "indexes": {
         "budget_title_idx": {
+          "name": "budget_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -834,11 +837,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "budget_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -846,15 +848,15 @@
       "uniqueConstraints": {
         "budget_title_unique": {
           "name": "budget_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.category": {
       "name": "category",
@@ -940,6 +942,7 @@
       },
       "indexes": {
         "category_title_idx": {
+          "name": "category_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -948,13 +951,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "category_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "category_group_idx": {
+          "name": "category_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -963,13 +966,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "category_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "category_single_idx": {
+          "name": "category_single_idx",
           "columns": [
             {
               "expression": "single",
@@ -978,11 +981,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "category_single_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -990,15 +992,15 @@
       "uniqueConstraints": {
         "category_title_unique": {
           "name": "category_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.files": {
       "name": "files",
@@ -1146,6 +1148,7 @@
       },
       "indexes": {
         "file_reason_idx": {
+          "name": "file_reason_idx",
           "columns": [
             {
               "expression": "reason",
@@ -1154,13 +1157,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_reason_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_title_idx": {
+          "name": "file_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -1169,13 +1172,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_filename_idx": {
+          "name": "file_filename_idx",
           "columns": [
             {
               "expression": "filename",
@@ -1184,13 +1187,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_filename_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_type_idx": {
+          "name": "file_type_idx",
           "columns": [
             {
               "expression": "type",
@@ -1199,13 +1202,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_size_idx": {
+          "name": "file_size_idx",
           "columns": [
             {
               "expression": "size",
@@ -1214,13 +1217,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_size_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_file_exists_idx": {
+          "name": "file_file_exists_idx",
           "columns": [
             {
               "expression": "file_exists",
@@ -1229,13 +1232,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_file_exists_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_transaction_idx": {
+          "name": "file_transaction_idx",
           "columns": [
             {
               "expression": "transaction_id",
@@ -1244,13 +1247,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_transaction_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_account_idx": {
+          "name": "file_account_idx",
           "columns": [
             {
               "expression": "account_id",
@@ -1259,13 +1262,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_account_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_bill_idx": {
+          "name": "file_bill_idx",
           "columns": [
             {
               "expression": "bill_id",
@@ -1274,13 +1277,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_bill_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_budget_idx": {
+          "name": "file_budget_idx",
           "columns": [
             {
               "expression": "budget_id",
@@ -1289,13 +1292,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_budget_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_category_idx": {
+          "name": "file_category_idx",
           "columns": [
             {
               "expression": "category_id",
@@ -1304,13 +1307,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_category_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_tag_idx": {
+          "name": "file_tag_idx",
           "columns": [
             {
               "expression": "tag_id",
@@ -1319,13 +1322,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_tag_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_label_idx": {
+          "name": "file_label_idx",
           "columns": [
             {
               "expression": "label_id",
@@ -1334,13 +1337,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_label_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_auto_import_idx": {
+          "name": "file_auto_import_idx",
           "columns": [
             {
               "expression": "auto_import_id",
@@ -1349,13 +1352,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_auto_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_report_idx": {
+          "name": "file_report_idx",
           "columns": [
             {
               "expression": "report_id",
@@ -1364,13 +1367,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_report_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "file_report_element_idx": {
+          "name": "file_report_element_idx",
           "columns": [
             {
               "expression": "report_element_id",
@@ -1379,19 +1382,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "file_report_element_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.single_filter": {
       "name": "single_filter",
@@ -1431,6 +1433,7 @@
       },
       "indexes": {
         "filter_filter_text_idx": {
+          "name": "filter_filter_text_idx",
           "columns": [
             {
               "expression": "filter_text",
@@ -1439,19 +1442,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_filter_text_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.filters_to_report_configs": {
       "name": "filters_to_report_configs",
@@ -1498,6 +1500,7 @@
       },
       "indexes": {
         "report_element_config__from_filter_idx": {
+          "name": "report_element_config__from_filter_idx",
           "columns": [
             {
               "expression": "report_element_config_id",
@@ -1506,13 +1509,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config__from_filter_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_idx": {
+          "name": "filter_idx",
           "columns": [
             {
               "expression": "filter_id",
@@ -1521,11 +1524,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -1533,24 +1535,24 @@
       "uniqueConstraints": {
         "filters_to_report_configs_report_element_config_id_filter_id_unique": {
           "name": "filters_to_report_configs_report_element_config_id_filter_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "report_element_config_id",
             "filter_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "filters_to_report_configs_report_element_config_id_order_unique": {
           "name": "filters_to_report_configs_report_element_config_id_order_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "report_element_config_id",
             "order"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.import_item_detail": {
       "name": "import_item_detail",
@@ -1639,6 +1641,7 @@
       },
       "indexes": {
         "importDetail_import_idx": {
+          "name": "importDetail_import_idx",
           "columns": [
             {
               "expression": "import_id",
@@ -1647,13 +1650,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "importDetail_duplicate_idx": {
+          "name": "importDetail_duplicate_idx",
           "columns": [
             {
               "expression": "duplicate_id",
@@ -1662,13 +1665,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_duplicate_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "importDetail_relation_idx": {
+          "name": "importDetail_relation_idx",
           "columns": [
             {
               "expression": "relation_id",
@@ -1677,13 +1680,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_relation_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "importDetail_relation_2_idx": {
+          "name": "importDetail_relation_2_idx",
           "columns": [
             {
               "expression": "relation_2_id",
@@ -1692,13 +1695,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_relation_2_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "importDetail_status_idx": {
+          "name": "importDetail_status_idx",
           "columns": [
             {
               "expression": "status",
@@ -1707,19 +1710,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "importDetail_status_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.import_mapping": {
       "name": "import_mapping",
@@ -1768,8 +1770,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.import": {
       "name": "import",
@@ -1876,6 +1878,7 @@
       },
       "indexes": {
         "label_status_idx": {
+          "name": "label_status_idx",
           "columns": [
             {
               "expression": "status",
@@ -1884,13 +1887,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_status_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "label_source_idx": {
+          "name": "label_source_idx",
           "columns": [
             {
               "expression": "source",
@@ -1899,13 +1902,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_source_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "label_type_idx": {
+          "name": "label_type_idx",
           "columns": [
             {
               "expression": "type",
@@ -1914,13 +1917,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "label_mapped_import_idx": {
+          "name": "label_mapped_import_idx",
           "columns": [
             {
               "expression": "mapped_import_id",
@@ -1929,13 +1932,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_mapped_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "import_auto_import_idx": {
+          "name": "import_auto_import_idx",
           "columns": [
             {
               "expression": "auto_import_id",
@@ -1944,19 +1947,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "import_auto_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.journal_entry": {
       "name": "journal_entry",
@@ -2128,6 +2130,7 @@
       },
       "indexes": {
         "journalEntry_created_at_idx": {
+          "name": "journalEntry_created_at_idx",
           "columns": [
             {
               "expression": "created_at",
@@ -2136,13 +2139,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_created_at_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_transaction_id_idx": {
+          "name": "journalEntry_transaction_id_idx",
           "columns": [
             {
               "expression": "transaction_id",
@@ -2151,13 +2154,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_transaction_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_date_amount_idx": {
+          "name": "journalEntry_date_amount_idx",
           "columns": [
             {
               "expression": "date",
@@ -2172,13 +2175,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_date_amount_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_date_idx": {
+          "name": "journalEntry_date_idx",
           "columns": [
             {
               "expression": "date",
@@ -2187,13 +2190,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_date_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_date_text_idx": {
+          "name": "journalEntry_date_text_idx",
           "columns": [
             {
               "expression": "date_text",
@@ -2202,13 +2205,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_date_text_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_description_idx": {
+          "name": "journalEntry_description_idx",
           "columns": [
             {
               "expression": "description",
@@ -2217,13 +2220,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_description_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_transfer_idx": {
+          "name": "journalEntry_transfer_idx",
           "columns": [
             {
               "expression": "transfer",
@@ -2232,13 +2235,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_transfer_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_complete_idx": {
+          "name": "journalEntry_complete_idx",
           "columns": [
             {
               "expression": "complete",
@@ -2247,13 +2250,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_complete_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_reconciled_idx": {
+          "name": "journalEntry_reconciled_idx",
           "columns": [
             {
               "expression": "reconciled",
@@ -2262,13 +2265,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_reconciled_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_data_checked_idx": {
+          "name": "journalEntry_data_checked_idx",
           "columns": [
             {
               "expression": "data_checked",
@@ -2277,13 +2280,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_data_checked_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_account_id_idx": {
+          "name": "journalEntry_account_id_idx",
           "columns": [
             {
               "expression": "account_id",
@@ -2292,13 +2295,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_account_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_bill_id_idx": {
+          "name": "journalEntry_bill_id_idx",
           "columns": [
             {
               "expression": "bill_id",
@@ -2307,13 +2310,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_bill_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_budget_id_idx": {
+          "name": "journalEntry_budget_id_idx",
           "columns": [
             {
               "expression": "budget_id",
@@ -2322,13 +2325,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_budget_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_category_id_idx": {
+          "name": "journalEntry_category_id_idx",
           "columns": [
             {
               "expression": "category_id",
@@ -2337,13 +2340,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_category_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_tag_id_idx": {
+          "name": "journalEntry_tag_id_idx",
           "columns": [
             {
               "expression": "tag_id",
@@ -2352,13 +2355,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_tag_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_import_id_idx": {
+          "name": "journalEntry_import_id_idx",
           "columns": [
             {
               "expression": "import_id",
@@ -2367,13 +2370,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_import_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_import_detail_id_idx": {
+          "name": "journalEntry_import_detail_id_idx",
           "columns": [
             {
               "expression": "import_detail_id",
@@ -2382,13 +2385,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_import_detail_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journalEntry_year_month_idx": {
+          "name": "journalEntry_year_month_idx",
           "columns": [
             {
               "expression": "year_month",
@@ -2397,19 +2400,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journalEntry_year_month_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.key_value_table": {
       "name": "key_value_table",
@@ -2434,15 +2436,15 @@
       "uniqueConstraints": {
         "key_value_table_key_unique": {
           "name": "key_value_table_key_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "key"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.label": {
       "name": "label",
@@ -2520,15 +2522,15 @@
       "uniqueConstraints": {
         "label_title_unique": {
           "name": "label_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.labels_to_journals": {
       "name": "labels_to_journals",
@@ -2568,6 +2570,7 @@
       },
       "indexes": {
         "label_idx": {
+          "name": "label_idx",
           "columns": [
             {
               "expression": "label_id",
@@ -2576,13 +2579,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "label_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "journal_idx": {
+          "name": "journal_idx",
           "columns": [
             {
               "expression": "journal_id",
@@ -2591,11 +2594,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "journal_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -2603,16 +2605,16 @@
       "uniqueConstraints": {
         "labels_to_journals_journal_id_label_id_unique": {
           "name": "labels_to_journals_journal_id_label_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "journal_id",
             "label_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.notes": {
       "name": "notes",
@@ -2725,6 +2727,7 @@
       },
       "indexes": {
         "note_note_idx": {
+          "name": "note_note_idx",
           "columns": [
             {
               "expression": "note",
@@ -2733,13 +2736,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_note_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_type_idx": {
+          "name": "note_type_idx",
           "columns": [
             {
               "expression": "type",
@@ -2748,13 +2751,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_transaction_idx": {
+          "name": "note_transaction_idx",
           "columns": [
             {
               "expression": "transaction_id",
@@ -2763,13 +2766,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_transaction_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_account_idx": {
+          "name": "note_account_idx",
           "columns": [
             {
               "expression": "account_id",
@@ -2778,13 +2781,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_account_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_bill_idx": {
+          "name": "note_bill_idx",
           "columns": [
             {
               "expression": "bill_id",
@@ -2793,13 +2796,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_bill_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_budget_idx": {
+          "name": "note_budget_idx",
           "columns": [
             {
               "expression": "budget_id",
@@ -2808,13 +2811,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_budget_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_category_idx": {
+          "name": "note_category_idx",
           "columns": [
             {
               "expression": "category_id",
@@ -2823,13 +2826,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_category_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_tag_idx": {
+          "name": "note_tag_idx",
           "columns": [
             {
               "expression": "tag_id",
@@ -2838,13 +2841,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_tag_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_label_idx": {
+          "name": "note_label_idx",
           "columns": [
             {
               "expression": "label_id",
@@ -2853,13 +2856,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_label_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_created_by_idx": {
+          "name": "note_created_by_idx",
           "columns": [
             {
               "expression": "created_by",
@@ -2868,13 +2871,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_created_by_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_file_idx": {
+          "name": "note_file_idx",
           "columns": [
             {
               "expression": "file_id",
@@ -2883,13 +2886,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_file_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_auto_import_idx": {
+          "name": "note_auto_import_idx",
           "columns": [
             {
               "expression": "auto_import_id",
@@ -2898,13 +2901,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_auto_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_report_idx": {
+          "name": "note_report_idx",
           "columns": [
             {
               "expression": "report_id",
@@ -2913,13 +2916,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_report_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "note_report_element_idx": {
+          "name": "note_report_element_idx",
           "columns": [
             {
               "expression": "report_element_id",
@@ -2928,19 +2931,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "note_report_element_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.report": {
       "name": "report",
@@ -2980,6 +2982,7 @@
         "size": {
           "name": "size",
           "type": "report_size",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'xl'"
@@ -3000,6 +3003,7 @@
       },
       "indexes": {
         "report_title_idx": {
+          "name": "report_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -3008,13 +3012,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_group_idx": {
+          "name": "report_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -3023,13 +3027,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_title_group_idx": {
+          "name": "report_title_group_idx",
           "columns": [
             {
               "expression": "title",
@@ -3044,13 +3048,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_title_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_locked_idx": {
+          "name": "report_locked_idx",
           "columns": [
             {
               "expression": "locked",
@@ -3059,13 +3063,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_locked_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_filter_idx": {
+          "name": "report_filter_idx",
           "columns": [
             {
               "expression": "filter_id",
@@ -3074,19 +3078,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_filter_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.report_element": {
       "name": "report_element",
@@ -3159,6 +3162,7 @@
       },
       "indexes": {
         "report_element_config_idx": {
+          "name": "report_element_config_idx",
           "columns": [
             {
               "expression": "report_element_config_id",
@@ -3167,13 +3171,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_idx": {
+          "name": "report_idx",
           "columns": [
             {
               "expression": "report_id",
@@ -3182,13 +3186,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_filter_idx": {
+          "name": "report_element_filter_idx",
           "columns": [
             {
               "expression": "filter_id",
@@ -3197,19 +3201,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_filter_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.report_element_config": {
       "name": "report_element_config",
@@ -3276,6 +3279,7 @@
       },
       "indexes": {
         "report_element_config_title_idx": {
+          "name": "report_element_config_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -3284,13 +3288,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_config_group_idx": {
+          "name": "report_element_config_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -3299,13 +3303,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_config_reusable_idx": {
+          "name": "report_element_config_reusable_idx",
           "columns": [
             {
               "expression": "reusable",
@@ -3314,13 +3318,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_reusable_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_config_title_group_idx": {
+          "name": "report_element_config_title_group_idx",
           "columns": [
             {
               "expression": "title",
@@ -3335,13 +3339,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_title_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "report_element_config_locked_idx": {
+          "name": "report_element_config_locked_idx",
           "columns": [
             {
               "expression": "locked",
@@ -3350,19 +3354,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "report_element_config_locked_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.filter": {
       "name": "filter",
@@ -3475,6 +3478,7 @@
       },
       "indexes": {
         "filter_title_idx": {
+          "name": "filter_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -3483,13 +3487,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_group_idx": {
+          "name": "filter_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -3498,13 +3502,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_can_apply_idx": {
+          "name": "filter_can_apply_idx",
           "columns": [
             {
               "expression": "can_apply",
@@ -3513,13 +3517,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_can_apply_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_needs_update_idx": {
+          "name": "filter_needs_update_idx",
           "columns": [
             {
               "expression": "needs_update",
@@ -3528,13 +3532,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_needs_update_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_apply_automatically_idx": {
+          "name": "filter_apply_automatically_idx",
           "columns": [
             {
               "expression": "apply_automatically",
@@ -3543,13 +3547,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_apply_automatically_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_apply_following_import_idx": {
+          "name": "filter_apply_following_import_idx",
           "columns": [
             {
               "expression": "apply_following_import",
@@ -3558,13 +3562,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_apply_following_import_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_listed_idx": {
+          "name": "filter_listed_idx",
           "columns": [
             {
               "expression": "listed",
@@ -3573,13 +3577,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_listed_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "filter_modification_type_idx": {
+          "name": "filter_modification_type_idx",
           "columns": [
             {
               "expression": "modification_type",
@@ -3588,19 +3592,18 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "filter_modification_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.tag": {
       "name": "tag",
@@ -3686,6 +3689,7 @@
       },
       "indexes": {
         "tag_title_idx": {
+          "name": "tag_title_idx",
           "columns": [
             {
               "expression": "title",
@@ -3694,13 +3698,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "tag_title_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "tag_group_idx": {
+          "name": "tag_group_idx",
           "columns": [
             {
               "expression": "group",
@@ -3709,13 +3713,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "tag_group_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "tag_single_idx": {
+          "name": "tag_single_idx",
           "columns": [
             {
               "expression": "single",
@@ -3724,11 +3728,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "tag_single_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -3736,15 +3739,15 @@
       "uniqueConstraints": {
         "tag_title_unique": {
           "name": "tag_title_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "title"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.transaction": {
       "name": "transaction",
@@ -3775,8 +3778,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.query_contents": {
       "name": "query_contents",
@@ -3800,8 +3803,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.query_log": {
       "name": "query_log",
@@ -3868,8 +3871,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.query_log_title": {
       "name": "query_log_title",
@@ -3893,8 +3896,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "isRLSEnabled": false,
-      "checkConstraints": {}
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -3910,15 +3913,1622 @@
     }
   },
   "schemas": {},
-  "_meta": {
-    "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "447160e7-cb9c-4f2a-82ec-12af55f2f4b2",
-  "prevId": "91fbde0a-523d-41c3-901c-975ac26d1a9d",
   "sequences": {},
+  "roles": {},
   "policies": {},
-  "views": {},
-  "roles": {}
+  "views": {
+    "public.account_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_import_detail_id": {
+          "name": "account_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'expense'"
+        },
+        "is_cash": {
+          "name": "is_cash",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_net_worth": {
+          "name": "is_net_worth",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "account_group": {
+          "name": "account_group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_2": {
+          "name": "account_group_2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_3": {
+          "name": "account_group_3",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_combined": {
+          "name": "account_group_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_title_combined": {
+          "name": "account_title_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "with \"filessq\" as (select \"account_id\", count(\"id\") as \"file_count\" from \"files\" where \"files\".\"account_id\" is not null group by \"files\".\"account_id\"), \"notessq\" as (select \"account_id\", count(\"id\") as \"note_count\" from \"notes\" where \"notes\".\"account_id\" is not null group by \"notes\".\"account_id\"), \"reminderssq\" as (select \"account_id\", count(\"id\") as \"reminder_count\" from \"notes\" where (\"notes\".\"type\" = 'reminder' and \"notes\".\"account_id\" is not null) group by \"notes\".\"account_id\") select \"account\".\"id\", \"account\".\"import_id\", \"account\".\"account_import_detail_id\", \"account\".\"title\", \"account\".\"type\", \"account\".\"is_cash\", \"account\".\"is_net_worth\", \"account\".\"account_group\", \"account\".\"account_group_2\", \"account\".\"account_group_3\", \"account\".\"account_group_combined\", \"account\".\"account_title_combined\", \"account\".\"start_date\", \"account\".\"end_date\", \"account\".\"status\", \"account\".\"active\", \"account\".\"disabled\", \"account\".\"allow_update\", \"account\".\"created_at\", \"account\".\"updated_at\", sum(\"journal_entry\".\"amount\") as \"sum\", count(\"journal_entry\".\"id\") as \"count\", min(\"journal_entry\".\"date\") as \"firstDate\", max(\"journal_entry\".\"date\") as \"lastDate\", max(\"note_count\") as \"note_count\", max(\"reminder_count\") as \"reminder_count\", max(\"file_count\") as \"file_count\" from \"account\" left join \"journal_entry\" on \"account\".\"id\" = \"journal_entry\".\"account_id\" left join \"import\" on \"journal_entry\".\"import_id\" = \"import\".\"id\" left join \"filessq\" on \"account\".\"id\" = \"filessq\".\"account_id\" left join \"notessq\" on \"account\".\"id\" = \"notessq\".\"account_id\" left join \"reminderssq\" on \"account\".\"id\" = \"reminderssq\".\"account_id\" group by \"account\".\"id\"",
+      "name": "account_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    },
+    "public.bill_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_import_detail_id": {
+          "name": "bill_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "with \"filessq\" as (select \"bill_id\", count(\"id\") as \"file_count\" from \"files\" where \"files\".\"bill_id\" is not null group by \"files\".\"bill_id\"), \"notessq\" as (select \"bill_id\", count(\"id\") as \"note_count\" from \"notes\" where \"notes\".\"bill_id\" is not null group by \"notes\".\"bill_id\"), \"reminderssq\" as (select \"bill_id\", count(\"id\") as \"reminder_count\" from \"notes\" where (\"notes\".\"type\" = 'reminder' and \"notes\".\"bill_id\" is not null) group by \"notes\".\"bill_id\") select \"bill\".\"id\", \"bill\".\"import_id\", \"bill\".\"bill_import_detail_id\", \"bill\".\"title\", \"bill\".\"status\", \"bill\".\"active\", \"bill\".\"disabled\", \"bill\".\"allow_update\", \"bill\".\"created_at\", \"bill\".\"updated_at\", sum(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN \"journal_entry\".\"amount\" ELSE 0 END) as \"sum\", count(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN 1 ELSE NULL END) as \"count\", min(\"journal_entry\".\"date\") as \"firstDate\", max(\"journal_entry\".\"date\") as \"lastDate\", max(\"note_count\") as \"note_count\", max(\"reminder_count\") as \"reminder_count\", max(\"file_count\") as \"file_count\" from \"bill\" left join \"journal_entry\" on \"bill\".\"id\" = \"journal_entry\".\"bill_id\" left join \"account\" on \"journal_entry\".\"account_id\" = \"account\".\"id\" left join \"filessq\" on \"bill\".\"id\" = \"filessq\".\"bill_id\" left join \"notessq\" on \"bill\".\"id\" = \"notessq\".\"bill_id\" left join \"reminderssq\" on \"bill\".\"id\" = \"reminderssq\".\"bill_id\" group by \"bill\".\"id\"",
+      "name": "bill_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    },
+    "public.budget_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget_import_detail_id": {
+          "name": "budget_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "with \"filessq\" as (select \"budget_id\", count(\"id\") as \"file_count\" from \"files\" where \"files\".\"budget_id\" is not null group by \"files\".\"budget_id\"), \"notessq\" as (select \"budget_id\", count(\"id\") as \"note_count\" from \"notes\" where \"notes\".\"budget_id\" is not null group by \"notes\".\"budget_id\"), \"reminderssq\" as (select \"budget_id\", count(\"id\") as \"reminder_count\" from \"notes\" where (\"notes\".\"type\" = 'reminder' and \"notes\".\"budget_id\" is not null) group by \"notes\".\"budget_id\") select \"budget\".\"id\", \"budget\".\"import_id\", \"budget\".\"budget_import_detail_id\", \"budget\".\"title\", \"budget\".\"status\", \"budget\".\"active\", \"budget\".\"disabled\", \"budget\".\"allow_update\", \"budget\".\"created_at\", \"budget\".\"updated_at\", sum(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN \"journal_entry\".\"amount\" ELSE 0 END) as \"sum\", count(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN 1 ELSE NULL END) as \"count\", min(\"journal_entry\".\"date\") as \"firstDate\", max(\"journal_entry\".\"date\") as \"lastDate\", max(\"note_count\") as \"note_count\", max(\"reminder_count\") as \"reminder_count\", max(\"file_count\") as \"file_count\" from \"budget\" left join \"journal_entry\" on \"budget\".\"id\" = \"journal_entry\".\"budget_id\" left join \"account\" on \"journal_entry\".\"account_id\" = \"account\".\"id\" left join \"filessq\" on \"budget\".\"id\" = \"filessq\".\"budget_id\" left join \"notessq\" on \"budget\".\"id\" = \"notessq\".\"budget_id\" left join \"reminderssq\" on \"budget\".\"id\" = \"reminderssq\".\"budget_id\" group by \"budget\".\"id\"",
+      "name": "budget_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    },
+    "public.category_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_import_detail_id": {
+          "name": "category_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "single": {
+          "name": "single",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "with \"filessq\" as (select \"category_id\", count(\"id\") as \"file_count\" from \"files\" where \"files\".\"category_id\" is not null group by \"files\".\"category_id\"), \"notessq\" as (select \"category_id\", count(\"id\") as \"note_count\" from \"notes\" where \"notes\".\"category_id\" is not null group by \"notes\".\"category_id\"), \"reminderssq\" as (select \"category_id\", count(\"id\") as \"reminder_count\" from \"notes\" where (\"notes\".\"type\" = 'reminder' and \"notes\".\"category_id\" is not null) group by \"notes\".\"category_id\") select \"category\".\"id\", \"category\".\"import_id\", \"category\".\"category_import_detail_id\", \"category\".\"title\", \"category\".\"group\", \"category\".\"single\", \"category\".\"status\", \"category\".\"active\", \"category\".\"disabled\", \"category\".\"allow_update\", \"category\".\"created_at\", \"category\".\"updated_at\", sum(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN \"journal_entry\".\"amount\" ELSE 0 END) as \"sum\", count(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN 1 ELSE NULL END) as \"count\", min(\"journal_entry\".\"date\") as \"firstDate\", max(\"journal_entry\".\"date\") as \"lastDate\", max(\"note_count\") as \"note_count\", max(\"reminder_count\") as \"reminder_count\", max(\"file_count\") as \"file_count\" from \"category\" left join \"journal_entry\" on \"category\".\"id\" = \"journal_entry\".\"category_id\" left join \"account\" on \"journal_entry\".\"account_id\" = \"account\".\"id\" left join \"filessq\" on \"category\".\"id\" = \"filessq\".\"category_id\" left join \"notessq\" on \"category\".\"id\" = \"notessq\".\"category_id\" left join \"reminderssq\" on \"category\".\"id\" = \"reminderssq\".\"category_id\" group by \"category\".\"id\"",
+      "name": "category_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    },
+    "public.import_check_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "relation_id": {
+          "name": "relation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "relation_2_id": {
+          "name": "relation_2_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "definition": "select \"id\", \"created_at\", \"relation_id\", \"relation_2_id\", processed_info->'dataToUse'->>'description' as \"description\" from \"import_item_detail\" where (processed_info->'dataToUse'->>'description' is not null and (\"import_item_detail\".\"relation_id\" is not null or \"import_item_detail\".\"relation_2_id\" is not null))",
+      "name": "import_check_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    },
+    "public.journal_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "import_detail_id": {
+          "name": "import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unique_id": {
+          "name": "unique_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(20, 4)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_text": {
+          "name": "date_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_id": {
+          "name": "bill_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget_id": {
+          "name": "budget_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_month_day": {
+          "name": "year_month_day",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_week": {
+          "name": "year_week",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_month": {
+          "name": "year_month",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_quarter": {
+          "name": "year_quarter",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "linked": {
+          "name": "linked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "reconciled": {
+          "name": "reconciled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "data_checked": {
+          "name": "data_checked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "complete": {
+          "name": "complete",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "transfer": {
+          "name": "transfer",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'expense'"
+        },
+        "is_cash": {
+          "name": "is_cash",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_net_worth": {
+          "name": "is_net_worth",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "account_group": {
+          "name": "account_group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_2": {
+          "name": "account_group_2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_3": {
+          "name": "account_group_3",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_combined": {
+          "name": "account_group_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_title_combined": {
+          "name": "account_title_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "definition": "with \"filessq\" as (select \"transaction_id\", count(\"id\") as \"file_count\" from \"files\" where \"files\".\"transaction_id\" is not null group by \"files\".\"transaction_id\"), \"notessq\" as (select \"transaction_id\", count(\"id\") as \"note_count\" from \"notes\" where \"notes\".\"transaction_id\" is not null group by \"notes\".\"transaction_id\"), \"reminderssq\" as (select \"transaction_id\", count(\"id\") as \"reminder_count\" from \"notes\" where (\"notes\".\"type\" = 'reminder' and \"notes\".\"transaction_id\" is not null) group by \"notes\".\"transaction_id\") select \"journal_entry\".\"id\", \"journal_entry\".\"import_id\", \"journal_entry\".\"import_detail_id\", \"journal_entry\".\"unique_id\", \"journal_entry\".\"amount\", \"transaction\".\"id\" as \"transaction_id\", \"journal_entry\".\"description\", \"journal_entry\".\"date\", \"journal_entry\".\"date_text\", \"journal_entry\".\"tag_id\", \"journal_entry\".\"bill_id\", \"journal_entry\".\"budget_id\", \"journal_entry\".\"category_id\", \"journal_entry\".\"account_id\", \"journal_entry\".\"year_month_day\", \"journal_entry\".\"year_week\", \"journal_entry\".\"year_month\", \"journal_entry\".\"year_quarter\", \"journal_entry\".\"year\", \"journal_entry\".\"linked\", \"journal_entry\".\"reconciled\", \"journal_entry\".\"data_checked\", \"journal_entry\".\"complete\", \"journal_entry\".\"transfer\", \"journal_entry\".\"created_at\", \"journal_entry\".\"updated_at\", \"account\".\"title\", \"account\".\"type\", \"account\".\"is_cash\", \"account\".\"is_net_worth\", \"account\".\"account_group\", \"account\".\"account_group_2\", \"account\".\"account_group_3\", \"account\".\"account_group_combined\", \"account\".\"account_title_combined\", \"account\".\"start_date\", \"account\".\"end_date\", \"account\".\"status\" as \"account_status\", \"account\".\"active\" as \"account_active\", \"account\".\"disabled\" as \"account_disabled\", \"account\".\"allow_update\" as \"account_allow_update\", \"bill\".\"title\" as \"bill_title\", \"bill\".\"status\" as \"bill_status\", \"bill\".\"active\" as \"bill_active\", \"bill\".\"disabled\" as \"bill_disabled\", \"bill\".\"allow_update\" as \"bill_allow_update\", \"budget\".\"title\" as \"budget_title\", \"budget\".\"status\" as \"budget_status\", \"budget\".\"active\" as \"budget_active\", \"budget\".\"disabled\" as \"budget_disabled\", \"budget\".\"allow_update\" as \"budget_allow_update\", \"category\".\"title\" as \"category_title\", \"category\".\"group\" as \"category_group\", \"category\".\"single\" as \"category_single\", \"category\".\"status\" as \"category_status\", \"category\".\"active\" as \"category_active\", \"category\".\"disabled\" as \"category_disabled\", \"category\".\"allow_update\" as \"category_allow_update\", \"tag\".\"title\" as \"tag_title\", \"tag\".\"group\" as \"tag_group\", \"tag\".\"single\" as \"tag_single\", \"tag\".\"status\" as \"tag_status\", \"tag\".\"active\" as \"tag_active\", \"tag\".\"disabled\" as \"tag_disabled\", \"tag\".\"allow_update\" as \"tag_allow_update\", \"import\".\"title\" as \"import_title\", \"note_count\", \"reminder_count\", \"file_count\", true as \"all\" from \"journal_entry\" left join \"transaction\" on \"journal_entry\".\"transaction_id\" = \"transaction\".\"id\" left join \"account\" on \"journal_entry\".\"account_id\" = \"account\".\"id\" left join \"bill\" on \"journal_entry\".\"bill_id\" = \"bill\".\"id\" left join \"budget\" on \"journal_entry\".\"budget_id\" = \"budget\".\"id\" left join \"category\" on \"journal_entry\".\"category_id\" = \"category\".\"id\" left join \"tag\" on \"journal_entry\".\"tag_id\" = \"tag\".\"id\" left join \"import\" on \"journal_entry\".\"import_id\" = \"import\".\"id\" left join \"filessq\" on \"journal_entry\".\"transaction_id\" = \"filessq\".\"transaction_id\" left join \"notessq\" on \"journal_entry\".\"transaction_id\" = \"notessq\".\"transaction_id\" left join \"reminderssq\" on \"journal_entry\".\"transaction_id\" = \"reminderssq\".\"transaction_id\"",
+      "name": "journal_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    },
+    "public.label_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "label_import_detail_id": {
+          "name": "label_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "with \"filessq\" as (select \"label_id\", count(\"id\") as \"file_count\" from \"files\" where \"files\".\"label_id\" is not null group by \"files\".\"label_id\"), \"notessq\" as (select \"label_id\", count(\"id\") as \"note_count\" from \"notes\" where \"notes\".\"label_id\" is not null group by \"notes\".\"label_id\"), \"reminderssq\" as (select \"label_id\", count(\"id\") as \"reminder_count\" from \"notes\" where (\"notes\".\"type\" = 'reminder' and \"notes\".\"label_id\" is not null) group by \"notes\".\"label_id\") select \"label\".\"id\", \"label\".\"import_id\", \"label\".\"label_import_detail_id\", \"label\".\"title\", \"label\".\"status\", \"label\".\"active\", \"label\".\"disabled\", \"label\".\"allow_update\", \"label\".\"created_at\", \"label\".\"updated_at\", sum(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN \"journal_entry\".\"amount\" ELSE 0 END) as \"sum\", count(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN 1 ELSE NULL END) as \"count\", min(\"journal_entry\".\"date\") as \"firstDate\", max(\"journal_entry\".\"date\") as \"lastDate\", max(\"note_count\") as \"note_count\", max(\"reminder_count\") as \"reminder_count\", max(\"file_count\") as \"file_count\" from \"label\" left join \"labels_to_journals\" on \"label\".\"id\" = \"labels_to_journals\".\"label_id\" left join \"journal_entry\" on \"labels_to_journals\".\"journal_id\" = \"journal_entry\".\"id\" left join \"account\" on \"journal_entry\".\"account_id\" = \"account\".\"id\" left join \"filessq\" on \"label\".\"id\" = \"filessq\".\"label_id\" left join \"notessq\" on \"label\".\"id\" = \"notessq\".\"label_id\" left join \"reminderssq\" on \"label\".\"id\" = \"reminderssq\".\"label_id\" group by \"label\".\"id\"",
+      "name": "label_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    },
+    "public.tag_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tag_import_detail_id": {
+          "name": "tag_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "single": {
+          "name": "single",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "with \"filessq\" as (select \"tag_id\", count(\"id\") as \"file_count\" from \"files\" where \"files\".\"tag_id\" is not null group by \"files\".\"tag_id\"), \"notessq\" as (select \"tag_id\", count(\"id\") as \"note_count\" from \"notes\" where \"notes\".\"tag_id\" is not null group by \"notes\".\"tag_id\"), \"reminderssq\" as (select \"tag_id\", count(\"id\") as \"reminder_count\" from \"notes\" where (\"notes\".\"type\" = 'reminder' and \"notes\".\"tag_id\" is not null) group by \"notes\".\"tag_id\") select \"tag\".\"id\", \"tag\".\"import_id\", \"tag\".\"tag_import_detail_id\", \"tag\".\"title\", \"tag\".\"group\", \"tag\".\"single\", \"tag\".\"status\", \"tag\".\"active\", \"tag\".\"disabled\", \"tag\".\"allow_update\", \"tag\".\"created_at\", \"tag\".\"updated_at\", sum(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN \"journal_entry\".\"amount\" ELSE 0 END) as \"sum\", count(CASE WHEN \"account\".\"type\" IN ('asset', 'liability') THEN 1 ELSE NULL END) as \"count\", min(\"journal_entry\".\"date\") as \"firstDate\", max(\"journal_entry\".\"date\") as \"lastDate\", max(\"note_count\") as \"note_count\", max(\"reminder_count\") as \"reminder_count\", max(\"file_count\") as \"file_count\" from \"tag\" left join \"journal_entry\" on \"tag\".\"id\" = \"journal_entry\".\"tag_id\" left join \"account\" on \"journal_entry\".\"account_id\" = \"account\".\"id\" left join \"filessq\" on \"tag\".\"id\" = \"filessq\".\"tag_id\" left join \"notessq\" on \"tag\".\"id\" = \"notessq\".\"tag_id\" left join \"reminderssq\" on \"tag\".\"id\" = \"reminderssq\".\"tag_id\" group by \"tag\".\"id\"",
+      "name": "tag_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    },
+    "public.account_materialized_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_import_detail_id": {
+          "name": "account_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'expense'"
+        },
+        "is_cash": {
+          "name": "is_cash",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_net_worth": {
+          "name": "is_net_worth",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "account_group": {
+          "name": "account_group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_2": {
+          "name": "account_group_2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_3": {
+          "name": "account_group_3",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_combined": {
+          "name": "account_group_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_title_combined": {
+          "name": "account_title_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "select \"id\", \"import_id\", \"account_import_detail_id\", \"title\", \"type\", \"is_cash\", \"is_net_worth\", \"account_group\", \"account_group_2\", \"account_group_3\", \"account_group_combined\", \"account_title_combined\", \"start_date\", \"end_date\", \"status\", \"active\", \"disabled\", \"allow_update\", \"created_at\", \"updated_at\", \"sum\", \"count\", \"firstDate\", \"lastDate\", \"note_count\", \"reminder_count\", \"file_count\" from \"account_view\"",
+      "name": "account_materialized_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": true
+    },
+    "public.bill_materialized_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_import_detail_id": {
+          "name": "bill_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "select \"id\", \"import_id\", \"bill_import_detail_id\", \"title\", \"status\", \"active\", \"disabled\", \"allow_update\", \"created_at\", \"updated_at\", \"sum\", \"count\", \"firstDate\", \"lastDate\", \"note_count\", \"reminder_count\", \"file_count\" from \"bill_view\"",
+      "name": "bill_materialized_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": true
+    },
+    "public.budget_materialized_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget_import_detail_id": {
+          "name": "budget_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "select \"id\", \"import_id\", \"budget_import_detail_id\", \"title\", \"status\", \"active\", \"disabled\", \"allow_update\", \"created_at\", \"updated_at\", \"sum\", \"count\", \"firstDate\", \"lastDate\", \"note_count\", \"reminder_count\", \"file_count\" from \"budget_view\"",
+      "name": "budget_materialized_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": true
+    },
+    "public.category_materialized_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_import_detail_id": {
+          "name": "category_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "single": {
+          "name": "single",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "select \"id\", \"import_id\", \"category_import_detail_id\", \"title\", \"group\", \"single\", \"status\", \"active\", \"disabled\", \"allow_update\", \"created_at\", \"updated_at\", \"sum\", \"count\", \"firstDate\", \"lastDate\", \"note_count\", \"reminder_count\", \"file_count\" from \"category_view\"",
+      "name": "category_materialized_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": true
+    },
+    "public.date_range_materialized_view": {
+      "columns": {},
+      "definition": "select min(\"date\") as \"minDate\", max(\"date\") as \"maxDate\" from \"journal_entry\"",
+      "name": "date_range_materialized_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": true
+    },
+    "public.import_check_materialized_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "relation_id": {
+          "name": "relation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "relation_2_id": {
+          "name": "relation_2_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "definition": "select \"id\", \"created_at\", \"relation_id\", \"relation_2_id\", \"description\" from \"import_check_view\"",
+      "name": "import_check_materialized_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": true
+    },
+    "public.journal_extended_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "import_detail_id": {
+          "name": "import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unique_id": {
+          "name": "unique_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(20, 4)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_text": {
+          "name": "date_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bill_id": {
+          "name": "bill_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget_id": {
+          "name": "budget_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_month_day": {
+          "name": "year_month_day",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_week": {
+          "name": "year_week",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_month": {
+          "name": "year_month",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year_quarter": {
+          "name": "year_quarter",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "linked": {
+          "name": "linked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "reconciled": {
+          "name": "reconciled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "data_checked": {
+          "name": "data_checked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "complete": {
+          "name": "complete",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "transfer": {
+          "name": "transfer",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'expense'"
+        },
+        "is_cash": {
+          "name": "is_cash",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_net_worth": {
+          "name": "is_net_worth",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "account_group": {
+          "name": "account_group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_2": {
+          "name": "account_group_2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_3": {
+          "name": "account_group_3",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_combined": {
+          "name": "account_group_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_title_combined": {
+          "name": "account_title_combined",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "definition": "select \"id\", \"import_id\", \"import_detail_id\", \"unique_id\", \"amount\", \"transaction_id\", \"description\", \"date\", \"date_text\", \"tag_id\", \"bill_id\", \"budget_id\", \"category_id\", \"account_id\", \"year_month_day\", \"year_week\", \"year_month\", \"year_quarter\", \"year\", \"linked\", \"reconciled\", \"data_checked\", \"complete\", \"transfer\", \"created_at\", \"updated_at\", \"title\", \"type\", \"is_cash\", \"is_net_worth\", \"account_group\", \"account_group_2\", \"account_group_3\", \"account_group_combined\", \"account_title_combined\", \"start_date\", \"end_date\", \"account_status\", \"account_active\", \"account_disabled\", \"account_allow_update\", \"bill_title\", \"bill_status\", \"bill_active\", \"bill_disabled\", \"bill_allow_update\", \"budget_title\", \"budget_status\", \"budget_active\", \"budget_disabled\", \"budget_allow_update\", \"category_title\", \"category_group\", \"category_single\", \"category_status\", \"category_active\", \"category_disabled\", \"category_allow_update\", \"tag_title\", \"tag_group\", \"tag_single\", \"tag_status\", \"tag_active\", \"tag_disabled\", \"tag_allow_update\", \"import_title\", \"note_count\", \"reminder_count\", \"file_count\", \"all\" from \"journal_view\"",
+      "name": "journal_extended_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": true
+    },
+    "public.label_materialized_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "label_import_detail_id": {
+          "name": "label_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "select \"id\", \"import_id\", \"label_import_detail_id\", \"title\", \"status\", \"active\", \"disabled\", \"allow_update\", \"created_at\", \"updated_at\", \"sum\", \"count\", \"firstDate\", \"lastDate\", \"note_count\", \"reminder_count\", \"file_count\" from \"label_view\"",
+      "name": "label_materialized_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": true
+    },
+    "public.tag_materialized_view": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "import_id": {
+          "name": "import_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tag_import_detail_id": {
+          "name": "tag_import_detail_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "single": {
+          "name": "single",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "disabled": {
+          "name": "disabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "allow_update": {
+          "name": "allow_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "definition": "select \"id\", \"import_id\", \"tag_import_detail_id\", \"title\", \"group\", \"single\", \"status\", \"active\", \"disabled\", \"allow_update\", \"created_at\", \"updated_at\", \"sum\", \"count\", \"firstDate\", \"lastDate\", \"note_count\", \"reminder_count\", \"file_count\" from \"tag_view\"",
+      "name": "tag_materialized_view",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": true
+    }
+  },
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
 }
