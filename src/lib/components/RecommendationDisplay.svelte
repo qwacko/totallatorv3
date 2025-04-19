@@ -9,8 +9,8 @@
 		updateAndSave
 	}: {
 		recommendations: Promise<RecommendationType[] | undefined>;
-		update: (rec: RecommendationType) => void;
-		updateAndSave: (rec: RecommendationType) => void;
+		update?: (rec: RecommendationType) => void;
+		updateAndSave?: (rec: RecommendationType) => void;
 	} = $props();
 </script>
 
@@ -27,8 +27,8 @@
 				{#each recs as rec}
 					<RecommendationDisplaySingle
 						recommendation={rec}
-						update={() => update(rec)}
-						updateAndSave={() => updateAndSave(rec)}
+						update={update ? () => update(rec) : undefined}
+						updateAndSave={updateAndSave ? () => updateAndSave(rec) : undefined}
 					/>
 				{/each}
 			</div>

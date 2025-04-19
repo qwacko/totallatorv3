@@ -38,6 +38,7 @@
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
+	import RecommendationButton from '$lib/components/RecommendationButton.svelte';
 
 	const { data } = $props();
 
@@ -350,6 +351,11 @@
 									transactionId: currentJournal.transactionId
 								}}
 								transactionId={currentJournal.transactionId || undefined}
+							/>
+
+							<RecommendationButton
+								recommendations={data.journalRecommendations}
+								journal={currentJournal}
 							/>
 							<RawDataModal data={currentJournal} dev={true} title="Journal Data" icon="more" />
 						</ButtonGroup>

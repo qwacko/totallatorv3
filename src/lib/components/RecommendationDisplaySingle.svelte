@@ -11,12 +11,14 @@
 	} from '$lib/stores/dropdownStores.js';
 	import { formatDate, getCurrencyFormatter } from '$lib/schema/userSchema';
 	import { currencyFormat, userDateFormat } from '$lib/stores/userInfoStore';
+	import SaveIcon from './icons/SaveIcon.svelte';
+	import AddIcon from './icons/AddIcon.svelte';
 
 	const {
 		recommendation,
 		update,
 		updateAndSave
-	}: { recommendation: RecommendationType; update: () => void; updateAndSave: () => void } =
+	}: { recommendation: RecommendationType; update?: () => void; updateAndSave?: () => void } =
 		$props();
 </script>
 
@@ -44,7 +46,7 @@
 	{/if}
 {/snippet}
 
-<Card size="none" class="flex flex-col items-center gap-1">
+{#snippet displayItem()}
 	<div class="flex flex-row items-center gap-4">
 		<P size="2xl" class="p-2">{(recommendation.checkSimilarity * 100).toFixed(0)}%</P><P>
 			{@render displaySimilarText(
@@ -81,9 +83,19 @@
 			{@render DisplayItemBadge(recommendation.journalCategoryId, $categoryDropdownData)}
 		{/if}
 	</div>
-	<div class="flew-grow flex"></div>
+	<div class="flex flex-grow"></div>
 	<div class="flex w-full flex-row items-stretch gap-2">
-		<Button outline on:click={update} class="grow basis-0">Update</Button>
-		<Button outline on:click={updateAndSave} class="grow basis-0">Update And Save</Button>
+		{#if update}
+			<Button outline on:click={update} class="grow basis-0"><AddIcon /> Update And Edit</Button>
+		{/if}
+		{#if updateAndSave}
+			<Button outline on:click={updateAndSave} class="grow basis-0">
+				<SaveIcon /> Update And Save
+			</Button>
+		{/if}
 	</div>
+{/snippet}
+
+<Card size="none" class="flex flex-col items-center gap-1">
+	{@render displayItem()}
 </Card>

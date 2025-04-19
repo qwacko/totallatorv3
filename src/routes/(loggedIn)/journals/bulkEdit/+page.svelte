@@ -72,11 +72,13 @@
 		canEdit={data.selectedJournals.canEdit}
 	/>
 	<Heading tag="h3">Update Data</Heading>
-	<RecommendationDisplay
-		recommendations={data.recommendations}
-		update={updateFromRecommendation}
-		updateAndSave={updateAndSaveFromRecommendation}
-	/>
+	{#if !$formData.setDataChecked}
+		<RecommendationDisplay
+			recommendations={data.recommendations}
+			update={updateFromRecommendation}
+			updateAndSave={updateAndSaveFromRecommendation}
+		/>
+	{/if}
 
 	{#if !data.selectedJournals.canEdit}<ErrorText
 			message="At Least One Journal Is Complete So Can Only Update Journal Labels"

@@ -110,6 +110,8 @@ export const journalView = pgView('journal_view').as((qb) => {
 		.leftJoin(withReminderQuery, eq(journalEntry.transactionId, withReminderQuery.id));
 });
 
+export type JournalViewReturnType = typeof journalView.$inferSelect;
+
 export const journalExtendedView = pgMaterializedView(
 	materializedViewTableNames.journalExtendedView
 ).as((qb) => qb.select().from(journalView));

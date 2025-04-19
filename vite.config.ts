@@ -55,6 +55,9 @@ export default defineConfig(({ mode }) => {
 				}
 			})
 		],
+		optimizeDeps: {
+			exclude: ['@node-rs/argon2', '@node-rs/bcrypt']
+		},
 		test: {
 			include: ['src/**/*.{test,spec}.{js,ts}'],
 			maxConcurrency: 1,
