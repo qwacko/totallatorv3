@@ -1,11 +1,19 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
-import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
+import {
+	journalFilterSchemaWithoutPagination,
+	journalFilterSchema,
+	updateJournalSchema,
+	type JournalFilterSchemaType
+} from '$lib/schema/journalSchema';
 import { tActions } from '$lib/server/db/actions/tActions.js';
 import { logging } from '$lib/server/logging';
 import { noteFormActions } from '$lib/server/noteFormActions.js';
 import { redirect } from '@sveltejs/kit';
 import { fileFormActions } from '$lib/server/fileFormActions';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { z } from 'zod';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -32,6 +40,42 @@ export const load = async (data) => {
 export const actions = {
 	...noteFormActions,
 	...fileFormActions,
+	updateJournal: async (data) => {
+		const db = data.locals.db;
+		const form = await superValidate(
+			data.request,
+			zod(updateJournalSchema.merge(z.object({ filter: journalFilterSchemaWithoutPagination })))
+		);
+
+		if (!form.valid) {
+			logging.error('Update Form Is Not Valid');
+			return { form };
+		}
+
+		const parsedFilter = journalFilterSchema.safeParse(form.data.filter);
+
+		if (!parsedFilter.success) {
+			logging.error('Filter Is Not Valid');
+			return { form };
+		}
+
+		console.log('Updating Journal', parsedFilter.data, form.data);
+
+		try {
+			await tActions.journal.updateJournals({
+				db,
+				filter: parsedFilter.data,
+				journalData: form.data
+			});
+		} catch (e) {
+			logging.error('Error Updating Journals : ', e);
+
+			return message(form, 'Error Updating Journals');
+		}
+
+		return { form };
+	},
+
 	update: async (data) => {
 		const form = await data.request.formData();
 		const journalId = form.get('journalId')?.toString();
