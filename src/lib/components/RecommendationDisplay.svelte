@@ -11,13 +11,17 @@
 		update,
 		updateAndSave,
 		hideHeading,
-		journal
+		journal,
+		loadingUpdate,
+		loadingUpdateAndSave
 	}: {
 		hideHeading?: boolean;
 		recommendations: Promise<RecommendationType[] | undefined>;
 		update?: (rec: RecommendationType) => void;
 		updateAndSave?: (rec: RecommendationType) => void;
 		journal?: JournalViewReturnType;
+		loadingUpdate?: string | undefined;
+		loadingUpdateAndSave?: string | undefined;
 	} = $props();
 </script>
 
@@ -44,6 +48,8 @@
 						recommendation={rec}
 						update={update ? () => update(rec) : undefined}
 						updateAndSave={updateAndSave ? () => updateAndSave(rec) : undefined}
+						{loadingUpdate}
+						{loadingUpdateAndSave}
 					/>
 				{/each}
 			</div>

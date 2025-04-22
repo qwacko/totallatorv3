@@ -12,6 +12,8 @@
 	import { tick } from 'svelte';
 	import { z } from 'zod';
 	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { urlGenerator } from '$lib/routes';
+	import { goto } from '$app/navigation';
 
 	const {
 		recommendations,
@@ -20,6 +22,9 @@
 		recommendations: Record<string, Promise<RecommendationType[] | undefined>>;
 		journal: JournalViewReturnType;
 	} = $props();
+
+	let loadingUpdate = $state<string | undefined>();
+	let loadingUpdateAndSave = $state<string | undefined>();
 
 	let open = $state(false);
 
@@ -34,6 +39,9 @@
 			onResult: ({ result }) => {
 				if (result.type === 'success') {
 					open = false;
+				} else {
+					loadingUpdate = undefined;
+					loadingUpdateAndSave = undefined;
 				}
 			},
 			dataType: 'json'
@@ -43,32 +51,30 @@
 	const enhance = $derived(form.enhance);
 	const formData = $derived(form.form);
 
-	// form.submit();
+	const updateAndEdit = async (rec: RecommendationType) => {
+		loadingUpdate = rec.journalId;
+		await submitJournalUpdateForm(rec);
+		const targetUrl = urlGenerator({
+			address: '/(loggedIn)/journals/bulkEdit',
+			searchParamsValue: {
+				idArray: [journal.id],
+				orderBy: [{ field: 'date', direction: 'asc' }],
+				page: 0,
+				pageSize: 10
+			}
+		});
+		await goto(targetUrl.url);
+		loadingUpdate = undefined;
+	};
 
 	const updateAndSave = async (rec: RecommendationType) => {
+		loadingUpdateAndSave = rec.journalId;
+
 		console.log('Updating and saving journal with recommendation:', rec);
-		// await submitJournalUpdateForm({
-		// 	filter: {
-		// 		idArray: [journal.id]
-		// 	},
-		// 	otherAccountId: rec.payeeAccountId,
-		// 	description: rec.journalDescription,
-		// 	billId: rec.journalBillId,
-		// 	budgetId: rec.journalBudgetId,
-		// 	categoryId: rec.journalCategoryId,
-		// 	tagId: rec.journalTagId,
-		// 	clearDataChecked: false,
-		// 	setDataChecked: true
-		// });
 
 		await submitJournalUpdateForm(rec);
-
-		// if (!response.ok) {
-		// 	console.error('Error updating journal:', await response.json());
-		// 	return;
-		// }
-		// console.log('Journal updated successfully:', await response.json());
 		open = false;
+		loadingUpdateAndSave = undefined;
 	};
 
 	const submitJournalUpdateForm = async (rec: RecommendationType) => {
@@ -87,41 +93,6 @@
 		});
 		await tick();
 		form.submit();
-
-		// const endpoint = '/journals/bulkEdit?/update';
-
-		// const formDataObj = {
-		// 	filter: {
-		// 		idArray: [journal.id]
-		// 	},
-		// 	prevPage: $pageStore.prevURL,
-		// 	currentPage: $pageStore.currentURL,
-		// 	billId: data.billId,
-		// 	budgetId: data.budgetId,
-		// 	categoryId: data.categoryId,
-		// 	tagId: data.tagId
-		// };
-
-		// const formData = new FormData();
-		// formData.append('filter', JSON.stringify({ idArray: [journal.id] }));
-		// formData.append('prevPage', $pageStore.prevURL);
-		// formData.append('currentPage', $pageStore.currentURL);
-		// if (data.billId) formData.append('billId', data.billId);
-		// if (data.budgetId) formData.append('budgetId', data.budgetId);
-		// if (data.categoryId) formData.append('categoryId', data.categoryId);
-		// if (data.tagId) formData.append('tagId', data.tagId);
-		// if (data.description) formData.append('description', data.description);
-
-		// const result = await fetch(endpoint, {
-		// 	method: 'POST',
-		// 	body: formData,
-		// 	headers: {
-		// 		// 'Content-Type': 'application/json',
-		// 		'x-sveltekit-action': 'true' // Very Important header for SvelteKit to recognize it as a form action call.
-		// 	}
-		// });
-
-		// return result;
 	};
 </script>
 
@@ -147,8 +118,10 @@
 	<RecommendationDisplay
 		recommendations={journalRecommendations}
 		{updateAndSave}
-		update={() => (open = false)}
+		update={updateAndEdit}
 		hideHeading
 		{journal}
+		{loadingUpdate}
+		{loadingUpdateAndSave}
 	/>
 </Modal>

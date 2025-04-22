@@ -25,7 +25,11 @@
 	const urlInfo = $derived(pageInfo('/(loggedIn)/journals/bulkEdit', $page));
 
 	const form = superForm(data.form, {
-		validators: zodClient(updateJournalSchema)
+		validators: zodClient(updateJournalSchema),
+		onError: () => {
+			loadingUpdate = undefined;
+			loadingUpdateAndSave = undefined;
+		}
 	});
 
 	const enhance = $derived(form.enhance);
@@ -35,7 +39,12 @@
 		data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`
 	);
 
-	const updateFromRecommendation = (rec: RecommendationType) => {
+	let loadingUpdate = $state<string | undefined>();
+	let loadingUpdateAndSave = $state<string | undefined>();
+
+	const updateFromRecommendation = async (rec: RecommendationType) => {
+		loadingUpdate = rec.journalId;
+
 		$formData = {
 			...$formData,
 			billId: rec.journalBillId,
@@ -43,17 +52,18 @@
 			budgetId: rec.journalBudgetId,
 			categoryId: rec.journalCategoryId,
 			otherAccountId: rec.payeeAccountId,
-			description: rec.journalDescription,
-			clearDataChecked: false,
-			setDataChecked: true
+			description: rec.journalDescription
 		};
+
+		loadingUpdate = undefined;
 	};
 
-	const updateAndSaveFromRecommendation = (rec: RecommendationType) => {
+	const updateAndSaveFromRecommendation = async (rec: RecommendationType) => {
+		loadingUpdateAndSave = rec.journalId;
 		updateFromRecommendation(rec);
-		tick().then(() => {
-			form.submit();
-		});
+		await tick()
+		form.submit();		
+		loadingUpdateAndSave = undefined;
 	};
 </script>
 
@@ -77,6 +87,8 @@
 			recommendations={data.recommendations}
 			update={updateFromRecommendation}
 			updateAndSave={updateAndSaveFromRecommendation}
+			{loadingUpdate}
+			{loadingUpdateAndSave}
 		/>
 	{/if}
 

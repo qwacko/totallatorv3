@@ -1,3 +1,6 @@
 {
-	"files.autoSave": "off"
+	"files.autoSave": "off",
+	"[svelte]": {
+		"editor.defaultFormatter": "svelte.svelte-vscode"
+	}
 }

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { RecommendationType } from '$lib/server/db/actions/journalMaterializedViewActions';
-	import { Badge, Button, Card, P } from 'flowbite-svelte';
-
+	import { Badge, Button, Card, P, Spinner } from 'flowbite-svelte';
 	import {
 		accountDropdownData,
 		tagDropdownData,
@@ -17,9 +16,19 @@
 	const {
 		recommendation,
 		update,
-		updateAndSave
-	}: { recommendation: RecommendationType; update?: () => void; updateAndSave?: () => void } =
-		$props();
+		updateAndSave,
+		loadingUpdate,
+		loadingUpdateAndSave
+	}: {
+		recommendation: RecommendationType;
+		update?: () => void;
+		updateAndSave?: () => void;
+		loadingUpdate?: string | undefined;
+		loadingUpdateAndSave?: string | undefined;
+	} = $props();
+
+	const updateAndSaveActive = $derived(loadingUpdateAndSave === recommendation.journalId);
+	const updateActive = $derived(loadingUpdate === recommendation.journalId);
 </script>
 
 {#snippet DisplayItemBadge(id: string, items: { id: string; title: string }[] | undefined)}
@@ -86,11 +95,22 @@
 	<div class="flex flex-grow"></div>
 	<div class="flex w-full flex-row items-stretch gap-2">
 		{#if update}
-			<Button outline on:click={update} class="grow basis-0"><AddIcon /> Update And Edit</Button>
+			<Button
+				outline
+				on:click={update}
+				class="flex grow basis-0 flex-row gap-1 align-middle"
+				disabled={updateActive}
+			>
+				{#if updateActive}<Spinner class="flex" size="4" />{:else}<AddIcon class="flex" />{/if}
+				<div class="flex">Update And Edit</div>
+			</Button>
 		{/if}
 		{#if updateAndSave}
-			<Button outline on:click={updateAndSave} class="grow basis-0">
-				<SaveIcon /> Update And Save
+			<Button outline on:click={updateAndSave} class="grow basis-0  flex-row gap-1 align-middle" disabled={updateAndSaveActive}>
+				{#if updateAndSaveActive}<Spinner class="flex" size="4" />{:else}
+						<SaveIcon class="flex" />
+					{/if}
+				<div class="flex">Update And Save</div>
 			</Button>
 		{/if}
 	</div>
