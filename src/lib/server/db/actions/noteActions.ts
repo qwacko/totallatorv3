@@ -124,7 +124,7 @@ export const noteActions = {
 		db: DBType;
 		ids: string[];
 		grouping: GroupingOptions;
-	}) => {
+	}): Promise<Record<string, GroupedNotesType>> => {
 		const items = await dbExecuteLogger(
 			db
 				.select({
@@ -275,4 +275,13 @@ export const noteActions = {
 	}
 };
 
-export type GroupedNotesType = Awaited<ReturnType<typeof noteActions.listGrouped>>[string];
+export type GroupedNotesType = {
+	id: string;
+	note: string;
+	type: 'info' | 'reminder';
+	createdAt: Date;
+	updatedAt: Date;
+	createdById: string;
+	createdBy: string | null;
+	groupingId: string | null;
+}[];

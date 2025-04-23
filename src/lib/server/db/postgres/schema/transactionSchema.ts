@@ -599,6 +599,8 @@ export const importItemDetail = pgTable(
 	})
 );
 
+export type ImportItemDetailTableType =  typeof importItemDetail.$inferSelect;
+
 export const importItemDetailRelations = relations(importItemDetail, ({ one }) => ({
 	import: one(importTable, {
 		fields: [importItemDetail.importId],

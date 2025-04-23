@@ -10,7 +10,9 @@ import {
 	journalEntry,
 	label,
 	labelsToJournals,
-	importItemDetail
+	importItemDetail,
+	type JournalViewReturnType,
+	type ImportItemDetailTableType
 } from '../../../postgres/schema';
 import { count as drizzleCount } from 'drizzle-orm';
 import { materializedJournalFilterToQuery } from '../journalMaterializedView/materializedJournalFilterToQuery';
@@ -24,6 +26,8 @@ import { sqlToText } from '../sqlToText';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 import { getCorrectJournalTable } from '../../helpers/journalMaterializedView/getCorrectJournalTable';
+import type { GroupedNotesType } from '../../noteActions';
+import type { GroupedFilesType } from '../../fileActions';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -93,13 +97,34 @@ const getOtherJournalInfo = async (db: DBType, journalIds: string[]) => {
 	return otherJournalInformation;
 };
 
+type JournalMLExpanded = JournalViewReturnType & {
+	total: number;
+	labels: LabelColumnType;
+	otherJournals: OtherJournalsColumnType;
+	importDetail?: ImportItemDetailTableType['processedInfo'] | null;
+	notes: GroupedNotesType;
+	files: GroupedFilesType;
+};
+
+type PaginationType = {
+	page: number;
+	pageSize: number;
+	count: number;
+	pageCount: number;
+};
+
+type JournalMLExpandedWithPagination = PaginationType & {
+	runningTotal: number;
+	data: JournalMLExpanded[];
+};
+
 export const journalMaterialisedList = async ({
 	db,
 	filter
 }: {
 	db: DBType;
 	filter: JournalFilterSchemaInputType;
-}) => {
+}): Promise<JournalMLExpandedWithPagination> => {
 	const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
 
 	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
@@ -120,7 +145,10 @@ export const journalMaterialisedList = async ({
 		logging.debug(sqlToText(journalQueryCore.getSQL()));
 	}
 
-	const journalsPromise = dbExecuteLogger(journalQueryCore, 'Journal Materialized - Data');
+	const journalsPromise: Promise<JournalViewReturnType[]> = dbExecuteLogger(
+		journalQueryCore,
+		'Journal Materialized - Data'
+	);
 
 	const runningTotalInner = db
 		.select({ amount: targetTable.amount })
@@ -172,7 +200,7 @@ export const journalMaterialisedList = async ({
 	const limitedJournalIds = journalIds.slice(0, 500);
 
 	const otherJournalData = await getOtherJournalInfo(db, limitedJournalIds);
-	const importDetails = await dbExecuteLogger(
+	const importDetails: ImportItemDetailTableType[] = await dbExecuteLogger(
 		db
 			.select()
 			.from(importItemDetail)

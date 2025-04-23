@@ -176,7 +176,7 @@ export const fileActions = {
 		db: DBType;
 		ids: string[];
 		grouping: GroupingOptions;
-	}) => {
+	}): Promise<Record<string, GroupedFilesType>> => {
 		const items = await db
 			.select({
 				id: fileTable.id,
@@ -592,4 +592,16 @@ export const fileActions = {
 	}
 };
 
-export type GroupedFilesType = Awaited<ReturnType<typeof fileActions.listGrouped>>[string];
+export type GroupedFilesType = {
+	id: string;
+	title: string | null;
+	type: 'pdf' | 'jpg' | 'png' | 'webp' | 'gif' | 'avif' | 'tiff' | 'svg' | 'other';
+	filename: string;
+	originalFilename: string;
+	thumbnailFilename: string | null;
+	createdAt: Date;
+	updatedAt: Date;
+	createdById: string;
+	createdBy: string | null;
+	groupingId: string | null;
+}[];
