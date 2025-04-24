@@ -5,7 +5,8 @@ import {
 	currentBackupSchema,
 	type CurrentBackupSchemaType,
 	type CombinedBackupSchemaType,
-	combinedBackupInfoSchema
+	combinedBackupInfoSchema,
+	type CurrentBackupSchemaInfoType
 } from '$lib/server/backups/backupSchema';
 import { desc, eq } from 'drizzle-orm';
 import type { DBType } from '../db';
@@ -35,7 +36,8 @@ import {
 	backupTable,
 	autoImportTable,
 	notesTable,
-	fileTable
+	fileTable,
+	type BackupTableType
 } from '../postgres/schema';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
 import superjson from 'superjson';
@@ -72,7 +74,7 @@ const chunker = async <D, R>(
 };
 
 export const backupActions = {
-	trimBackups: async ({ db }: { db: DBType }) => {
+	trimBackups: async ({ db }: { db: DBType }): Promise<void> => {
 		const firstBackup = await dbExecuteLogger(
 			db.query.backupTable.findFirst({
 				orderBy: ({ createdAt }, { asc }) => asc(createdAt)
@@ -210,7 +212,15 @@ export const backupActions = {
 			logging.info(`Deleted ${backupsToDelete.length} backups`);
 		}
 	},
-	importFile: async ({ db, backupFile, id }: { db: DBType; backupFile: File; id: string }) => {
+	importFile: async ({
+		db,
+		backupFile,
+		id
+	}: {
+		db: DBType;
+		backupFile: File;
+		id: string;
+	}): Promise<string | undefined> => {
 		const getFilenameInfo = (filename: string) => {
 			const extension = filename.split('.').pop();
 			const withoutExtension = extension
@@ -281,7 +291,7 @@ export const backupActions = {
 		creationReason: string;
 		createdBy: string;
 		locked?: boolean;
-	}) => {
+	}): Promise<void> => {
 		const date = new Date();
 		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
@@ -485,7 +495,7 @@ export const backupActions = {
 
 		return backupSchemaToLatest(backupDataParsed);
 	},
-	lock: async ({ id, db }: { id: string; db: DBType }) => {
+	lock: async ({ id, db }: { id: string; db: DBType }): Promise<void> => {
 		await dbExecuteLogger(
 			db
 				.update(backupTable)
@@ -494,7 +504,7 @@ export const backupActions = {
 			'Backup - Lock Backup'
 		);
 	},
-	unlock: async ({ id, db }: { id: string; db: DBType }) => {
+	unlock: async ({ id, db }: { id: string; db: DBType }): Promise<void> => {
 		await dbExecuteLogger(
 			db
 				.update(backupTable)
@@ -503,7 +513,15 @@ export const backupActions = {
 			'Backup - Unlock Backup'
 		);
 	},
-	updateTitle: async ({ id, title, db }: { id: string; title: string; db: DBType }) => {
+	updateTitle: async ({
+		id,
+		title,
+		db
+	}: {
+		id: string;
+		title: string;
+		db: DBType;
+	}): Promise<void> => {
 		await dbExecuteLogger(
 			db
 				.update(backupTable)
@@ -512,7 +530,7 @@ export const backupActions = {
 			'Backup - Update Title'
 		);
 	},
-	deleteBackup: async ({ id, db }: { id: string; db: DBType }) => {
+	deleteBackup: async ({ id, db }: { id: string; db: DBType }): Promise<void> => {
 		const backupFilesInDB = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.id, id)),
 			'Backup - Delete Backup - Get Details'
@@ -548,7 +566,7 @@ export const backupActions = {
 		db: DBType;
 		id: string;
 		includeUsers?: boolean;
-	}) => {
+	}): Promise<void> => {
 		const backups = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.id, id)),
 			'Backup - Restore Backup - Get Backup'
@@ -817,7 +835,7 @@ export const backupActions = {
 		logging.info(`Backup Restored - ${backup.filename} - ${backup.createdAt.toISOString()}`);
 		materializedViewActions.setRefreshRequired(db);
 	},
-	refreshList: async ({ db }: { db: DBType }) => {
+	refreshList: async ({ db }: { db: DBType }): Promise<void> => {
 		const [backupsInDB, backupFiles] = await Promise.all([
 			dbExecuteLogger(db.select().from(backupTable), 'Backup - Refresh List - Get Backups In DB'),
 			backupFileHandler.list('')
@@ -907,7 +925,13 @@ export const backupActions = {
 			);
 		}
 	},
-	list: async ({ db }: { db: DBType }) => {
+	list: async ({
+		db
+	}: {
+		db: DBType;
+	}): Promise<
+		(Omit<BackupTableType, 'information'> & { information: CurrentBackupSchemaInfoType })[]
+	> => {
 		const listData = await dbExecuteLogger(
 			db.select().from(backupTable).orderBy(desc(backupTable.createdAt)),
 			'Backup - List'
@@ -918,7 +942,16 @@ export const backupActions = {
 			information: backupSchemaInfoToLatest(data.information)
 		}));
 	},
-	getBackupInfo: async ({ db, id }: { db: DBType; id: string }) => {
+	getBackupInfo: async ({
+		db,
+		id
+	}: {
+		db: DBType;
+		id: string;
+	}): Promise<
+		| undefined
+		| (Omit<BackupTableType, 'information'> & { information: CurrentBackupSchemaInfoType })
+	> => {
 		const data = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.id, id)),
 			'Backup - Get Info'
@@ -942,7 +975,17 @@ export const backupActions = {
 	}
 };
 
-const getBackupStructuredData = async ({ filename }: { filename: string }) => {
+type BackupStructuredData = {
+	latest: CurrentBackupSchemaType;
+	original: CombinedBackupSchemaType;
+	originalVersion: number;
+};
+
+const getBackupStructuredData = async ({
+	filename
+}: {
+	filename: string;
+}): Promise<BackupStructuredData> => {
 	const backupExists = await backupFileHandler.fileExists(filename);
 
 	if (!backupExists) {

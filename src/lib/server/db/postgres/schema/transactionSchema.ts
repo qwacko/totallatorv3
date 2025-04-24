@@ -953,3 +953,5 @@ export const backupTable = pgTable('backup_table', {
 	locked: boolean('locked').notNull().default(false),
 	information: jsonb('information').$type<CombinedBackupSchemaInfoType>().notNull()
 });
+
+export type BackupTableType = typeof backupTable.$inferSelect;
