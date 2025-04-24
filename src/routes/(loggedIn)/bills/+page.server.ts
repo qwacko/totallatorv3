@@ -59,7 +59,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.bill.update(db, form.data);
+			await tActions.bill.update({ db: db, data: form.data, id: form.data.id });
 			return {
 				status: 200,
 				body: {

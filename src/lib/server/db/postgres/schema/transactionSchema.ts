@@ -102,6 +102,8 @@ export const account = pgTable(
 	})
 );
 
+export type AccountTableType = typeof account.$inferSelect;
+
 export const accountRelations = relations(account, ({ many, one }) => ({
 	journals: many(journalEntry),
 	importDetail: one(importItemDetail, {
@@ -133,6 +135,8 @@ export const tag = pgTable(
 		single: index('tag_single_idx').on(t.single)
 	})
 );
+
+export type TagTableType = typeof tag.$inferSelect;
 
 export const tagRelations = relations(tag, ({ many, one }) => ({
 	journals: many(journalEntry),
@@ -166,6 +170,8 @@ export const category = pgTable(
 	})
 );
 
+export type CategoryTableType = typeof category.$inferSelect;
+
 export const categoryRelations = relations(category, ({ many, one }) => ({
 	journals: many(journalEntry),
 	importDetail: one(importItemDetail, {
@@ -193,6 +199,8 @@ export const bill = pgTable(
 		title: index('bill_title_idx').on(t.title)
 	})
 );
+
+export type BillTableType = typeof bill.$inferSelect;
 
 export const billRelations = relations(bill, ({ many, one }) => ({
 	journals: many(journalEntry),
@@ -222,6 +230,8 @@ export const budget = pgTable(
 	})
 );
 
+export type BudgetTableType = typeof budget.$inferSelect;
+
 export const budgetRelations = relations(budget, ({ many, one }) => ({
 	journals: many(journalEntry),
 	importDetail: one(importItemDetail, {
@@ -243,6 +253,8 @@ export const label = pgTable('label', {
 	...statusColumns,
 	...timestampColumns
 });
+
+export type LabelTableType = typeof label.$inferSelect;
 
 export const labelRelations = relations(label, ({ many, one }) => ({
 	journals: many(labelsToJournals),
@@ -311,6 +323,8 @@ export const transaction = pgTable('transaction', {
 	...timestampColumns
 });
 
+export type TransactionTableType = typeof transaction.$inferSelect;
+
 export const transactionRelations = relations(transaction, ({ many }) => ({
 	journals: many(journalEntry),
 	files: many(fileTable),
@@ -349,6 +363,8 @@ export const journalEntry = pgTable(
 		yearMonth: index('journalEntry_year_month_idx').on(t.yearMonth)
 	})
 );
+
+export type JournalTableType = typeof journalEntry.$inferSelect;
 
 export const journalEntryRelations = relations(journalEntry, ({ one, many }) => ({
 	transaction: one(transaction, {
@@ -599,7 +615,7 @@ export const importItemDetail = pgTable(
 	})
 );
 
-export type ImportItemDetailTableType =  typeof importItemDetail.$inferSelect;
+export type ImportItemDetailTableType = typeof importItemDetail.$inferSelect;
 
 export const importItemDetailRelations = relations(importItemDetail, ({ one }) => ({
 	import: one(importTable, {

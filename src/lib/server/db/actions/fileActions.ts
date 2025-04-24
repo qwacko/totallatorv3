@@ -595,7 +595,7 @@ export const fileActions = {
 export type GroupedFilesType = {
 	id: string;
 	title: string | null;
-	type: 'pdf' | 'jpg' | 'png' | 'webp' | 'gif' | 'avif' | 'tiff' | 'svg' | 'other';
+	type: FileTypeType;
 	filename: string;
 	originalFilename: string;
 	thumbnailFilename: string | null;

@@ -40,7 +40,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.label.update(db, form.data);
+			await tActions.label.update({ db, data: form.data, id: form.data.id });
 		} catch (e) {
 			logging.error('Update Label Error', e);
 			return message(form, 'Error Updating Label');

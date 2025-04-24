@@ -158,6 +158,8 @@ export const accountMaterializedView = pgMaterializedView(
 	materializedViewTableNames.accountMaterializedView
 ).as((qb) => qb.select().from(accountView));
 
+export type AccountViewReturnType = typeof accountView.$inferSelect;
+
 export const billView = pgView('bill_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'billId');
 	return qb
@@ -182,6 +184,8 @@ export const billMaterializedView = pgMaterializedView(
 	materializedViewTableNames.billMaterializedView
 ).as((qb) => qb.select().from(billView));
 
+export type BillViewReturnType = typeof billView.$inferSelect;
+
 export const budgetView = pgView('budget_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'budgetId');
 	return qb
@@ -205,6 +209,8 @@ export const budgetView = pgView('budget_view').as((qb) => {
 export const budgetMaterializedView = pgMaterializedView(
 	materializedViewTableNames.budgetMaterializedView
 ).as((qb) => qb.select().from(budgetView));
+
+export type BudgetViewReturnType = typeof budgetView.$inferSelect;
 
 export const categoryView = pgView('category_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'categoryId');
@@ -231,6 +237,8 @@ export const categoryMaterializedView = pgMaterializedView(
 	materializedViewTableNames.categoryMaterializedView
 ).as((qb) => qb.select().from(categoryView));
 
+export type CategoryViewReturnType = typeof categoryView.$inferSelect;
+
 export const tagView = pgView('tag_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'tagId');
 
@@ -255,6 +263,8 @@ export const tagView = pgView('tag_view').as((qb) => {
 export const tagMaterializedView = pgMaterializedView(
 	materializedViewTableNames.tagMaterializedView
 ).as((qb) => qb.select().from(tagView));
+
+export type TagViewReturnType = typeof tagView.$inferSelect
 
 export const labelView = pgView('label_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'labelId');
@@ -281,6 +291,8 @@ export const labelView = pgView('label_view').as((qb) => {
 export const labelMaterializedView = pgMaterializedView(
 	materializedViewTableNames.labelMaterializedView
 ).as((qb) => qb.select().from(labelView));
+
+export type LabelViewReturnType = typeof labelView.$inferSelect;
 
 export const importCheckView = pgView('import_check_view').as((qb) => {
 	return qb

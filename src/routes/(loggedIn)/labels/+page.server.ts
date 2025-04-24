@@ -67,7 +67,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.label.update(db, form.data);
+			await tActions.label.update({ db, data: form.data, id: form.data.id });
 			return {
 				status: 200,
 				body: {

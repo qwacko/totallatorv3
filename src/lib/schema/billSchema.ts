@@ -84,6 +84,7 @@ export const billFilterSchema = z
 	.merge(linkedNoteFilterSchema);
 
 export type BillFilterSchemaType = z.infer<typeof billFilterSchema>;
+export type BillFilterSchemaOutputType = z.output<typeof billFilterSchema>;
 export type BillFilterSchemaWithoutPaginationType = Omit<
 	BillFilterSchemaType,
 	'page' | 'pageSize' | 'orderBy'

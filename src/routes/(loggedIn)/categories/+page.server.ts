@@ -58,7 +58,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.category.update(db, form.data);
+			await tActions.category.update({ db, data: form.data, id: form.data.id });
 			return {
 				status: 200,
 				body: {

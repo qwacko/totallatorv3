@@ -614,15 +614,17 @@ export const journalActions = {
 						(prev, currentJournalId) => {
 							return [
 								...prev,
-								...combinedLabels.map((currentLabelId) => {
-									return {
-										id: nanoid(),
-										labelId: currentLabelId,
-										journalId: currentJournalId,
-										...updatedTime(),
-										createdAt: new Date()
-									};
-								})
+								...combinedLabels
+									.filter((currentLabel) => currentLabel)
+									.map((currentLabelId) => {
+										return {
+											id: nanoid(),
+											labelId: currentLabelId?.id || 'unknown',
+											journalId: currentJournalId,
+											...updatedTime(),
+											createdAt: new Date()
+										};
+									})
 							];
 						},
 						[] as {
@@ -662,13 +664,14 @@ export const journalActions = {
 
 				//When a specific set of labels are specified, then remove the ones that aren't in that list
 				if (labelSettingIds.length > 0) {
+					const labelIdArray = labelSettingIds.map((item) => item?.id || 'unknown');
 					await dbExecuteLogger(
 						db
 							.delete(labelsToJournals)
 							.where(
 								and(
 									inArrayWrapped(labelsToJournals.journalId, targetJournals),
-									not(inArrayWrapped(labelsToJournals.labelId, labelSettingIds))
+									not(inArrayWrapped(labelsToJournals.labelId, labelIdArray))
 								)
 							),
 						'Transaction Journals - Update Journals - Remove Labels'

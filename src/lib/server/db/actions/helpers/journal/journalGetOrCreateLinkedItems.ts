@@ -1,5 +1,4 @@
 import type { CreateJournalSchemaType } from '$lib/schema/journalSchema';
-import type { StatusEnumType } from '$lib/schema/statusSchema';
 import type { DBType } from '../../../db';
 import { accountActions } from '../../accountActions';
 import { billActions } from '../../billActions';
@@ -7,6 +6,7 @@ import { budgetActions } from '../../budgetActions';
 import { categoryActions } from '../../categoryActions';
 import { labelActions } from '../../labelActions';
 import { tagActions } from '../../tagActions';
+import type { CreateOrGetType } from '../misc/createOrGetType';
 
 export const journalGetOrCreateLinkedItems = async ({
 	db,
@@ -20,12 +20,12 @@ export const journalGetOrCreateLinkedItems = async ({
 }: {
 	db: DBType;
 	journalEntry: CreateJournalSchemaType;
-	cachedAccounts?: { id: string; title: string; status: StatusEnumType }[];
-	cachedBills?: { id: string; title: string; status: StatusEnumType }[];
-	cachedBudgets?: { id: string; title: string; status: StatusEnumType }[];
-	cachedTags?: { id: string; title: string; status: StatusEnumType }[];
-	cachedCategories?: { id: string; title: string; status: StatusEnumType }[];
-	cachedLabels?: { id: string; title: string; status: StatusEnumType }[];
+	cachedAccounts?: CreateOrGetType[];
+	cachedBills?: CreateOrGetType[];
+	cachedBudgets?: CreateOrGetType[];
+	cachedTags?: CreateOrGetType[];
+	cachedCategories?: CreateOrGetType[];
+	cachedLabels?: CreateOrGetType[];
 }) => {
 	const {
 		categoryId,

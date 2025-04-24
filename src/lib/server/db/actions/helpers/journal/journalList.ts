@@ -28,6 +28,7 @@ import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 import { getCorrectJournalTable } from '../../helpers/journalMaterializedView/getCorrectJournalTable';
 import type { GroupedNotesType } from '../../noteActions';
 import type { GroupedFilesType } from '../../fileActions';
+import type { PaginationType } from './PaginationType';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -104,13 +105,6 @@ type JournalMLExpanded = JournalViewReturnType & {
 	importDetail?: ImportItemDetailTableType['processedInfo'] | null;
 	notes: GroupedNotesType;
 	files: GroupedFilesType;
-};
-
-type PaginationType = {
-	page: number;
-	pageSize: number;
-	count: number;
-	pageCount: number;
 };
 
 type JournalMLExpandedWithPagination = PaginationType & {

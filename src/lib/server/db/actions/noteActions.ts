@@ -27,6 +27,7 @@ import { updatedTime } from './helpers/misc/updatedTime';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { materializedViewActions } from './materializedViewActions';
 import { dbExecuteLogger } from '../dbLogger';
+import type { NoteTypeType } from '$lib/schema/enum/noteTypeEnum';
 
 type GroupingOptions =
 	| 'transaction'
@@ -278,7 +279,7 @@ export const noteActions = {
 export type GroupedNotesType = {
 	id: string;
 	note: string;
-	type: 'info' | 'reminder';
+	type: NoteTypeType;
 	createdAt: Date;
 	updatedAt: Date;
 	createdById: string;

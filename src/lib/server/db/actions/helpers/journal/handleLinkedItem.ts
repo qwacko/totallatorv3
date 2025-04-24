@@ -23,7 +23,7 @@ export const handleLinkedItem = async <T extends { id: string }>({
 		id?: string | null;
 		title?: string | null;
 		requireActive?: boolean;
-	}) => Promise<T | undefined>;
+	}) => Promise<T | undefined | null>;
 }) => {
 	if (clear) {
 		return null;

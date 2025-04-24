@@ -40,7 +40,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.budget.update(db, form.data);
+			await tActions.budget.update({ db, data: form.data, id: form.data.id });
 		} catch (e) {
 			logging.error('Update Budget Error', e);
 			return message(form, 'Error Updating Budget');

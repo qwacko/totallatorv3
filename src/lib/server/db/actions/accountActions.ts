@@ -6,11 +6,10 @@ import {
 } from '$lib/schema/accountSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { account } from '../postgres/schema';
+import { account, type AccountTableType, type AccountViewReturnType } from '../postgres/schema';
 import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
-import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { combinedAccountTitleSplitRequired } from '$lib/helpers/combinedAccountTitleSplit';
 import {
@@ -25,28 +24,65 @@ import { accountTitleSplit } from './helpers/account/accountTitleSplit';
 import { getCommonData } from './helpers/misc/getCommonData';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
-import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';
 import { getCorrectAccountTable } from './helpers/account/getCorrectAccountTable';
+import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 
-export const accountActions = {
-	latestUpdate: async ({ db }: { db: DBType }) => {
+export type AccountDropdownType = {
+	id: string;
+	title: string;
+	enabled: boolean;
+	group: string;
+}[];
+
+type AccountActionsType = ItemActionsType<
+	AccountTableType,
+	AccountViewReturnType,
+	AccountFilterSchemaType,
+	CreateAccountSchemaType,
+	UpdateAccountSchemaType,
+	AccountDropdownType,
+	{ countAssets: number; countLiabilities: number; countIncome: number; countExpenses: number }
+>;
+
+type ListCommonPropertiesFunction = (data: {
+	db: DBType;
+	filter?: AccountFilterSchemaType;
+}) => Promise<UpdateAccountSchemaType>;
+
+type UpdateManyAccountsFunction = (data: {
+	db: DBType;
+	data: UpdateAccountSchemaType;
+	filter: AccountFilterSchemaType;
+}) => Promise<void>;
+
+type CreateAndGetAccountFunction = (
+	db: DBType,
+	data: CreateAccountSchemaType
+) => Promise<AccountTableType | undefined>;
+
+export const accountActions: AccountActionsType & {
+	listCommonProperties: ListCommonPropertiesFunction;
+	updateMany: UpdateManyAccountsFunction;
+	createAndGet: CreateAndGetAccountFunction;
+} = {
+	latestUpdate: async ({ db }) => {
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(account.updatedAt) }).from(account),
 			'Accounts - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db: DBType, id: string) => {
+	getById: async (db, id) => {
 		return dbExecuteLogger(
 			db.query.account.findFirst({ where: eq(account.id, id) }),
 			'Accounts - Get By ID'
 		);
 	},
-	count: async (db: DBType, filter?: AccountFilterSchemaType) => {
+	count: async (db, filter) => {
 		const { table, target } = await getCorrectAccountTable(db);
 
 		const count = await dbExecuteLogger(
@@ -59,7 +95,7 @@ export const accountActions = {
 
 		return count[0].count;
 	},
-	listWithTransactionCount: async (db: DBType) => {
+	listWithTransactionCount: async (db) => {
 		const { table } = await getCorrectAccountTable(db);
 
 		const items = dbExecuteLogger(
@@ -69,7 +105,7 @@ export const accountActions = {
 
 		return items;
 	},
-	list: async ({ db, filter }: { db: DBType; filter?: AccountFilterSchemaType }) => {
+	list: async ({ db, filter }) => {
 		const { table, target } = await getCorrectAccountTable(db);
 
 		const {
@@ -92,7 +128,7 @@ export const accountActions = {
 				]
 			: defaultOrderBy;
 
-		const results = await dbExecuteLogger(
+		const results: AccountViewReturnType[] = await dbExecuteLogger(
 			db
 				.select()
 				.from(table)
@@ -103,7 +139,7 @@ export const accountActions = {
 			'Accounts - List'
 		);
 
-		const resultCount = await dbExecuteLogger(
+		const resultCount: { count: number }[] = await dbExecuteLogger(
 			db
 				.select({ count: drizzleCount(table.id) })
 				.from(table)
@@ -116,7 +152,7 @@ export const accountActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	listForDropdown: async ({ db }: { db: DBType }) => {
+	listForDropdown: async ({ db }) => {
 		await streamingDelay();
 		const items = await dbExecuteLogger(
 			db
@@ -132,7 +168,7 @@ export const accountActions = {
 
 		return items;
 	},
-	listCommonProperties: async ({ db, filter }: { db: DBType; filter: AccountFilterSchemaType }) => {
+	listCommonProperties: async ({ db, filter }) => {
 		const { data: accounts } = await accountActions.list({
 			db,
 			filter: { ...filter, page: 0, pageSize: 1000000 }
@@ -168,7 +204,7 @@ export const accountActions = {
 			endDate
 		};
 	},
-	create: async (db: DBType, data: CreateAccountSchemaType) => {
+	create: async (db, data) => {
 		const id = nanoid();
 
 		await dbExecuteLogger(
@@ -180,30 +216,23 @@ export const accountActions = {
 
 		return id;
 	},
-	createAndGet: async (db: DBType, data: CreateAccountSchemaType) => {
+	createAndGet: async (db, data) => {
 		const id = await accountActions.create(db, data);
 		return dbExecuteLogger(
 			db.query.account.findFirst({ where: eq(account.id, id) }),
 			'Accounts - Create And Get - Get'
 		);
 	},
-	createOrGet: async ({
-		db,
-		title,
-		id,
-		requireActive = true,
-		cachedData
-	}: {
-		db: DBType;
-		title?: string;
-		id?: string;
-		requireActive?: boolean;
-		cachedData?: { id: string; title: string; status: StatusEnumType }[];
-	}) => {
+	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
 		if (id) {
 			const currentAccount = cachedData
 				? cachedData.find((item) => item.id === id)
-				: await dbExecuteLogger(db.query.account.findFirst({ where: eq(account.id, id) }));
+				: await dbExecuteLogger(
+						db.query.account.findFirst({
+							where: eq(account.id, id),
+							columns: { id: true, title: true, status: true }
+						})
+					);
 
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
@@ -220,7 +249,10 @@ export const accountActions = {
 			const currentAccount = cachedData
 				? cachedData.find((item) => item.title === title)
 				: await dbExecuteLogger(
-						db.query.account.findFirst({ where: eq(account.accountTitleCombined, title) }),
+						db.query.account.findFirst({
+							where: eq(account.accountTitleCombined, title),
+							columns: { id: true, title: true, status: true }
+						}),
 						'Accounts - Create Or Get - Check Exists'
 					);
 
@@ -248,15 +280,7 @@ export const accountActions = {
 			return undefined;
 		}
 	},
-	updateMany: async ({
-		db,
-		data,
-		filter
-	}: {
-		db: DBType;
-		data: UpdateAccountSchemaType;
-		filter: AccountFilterSchemaType;
-	}) => {
+	updateMany: async ({ db, data, filter }) => {
 		const processedData = updateAccountSchema.safeParse(data);
 
 		if (!processedData.success) {
@@ -279,7 +303,7 @@ export const accountActions = {
 			})
 		);
 	},
-	update: async ({ db, data, id }: { db: DBType; data: UpdateAccountSchemaType; id: string }) => {
+	update: async ({ db, data, id }) => {
 		const {
 			accountGroup2,
 			accountGroup3,
@@ -371,14 +395,14 @@ export const accountActions = {
 		}
 		return id;
 	},
-	canDeleteMany: async (db: DBType, ids: string[]) => {
+	canDeleteMany: async (db, ids) => {
 		const canDeleteList = await Promise.all(
 			ids.map(async (id) => accountActions.canDelete(db, { id }))
 		);
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db: DBType, data: IdSchemaType) => {
+	canDelete: async (db, data) => {
 		const currentAccount = await dbExecuteLogger(
 			db.query.account.findFirst({
 				where: eq(account.id, data.id),
@@ -391,7 +415,7 @@ export const accountActions = {
 		}
 		return currentAccount && currentAccount.journals.length === 0;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
+	delete: async (db, data) => {
 		// If the account has no journals, then mark as deleted, otherwise do nothing
 		if (await accountActions.canDelete(db, data)) {
 			await dbExecuteLogger(db.delete(account).where(eq(account.id, data.id)), 'Accounts - Delete');
@@ -400,7 +424,7 @@ export const accountActions = {
 		await materializedViewActions.setRefreshRequired(db);
 		return data.id;
 	},
-	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+	deleteMany: async (db, data) => {
 		const currentAccounts = await accountActions.listWithTransactionCount(db);
 		const itemsForDeletion = data.filter((item) => {
 			const currentAccount = currentAccounts.find((current) => current.id === item.id);
@@ -421,7 +445,7 @@ export const accountActions = {
 		}
 		return false;
 	},
-	createMany: async (db: DBType, data: CreateAccountSchemaType[]) => {
+	createMany: async (db, data) => {
 		const dataForInsertion = data.map((currentAccount) => {
 			const id = nanoid();
 			return accountCreateInsertionData(currentAccount, id);
@@ -440,20 +464,7 @@ export const accountActions = {
 		await materializedViewActions.setRefreshRequired(db);
 		return dataForInsertion.map((item) => item.id);
 	},
-	seed: async (
-		db: DBType,
-		{
-			countAssets,
-			countLiabilities,
-			countIncome,
-			countExpenses
-		}: {
-			countAssets: number;
-			countLiabilities: number;
-			countIncome: number;
-			countExpenses: number;
-		}
-	) => {
+	seed: async (db: DBType, { countAssets, countLiabilities, countIncome, countExpenses }) => {
 		logging.info('Seeding Accounts : ', {
 			countAssets,
 			countLiabilities,
@@ -484,5 +495,3 @@ export const accountActions = {
 		await materializedViewActions.setRefreshRequired(db);
 	}
 };
-
-export type AccountDropdownType = Awaited<ReturnType<typeof accountActions.listForDropdown>>;

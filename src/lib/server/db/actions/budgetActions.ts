@@ -4,12 +4,10 @@ import type {
 	UpdateBudgetSchemaType
 } from '$lib/schema/budgetSchema';
 import { nanoid } from 'nanoid';
-import type { DBType } from '../db';
-import { budget } from '../postgres/schema';
+import { budget, type BudgetTableType, type BudgetViewReturnType } from '../postgres/schema';
 import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
-import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { budgetCreateInsertionData } from './helpers/budget/budgetCreateInsertionData';
 import { budgetFilterToQuery } from './helpers/budget/budgetFilterToQuery';
@@ -17,27 +15,43 @@ import { createBudget } from './helpers/seed/seedBudgetData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
-import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 import { getCorrectBudgetTable } from './helpers/budget/getCorrectBudgetTable';
+import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 
-export const budgetActions = {
-	latestUpdate: async ({ db }: { db: DBType }) => {
+export type BudgetDropdownType = {
+	id: string;
+	title: string;
+	enabled: boolean;
+}[];
+
+type BudgetActionsType = ItemActionsType<
+	BudgetTableType,
+	BudgetViewReturnType,
+	BudgetFilterSchemaType,
+	CreateBudgetSchemaType,
+	UpdateBudgetSchemaType,
+	BudgetDropdownType,
+	number
+>;
+
+export const budgetActions: BudgetActionsType = {
+	latestUpdate: async ({ db }) => {
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(budget.updatedAt) }).from(budget),
 			'Budgets - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db: DBType, id: string) => {
+	getById: async (db, id) => {
 		return dbExecuteLogger(
 			db.query.budget.findFirst({ where: eq(budget.id, id) }),
 			'Budget - Get By Id'
 		);
 	},
-	count: async (db: DBType, filter?: BudgetFilterSchemaType) => {
+	count: async (db, filter) => {
 		const { table, target } = await getCorrectBudgetTable(db);
 		const count = await dbExecuteLogger(
 			db
@@ -49,7 +63,7 @@ export const budgetActions = {
 
 		return count[0].count;
 	},
-	listWithTransactionCount: async (db: DBType) => {
+	listWithTransactionCount: async (db) => {
 		const { table } = await getCorrectBudgetTable(db);
 
 		const items = dbExecuteLogger(
@@ -59,7 +73,7 @@ export const budgetActions = {
 
 		return items;
 	},
-	list: async ({ db, filter }: { db: DBType; filter: BudgetFilterSchemaType }) => {
+	list: async ({ db, filter }) => {
 		const { table, target } = await getCorrectBudgetTable(db);
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
@@ -103,7 +117,7 @@ export const budgetActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	listForDropdown: async ({ db }: { db: DBType }) => {
+	listForDropdown: async ({ db }) => {
 		await streamingDelay();
 		const items = dbExecuteLogger(
 			db.select({ id: budget.id, title: budget.title, enabled: budget.allowUpdate }).from(budget),
@@ -112,19 +126,7 @@ export const budgetActions = {
 
 		return items;
 	},
-	createOrGet: async ({
-		db,
-		title,
-		id,
-		requireActive = true,
-		cachedData
-	}: {
-		db: DBType;
-		title?: string | null;
-		id?: string | null;
-		requireActive?: boolean;
-		cachedData?: { id: string; title: string; status: StatusEnumType }[];
-	}) => {
+	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
 		if (id) {
 			const currentBudget = cachedData
 				? cachedData.find((item) => item.id === id)
@@ -169,7 +171,7 @@ export const budgetActions = {
 			return undefined;
 		}
 	},
-	create: async (db: DBType, data: CreateBudgetSchemaType) => {
+	create: async (db, data) => {
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(budget).values(budgetCreateInsertionData(data, id)),
@@ -180,16 +182,17 @@ export const budgetActions = {
 
 		return id;
 	},
-	createMany: async (db: DBType, data: CreateBudgetSchemaType[]) => {
+	createMany: async (db, data) => {
 		const items = data.map((item) => {
 			const id = nanoid();
 			return budgetCreateInsertionData(item, id);
 		});
+		const ids = items.map((item) => item.id);
 		await dbExecuteLogger(db.insert(budget).values(items), 'Budget - Create Many');
 		await materializedViewActions.setRefreshRequired(db);
+		return ids;
 	},
-	update: async (db: DBType, data: UpdateBudgetSchemaType) => {
-		const { id } = data;
+	update: async ({ db, data, id }) => {
 		const currentBudget = await dbExecuteLogger(
 			db.query.budget.findFirst({ where: eq(budget.id, id) }),
 			'Budget - Update - Find'
@@ -216,14 +219,14 @@ export const budgetActions = {
 
 		return id;
 	},
-	canDeleteMany: async (db: DBType, ids: string[]) => {
+	canDeleteMany: async (db, ids) => {
 		const canDeleteList = await Promise.all(
 			ids.map(async (id) => budgetActions.canDelete(db, { id }))
 		);
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db: DBType, data: IdSchemaType) => {
+	canDelete: async (db, data) => {
 		const currentBudget = await dbExecuteLogger(
 			db.query.budget.findFirst({
 				where: eq(budget.id, data.id),
@@ -238,7 +241,7 @@ export const budgetActions = {
 		// If the budget has no journals, then mark as deleted, otherwise do nothing
 		return currentBudget && currentBudget.journals.length === 0;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
+	delete: async (db, data) => {
 		if (await budgetActions.canDelete(db, data)) {
 			await dbExecuteLogger(db.delete(budget).where(eq(budget.id, data.id)), 'Budget - Delete');
 		}
@@ -246,7 +249,7 @@ export const budgetActions = {
 
 		return data.id;
 	},
-	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+	deleteMany: async (db, data) => {
 		if (data.length === 0) return;
 		const currentBudgets = await budgetActions.listWithTransactionCount(db);
 		const itemsForDeletion = data.filter((item) => {
@@ -265,9 +268,11 @@ export const budgetActions = {
 				'Budget - Delete Many'
 			);
 			await materializedViewActions.setRefreshRequired(db);
+			return true;
 		}
+		return false;
 	},
-	seed: async (db: DBType, count: number) => {
+	seed: async (db, count) => {
 		logging.info('Seeding Budgets : ', count);
 
 		const existingTitles = (
@@ -283,5 +288,3 @@ export const budgetActions = {
 		await budgetActions.createMany(db, itemsToCreate);
 	}
 };
-
-export type BudgetDropdownType = Awaited<ReturnType<typeof budgetActions.listForDropdown>>;
