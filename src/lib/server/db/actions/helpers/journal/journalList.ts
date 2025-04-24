@@ -107,7 +107,7 @@ type JournalMLExpanded = JournalViewReturnType & {
 	files: GroupedFilesType;
 };
 
-type JournalMLExpandedWithPagination = PaginationType & {
+export type JournalMLExpandedWithPagination = PaginationType & {
 	runningTotal: number;
 	data: JournalMLExpanded[];
 };

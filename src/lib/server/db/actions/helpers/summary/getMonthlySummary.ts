@@ -1,6 +1,24 @@
 import { generateYearMonthsBetween } from '$lib/helpers/generateYearMonthsBetween';
 import type { MonthlySummarySchemaType } from '$lib/schema/summaryCacheSchema';
 
+export type MonthlySummaryType = {
+	yearMonth: string;
+	count: number;
+	sum: number;
+	average: number;
+	positiveSum: number;
+	positiveCount: number;
+	negativeSum: number;
+	negativeCount: number;
+	positiveSumNonTransfer: number;
+	negativeSumNonTransfer: number;
+};
+
+export type MonthlySummaryWithRunningType = MonthlySummaryType & {
+	runningTotal: number;
+	runningCount: number;
+};
+
 export function getMonthlySummary({
 	monthlyQuery,
 	defaultValue,
@@ -11,7 +29,7 @@ export function getMonthlySummary({
 	defaultValue: Omit<MonthlySummarySchemaType, 'yearMonth'>;
 	startDate: string | undefined;
 	endDate: string | undefined;
-}) {
+}): MonthlySummaryWithRunningType[] {
 	const yearMonths = monthlyQuery.map((item) => item.yearMonth);
 	const startDateUse = startDate
 		? startDate

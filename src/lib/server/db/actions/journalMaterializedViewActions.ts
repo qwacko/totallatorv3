@@ -7,15 +7,22 @@ import type {
 	JournalFilterSchemaType,
 	JournalFilterSchemaWithoutPaginationType
 } from '$lib/schema/journalSchema';
-import { journalMaterialisedList } from './helpers/journal/journalList';
+import {
+	journalMaterialisedList,
+	type JournalMLExpandedWithPagination
+} from './helpers/journal/journalList';
 import {
 	getCommonData,
 	getCommonLabelData,
 	getCommonOtherAccountData,
-	getToFromAccountAmountData
+	getToFromAccountAmountData,
+	type GetToFromAccountAmountDataReturn
 } from './helpers/misc/getCommonData';
 import { getMonthlySummary } from './helpers/summary/getMonthlySummary';
-import { summaryCacheDataSchema } from '$lib/schema/summaryCacheSchema';
+import {
+	summaryCacheDataSchema,
+	type SummaryCacheSchemaDataType
+} from '$lib/schema/summaryCacheSchema';
 import { dbExecuteLogger } from '../dbLogger';
 import { journalEntry } from '../postgres/schema';
 import {
@@ -26,7 +33,7 @@ import {
 import { z } from 'zod';
 
 export const journalMaterializedViewActions = {
-	getLatestUpdateDate: async ({ db }: { db: DBType }) => {
+	getLatestUpdateDate: async ({ db }: { db: DBType }): Promise<Date> => {
 		const latestUpdateDate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(journalEntry.updatedAt) }).from(journalEntry),
 			'Journal Materialized - Get Latest Update Date'
@@ -34,7 +41,7 @@ export const journalMaterializedViewActions = {
 
 		return latestUpdateDate[0].lastUpdated || new Date();
 	},
-	count: async (db: DBType, filter?: JournalFilterSchemaType) => {
+	count: async (db: DBType, filter?: JournalFilterSchemaType): Promise<number> => {
 		const { table, target } = await getCorrectJournalTable(db);
 		const countQuery = await dbExecuteLogger(
 			db
@@ -62,7 +69,7 @@ export const journalMaterializedViewActions = {
 		filter?: JournalFilterSchemaType | JournalFilterSchemaWithoutPaginationType;
 		startDate?: string;
 		endDate?: string;
-	}) => {
+	}): Promise<SummaryCacheSchemaDataType> => {
 		const { table, target } = await getCorrectJournalTable(db);
 
 		const startDate12Months = new Date();
@@ -246,7 +253,7 @@ export const journalMaterializedViewActions = {
 		db: DBType;
 		filter: JournalFilterSchemaInputType;
 		disableRefresh?: boolean;
-	}) => {
+	}): Promise<JournalMLExpandedWithPagination> => {
 		return journalMaterialisedList({ db, filter });
 	},
 	listWithCommonData: async ({
@@ -257,7 +264,26 @@ export const journalMaterializedViewActions = {
 		db: DBType;
 		filter: JournalFilterSchemaInputType;
 		disableRefresh?: boolean;
-	}) => {
+	}): Promise<{
+		journals: JournalMLExpandedWithPagination;
+		common: {
+			accountId: string | undefined;
+			amount: number | undefined;
+			tagId: string | undefined;
+			categoryId: string | undefined;
+			billId: string | undefined;
+			budgetId: string | undefined;
+			date: string | undefined;
+			description: string | undefined;
+			linked: boolean | undefined;
+			reconciled: boolean | undefined;
+			complete: boolean | undefined;
+			dataChecked: boolean | undefined;
+			otherAccountId: string | undefined;
+			allLabelIds: string[];
+			commonLabelIds: string[];
+		} & GetToFromAccountAmountDataReturn;
+	}> => {
 		const journalInformation = await journalMaterializedViewActions.list({
 			db,
 			filter,
