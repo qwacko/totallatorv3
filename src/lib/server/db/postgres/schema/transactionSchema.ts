@@ -813,6 +813,8 @@ export const filter = pgTable(
 	})
 );
 
+export type FilterTableType = typeof filter.$inferSelect;
+
 export const reportElementConfig = pgTable(
 	'report_element_config',
 	{
@@ -877,6 +879,8 @@ export const report = pgTable(
 	})
 );
 
+export type ReportTableType = typeof report.$inferSelect;
+
 export const reportElement = pgTable(
 	'report_element',
 	{
@@ -900,6 +904,8 @@ export const reportElement = pgTable(
 		filterIdx: index('report_element_filter_idx').on(t.filterId)
 	})
 );
+
+export type ReportElementTableType = typeof reportElement.$inferSelect;
 
 export const reportElementRelations = relations(reportElement, ({ one, many }) => ({
 	reportElementConfig: one(reportElementConfig, {

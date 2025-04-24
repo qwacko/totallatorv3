@@ -12,7 +12,10 @@ import {
 	reportElement,
 	reportElementConfig,
 	type InsertReportElementConfigType,
-	filtersToReportConfigs
+	filtersToReportConfigs,
+	type ReportTableType,
+	type ReportElementTableType,
+	type FilterTableType
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
@@ -37,7 +40,7 @@ import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';
 
 export const reportActions = {
-	delete: async ({ db, id }: { db: DBType; id: string }) => {
+	delete: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		const reportInfo = await reportActions.getReportConfig({ db, id });
 
 		if (!reportInfo) throw new Error('Report not found');
@@ -69,7 +72,7 @@ export const reportActions = {
 			})
 		);
 	},
-	create: async ({ db, data }: { db: DBType; data: CreateReportType }) => {
+	create: async ({ db, data }: { db: DBType; data: CreateReportType }): Promise<string> => {
 		const id = nanoid();
 
 		const reportElementCreationList: CreateReportElementType[] = reportLayoutOptions[
@@ -93,7 +96,11 @@ export const reportActions = {
 
 		return id;
 	},
-	listForDropdown: async ({ db }: { db: DBType }) => {
+	listForDropdown: async ({
+		db
+	}: {
+		db: DBType;
+	}): Promise<{ id: string; title: string; group: string | null }[]> => {
 		const reports = await dbExecuteLogger(
 			db.select({ id: report.id, title: report.title, group: report.group }).from(report),
 			'Report - List For Dropdown'
@@ -119,7 +126,13 @@ export const reportActions = {
 				.sort((a, b) => a.title.localeCompare(b.title))
 		];
 	},
-	getSimpleReportConfig: async ({ db, id }: { db: DBType; id: string }) => {
+	getSimpleReportConfig: async ({
+		db,
+		id
+	}: {
+		db: DBType;
+		id: string;
+	}): Promise<ReportTableType | undefined> => {
 		const reportConfig = await dbExecuteLogger(
 			db.query.report.findFirst({
 				where: (report, { eq }) => eq(report.id, id)
@@ -141,7 +154,13 @@ export const reportActions = {
 		db: DBType;
 		id: string;
 		pageFilter?: JournalFilterSchemaWithoutPaginationType;
-	}) => {
+	}): Promise<
+		| undefined
+		| (ReportTableType & {
+				filter: FilterTableType | null;
+				reportElements: ReportElementTableType[];
+		  })
+	> => {
 		const reportConfig = await dbExecuteLogger(
 			db.query.report.findFirst({
 				where: (report, { eq }) => eq(report.id, id),
