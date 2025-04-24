@@ -698,6 +698,8 @@ export const importTable = pgTable(
 	})
 );
 
+export type ImportTableType = typeof importTable.$inferSelect;
+
 export const importTableRelations = relations(importTable, ({ many, one }) => ({
 	importDetails: many(importItemDetail),
 	journals: many(journalEntry),
@@ -792,7 +794,7 @@ export const importMapping = pgTable('import_mapping', {
 	sampleData: text('sample_data')
 });
 
-export type ImportMappingType = typeof importMapping.$inferSelect;
+export type ImportMappingTableType = typeof importMapping.$inferSelect;
 
 export const importMappingRelations = relations(importMapping, ({ many }) => ({
 	imports: many(importTable)
