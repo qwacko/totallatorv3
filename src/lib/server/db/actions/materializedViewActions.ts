@@ -77,7 +77,7 @@ export const materializedViewActions = {
 		db: DBType;
 		logStats?: boolean;
 		items?: itemsType;
-	}) => {
+	}): Promise<void> => {
 		await Promise.all([
 			timePromise('Journal Extended View Refresh', items.journals, async () => {
 				if (useConcurrentRefresh) {
@@ -192,7 +192,13 @@ export const materializedViewActions = {
 			})
 		]);
 	},
-	needsRefresh: async ({ db, items = itemsDefault }: { db: DBType; items?: itemsType }) => {
+	needsRefresh: async ({
+		db,
+		items = itemsDefault
+	}: {
+		db: DBType;
+		items?: itemsType;
+	}): Promise<boolean> => {
 		const itemsRequiringUpdate = {
 			account: await accountRefreshRequiredStore.get(db),
 			tag: await tagRefreshRequiredStore.get(db),
@@ -218,7 +224,7 @@ export const materializedViewActions = {
 		db: DBType;
 		logStats?: boolean;
 		items?: itemsType;
-	}) => {
+	}): Promise<boolean> => {
 		const needsUpdate = await materializedViewActions.needsRefresh({ db, items });
 
 		if (!needsUpdate) return false;
@@ -226,7 +232,7 @@ export const materializedViewActions = {
 		await materializedViewActions.refresh({ db, logStats, items });
 		return true;
 	},
-	setRefreshRequired: async (db: DBType) => {
+	setRefreshRequired: async (db: DBType): Promise<void> => {
 		await Promise.all([
 			refreshRequiredStore.set(db, true),
 			accountRefreshRequiredStore.set(db, true),
