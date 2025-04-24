@@ -735,6 +735,8 @@ export const autoImportTable = pgTable(
 	})
 );
 
+export type AutoImportTableType = typeof autoImportTable.$inferSelect;
+
 export const autoImportTableRelations = relations(autoImportTable, ({ one, many }) => ({
 	importMapping: one(importMapping, {
 		fields: [autoImportTable.importMappingId],
