@@ -42,7 +42,7 @@ export const journalActions = {
 	}: {
 		db: DBType;
 		transaction: CreateSimpleTransactionType;
-	}) => {
+	}): Promise<string[]> => {
 		const processedTransaction = createSimpleTransactionSchema.safeParse(transaction);
 
 		if (!processedTransaction.success) {
@@ -64,7 +64,7 @@ export const journalActions = {
 	}: {
 		db: DBType;
 		journalEntries: CreateCombinedTransactionType[];
-	}) => {
+	}): Promise<string[]> => {
 		let transactionIds: string[] = [];
 		await tLogger(
 			'Create Many Transaction Journals',
@@ -126,7 +126,7 @@ export const journalActions = {
 	}: {
 		db: DBType;
 		transactionIds: string[];
-	}) => {
+	}): Promise<void> => {
 		if (transactionIds.length === 0) return;
 		await tLogger(
 			'Hard Delete Transactions',
@@ -167,7 +167,7 @@ export const journalActions = {
 		);
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	seed: async (db: DBType, count: number) => {
+	seed: async (db: DBType, count: number): Promise<void> => {
 		const startTime = Date.now();
 		const { data: assetLiabilityAccounts } = await accountActions.list({
 			db,
@@ -234,7 +234,7 @@ export const journalActions = {
 	}: {
 		db: DBType;
 		journalFilter: JournalFilterSchemaInputType;
-	}) => {
+	}): Promise<void> => {
 		const journals = await tActions.journalView.list({ db, filter: journalFilter });
 
 		await tLogger(
@@ -255,7 +255,7 @@ export const journalActions = {
 	}: {
 		db: DBType;
 		journalFilter: JournalFilterSchemaInputType;
-	}) => {
+	}): Promise<void> => {
 		const journals = await tActions.journalView.list({ db, filter: journalFilter });
 
 		await tLogger(
@@ -270,7 +270,7 @@ export const journalActions = {
 		);
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	markComplete: async (db: DBType, journalId: string) => {
+	markComplete: async (db: DBType, journalId: string): Promise<void> => {
 		const journal = await dbExecuteLogger(
 			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
 			'Transaction Journals - Mark Complete - Find Journal'
@@ -286,7 +286,7 @@ export const journalActions = {
 		);
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	markUncomplete: async (db: DBType, journalId: string) => {
+	markUncomplete: async (db: DBType, journalId: string): Promise<void> => {
 		const journal = await dbExecuteLogger(
 			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
 			'Transaction Journals - Mark Uncomplete - Find Journal'
@@ -310,7 +310,7 @@ export const journalActions = {
 		db: DBType;
 		filter: JournalFilterSchemaInputType;
 		journalData: UpdateJournalSchemaInputType;
-	}) => {
+	}): Promise<undefined | string[]> => {
 		const processedData = updateJournalSchema.safeParse(journalData);
 
 		if (!processedData.success) {
@@ -693,7 +693,7 @@ export const journalActions = {
 		db: DBType;
 		filter: JournalFilterSchemaInputType;
 		journalData: CloneJournalUpdateSchemaType;
-	}) => {
+	}): Promise<undefined | string[]> => {
 		const processedData = cloneJournalUpdateSchema.safeParse(journalData);
 
 		if (!processedData.success) {
