@@ -448,6 +448,8 @@ export const fileTable = pgTable(
 	})
 );
 
+export type FileTableType = typeof fileTable.$inferSelect;
+
 export const fileTableRelations = relations(fileTable, ({ one, many }) => ({
 	transaction: one(transaction, {
 		fields: [fileTable.transactionId],
@@ -529,6 +531,8 @@ export const notesTable = pgTable(
 		reportElementIdx: index('note_report_element_idx').on(t.reportElementId)
 	})
 );
+
+export type NotesTableType = typeof notesTable.$inferSelect;
 
 export const notesTableRelations = relations(notesTable, ({ one }) => ({
 	transaction: one(transaction, {

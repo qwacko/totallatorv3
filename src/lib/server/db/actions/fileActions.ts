@@ -10,7 +10,9 @@ import {
 	autoImportTable,
 	report,
 	reportElement,
-	user
+	user,
+	type FileTableType,
+	type JournalViewReturnType
 } from '../postgres/schema';
 import {
 	and,
@@ -48,6 +50,7 @@ import { materializedViewActions } from './materializedViewActions';
 import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '../dbLogger';
+import type { PaginatedResults } from './helpers/journal/PaginationType';
 
 type GroupingOptions =
 	| 'transaction'
@@ -62,16 +65,44 @@ type GroupingOptions =
 	| 'reportElement';
 
 export const fileActions = {
-	getById: async (db: DBType, id: string) => {
+	getById: async (db: DBType, id: string): Promise<FileTableType | undefined> => {
 		return dbExecuteLogger(
 			db.query.fileTable.findFirst({ where: ({ id: fileId }, { eq }) => eq(fileId, id) }),
 			'File - Get By ID'
 		);
 	},
-	filterToText: async ({ db, filter }: { db: DBType; filter: FileFilterSchemaType }) => {
+	filterToText: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: FileFilterSchemaType;
+	}): Promise<string[]> => {
 		return fileFilterToText({ db, filter });
 	},
-	list: async ({ db, filter }: { db: DBType; filter: FileFilterSchemaType }) => {
+	list: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: FileFilterSchemaType;
+	}): Promise<
+		PaginatedResults<
+			FileTableType & {
+				accountTitle: string | null;
+				billTitle: string | null;
+				budgetTitle: string | null;
+				categoryTitle: string | null;
+				tagTitle: string | null;
+				labelTitle: string | null;
+				autoImportTitle: string | null;
+				reportTitle: string | null;
+				reportElementTitle: string | null;
+				journals: JournalViewReturnType[];
+				createdBy: string | null;
+			}
+		>
+	> => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = fileFilterToQuery(restFilter);
@@ -219,7 +250,11 @@ export const fileActions = {
 		db: DBType;
 		item: T;
 		grouping: GroupingOptions;
-	}) => {
+	}): Promise<
+		T & {
+			files: GroupedFilesType;
+		}
+	> => {
 		const ids = [item.id];
 		const groupedFiles = await fileActions.listGrouped({
 			db,
@@ -238,9 +273,15 @@ export const fileActions = {
 		grouping
 	}: {
 		db: DBType;
-		data: { count: number; data: T[]; page: number; pageSize: number; pageCount: number };
+		data: PaginatedResults<T>;
 		grouping: GroupingOptions;
-	}) => {
+	}): Promise<
+		PaginatedResults<
+			T & {
+				files: GroupedFilesType;
+			}
+		>
+	> => {
 		const ids = data.data.map((a) => a.id);
 		const groupedFiles = await fileActions.listGrouped({
 			db,
@@ -267,7 +308,7 @@ export const fileActions = {
 		db: DBType;
 		file: CreateFileSchemaType;
 		creationUserId: string;
-	}) => {
+	}): Promise<void> => {
 		const result = createFileSchema.safeParse(file);
 
 		if (!result.success) {
@@ -352,7 +393,7 @@ export const fileActions = {
 		await dbExecuteLogger(db.insert(fileTable).values(createData), 'File - Create');
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	updateLinked: async ({ db }: { db: DBType }) => {
+	updateLinked: async ({ db }: { db: DBType }): Promise<void> => {
 		await dbExecuteLogger(
 			db
 				.update(fileTable)
@@ -395,7 +436,7 @@ export const fileActions = {
 		db: DBType;
 		filter: FileFilterSchemaWithoutPaginationType;
 		update: UpdateFileSchemaType;
-	}) => {
+	}): Promise<void> => {
 		const { id, ...restUpdate } = update;
 		const where = fileFilterToQuery(filter);
 
@@ -420,7 +461,7 @@ export const fileActions = {
 	}: {
 		db: DBType;
 		filter: FileFilterSchemaWithoutPaginationType;
-	}) => {
+	}): Promise<void> => {
 		const files = await fileActions.listWithoutPagination({ db, filter });
 
 		await Promise.all(
@@ -438,7 +479,13 @@ export const fileActions = {
 
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	getFile: async ({ db, id }: { db: DBType; id: string }) => {
+	getFile: async ({
+		db,
+		id
+	}: {
+		db: DBType;
+		id: string;
+	}): Promise<{ info: FileTableType; fileData: Promise<Buffer<ArrayBufferLike>> }> => {
 		const file = await dbExecuteLogger(
 			db.select().from(fileTable).where(eq(fileTable.id, id)),
 			'File - Get File'
@@ -455,7 +502,13 @@ export const fileActions = {
 			info: file[0]
 		};
 	},
-	getThumbnail: async ({ db, id }: { db: DBType; id: string }) => {
+	getThumbnail: async ({
+		db,
+		id
+	}: {
+		db: DBType;
+		id: string;
+	}): Promise<{ info: FileTableType; fileData: Promise<Buffer<ArrayBufferLike>> }> => {
 		const file = await dbExecuteLogger(
 			db.select().from(fileTable).where(eq(fileTable.id, id)),
 			'File - Get Thumbnail'
@@ -484,7 +537,20 @@ export const fileActions = {
 	}: {
 		db: DBType;
 		items: CreateFileNoteRelationshipSchemaType;
-	}) => {
+	}): Promise<{
+		data: {
+			accountTitle: LinkedTextType | undefined;
+			billTitle: LinkedTextType | undefined;
+			budgetTitle: LinkedTextType | undefined;
+			categoryTitle: LinkedTextType | undefined;
+			tagTitle: LinkedTextType | undefined;
+			labelTitle: LinkedTextType | undefined;
+			autoImportTitle: LinkedTextType | undefined;
+			reportTitle: LinkedTextType | undefined;
+			reportElementTitle: LinkedTextType | undefined;
+		};
+		text: string;
+	}> => {
 		const accountTitle = items.accountId
 			? await tActions.account.getById(db, items.accountId)
 			: undefined;
@@ -523,7 +589,7 @@ export const fileActions = {
 				: undefined,
 			reportTitle: reportTitle ? { description: 'Report', title: reportTitle.title } : undefined,
 			reportElementTitle: reportElementTitle
-				? { description: 'Report Element', title: reportElementTitle.title }
+				? { description: 'Report Element', title: reportElementTitle.title || "Untitled Report Element"}
 				: undefined
 		};
 
@@ -538,7 +604,7 @@ export const fileActions = {
 			).join(', ')
 		};
 	},
-	checkFilesExist: async ({ db }: { db: DBType }) => {
+	checkFilesExist: async ({ db }: { db: DBType }): Promise<void> => {
 		const dbFiles = await dbExecuteLogger(
 			db
 				.select({
@@ -605,3 +671,5 @@ export type GroupedFilesType = {
 	createdBy: string | null;
 	groupingId: string | null;
 }[];
+
+type LinkedTextType = { description: string; title: string };
