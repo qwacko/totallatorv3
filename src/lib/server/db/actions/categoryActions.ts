@@ -135,13 +135,7 @@ export const categoryActions: CategoryActionsType = {
 
 		return items;
 	},
-	createOrGet: async ({
-		db,
-		title,
-		id,
-		requireActive = true,
-		cachedData
-	}) => {
+	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
 		if (id) {
 			const currentCategory = cachedData
 				? cachedData.find((item) => item.id === id)

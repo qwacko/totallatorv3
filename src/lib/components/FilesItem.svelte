@@ -20,7 +20,7 @@
 	<TimelineItem classLi="mb-0">
 		<svelte:fragment slot="icon">
 			<span
-				class="absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary-200 ring-8 ring-white dark:bg-primary-900 dark:ring-gray-900"
+				class="bg-primary-200 dark:bg-primary-900 absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full ring-8 ring-white dark:ring-gray-900"
 			>
 				<FileIcon />
 			</span>

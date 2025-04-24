@@ -61,8 +61,8 @@
 	const updateAndSaveFromRecommendation = async (rec: RecommendationType) => {
 		loadingUpdateAndSave = rec.journalId;
 		updateFromRecommendation(rec);
-		await tick()
-		form.submit();		
+		await tick();
+		form.submit();
 		loadingUpdateAndSave = undefined;
 	};
 </script>

@@ -106,10 +106,15 @@
 			</Button>
 		{/if}
 		{#if updateAndSave}
-			<Button outline on:click={updateAndSave} class="grow basis-0  flex-row gap-1 align-middle" disabled={updateAndSaveActive}>
+			<Button
+				outline
+				on:click={updateAndSave}
+				class="grow basis-0  flex-row gap-1 align-middle"
+				disabled={updateAndSaveActive}
+			>
 				{#if updateAndSaveActive}<Spinner class="flex" size="4" />{:else}
-						<SaveIcon class="flex" />
-					{/if}
+					<SaveIcon class="flex" />
+				{/if}
 				<div class="flex">Update And Save</div>
 			</Button>
 		{/if}
