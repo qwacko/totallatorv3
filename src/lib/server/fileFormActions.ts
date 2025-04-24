@@ -21,7 +21,7 @@ export const fileFormActions = {
 		try {
 			await tActions.file.create({
 				db: data.locals.db,
-				file: form.data,
+				data: form.data,
 				creationUserId: creationPerson
 			});
 		} catch (e) {

@@ -11,8 +11,7 @@ import {
 	report,
 	reportElement,
 	user,
-	type FileTableType,
-	type JournalViewReturnType
+	type FileTableType
 } from '../postgres/schema';
 import {
 	and,
@@ -40,7 +39,6 @@ import { fileFileHandler } from '$lib/server/files/fileHandler';
 import sharp from 'sharp';
 import {
 	fileRelationshipKeys,
-	type CreateFileNoteRelationshipSchemaType,
 	type KeysOfCreateFileNoteRelationshipSchemaType
 } from '$lib/schema/helpers/fileNoteRelationship';
 import { tActions } from './tActions';
@@ -50,59 +48,44 @@ import { materializedViewActions } from './materializedViewActions';
 import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '../dbLogger';
-import type { PaginatedResults } from './helpers/journal/PaginationType';
+import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
 
-type GroupingOptions =
-	| 'transaction'
-	| 'account'
-	| 'bill'
-	| 'budget'
-	| 'category'
-	| 'tag'
-	| 'label'
-	| 'autoImport'
-	| 'report'
-	| 'reportElement';
+type FilesActionsType = FilesAndNotesActions<
+	FileTableType,
+	CreateFileSchemaType,
+	UpdateFileSchemaType,
+	FileFilterSchemaType,
+	FileFilterSchemaWithoutPaginationType,
+	GroupedFilesType,
+	{
+		files: GroupedFilesType;
+	}
+>;
 
-export const fileActions = {
-	getById: async (db: DBType, id: string): Promise<FileTableType | undefined> => {
+type GetFileFunction = (data: {
+	db: DBType;
+	id: string;
+}) => Promise<{ info: FileTableType; fileData: Promise<Buffer<ArrayBufferLike>> }>;
+
+type CheckFilesExistFunction = (data: { db: DBType }) => Promise<void>;
+type UpdateLinkedFunction = (data: { db: DBType }) => Promise<void>;
+
+export const fileActions: FilesActionsType & {
+	getFile: GetFileFunction;
+	getThumbnail: GetFileFunction;
+	checkFilesExist: CheckFilesExistFunction;
+	updateLinked: UpdateLinkedFunction;
+} = {
+	getById: async (db, id) => {
 		return dbExecuteLogger(
 			db.query.fileTable.findFirst({ where: ({ id: fileId }, { eq }) => eq(fileId, id) }),
 			'File - Get By ID'
 		);
 	},
-	filterToText: async ({
-		db,
-		filter
-	}: {
-		db: DBType;
-		filter: FileFilterSchemaType;
-	}): Promise<string[]> => {
+	filterToText: async ({ db, filter }) => {
 		return fileFilterToText({ db, filter });
 	},
-	list: async ({
-		db,
-		filter
-	}: {
-		db: DBType;
-		filter: FileFilterSchemaType;
-	}): Promise<
-		PaginatedResults<
-			FileTableType & {
-				accountTitle: string | null;
-				billTitle: string | null;
-				budgetTitle: string | null;
-				categoryTitle: string | null;
-				tagTitle: string | null;
-				labelTitle: string | null;
-				autoImportTitle: string | null;
-				reportTitle: string | null;
-				reportElementTitle: string | null;
-				journals: JournalViewReturnType[];
-				createdBy: string | null;
-			}
-		>
-	> => {
+	list: async ({ db, filter }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = fileFilterToQuery(restFilter);
@@ -180,13 +163,7 @@ export const fileActions = {
 
 		return { count, data: resultsWithJournals, pageCount, page, pageSize };
 	},
-	listWithoutPagination: async ({
-		db,
-		filter
-	}: {
-		db: DBType;
-		filter: FileFilterSchemaWithoutPaginationType;
-	}) => {
+	listWithoutPagination: async ({ db, filter }) => {
 		return (
 			await fileActions.list({
 				db,
@@ -199,15 +176,7 @@ export const fileActions = {
 			})
 		).data;
 	},
-	listGrouped: async ({
-		db,
-		ids,
-		grouping
-	}: {
-		db: DBType;
-		ids: string[];
-		grouping: GroupingOptions;
-	}): Promise<Record<string, GroupedFilesType>> => {
+	listGrouped: async ({ db, ids, grouping }) => {
 		const items = await db
 			.select({
 				id: fileTable.id,
@@ -242,19 +211,7 @@ export const fileActions = {
 
 		return groupedItems;
 	},
-	addFilesToSingleItem: async <T extends { id: string }>({
-		db,
-		item,
-		grouping
-	}: {
-		db: DBType;
-		item: T;
-		grouping: GroupingOptions;
-	}): Promise<
-		T & {
-			files: GroupedFilesType;
-		}
-	> => {
+	addToSingleItem: async ({ db, item, grouping }) => {
 		const ids = [item.id];
 		const groupedFiles = await fileActions.listGrouped({
 			db,
@@ -267,21 +224,7 @@ export const fileActions = {
 			files: groupedFiles[item.id] || []
 		};
 	},
-	addFilesToItems: async <T extends { id: string }>({
-		db,
-		data,
-		grouping
-	}: {
-		db: DBType;
-		data: PaginatedResults<T>;
-		grouping: GroupingOptions;
-	}): Promise<
-		PaginatedResults<
-			T & {
-				files: GroupedFilesType;
-			}
-		>
-	> => {
+	addToItems: async ({ db, data, grouping }) => {
 		const ids = data.data.map((a) => a.id);
 		const groupedFiles = await fileActions.listGrouped({
 			db,
@@ -300,16 +243,8 @@ export const fileActions = {
 			})
 		};
 	},
-	create: async ({
-		db,
-		file,
-		creationUserId
-	}: {
-		db: DBType;
-		file: CreateFileSchemaType;
-		creationUserId: string;
-	}): Promise<void> => {
-		const result = createFileSchema.safeParse(file);
+	create: async ({ db, data, creationUserId }) => {
+		const result = createFileSchema.safeParse(data);
 
 		if (!result.success) {
 			throw new Error('Invalid input');
@@ -393,7 +328,7 @@ export const fileActions = {
 		await dbExecuteLogger(db.insert(fileTable).values(createData), 'File - Create');
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	updateLinked: async ({ db }: { db: DBType }): Promise<void> => {
+	updateLinked: async ({ db }) => {
 		await dbExecuteLogger(
 			db
 				.update(fileTable)
@@ -428,15 +363,7 @@ export const fileActions = {
 
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	updateMany: async ({
-		db,
-		filter,
-		update
-	}: {
-		db: DBType;
-		filter: FileFilterSchemaWithoutPaginationType;
-		update: UpdateFileSchemaType;
-	}): Promise<void> => {
+	updateMany: async ({ db, filter, update }) => {
 		const { id, ...restUpdate } = update;
 		const where = fileFilterToQuery(filter);
 
@@ -455,13 +382,7 @@ export const fileActions = {
 
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	deleteMany: async ({
-		db,
-		filter
-	}: {
-		db: DBType;
-		filter: FileFilterSchemaWithoutPaginationType;
-	}): Promise<void> => {
+	deleteMany: async ({ db, filter }) => {
 		const files = await fileActions.listWithoutPagination({ db, filter });
 
 		await Promise.all(
@@ -479,13 +400,7 @@ export const fileActions = {
 
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	getFile: async ({
-		db,
-		id
-	}: {
-		db: DBType;
-		id: string;
-	}): Promise<{ info: FileTableType; fileData: Promise<Buffer<ArrayBufferLike>> }> => {
+	getFile: async ({ db, id }) => {
 		const file = await dbExecuteLogger(
 			db.select().from(fileTable).where(eq(fileTable.id, id)),
 			'File - Get File'
@@ -502,13 +417,7 @@ export const fileActions = {
 			info: file[0]
 		};
 	},
-	getThumbnail: async ({
-		db,
-		id
-	}: {
-		db: DBType;
-		id: string;
-	}): Promise<{ info: FileTableType; fileData: Promise<Buffer<ArrayBufferLike>> }> => {
+	getThumbnail: async ({ db, id }) => {
 		const file = await dbExecuteLogger(
 			db.select().from(fileTable).where(eq(fileTable.id, id)),
 			'File - Get Thumbnail'
@@ -531,26 +440,7 @@ export const fileActions = {
 			info: file[0]
 		};
 	},
-	getLinkedText: async ({
-		db,
-		items
-	}: {
-		db: DBType;
-		items: CreateFileNoteRelationshipSchemaType;
-	}): Promise<{
-		data: {
-			accountTitle: LinkedTextType | undefined;
-			billTitle: LinkedTextType | undefined;
-			budgetTitle: LinkedTextType | undefined;
-			categoryTitle: LinkedTextType | undefined;
-			tagTitle: LinkedTextType | undefined;
-			labelTitle: LinkedTextType | undefined;
-			autoImportTitle: LinkedTextType | undefined;
-			reportTitle: LinkedTextType | undefined;
-			reportElementTitle: LinkedTextType | undefined;
-		};
-		text: string;
-	}> => {
+	getLinkedText: async ({ db, items }) => {
 		const accountTitle = items.accountId
 			? await tActions.account.getById(db, items.accountId)
 			: undefined;
@@ -589,7 +479,10 @@ export const fileActions = {
 				: undefined,
 			reportTitle: reportTitle ? { description: 'Report', title: reportTitle.title } : undefined,
 			reportElementTitle: reportElementTitle
-				? { description: 'Report Element', title: reportElementTitle.title || "Untitled Report Element"}
+				? {
+						description: 'Report Element',
+						title: reportElementTitle.title || 'Untitled Report Element'
+					}
 				: undefined
 		};
 
@@ -604,7 +497,7 @@ export const fileActions = {
 			).join(', ')
 		};
 	},
-	checkFilesExist: async ({ db }: { db: DBType }): Promise<void> => {
+	checkFilesExist: async ({ db }) => {
 		const dbFiles = await dbExecuteLogger(
 			db
 				.select({
@@ -671,5 +564,3 @@ export type GroupedFilesType = {
 	createdBy: string | null;
 	groupingId: string | null;
 }[];
-
-type LinkedTextType = { description: string; title: string };

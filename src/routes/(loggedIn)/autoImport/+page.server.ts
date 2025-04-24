@@ -17,10 +17,10 @@ export const load = async (request) => {
 	});
 
 	return {
-		list: await tActions.file.addFilesToItems({
+		list: await tActions.file.addToItems({
 			db: request.locals.db,
 			grouping: 'autoImport',
-			data: await tActions.note.addNotesToItems({
+			data: await tActions.note.addToItems({
 				db: request.locals.db,
 				data: autoImportList,
 				grouping: 'autoImport'

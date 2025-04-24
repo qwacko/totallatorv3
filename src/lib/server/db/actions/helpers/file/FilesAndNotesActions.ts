@@ -1,0 +1,88 @@
+import type { CreateFileNoteRelationshipSchemaType } from '$lib/schema/helpers/fileNoteRelationship';
+import type { DBType } from '../../../db';
+import type { JournalViewReturnType } from '../../../postgres/schema';
+import type { PaginatedResults } from '../journal/PaginationType';
+
+export type GroupingOptions =
+	| 'transaction'
+	| 'account'
+	| 'bill'
+	| 'budget'
+	| 'category'
+	| 'tag'
+	| 'label'
+	| 'autoImport'
+	| 'report'
+	| 'reportElement';
+
+export type LinkedTextType = { description: string; title: string };
+
+export type FilesAndNotesActions<
+	TableType extends Record<string, any>,
+	CreateSchema,
+	UpdateSchema,
+	FilterSchema,
+	FilterSchemaWithoutPagination,
+	GroupedType,
+	AddedToItems extends Record<string, any>
+> = {
+	getById: (db: DBType, id: string) => Promise<TableType | undefined>;
+	filterToText: (data: { db: DBType; filter: FilterSchema }) => Promise<string[]>;
+	list: (data: {
+		db: DBType;
+		filter: FilterSchema;
+	}) => Promise<PaginatedResults<TableType & FilesAndNotesAdditionalColumns>>;
+	listWithoutPagination: (data: {
+		db: DBType;
+		filter: FilterSchema;
+	}) => Promise<(TableType & FilesAndNotesAdditionalColumns)[]>;
+	listGrouped: (data: {
+		db: DBType;
+		ids: string[];
+		grouping: GroupingOptions;
+	}) => Promise<Record<string, GroupedType>>;
+	addToSingleItem: <T extends { id: string }>(data: {
+		db: DBType;
+		item: T;
+		grouping: GroupingOptions;
+	}) => Promise<T & AddedToItems>;
+	addToItems: <T extends { id: string }>(data: {
+		db: DBType;
+		data: PaginatedResults<T>;
+		grouping: GroupingOptions;
+	}) => Promise<PaginatedResults<T & AddedToItems>>;
+	create: (date: { db: DBType; data: CreateSchema; creationUserId: string }) => Promise<void>;
+	updateMany: (data: {
+		db: DBType;
+		filter: FilterSchemaWithoutPagination;
+		update: UpdateSchema;
+	}) => Promise<void>;
+	deleteMany: (data: { db: DBType; filter: FilterSchemaWithoutPagination }) => Promise<void>;
+	getLinkedText: (data: { db: DBType; items: CreateFileNoteRelationshipSchemaType }) => Promise<{
+		data: {
+			accountTitle: LinkedTextType | undefined;
+			billTitle: LinkedTextType | undefined;
+			budgetTitle: LinkedTextType | undefined;
+			categoryTitle: LinkedTextType | undefined;
+			tagTitle: LinkedTextType | undefined;
+			labelTitle: LinkedTextType | undefined;
+			autoImportTitle: LinkedTextType | undefined;
+			reportTitle: LinkedTextType | undefined;
+			reportElementTitle: LinkedTextType | undefined;
+		};
+		text: string;
+	}>;
+};
+type FilesAndNotesAdditionalColumns = {
+	accountTitle: string | null;
+	billTitle: string | null;
+	budgetTitle: string | null;
+	categoryTitle: string | null;
+	tagTitle: string | null;
+	labelTitle: string | null;
+	autoImportTitle: string | null;
+	reportTitle: string | null;
+	reportElementTitle: string | null;
+	journals: JournalViewReturnType[];
+	createdBy: string | null;
+};

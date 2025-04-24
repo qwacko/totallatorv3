@@ -31,10 +31,10 @@ export const load = async (data) => {
 	});
 
 	return {
-		categories: await tActions.file.addFilesToItems({
+		categories: await tActions.file.addToItems({
 			db,
 			grouping: 'category',
-			data: await tActions.note.addNotesToItems({ db, data: categories, grouping: 'category' })
+			data: await tActions.note.addToItems({ db, data: categories, grouping: 'category' })
 		}),
 		searchParams: pageInfo.searchParams,
 		filterText

@@ -21,7 +21,7 @@ export const noteFormActions = {
 		try {
 			await tActions.note.create({
 				db: data.locals.db,
-				note: form.data,
+				data: form.data,
 				creationUserId: creationPerson
 			});
 		} catch (e) {

@@ -32,10 +32,10 @@ export const load = async (data) => {
 	});
 
 	return {
-		bills: await tActions.file.addFilesToItems({
+		bills: await tActions.file.addToItems({
 			db,
 			grouping: 'bill',
-			data: await tActions.note.addNotesToItems({ db, data: bills, grouping: 'bill' })
+			data: await tActions.note.addToItems({ db, data: bills, grouping: 'bill' })
 		}),
 		searchParams: pageInfo.searchParams,
 		filterText
