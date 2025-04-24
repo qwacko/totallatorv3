@@ -14,8 +14,6 @@ import {
 	type InsertReportElementConfigType,
 	filtersToReportConfigs,
 	type ReportTableType,
-	type ReportElementTableType,
-	type FilterTableType
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
@@ -96,11 +94,7 @@ export const reportActions = {
 
 		return id;
 	},
-	listForDropdown: async ({
-		db
-	}: {
-		db: DBType;
-	}): Promise<{ id: string; title: string; group: string | null }[]> => {
+	listForDropdown: async ({ db }: { db: DBType }): Promise<ReportDropdownType> => {
 		const reports = await dbExecuteLogger(
 			db.select({ id: report.id, title: report.title, group: report.group }).from(report),
 			'Report - List For Dropdown'
@@ -154,13 +148,7 @@ export const reportActions = {
 		db: DBType;
 		id: string;
 		pageFilter?: JournalFilterSchemaWithoutPaginationType;
-	}): Promise<
-		| undefined
-		| (ReportTableType & {
-				filter: FilterTableType | null;
-				reportElements: ReportElementTableType[];
-		  })
-	> => {
+	}) => {
 		const reportConfig = await dbExecuteLogger(
 			db.query.report.findFirst({
 				where: (report, { eq }) => eq(report.id, id),
@@ -1079,7 +1067,17 @@ export type ReportLayoutConfigType = Exclude<
 	undefined
 >;
 
-export type ReportDropdownType = Awaited<ReturnType<typeof reportActions.listForDropdown>>;
+export type ReportDropdownType = (
+	| { id: string; title: string; group: string | null }
+	| {
+			group: string;
+			reports: {
+				id: string;
+				title: string;
+				group: string | null;
+			}[];
+	  }
+)[];
 
 export type GetReportConfigResult = Awaited<ReturnType<typeof reportActions.getReportConfig>>;
 
