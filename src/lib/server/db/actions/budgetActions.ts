@@ -20,6 +20,7 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 import { getCorrectBudgetTable } from './helpers/budget/getCorrectBudgetTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
+import Papa from 'papaparse';
 
 export type BudgetDropdownType = {
 	id: string;
@@ -116,6 +117,33 @@ export const budgetActions: BudgetActionsType = {
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: results, pageCount, page, pageSize };
+	},
+	generateCSVData: async ({ db, filter, returnType }) => {
+		const data = await budgetActions.list({
+			db,
+			filter: { ...filter, page: 0, pageSize: 100000 }
+		});
+
+		const preppedData = data.data.map((item, row) => {
+			if (returnType === 'import') {
+				return {
+					title: item.title,
+					status: item.status
+				} satisfies CreateBudgetSchemaType;
+			}
+			return {
+				row,
+				id: item.id,
+				title: item.title,
+				status: item.status,
+				sum: item.sum,
+				count: item.count
+			};
+		});
+
+		const csvData = Papa.unparse(preppedData);
+
+		return csvData;
 	},
 	listForDropdown: async ({ db }) => {
 		await streamingDelay();

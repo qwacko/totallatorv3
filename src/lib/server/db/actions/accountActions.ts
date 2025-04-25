@@ -30,6 +30,7 @@ import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';
 import { getCorrectAccountTable } from './helpers/account/getCorrectAccountTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
+import Papa from 'papaparse';
 
 export type AccountDropdownType = {
 	id: string;
@@ -151,6 +152,49 @@ export const accountActions: AccountActionsType & {
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: results, pageCount, page, pageSize };
+	},
+	generateCSVData: async ({ db, filter, returnType }) => {
+		const data = await accountActions.list({
+			db,
+			filter: { ...filter, page: 0, pageSize: 100000 }
+		});
+
+		const preppedData = data.data.map((item, row) => {
+			if (returnType === 'import') {
+				return {
+					title: item.title,
+					accountGroupCombined: item.accountGroupCombined,
+					type: item.type,
+					startDate: item.startDate || undefined,
+					endDate: item.endDate || undefined,
+					isCash: item.isCash,
+					isNetWorth: item.isNetWorth,
+					status: item.status
+				} satisfies CreateAccountSchemaType;
+			}
+			return {
+				row,
+				id: item.id,
+				status: item.status,
+				type: item.type,
+				title: item.title,
+				accountGroup: item.accountGroup,
+				accountGroup2: item.accountGroup2,
+				accountGroup3: item.accountGroup3,
+				accountGroupCombined: item.accountGroupCombined,
+				accountTitleCombined: item.accountTitleCombined,
+				isCash: item.isCash,
+				isNetWorth: item.isNetWorth,
+				startDate: item.startDate,
+				endDate: item.endDate,
+				sum: item.sum,
+				count: item.count
+			};
+		});
+
+		const csvData = Papa.unparse(preppedData);
+
+		return csvData;
 	},
 	listForDropdown: async ({ db }) => {
 		await streamingDelay();

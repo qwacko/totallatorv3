@@ -3,6 +3,7 @@ import type { DBType } from '../db';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
 import type {
+	CreateSimpleTransactionType,
 	JournalFilterSchemaInputType,
 	JournalFilterSchemaType,
 	JournalFilterSchemaWithoutPaginationType
@@ -31,6 +32,9 @@ import {
 } from './helpers/journalMaterializedView/getCorrectJournalTable';
 
 import { z } from 'zod';
+import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
+import type { DownloadTypeEnumType } from '$lib/schema/downloadTypeSchema';
+import Papa from 'papaparse';
 
 export const journalMaterializedViewActions = {
 	getLatestUpdateDate: async ({ db }: { db: DBType }): Promise<Date> => {
@@ -255,6 +259,76 @@ export const journalMaterializedViewActions = {
 		disableRefresh?: boolean;
 	}): Promise<JournalMLExpandedWithPagination> => {
 		return journalMaterialisedList({ db, filter });
+	},
+	generateCSVData: async ({
+		db,
+		filter,
+		returnType
+	}: {
+		db: DBType;
+		filter?: JournalFilterSchemaInputType;
+		returnType: DownloadTypeEnumType;
+	}): Promise<string> => {
+		const journalData = await journalMaterializedViewActions.list({
+			db,
+			filter: { ...filter, page: 0, pageSize: 100000 }
+		});
+
+		const transactionIds = filterNullUndefinedAndDuplicates(
+			journalData.data.map((item) => item.transactionId)
+		);
+		const journalDataToUse =
+			returnType === 'import'
+				? filterNullUndefinedAndDuplicates(
+						transactionIds.map((currentTransactionId) =>
+							journalData.data.find((item) => item.transactionId === currentTransactionId)
+						)
+					)
+				: journalData.data;
+
+		const preppedData = journalDataToUse.map((item, row) => {
+			if (returnType === 'import') {
+				const fromAccountTitle =
+					item.amount > 0 ? item.otherJournals[0].accountTitle : item.accountTitle;
+				const toAccountTitle =
+					item.amount <= 0 ? item.otherJournals[0].accountTitle : item.accountTitle;
+				const amount = item.amount > 0 ? item.amount : -1 * item.amount;
+
+				return {
+					date: item.date.toString().slice(0, 10),
+					fromAccountTitle: fromAccountTitle || undefined,
+					toAccountTitle: toAccountTitle || undefined,
+					amount,
+					description: item.description,
+					billTitle: item.billTitle || undefined,
+					budgetTitle: item.budgetTitle || undefined,
+					categoryTitle: item.categoryTitle || undefined,
+					tagTitle: item.tagTitle || undefined,
+					complete: item.complete,
+					dataChecked: item.dataChecked,
+					reconciled: item.reconciled
+				} satisfies CreateSimpleTransactionType;
+			}
+			return {
+				row,
+				transactionId: item.transactionId,
+				date: item.date,
+				description: item.description,
+				amount: item.amount,
+				total: item.total,
+				accountTitle: item.accountTitle,
+				payeeTitle: item.otherJournals[0].accountTitle,
+				billTitle: item.billTitle,
+				budgetTitle: item.budgetTitle,
+				categoryTitle: item.categoryTitle,
+				tagTitle: item.tagTitle,
+				importTitle: item.importTitle
+			};
+		});
+
+		const csvData = Papa.unparse(preppedData);
+
+		return csvData;
 	},
 	listWithCommonData: async ({
 		db,
