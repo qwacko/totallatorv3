@@ -40,7 +40,8 @@ const POSTAllowAdminOnly = (data: UserValidationOutput) =>
 
 const notesActions = {
 	addNote: POSTAllowAdminOnly,
-	deleteNote: POSTAllowAdminOnly
+	deleteNote: POSTAllowAdminOnly,
+	addNoteJournalFilter: POSTAllowAdminOnly
 };
 
 const filesActions = {

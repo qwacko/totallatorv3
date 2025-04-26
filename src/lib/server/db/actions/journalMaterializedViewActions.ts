@@ -63,6 +63,73 @@ export const journalMaterializedViewActions = {
 
 		return countQuery[0].count;
 	},
+	simpleSummary: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter?: JournalFilterSchemaType | JournalFilterSchemaWithoutPaginationType;
+	}): Promise<{
+		count: number;
+		sum: number;
+		average: number;
+		earliest: string;
+		latest: string;
+		positiveSum: number;
+		positiveCount: number;
+		negativeSum: number;
+		negativeCount: number;
+		positiveSumNonTransfer: number;
+		positiveCountNonTransfer: number;
+		negativeSumNonTransfer: number;
+		negativeCountNonTransfer: number;
+	}> => {
+		const { table, target } = await getCorrectJournalTable(db);
+
+		const summaryQueryCore = db
+			.select({
+				count: count(table.id),
+				sum: sum(table.amount).mapWith(Number),
+				average: sql`avg(${table.amount})`.mapWith(Number),
+				earliest: sql`min(${table.dateText})`.mapWith(table.dateText),
+				latest: sql`max(${table.dateText})`.mapWith(table.dateText),
+				positiveSum:
+					sql`SUM(CASE WHEN ${table.amount} > 0 THEN ${table.amount} ELSE 0 END)`.mapWith(Number),
+				positiveCount: sql`SUM(CASE WHEN ${table.amount} > 0 THEN 1 ELSE 0 END)`.mapWith(Number),
+				negativeSum:
+					sql`SUM(CASE WHEN ${table.amount} < 0 THEN ${table.amount} ELSE 0 END)`.mapWith(Number),
+				negativeCount: sql`SUM(CASE WHEN ${table.amount} < 0 THEN 1 ELSE 0 END)`.mapWith(Number),
+				positiveSumNonTransfer:
+					sql`SUM(CASE WHEN ${table.amount} > 0 AND ${table.transfer} = false THEN ${table.amount} ELSE 0 END)`.mapWith(
+						Number
+					),
+				positiveCountNonTransfer:
+					sql`SUM(CASE WHEN ${table.amount} > 0 AND ${table.transfer} = false THEN 1 ELSE 0 END)`.mapWith(
+						Number
+					),
+				negativeSumNonTransfer:
+					sql`SUM(CASE WHEN ${table.amount} < 0 AND ${table.transfer} = false THEN ${table.amount} ELSE 0 END)`.mapWith(
+						Number
+					),
+				negativeCountNonTransfer:
+					sql`SUM(CASE WHEN ${table.amount} < 0 AND ${table.transfer} = false THEN 1 ELSE 0 END)`.mapWith(
+						Number
+					)
+			})
+			.from(table)
+			.where(
+				and(...(filter ? await materializedJournalFilterToQuery(db, filter, { target }) : []))
+			);
+
+		const summaryQuery = (
+			await dbExecuteLogger(
+				summaryQueryCore,
+				'Journal Materialized - Simple Summary - Summary Core'
+			)
+		)[0];
+
+		return summaryQuery;
+	},
 	summary: async ({
 		db,
 		filter,

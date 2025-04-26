@@ -63,8 +63,3 @@ export const fileFilterSchema = fileFilterWithoutPaginationSchema.merge(
 );
 export type FileFilterSchemaType = z.infer<typeof fileFilterSchema>;
 
-export const linkedFileFilterSchema = z.object({
-	file: z.boolean().optional()
-});
-
-export type LinkedFileFilterSchemaType = z.infer<typeof linkedFileFilterSchema>;

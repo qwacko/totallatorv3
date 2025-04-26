@@ -8,8 +8,8 @@ import { categoryFilterSchema } from './categorySchema';
 import { labelFilterSchema } from './labelSchema';
 import { cloneDeep } from 'lodash-es';
 import { dateSpanEnum } from './dateSpanSchema';
-import { linkedFileFilterSchema } from './fileSchema';
-import { linkedNoteFilterSchema } from './noteSchema';
+import { linkedFileFilterSchema } from './linkedFileFilterSchema';
+import { linkedNoteFilterSchema } from './linkedNoteFilterSchema';
 
 const zodStringBlanking = z
 	.string()

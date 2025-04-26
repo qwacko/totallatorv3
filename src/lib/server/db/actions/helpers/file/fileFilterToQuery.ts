@@ -8,9 +8,8 @@ import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
 import { arrayToText } from '../misc/arrayToText';
 import type {
-	FileFilterSchemaWithoutPaginationType,
-	LinkedFileFilterSchemaType
-} from '$lib/schema/fileSchema';
+	FileFilterSchemaWithoutPaginationType} from '$lib/schema/fileSchema';
+import type { LinkedFileFilterSchemaType } from '$lib/schema/linkedFileFilterSchema';
 import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType) => {

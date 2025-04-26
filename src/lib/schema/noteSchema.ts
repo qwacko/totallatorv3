@@ -5,6 +5,30 @@ import {
 	createFileNoteRelationshipSchema,
 	fileNoteRelationshipFilterSchema
 } from './helpers/fileNoteRelationship';
+import { journalFilterSchema } from './journalSchema';
+
+export const createNoteJournalSchema = z.object({
+	title: z.string(),
+	filter: journalFilterSchema,
+	includeDate: z.boolean().optional().default(false),
+	includeDateRange: z.boolean().optional().default(true),
+	includeSum: z.boolean().optional().default(false),
+	includeSumPositive: z.boolean().optional().default(false),
+	includeSumPositiveNoTransfer: z.boolean().optional().default(false),
+	includeSumNegative: z.boolean().optional().default(false),
+	includeSumNegativeNoTransfer: z.boolean().optional().default(false),
+	includeCount: z.boolean().optional().default(false),
+	includeCountPositive: z.boolean().optional().default(false),
+	includeCountPositiveNoTransfer: z.boolean().optional().default(false),
+	includeCountNegative: z.boolean().optional().default(false),
+	includeCountNegativeNoTransfer: z.boolean().optional().default(false),
+	includeEarliest: z.boolean().optional().default(false),
+	includeLatest: z.boolean().optional().default(false),
+	...createFileNoteRelationshipSchema
+});
+
+export type CreateNoteJournalSchemaInputType = z.input<typeof createNoteJournalSchema>;
+export type CreateNoteJournalSchemaType = z.infer<typeof createNoteJournalSchema>;
 
 export const createNoteSchema = z.object({
 	note: z.string(),
@@ -48,10 +72,3 @@ export const noteFilterSchema = noteFilterWithoutPaginationSchema.merge(
 	})
 );
 export type NoteFilterSchemaType = z.infer<typeof noteFilterSchema>;
-
-export const linkedNoteFilterSchema = z.object({
-	note: z.boolean().optional(),
-	reminder: z.boolean().optional()
-});
-
-export type LinkedNoteFilterSchemaType = z.infer<typeof linkedNoteFilterSchema>;

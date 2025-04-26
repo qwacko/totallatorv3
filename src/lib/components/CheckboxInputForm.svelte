@@ -1,30 +1,24 @@
 <script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
-	import BooleanFilterButtons from './filters/BooleanFilterButtons.svelte';
+	// import BooleanFilterButtons from './filters/BooleanFilterButtons.svelte';
 
 	import type { Writable } from 'svelte/store';
 
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
+	import CheckboxInput from './CheckboxInput.svelte';
 
 	const {
 		form,
 		field,
-		wrapperClass = undefined,
 		title,
-		onTitle = 'True',
-		offTitle = 'False',
-		clearTitle = 'Clear',
-		hideClear = false,
+		displayText,
 		disabled = false
 	}: {
 		form: SuperForm<T, unknown>;
 		field: FormPathLeaves<T>;
-		wrapperClass?: string;
-		title?: string | null;
-		onTitle?: string;
-		offTitle?: string;
-		clearTitle?: string;
-		hideClear?: boolean;
+		title?: string;
+		displayText?: string;
+
 		disabled?: boolean;
 	} = $props();
 
@@ -33,14 +27,13 @@
 	const booleanValue = $derived(value as Writable<boolean | undefined>);
 </script>
 
-<BooleanFilterButtons
-	bind:value={$booleanValue}
+<CheckboxInput
 	{title}
-	{onTitle}
-	{offTitle}
-	{clearTitle}
-	{hideClear}
-	{wrapperClass}
+	{displayText}
+	bind:value={$booleanValue}
+	name="Name"
+	errorMessage=""
 	{disabled}
 />
+
 <input type="hidden" name={field} value={$booleanValue} />

@@ -22,6 +22,8 @@
 	import NotesButton from '$lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
+	import { formatDate } from '$lib/schema/userSchema.js';
+	import { userDateFormat } from '$lib/stores/userInfoStore.js';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/bills', $page));
@@ -144,7 +146,17 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{ billId: currentRow.id }} />
+								<NotesButton
+									notes={currentRow.notes}
+									target={{ billId: currentRow.id }}
+									filter={{
+										bill: { id: currentRow.id },
+										page: 0,
+										pageSize: 100000,
+										orderBy: [{ field: 'date', direction: 'desc' }]
+									}}
+									autoNoteTitle="Bill : {currentRow.title} - Journal Summary ({formatDate(new Date(), $userDateFormat)})"
+								/>
 								<FilesButton files={currentRow.files} target={{ billId: currentRow.id }} />
 								<RawDataModal data={currentRow} title="Raw Bill Data" dev={data.dev} />
 							</ButtonGroup>
