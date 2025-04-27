@@ -4,8 +4,7 @@ import { idTitleFilterToQueryMapped } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
 import { processNoteTextFilter } from './noteTextFilter';
-import type {
-	NoteFilterSchemaWithoutPaginationType} from '$lib/schema/noteSchema';
+import type { NoteFilterSchemaWithoutPaginationType } from '$lib/schema/noteSchema';
 import type { LinkedNoteFilterSchemaType } from '$lib/schema/linkedNoteFilterSchema';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';

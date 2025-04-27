@@ -18,7 +18,11 @@ export type ItemActionsType<
 	count: (db: DBType, filter?: FilterSchema) => Promise<number>;
 	listWithTransactionCount: (db: DBType) => Promise<{ id: string; journalCount: number }[]>;
 	list: (data: { db: DBType; filter: FilterSchema }) => Promise<PaginatedResults<ViewTableType>>;
-	generateCSVData: (data: {db:DBType; filter?: FilterSchema; returnType: DownloadTypeEnumType}) => Promise<string>;
+	generateCSVData: (data: {
+		db: DBType;
+		filter?: FilterSchema;
+		returnType: DownloadTypeEnumType;
+	}) => Promise<string>;
 	listForDropdown: (data: { db: DBType }) => Promise<DropdownType>;
 	createOrGet: (data: {
 		db: DBType;

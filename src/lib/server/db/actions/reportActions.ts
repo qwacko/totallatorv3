@@ -13,7 +13,7 @@ import {
 	reportElementConfig,
 	type InsertReportElementConfigType,
 	filtersToReportConfigs,
-	type ReportTableType,
+	type ReportTableType
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';

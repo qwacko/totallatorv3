@@ -62,4 +62,3 @@ export const fileFilterSchema = fileFilterWithoutPaginationSchema.merge(
 	})
 );
 export type FileFilterSchemaType = z.infer<typeof fileFilterSchema>;
-

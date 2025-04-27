@@ -7,8 +7,7 @@ import { processNoteTextFilter } from './fileTextFilter';
 import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
 import { arrayToText } from '../misc/arrayToText';
-import type {
-	FileFilterSchemaWithoutPaginationType} from '$lib/schema/fileSchema';
+import type { FileFilterSchemaWithoutPaginationType } from '$lib/schema/fileSchema';
 import type { LinkedFileFilterSchemaType } from '$lib/schema/linkedFileFilterSchema';
 import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 

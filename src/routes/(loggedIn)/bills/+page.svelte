@@ -155,7 +155,10 @@
 										pageSize: 100000,
 										orderBy: [{ field: 'date', direction: 'desc' }]
 									}}
-									autoNoteTitle="Bill : {currentRow.title} - Journal Summary ({formatDate(new Date(), $userDateFormat)})"
+									autoNoteTitle="Bill : {currentRow.title} - Journal Summary ({formatDate(
+										new Date(),
+										$userDateFormat
+									)})"
 								/>
 								<FilesButton files={currentRow.files} target={{ billId: currentRow.id }} />
 								<RawDataModal data={currentRow} title="Raw Bill Data" dev={data.dev} />
