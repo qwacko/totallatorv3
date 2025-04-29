@@ -11,7 +11,8 @@ import {
 	report,
 	reportElement,
 	user,
-	type FileTableType
+	type FileTableType,
+	associatedInfoTable
 } from '../postgres/schema';
 import {
 	and,
@@ -49,6 +50,7 @@ import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '../dbLogger';
 import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
+import { associatedInfoActions } from './associatedInfoActions';
 
 type FilesActionsType = FilesAndNotesActions<
 	FileTableType,
@@ -91,10 +93,17 @@ export const fileActions: FilesActionsType & {
 		const where = fileFilterToQuery(restFilter);
 		const orderBySQL = fileToOrderByToSQL({ orderBy });
 
+		//Get the table columns but exclude the duplicated ones.
+		const { id, createdAt, updatedAt, ...associatedTableColumns } =
+			getTableColumns(associatedInfoTable);
+
 		const results = await dbExecuteLogger(
 			db
 				.select({
 					...getTableColumns(fileTable),
+					...associatedTableColumns,
+					associatedInfoCreatedAt: associatedInfoTable.createdAt,
+					associatedInfoUpdatedAt: associatedInfoTable.updatedAt,
 					accountTitle: account.title,
 					billTitle: bill.title,
 					budgetTitle: budget.title,
@@ -107,16 +116,17 @@ export const fileActions: FilesActionsType & {
 					createdBy: user.username
 				})
 				.from(fileTable)
-				.leftJoin(account, eq(account.id, fileTable.accountId))
-				.leftJoin(bill, eq(bill.id, fileTable.billId))
-				.leftJoin(budget, eq(budget.id, fileTable.budgetId))
-				.leftJoin(category, eq(category.id, fileTable.categoryId))
-				.leftJoin(tag, eq(tag.id, fileTable.tagId))
-				.leftJoin(label, eq(label.id, fileTable.labelId))
-				.leftJoin(autoImportTable, eq(autoImportTable.id, fileTable.autoImportId))
-				.leftJoin(report, eq(report.id, fileTable.reportId))
-				.leftJoin(reportElement, eq(reportElement.id, fileTable.reportElementId))
-				.leftJoin(user, eq(user.id, fileTable.createdById))
+				.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
+				.leftJoin(account, eq(account.id, associatedInfoTable.accountId))
+				.leftJoin(bill, eq(bill.id, associatedInfoTable.billId))
+				.leftJoin(budget, eq(budget.id, associatedInfoTable.budgetId))
+				.leftJoin(category, eq(category.id, associatedInfoTable.categoryId))
+				.leftJoin(tag, eq(tag.id, associatedInfoTable.tagId))
+				.leftJoin(label, eq(label.id, associatedInfoTable.labelId))
+				.leftJoin(autoImportTable, eq(autoImportTable.id, associatedInfoTable.autoImportId))
+				.leftJoin(report, eq(report.id, associatedInfoTable.reportId))
+				.leftJoin(reportElement, eq(reportElement.id, associatedInfoTable.reportElementId))
+				.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
 				.where(and(...where))
 				.limit(pageSize)
 				.offset(page * pageSize)
@@ -154,6 +164,7 @@ export const fileActions: FilesActionsType & {
 			db
 				.select({ count: drizzleCount(fileTable.id) })
 				.from(fileTable)
+				.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
 				.where(and(...where)),
 			'File - List - Get Count'
 		);
@@ -187,13 +198,14 @@ export const fileActions: FilesActionsType & {
 				thumbnailFilename: fileTable.thumbnailFilename,
 				createdAt: fileTable.createdAt,
 				updatedAt: fileTable.updatedAt,
-				createdById: fileTable.createdById,
+				createdById: associatedInfoTable.createdById,
 				createdBy: user.username,
-				groupingId: fileTable[`${grouping}Id`]
+				groupingId: associatedInfoTable[`${grouping}Id`]
 			})
 			.from(fileTable)
-			.leftJoin(user, eq(user.id, fileTable.createdById))
-			.where(inArrayWrapped(fileTable[`${grouping}Id`], ids))
+			.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
+			.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
+			.where(inArrayWrapped(associatedInfoTable[`${grouping}Id`], ids))
 			.orderBy(desc(fileTable.createdAt));
 
 		const groupedItems = items.reduce(
@@ -250,7 +262,8 @@ export const fileActions: FilesActionsType & {
 			throw new Error('Invalid input');
 		}
 
-		const id = nanoid();
+		const fileId = nanoid();
+		const associatedId = nanoid();
 		const linked = Boolean(
 			result.data.accountId ||
 				result.data.billId ||
@@ -263,11 +276,11 @@ export const fileActions: FilesActionsType & {
 				result.data.reportElementId
 		);
 
-		const { file: fileData, ...restData } = result.data;
+		const { file: fileData, reason, title, ...restData } = result.data;
 
 		const originalFilename = fileData.name;
-		const filename = `${id}-${originalFilename}`;
-		const thumbnailFilename = `${id}-thumbnail-${originalFilename}`;
+		const filename = `${fileId}-${originalFilename}`;
+		const thumbnailFilename = `${fileId}-thumbnail-${originalFilename}`;
 		const size = fileData.size;
 
 		const fileIsPDF = fileData.type === 'application/pdf';
@@ -307,37 +320,56 @@ export const fileActions: FilesActionsType & {
 			await fileFileHandler.write(thumbnailFilename, thumbnail);
 		}
 
-		const title = restData.title || originalFilename;
+		const titleUse = title || originalFilename;
 
 		type InsertFile = typeof fileTable.$inferInsert;
 		const createData: InsertFile = {
 			...restData,
-			id,
-			createdById: creationUserId,
+			id: fileId,
+			associatedInfoId: associatedId,
 			originalFilename,
 			filename,
 			thumbnailFilename: fileIsImage ? thumbnailFilename : null,
-			title,
+			title: titleUse,
 			size,
 			type,
 			fileExists: true,
-			linked,
+			reason,
 			...updatedTime()
 		};
 
-		await dbExecuteLogger(db.insert(fileTable).values(createData), 'File - Create');
+		type InsertAssociatedInfo = typeof associatedInfoTable.$inferInsert;
+		const associatedInfoData: InsertAssociatedInfo = {
+			id: associatedId,
+			createdById: creationUserId,
+			...updatedTime(),
+			...restData,
+			linked,
+			title: titleUse
+		};
+
+		//Insert the file and associated info in a transaction to ensure atomicity
+		await db.transaction(async (tx) => {
+			await dbExecuteLogger(
+				tx.insert(associatedInfoTable).values(associatedInfoData),
+				'File - Create Associated Info'
+			);
+			await dbExecuteLogger(tx.insert(fileTable).values(createData), 'File - Create');
+		});
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateLinked: async ({ db }) => {
 		await dbExecuteLogger(
 			db
-				.update(fileTable)
+				.update(associatedInfoTable)
 				.set({ linked: false })
 				.where(
 					and(
-						eq(fileTable.linked, true),
+						eq(associatedInfoTable.linked, true),
 						...fileRelationshipKeys.map((key) =>
-							isNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
+							isNull(
+								associatedInfoTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType]
+							)
 						)
 					)
 				),
@@ -346,14 +378,16 @@ export const fileActions: FilesActionsType & {
 
 		await dbExecuteLogger(
 			db
-				.update(fileTable)
+				.update(associatedInfoTable)
 				.set({ linked: true })
 				.where(
 					and(
-						eq(fileTable.linked, false),
+						eq(associatedInfoTable.linked, false),
 						or(
 							...fileRelationshipKeys.map((key) =>
-								isNotNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
+								isNotNull(
+									associatedInfoTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType]
+								)
 							)
 						)
 					)
@@ -364,19 +398,43 @@ export const fileActions: FilesActionsType & {
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateMany: async ({ db, filter, update }) => {
-		const { id, ...restUpdate } = update;
-		const where = fileFilterToQuery(filter);
+		const { id, title, reason, ...restUpdate } = update;
 
-		await dbExecuteLogger(
-			db
-				.update(fileTable)
-				.set({
-					...restUpdate,
-					...updatedTime()
-				})
-				.where(and(...where)),
-			'File - Update Many'
-		);
+		const targetItems = await fileActions.listWithoutPagination({
+			db,
+			filter
+		});
+
+		if (targetItems.length === 0) {
+			return;
+		}
+
+		const targetFileIds = targetItems.map((a) => a.id);
+		const targetAssociatedIds = targetItems.map((a) => a.associatedInfoId);
+
+		await db.transaction(async (tx) => {
+			await dbExecuteLogger(
+				tx
+					.update(fileTable)
+					.set({
+						...restUpdate,
+						...updatedTime()
+					})
+					.where(inArrayWrapped(fileTable.id, targetFileIds)),
+				'File - Update Many - File'
+			);
+
+			await dbExecuteLogger(
+				tx
+					.update(associatedInfoTable)
+					.set({
+						...restUpdate,
+						...updatedTime()
+					})
+					.where(inArrayWrapped(associatedInfoTable.id, targetAssociatedIds)),
+				'File - Update Many - Associated Info'
+			);
+		});
 
 		await fileActions.updateLinked({ db });
 
@@ -398,6 +456,7 @@ export const fileActions: FilesActionsType & {
 			})
 		);
 
+		await associatedInfoActions.removeUnnecesssary({ db });
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	getFile: async ({ db, id }) => {
@@ -560,7 +619,7 @@ export type GroupedFilesType = {
 	thumbnailFilename: string | null;
 	createdAt: Date;
 	updatedAt: Date;
-	createdById: string;
+	createdById: string | null;
 	createdBy: string | null;
 	groupingId: string | null;
 }[];

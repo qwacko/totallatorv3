@@ -37,7 +37,8 @@ import {
 	autoImportTable,
 	notesTable,
 	fileTable,
-	type BackupTableType
+	type BackupTableType,
+	associatedInfoTable
 } from '../postgres/schema';
 import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
 import superjson from 'superjson';
@@ -296,7 +297,7 @@ export const backupActions = {
 		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 10,
+			version: 11,
 			data: {
 				user: await dbExecuteLogger(db.select().from(user), 'Backup - Store Backup - User'),
 				session: await dbExecuteLogger(
@@ -373,7 +374,8 @@ export const backupActions = {
 					information: superjson.stringify(item.information)
 				})),
 				note: await dbExecuteLogger(db.select().from(notesTable), 'Backup - Store Backup - Note'),
-				file: await dbExecuteLogger(db.select().from(fileTable), 'Backup - Store Backup - File')
+				file: await dbExecuteLogger(db.select().from(fileTable), 'Backup - Store Backup - File'),
+				associatedInfo : await dbExecuteLogger(db.select().from(associatedInfoTable), 'Backup - Store Backup - Associated Info')
 			}
 		};
 
@@ -406,7 +408,8 @@ export const backupActions = {
 					numberReportItems: backupDataDB.data.reportElementConfig.length,
 					numberBackups: backupDataDB.data.backup.length,
 					numberNotes: backupDataDB.data.note.length,
-					numberFiles: backupDataDB.data.file.length
+					numberFiles: backupDataDB.data.file.length,
+					numberAssociatedInfo: backupDataDB.data.associatedInfo.length
 				}
 			}
 		};
@@ -638,6 +641,7 @@ export const backupActions = {
 				);
 				await dbExecuteLogger(trx.delete(notesTable), 'Backup Restore - Delete Notes Table');
 				await dbExecuteLogger(trx.delete(fileTable), 'Backup Restore - Delete File Table');
+				await dbExecuteLogger(trx.delete(associatedInfoTable), 'Backup Restore - Delete Associated Info Table');
 				logging.info(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 				//Update Database from Backup
@@ -820,7 +824,14 @@ export const backupActions = {
 				await chunker(checkedBackupData.data.file, 1000, async (data) =>
 					dbExecuteLogger(trx.insert(fileTable).values(data), 'Backup Restore - Insert File Table')
 				);
-				logging.info(`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				logging.info(`Files Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+
+				await chunker(checkedBackupData.data.associatedInfo, 1000, async (data) =>
+					dbExecuteLogger(
+						trx.insert(associatedInfoTable).values(data),
+						'Backup Restore - Insert Associated Info Table'
+					)
+				);
 
 				//Mark the backup as having a restored date.
 				await dbExecuteLogger(

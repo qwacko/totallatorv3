@@ -15,13 +15,16 @@ import {
 	budgetMaterializedView,
 	labelMaterializedView,
 	dateRangeMaterializedView,
+	importCheckMaterializedView,
 	journalView,
 	accountView,
 	tagView,
 	billView,
 	budgetView,
 	categoryView,
-	labelView
+	labelView,
+	importCheckView,
+	
 } from './postgres/schema/materializedViewSchema';
 import { printMaterializedViewList } from './actions/helpers/printMaterializedViewList';
 import { building } from '$app/environment';
@@ -79,8 +82,9 @@ if (serverEnv.DEV) {
 			budgetMaterializedView,
 			categoryMaterializedView,
 			labelMaterializedView,
-			dateRangeMaterializedView
+			dateRangeMaterializedView,
+			importCheckMaterializedView
 		],
-		[journalView, accountView, tagView, billView, budgetView, categoryView, labelView]
+		[journalView, accountView, tagView, billView, budgetView, categoryView, labelView, importCheckView]
 	);
 }

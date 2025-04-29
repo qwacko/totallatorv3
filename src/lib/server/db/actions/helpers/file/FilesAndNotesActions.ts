@@ -74,15 +74,26 @@ export type FilesAndNotesActions<
 	}>;
 };
 type FilesAndNotesAdditionalColumns = {
+	transactionId: string | null;
+	accountId: string | null;
 	accountTitle: string | null;
+	billId: string | null;
 	billTitle: string | null;
+	budgetId: string | null;
 	budgetTitle: string | null;
+	categoryId: string | null;
 	categoryTitle: string | null;
+	tagId: string | null;
 	tagTitle: string | null;
+	labelId: string | null;
 	labelTitle: string | null;
+	autoImportId: string | null;
 	autoImportTitle: string | null;
+	reportId: string | null;
 	reportTitle: string | null;
+	reportElementId: string | null;
 	reportElementTitle: string | null;
 	journals: JournalViewReturnType[];
+	createdById: string | null;
 	createdBy: string | null;
 };

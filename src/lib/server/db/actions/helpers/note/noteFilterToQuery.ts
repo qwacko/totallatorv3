@@ -36,8 +36,7 @@ export const noteFilterToQuery = (filter: NoteFilterSchemaWithoutPaginationType)
 	}
 	noteFileRelationshipQuery({
 		where,
-		filter: restFilter,
-		table: notesTable
+		filter: restFilter
 	});
 
 	return where;

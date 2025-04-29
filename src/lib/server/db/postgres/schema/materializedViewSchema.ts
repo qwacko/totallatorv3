@@ -372,7 +372,7 @@ const viewIndexes = [
 	{
 		title: 'materialized_import_check_description_index',
 		isUnique: false,
-		targetTable: sqlToText(sql`${dateRangeMaterializedView}`),
+		targetTable: sqlToText(sql`${importCheckMaterializedView}`),
 		targetColumn: importCheckMaterializedView.description
 	}
 ] satisfies {

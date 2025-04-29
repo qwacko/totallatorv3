@@ -49,7 +49,7 @@ export type UpdateNoteSchemaType = z.infer<typeof updateNoteSchema>;
 export const noteFilterWithoutPaginationSchema = z.object({
 	textFilter: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
-	excludeIdArray: z.array(z.string()).optional(),
+	excludeAssociatedIdArray: z.array(z.string()).optional(),
 	noteArray: z.array(z.string()).optional(),
 	excludeNoteArray: z.array(z.string()).optional(),
 	typeArray: z.array(z.enum(noteTypeEnum)).optional(),

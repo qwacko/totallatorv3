@@ -17,7 +17,8 @@ import {
 	reportElement,
 	notesTable,
 	user,
-	type NotesTableType
+	type NotesTableType,
+	associatedInfoTable
 } from '../postgres/schema';
 import { noteFilterToQuery, noteFilterToText } from './helpers/note/noteFilterToQuery';
 import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
@@ -31,6 +32,7 @@ import type { NoteTypeType } from '$lib/schema/enum/noteTypeEnum';
 import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { tActions } from './tActions';
+import { associatedInfoActions } from './associatedInfoActions';
 
 type NotesActionsType = FilesAndNotesActions<
 	NotesTableType,
@@ -59,10 +61,17 @@ export const noteActions: NotesActionsType = {
 		const where = noteFilterToQuery(restFilter);
 		const orderBySQL = noteToOrderByToSQL({ orderBy });
 
+		//Get the table columns but exclude the duplicated ones.
+		const { id, createdAt, updatedAt, ...associatedTableColumns } =
+			getTableColumns(associatedInfoTable);
+
 		const results = await dbExecuteLogger(
 			db
 				.select({
 					...getTableColumns(notesTable),
+					...associatedTableColumns,
+					associatedInfoCreatedAt: associatedInfoTable.createdAt,
+					associatedInfoUpdatedAt: associatedInfoTable.updatedAt,
 					accountTitle: account.title,
 					billTitle: bill.title,
 					budgetTitle: budget.title,
@@ -75,16 +84,17 @@ export const noteActions: NotesActionsType = {
 					createdBy: user.username
 				})
 				.from(notesTable)
-				.leftJoin(account, eq(account.id, notesTable.accountId))
-				.leftJoin(bill, eq(bill.id, notesTable.billId))
-				.leftJoin(budget, eq(budget.id, notesTable.budgetId))
-				.leftJoin(category, eq(category.id, notesTable.categoryId))
-				.leftJoin(tag, eq(tag.id, notesTable.tagId))
-				.leftJoin(label, eq(label.id, notesTable.labelId))
-				.leftJoin(autoImportTable, eq(autoImportTable.id, notesTable.autoImportId))
-				.leftJoin(report, eq(report.id, notesTable.reportId))
-				.leftJoin(reportElement, eq(reportElement.id, notesTable.reportElementId))
-				.leftJoin(user, eq(user.id, notesTable.createdById))
+				.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, notesTable.associatedInfoId))
+				.leftJoin(account, eq(account.id, associatedInfoTable.accountId))
+				.leftJoin(bill, eq(bill.id, associatedInfoTable.billId))
+				.leftJoin(budget, eq(budget.id, associatedInfoTable.budgetId))
+				.leftJoin(category, eq(category.id, associatedInfoTable.categoryId))
+				.leftJoin(tag, eq(tag.id, associatedInfoTable.tagId))
+				.leftJoin(label, eq(label.id, associatedInfoTable.labelId))
+				.leftJoin(autoImportTable, eq(autoImportTable.id, associatedInfoTable.autoImportId))
+				.leftJoin(report, eq(report.id, associatedInfoTable.reportId))
+				.leftJoin(reportElement, eq(reportElement.id, associatedInfoTable.reportElementId))
+				.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
 				.where(and(...where))
 				.limit(pageSize)
 				.offset(page * pageSize)
@@ -122,6 +132,7 @@ export const noteActions: NotesActionsType = {
 			db
 				.select({ count: drizzleCount(notesTable.id) })
 				.from(notesTable)
+				.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, notesTable.associatedInfoId))
 				.where(and(...where)),
 			'Note - List - Get Count'
 		);
@@ -153,13 +164,14 @@ export const noteActions: NotesActionsType = {
 					type: notesTable.type,
 					createdAt: notesTable.createdAt,
 					updatedAt: notesTable.updatedAt,
-					createdById: notesTable.createdById,
+					createdById: associatedInfoTable.createdById,
 					createdBy: user.username,
-					groupingId: notesTable[`${grouping}Id`]
+					groupingId: associatedInfoTable[`${grouping}Id`]
 				})
 				.from(notesTable)
-				.leftJoin(user, eq(user.id, notesTable.createdById))
-				.where(inArrayWrapped(notesTable[`${grouping}Id`], ids))
+				.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, notesTable.associatedInfoId))
+				.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
+				.where(inArrayWrapped(associatedInfoTable[`${grouping}Id`], ids))
 				.orderBy(desc(notesTable.createdAt)),
 			'Note - List Grouped - Get Notes'
 		);
@@ -219,16 +231,34 @@ export const noteActions: NotesActionsType = {
 		}
 
 		const id = nanoid();
+		const associatedInfoId = nanoid();
 
-		await dbExecuteLogger(
-			db.insert(notesTable).values({
-				id,
-				createdById: creationUserId,
-				...result.data,
-				...updatedTime()
-			}),
-			'Note - Create'
-		);
+		const { note, type, ...restData } = result.data;
+
+		const insertAssociatedInfoData: typeof associatedInfoTable.$inferInsert = {
+			id: associatedInfoId,
+			createdById: creationUserId,
+			linked: true,
+			...restData,
+			...updatedTime()
+		};
+
+		const insertNoteData: typeof notesTable.$inferInsert = {
+			id,
+			associatedInfoId,
+			note,
+			type,
+			...updatedTime()
+		};
+
+		await db.transaction(async (tx) => {
+			await dbExecuteLogger(
+				tx.insert(associatedInfoTable).values(insertAssociatedInfoData),
+				'Note - Create - Associated Info'
+			);
+
+			await dbExecuteLogger(tx.insert(notesTable).values(insertNoteData), 'Note - Create - Note');
+		});
 
 		await materializedViewActions.setRefreshRequired(db);
 	},
@@ -249,9 +279,19 @@ export const noteActions: NotesActionsType = {
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	deleteMany: async ({ db, filter }) => {
-		const where = noteFilterToQuery(filter);
+		const notes = await noteActions.listWithoutPagination({
+			db,
+			filter
+		});
 
-		await dbExecuteLogger(db.delete(notesTable).where(and(...where)), 'Note - Delete Many');
+		const noteIds = notes.map((a) => a.id);
+
+		await dbExecuteLogger(
+			db.delete(notesTable).where(inArrayWrapped(notesTable.id, noteIds)),
+			'Note - Delete Many'
+		);
+
+		await associatedInfoActions.removeUnnecesssary({ db });
 
 		await materializedViewActions.setRefreshRequired(db);
 	},
@@ -320,7 +360,7 @@ export type GroupedNotesType = {
 	type: NoteTypeType;
 	createdAt: Date;
 	updatedAt: Date;
-	createdById: string;
+	createdById: string | null;
 	createdBy: string | null;
 	groupingId: string | null;
 }[];

@@ -7,7 +7,6 @@ DROP INDEX IF EXISTS "materialized_tag_view_index"; --> statement-breakpoint
 DROP INDEX IF EXISTS "materialized_label_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_import_check_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_import_check_description_index"; --> statement-breakpoint 
-DROP MATERIALIZED VIEW IF EXISTS "import_check_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "date_range_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "label_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "category_materialized_view"; --> statement-breakpoint 
@@ -17,7 +16,6 @@ DROP MATERIALIZED VIEW IF EXISTS "tag_materialized_view"; --> statement-breakpoi
 DROP MATERIALIZED VIEW IF EXISTS "account_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "journal_extended_view"; --> statement-breakpoint 
 
-DROP VIEW IF EXISTS "import_check_view"; --> statement-breakpoint 
 DROP VIEW IF EXISTS "label_view"; --> statement-breakpoint 
 DROP VIEW IF EXISTS "category_view"; --> statement-breakpoint 
 DROP VIEW IF EXISTS "budget_view"; --> statement-breakpoint 
@@ -26,23 +24,67 @@ DROP VIEW IF EXISTS "tag_view"; --> statement-breakpoint
 DROP VIEW IF EXISTS "account_view"; --> statement-breakpoint 
 DROP VIEW IF EXISTS "journal_view"; --> statement-breakpoint 
 
-CREATE VIEW "import_check_view" AS
-SELECT
-  "id",
-  "created_at",
-  "relation_id",
-  "relation_2_id",
-  PROCESSED_INFO -> 'dataToUse' ->> 'description' AS "description"
-FROM
-  "import_item_detail"
-WHERE
-  (
-    PROCESSED_INFO -> 'dataToUse' ->> 'description' IS NOT NULL
-    AND (
-      "import_item_detail"."relation_id" IS NOT NULL
-      OR "import_item_detail"."relation_2_id" IS NOT NULL
-    )
-  ); --> statement-breakpoint 
+
+CREATE TABLE "associated_info" (
+	"id" text PRIMARY KEY NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp (6) with time zone NOT NULL,
+	"created_by" text NOT NULL,
+	"title" text,
+	"linked" boolean NOT NULL,
+	"transaction_id" text,
+	"account_id" text,
+	"bill_id" text,
+	"budget_id" text,
+	"category_id" text,
+	"tag_id" text,
+	"label_id" text,
+	"auto_import_id" text,
+	"report_id" text,
+	"report_element_id" text
+);
+--> statement-breakpoint
+CREATE TABLE "journal_snapshot" (
+	"id" text PRIMARY KEY NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp (6) with time zone NOT NULL,
+	"associated_info_id" text NOT NULL,
+	"count" integer NOT NULL,
+	"sum" numeric(20, 4) NOT NULL,
+	"average" numeric(20, 4) NOT NULL,
+	"earliest" timestamp NOT NULL,
+	"latest" timestamp NOT NULL,
+	"positive_sum" numeric(20, 4) NOT NULL,
+	"positive_count" integer NOT NULL,
+	"negative_sum" numeric(20, 4) NOT NULL,
+	"negative_count" integer NOT NULL,
+	"positive_sum_non_transfer" numeric(20, 4) NOT NULL,
+	"positive_count_non_transfer" integer NOT NULL,
+	"negative_sum_non_transfer" numeric(20, 4) NOT NULL,
+	"negative_count_non_transfer" integer NOT NULL
+);
+--> statement-breakpoint
+ALTER TABLE "files" ADD COLUMN "associated_info_id" text NOT NULL DEFAULT ''; --> statement-breakpoint
+UPDATE "files" SET "associated_info_id" = "id"; --> statement-breakpoint
+ALTER TABLE "files" ALTER COLUMN "associated_info_id" DROP DEFAULT; --> statement-breakpoint
+ALTER TABLE "notes" ADD COLUMN "associated_info_id" text NOT NULL DEFAULT '';--> statement-breakpoint
+UPDATE "notes" SET "associated_info_id" = "id"; --> statement-breakpoint
+ALTER TABLE "notes" ALTER COLUMN "associated_info_id" DROP DEFAULT; --> statement-breakpoint
+
+CREATE INDEX "associated_info_created_by_idx" ON "associated_info" USING btree ("created_by");--> statement-breakpoint
+CREATE INDEX "associated_info_transaction_idx" ON "associated_info" USING btree ("transaction_id");--> statement-breakpoint
+CREATE INDEX "associated_info_account_idx" ON "associated_info" USING btree ("account_id");--> statement-breakpoint
+CREATE INDEX "associated_info_bill_idx" ON "associated_info" USING btree ("bill_id");--> statement-breakpoint
+CREATE INDEX "associated_info_budget_idx" ON "associated_info" USING btree ("budget_id");--> statement-breakpoint
+CREATE INDEX "associated_info_category_idx" ON "associated_info" USING btree ("category_id");--> statement-breakpoint
+CREATE INDEX "associated_info_tag_idx" ON "associated_info" USING btree ("tag_id");--> statement-breakpoint
+CREATE INDEX "associated_info_label_idx" ON "associated_info" USING btree ("label_id");--> statement-breakpoint
+CREATE INDEX "associated_info_auto_import_idx" ON "associated_info" USING btree ("auto_import_id");--> statement-breakpoint
+CREATE INDEX "associated_info_report_idx" ON "associated_info" USING btree ("report_id");--> statement-breakpoint
+CREATE INDEX "associated_info_report_element_idx" ON "associated_info" USING btree ("report_element_id");--> statement-breakpoint
+CREATE INDEX "journal_snapshot_associated_info_idx" ON "journal_snapshot" USING btree ("associated_info_id");--> statement-breakpoint
+CREATE INDEX "file_associated_info_idx" ON "files" USING btree ("associated_info_id");--> statement-breakpoint
+CREATE INDEX "note_associated_info_idx" ON "notes" USING btree ("associated_info_id");--> statement-breakpoint
 
 CREATE VIEW "label_view" AS
 WITH
@@ -648,16 +690,6 @@ FROM
   LEFT JOIN "notessq" ON "journal_entry"."transaction_id" = "notessq"."transaction_id"
   LEFT JOIN "reminderssq" ON "journal_entry"."transaction_id" = "reminderssq"."transaction_id"; --> statement-breakpoint 
 
-CREATE MATERIALIZED VIEW "import_check_materialized_view" AS
-SELECT
-  "id",
-  "created_at",
-  "relation_id",
-  "relation_2_id",
-  "description"
-FROM
-  "import_check_view"; --> statement-breakpoint 
-
 CREATE MATERIALIZED VIEW "date_range_materialized_view" AS
 SELECT
   MIN("date") AS "minDate",
@@ -886,12 +918,3 @@ SELECT
 FROM
   "journal_view"; --> statement-breakpoint 
 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_journal_view_index" ON "journal_extended_view" ("journal_extended_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_account_view_index" ON "account_materialized_view" ("account_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_bill_view_index" ON "bill_materialized_view" ("bill_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_budget_view_index" ON "budget_materialized_view" ("budget_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_category_view_index" ON "category_materialized_view" ("category_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_tag_view_index" ON "tag_materialized_view" ("tag_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_label_view_index" ON "label_materialized_view" ("label_materialized_view"."id"); --> statement-breakpoint 
-CREATE UNIQUE INDEX IF NOT EXISTS "materialized_import_check_view_index" ON "import_check_materialized_view" ("import_check_materialized_view"."id"); --> statement-breakpoint 
-CREATE INDEX IF NOT EXISTS "materialized_import_check_description_index" ON "import_check_materialized_view" ("description"); --> statement-breakpoint 
