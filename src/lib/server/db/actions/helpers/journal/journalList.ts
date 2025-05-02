@@ -98,7 +98,7 @@ const getOtherJournalInfo = async (db: DBType, journalIds: string[]) => {
 	return otherJournalInformation;
 };
 
-type JournalMLExpanded = JournalViewReturnType & {
+export type JournalMLExpanded = JournalViewReturnType & {
 	total: number;
 	labels: LabelColumnType;
 	otherJournals: OtherJournalsColumnType;

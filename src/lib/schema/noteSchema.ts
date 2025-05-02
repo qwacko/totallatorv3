@@ -46,14 +46,20 @@ export const updateNoteSchema = z.object({
 
 export type UpdateNoteSchemaType = z.infer<typeof updateNoteSchema>;
 
-export const noteFilterWithoutPaginationSchema = z.object({
+const noteFilterCoreItems = {
 	textFilter: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
 	excludeAssociatedIdArray: z.array(z.string()).optional(),
 	noteArray: z.array(z.string()).optional(),
 	excludeNoteArray: z.array(z.string()).optional(),
 	typeArray: z.array(z.enum(noteTypeEnum)).optional(),
-	excludeTypeArray: z.array(z.enum(noteTypeEnum)).optional(),
+	excludeTypeArray: z.array(z.enum(noteTypeEnum)).optional()
+};
+
+export const noteFilterCoreSchema = z.object(noteFilterCoreItems);
+
+export const noteFilterWithoutPaginationSchema = z.object({
+	...noteFilterCoreItems,
 	...fileNoteRelationshipFilterSchema
 });
 

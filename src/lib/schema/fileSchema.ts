@@ -27,7 +27,7 @@ export const updateFileSchema = z.object({
 
 export type UpdateFileSchemaType = z.infer<typeof updateFileSchema>;
 
-export const fileFilterWithoutPaginationSchema = z.object({
+export const fileFilterCoreItems = {
 	textFilter: z.string().optional(),
 	idArray: z.array(z.string()).optional(),
 	excludeIdArray: z.array(z.string()).optional(),
@@ -43,7 +43,13 @@ export const fileFilterWithoutPaginationSchema = z.object({
 	maxSize: z.number().optional(),
 	minSize: z.number().optional(),
 	linked: z.boolean().optional(),
-	exists: z.boolean().optional(),
+	exists: z.boolean().optional()
+};
+
+export const fileFilterCoreSchema = z.object(fileFilterCoreItems);
+
+export const fileFilterWithoutPaginationSchema = z.object({
+	...fileFilterCoreItems,
 	...fileNoteRelationshipFilterSchema
 });
 

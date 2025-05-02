@@ -14,16 +14,7 @@ import {
 	type FileTableType,
 	associatedInfoTable
 } from '../postgres/schema';
-import {
-	and,
-	count as drizzleCount,
-	eq,
-	desc,
-	getTableColumns,
-	isNull,
-	or,
-	isNotNull
-} from 'drizzle-orm';
+import { and, count as drizzleCount, eq, desc, getTableColumns } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { fileFilterToQuery, fileFilterToText } from './helpers/file/fileFilterToQuery';
@@ -38,10 +29,6 @@ import {
 import type { FileTypeType } from '$lib/schema/enum/fileTypeEnum';
 import { fileFileHandler } from '$lib/server/files/fileHandler';
 import sharp from 'sharp';
-import {
-	fileRelationshipKeys,
-	type KeysOfCreateFileNoteRelationshipSchemaType
-} from '$lib/schema/helpers/fileNoteRelationship';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
@@ -359,43 +346,7 @@ export const fileActions: FilesActionsType & {
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateLinked: async ({ db }) => {
-		await dbExecuteLogger(
-			db
-				.update(associatedInfoTable)
-				.set({ linked: false })
-				.where(
-					and(
-						eq(associatedInfoTable.linked, true),
-						...fileRelationshipKeys.map((key) =>
-							isNull(
-								associatedInfoTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType]
-							)
-						)
-					)
-				),
-			'File - Update Linked - False'
-		);
-
-		await dbExecuteLogger(
-			db
-				.update(associatedInfoTable)
-				.set({ linked: true })
-				.where(
-					and(
-						eq(associatedInfoTable.linked, false),
-						or(
-							...fileRelationshipKeys.map((key) =>
-								isNotNull(
-									associatedInfoTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType]
-								)
-							)
-						)
-					)
-				),
-			'File - Update Linked - True'
-		);
-
-		await materializedViewActions.setRefreshRequired(db);
+		await associatedInfoActions.updateLinked({ db });
 	},
 	updateMany: async ({ db, filter, update }) => {
 		const { id, title, reason, ...restUpdate } = update;
@@ -456,7 +407,7 @@ export const fileActions: FilesActionsType & {
 			})
 		);
 
-		await associatedInfoActions.removeUnnecesssary({ db });
+		await associatedInfoActions.removeUnnecessary({ db });
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	getFile: async ({ db, id }) => {

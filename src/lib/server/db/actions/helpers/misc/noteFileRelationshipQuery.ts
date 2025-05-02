@@ -17,8 +17,8 @@ export const noteFileRelationshipQuery = ({
 	where: SQL<unknown>[];
 	filter: FilterCoreType;
 }) => {
-	if (filter.assocaitedInfoIdArray && filter.assocaitedInfoIdArray.length > 0) {
-		where.push(inArrayWrapped(associatedInfoTable.id, filter.assocaitedInfoIdArray));
+	if (filter.associatedInfoIdArray && filter.associatedInfoIdArray.length > 0) {
+		where.push(inArrayWrapped(associatedInfoTable.id, filter.associatedInfoIdArray));
 	}
 	if (filter.excludeAssociatedInfoIdArray && filter.excludeAssociatedInfoIdArray.length > 0) {
 		where.push(not(inArrayWrapped(associatedInfoTable.id, filter.excludeAssociatedInfoIdArray)));

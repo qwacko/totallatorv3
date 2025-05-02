@@ -520,6 +520,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			}
 		},
 
+		//Associated Info
+		// ----------------------------------------
+		'/(loggedIn)/associated': {
+			...adminOnlyConfig
+		},
+
 		// Files
 		// ----------------------------------------
 		'/(loggedIn)/files': {

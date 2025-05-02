@@ -612,7 +612,7 @@ export const notesTable = pgTable(
 	(t) => ({
 		noteIdx: index('note_note_idx').on(t.note),
 		typeIdx: index('note_type_idx').on(t.type),
-		assocaitedInfoIdx: index('note_associated_info_idx').on(t.associatedInfoId),
+		associatedInfoIdx: index('note_associated_info_idx').on(t.associatedInfoId),
 
 		//Hide From Here
 		// transactionIdx: index('note_transaction_idx').on(t.transactionId),
