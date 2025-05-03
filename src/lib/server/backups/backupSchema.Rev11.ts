@@ -537,7 +537,7 @@ export const backupSchemaRev11 = z.object({
 			numberAutoImport: z.number(),
 			numberNotes: z.number(),
 			numberFiles: z.number(),
-			numberAssociatedInfo: z.number(),
+			numberAssociatedInfo: z.number()
 		})
 	}),
 	data: z.object({
@@ -878,7 +878,7 @@ export const backupSchemaRev11 = z.object({
 				...timestampColumns,
 				note: z.string(),
 				type: z.enum(noteTypeEnum),
-				associatedInfoId: z.string()				
+				associatedInfoId: z.string()
 			})
 		),
 		file: z.array(

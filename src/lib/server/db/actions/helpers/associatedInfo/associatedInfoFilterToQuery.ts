@@ -1,5 +1,5 @@
 import type { DBType } from '../../../db';
-import { associatedInfoTable, } from '../../../postgres/schema';
+import { associatedInfoTable } from '../../../postgres/schema';
 import { SQL, eq } from 'drizzle-orm';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
@@ -41,7 +41,6 @@ export const assciatedInfoToTitle = async (db: DBType, id: string) => {
 	}
 	return id;
 };
-
 
 export const associatedInfoFilterToText = async ({
 	db,

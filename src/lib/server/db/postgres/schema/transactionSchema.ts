@@ -503,7 +503,7 @@ export const fileTable = pgTable(
 		thumbnailFilename: text('thumbnail_filename'),
 		type: text('type', { enum: fileTypeEnum }).notNull(),
 		size: integer('size').notNull(),
-		fileExists: boolean('file_exists').notNull(),
+		fileExists: boolean('file_exists').notNull()
 
 		//Hide From Here
 		// linked: boolean('linked').notNull(),
@@ -525,7 +525,7 @@ export const fileTable = pgTable(
 		filenameIdx: index('file_filename_idx').on(t.filename),
 		typeIdx: index('file_type_idx').on(t.type),
 		sizeIdx: index('file_size_idx').on(t.size),
-		fileExistsIdx: index('file_file_exists_idx').on(t.fileExists),
+		fileExistsIdx: index('file_file_exists_idx').on(t.fileExists)
 
 		//Hide From Here
 		// transactionIdx: index('file_transaction_idx').on(t.transactionId),
@@ -598,7 +598,7 @@ export const notesTable = pgTable(
 		...timestampColumns,
 		note: text('note').notNull(),
 		type: text('type', { enum: noteTypeEnum }).notNull().default('info'),
-		associatedInfoId: text('associated_info_id').notNull(),
+		associatedInfoId: text('associated_info_id').notNull()
 
 		//Hide From Here
 		// createdById: text('created_by').notNull(),
@@ -617,7 +617,7 @@ export const notesTable = pgTable(
 	(t) => ({
 		noteIdx: index('note_note_idx').on(t.note),
 		typeIdx: index('note_type_idx').on(t.type),
-		associatedInfoIdx: index('note_associated_info_idx').on(t.associatedInfoId),
+		associatedInfoIdx: index('note_associated_info_idx').on(t.associatedInfoId)
 
 		//Hide From Here
 		// transactionIdx: index('note_transaction_idx').on(t.transactionId),

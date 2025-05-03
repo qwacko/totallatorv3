@@ -292,7 +292,6 @@ export const associatedInfoActions: {
 				}
 			}
 		});
-		
 
 		const groupedItems = items.reduce(
 			(acc, item) => {

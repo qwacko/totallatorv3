@@ -375,7 +375,10 @@ export const backupActions = {
 				})),
 				note: await dbExecuteLogger(db.select().from(notesTable), 'Backup - Store Backup - Note'),
 				file: await dbExecuteLogger(db.select().from(fileTable), 'Backup - Store Backup - File'),
-				associatedInfo : await dbExecuteLogger(db.select().from(associatedInfoTable), 'Backup - Store Backup - Associated Info')
+				associatedInfo: await dbExecuteLogger(
+					db.select().from(associatedInfoTable),
+					'Backup - Store Backup - Associated Info'
+				)
 			}
 		};
 
@@ -641,7 +644,10 @@ export const backupActions = {
 				);
 				await dbExecuteLogger(trx.delete(notesTable), 'Backup Restore - Delete Notes Table');
 				await dbExecuteLogger(trx.delete(fileTable), 'Backup Restore - Delete File Table');
-				await dbExecuteLogger(trx.delete(associatedInfoTable), 'Backup Restore - Delete Associated Info Table');
+				await dbExecuteLogger(
+					trx.delete(associatedInfoTable),
+					'Backup Restore - Delete Associated Info Table'
+				);
 				logging.info(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
 
 				//Update Database from Backup
