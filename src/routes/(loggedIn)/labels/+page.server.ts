@@ -39,10 +39,14 @@ export const load = async (data) => {
 	});
 
 	return {
-		labels: await tActions.file.addToItems({
+		labels: await tActions.associatedInfo.addToItems({
 			db,
-			grouping: 'label',
-			data: await tActions.note.addToItems({ db, data: labels, grouping: 'label' })
+			grouping: 'labelId',
+			data: await tActions.file.addToItems({
+				db,
+				grouping: 'label',
+				data: await tActions.note.addToItems({ db, data: labels, grouping: 'label' })
+			})
 		}),
 		searchParams: pageInfo.searchParams,
 		filterText,

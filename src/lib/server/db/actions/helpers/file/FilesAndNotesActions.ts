@@ -15,6 +15,18 @@ export type GroupingOptions =
 	| 'report'
 	| 'reportElement';
 
+export type GroupingIdOptions =
+	| 'transactionId'
+	| 'accountId'
+	| 'billId'
+	| 'budgetId'
+	| 'categoryId'
+	| 'tagId'
+	| 'labelId'
+	| 'autoImportId'
+	| 'reportId'
+	| 'reportElementId';
+
 export type LinkedTextType = { description: string; title: string };
 
 export type FilesAndNotesActions<

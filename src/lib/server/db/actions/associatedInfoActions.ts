@@ -21,8 +21,7 @@ import {
 	fileTable,
 	journalSnapshotTable,
 	notesTable,
-	user,
-	journalEntry
+	user
 } from '../postgres/schema';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import {
@@ -34,6 +33,7 @@ import { materializedViewActions } from './materializedViewActions';
 import type { AssociatedInfoFilterSchemaWithPaginationType } from '$lib/schema/associatedInfoSchema';
 import { associatedInfoFilterToQuery } from './helpers/associatedInfo/associatedInfoFilterToQuery';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
+import type { GroupingIdOptions } from './helpers/file/FilesAndNotesActions';
 
 type UpdateLinkedFunction = (data: { db: DBType }) => Promise<void>;
 type RemoveUnnecessaryFunction = (data: { db: DBType }) => Promise<void>;
@@ -42,9 +42,23 @@ type ListAsscociatedInfoFunction = (data: {
 	filter: AssociatedInfoFilterSchemaWithPaginationType;
 }) => Promise<PaginatedResults<AssociatedInfoReturnType>>;
 
-type AssociatedInfoReturnType = {
-	id: string;
-	title: string | null;
+type ListGroupedFunction = (data: {
+	db: DBType;
+	ids: string[];
+	grouping: GroupingIdOptions;
+}) => Promise<Record<string, AssociatedInfoDataType[]>>;
+type AddToSingleItemFunction = <T extends { id: string }>(data: {
+	db: DBType;
+	item: T;
+	grouping: GroupingIdOptions;
+}) => Promise<T & { associated: AssociatedInfoDataType[] }>;
+type AddToItemsFunction = <T extends { id: string }>(data: {
+	db: DBType;
+	data: PaginatedResults<T>;
+	grouping: GroupingIdOptions;
+}) => Promise<PaginatedResults<T & { associated: AssociatedInfoDataType[] }>>;
+
+export type AssociatedInfoLinkType = {
 	accountId: string | null;
 	accountTitle: string | null;
 	billId: string | null;
@@ -58,22 +72,39 @@ type AssociatedInfoReturnType = {
 	transactionId: string | null;
 	labelId: string | null;
 	labelTitle: string | null;
+	transaction: {
+		journals: {
+			id: string;
+			date: Date;
+			dateText: string;
+			description: string;
+			account: { title: string };
+		}[];
+	} | null;
+};
+
+type AssociatedInfoDataType = {
+	id: string;
+	title: string | null;
 	createdAt: Date;
 	updatedAt: Date;
 	linked: boolean;
-	createdBy: string | null;
+	createdById: string | null;
 	notes: (typeof notesTable.$inferSelect)[];
+	user: { name: string };
 	files: (typeof fileTable.$inferSelect)[];
 	journalSnapshots: (typeof journalSnapshotTable.$inferSelect)[];
-	transaction: {
-		journals: (typeof journalEntry.$inferSelect)[];
-	} | null;
 };
+
+export type AssociatedInfoReturnType = AssociatedInfoLinkType & AssociatedInfoDataType;
 
 export const associatedInfoActions: {
 	removeUnnecessary: RemoveUnnecessaryFunction;
 	updateLinked: UpdateLinkedFunction;
 	list: ListAsscociatedInfoFunction;
+	listGrouped: ListGroupedFunction;
+	addToSingleItem: AddToSingleItemFunction;
+	addToItems: AddToItemsFunction;
 } = {
 	removeUnnecessary: async ({ db }) => {
 		const itemsToDelete = await db
@@ -171,8 +202,7 @@ export const associatedInfoActions: {
 					budgetTitle: budget.title,
 					tagTitle: tag.title,
 					categoryTitle: category.title,
-					labelTitle: label.title,
-					createdBy: user.name
+					labelTitle: label.title
 				})
 				.from(associatedInfoTable)
 				.leftJoin(account, eq(associatedInfoTable.accountId, account.id))
@@ -200,7 +230,17 @@ export const associatedInfoActions: {
 					notes: true,
 					files: true,
 					journalSnapshots: true,
-					transaction: { with: { journals: true } }
+					user: {
+						columns: { name: true }
+					},
+					transaction: {
+						with: {
+							journals: {
+								columns: { id: true, date: true, amount: true, dateText: true, description: true },
+								with: { account: { columns: { title: true } } }
+							}
+						}
+					}
 				}
 			})
 		);
@@ -212,7 +252,8 @@ export const associatedInfoActions: {
 				notes: [],
 				files: [],
 				journalSnapshots: [],
-				transaction: null
+				transaction: null,
+				user: { name: 'Unknown' }
 			};
 			return {
 				...result,
@@ -237,5 +278,67 @@ export const associatedInfoActions: {
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: resultsWithAdditionalInfo, pageCount, page, pageSize };
+	},
+	listGrouped: async ({ db, ids, grouping }) => {
+		const items = await db.query.associatedInfoTable.findMany({
+			where: (targetTable, { inArray }) => inArray(targetTable[grouping], ids),
+			orderBy: (targetTable, { desc }) => [desc(targetTable.createdAt)],
+			with: {
+				files: true,
+				journalSnapshots: true,
+				notes: true,
+				user: {
+					columns: { name: true }
+				}
+			}
+		});
+		
+
+		const groupedItems = items.reduce(
+			(acc, item) => {
+				if (!item[grouping]) return acc;
+				const groupingId = item[grouping];
+				if (!acc[groupingId]) {
+					acc[groupingId] = [];
+				}
+				acc[groupingId].push(item);
+				return acc;
+			},
+			{} as Record<string, typeof items>
+		);
+
+		return groupedItems;
+	},
+	addToSingleItem: async ({ db, item, grouping }) => {
+		const ids = [item.id];
+		const groupedAssociatedInfos = await associatedInfoActions.listGrouped({
+			db,
+			ids,
+			grouping
+		});
+
+		return {
+			...item,
+			associated: groupedAssociatedInfos[item.id] || []
+		};
+	},
+	addToItems: async ({ db, data, grouping }) => {
+		const ids = data.data.map((a) => a.id);
+		const groupedAssociatedInfos = await associatedInfoActions.listGrouped({
+			db,
+			ids,
+			grouping
+		});
+
+		return {
+			...data,
+			data: data.data.map((a) => {
+				const associated = groupedAssociatedInfos[a.id] || [];
+				return {
+					...a,
+					associated
+				};
+			})
+		};
 	}
 };

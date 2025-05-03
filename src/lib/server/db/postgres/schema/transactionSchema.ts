@@ -35,6 +35,7 @@ import type { CombinedBackupSchemaInfoType } from '$lib/server/backups/backupSch
 import { noteTypeEnum } from '../../../../schema/enum/noteTypeEnum';
 import { fileReasonEnum } from '../../../../schema/enum/fileReasonEnum';
 import { fileTypeEnum } from '../../../../schema/enum/fileTypeEnum';
+import { user } from './userSchema';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -481,7 +482,11 @@ export const associatedInfoTableRelations = relations(associatedInfoTable, ({ on
 	}),
 	notes: many(notesTable),
 	files: many(fileTable),
-	journalSnapshots: many(journalSnapshotTable)
+	journalSnapshots: many(journalSnapshotTable),
+	user: one(user, {
+		fields: [associatedInfoTable.createdById],
+		references: [user.id]
+	})
 }));
 
 export const fileTable = pgTable(
