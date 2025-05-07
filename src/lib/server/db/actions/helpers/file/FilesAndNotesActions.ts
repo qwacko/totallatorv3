@@ -63,7 +63,8 @@ export type FilesAndNotesActions<
 		data: PaginatedResults<T>;
 		grouping: GroupingOptions;
 	}) => Promise<PaginatedResults<T & AddedToItems>>;
-	create: (date: { db: DBType; data: CreateSchema; creationUserId: string }) => Promise<void>;
+	create: (date: { db: DBType; data: CreateSchema & CreateFileNoteRelationshipSchemaType; creationUserId: string }) => Promise<void>;
+	addToInfo: (data: {db: DBType, data: CreateSchema, associatedId: string}) => Promise<void>;
 	updateMany: (data: {
 		db: DBType;
 		filter: FilterSchemaWithoutPagination;

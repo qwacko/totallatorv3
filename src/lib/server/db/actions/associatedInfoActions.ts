@@ -30,11 +30,25 @@ import {
 } from '$lib/schema/helpers/fileNoteRelationship';
 import { dbExecuteLogger } from '../dbLogger';
 import { materializedViewActions } from './materializedViewActions';
-import type { AssociatedInfoFilterSchemaWithPaginationType } from '$lib/schema/associatedInfoSchema';
+import type {
+	AssociatedInfoFilterSchemaWithPaginationType,
+	CreateAssociatedInfoSchemaType
+} from '$lib/schema/associatedInfoSchema';
 import { associatedInfoFilterToQuery } from './helpers/associatedInfo/associatedInfoFilterToQuery';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
 import type { GroupingIdOptions } from './helpers/file/FilesAndNotesActions';
+import { nanoid } from 'nanoid';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { fileActions } from './fileActions';
+import type { CreateFileSchemaCoreType } from '$lib/schema/fileSchema';
+import type { CreateNoteSchemaCoreType } from '$lib/schema/noteSchema';
+import { noteActions } from './noteActions';
 
+type CreateAssociatedInfoFunction = (data: {
+	db: DBType;
+	item: CreateAssociatedInfoSchemaType;
+	userId: string;
+}) => Promise<string>;
 type UpdateLinkedFunction = (data: { db: DBType }) => Promise<void>;
 type RemoveUnnecessaryFunction = (data: { db: DBType }) => Promise<void>;
 type ListAsscociatedInfoFunction = (data: {
@@ -83,7 +97,7 @@ export type AssociatedInfoLinkType = {
 	} | null;
 };
 
-type AssociatedInfoDataType = {
+export type AssociatedInfoDataType = {
 	id: string;
 	title: string | null;
 	createdAt: Date;
@@ -91,7 +105,7 @@ type AssociatedInfoDataType = {
 	linked: boolean;
 	createdById: string | null;
 	notes: (typeof notesTable.$inferSelect)[];
-	user: { name: string };
+	user: { name: string } | null;
 	files: (typeof fileTable.$inferSelect)[];
 	journalSnapshots: (typeof journalSnapshotTable.$inferSelect)[];
 };
@@ -105,7 +119,87 @@ export const associatedInfoActions: {
 	listGrouped: ListGroupedFunction;
 	addToSingleItem: AddToSingleItemFunction;
 	addToItems: AddToItemsFunction;
+	create: CreateAssociatedInfoFunction;
 } = {
+	create: async ({ db, item, userId }) => {
+		const {
+			files,
+			notes,
+			file,
+			fileTitle,
+			fileReason,
+			title,
+			note,
+			noteType,
+			createSummary,
+			...links
+		} = item;
+
+		const associatedInfoId = nanoid();
+
+		const linked = Object.keys(links).reduce(
+			(prev, current) => prev || Boolean(links[current as keyof typeof links]),
+			false
+		);
+
+		type InsertAssociatedInfo = typeof associatedInfoTable.$inferInsert;
+		const associatedInfoData: InsertAssociatedInfo = {
+			id: associatedInfoId,
+			createdById: userId,
+			...updatedTime(),
+			...links,
+			linked,
+			title
+		};
+
+		const filesToCreate: CreateFileSchemaCoreType[] = files || [];
+		if (file) {
+			filesToCreate.push({
+				title: fileTitle,
+				reason: fileReason || 'info',
+				file: file
+			});
+		}
+
+		const notesToCreate: CreateNoteSchemaCoreType[] = notes || [];
+		if (note) {
+			notesToCreate.push({
+				type: noteType || 'info',
+				note: note
+			});
+		}
+
+		//Insert the file and associated info in a transaction to ensure atomicity
+		await db.transaction(async (tx) => {
+			await dbExecuteLogger(
+				tx.insert(associatedInfoTable).values(associatedInfoData),
+				'File - Create Associated Info'
+			);
+
+			await Promise.all(
+				filesToCreate.map(async (file) =>
+					fileActions.addToInfo({
+						db: tx,
+						associatedId: associatedInfoId,
+						data: file
+					})
+				)
+			);
+
+			await Promise.all(
+				notesToCreate.map(async (note) =>
+					noteActions.addToInfo({
+						db: tx,
+						associatedId: associatedInfoId,
+						data: note
+					})
+				)
+			);
+		});
+		await materializedViewActions.setRefreshRequired(db);
+
+		return associatedInfoId;
+	},
 	removeUnnecessary: async ({ db }) => {
 		const itemsToDelete = await db
 			.select({ id: associatedInfoTable.id, fileId: fileTable.id, noteId: notesTable.id })

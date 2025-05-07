@@ -1,6 +1,6 @@
 import {
 	createNoteSchema,
-	type CreateNoteSchemaType,
+	type CreateNoteSchemaCoreType,
 	type NoteFilterSchemaType,
 	type NoteFilterSchemaWithoutPaginationType,
 	type UpdateNoteSchemaType
@@ -36,7 +36,7 @@ import { associatedInfoActions } from './associatedInfoActions';
 
 type NotesActionsType = FilesAndNotesActions<
 	NotesTableType,
-	CreateNoteSchemaType,
+	CreateNoteSchemaCoreType,
 	UpdateNoteSchemaType,
 	NoteFilterSchemaType,
 	NoteFilterSchemaWithoutPaginationType,
@@ -223,6 +223,21 @@ export const noteActions: NotesActionsType = {
 			})
 		};
 	},
+	addToInfo: async ({ db, data, associatedId }) => {
+		const noteId = nanoid();
+
+		const insertNoteData: typeof notesTable.$inferInsert = {
+			id: noteId,
+			associatedInfoId: associatedId,
+			note: data.note,
+			type: data.type,
+			...updatedTime()
+		};
+
+		await dbExecuteLogger(db.insert(notesTable).values(insertNoteData), 'Note - Create - Note');
+
+		await materializedViewActions.setRefreshRequired(db);
+	},
 	create: async ({ db, data, creationUserId }) => {
 		const result = createNoteSchema.safeParse(data);
 
@@ -230,34 +245,16 @@ export const noteActions: NotesActionsType = {
 			throw new Error('Invalid input');
 		}
 
-		const id = nanoid();
-		const associatedInfoId = nanoid();
+		const { note, type, ...links } = result.data;
 
-		const { note, type, ...restData } = result.data;
-
-		const insertAssociatedInfoData: typeof associatedInfoTable.$inferInsert = {
-			id: associatedInfoId,
-			createdById: creationUserId,
-			linked: true,
-			...restData,
-			...updatedTime()
-		};
-
-		const insertNoteData: typeof notesTable.$inferInsert = {
-			id,
-			associatedInfoId,
-			note,
-			type,
-			...updatedTime()
-		};
-
-		await db.transaction(async (tx) => {
-			await dbExecuteLogger(
-				tx.insert(associatedInfoTable).values(insertAssociatedInfoData),
-				'Note - Create - Associated Info'
-			);
-
-			await dbExecuteLogger(tx.insert(notesTable).values(insertNoteData), 'Note - Create - Note');
+		await associatedInfoActions.create({
+			db,
+			item: {
+				...links,
+				note,
+				noteType: type
+			},
+			userId: creationUserId
 		});
 
 		await materializedViewActions.setRefreshRequired(db);
@@ -291,7 +288,7 @@ export const noteActions: NotesActionsType = {
 			'Note - Delete Many'
 		);
 
-		await associatedInfoActions.removeUnnecesssary({ db });
+		await associatedInfoActions.removeUnnecessary({ db });
 
 		await materializedViewActions.setRefreshRequired(db);
 	},

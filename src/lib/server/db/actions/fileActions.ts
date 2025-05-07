@@ -21,7 +21,7 @@ import { fileFilterToQuery, fileFilterToText } from './helpers/file/fileFilterTo
 import { fileToOrderByToSQL } from './helpers/file/fileOrderByToSQL';
 import {
 	createFileSchema,
-	type CreateFileSchemaType,
+	type CreateFileSchemaCoreType,
 	type FileFilterSchemaType,
 	type FileFilterSchemaWithoutPaginationType,
 	type UpdateFileSchemaType
@@ -41,7 +41,7 @@ import { associatedInfoActions } from './associatedInfoActions';
 
 type FilesActionsType = FilesAndNotesActions<
 	FileTableType,
-	CreateFileSchemaType,
+	CreateFileSchemaCoreType,
 	UpdateFileSchemaType,
 	FileFilterSchemaType,
 	FileFilterSchemaWithoutPaginationType,
@@ -242,28 +242,10 @@ export const fileActions: FilesActionsType & {
 			})
 		};
 	},
-	create: async ({ db, data, creationUserId }) => {
-		const result = createFileSchema.safeParse(data);
-
-		if (!result.success) {
-			throw new Error('Invalid input');
-		}
-
+	addToInfo: async ({ db, data, associatedId }) => {
 		const fileId = nanoid();
-		const associatedId = nanoid();
-		const linked = Boolean(
-			result.data.accountId ||
-				result.data.billId ||
-				result.data.budgetId ||
-				result.data.categoryId ||
-				result.data.tagId ||
-				result.data.labelId ||
-				result.data.autoImportId ||
-				result.data.reportId ||
-				result.data.reportElementId
-		);
 
-		const { file: fileData, reason, title, ...restData } = result.data;
+		const { file: fileData, reason, title, ...restData } = data;
 
 		const originalFilename = fileData.name;
 		const filename = `${fileId}-${originalFilename}`;
@@ -325,24 +307,120 @@ export const fileActions: FilesActionsType & {
 			...updatedTime()
 		};
 
-		type InsertAssociatedInfo = typeof associatedInfoTable.$inferInsert;
-		const associatedInfoData: InsertAssociatedInfo = {
-			id: associatedId,
-			createdById: creationUserId,
-			...updatedTime(),
-			...restData,
-			linked,
-			title: titleUse
-		};
+		await dbExecuteLogger(db.insert(fileTable).values(createData), 'File - Create');
+	},
+	create: async ({ db, data, creationUserId }) => {
+		const result = createFileSchema.safeParse(data);
 
-		//Insert the file and associated info in a transaction to ensure atomicity
-		await db.transaction(async (tx) => {
-			await dbExecuteLogger(
-				tx.insert(associatedInfoTable).values(associatedInfoData),
-				'File - Create Associated Info'
-			);
-			await dbExecuteLogger(tx.insert(fileTable).values(createData), 'File - Create');
+		if (!result.success) {
+			throw new Error('Invalid input');
+		}
+
+		const { file, title, reason, ...links } = data;
+
+		await associatedInfoActions.create({
+			db,
+			item: {
+				...links,
+				files: [{ file, title, reason }]
+			},
+			userId: creationUserId
 		});
+
+		// const fileId = nanoid();
+		// const associatedId = nanoid();
+		// const linked = Boolean(
+		// 	result.data.accountId ||
+		// 		result.data.billId ||
+		// 		result.data.budgetId ||
+		// 		result.data.categoryId ||
+		// 		result.data.tagId ||
+		// 		result.data.labelId ||
+		// 		result.data.autoImportId ||
+		// 		result.data.reportId ||
+		// 		result.data.reportElementId
+		// );
+
+		// const { file: fileData, reason, title, ...restData } = result.data;
+
+		// const originalFilename = fileData.name;
+		// const filename = `${fileId}-${originalFilename}`;
+		// const thumbnailFilename = `${fileId}-thumbnail-${originalFilename}`;
+		// const size = fileData.size;
+
+		// const fileIsPDF = fileData.type === 'application/pdf';
+		// const fileIsJPG = fileData.type === 'image/jpeg';
+		// const fileIsPNG = fileData.type === 'image/png';
+		// const fileIsWEBP = fileData.type === 'image/webp';
+		// const fileIsGIF = fileData.type === 'image/gif';
+		// const fileIsTIFF = fileData.type === 'image/tiff';
+		// const fileIsAVIF = fileData.type === 'image/avif';
+		// const fileIsSVG = fileData.type === 'image/svg+xml';
+		// const fileIsImage =
+		// 	fileIsJPG || fileIsPNG || fileIsWEBP || fileIsGIF || fileIsTIFF || fileIsAVIF || fileIsSVG;
+		// const type: FileTypeType = fileIsPDF
+		// 	? 'pdf'
+		// 	: fileIsJPG
+		// 		? 'jpg'
+		// 		: fileIsPNG
+		// 			? 'png'
+		// 			: fileIsWEBP
+		// 				? 'webp'
+		// 				: fileIsGIF
+		// 					? 'gif'
+		// 					: fileIsTIFF
+		// 						? 'tiff'
+		// 						: fileIsAVIF
+		// 							? 'avif'
+		// 							: fileIsSVG
+		// 								? 'svg'
+		// 								: 'other';
+
+		// const fileContents = Buffer.from(await fileData.arrayBuffer());
+
+		// const thumbnail = fileIsImage ? await sharp(fileContents).resize(400).toBuffer() : undefined;
+
+		// await fileFileHandler.write(filename, fileContents);
+		// if (thumbnail) {
+		// 	await fileFileHandler.write(thumbnailFilename, thumbnail);
+		// }
+
+		// const titleUse = title || originalFilename;
+
+		// type InsertFile = typeof fileTable.$inferInsert;
+		// const createData: InsertFile = {
+		// 	...restData,
+		// 	id: fileId,
+		// 	associatedInfoId: associatedId,
+		// 	originalFilename,
+		// 	filename,
+		// 	thumbnailFilename: fileIsImage ? thumbnailFilename : null,
+		// 	title: titleUse,
+		// 	size,
+		// 	type,
+		// 	fileExists: true,
+		// 	reason,
+		// 	...updatedTime()
+		// };
+
+		// type InsertAssociatedInfo = typeof associatedInfoTable.$inferInsert;
+		// const associatedInfoData: InsertAssociatedInfo = {
+		// 	id: associatedId,
+		// 	createdById: creationUserId,
+		// 	...updatedTime(),
+		// 	...restData,
+		// 	linked,
+		// 	title: titleUse
+		// };
+
+		// //Insert the file and associated info in a transaction to ensure atomicity
+		// await db.transaction(async (tx) => {
+		// 	await dbExecuteLogger(
+		// 		tx.insert(associatedInfoTable).values(associatedInfoData),
+		// 		'File - Create Associated Info'
+		// 	);
+		// 	await dbExecuteLogger(tx.insert(fileTable).values(createData), 'File - Create');
+		// });
 		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateLinked: async ({ db }) => {

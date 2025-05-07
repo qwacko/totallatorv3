@@ -7,14 +7,21 @@ import { fileReasonEnum } from './enum/fileReasonEnum';
 import { fileTypeEnum } from './enum/fileTypeEnum';
 import { fileOrderByEnum } from './enum/fileOrderByEnum';
 
-export const createFileSchema = z.object({
+export const createFileSchemaCore = z.object({
 	title: z.string().optional(),
 	reason: z.enum(fileReasonEnum),
 	file: z
 		.instanceof(File, { message: 'Please upload a file.' })
-		.refine((f) => f.size < 10_000_000, 'Max 10 MB upload size.'),
-	...createFileNoteRelationshipSchema
+		.refine((f) => f.size < 10_000_000, 'Max 10 MB upload size.')
 });
+
+export type CreateFileSchemaCoreType = z.infer<typeof createFileSchemaCore>;
+
+export const createFileSchema = z
+	.object({
+		...createFileNoteRelationshipSchema
+	})
+	.merge(createFileSchemaCore);
 
 export type CreateFileSchemaType = z.infer<typeof createFileSchema>;
 

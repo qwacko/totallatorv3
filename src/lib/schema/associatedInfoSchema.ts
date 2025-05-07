@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { fileFilterCoreSchema } from './fileSchema';
-import { noteFilterCoreSchema } from './noteSchema';
+import { createFileSchemaCore, fileFilterCoreSchema } from './fileSchema';
+import {  createNoteSchemaCore, noteFilterCoreSchema } from './noteSchema';
 import { associatedInfoOrderByEnum } from './enum/associatedInfoOrderByEnum';
 import { createFileNoteRelationshipSchema } from './helpers/fileNoteRelationship';
 import { fileReasonEnum } from './enum/fileReasonEnum';
@@ -61,11 +61,14 @@ export type AssociatedInfoFilterSchemaWithPaginationType = z.infer<
 export const createAssociatedInfoSchema = z
 	.object({
 		title: z.string().optional(),
+		files: z.array(createFileSchemaCore).optional(),
+		notes: z.array(createNoteSchemaCore).optional(),
 		fileTitle: z.string().optional(),
 		fileReason: z.enum(fileReasonEnum).optional(),
 		file: z
 			.instanceof(File, { message: 'Please upload a file.' })
-			.refine((f) => f.size < 10_000_000, 'Max 10 MB upload size.'),
+			.refine((f) => f.size < 10_000_000, 'Max 10 MB upload size.')
+			.optional(),
 		note: z.string().optional(),
 		noteType: z.enum(noteTypeEnum).optional(),
 		createSummary: z.boolean().optional(),

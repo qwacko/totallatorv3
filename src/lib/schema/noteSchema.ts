@@ -30,11 +30,18 @@ export const createNoteJournalSchema = z.object({
 export type CreateNoteJournalSchemaInputType = z.input<typeof createNoteJournalSchema>;
 export type CreateNoteJournalSchemaType = z.infer<typeof createNoteJournalSchema>;
 
-export const createNoteSchema = z.object({
+export const createNoteSchemaCore = z.object({
 	note: z.string(),
-	type: z.enum(noteTypeEnum),
-	...createFileNoteRelationshipSchema
+	type: z.enum(noteTypeEnum)
 });
+
+export type CreateNoteSchemaCoreType = z.infer<typeof createNoteSchemaCore>;
+
+export const createNoteSchema = z
+	.object({
+		...createFileNoteRelationshipSchema
+	})
+	.merge(createNoteSchemaCore);
 
 export type CreateNoteSchemaType = z.infer<typeof createNoteSchema>;
 

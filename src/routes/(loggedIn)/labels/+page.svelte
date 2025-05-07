@@ -22,6 +22,7 @@
 	import NotesButton from '$lib/components/NotesButton.svelte';
 	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
+	import AssociatedInfoButton from '$lib/components/AssociatedInfoButton.svelte';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/labels', $page));
@@ -145,6 +146,10 @@
 								</Button>
 								<NotesButton notes={currentRow.notes} target={{ labelId: currentRow.id }} />
 								<FilesButton files={currentRow.files} target={{ labelId: currentRow.id }} />
+								<AssociatedInfoButton
+									data={currentRow.associated}
+									target={{ labelId: currentRow.id }}
+								/>
 								<RawDataModal data={currentRow} title="Raw Label Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>
