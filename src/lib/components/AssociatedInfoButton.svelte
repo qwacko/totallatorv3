@@ -1,39 +1,23 @@
 <script lang="ts">
-	import { Button, Modal, Textarea, Timeline, TimelineItem, Toolbar } from 'flowbite-svelte';
-	import { enhance } from '$app/forms';
-	import type { NoteTypeType } from '$lib/schema/enum/noteTypeEnum';
-	import { customEnhance } from '$lib/helpers/customEnhance';
-	import ActionButton from './ActionButton.svelte';
-	import type { JournalFilterSchemaType } from '$lib/schema/journalSchema';
-	import type { CreateAssociatedInfoSchemaType } from '$lib/schema/associatedInfoSchema';
+	import { Button, Modal, Timeline, TimelineItem } from 'flowbite-svelte';
 	import type { AssociatedInfoDataType } from '$lib/server/db/actions/associatedInfoActions';
 	import AdditionalInfoIcon from './icons/AdditionalInfoIcon.svelte';
 	import NoteDisplay from './associatedInfo/NoteDisplay.svelte';
 	import { formatDate } from '$lib/schema/userSchema';
 	import { userDateFormat } from '$lib/stores/userInfoStore';
 	import FileDisplay from './associatedInfo/FileDisplay.svelte';
+	import type { CreateFileNoteRelationshipSchemaType } from '$lib/schema/helpers/fileNoteRelationship';
+	import AssociatedInfoCreateForm from './associatedInfo/AssociatedInfoCreateForm.svelte';
 
 	const {
 		data,
-		target,
-		filter
+		target
 	}: {
 		data?: AssociatedInfoDataType[] | null;
-		target: CreateAssociatedInfoSchemaType;
-		filter?: JournalFilterSchemaType;
+		target: CreateFileNoteRelationshipSchemaType;
 	} = $props();
 
-	let creating = $state(false);
-
 	let modal = $state(false);
-	let automaticCreation = $state(false);
-
-	const targetItems = $derived(
-		Object.keys(target).map((key) => ({
-			key,
-			value: target[key as keyof typeof target]
-		}))
-	);
 
 	const hasReminder = $derived(
 		data && data.some((data) => data.notes.some((note) => note.type === 'reminder'))
@@ -47,8 +31,6 @@
 				)
 			: 0
 	);
-
-	let currentType = $state<NoteTypeType>('info');
 </script>
 
 <Button
@@ -59,12 +41,7 @@
 >
 	<AdditionalInfoIcon />
 </Button>
-<Modal
-	title="Additional Information"
-	bind:open={modal}
-	outsideclose
-	on:close={() => (automaticCreation = false)}
->
+<Modal title="Additional Information" bind:open={modal} outsideclose>
 	{#if data}
 		<Timeline order="activity">
 			{#each data as currentData}
@@ -99,7 +76,8 @@
 		</Timeline>
 	{/if}
 	<svelte:fragment slot="footer">
-		{#if !automaticCreation}
+		<AssociatedInfoCreateForm {target} {modal} />
+		<!-- {#if !automaticCreation}
 			<form
 				method="post"
 				action="?/addNote"
@@ -149,6 +127,6 @@
 					</div>
 				</Textarea>
 			</form>
-		{/if}
+		{/if} -->
 	</svelte:fragment>
 </Modal>

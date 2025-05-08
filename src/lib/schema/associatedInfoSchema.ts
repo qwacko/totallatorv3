@@ -74,10 +74,6 @@ export const createAssociatedInfoSchema = z
 		createSummary: z.boolean().optional(),
 		...createFileNoteRelationshipSchema
 	})
-	.refine((data) => !data.file || (data.file && data.fileTitle), {
-		message: 'File title is required when file is provided',
-		path: ['fileTitle']
-	})
 	.refine((data) => !data.file || (data.file && data.fileReason), {
 		message: 'File reason is required when file is provided',
 		path: ['fileReason']
