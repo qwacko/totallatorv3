@@ -4,6 +4,7 @@ import { serverPageInfo } from '$lib/routes';
 import { logging } from '$lib/server/logging.js';
 import { noteFormActions } from '$lib/server/noteFormActions';
 import { fileFormActions } from '$lib/server/fileFormActions';
+import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions.js';
 
 export const load = async (request) => {
 	authGuard(request);
@@ -33,6 +34,7 @@ export const load = async (request) => {
 export const actions = {
 	...noteFormActions,
 	...fileFormActions,
+	...associatedInfoFormActions,
 	clone: async ({ request, locals }) => {
 		const form = await request.formData();
 		const id = form.get('id');

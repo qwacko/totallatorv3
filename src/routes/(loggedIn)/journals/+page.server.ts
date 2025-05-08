@@ -11,6 +11,7 @@ import { logging } from '$lib/server/logging';
 import { noteFormActions } from '$lib/server/noteFormActions.js';
 import { redirect } from '@sveltejs/kit';
 import { fileFormActions } from '$lib/server/fileFormActions';
+import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions.js';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
@@ -40,6 +41,7 @@ export const load = async (data) => {
 export const actions = {
 	...noteFormActions,
 	...fileFormActions,
+	...associatedInfoFormActions,
 	updateJournal: async (data) => {
 		const db = data.locals.db;
 		const form = await superValidate(

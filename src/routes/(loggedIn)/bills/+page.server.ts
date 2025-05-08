@@ -3,6 +3,7 @@ import { serverPageInfo } from '$lib/routes.js';
 import { billFilterToText } from '$lib/server/db/actions/helpers/bill/billFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { fileFormActions } from '$lib/server/fileFormActions';
+import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions.js';
 import { logging } from '$lib/server/logging';
 import { noteFormActions } from '$lib/server/noteFormActions.js';
 import { error, redirect } from '@sveltejs/kit';
@@ -50,6 +51,7 @@ const submitValidation = z.object({
 export const actions = {
 	...noteFormActions,
 	...fileFormActions,
+	...associatedInfoFormActions,
 	update: async ({ request, locals }) => {
 		const db = locals.db;
 		const form = await superValidate(request, zod(submitValidation));

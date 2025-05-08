@@ -50,6 +50,10 @@ const filesActions = {
 	updateFile: POSTAllowAdminOnly
 };
 
+const associatedInfoActions = {
+	createAssociatedInfo: POSTAllowAdminOnly
+};
+
 export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 	routeConfig: {
 		'/': homepageRedirect,
@@ -61,6 +65,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				refresh: POSTAllowAdminOnly,
 				tidyBackups: POSTAllowAdminOnly,
 				backup: POSTAllowAdminOnly,
@@ -135,7 +140,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// ----------------------------------------
 		'/(loggedIn)/import': {
 			...adminOnlyConfig,
-			POSTCheck: { update: POSTAllowAdminOnly, ...notesActions, ...filesActions }
+			POSTCheck: {
+				update: POSTAllowAdminOnly,
+				...notesActions,
+				...filesActions,
+				...associatedInfoActions
+			}
 		},
 		'/(loggedIn)/import/create': { ...adminOnlyConfig, POSTCheck: { create: POSTAllowAdminOnly } },
 		'/(loggedIn)/import/[id]': {
@@ -174,6 +184,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly,
 				updateJournal: POSTAllowAdminOnly
 			}
@@ -233,6 +244,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				clone: POSTAllowAdminOnly
 			}
 		},
@@ -266,6 +278,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly,
 				refreshAll: POSTAllowAdminOnly,
 				refreshSome: POSTAllowAdminOnly
@@ -299,6 +312,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -323,6 +337,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -341,6 +356,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -359,6 +375,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -383,6 +400,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -407,6 +425,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -432,6 +451,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},

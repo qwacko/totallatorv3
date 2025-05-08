@@ -16,12 +16,10 @@
 
 	let {
 		filter,
-		automaticCreation = $bindable(),
 		target,
 		defaultTitle
 	}: {
 		filter: JournalFilterSchemaType;
-		automaticCreation: boolean;
 		target: CreateFileNoteRelationshipSchemaType;
 		defaultTitle?: string;
 	} = $props();
@@ -37,12 +35,7 @@
 		},
 		{
 			validators: zodClient(createNoteJournalSchema),
-			dataType: 'json',
-			onResult: (result) => {
-				if (result.result.type === 'success') {
-					automaticCreation = false;
-				}
-			}
+			dataType: 'json'
 		}
 	);
 
@@ -108,8 +101,6 @@
 			loadingMessage="Creating..."
 			loading={$loading}
 		/>
-		<Button on:click={() => (automaticCreation = false)} class="rounded-lg" color="alternative">
-			Cancel
-		</Button>
+		<Button class="rounded-lg" color="alternative">Cancel</Button>
 	</div>
 </form>

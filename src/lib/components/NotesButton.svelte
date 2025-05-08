@@ -60,7 +60,6 @@
 <Modal title="Notes" bind:open={modal} outsideclose on:close={() => (automaticCreation = false)}>
 	{#if automaticCreation && filter}
 		<NoteAutomaticCreationForm
-			bind:automaticCreation
 			{target}
 			{filter}
 			defaultTitle={autoNoteTitle}

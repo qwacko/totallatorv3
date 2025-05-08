@@ -4,6 +4,7 @@
 	import { enhance } from '$app/forms';
 	import LinkIcon from './icons/LinkIcon.svelte';
 	import FileThumbnail from './FileThumbnail.svelte';
+	import type { FileTypeType } from '$lib/schema/enum/fileTypeEnum';
 
 	const {
 		item,
@@ -14,6 +15,7 @@
 			originalFilename: string;
 			thumbnailFilename?: string | null;
 			id: string;
+			type: FileTypeType
 		};
 		keys: { key: string; value: string | null | undefined }[];
 	} = $props();
