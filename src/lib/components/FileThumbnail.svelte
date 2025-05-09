@@ -12,6 +12,7 @@
 			thumbnailFilename?: string | undefined | null;
 			id: string;
 			originalFilename: string;
+			filename: string;
 			type: FileTypeType
 
 		};
@@ -33,8 +34,8 @@
 		class=" object-contain"
 		class:max-h-32={size === 'sm'}
 		class:max-w-32={size === 'sm'}
-		class:max-h-64={size === 'lg'}
-		class:max-w-64={size === 'lg'}
+		class:max-h-96={size === 'lg'}
+		class:max-w-96={size === 'lg'}
 		class:max-h-48={size === 'md'}
 		class:max-w-48={size === 'md'}
 	>
@@ -48,22 +49,24 @@
 		/>
 	</button>
 	<Modal size="xl" bind:open={showPopover} outsideclose title={item.originalFilename}>
+		<div class="w-full h-full flex items-center justify-center">
 		<img 
 			src={urlGenerator({
-				address: '/(loggedIn)/files/[id]/image/[filename]',
-				paramsValue: { id: item.id, filename: item.thumbnailFilename }
+				address: '/(loggedIn)/files/[id]/[filename]',
+				paramsValue: { id: item.id, filename: item.originalFilename }
 			}).url}
 			alt={item.originalFilename}
-			class="w-full h-full"
+			class="max-w-full max-h-full"
 		/>
+		</div>
 	</Modal>
 {:else if showPlaceholder}
 	<div
 		class="flex flex-col gap-1 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 overflow-hidden p-4"
 		class:h-32={size === 'sm'}
 		class:w-32={size === 'sm'}
-		class:h-64={size === 'lg'}
-		class:w-64={size === 'lg'}
+		class:h-96={size === 'lg'}
+		class:w-96={size === 'lg'}
 		class:h-48={size === 'md'}
 		class:w-48={size === 'md'}
 	>

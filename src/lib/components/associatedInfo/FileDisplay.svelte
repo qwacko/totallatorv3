@@ -24,8 +24,8 @@
 	});
 </script>
 
-<div class="flex w-min flex-col gap-2">
-	<FileThumbnail item={file} {showPlaceholder} />
+<div class="flex flex-col gap-2">
+	<FileThumbnail item={file} {showPlaceholder} size="md" />
 	<div class="flex flex-row items-center gap-2">
 		<P weight="light" size="sm">
 			{humanSize}
@@ -42,8 +42,8 @@
 		>
 			<DownloadIcon />
 		</Button>
-		<form method="post" action="?/deleteNote" use:enhance>
-			<input type="hidden" name="noteId" value={file.id} />
+		<form method="post" action="?/deleteFile" use:enhance>
+			<input type="hidden" name="fileId" value={file.id} />
 			<Button type="submit" outline color="red" class="rounded-lg border p-1">
 				<DeleteIcon />
 			</Button>

@@ -28,15 +28,25 @@ export const formValidationActionWrapper = <T extends ZodValidation, RequireUser
 	data: RequestEvent<Partial<Record<string, string>>, string>
 ) => Promise<{ form: ValidatedForm<T> } | ActionFailure<{ form: ValidatedForm<T> }>>) => {
 	const { title, validation, action, requireUser = true } = params;
+
+	const sanitiseFormData = (form: ValidatedForm<T>) => {
+		// Remove any non-POJO items (e.g., files) from the form data
+		const sanitizedData = JSON.parse(JSON.stringify(form.data));
+		form.data = sanitizedData;
+	};
+
 	return async (data: RequestEvent<Partial<Record<string, string>>, string>) => {
 		const form = await superValidate(data, zod(validation));
 		const creationPerson = data.locals.user?.id;
 
 		if (!creationPerson && requireUser) {
+			logging.error(`${title} : User not found`);
 			throw new Error(`${title} : User not found`);
 		}
 
 		if (!form.valid) {
+			logging.error(`${title} : Form Validation Error`, form.errors);
+			sanitiseFormData(form);
 			return { form };
 		}
 
@@ -49,12 +59,19 @@ export const formValidationActionWrapper = <T extends ZodValidation, RequireUser
 			});
 
 			if (!result) {
+				sanitiseFormData(form);
 				return { form };
 			} else {
+				if ('form' in result) {
+					sanitiseFormData(result.form);
+				} else {
+					sanitiseFormData(result.data.form);
+				}
 				return result;
 			}
 		} catch (e) {
 			logging.error(`${title} : Error`, e);
+			sanitiseFormData(form);
 			return message(form, `${title} : Error`);
 		}
 	};

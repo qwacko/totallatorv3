@@ -6,6 +6,9 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
 	return {
+		server: {
+			allowedHosts:  true as const
+		},
 		plugins: [
 			tailwindcss(),
 			sveltekit(),

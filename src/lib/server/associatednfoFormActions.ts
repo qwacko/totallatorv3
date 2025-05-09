@@ -7,7 +7,8 @@ export const associatedInfoFormActions = {
 		title: 'Create Associated Info',
 		validation: createAssociatedInfoSchema,
 		requireUser: true,
-		action: async ({ db, data, userId }) => {
+		action: async ({ db, data, userId, form }) => {
+			console.log('Creating Associated Info');
 			await tActions.associatedInfo.create({
 				db,
 				item: data,
