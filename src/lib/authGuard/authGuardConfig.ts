@@ -51,7 +51,8 @@ const filesActions = {
 };
 
 const associatedInfoActions = {
-	createAssociatedInfo: POSTAllowAdminOnly
+	createAssociatedInfo: POSTAllowAdminOnly,
+	deleteSummary: POSTAllowAdminOnly
 };
 
 export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({

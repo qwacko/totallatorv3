@@ -7,7 +7,8 @@
 	import { userDateFormat } from '$lib/stores/userInfoStore';
 	import FileDisplay from './associatedInfo/FileDisplay.svelte';
 	import type { CreateFileNoteRelationshipSchemaType } from '$lib/schema/helpers/fileNoteRelationship';
-	import AssociatedInfoCreateForm from './associatedInfo/AssociatedInfoCreateForm.svelte';
+	import AssociatedInfoCreateButton from './associatedInfo/AssociatedInfoCreateButton.svelte';
+	import JournalSummaryDisplay from './associatedInfo/JournalSummaryDisplay.svelte';
 
 	const {
 		data,
@@ -61,8 +62,13 @@
 							{currentData.user ? ` - ${currentData.user.name}` : ''}
 						</div>
 						{#each currentData.notes as note}
-							<NoteDisplay {note} associatedItem={currentData} />
+							<NoteDisplay {note} />
 						{/each}
+						{#if currentData.journalSnapshots.length > 0}
+							{#each currentData.journalSnapshots as snapshot}
+								<JournalSummaryDisplay summary={snapshot} />
+							{/each}
+						{/if}
 						{#if currentData.files.length > 0}
 							<div class="flex flex-row flex-wrap gap-2">
 								{#each currentData.files as file}
@@ -76,57 +82,6 @@
 		</Timeline>
 	{/if}
 	<svelte:fragment slot="footer">
-		<AssociatedInfoCreateForm {target} {modal} />
-		<!-- {#if !automaticCreation}
-			<form
-				method="post"
-				action="?/addNote"
-				use:enhance={customEnhance({
-					updateLoading: (newLoading) => (creating = newLoading)
-				})}
-				class="flex w-full"
-			>
-				{#each targetItems as currentItem}
-					<input type="hidden" name={currentItem.key} value={currentItem.value} />
-				{/each}
-				<input type="hidden" name="type" value={currentType} />
-				<Textarea name="note" placeholder="Add a note">
-					<div slot="footer" class="flex items-center justify-between">
-						<ActionButton
-							class="rounded-lg"
-							type="submit"
-							message="Create Note"
-							loadingMessage="Creating..."
-							loading={creating}
-						/>
-						{#if filter}
-							<Button
-								on:click={() => (automaticCreation = true)}
-								class="rounded-lg"
-								color="alternative"
-							>
-								Automatic Note
-							</Button>
-						{/if}
-						<Toolbar embedded>
-							<Button
-								on:click={() => (currentType = 'info')}
-								outline={currentType !== 'info'}
-								color="green"
-							>
-								Info
-							</Button>
-							<Button
-								on:click={() => (currentType = 'reminder')}
-								outline={currentType !== 'reminder'}
-								color="red"
-							>
-								Reminder
-							</Button>
-						</Toolbar>
-					</div>
-				</Textarea>
-			</form>
-		{/if} -->
+		<AssociatedInfoCreateButton {target} text="Link Additional Information" />
 	</svelte:fragment>
 </Modal>

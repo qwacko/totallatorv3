@@ -701,6 +701,8 @@ export const journalSnapshotTable = pgTable(
 		average: moneyType('average').notNull(),
 		earliest: timestamp('earliest').notNull(),
 		latest: timestamp('latest').notNull(),
+		earliestText: text('earliestText').notNull(),
+		latestText: text('latestText').notNull(),
 		positiveSum: moneyType('positive_sum').notNull(),
 		positiveCount: integer('positive_count').notNull(),
 		negativeSum: moneyType('negative_sum').notNull(),

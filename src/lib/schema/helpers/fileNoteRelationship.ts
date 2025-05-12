@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { JournalFilterSchemaWithoutPaginationType } from '../journalSchema';
 
 export const createFileNoteRelationshipSchema = {
 	transactionId: z.string().optional().nullable(),
@@ -46,4 +47,37 @@ export const fileNoteRelationshipFilterSchema = {
 	excludeReportIdArray: z.array(z.string()).optional(),
 	reportElementIdArray: z.array(z.string()).optional(),
 	excludeReportElementIdArray: z.array(z.string()).optional()
+};
+
+export const linksToFilter = (
+	links: CreateFileNoteRelationshipSchemaType
+): JournalFilterSchemaWithoutPaginationType => {
+	const accountShouldBeAsset = Boolean(
+		links.tagId || links.billId || links.budgetId || links.categoryId || links.labelId
+	);
+
+	const filter: JournalFilterSchemaWithoutPaginationType = {
+		account: {
+			id: links.accountId || undefined,
+			type: accountShouldBeAsset ? ['asset', 'liability'] : undefined
+		},
+		tag: { id: links.tagId || undefined },
+		bill: { id: links.billId || undefined },
+		budget: { id: links.budgetId || undefined },
+		category: { id: links.categoryId || undefined },
+		label: { id: links.labelId || undefined }
+	};
+
+	return filter;
+};
+
+export const linksCanAddSummary = (links: CreateFileNoteRelationshipSchemaType): boolean => {
+	return Boolean(
+		links.accountId ||
+			links.tagId ||
+			links.billId ||
+			links.budgetId ||
+			links.categoryId ||
+			links.labelId
+	);
 };

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createFileSchemaCore, fileFilterCoreSchema } from './fileSchema';
-import {  createNoteSchemaCore, noteFilterCoreSchema } from './noteSchema';
+import { createNoteSchemaCore, noteFilterCoreSchema } from './noteSchema';
 import { associatedInfoOrderByEnum } from './enum/associatedInfoOrderByEnum';
 import { createFileNoteRelationshipSchema } from './helpers/fileNoteRelationship';
 import { fileReasonEnum } from './enum/fileReasonEnum';
@@ -72,6 +72,7 @@ export const createAssociatedInfoSchema = z
 		note: z.string().optional(),
 		noteType: z.enum(noteTypeEnum).optional(),
 		createSummary: z.boolean().optional(),
+		journalSummaryFile: z.boolean().optional(),
 		...createFileNoteRelationshipSchema
 	})
 	.refine((data) => !data.file || (data.file && data.fileReason), {

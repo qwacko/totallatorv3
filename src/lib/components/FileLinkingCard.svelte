@@ -14,8 +14,9 @@
 			title: string | null;
 			originalFilename: string;
 			thumbnailFilename?: string | null;
+			filename: string;
 			id: string;
-			type: FileTypeType
+			type: FileTypeType;
 		};
 		keys: { key: string; value: string | null | undefined }[];
 	} = $props();

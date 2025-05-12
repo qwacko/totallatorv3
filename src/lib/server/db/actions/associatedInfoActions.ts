@@ -26,6 +26,8 @@ import {
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import {
 	fileRelationshipKeys,
+	linksCanAddSummary,
+	linksToFilter,
 	type KeysOfCreateFileNoteRelationshipSchemaType
 } from '$lib/schema/helpers/fileNoteRelationship';
 import { dbExecuteLogger } from '../dbLogger';
@@ -43,6 +45,9 @@ import { fileActions } from './fileActions';
 import type { CreateFileSchemaCoreType } from '$lib/schema/fileSchema';
 import type { CreateNoteSchemaCoreType } from '$lib/schema/noteSchema';
 import { noteActions } from './noteActions';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
+import type { IdSchemaType } from '$lib/schema/idSchema';
+import { tActions } from './tActions';
 
 type CreateAssociatedInfoFunction = (data: {
 	db: DBType;
@@ -51,6 +56,7 @@ type CreateAssociatedInfoFunction = (data: {
 }) => Promise<string>;
 type UpdateLinkedFunction = (data: { db: DBType }) => Promise<void>;
 type RemoveUnnecessaryFunction = (data: { db: DBType }) => Promise<void>;
+
 type ListAsscociatedInfoFunction = (data: {
 	db: DBType;
 	filter: AssociatedInfoFilterSchemaWithPaginationType;
@@ -71,6 +77,7 @@ type AddToItemsFunction = <T extends { id: string }>(data: {
 	data: PaginatedResults<T>;
 	grouping: GroupingIdOptions;
 }) => Promise<PaginatedResults<T & { associated: AssociatedInfoDataType[] }>>;
+type RemoveSummaryFunction = (data: { db: DBType; data: IdSchemaType }) => Promise<void>;
 
 export type AssociatedInfoLinkType = {
 	accountId: string | null;
@@ -120,7 +127,17 @@ export const associatedInfoActions: {
 	addToSingleItem: AddToSingleItemFunction;
 	addToItems: AddToItemsFunction;
 	create: CreateAssociatedInfoFunction;
+	removeSummary: RemoveSummaryFunction;
 } = {
+	removeSummary: async ({ db, data }) => {
+		await dbExecuteLogger(
+			db.delete(journalSnapshotTable).where(eq(journalSnapshotTable.id, data.id))
+		);
+
+		await associatedInfoActions.removeUnnecessary({ db });
+
+		return;
+	},
 	create: async ({ db, item, userId }) => {
 		const {
 			files,
@@ -132,6 +149,7 @@ export const associatedInfoActions: {
 			note,
 			noteType,
 			createSummary,
+			journalSummaryFile,
 			...links
 		} = item;
 
@@ -169,6 +187,27 @@ export const associatedInfoActions: {
 			});
 		}
 
+		const canAddSummary = linksCanAddSummary(links);
+		const filter = linksToFilter(links);
+
+		if (canAddSummary && createSummary && journalSummaryFile) {
+			const csvData: string = await tActions.journalView.generateCSVData({
+				db,
+				filter,
+				returnType: 'default'
+			});
+
+			const fileTitle = `journalSummary-${new Date().toISOString().slice(0, 19)}.csv`;
+			const blob = new Blob([csvData], { type: 'text/csv' });
+			const csvDataFile: File = new File([blob], fileTitle);
+
+			filesToCreate.push({
+				title: fileTitle,
+				reason: 'info',
+				file: csvDataFile
+			});
+		}
+
 		//Insert the file and associated info in a transaction to ensure atomicity
 		await db.transaction(async (tx) => {
 			await dbExecuteLogger(
@@ -195,9 +234,21 @@ export const associatedInfoActions: {
 					})
 				)
 			);
-		});
-		await materializedViewActions.setRefreshRequired(db);
 
+			if (createSummary && canAddSummary) {
+				const summaryData = await journalMaterializedViewActions.simpleSummary({ db, filter });
+
+				const newItem: typeof journalSnapshotTable.$inferInsert = {
+					id: nanoid(),
+					associatedInfoId,
+					...updatedTime(),
+					...summaryData
+				};
+
+				await dbExecuteLogger(tx.insert(journalSnapshotTable).values(newItem));
+			}
+		});
+		await associatedInfoActions.removeUnnecessary({ db });
 		return associatedInfoId;
 	},
 	removeUnnecessary: async ({ db }) => {
@@ -206,7 +257,17 @@ export const associatedInfoActions: {
 			.from(associatedInfoTable)
 			.leftJoin(fileTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
 			.leftJoin(notesTable, eq(associatedInfoTable.id, notesTable.associatedInfoId))
-			.where(and(isNull(fileTable.associatedInfoId), isNull(notesTable.associatedInfoId)));
+			.leftJoin(
+				journalSnapshotTable,
+				eq(associatedInfoTable.id, journalSnapshotTable.associatedInfoId)
+			)
+			.where(
+				and(
+					isNull(fileTable.associatedInfoId),
+					isNull(notesTable.associatedInfoId),
+					isNull(journalSnapshotTable.associatedInfoId)
+				)
+			);
 
 		if (itemsToDelete.length > 0) {
 			await db.delete(associatedInfoTable).where(
@@ -216,6 +277,8 @@ export const associatedInfoActions: {
 				)
 			);
 		}
+
+		await materializedViewActions.setRefreshRequired(db);
 	},
 	updateLinked: async ({ db }) => {
 		await dbExecuteLogger(
@@ -254,7 +317,7 @@ export const associatedInfoActions: {
 			'File - Update Linked - True'
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await associatedInfoActions.removeUnnecessary({ db });
 	},
 	list: async ({ db, filter }) => {
 		const { page = 0, pageSize = 10, orderBy, ...filterWithoutPagination } = filter;

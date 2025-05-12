@@ -73,8 +73,10 @@ export const journalMaterializedViewActions = {
 		count: number;
 		sum: number;
 		average: number;
-		earliest: string;
-		latest: string;
+		earliest: Date;
+		latest: Date;
+		earliestText: string;
+		latestText: string;
 		positiveSum: number;
 		positiveCount: number;
 		negativeSum: number;
@@ -91,8 +93,10 @@ export const journalMaterializedViewActions = {
 				count: count(table.id),
 				sum: sum(table.amount).mapWith(Number),
 				average: sql`avg(${table.amount})`.mapWith(Number),
-				earliest: sql`min(${table.dateText})`.mapWith(table.dateText),
-				latest: sql`max(${table.dateText})`.mapWith(table.dateText),
+				earliest: sql`min(${table.date})`.mapWith(table.date),
+				latest: sql`max(${table.date})`.mapWith(table.date),
+				earliestText: sql`min(${table.dateText})`.mapWith(table.dateText),
+				latestText: sql`max(${table.dateText})`.mapWith(table.dateText),
 				positiveSum:
 					sql`SUM(CASE WHEN ${table.amount} > 0 THEN ${table.amount} ELSE 0 END)`.mapWith(Number),
 				positiveCount: sql`SUM(CASE WHEN ${table.amount} > 0 THEN 1 ELSE 0 END)`.mapWith(Number),
