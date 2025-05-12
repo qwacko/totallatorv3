@@ -203,7 +203,7 @@ export const associatedInfoActions: {
 
 			filesToCreate.push({
 				title: fileTitle,
-				reason: 'info',
+				reason: 'summary',
 				file: csvDataFile
 			});
 		}

@@ -1,4 +1,4 @@
-export const fileReasonEnum = ['receipt', 'invoice', 'report', 'info'] as const;
+export const fileReasonEnum = ['receipt', 'invoice', 'report', 'summary', 'info'] as const;
 export type FileReasonType = (typeof fileReasonEnum)[number];
 
 export const fileReasonEnumInfo = {
@@ -13,6 +13,10 @@ export const fileReasonEnumInfo = {
 	report: {
 		id: 'report',
 		name: 'Report'
+	},
+	summary: {
+		id: 'summary',
+		name: 'Journal Summary'
 	},
 	info: {
 		id: 'info',
