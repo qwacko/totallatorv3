@@ -4,7 +4,7 @@ import { dbNoAdmins } from '$lib/server/db/actions/firstUser';
 import { logging } from '$lib/server/logging';
 
 import { auth } from '$lib/server/auth';
-import { redirect, type Handle } from '@sveltejs/kit';
+import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 
 import { serverEnv } from '$lib/server/serverEnv';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -14,21 +14,8 @@ import { materializedViewRefreshRateLimiter } from '$lib/server/db/actions/helpe
 import { tActions } from '$lib/server/db/actions/tActions';
 import { building } from '$app/environment';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-!building && initateCronJobs();
-
-export const viewRefresh = building
-	? undefined
-	: materializedViewRefreshRateLimiter({
-			timeout: serverEnv.VIEW_REFRESH_TIMEOUT,
-			performRefresh: async () => tActions.materializedViews.conditionalRefresh({ db })
-		});
-
-// Set Refresh Required on Startup in case there are any changes
-!building &&
-	tActions &&
-	tActions.materializedViews &&
-	tActions.materializedViews.setRefreshRequired(db);
+export let viewRefresh: undefined | ReturnType<typeof materializedViewRefreshRateLimiter> =
+	undefined;
 
 const handleAuth: Handle = async ({ event, resolve }) => {
 	const sessionToken = event.cookies.get(auth.sessionCookieName);
@@ -48,6 +35,22 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	event.locals.user = user || undefined;
 	event.locals.session = session || undefined;
 	return resolve(event);
+};
+
+export const init: ServerInit = async () => {
+	// This functionality is not required if the server is being built.
+	if (building) {
+		return;
+	}
+	console.log('Server Init Function');
+
+	initateCronJobs();
+	tActions && tActions.materializedViews && tActions.materializedViews.setRefreshRequired(db);
+
+	viewRefresh = materializedViewRefreshRateLimiter({
+		timeout: serverEnv.VIEW_REFRESH_TIMEOUT,
+		performRefresh: async () => tActions.materializedViews.conditionalRefresh({ db })
+	});
 };
 
 const handleRoute: Handle = async ({ event, resolve }) => {
