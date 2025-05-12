@@ -19,9 +19,8 @@
 	import { enhance } from '$app/forms';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
-	import NotesButton from '$lib/components/NotesButton.svelte';
-	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
+	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/categories', $page));
@@ -166,8 +165,10 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{ categoryId: currentRow.id }} />
-								<FilesButton files={currentRow.files} target={{ categoryId: currentRow.id }} />
+								<AssociatedInfoButtonPromise
+									data={currentRow.associated}
+									target={{ categoryId: currentRow.id }}
+								/>
 								<RawDataModal data={currentRow} title="Raw Category Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>

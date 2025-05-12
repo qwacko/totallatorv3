@@ -18,14 +18,10 @@ export const load = async (request) => {
 	});
 
 	return {
-		list: await tActions.file.addToItems({
+		list: tActions.associatedInfo.addToItems({
 			db: request.locals.db,
-			grouping: 'autoImport',
-			data: await tActions.note.addToItems({
-				db: request.locals.db,
-				data: autoImportList,
-				grouping: 'autoImport'
-			})
+			data: autoImportList,
+			grouping: 'autoImportId'
 		}),
 		filter
 	};

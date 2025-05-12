@@ -58,14 +58,14 @@ export const linksToFilter = (
 
 	const filter: JournalFilterSchemaWithoutPaginationType = {
 		account: {
-			id: links.accountId || undefined,
-			type: accountShouldBeAsset ? ['asset', 'liability'] : undefined
+			...(links.accountId ? { id: links.accountId } : {}),
+			...(accountShouldBeAsset ? { type: ['asset', 'liability'] } : {})
 		},
-		tag: { id: links.tagId || undefined },
-		bill: { id: links.billId || undefined },
-		budget: { id: links.budgetId || undefined },
-		category: { id: links.categoryId || undefined },
-		label: { id: links.labelId || undefined }
+		...(links.tagId ? { tag: { id: links.tagId } } : {}),
+		...(links.billId ? { bill: { id: links.billId } } : {}),
+		...(links.budgetId ? { budget: { id: links.budgetId } } : {}),
+		...(links.categoryId ? { category: { id: links.categoryId } } : {}),
+		...(links.labelId ? { label: { id: links.labelId } } : {})
 	};
 
 	return filter;

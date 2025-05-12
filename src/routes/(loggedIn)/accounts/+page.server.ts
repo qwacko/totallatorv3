@@ -55,11 +55,7 @@ export const load = async (data) => {
 	});
 
 	return {
-		accounts: await tActions.file.addToItems({
-			db,
-			data: await tActions.note.addToItems({ db, data: accounts, grouping: 'account' }),
-			grouping: 'account'
-		}),
+		accounts: tActions.associatedInfo.addToItems({ db, data: accounts, grouping: 'accountId' }),
 		searchParams: pageInfo.searchParams,
 		filterText,
 		accountSummary

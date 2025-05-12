@@ -39,7 +39,7 @@ const currencyFormatEnum = ['USD', 'GBP', 'INR', 'AUD', 'EUR'] as const;
 
 const dateFormatEnum = ['YYYY-MM-DD', 'MM/DD/YY', 'MM/DD/YYYY', 'DD/MM/YY', 'DD/MM/YYYY'] as const;
 
-const fileReasonEnum = ['receipt', 'invoice', 'report', 'info'] as const;
+const fileReasonEnum = ['receipt', 'invoice', 'report', 'info', 'summary'] as const;
 const fileTypeEnum = ['pdf', 'jpg', 'png', 'webp', 'gif', 'avif', 'tiff', 'svg', 'other'] as const;
 const noteTypeEnum = ['info', 'reminder'] as const;
 

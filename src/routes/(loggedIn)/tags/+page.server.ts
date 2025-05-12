@@ -38,14 +38,10 @@ export const load = async (data) => {
 	});
 
 	return {
-		tags: await tActions.associatedInfo.addToItems({
+		tags: tActions.associatedInfo.addToItems({
 			db,
 			grouping: 'tagId',
-			data: await tActions.file.addToItems({
-				db,
-				grouping: 'tag',
-				data: await tActions.note.addToItems({ db, data: tags, grouping: 'tag' })
-			})
+			data: tags
 		}),
 		searchParams: pageInfo.searchParams,
 		filterText,

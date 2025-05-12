@@ -16,7 +16,7 @@
 {#if data}
 	{#await data}
 		<Button class="p-2">
-			<Spinner />
+			<Spinner size="4" />
 		</Button>
 	{:then targetData}
 		<AssociatedInfoButton {target} data={targetData} />

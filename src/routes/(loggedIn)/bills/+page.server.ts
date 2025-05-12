@@ -33,11 +33,7 @@ export const load = async (data) => {
 	});
 
 	return {
-		bills: await tActions.file.addToItems({
-			db,
-			grouping: 'bill',
-			data: await tActions.note.addToItems({ db, data: bills, grouping: 'bill' })
-		}),
+		bills: tActions.associatedInfo.addToItems({ db, data: bills, grouping: 'billId' }),
 		searchParams: pageInfo.searchParams,
 		filterText
 	};

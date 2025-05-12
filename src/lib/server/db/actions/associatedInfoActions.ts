@@ -71,12 +71,12 @@ type AddToSingleItemFunction = <T extends { id: string }>(data: {
 	db: DBType;
 	item: T;
 	grouping: GroupingIdOptions;
-}) => Promise<T & { associated: AssociatedInfoDataType[] }>;
+}) => T & { associated: Promise<AssociatedInfoDataType[]> };
 type AddToItemsFunction = <T extends { id: string }>(data: {
 	db: DBType;
 	data: PaginatedResults<T>;
 	grouping: GroupingIdOptions;
-}) => Promise<PaginatedResults<T & { associated: AssociatedInfoDataType[] }>>;
+}) => PaginatedResults<T & { associated: Promise<AssociatedInfoDataType[]> }>;
 type RemoveSummaryFunction = (data: { db: DBType; data: IdSchemaType }) => Promise<void>;
 
 export type AssociatedInfoLinkType = {
@@ -465,34 +465,50 @@ export const associatedInfoActions: {
 
 		return groupedItems;
 	},
-	addToSingleItem: async ({ db, item, grouping }) => {
-		const ids = [item.id];
-		const groupedAssociatedInfos = await associatedInfoActions.listGrouped({
+	addToSingleItem: ({ db, item, grouping }) => {
+		const addFunction = async () => {
+			const ids = [item.id];
+			const groupedAssociatedInfos = await associatedInfoActions.listGrouped({
+				db,
+				ids,
+				grouping
+			});
+
+			const key = item.id as unknown as keyof typeof groupedAssociatedInfos;
+
+			const data: AssociatedInfoDataType[] = groupedAssociatedInfos[key] || [];
+
+			return data;
+		};
+
+		const associated = addFunction();
+
+		return {
+			...item,
+			associated
+		};
+	},
+	addToItems: ({ db, data, grouping }) => {
+		const ids = data.data.map((a) => a.id);
+		const groupedAssociatedInfos = associatedInfoActions.listGrouped({
 			db,
 			ids,
 			grouping
 		});
 
-		return {
-			...item,
-			associated: groupedAssociatedInfos[item.id] || []
+		const addFunction = async (currentId: string) => {
+			const data = await groupedAssociatedInfos;
+			const thisData = data[currentId] || [];
+
+			return thisData;
 		};
-	},
-	addToItems: async ({ db, data, grouping }) => {
-		const ids = data.data.map((a) => a.id);
-		const groupedAssociatedInfos = await associatedInfoActions.listGrouped({
-			db,
-			ids,
-			grouping
-		});
 
 		return {
 			...data,
 			data: data.data.map((a) => {
-				const associated = groupedAssociatedInfos[a.id] || [];
 				return {
 					...a,
-					associated
+					associated: addFunction(a.id)
 				};
 			})
 		};

@@ -19,10 +19,8 @@
 	import { enhance } from '$app/forms';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema';
-	import NotesButton from '$lib/components/NotesButton.svelte';
-	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
-	import AssociatedInfoButton from '$lib/components/AssociatedInfoButton.svelte';
+	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/labels', $page));
@@ -144,9 +142,7 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{ labelId: currentRow.id }} />
-								<FilesButton files={currentRow.files} target={{ labelId: currentRow.id }} />
-								<AssociatedInfoButton
+								<AssociatedInfoButtonPromise
 									data={currentRow.associated}
 									target={{ labelId: currentRow.id }}
 								/>

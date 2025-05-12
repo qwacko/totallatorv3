@@ -32,10 +32,10 @@ export const load = async (data) => {
 	});
 
 	return {
-		categories: await tActions.file.addToItems({
+		categories: tActions.associatedInfo.addToItems({
 			db,
-			grouping: 'category',
-			data: await tActions.note.addToItems({ db, data: categories, grouping: 'category' })
+			data: categories,
+			grouping: 'categoryId'
 		}),
 		searchParams: pageInfo.searchParams,
 		filterText

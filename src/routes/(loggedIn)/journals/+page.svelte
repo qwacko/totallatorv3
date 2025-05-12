@@ -34,11 +34,10 @@
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import BulkJournalActions from './BulkJournalActions.svelte';
 	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
-	import NotesButton from '../../../lib/components/NotesButton.svelte';
-	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 	import RecommendationButton from '$lib/components/RecommendationButton.svelte';
+	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
 
 	const { data } = $props();
 
@@ -339,19 +338,11 @@
 									<DataCheckedIcon height="15" width="15" />
 								</Button>
 							{/if}
-							<NotesButton
-								notes={currentJournal.notes}
-								target={{
-									transactionId: currentJournal.transactionId
-								}}
-							/>
-							<FilesButton
-								files={currentJournal.files}
-								target={{
-									transactionId: currentJournal.transactionId
-								}}
-								transactionId={currentJournal.transactionId || undefined}
-							/>
+							
+								<AssociatedInfoButtonPromise
+									data={currentJournal.associated}
+									target={{ transactionId: currentJournal.transactionId }}
+								/>
 
 							<RecommendationButton
 								recommendations={data.journalRecommendations}

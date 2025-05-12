@@ -29,6 +29,7 @@ import { getCorrectJournalTable } from '../../helpers/journalMaterializedView/ge
 import type { GroupedNotesType } from '../../noteActions';
 import type { GroupedFilesType } from '../../fileActions';
 import type { PaginationType } from './PaginationType';
+import type { AssociatedInfoDataType } from '../../associatedInfoActions';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -105,6 +106,7 @@ export type JournalMLExpanded = JournalViewReturnType & {
 	importDetail?: ImportItemDetailTableType['processedInfo'] | null;
 	notes: GroupedNotesType;
 	files: GroupedFilesType;
+	associated: Promise<AssociatedInfoDataType[]>
 };
 
 export type JournalMLExpandedWithPagination = PaginationType & {
@@ -188,6 +190,12 @@ export const journalMaterialisedList = async ({
 		grouping: 'transaction'
 	});
 
+	const associatedInfo = tActions.associatedInfo.listGrouped({
+		db,
+		ids: transactionIds,
+		grouping: 'transactionId'
+	});
+
 	const runningTotal = (await runningTotalPromise)[0].sum;
 
 	//Logic to prevent querying too much data if the page size is too large
@@ -207,6 +215,11 @@ export const journalMaterialisedList = async ({
 		'Journal Materialized - Import Details'
 	);
 
+	const getAssociatedItems = async (id:string) => {
+		const data = await associatedInfo
+		return data[id] || []
+	}
+
 	const journalsMerged = journals.map((journal, index) => {
 		const priorJournals = journals.filter((_, i) => i < index);
 		const priorJournalTotal = priorJournals.reduce((prev, current) => prev + current.amount, 0);
@@ -218,6 +231,8 @@ export const journalMaterialisedList = async ({
 		const notes = journal.transactionId ? transactionNotes[journal.transactionId] : undefined;
 		const files = journal.transactionId ? transactionFiles[journal.transactionId] : undefined;
 
+
+
 		return {
 			...journal,
 			total,
@@ -225,7 +240,8 @@ export const journalMaterialisedList = async ({
 			importDetail: thisImportDetail?.processedInfo,
 			labels: thisOtherJournalData?.labels ?? [],
 			notes: notes ?? [],
-			files: files ?? []
+			files: files ?? [],
+			associated: getAssociatedItems(journal.transactionId)
 		};
 	});
 

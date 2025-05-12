@@ -18,8 +18,7 @@
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import { enhance } from '$app/forms';
-	import NotesButton from '$lib/components/NotesButton.svelte';
-	import FilesButton from '$lib/components/FilesButton.svelte';
+	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
 
 	const { data } = $props();
 
@@ -164,8 +163,10 @@
 								<Button type="submit" class="p-2" outline color="blue">
 									<CloneIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{ autoImportId: currentRow.id }} />
-								<FilesButton files={currentRow.files} target={{ autoImportId: currentRow.id }} />
+								<AssociatedInfoButtonPromise
+									data={currentRow.associated}
+									target={{ autoImportId: currentRow.id }}
+								/>
 								<RawDataModal
 									data={currentRow.config}
 									title="{currentRow.title} Config"
