@@ -56,7 +56,7 @@ export const init: ServerInit = async () => {
 		timeout: serverEnv.VIEW_REFRESH_TIMEOUT,
 		performRefresh: async () => tActions.materializedViews.conditionalRefresh({ db })
 	});
-	tActions && tActions.materializedViews && tActions.materializedViews.setRefreshRequired(db);
+	// tActions && tActions.materializedViews && tActions.materializedViews.setRefreshRequired(db);
 };
 
 const handleRoute: Handle = async ({ event, resolve }) => {
