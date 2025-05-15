@@ -18,10 +18,10 @@ export let viewRefresh: undefined | ReturnType<typeof materializedViewRefreshRat
 	undefined;
 
 // Set Refresh Required on Startup in case there are any changes
-!building &&
-	tActions &&
-	tActions.materializedViews &&
-	tActions.materializedViews.setRefreshRequired(db);
+//!building &&
+//	tActions &&
+//	tActions.materializedViews &&
+//	tActions.materializedViews.setRefreshRequired(db);
 
 const handleAuth: Handle = async ({ event, resolve }) => {
 	const sessionToken = event.cookies.get(auth.sessionCookieName);
