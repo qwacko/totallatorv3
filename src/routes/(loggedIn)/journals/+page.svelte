@@ -342,6 +342,7 @@
 								<AssociatedInfoButtonPromise
 									data={currentJournal.associated}
 									target={{ transactionId: currentJournal.transactionId }}
+									id={currentJournal.id}
 								/>
 
 							<RecommendationButton

@@ -10,7 +10,7 @@
 	updatePageStore();
 
 	const { data, children } = $props();
-
+	
 	$effect(() => {
 		authGuardFrontend($page, { admin: data.user?.admin || false, user: data.user ? true : false });
 	});

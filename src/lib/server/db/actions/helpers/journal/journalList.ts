@@ -215,7 +215,10 @@ export const journalMaterialisedList = async ({
 		'Journal Materialized - Import Details'
 	);
 
-	const getAssociatedItems = async (id:string) => {
+	const getAssociatedItems = async (id:string|null) => {
+		if (!id) {
+			return []
+		}
 		const data = await associatedInfo
 		return data[id] || []
 	}

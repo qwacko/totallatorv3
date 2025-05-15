@@ -161,6 +161,7 @@
 								<AssociatedInfoButtonPromise
 									data={currentRow.associated}
 									target={{ tagId: currentRow.id }}
+									id={currentRow.id}
 								/>
 								<RawDataModal data={currentRow} title="Raw Tag Data" dev={data.dev} />
 							</ButtonGroup>

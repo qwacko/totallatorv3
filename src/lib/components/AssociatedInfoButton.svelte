@@ -12,13 +12,15 @@
 
 	const {
 		data,
-		target
+		target,  open, setOpen
 	}: {
 		data?: AssociatedInfoDataType[] | null;
 		target: CreateFileNoteRelationshipSchemaType;
+		open: boolean;
+		setOpen: (open: boolean) => void;
 	} = $props();
 
-	let modal = $state(false);
+	const modal = $derived(open);
 
 	const hasReminder = $derived(
 		data && data.some((data) => data.notes.some((note) => note.type === 'reminder'))
@@ -35,14 +37,14 @@
 </script>
 
 <Button
-	on:click={() => (modal = true)}
+	on:click={() => (setOpen(true))}
 	color={hasReminder ? 'red' : 'primary'}
 	outline={itemCount === 0}
 	class="p-2"
 >
 	<AdditionalInfoIcon />
 </Button>
-<Modal title="Additional Information" bind:open={modal} outsideclose>
+<Modal title="Additional Information" open={modal} on:close={() => {setOpen(false)}} outsideclose>
 	{#if data}
 		<Timeline order="activity">
 			{#each data as currentData}

@@ -166,6 +166,7 @@
 								<AssociatedInfoButtonPromise
 									data={currentRow.associated}
 									target={{ autoImportId: currentRow.id }}
+									id={currentRow.id}
 								/>
 								<RawDataModal
 									data={currentRow.config}

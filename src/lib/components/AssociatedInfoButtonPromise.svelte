@@ -3,14 +3,19 @@
 	import type { AssociatedInfoDataType } from '$lib/server/db/actions/associatedInfoActions';
 	import type { CreateFileNoteRelationshipSchemaType } from '$lib/schema/helpers/fileNoteRelationship';
 	import AssociatedInfoButton from './AssociatedInfoButton.svelte';
-
 	const {
 		data,
 		target
 	}: {
 		data?: Promise<AssociatedInfoDataType[]> | null;
 		target: CreateFileNoteRelationshipSchemaType;
+		id: string;
 	} = $props();
+
+	let open = $state(false);
+	const setOpen = (newOpen: boolean) => {
+		open = newOpen;
+	};
 </script>
 
 {#if data}
@@ -19,8 +24,8 @@
 			<Spinner size="4" />
 		</Button>
 	{:then targetData}
-		<AssociatedInfoButton {target} data={targetData} />
+		<AssociatedInfoButton {open} {setOpen} {target} data={targetData} />
 	{/await}
 {:else}
-	<AssociatedInfoButton {data} {target} />
+	<AssociatedInfoButton {open} {setOpen} {data} {target} />
 {/if}

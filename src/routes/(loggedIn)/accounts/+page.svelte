@@ -226,6 +226,7 @@
 							<AssociatedInfoButtonPromise
 								data={currentRow.associated}
 								target={{ accountId: currentRow.id }}
+								id={currentRow.id}
 							/>
 							<RawDataModal
 								data={currentRow}

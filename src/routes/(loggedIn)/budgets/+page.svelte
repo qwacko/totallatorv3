@@ -154,6 +154,7 @@
 								<AssociatedInfoButtonPromise
 									data={currentRow.associated}
 									target={{ budgetId: currentRow.id }}
+									id={currentRow.id}
 								/>
 								<RawDataModal data={currentRow} title="Raw Budget Data" dev={data.dev} />
 							</ButtonGroup>
