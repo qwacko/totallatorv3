@@ -12,7 +12,9 @@
 
 	const {
 		data,
-		target,  open, setOpen
+		target,
+		open,
+		setOpen
 	}: {
 		data?: AssociatedInfoDataType[] | null;
 		target: CreateFileNoteRelationshipSchemaType;
@@ -37,14 +39,21 @@
 </script>
 
 <Button
-	on:click={() => (setOpen(true))}
+	on:click={() => setOpen(true)}
 	color={hasReminder ? 'red' : 'primary'}
 	outline={itemCount === 0}
 	class="p-2"
 >
 	<AdditionalInfoIcon />
 </Button>
-<Modal title="Additional Information" open={modal} on:close={() => {setOpen(false)}} outsideclose>
+<Modal
+	title="Additional Information"
+	open={modal}
+	on:close={() => {
+		setOpen(false);
+	}}
+	outsideclose
+>
 	{#if data}
 		<Timeline order="activity">
 			{#each data as currentData}

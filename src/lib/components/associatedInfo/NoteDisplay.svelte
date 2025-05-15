@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Badge, } from 'flowbite-svelte';
+	import { Button, Badge } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import type { AssociatedInfoDataType } from '$lib/server/db/actions/associatedInfoActions';

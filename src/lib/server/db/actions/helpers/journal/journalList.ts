@@ -106,7 +106,7 @@ export type JournalMLExpanded = JournalViewReturnType & {
 	importDetail?: ImportItemDetailTableType['processedInfo'] | null;
 	notes: GroupedNotesType;
 	files: GroupedFilesType;
-	associated: Promise<AssociatedInfoDataType[]>
+	associated: Promise<AssociatedInfoDataType[]>;
 };
 
 export type JournalMLExpandedWithPagination = PaginationType & {
@@ -215,13 +215,13 @@ export const journalMaterialisedList = async ({
 		'Journal Materialized - Import Details'
 	);
 
-	const getAssociatedItems = async (id:string|null) => {
+	const getAssociatedItems = async (id: string | null) => {
 		if (!id) {
-			return []
+			return [];
 		}
-		const data = await associatedInfo
-		return data[id] || []
-	}
+		const data = await associatedInfo;
+		return data[id] || [];
+	};
 
 	const journalsMerged = journals.map((journal, index) => {
 		const priorJournals = journals.filter((_, i) => i < index);
@@ -233,8 +233,6 @@ export const journalMaterialisedList = async ({
 		const total = runningTotal - priorJournalTotal;
 		const notes = journal.transactionId ? transactionNotes[journal.transactionId] : undefined;
 		const files = journal.transactionId ? transactionFiles[journal.transactionId] : undefined;
-
-
 
 		return {
 			...journal,

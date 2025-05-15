@@ -13,16 +13,13 @@
 			id: string;
 			originalFilename: string;
 			filename: string;
-			type: FileTypeType
-
+			type: FileTypeType;
 		};
 		size?: 'sm' | 'md' | 'lg';
 		showPlaceholder?: boolean;
 	} = $props();
 
-
 	let showPopover = $state(false);
-
 </script>
 
 {#if item.thumbnailFilename}
@@ -45,24 +42,24 @@
 				paramsValue: { id: item.id, filename: item.thumbnailFilename }
 			}).url}
 			alt={item.originalFilename}
-			class="w-full h-full"
+			class="h-full w-full"
 		/>
 	</button>
 	<Modal size="xl" bind:open={showPopover} outsideclose title={item.originalFilename}>
-		<div class="w-full h-full flex items-center justify-center">
-		<img 
-			src={urlGenerator({
-				address: '/(loggedIn)/files/[id]/[filename]',
-				paramsValue: { id: item.id, filename: item.originalFilename }
-			}).url}
-			alt={item.originalFilename}
-			class="max-w-full max-h-full"
-		/>
+		<div class="flex h-full w-full items-center justify-center">
+			<img
+				src={urlGenerator({
+					address: '/(loggedIn)/files/[id]/[filename]',
+					paramsValue: { id: item.id, filename: item.originalFilename }
+				}).url}
+				alt={item.originalFilename}
+				class="max-h-full max-w-full"
+			/>
 		</div>
 	</Modal>
 {:else if showPlaceholder}
 	<div
-		class="flex flex-col gap-1 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 overflow-hidden p-4"
+		class="flex flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border-2 border-dashed border-gray-300 p-4"
 		class:h-32={size === 'sm'}
 		class:w-32={size === 'sm'}
 		class:h-96={size === 'lg'}
@@ -70,27 +67,26 @@
 		class:h-48={size === 'md'}
 		class:w-48={size === 'md'}
 	>
-		{#if item.type === "pdf"}
+		{#if item.type === 'pdf'}
 			<Badge>PDF</Badge>
-		{:else if item.type === "avif"}
+		{:else if item.type === 'avif'}
 			<Badge>AVIF</Badge>
-		{:else if item.type === "webp"}
+		{:else if item.type === 'webp'}
 			<Badge>WEBP</Badge>
-		{:else if item.type === "svg"}
+		{:else if item.type === 'svg'}
 			<Badge>SVG</Badge>
-		{:else if item.type === "gif"}
+		{:else if item.type === 'gif'}
 			<Badge>GIF</Badge>
-		{:else if item.type === "jpg"}
+		{:else if item.type === 'jpg'}
 			<Badge>JPG</Badge>
-		{:else if item.type === "png"}
+		{:else if item.type === 'png'}
 			<Badge>PNG</Badge>
-		{:else if item.type === "tiff"}
+		{:else if item.type === 'tiff'}
 			<Badge>TIFF</Badge>
 		{:else}
 			<Badge>File</Badge>
 		{/if}
-		
-		<p class="text-gray-500 text-wrap text-xs">{item.originalFilename}</p>
+
+		<p class="text-xs text-wrap text-gray-500">{item.originalFilename}</p>
 	</div>
 {/if}
-

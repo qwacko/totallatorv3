@@ -338,12 +338,12 @@
 									<DataCheckedIcon height="15" width="15" />
 								</Button>
 							{/if}
-							
-								<AssociatedInfoButtonPromise
-									data={currentJournal.associated}
-									target={{ transactionId: currentJournal.transactionId }}
-									id={currentJournal.id}
-								/>
+
+							<AssociatedInfoButtonPromise
+								data={currentJournal.associated}
+								target={{ transactionId: currentJournal.transactionId }}
+								id={currentJournal.id}
+							/>
 
 							<RecommendationButton
 								recommendations={data.journalRecommendations}

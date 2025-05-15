@@ -59,11 +59,7 @@
 </Button>
 <Modal title="Notes" bind:open={modal} outsideclose on:close={() => (automaticCreation = false)}>
 	{#if automaticCreation && filter}
-		<NoteAutomaticCreationForm
-			{target}
-			{filter}
-			defaultTitle={autoNoteTitle}
-		/>
+		<NoteAutomaticCreationForm {target} {filter} defaultTitle={autoNoteTitle} />
 	{:else}
 		{#each notes as note}
 			<Timeline order="activity">
