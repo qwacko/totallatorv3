@@ -51,12 +51,12 @@ export const init: ServerInit = async () => {
 	console.log('Server Init Function');
 
 	initateCronJobs();
-	tActions && tActions.materializedViews && tActions.materializedViews.setRefreshRequired(db);
 
 	viewRefresh = materializedViewRefreshRateLimiter({
 		timeout: serverEnv.VIEW_REFRESH_TIMEOUT,
 		performRefresh: async () => tActions.materializedViews.conditionalRefresh({ db })
 	});
+	tActions && tActions.materializedViews && tActions.materializedViews.setRefreshRequired(db);
 };
 
 const handleRoute: Handle = async ({ event, resolve }) => {
