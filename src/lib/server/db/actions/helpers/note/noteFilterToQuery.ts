@@ -4,10 +4,8 @@ import { idTitleFilterToQueryMapped } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '$lib/server/db/db';
 import { processNoteTextFilter } from './noteTextFilter';
-import type {
-	NoteFilterSchemaWithoutPaginationType,
-	LinkedNoteFilterSchemaType
-} from '$lib/schema/noteSchema';
+import type { NoteFilterSchemaWithoutPaginationType } from '$lib/schema/noteSchema';
+import type { LinkedNoteFilterSchemaType } from '$lib/schema/linkedNoteFilterSchema';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
 import { arrayToText } from '../misc/arrayToText';
@@ -38,8 +36,7 @@ export const noteFilterToQuery = (filter: NoteFilterSchemaWithoutPaginationType)
 	}
 	noteFileRelationshipQuery({
 		where,
-		filter: restFilter,
-		table: notesTable
+		filter: restFilter
 	});
 
 	return where;

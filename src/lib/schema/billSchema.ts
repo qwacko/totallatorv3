@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { statusEnum } from './statusSchema';
 import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
-import { linkedFileFilterSchema } from './fileSchema';
-import { linkedNoteFilterSchema } from './noteSchema';
+import { linkedFileFilterSchema } from './linkedFileFilterSchema';
+import { linkedNoteFilterSchema } from './linkedNoteFilterSchema';
 
 export const createBillSchema = z.object({
 	title: z.string(),
@@ -84,6 +84,7 @@ export const billFilterSchema = z
 	.merge(linkedNoteFilterSchema);
 
 export type BillFilterSchemaType = z.infer<typeof billFilterSchema>;
+export type BillFilterSchemaOutputType = z.output<typeof billFilterSchema>;
 export type BillFilterSchemaWithoutPaginationType = Omit<
 	BillFilterSchemaType,
 	'page' | 'pageSize' | 'orderBy'

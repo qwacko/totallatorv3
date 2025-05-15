@@ -5,7 +5,12 @@ import type {
 } from '$lib/schema/labelSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { label, labelsToJournals } from '../postgres/schema';
+import {
+	label,
+	labelsToJournals,
+	type LabelTableType,
+	type LabelViewReturnType
+} from '../postgres/schema';
 import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
@@ -17,28 +22,56 @@ import { labelFilterToQuery } from './helpers/label/labelFilterToQuery';
 import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionData';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
-import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';
 import { getCorrectLabelTable } from './helpers/label/getCorrectLabelTable';
+import type { ItemActionsType } from './helpers/misc/ItemActionsType';
+import Papa from 'papaparse';
 
-export const labelActions = {
-	latestUpdate: async ({ db }: { db: DBType }) => {
+export type LabelDropdownType = {
+	id: string;
+	title: string;
+	enabled: boolean;
+}[];
+
+type LabelActionsType = ItemActionsType<
+	LabelTableType,
+	LabelViewReturnType,
+	LabelFilterSchemaType,
+	CreateLabelSchemaType,
+	UpdateLabelSchemaType,
+	LabelDropdownType,
+	number
+>;
+
+type HardDeleteManyFunction = (db: DBType, data: IdSchemaType[]) => Promise<void>;
+type SoftDeleteFunction = (db: DBType, data: IdSchemaType) => Promise<string>;
+type CreateLinkFunction = (
+	db: DBType,
+	data: { journalId: string; labelId: string }
+) => Promise<void>;
+
+export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
+	hardDeleteMany: HardDeleteManyFunction;
+	softDelete: SoftDeleteFunction;
+	createLink: CreateLinkFunction;
+} = {
+	latestUpdate: async ({ db }) => {
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(label.updatedAt) }).from(label),
 			'Labels - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db: DBType, id: string) => {
+	getById: async (db, id) => {
 		return dbExecuteLogger(
 			db.query.label.findFirst({ where: eq(label.id, id) }),
 			'Labels - Get By ID'
 		);
 	},
-	count: async (db: DBType, filter?: LabelFilterSchemaType) => {
+	count: async (db, filter) => {
 		const { table, target } = await getCorrectLabelTable(db);
 		const count = await dbExecuteLogger(
 			db
@@ -102,6 +135,33 @@ export const labelActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
+	generateCSVData: async ({ db, filter, returnType }) => {
+		const data = await labelActions.list({
+			db,
+			filter: { ...filter, page: 0, pageSize: 100000 }
+		});
+
+		const preppedData = data.data.map((item, row) => {
+			if (returnType === 'import') {
+				return {
+					title: item.title,
+					status: item.status
+				} satisfies CreateLabelSchemaType;
+			}
+			return {
+				row,
+				id: item.id,
+				title: item.title,
+				status: item.status,
+				sum: item.sum,
+				count: item.count
+			};
+		});
+
+		const csvData = Papa.unparse(preppedData);
+
+		return csvData;
+	},
 	listForDropdown: async ({ db }: { db: DBType }) => {
 		await streamingDelay();
 		const items = dbExecuteLogger(
@@ -111,19 +171,7 @@ export const labelActions = {
 
 		return items;
 	},
-	createOrGet: async ({
-		db,
-		title,
-		id,
-		requireActive = true,
-		cachedData
-	}: {
-		db: DBType;
-		title?: string;
-		id?: string;
-		requireActive?: boolean;
-		cachedData?: { id: string; title: string; status: StatusEnumType }[];
-	}) => {
+	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
 		if (id) {
 			const currentLabel = cachedData
 				? cachedData.find((currentData) => currentData.id === id)
@@ -136,7 +184,7 @@ export const labelActions = {
 				if (requireActive && currentLabel.status !== 'active') {
 					throw new Error(`Label ${currentLabel.title} is not active`);
 				}
-				return currentLabel.id;
+				return currentLabel;
 			}
 			throw new Error(`Label ${id} not found`);
 		} else if (title) {
@@ -150,7 +198,7 @@ export const labelActions = {
 				if (requireActive && currentLabel.status !== 'active') {
 					throw new Error(`Label ${currentLabel.title} is not active`);
 				}
-				return currentLabel.id;
+				return currentLabel;
 			}
 			const newLabelId = await labelActions.create(db, {
 				title,
@@ -163,7 +211,7 @@ export const labelActions = {
 			if (!newLabel) {
 				throw new Error('Error Creating Label');
 			}
-			return newLabel.id;
+			return newLabel;
 		} else {
 			throw new Error(`Label id or title required`);
 		}
@@ -201,8 +249,7 @@ export const labelActions = {
 
 		return ids;
 	},
-	update: async (db: DBType, data: UpdateLabelSchemaType) => {
-		const { id } = data;
+	update: async ({ db, data, id }) => {
 		const currentLabel = await dbExecuteLogger(
 			db.query.label.findFirst({ where: eq(label.id, id) }),
 			'Labels - Update - Get By ID'
@@ -308,5 +355,3 @@ export const labelActions = {
 		await labelActions.createMany(db, itemsToCreate);
 	}
 };
-
-export type LabelDropdownType = Awaited<ReturnType<typeof labelActions.listForDropdown>>;

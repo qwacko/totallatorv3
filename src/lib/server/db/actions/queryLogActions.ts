@@ -17,6 +17,7 @@ import { queryLogOrderByToSQL } from './helpers/queryLog/queryLogOrderByToSQL';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { nanoid } from 'nanoid';
 import { serverEnv } from '$lib/server/serverEnv';
+import type { PaginatedResults } from './helpers/journal/PaginationType';
 
 const paginationReturnBuilder = <T extends Record<string, any>>({
 	data,
@@ -28,7 +29,7 @@ const paginationReturnBuilder = <T extends Record<string, any>>({
 	countResult: { count: number }[];
 	pageNo: number;
 	pageSize: number;
-}) => {
+}): PaginatedResults<T> => {
 	const count = countResult[0].count;
 	const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
@@ -42,12 +43,35 @@ export const queryLogActions = {
 	}: {
 		db: DBType;
 		filter: QueryLogFilterSchemaWithoutPaginationType;
-	}) => {
+	}): Promise<string[]> => {
 		const filterText = await queryLogFilterToText({ db, filter });
 
 		return filterText;
 	},
-	listGroups: async ({ db, filter }: { db: DBType; filter: GroupedQueryLogFilterType }) => {
+	listGroups: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: GroupedQueryLogFilterType;
+	}): Promise<
+		PaginatedResults<{
+			titleId: string | null;
+			title: string | null;
+			count: number;
+			first: Date | null;
+			last: Date | null;
+			maxDuration: number | null;
+			minDuration: number | null;
+			averageDuration: string | null;
+			maxSize: number | null;
+			minSize: number | null;
+			averageSize: string | null;
+			totalTime: string | null;
+			totalSize: string | null;
+			timeBuckets: Record<string, number>;
+		}>
+	> => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = queryLogFilterToQuery({ filter: restFilter });
@@ -94,7 +118,25 @@ export const queryLogActions = {
 			pageSize
 		});
 	},
-	list: async ({ db, filter }: { db: DBType; filter: QueryLogFilterSchemaType }) => {
+	list: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: QueryLogFilterSchemaType;
+	}): Promise<
+		PaginatedResults<{
+			id: string;
+			title: string | null;
+			titleId: string | null;
+			query: string | null;
+			queryId: string | null;
+			duration: number;
+			time: Date;
+			params: string | null;
+			size: number;
+		}>
+	> => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = queryLogFilterToQuery({ filter: restFilter });
@@ -141,7 +183,13 @@ export const queryLogActions = {
 			pageSize
 		});
 	},
-	listXY: async ({ db, filter }: { db: DBType; filter: QueryLogFilterSchemaType }) => {
+	listXY: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: QueryLogFilterSchemaType;
+	}): Promise<{ id: string; duration: number; time: Date; title: string | null }[]> => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = queryLogFilterToQuery({ filter: restFilter });
@@ -163,7 +211,7 @@ export const queryLogActions = {
 
 		return results;
 	},
-	tidy: async ({ db }: { db: DBType }) => {
+	tidy: async ({ db }: { db: DBType }): Promise<void> => {
 		//Remove logs older than 30 days
 		await db
 			.delete(queryLogTable)

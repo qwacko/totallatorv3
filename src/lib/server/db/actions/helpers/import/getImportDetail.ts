@@ -1,9 +1,27 @@
 import { eq } from 'drizzle-orm';
-import { importTable } from '../../../postgres/schema';
+import {
+	importTable,
+	type BillTableType,
+	type ImportTableType,
+	type JournalTableType,
+	type BudgetTableType,
+	type CategoryTableType,
+	type TagTableType,
+	type LabelTableType,
+	type AccountTableType,
+	type ImportItemDetailTableType
+} from '../../../postgres/schema';
 import type { DBType } from '../../../db';
 import { dbExecuteLogger } from '$lib/server/db/dbLogger';
+import type { importTypeType } from '$lib/schema/importSchema';
 
-export const getImportDetail = async ({ db, id }: { db: DBType; id: string }) => {
+export const getImportDetail = async ({
+	db,
+	id
+}: {
+	db: DBType;
+	id: string;
+}): Promise<GetImportDetailReturnType> => {
 	const returnData = await dbExecuteLogger(
 		db.query.importTable.findFirst({
 			where: eq(importTable.id, id),
@@ -60,5 +78,30 @@ export const getImportDetail = async ({ db, id }: { db: DBType; id: string }) =>
 		detail: returnData,
 		linkedItemCount,
 		linkedItemStatus
+	};
+};
+
+export type GetImportDetailReturnType = {
+	type: importTypeType;
+	detail: ImportTableType & {
+		importDetails: (ImportItemDetailTableType & {
+			journal: JournalTableType | null;
+			journal2: JournalTableType | null;
+			bill: BillTableType | null;
+			budget: BudgetTableType | null;
+			category: CategoryTableType | null;
+			tag: TagTableType | null;
+			label: LabelTableType | null;
+			account: AccountTableType | null;
+		})[];
+	};
+	linkedItemCount: number;
+	linkedItemStatus: {
+		error: number;
+		importError: number;
+		duplicate: number;
+		processed: number;
+		imported: number;
+		all: number;
 	};
 };

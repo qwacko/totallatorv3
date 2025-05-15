@@ -4,13 +4,11 @@ import type {
 	UpdateCategorySchemaType
 } from '$lib/schema/categorySchema';
 import { nanoid } from 'nanoid';
-import type { DBType } from '../db';
-import { category } from '../postgres/schema';
+import { category, type CategoryTableType, type CategoryViewReturnType } from '../postgres/schema';
 import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { combinedTitleSplit } from '$lib/helpers/combinedTitleSplit';
 import { updatedTime } from './helpers/misc/updatedTime';
-import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery';
 import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
@@ -18,27 +16,45 @@ import { createCategory } from './helpers/seed/seedCategoryData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
-import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 import { getCorrectCategoryTable } from './helpers/category/getCorrectCategoryTable';
+import type { ItemActionsType } from './helpers/misc/ItemActionsType';
+import Papa from 'papaparse';
 
-export const categoryActions = {
-	latestUpdate: async ({ db }: { db: DBType }) => {
+export type CategoryDropdownType = {
+	id: string;
+	title: string;
+	group: string;
+	enabled: boolean;
+}[];
+
+type CategoryActionsType = ItemActionsType<
+	CategoryTableType,
+	CategoryViewReturnType,
+	CategoryFilterSchemaType,
+	CreateCategorySchemaType,
+	UpdateCategorySchemaType,
+	CategoryDropdownType,
+	number
+>;
+
+export const categoryActions: CategoryActionsType = {
+	latestUpdate: async ({ db }) => {
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(category.updatedAt) }).from(category),
 			'Category - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db: DBType, id: string) => {
+	getById: async (db, id) => {
 		return dbExecuteLogger(
 			db.query.category.findFirst({ where: eq(category.id, id) }),
 			'Category - Get By Id'
 		);
 	},
-	count: async (db: DBType, filter?: CategoryFilterSchemaType) => {
+	count: async (db, filter) => {
 		const { table, target } = await getCorrectCategoryTable(db);
 
 		const count = await dbExecuteLogger(
@@ -51,7 +67,7 @@ export const categoryActions = {
 
 		return count[0].count;
 	},
-	listWithTransactionCount: async (db: DBType) => {
+	listWithTransactionCount: async (db) => {
 		const { table } = await getCorrectCategoryTable(db);
 		const items = dbExecuteLogger(
 			db.select({ id: table.id, journalCount: table.count }).from(table),
@@ -60,7 +76,7 @@ export const categoryActions = {
 
 		return items;
 	},
-	list: async ({ db, filter }: { db: DBType; filter: CategoryFilterSchemaType }) => {
+	list: async ({ db, filter }) => {
 		const { table, target } = await getCorrectCategoryTable(db);
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
@@ -104,7 +120,36 @@ export const categoryActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	listForDropdown: async ({ db }: { db: DBType }) => {
+	generateCSVData: async ({ db, filter, returnType }) => {
+		const data = await categoryActions.list({
+			db,
+			filter: { ...filter, page: 0, pageSize: 100000 }
+		});
+
+		const preppedData = data.data.map((item, row) => {
+			if (returnType === 'import') {
+				return {
+					title: item.title,
+					status: item.status
+				} satisfies CreateCategorySchemaType;
+			}
+			return {
+				row,
+				id: item.id,
+				title: item.title,
+				group: item.group,
+				single: item.single,
+				status: item.status,
+				sum: item.sum,
+				count: item.count
+			};
+		});
+
+		const csvData = Papa.unparse(preppedData);
+
+		return csvData;
+	},
+	listForDropdown: async ({ db }) => {
 		await streamingDelay();
 		const items = dbExecuteLogger(
 			db
@@ -120,19 +165,7 @@ export const categoryActions = {
 
 		return items;
 	},
-	createOrGet: async ({
-		db,
-		title,
-		id,
-		requireActive = true,
-		cachedData
-	}: {
-		db: DBType;
-		title?: string | null;
-		id?: string | null;
-		requireActive?: boolean;
-		cachedData?: { id: string; title: string; status: StatusEnumType }[];
-	}) => {
+	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
 		if (id) {
 			const currentCategory = cachedData
 				? cachedData.find((item) => item.id === id)
@@ -177,7 +210,7 @@ export const categoryActions = {
 			return undefined;
 		}
 	},
-	create: async (db: DBType, data: CreateCategorySchemaType) => {
+	create: async (db, data) => {
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(category).values(categoryCreateInsertionData(data, id)),
@@ -187,7 +220,7 @@ export const categoryActions = {
 
 		return id;
 	},
-	createMany: async (db: DBType, data: CreateCategorySchemaType[]) => {
+	createMany: async (db, data) => {
 		const ids = data.map(() => nanoid());
 		const insertData = data.map((currentData, index) =>
 			categoryCreateInsertionData(currentData, ids[index])
@@ -197,8 +230,7 @@ export const categoryActions = {
 
 		return ids;
 	},
-	update: async (db: DBType, data: UpdateCategorySchemaType) => {
-		const { id } = data;
+	update: async ({ db, data, id }) => {
 		const currentCategory = await dbExecuteLogger(
 			db.query.category.findFirst({ where: eq(category.id, id) }),
 			'Category - Update - Current Category'
@@ -223,14 +255,14 @@ export const categoryActions = {
 		await materializedViewActions.setRefreshRequired(db);
 		return id;
 	},
-	canDeleteMany: async (db: DBType, ids: string[]) => {
+	canDeleteMany: async (db, ids) => {
 		const canDeleteList = await Promise.all(
 			ids.map(async (id) => categoryActions.canDelete(db, { id }))
 		);
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db: DBType, data: IdSchemaType) => {
+	canDelete: async (db, data) => {
 		const currentCategory = await dbExecuteLogger(
 			db.query.category.findFirst({
 				where: eq(category.id, data.id),
@@ -245,7 +277,7 @@ export const categoryActions = {
 		// If the category has no journals, then mark as deleted, otherwise do nothing
 		return currentCategory && currentCategory.journals.length === 0;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
+	delete: async (db, data) => {
 		if (await categoryActions.canDelete(db, data)) {
 			await dbExecuteLogger(
 				db.delete(category).where(eq(category.id, data.id)),
@@ -256,7 +288,7 @@ export const categoryActions = {
 
 		return data.id;
 	},
-	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+	deleteMany: async (db, data) => {
 		if (data.length === 0) return;
 		const currentCategories = await categoryActions.listWithTransactionCount(db);
 		const itemsForDeletion = data.filter((item) => {
@@ -278,7 +310,7 @@ export const categoryActions = {
 		}
 		return false;
 	},
-	seed: async (db: DBType, count: number) => {
+	seed: async (db, count) => {
 		logging.info('Seeding Categories : ', count);
 
 		const existingTitles = (
@@ -297,5 +329,3 @@ export const categoryActions = {
 		await categoryActions.createMany(db, itemsToCreate);
 	}
 };
-
-export type CategoryDropdownType = Awaited<ReturnType<typeof categoryActions.listForDropdown>>;

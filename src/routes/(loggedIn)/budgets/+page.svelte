@@ -19,9 +19,8 @@
 	import { enhance } from '$app/forms';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
-	import NotesButton from '$lib/components/NotesButton.svelte';
-	import FilesButton from '$lib/components/FilesButton.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
+	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/budgets', $page));
@@ -152,8 +151,11 @@
 								>
 									<DeleteIcon height={15} width={15} />
 								</Button>
-								<NotesButton notes={currentRow.notes} target={{ budgetId: currentRow.id }} />
-								<FilesButton files={currentRow.files} target={{ budgetId: currentRow.id }} />
+								<AssociatedInfoButtonPromise
+									data={currentRow.associated}
+									target={{ budgetId: currentRow.id }}
+									id={currentRow.id}
+								/>
 								<RawDataModal data={currentRow} title="Raw Budget Data" dev={data.dev} />
 							</ButtonGroup>
 						</form>

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { JournalFilterSchemaWithoutPaginationType } from '../journalSchema';
 
 export const createFileNoteRelationshipSchema = {
 	transactionId: z.string().optional().nullable(),
@@ -24,6 +25,8 @@ export type CreateFileNoteRelationshipSchemaType = z.infer<
 export type KeysOfCreateFileNoteRelationshipSchemaType = keyof CreateFileNoteRelationshipSchemaType;
 
 export const fileNoteRelationshipFilterSchema = {
+	associatedInfoIdArray: z.array(z.string()).optional(),
+	excludeAssociatedInfoIdArray: z.array(z.string()).optional(),
 	transactionIdArray: z.array(z.string()).optional(),
 	excludeTransactionIdArray: z.array(z.string()).optional(),
 	accountIdArray: z.array(z.string()).optional(),
@@ -44,4 +47,37 @@ export const fileNoteRelationshipFilterSchema = {
 	excludeReportIdArray: z.array(z.string()).optional(),
 	reportElementIdArray: z.array(z.string()).optional(),
 	excludeReportElementIdArray: z.array(z.string()).optional()
+};
+
+export const linksToFilter = (
+	links: CreateFileNoteRelationshipSchemaType
+): JournalFilterSchemaWithoutPaginationType => {
+	const accountShouldBeAsset = Boolean(
+		links.tagId || links.billId || links.budgetId || links.categoryId || links.labelId
+	);
+
+	const filter: JournalFilterSchemaWithoutPaginationType = {
+		account: {
+			...(links.accountId ? { id: links.accountId } : {}),
+			...(accountShouldBeAsset ? { type: ['asset', 'liability'] } : {})
+		},
+		...(links.tagId ? { tag: { id: links.tagId } } : {}),
+		...(links.billId ? { bill: { id: links.billId } } : {}),
+		...(links.budgetId ? { budget: { id: links.budgetId } } : {}),
+		...(links.categoryId ? { category: { id: links.categoryId } } : {}),
+		...(links.labelId ? { label: { id: links.labelId } } : {})
+	};
+
+	return filter;
+};
+
+export const linksCanAddSummary = (links: CreateFileNoteRelationshipSchemaType): boolean => {
+	return Boolean(
+		links.accountId ||
+			links.tagId ||
+			links.billId ||
+			links.budgetId ||
+			links.categoryId ||
+			links.labelId
+	);
 };

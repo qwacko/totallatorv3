@@ -46,6 +46,14 @@
 
 	let booleanValue = $state<boolean | undefined>(undefined);
 
+	$effect(() => {
+		if ($booleanSetValue == true && !booleanValue) {
+			booleanValue = true;
+		} else if ($booleanSetValue == false && booleanValue) {
+			booleanValue = false;
+		}
+	});
+
 	const updateValue = (newValue: boolean | undefined) => {
 		if (newValue === true) {
 			$booleanSetValue = 'true';
@@ -63,7 +71,7 @@
 
 <div class="flex flex-col gap-2 {wrapperClass}">
 	{#if title}
-		<div class="flex text-sm font-semibold text-primary-900">
+		<div class="text-primary-900 flex text-sm font-semibold">
 			{title}
 		</div>
 	{/if}

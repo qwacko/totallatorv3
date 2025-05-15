@@ -9,7 +9,8 @@ import {
 	budgetMaterializedView,
 	categoryMaterializedView,
 	labelMaterializedView,
-	dateRangeMaterializedView
+	dateRangeMaterializedView,
+	importCheckMaterializedView
 } from '../postgres/schema/materializedViewSchema';
 
 import { booleanKeyValueStore } from './helpers/keyValueStore';
@@ -26,6 +27,7 @@ const budgetRefreshRequiredStore = booleanKeyValueStore('budgetViewRefresh', tru
 const categoryRefreshRequiredStore = booleanKeyValueStore('categoryViewRefresh', true);
 const labelRefreshRequiredStore = booleanKeyValueStore('labelViewRefresh', true);
 const dateTimeRefreshRequiredStore = booleanKeyValueStore('dateTimeViewRefresh', true);
+const importCheckRefreshRequiredStore = booleanKeyValueStore('importCheckViewRefresh', true);
 
 const logRefreshTime = false;
 
@@ -50,6 +52,7 @@ type itemsType = {
 	budget?: boolean;
 	category?: boolean;
 	label?: boolean;
+	importCheck?: boolean;
 };
 
 const itemsDefault = {
@@ -59,7 +62,8 @@ const itemsDefault = {
 	bill: true,
 	budget: true,
 	category: true,
-	label: true
+	label: true,
+	importCheck: true
 };
 
 const useConcurrentRefresh =
@@ -73,7 +77,7 @@ export const materializedViewActions = {
 		db: DBType;
 		logStats?: boolean;
 		items?: itemsType;
-	}) => {
+	}): Promise<void> => {
 		await Promise.all([
 			timePromise('Journal Extended View Refresh', items.journals, async () => {
 				if (useConcurrentRefresh) {
@@ -179,10 +183,22 @@ export const materializedViewActions = {
 					db.refreshMaterializedView(dateRangeMaterializedView),
 					'View Refresh - Date Time View'
 				);
+			}),
+			timePromise('Import Check View Refresh', items.importCheck, async () => {
+				await dbExecuteLogger(
+					db.refreshMaterializedView(importCheckMaterializedView),
+					'View Refresh - Import Check View'
+				);
 			})
 		]);
 	},
-	needsRefresh: async ({ db, items = itemsDefault }: { db: DBType; items?: itemsType }) => {
+	needsRefresh: async ({
+		db,
+		items = itemsDefault
+	}: {
+		db: DBType;
+		items?: itemsType;
+	}): Promise<boolean> => {
 		const itemsRequiringUpdate = {
 			account: await accountRefreshRequiredStore.get(db),
 			tag: await tagRefreshRequiredStore.get(db),
@@ -190,7 +206,8 @@ export const materializedViewActions = {
 			budget: await budgetRefreshRequiredStore.get(db),
 			category: await categoryRefreshRequiredStore.get(db),
 			label: await labelRefreshRequiredStore.get(db),
-			journals: await refreshRequiredStore.get(db)
+			journals: await refreshRequiredStore.get(db),
+			importCheck: await importCheckRefreshRequiredStore.get(db)
 		};
 
 		const needsUpdate = Object.keys(items).some(
@@ -207,7 +224,7 @@ export const materializedViewActions = {
 		db: DBType;
 		logStats?: boolean;
 		items?: itemsType;
-	}) => {
+	}): Promise<boolean> => {
 		const needsUpdate = await materializedViewActions.needsRefresh({ db, items });
 
 		if (!needsUpdate) return false;
@@ -215,7 +232,7 @@ export const materializedViewActions = {
 		await materializedViewActions.refresh({ db, logStats, items });
 		return true;
 	},
-	setRefreshRequired: async (db: DBType) => {
+	setRefreshRequired: async (db: DBType): Promise<void> => {
 		await Promise.all([
 			refreshRequiredStore.set(db, true),
 			accountRefreshRequiredStore.set(db, true),
@@ -225,6 +242,7 @@ export const materializedViewActions = {
 			categoryRefreshRequiredStore.set(db, true),
 			labelRefreshRequiredStore.set(db, true),
 			dateTimeRefreshRequiredStore.set(db, true),
+			importCheckRefreshRequiredStore.set(db, true),
 			dbExecuteLogger(
 				db
 					.update(reusableFilter)

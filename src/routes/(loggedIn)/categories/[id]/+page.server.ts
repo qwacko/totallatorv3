@@ -42,7 +42,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.category.update(db, form.data);
+			await tActions.category.update({ db, data: form.data, id: form.data.id });
 		} catch (e) {
 			logging.error('Update Category Error', e);
 			return message(form, 'Error Updating Category');

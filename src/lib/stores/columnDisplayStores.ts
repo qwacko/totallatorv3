@@ -104,4 +104,8 @@ export const queryColumnsStore = writable<
 	(QueryLogOrderByEnumType | 'actions' | 'params' | 'queryDetail')[]
 >(['actions', 'time', 'title', 'duration', 'size', 'params']);
 
+export const associatedInfoColumnsStore = writable<('actions' | 'links' | 'title' | 'createdAt')[]>(
+	['actions', 'title', 'links', 'createdAt']
+);
+
 export const numberRows = writable(10);

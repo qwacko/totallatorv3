@@ -17,6 +17,7 @@ import { autoImportActions } from './autoImportActions';
 import { noteActions } from './noteActions';
 import { fileActions } from './fileActions';
 import { queryLogActions } from './queryLogActions';
+import { associatedInfoActions } from './associatedInfoActions';
 
 export const tActions = {
 	tag: tagActions,
@@ -37,5 +38,6 @@ export const tActions = {
 	autoImport: autoImportActions,
 	note: noteActions,
 	file: fileActions,
-	queryLog: queryLogActions
+	queryLog: queryLogActions,
+	associatedInfo: associatedInfoActions
 };

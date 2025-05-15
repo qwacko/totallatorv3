@@ -1,38 +1,28 @@
 import { fileNoteRelationshipFilterSchema } from '$lib/schema/helpers/fileNoteRelationship';
-import { not, type ColumnBaseConfig, type SQL } from 'drizzle-orm';
-import type { PgColumn, PgTableWithColumns } from 'drizzle-orm/pg-core';
+import { not, type SQL } from 'drizzle-orm';
 
 import { z } from 'zod';
 import { inArrayWrapped } from './inArrayWrapped';
+import { associatedInfoTable } from '$lib/server/db/postgres/schema';
 
 const filterCore = z.object(fileNoteRelationshipFilterSchema);
 type FilterCoreType = z.infer<typeof filterCore>;
 
+const table = associatedInfoTable;
+
 export const noteFileRelationshipQuery = ({
 	where,
-	filter,
-	table
+	filter
 }: {
 	where: SQL<unknown>[];
 	filter: FilterCoreType;
-	table: PgTableWithColumns<{
-		name: string;
-		schema: undefined;
-		columns: {
-			transactionId: PgColumn<ColumnBaseConfig<'string', string>>;
-			accountId: PgColumn<ColumnBaseConfig<'string', string>>;
-			billId: PgColumn<ColumnBaseConfig<'string', string>>;
-			budgetId: PgColumn<ColumnBaseConfig<'string', string>>;
-			categoryId: PgColumn<ColumnBaseConfig<'string', string>>;
-			tagId: PgColumn<ColumnBaseConfig<'string', string>>;
-			labelId: PgColumn<ColumnBaseConfig<'string', string>>;
-			autoImportId: PgColumn<ColumnBaseConfig<'string', string>>;
-			reportId: PgColumn<ColumnBaseConfig<'string', string>>;
-			reportElementId: PgColumn<ColumnBaseConfig<'string', string>>;
-		};
-		dialect: 'pg';
-	}>;
 }) => {
+	if (filter.associatedInfoIdArray && filter.associatedInfoIdArray.length > 0) {
+		where.push(inArrayWrapped(associatedInfoTable.id, filter.associatedInfoIdArray));
+	}
+	if (filter.excludeAssociatedInfoIdArray && filter.excludeAssociatedInfoIdArray.length > 0) {
+		where.push(not(inArrayWrapped(associatedInfoTable.id, filter.excludeAssociatedInfoIdArray)));
+	}
 	if (filter.transactionIdArray && filter.transactionIdArray.length > 0) {
 		where.push(inArrayWrapped(table.transactionId, filter.transactionIdArray));
 	}

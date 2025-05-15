@@ -1,6 +1,6 @@
 import { eq, count, isNotNull, and } from 'drizzle-orm';
 import { QueryBuilder } from 'drizzle-orm/pg-core';
-import { fileTable, notesTable } from './transactionSchema';
+import { associatedInfoTable, fileTable, notesTable } from './transactionSchema';
 import type { KeysOfCreateFileNoteRelationshipSchemaType } from '$lib/schema/helpers/fileNoteRelationship';
 
 export const filesNotesSubquery = (
@@ -10,34 +10,37 @@ export const filesNotesSubquery = (
 	const withFileQuery = qb.$with('filessq').as(
 		qb
 			.select({
-				id: fileTable[target],
+				id: associatedInfoTable[target],
 				fileCount: count(fileTable.id).as('file_count')
 			})
 			.from(fileTable)
-			.where(isNotNull(fileTable[target]))
-			.groupBy(fileTable[target])
+			.leftJoin(associatedInfoTable, eq(fileTable.associatedInfoId, associatedInfoTable.id))
+			.where(isNotNull(associatedInfoTable[target]))
+			.groupBy(associatedInfoTable[target])
 	);
 
 	const withNoteQuery = qb.$with('notessq').as(
 		qb
 			.select({
-				id: notesTable[target],
+				id: associatedInfoTable[target],
 				noteCount: count(notesTable.id).as('note_count')
 			})
 			.from(notesTable)
-			.where(isNotNull(notesTable[target]))
-			.groupBy(notesTable[target])
+			.leftJoin(associatedInfoTable, eq(notesTable.associatedInfoId, associatedInfoTable.id))
+			.where(isNotNull(associatedInfoTable[target]))
+			.groupBy(associatedInfoTable[target])
 	);
 
 	const withReminderQuery = qb.$with('reminderssq').as(
 		qb
 			.select({
-				id: notesTable[target],
+				id: associatedInfoTable[target],
 				reminderCount: count(notesTable.id).as('reminder_count')
 			})
 			.from(notesTable)
-			.where(and(eq(notesTable.type, 'reminder'), isNotNull(notesTable[target])))
-			.groupBy(notesTable[target])
+			.leftJoin(associatedInfoTable, eq(notesTable.associatedInfoId, associatedInfoTable.id))
+			.where(and(eq(notesTable.type, 'reminder'), isNotNull(associatedInfoTable[target])))
+			.groupBy(associatedInfoTable[target])
 	);
 
 	return { withFileQuery, withNoteQuery, withReminderQuery };

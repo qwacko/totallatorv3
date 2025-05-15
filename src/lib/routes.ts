@@ -24,6 +24,7 @@ import { autoImportFilterSchema } from './schema/autoImportSchema';
 import { createFileNoteRelationshipSchema } from './schema/helpers/fileNoteRelationship';
 import { fileFilterSchema } from './schema/fileSchema';
 import { groupedQueryLogFilter, queryLogFilterSchema } from './schema/queryLogSchema';
+import { associatedInfoFilterSchemaWithPagination } from './schema/associatedInfoSchema';
 
 export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoutes({
 	errorURL: '/',
@@ -256,6 +257,12 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		'/(loggedIn)/reports/element/[id]': { paramsValidation: z.object({ id: z.string() }).parse },
 		'/(loggedIn)/reports/element/[id]/[item]': {
 			paramsValidation: z.object({ id: z.string(), item: z.string() }).parse
+		},
+
+		// Associated Info
+		// ----------------------------------------
+		'/(loggedIn)/associated': {
+			searchParamsValidation: associatedInfoFilterSchemaWithPagination.optional().catch({}).parse
 		},
 
 		// Files

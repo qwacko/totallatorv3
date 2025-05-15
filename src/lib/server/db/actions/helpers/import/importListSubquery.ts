@@ -1,6 +1,11 @@
 import type { DBType } from '$lib/server/db/db';
 import { getTableColumns, sql, eq } from 'drizzle-orm';
-import { importItemDetail, importMapping, importTable } from '../../../postgres/schema';
+import {
+	importItemDetail,
+	importMapping,
+	importTable,
+	type ImportTableType
+} from '../../../postgres/schema';
 
 export const importListSubquery = (db: DBType) =>
 	db
@@ -38,3 +43,13 @@ export const importListSubquery = (db: DBType) =>
 		.as('importSubquery');
 
 export type ImportSubqueryType = ReturnType<typeof importListSubquery>;
+export type ImportSubqueryReturnData = ImportTableType & {
+	importMappingId: string;
+	importMappingTitle: string;
+	numErrors: number;
+	numImportErrors: number;
+	numProcessed: number;
+	numDuplicate: number;
+	numImport: number;
+	numImportError: number;
+};

@@ -40,13 +40,19 @@ const POSTAllowAdminOnly = (data: UserValidationOutput) =>
 
 const notesActions = {
 	addNote: POSTAllowAdminOnly,
-	deleteNote: POSTAllowAdminOnly
+	deleteNote: POSTAllowAdminOnly,
+	addNoteJournalFilter: POSTAllowAdminOnly
 };
 
 const filesActions = {
 	addFile: POSTAllowAdminOnly,
 	deleteFile: POSTAllowAdminOnly,
 	updateFile: POSTAllowAdminOnly
+};
+
+const associatedInfoActions = {
+	createAssociatedInfo: POSTAllowAdminOnly,
+	deleteSummary: POSTAllowAdminOnly
 };
 
 export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
@@ -60,6 +66,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				refresh: POSTAllowAdminOnly,
 				tidyBackups: POSTAllowAdminOnly,
 				backup: POSTAllowAdminOnly,
@@ -134,7 +141,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		// ----------------------------------------
 		'/(loggedIn)/import': {
 			...adminOnlyConfig,
-			POSTCheck: { update: POSTAllowAdminOnly, ...notesActions, ...filesActions }
+			POSTCheck: {
+				update: POSTAllowAdminOnly,
+				...notesActions,
+				...filesActions,
+				...associatedInfoActions
+			}
 		},
 		'/(loggedIn)/import/create': { ...adminOnlyConfig, POSTCheck: { create: POSTAllowAdminOnly } },
 		'/(loggedIn)/import/[id]': {
@@ -173,7 +185,9 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
-				update: POSTAllowAdminOnly
+				...associatedInfoActions,
+				update: POSTAllowAdminOnly,
+				updateJournal: POSTAllowAdminOnly
 			}
 		},
 		'/(loggedIn)/journals/summaryData': { ...adminOnlyConfig },
@@ -231,6 +245,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				clone: POSTAllowAdminOnly
 			}
 		},
@@ -264,6 +279,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly,
 				refreshAll: POSTAllowAdminOnly,
 				refreshSome: POSTAllowAdminOnly
@@ -297,6 +313,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -321,6 +338,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -339,6 +357,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -357,6 +376,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -381,6 +401,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -405,6 +426,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -430,6 +452,7 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				...notesActions,
 				...filesActions,
+				...associatedInfoActions,
 				update: POSTAllowAdminOnly
 			}
 		},
@@ -516,6 +539,12 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				default: POSTAllowUsers
 			}
+		},
+
+		//Associated Info
+		// ----------------------------------------
+		'/(loggedIn)/associated': {
+			...adminOnlyConfig
 		},
 
 		// Files

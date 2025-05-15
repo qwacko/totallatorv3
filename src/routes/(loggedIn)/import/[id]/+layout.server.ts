@@ -15,7 +15,7 @@ export const load = async (data) => {
 
 	const info = await tActions.import.get({ id: pageInfo.params.id, db });
 
-	if (!info.importInfo) {
+	if (!info?.importInfo) {
 		redirect(302, urlGenerator({ address: '/(loggedIn)/import', searchParamsValue: {} }).url);
 	}
 

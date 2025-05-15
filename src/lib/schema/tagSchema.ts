@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { statusEnum } from './statusSchema';
 import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema';
-import { linkedFileFilterSchema } from './fileSchema';
-import { linkedNoteFilterSchema } from './noteSchema';
+import { linkedFileFilterSchema } from './linkedFileFilterSchema';
+import { linkedNoteFilterSchema } from './linkedNoteFilterSchema';
 
 export const createTagSchema = z.object({
 	title: z.string(),

@@ -1,5 +1,5 @@
 import { asc, desc, type SQL } from 'drizzle-orm';
-import { fileTable } from '$lib/server/db/postgres/schema';
+import { associatedInfoTable, fileTable } from '$lib/server/db/postgres/schema';
 import type { FileOrderByEnumType } from '$lib/schema/enum/fileOrderByEnum';
 
 export const fileToOrderByToSQL = ({
@@ -13,7 +13,11 @@ export const fileToOrderByToSQL = ({
 		? [
 				...orderBy.map((currentOrder) => {
 					let field =
-						currentOrder.field === 'exists' ? fileTable.fileExists : fileTable[currentOrder.field];
+						currentOrder.field === 'exists'
+							? fileTable.fileExists
+							: currentOrder.field === 'linked'
+								? associatedInfoTable.linked
+								: fileTable[currentOrder.field];
 
 					return currentOrder.direction === 'asc' ? asc(field) : desc(field);
 				}),

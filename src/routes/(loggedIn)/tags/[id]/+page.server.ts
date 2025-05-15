@@ -40,7 +40,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.tag.update(db, form.data);
+			await tActions.tag.update({ db, data: form.data, id: form.data.id });
 		} catch (e) {
 			logging.error('Update Tag Error', e);
 			return message(form, 'Error Updating Tag');

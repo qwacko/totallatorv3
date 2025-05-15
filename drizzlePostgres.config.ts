@@ -5,9 +5,12 @@ dotenv.config();
 
 export default {
 	schema: './src/lib/server/db/postgres/schema/index.ts',
-	driver: 'pg',
+	dialect: 'postgresql',
 	out: './src/lib/server/db/postgres/migrations',
 	dbCredentials: {
-		connectionString: process.env.POSTGRES_URL || ''
+		url: process.env.POSTGRES_URL || ''
 	}
+	// dbCredentials: {
+	// 	database: process.env.POSTGRES_URL || ''
+	// }
 } satisfies Config;

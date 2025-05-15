@@ -6,6 +6,9 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
 	return {
+		server: {
+			allowedHosts: true as const
+		},
 		plugins: [
 			tailwindcss(),
 			sveltekit(),
@@ -55,6 +58,9 @@ export default defineConfig(({ mode }) => {
 				}
 			})
 		],
+		optimizeDeps: {
+			exclude: ['@node-rs/argon2', '@node-rs/bcrypt']
+		},
 		test: {
 			include: ['src/**/*.{test,spec}.{js,ts}'],
 			maxConcurrency: 1,

@@ -4,7 +4,7 @@ import type { DBType } from '../db';
 import { key, user } from '../postgres/schema/userSchema';
 import type { User } from '$lib/server/auth';
 import { nanoid } from 'nanoid';
-import { fixedDelay } from '$lib/server/testingDelay';
+import { fixedDelay } from '$lib/fixedDelay';
 import { hashPassword, checkHashedPassword } from './helpers/hashPassword';
 import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';

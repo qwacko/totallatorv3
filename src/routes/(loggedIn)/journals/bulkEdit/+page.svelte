@@ -16,13 +16,20 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import { zodClient } from 'sveltekit-superforms/adapters';
+	import RecommendationDisplay from '$lib/components/RecommendationDisplay.svelte';
+	import type { RecommendationType } from '$lib/server/db/actions/journalMaterializedViewActions';
+	import { tick } from 'svelte';
 
 	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo('/(loggedIn)/journals/bulkEdit', $page));
 
 	const form = superForm(data.form, {
-		validators: zodClient(updateJournalSchema)
+		validators: zodClient(updateJournalSchema),
+		onError: () => {
+			loadingUpdate = undefined;
+			loadingUpdateAndSave = undefined;
+		}
 	});
 
 	const enhance = $derived(form.enhance);
@@ -31,6 +38,33 @@
 	const titleText = $derived(
 		data.journals.count === 1 ? 'Edit Journal' : `Bulk Edit ${data.journals.count} Journals`
 	);
+
+	let loadingUpdate = $state<string | undefined>();
+	let loadingUpdateAndSave = $state<string | undefined>();
+
+	const updateFromRecommendation = async (rec: RecommendationType) => {
+		loadingUpdate = rec.journalId;
+
+		$formData = {
+			...$formData,
+			billId: rec.journalBillId,
+			tagId: rec.journalTagId,
+			budgetId: rec.journalBudgetId,
+			categoryId: rec.journalCategoryId,
+			otherAccountId: rec.payeeAccountId,
+			description: rec.journalDescription
+		};
+
+		loadingUpdate = undefined;
+	};
+
+	const updateAndSaveFromRecommendation = async (rec: RecommendationType) => {
+		loadingUpdateAndSave = rec.journalId;
+		updateFromRecommendation(rec);
+		await tick();
+		form.submit();
+		loadingUpdateAndSave = undefined;
+	};
 </script>
 
 <CustomHeader pageTitle={titleText} filterText={data.filterText} />
@@ -48,6 +82,16 @@
 		canEdit={data.selectedJournals.canEdit}
 	/>
 	<Heading tag="h3">Update Data</Heading>
+	{#if !$formData.setDataChecked}
+		<RecommendationDisplay
+			recommendations={data.recommendations}
+			update={updateFromRecommendation}
+			updateAndSave={updateAndSaveFromRecommendation}
+			{loadingUpdate}
+			{loadingUpdateAndSave}
+		/>
+	{/if}
+
 	{#if !data.selectedJournals.canEdit}<ErrorText
 			message="At Least One Journal Is Complete So Can Only Update Journal Labels"
 			title="Complete Journals Present"

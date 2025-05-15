@@ -7,11 +7,17 @@ import {
 } from '$lib/schema/autoImportSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { autoImportTable, importMapping, importTable } from '../postgres/schema';
+import {
+	autoImportTable,
+	importMapping,
+	importTable,
+	type AutoImportTableType
+} from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { eq, and, getTableColumns, count as drizzleCount } from 'drizzle-orm';
 import { autoImportFilterToQuery } from './helpers/autoImport/autoImportFilterToQuery';
 import { autoImportToOrderByToSQL } from './helpers/autoImport/autoImportOrderByToSQL';
+import type { PaginatedResults } from './helpers/journal/PaginationType';
 import { getData_Common } from './helpers/autoImport/getData_Common';
 import { tActions } from './tActions';
 import { logging } from '$lib/server/logging';
@@ -19,7 +25,15 @@ import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';
 
 export const autoImportActions = {
-	list: async ({ db, filter }: { db: DBType; filter: AutoImportFilterSchemaType }) => {
+	list: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: AutoImportFilterSchemaType;
+	}): Promise<
+		PaginatedResults<AutoImportTableType & { importMappingTitle: string | null | undefined }>
+	> => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = autoImportFilterToQuery({ filter: restFilter });
@@ -52,7 +66,7 @@ export const autoImportActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	getById: async ({ db, id }: { db: DBType; id: string }) => {
+	getById: async ({ db, id }: { db: DBType; id: string }): Promise<AutoImportTableType | null> => {
 		const autoImport = await dbExecuteLogger(
 			db.select().from(autoImportTable).where(eq(autoImportTable.id, id)),
 			'Auto Import - Get By Id'
@@ -64,7 +78,7 @@ export const autoImportActions = {
 
 		return autoImport[0];
 	},
-	clone: async ({ db, id }: { db: DBType; id: string }) => {
+	clone: async ({ db, id }: { db: DBType; id: string }): Promise<string> => {
 		const autoImport = await autoImportActions.getById({ db, id });
 
 		if (!autoImport) {
@@ -85,7 +99,13 @@ export const autoImportActions = {
 
 		return newId;
 	},
-	create: async ({ db, data }: { db: DBType; data: CreateAutoImportSchemaType }) => {
+	create: async ({
+		db,
+		data
+	}: {
+		db: DBType;
+		data: CreateAutoImportSchemaType;
+	}): Promise<string> => {
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(autoImportTable).values({ id, ...data, ...updatedTime() }),
@@ -94,7 +114,7 @@ export const autoImportActions = {
 
 		return id;
 	},
-	delete: async ({ db, id }: { db: DBType; id: string }) => {
+	delete: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		await tLogger(
 			'Delete Auto Import',
 			db.transaction(async (trx) => {
@@ -113,7 +133,13 @@ export const autoImportActions = {
 			})
 		);
 	},
-	update: async ({ db, data }: { db: DBType; data: UpdateAutoImportFormSchemaType }) => {
+	update: async ({
+		db,
+		data
+	}: {
+		db: DBType;
+		data: UpdateAutoImportFormSchemaType;
+	}): Promise<void> => {
 		const matchingAutoImport = await dbExecuteLogger(
 			db.query.autoImportTable.findFirst({
 				where: (autoImport, { eq }) => eq(autoImport.id, data.id)
@@ -168,7 +194,7 @@ export const autoImportActions = {
 			'Auto Import - Update'
 		);
 	},
-	getData: async ({ db, id }: { db: DBType; id: string }) => {
+	getData: async ({ db, id }: { db: DBType; id: string }): Promise<Record<string, any>[]> => {
 		const autoImport = await autoImportActions.getById({ db, id });
 
 		if (!autoImport) {
@@ -177,7 +203,7 @@ export const autoImportActions = {
 
 		return getData_Common({ config: autoImport.config });
 	},
-	updateSampleData: async ({ db, id }: { db: DBType; id: string }) => {
+	updateSampleData: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		const autoImport = await autoImportActions.getById({ db, id });
 
 		if (!autoImport) {
@@ -194,7 +220,13 @@ export const autoImportActions = {
 			});
 		}
 	},
-	triggerMany: async ({ db, frequency }: { db: DBType; frequency: AutoImportFrequencyType }) => {
+	triggerMany: async ({
+		db,
+		frequency
+	}: {
+		db: DBType;
+		frequency: AutoImportFrequencyType;
+	}): Promise<void> => {
 		const autoImports = await tActions.autoImport.list({
 			db,
 			filter: { frequency: [frequency], enabled: true, pageSize: 1000 }
@@ -203,7 +235,7 @@ export const autoImportActions = {
 			await tActions.autoImport.trigger({ db, id: currentAutoImport.id });
 		}
 	},
-	trigger: async ({ db, id }: { db: DBType; id: string }) => {
+	trigger: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		const autoImport = await autoImportActions.getById({ db, id });
 
 		if (!autoImport) {

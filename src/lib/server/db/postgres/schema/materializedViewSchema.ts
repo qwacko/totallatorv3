@@ -1,4 +1,16 @@
-import { eq, getTableColumns, sql, count, sum, min, max } from 'drizzle-orm';
+import {
+	eq,
+	getTableColumns,
+	sql,
+	count,
+	sum,
+	min,
+	max,
+	isNotNull,
+	SQL,
+	and,
+	or
+} from 'drizzle-orm';
 import { pgMaterializedView, PgColumn, pgView } from 'drizzle-orm/pg-core';
 import {
 	labelsToJournals,
@@ -10,7 +22,8 @@ import {
 	budget,
 	category,
 	tag,
-	importTable
+	importTable,
+	importItemDetail
 } from './transactionSchema';
 import { sqlToText } from '../../actions/helpers/sqlToText';
 import { filesNotesSubquery } from './filesNotesSubquery';
@@ -97,6 +110,8 @@ export const journalView = pgView('journal_view').as((qb) => {
 		.leftJoin(withReminderQuery, eq(journalEntry.transactionId, withReminderQuery.id));
 });
 
+export type JournalViewReturnType = typeof journalView.$inferSelect;
+
 export const journalExtendedView = pgMaterializedView(
 	materializedViewTableNames.journalExtendedView
 ).as((qb) => qb.select().from(journalView));
@@ -143,6 +158,8 @@ export const accountMaterializedView = pgMaterializedView(
 	materializedViewTableNames.accountMaterializedView
 ).as((qb) => qb.select().from(accountView));
 
+export type AccountViewReturnType = typeof accountView.$inferSelect;
+
 export const billView = pgView('bill_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'billId');
 	return qb
@@ -167,6 +184,8 @@ export const billMaterializedView = pgMaterializedView(
 	materializedViewTableNames.billMaterializedView
 ).as((qb) => qb.select().from(billView));
 
+export type BillViewReturnType = typeof billView.$inferSelect;
+
 export const budgetView = pgView('budget_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'budgetId');
 	return qb
@@ -190,6 +209,8 @@ export const budgetView = pgView('budget_view').as((qb) => {
 export const budgetMaterializedView = pgMaterializedView(
 	materializedViewTableNames.budgetMaterializedView
 ).as((qb) => qb.select().from(budgetView));
+
+export type BudgetViewReturnType = typeof budgetView.$inferSelect;
 
 export const categoryView = pgView('category_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'categoryId');
@@ -216,6 +237,8 @@ export const categoryMaterializedView = pgMaterializedView(
 	materializedViewTableNames.categoryMaterializedView
 ).as((qb) => qb.select().from(categoryView));
 
+export type CategoryViewReturnType = typeof categoryView.$inferSelect;
+
 export const tagView = pgView('tag_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'tagId');
 
@@ -240,6 +263,8 @@ export const tagView = pgView('tag_view').as((qb) => {
 export const tagMaterializedView = pgMaterializedView(
 	materializedViewTableNames.tagMaterializedView
 ).as((qb) => qb.select().from(tagView));
+
+export type TagViewReturnType = typeof tagView.$inferSelect;
 
 export const labelView = pgView('label_view').as((qb) => {
 	const { withFileQuery, withNoteQuery, withReminderQuery } = filesNotesSubquery(qb, 'labelId');
@@ -266,6 +291,34 @@ export const labelView = pgView('label_view').as((qb) => {
 export const labelMaterializedView = pgMaterializedView(
 	materializedViewTableNames.labelMaterializedView
 ).as((qb) => qb.select().from(labelView));
+
+export type LabelViewReturnType = typeof labelView.$inferSelect;
+
+export const importCheckView = pgView('import_check_view').as((qb) => {
+	return qb
+		.select({
+			id: importItemDetail.id,
+			createdAt: importItemDetail.createdAt,
+			relationId: importItemDetail.relationId,
+			relation2Id: importItemDetail.relation2Id,
+			description: sql<string>`processed_info->'dataToUse'->>'description'`
+				.mapWith(String)
+				.as('description')
+		})
+		.from(importItemDetail)
+		.where(
+			and(
+				isNotNull(sql<string>`processed_info->'dataToUse'->>'description'`),
+				or(isNotNull(importItemDetail.relationId), isNotNull(importItemDetail.relation2Id))
+			)
+		);
+});
+
+export const importCheckMaterializedView = pgMaterializedView(
+	materializedViewTableNames.importCheckMaterializedView
+).as((qb) => {
+	return qb.select().from(importCheckView);
+});
 
 const viewIndexes = [
 	{
@@ -309,12 +362,24 @@ const viewIndexes = [
 		isUnique: true,
 		targetTable: sqlToText(sql`${labelMaterializedView}`),
 		targetColumn: labelMaterializedView.id
+	},
+	{
+		title: 'materialized_import_check_view_index',
+		isUnique: true,
+		targetTable: sqlToText(sql`${importCheckMaterializedView}`),
+		targetColumn: importCheckMaterializedView.id
+	},
+	{
+		title: 'materialized_import_check_description_index',
+		isUnique: false,
+		targetTable: sqlToText(sql`${importCheckMaterializedView}`),
+		targetColumn: importCheckMaterializedView.description
 	}
 ] satisfies {
 	title: string;
 	isUnique: boolean;
 	targetTable: string;
-	targetColumn: PgColumn;
+	targetColumn: PgColumn | SQL.Aliased;
 }[];
 
 export const dropMaterializedIndexes = () => {

@@ -6,15 +6,20 @@ import {
 } from '$lib/schema/importMappingSchema';
 import { nanoid } from 'nanoid';
 import type { DBType } from '../db';
-import { importMapping, type ImportMappingType } from '../postgres/schema';
+import { importMapping, type ImportMappingTableType } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { asc, desc, getTableColumns, and, sql, eq, max } from 'drizzle-orm';
 import { importMappingFilterToQuery } from './helpers/import/importMappingFilterToQuery';
 import { streamingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import { dbExecuteLogger } from '../dbLogger';
+import type { PaginatedResults } from './helpers/journal/PaginationType';
 
-const processImportedDataResult = (data: ImportMappingType) => {
+type ProcessedImportData = Omit<ImportMappingTableType, 'configuration'> & {
+	configuration: undefined | ImportMappingDetailSchema;
+};
+
+const processImportedDataResult = (data: ImportMappingTableType): ProcessedImportData => {
 	const { configuration, ...restData } = data;
 
 	const unmappedConfiguration = importMappingDetailSchema.safeParse(JSON.parse(configuration));
@@ -26,14 +31,20 @@ const processImportedDataResult = (data: ImportMappingType) => {
 };
 
 export const importMappingActions = {
-	latestUpdate: async ({ db }: { db: DBType }) => {
+	latestUpdate: async ({ db }: { db: DBType }): Promise<Date> => {
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(importMapping.updatedAt) }).from(importMapping),
 			'Import Mapping - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async ({ db, id }: { db: DBType; id: string }) => {
+	getById: async ({
+		db,
+		id
+	}: {
+		db: DBType;
+		id: string;
+	}): Promise<undefined | ProcessedImportData> => {
 		const data = await dbExecuteLogger(
 			db.select(getTableColumns(importMapping)).from(importMapping).where(eq(importMapping.id, id)),
 			'Import Mapping - Get By ID'
@@ -41,7 +52,13 @@ export const importMappingActions = {
 
 		return data.length === 1 ? processImportedDataResult(data[0]) : undefined;
 	},
-	list: async ({ db, filter }: { db: DBType; filter: ImportMappingFilterSchema }) => {
+	list: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: ImportMappingFilterSchema;
+	}): Promise<PaginatedResults<ProcessedImportData>> => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 		const where = importMappingFilterToQuery(restFilter);
 		const defaultOrderBy = [asc(importMapping.title), desc(importMapping.createdAt)];
@@ -89,7 +106,7 @@ export const importMappingActions = {
 			pageSize
 		};
 	},
-	listForDropdown: async ({ db }: { db: DBType }) => {
+	listForDropdown: async ({ db }: { db: DBType }): Promise<ImportMappingDropdownType> => {
 		await streamingDelay();
 		const results = await dbExecuteLogger(
 			db
@@ -111,7 +128,7 @@ export const importMappingActions = {
 			configuration: ImportMappingDetailSchema;
 			sampleData?: string | undefined;
 		};
-	}) => {
+	}): Promise<string> => {
 		const processedConfig = importMappingDetailWithRefinementSchema.safeParse(data.configuration);
 		if (!processedConfig.success) {
 			throw new Error(`Configuration Error : ${processedConfig.error.message}`);
@@ -132,7 +149,7 @@ export const importMappingActions = {
 
 		return id;
 	},
-	clone: async ({ db, id }: { db: DBType; id: string }) => {
+	clone: async ({ db, id }: { db: DBType; id: string }): Promise<string | undefined> => {
 		const data = await dbExecuteLogger(
 			db.select(getTableColumns(importMapping)).from(importMapping).where(eq(importMapping.id, id)),
 			'Import Mapping - Clone - Find'
@@ -171,7 +188,7 @@ export const importMappingActions = {
 			configuration?: ImportMappingDetailSchema;
 			sampleData?: string | undefined;
 		};
-	}) => {
+	}): Promise<void> => {
 		const processedConfig = data.configuration
 			? importMappingDetailWithRefinementSchema.safeParse(data.configuration)
 			: undefined;
@@ -195,7 +212,7 @@ export const importMappingActions = {
 			'Import Mapping - Update'
 		);
 	},
-	delete: async ({ db, id }: { db: DBType; id: string }) => {
+	delete: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		await dbExecuteLogger(
 			db.delete(importMapping).where(eq(importMapping.id, id)),
 			'Import Mapping - Delete'
@@ -203,6 +220,4 @@ export const importMappingActions = {
 	}
 };
 
-export type ImportMappingDropdownType = Awaited<
-	ReturnType<typeof importMappingActions.listForDropdown>
->;
+export type ImportMappingDropdownType = { id: string; title: string; enabled: boolean }[];

@@ -12,7 +12,10 @@ import {
 	importTable,
 	journalEntry,
 	label,
-	tag
+	tag,
+	type AutoImportTableType,
+	type ImportMappingTableType,
+	type ImportTableType
 } from '../postgres/schema';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { eq, and, not, count as drizzleCount, lt } from 'drizzle-orm';
@@ -34,10 +37,13 @@ import {
 	importLabel
 } from './helpers/import/importHelpers';
 
-import { getImportDetail } from './helpers/import/getImportDetail';
+import { getImportDetail, type GetImportDetailReturnType } from './helpers/import/getImportDetail';
 import { processCreatedImport } from './helpers/import/processImport';
 import { streamingDelay } from '$lib/server/testingDelay';
-import { importListSubquery } from './helpers/import/importListSubquery';
+import {
+	importListSubquery,
+	type ImportSubqueryReturnData
+} from './helpers/import/importListSubquery';
 import { importToOrderByToSQL } from './helpers/import/importOrderByToSQL';
 import { importFilterToQuery } from './helpers/import/importFilterToQuery';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
@@ -45,9 +51,10 @@ import { importFileHandler } from '$lib/server/files/fileHandler';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '../dbLogger';
 import { tLogger } from '../transactionLogger';
+import type { PaginatedResults } from './helpers/journal/PaginationType';
 
 export const importActions = {
-	numberActive: async (db: DBType) => {
+	numberActive: async (db: DBType): Promise<number> => {
 		const result = await dbExecuteLogger(
 			db
 				.select({ count: drizzleCount(importTable.id) })
@@ -58,7 +65,13 @@ export const importActions = {
 
 		return result[0].count;
 	},
-	list: async ({ db, filter }: { db: DBType; filter: ImportFilterSchemaType }) => {
+	list: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: ImportFilterSchemaType;
+	}): Promise<PaginatedResults<ImportSubqueryReturnData>> => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const internalQuery = importListSubquery(db);
@@ -89,7 +102,15 @@ export const importActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	listDetails: async ({ db, filter }: { db: DBType; filter: ImportFilterSchemaType }) => {
+	listDetails: async ({
+		db,
+		filter
+	}: {
+		db: DBType;
+		filter: ImportFilterSchemaType;
+	}): Promise<
+		PaginatedResults<ImportSubqueryReturnData> & { details: GetImportDetailReturnType[] }
+	> => {
 		const imports = await importActions.list({ db, filter });
 
 		const importDetails = await Promise.all(
@@ -100,7 +121,7 @@ export const importActions = {
 
 		return { ...imports, details: importDetails };
 	},
-	update: async ({ db, data }: { db: DBType; data: UpdateImportSchemaType }) => {
+	update: async ({ db, data }: { db: DBType; data: UpdateImportSchemaType }): Promise<void> => {
 		const { id, ...restData } = data;
 
 		await dbExecuteLogger(
@@ -116,7 +137,7 @@ export const importActions = {
 		db: DBType;
 		data: CreateImportSchemaType;
 		autoImportId?: string;
-	}) => {
+	}): Promise<string> => {
 		const { file: newFile, importType: type, ...restData } = data;
 
 		if (newFile.type !== 'text/csv') {
@@ -203,7 +224,7 @@ export const importActions = {
 		importDataToSchema?: (data: unknown) => { data: S } | { errors: string[] };
 		getUniqueIdentifier?: ((data: S) => string | null | undefined) | undefined;
 		checkUniqueIdentifiers?: (data: string[]) => Promise<string[]>;
-	}) => {
+	}): Promise<void> => {
 		await Promise.all(
 			data.data.map(async (currentRow) => {
 				const row = currentRow as Record<string, unknown>;
@@ -282,7 +303,22 @@ export const importActions = {
 			})
 		);
 	},
-	get: async ({ id, db }: { db: DBType; id: string }) => {
+	get: async ({
+		id,
+		db
+	}: {
+		db: DBType;
+		id: string;
+	}): Promise<
+		| { importInfo: undefined }
+		| {
+				importInfo: {
+					import: ImportTableType;
+					auto_import: AutoImportTableType | null;
+					import_mapping: ImportMappingTableType | null;
+				};
+		  }
+	> => {
 		const data = await dbExecuteLogger(
 			db
 				.select()
@@ -299,7 +335,7 @@ export const importActions = {
 
 		return { importInfo: data[0] };
 	},
-	getDetail: async ({ db, id }: { db: DBType; id: string }) => {
+	getDetail: async ({ db, id }: { db: DBType; id: string }): Promise<GetImportDetailReturnType> => {
 		await streamingDelay();
 		const data = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
@@ -318,7 +354,7 @@ export const importActions = {
 
 		return getImportDetail({ db, id });
 	},
-	reprocess: async ({ db, id }: { db: DBType; id: string }) => {
+	reprocess: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		const item = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
 			'Import - Reprocess - Get'
@@ -369,7 +405,7 @@ export const importActions = {
 			})
 		);
 	},
-	triggerImport: async ({ db, id }: { db: DBType; id: string }) => {
+	triggerImport: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		const importInfoList = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
 			'Import - Trigger Import - Get'
@@ -391,7 +427,7 @@ export const importActions = {
 			'Import - Trigger Import - Update'
 		);
 	},
-	doRequiredImports: async ({ db }: { db: DBType }) => {
+	doRequiredImports: async ({ db }: { db: DBType }): Promise<void> => {
 		const importTimeoutms = serverEnv.IMPORT_TIMEOUT_MIN * 60 * 1000;
 		const earliestUpdatedAt = new Date(Date.now() - importTimeoutms);
 
@@ -447,7 +483,7 @@ export const importActions = {
 			})
 		);
 	},
-	doImport: async ({ db, id }: { db: DBType; id: string }) => {
+	doImport: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		const importInfoList = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
 			'Import - Do Import - Get'
@@ -550,7 +586,7 @@ export const importActions = {
 			}
 		}
 	},
-	forgetImport: async ({ db, id }: { db: DBType; id: string }) => {
+	forgetImport: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		await tLogger(
 			'Forget Import',
 			db.transaction(async (db) => {
@@ -616,7 +652,7 @@ export const importActions = {
 			})
 		);
 	},
-	canDelete: async ({ db, id }: { db: DBType; id: string }) => {
+	canDelete: async ({ db, id }: { db: DBType; id: string }): Promise<boolean> => {
 		const importDetails = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
 			'Import - Can Delete - Get Details'
@@ -634,12 +670,9 @@ export const importActions = {
 			importInfo.status !== 'awaitingImport'
 		) {
 			return true;
-		}
-
-		if (importInfo.type === 'transaction') {
+		} else if (importInfo.type === 'transaction') {
 			return true;
-		}
-		if (importInfo.type === 'account') {
+		} else if (importInfo.type === 'account') {
 			const accounts = await dbExecuteLogger(
 				db.select().from(account).where(eq(account.importId, id)),
 				'Import - Can Delete - Account'
@@ -648,8 +681,7 @@ export const importActions = {
 				db,
 				accounts.map((item) => item.id)
 			);
-		}
-		if (importInfo.type === 'bill') {
+		} else if (importInfo.type === 'bill') {
 			const bills = await dbExecuteLogger(
 				db.select().from(bill).where(eq(bill.importId, id)),
 				'Import - Can Delete - Bill'
@@ -658,8 +690,7 @@ export const importActions = {
 				db,
 				bills.map((item) => item.id)
 			);
-		}
-		if (importInfo.type === 'budget') {
+		} else if (importInfo.type === 'budget') {
 			const budgets = await dbExecuteLogger(
 				db.select().from(budget).where(eq(budget.importId, id)),
 				'Import - Can Delete - Budget'
@@ -668,8 +699,7 @@ export const importActions = {
 				db,
 				budgets.map((item) => item.id)
 			);
-		}
-		if (importInfo.type === 'category') {
+		} else if (importInfo.type === 'category') {
 			const categories = await dbExecuteLogger(
 				db.select().from(category).where(eq(category.importId, id)),
 				'Import - Can Delete - Category'
@@ -678,8 +708,7 @@ export const importActions = {
 				db,
 				categories.map((item) => item.id)
 			);
-		}
-		if (importInfo.type === 'label') {
+		} else if (importInfo.type === 'label') {
 			const labels = await dbExecuteLogger(
 				db.select().from(label).where(eq(label.importId, id)),
 				'Import - Can Delete - Label'
@@ -688,8 +717,7 @@ export const importActions = {
 				db,
 				labels.map((item) => item.id)
 			);
-		}
-		if (importInfo.type === 'tag') {
+		} else if (importInfo.type === 'tag') {
 			const tags = await dbExecuteLogger(
 				db.select().from(tag).where(eq(tag.importId, id)),
 				'Import - Can Delete - Tag'
@@ -698,9 +726,13 @@ export const importActions = {
 				db,
 				tags.map((item) => item.id)
 			);
+		} else if (importInfo.type === 'mappedImport') {
+			return false;
+		} else {
+			throw new Error('Import Type Error');
 		}
 	},
-	deleteLinked: async ({ db, id }: { db: DBType; id: string }) => {
+	deleteLinked: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		const canDelete = await importActions.canDelete({ db, id });
 
 		if (canDelete) {
@@ -760,7 +792,7 @@ export const importActions = {
 			);
 		}
 	},
-	delete: async ({ db, id }: { db: DBType; id: string }) => {
+	delete: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		const canDelete = await importActions.canDelete({ db, id });
 
 		if (canDelete) {
@@ -776,7 +808,7 @@ export const importActions = {
 			);
 		}
 	},
-	autoCleanAll: async ({ db, retainDays }: { db: DBType; retainDays: number }) => {
+	autoCleanAll: async ({ db, retainDays }: { db: DBType; retainDays: number }): Promise<void> => {
 		const importsToClean = await dbExecuteLogger(
 			db
 				.select({ id: importTable.id })
@@ -822,7 +854,7 @@ export const importActions = {
 			}
 		}
 	},
-	clean: async ({ db, id }: { db: DBType; id: string }) => {
+	clean: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
 		const foundImports = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
 			'Import - Clean - Get Import'
@@ -862,8 +894,6 @@ export const importActions = {
 	}
 };
 
-export type ImportList = Awaited<ReturnType<(typeof importActions)['list']>>['data'];
-export type ImportDetailList = Awaited<
-	ReturnType<(typeof importActions)['listDetails']>
->['details'];
-export type ImportDetail = Awaited<ReturnType<(typeof importActions)['getDetail']>>;
+export type ImportList = ImportSubqueryReturnData;
+export type ImportDetailList = GetImportDetailReturnType[];
+export type ImportDetail = GetImportDetailReturnType;

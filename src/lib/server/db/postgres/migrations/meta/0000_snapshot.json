@@ -1,10 +1,8 @@
 {
-	"id": "6f1cd81f-9c4c-4c11-a1d1-bc2dc875125b",
-	"prevId": "00000000-0000-0000-0000-000000000000",
-	"version": "5",
-	"dialect": "pg",
+	"version": "7",
+	"dialect": "postgresql",
 	"tables": {
-		"user_key": {
+		"public.user_key": {
 			"name": "user_key",
 			"schema": "",
 			"columns": {
@@ -32,17 +30,20 @@
 				"user_key_user_id_user_id_fk": {
 					"name": "user_key_user_id_user_id_fk",
 					"tableFrom": "user_key",
-					"tableTo": "user",
 					"columnsFrom": ["user_id"],
+					"tableTo": "user",
 					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "cascade"
 				}
 			},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"user_session": {
+		"public.user_session": {
 			"name": "user_session",
 			"schema": "",
 			"columns": {
@@ -76,17 +77,20 @@
 				"user_session_user_id_user_id_fk": {
 					"name": "user_session_user_id_user_id_fk",
 					"tableFrom": "user_session",
-					"tableTo": "user",
 					"columnsFrom": ["user_id"],
+					"tableTo": "user",
 					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "cascade"
 				}
 			},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"user": {
+		"public.user": {
 			"name": "user",
 			"schema": "",
 			"columns": {
@@ -137,12 +141,15 @@
 			"uniqueConstraints": {
 				"user_username_unique": {
 					"name": "user_username_unique",
-					"nullsNotDistinct": false,
-					"columns": ["username"]
+					"columns": ["username"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"account": {
+		"public.account": {
 			"name": "account",
 			"schema": "",
 			"columns": {
@@ -287,12 +294,15 @@
 			"uniqueConstraints": {
 				"account_account_title_combined_unique": {
 					"name": "account_account_title_combined_unique",
-					"nullsNotDistinct": false,
-					"columns": ["account_title_combined"]
+					"columns": ["account_title_combined"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"bill": {
+		"public.bill": {
 			"name": "bill",
 			"schema": "",
 			"columns": {
@@ -374,12 +384,15 @@
 			"uniqueConstraints": {
 				"bill_title_unique": {
 					"name": "bill_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"budget": {
+		"public.budget": {
 			"name": "budget",
 			"schema": "",
 			"columns": {
@@ -461,12 +474,15 @@
 			"uniqueConstraints": {
 				"budget_title_unique": {
 					"name": "budget_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"category": {
+		"public.category": {
 			"name": "category",
 			"schema": "",
 			"columns": {
@@ -560,12 +576,15 @@
 			"uniqueConstraints": {
 				"category_title_unique": {
 					"name": "category_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"import_item_detail": {
+		"public.import_item_detail": {
 			"name": "import_item_detail",
 			"schema": "",
 			"columns": {
@@ -646,36 +665,89 @@
 			},
 			"indexes": {
 				"importDetail_import_idx": {
+					"columns": [
+						{
+							"expression": "import_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_import_idx",
-					"columns": ["import_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"importDetail_duplicate_idx": {
+					"columns": [
+						{
+							"expression": "duplicate_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_duplicate_idx",
-					"columns": ["duplicate_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"importDetail_relation_idx": {
+					"columns": [
+						{
+							"expression": "relation_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_relation_idx",
-					"columns": ["relation_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"importDetail_relation_2_idx": {
+					"columns": [
+						{
+							"expression": "relation_2_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_relation_2_idx",
-					"columns": ["relation_2_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"importDetail_status_idx": {
+					"columns": [
+						{
+							"expression": "status",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_status_idx",
-					"columns": ["status"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"import_mapping": {
+		"public.import_mapping": {
 			"name": "import_mapping",
 			"schema": "",
 			"columns": {
@@ -720,9 +792,12 @@
 			"indexes": {},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"import": {
+		"public.import": {
 			"name": "import",
 			"schema": "",
 			"columns": {
@@ -800,31 +875,74 @@
 			},
 			"indexes": {
 				"label_status_idx": {
+					"columns": [
+						{
+							"expression": "status",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_status_idx",
-					"columns": ["status"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"label_source_idx": {
+					"columns": [
+						{
+							"expression": "source",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_source_idx",
-					"columns": ["source"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"label_type_idx": {
+					"columns": [
+						{
+							"expression": "type",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_type_idx",
-					"columns": ["type"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"label_mapped_import_idx": {
+					"columns": [
+						{
+							"expression": "mapped_import_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_mapped_import_idx",
-					"columns": ["mapped_import_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"journal_entry": {
+		"public.journal_entry": {
 			"name": "journal_entry",
 			"schema": "",
 			"columns": {
@@ -995,9 +1113,12 @@
 			"indexes": {},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"label": {
+		"public.label": {
 			"name": "label",
 			"schema": "",
 			"columns": {
@@ -1079,12 +1200,15 @@
 			"uniqueConstraints": {
 				"label_title_unique": {
 					"name": "label_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"labels_to_journals": {
+		"public.labels_to_journals": {
 			"name": "labels_to_journals",
 			"schema": "",
 			"columns": {
@@ -1122,14 +1246,34 @@
 			},
 			"indexes": {
 				"label_idx": {
+					"columns": [
+						{
+							"expression": "label_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_idx",
-					"columns": ["label_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journal_idx": {
+					"columns": [
+						{
+							"expression": "journal_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journal_idx",
-					"columns": ["journal_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
@@ -1137,12 +1281,15 @@
 			"uniqueConstraints": {
 				"labels_to_journals_journal_id_label_id_unique": {
 					"name": "labels_to_journals_journal_id_label_id_unique",
-					"nullsNotDistinct": false,
-					"columns": ["journal_id", "label_id"]
+					"columns": ["journal_id", "label_id"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"filter": {
+		"public.filter": {
 			"name": "filter",
 			"schema": "",
 			"columns": {
@@ -1254,9 +1401,12 @@
 			"indexes": {},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"summary": {
+		"public.summary": {
 			"name": "summary",
 			"schema": "",
 			"columns": {
@@ -1328,9 +1478,12 @@
 			"indexes": {},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"tag": {
+		"public.tag": {
 			"name": "tag",
 			"schema": "",
 			"columns": {
@@ -1424,12 +1577,15 @@
 			"uniqueConstraints": {
 				"tag_title_unique": {
 					"name": "tag_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"transaction": {
+		"public.transaction": {
 			"name": "transaction",
 			"schema": "",
 			"columns": {
@@ -1456,7 +1612,10 @@
 			"indexes": {},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		}
 	},
 	"enums": {},
@@ -1465,5 +1624,11 @@
 		"schemas": {},
 		"tables": {},
 		"columns": {}
-	}
+	},
+	"id": "6f1cd81f-9c4c-4c11-a1d1-bc2dc875125b",
+	"prevId": "00000000-0000-0000-0000-000000000000",
+	"sequences": {},
+	"policies": {},
+	"views": {},
+	"roles": {}
 }

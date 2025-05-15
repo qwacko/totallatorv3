@@ -1,4 +1,4 @@
-import { fileTable } from '../../../postgres/schema';
+import { associatedInfoTable, fileTable } from '../../../postgres/schema';
 import { SQL, not, eq, lte, gte, isNull, isNotNull, gt } from 'drizzle-orm';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
@@ -7,10 +7,8 @@ import { processNoteTextFilter } from './fileTextFilter';
 import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
 import { arrayToText } from '../misc/arrayToText';
-import type {
-	FileFilterSchemaWithoutPaginationType,
-	LinkedFileFilterSchemaType
-} from '$lib/schema/fileSchema';
+import type { FileFilterSchemaWithoutPaginationType } from '$lib/schema/fileSchema';
+import type { LinkedFileFilterSchemaType } from '$lib/schema/linkedFileFilterSchema';
 import { dbExecuteLogger } from '$lib/server/db/dbLogger';
 
 export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType) => {
@@ -51,7 +49,7 @@ export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType)
 		where.push(gte(fileTable.size, restFilter.minSize));
 	}
 	if (restFilter.linked !== undefined) {
-		where.push(eq(fileTable.linked, restFilter.linked));
+		where.push(eq(associatedInfoTable.linked, restFilter.linked));
 	}
 	if (restFilter.exists !== undefined) {
 		where.push(eq(fileTable.fileExists, restFilter.exists));
@@ -65,8 +63,7 @@ export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType)
 	}
 	noteFileRelationshipQuery({
 		where,
-		filter: restFilter,
-		table: fileTable
+		filter: restFilter
 	});
 
 	return where;

@@ -9,6 +9,7 @@ import { backupSchemaRev07 } from './backupSchema.Rev07';
 import { backupSchemaRev08 } from './backupSchema.Rev08';
 import { backupSchemaRev09 } from './backupSchema.Rev09';
 import { backupSchemaRev10 } from './backupSchema.Rev10';
+import { backupSchemaRev11 } from './backupSchema.Rev11';
 import {
 	backupSchemaMigrate_01to02,
 	backupSchemaMigrate_01to02Information
@@ -45,8 +46,12 @@ import {
 	backupSchemaMigrate_09to10,
 	backupSchemaMigrate_09to10Information
 } from './backupSchemaMigrate_09to10';
+import {
+	backupSchemaMigrate_10to11,
+	backupSchemaMigrate_10to11Information
+} from './backupSchemaMigrate_10to11';
 
-export const currentBackupSchema = backupSchemaRev10;
+export const currentBackupSchema = backupSchemaRev11;
 export type CurrentBackupSchemaType = z.infer<typeof currentBackupSchema>;
 export type CurrentBackupSchemaInfoType = Pick<CurrentBackupSchemaType, 'information' | 'version'>;
 
@@ -60,7 +65,8 @@ export const combinedBackupSchema = z.union([
 	backupSchemaRev07,
 	backupSchemaRev08,
 	backupSchemaRev09,
-	backupSchemaRev10
+	backupSchemaRev10,
+	backupSchemaRev11
 ]);
 
 export const combinedBackupInfoSchema = z.union([
@@ -73,7 +79,8 @@ export const combinedBackupInfoSchema = z.union([
 	backupSchemaRev07.pick({ information: true, version: true }),
 	backupSchemaRev08.pick({ information: true, version: true }),
 	backupSchemaRev09.pick({ information: true, version: true }),
-	backupSchemaRev10.pick({ information: true, version: true })
+	backupSchemaRev10.pick({ information: true, version: true }),
+	backupSchemaRev11.pick({ information: true, version: true })
 ]);
 
 export type CombinedBackupSchemaType = z.infer<typeof combinedBackupSchema>;
@@ -127,7 +134,12 @@ export const backupSchemaInfoToLatest = (
 			? backupDataParsed09
 			: backupSchemaMigrate_09to10Information(backupDataParsed09);
 
-	return backupDataParsed10;
+	const backupDataParsed11 =
+		backupDataParsed10.version !== 10
+			? backupDataParsed10
+			: backupSchemaMigrate_10to11Information(backupDataParsed10);
+
+	return backupDataParsed11;
 };
 
 export const backupSchemaToLatest = (
@@ -178,5 +190,10 @@ export const backupSchemaToLatest = (
 			? backupDataParsed09
 			: backupSchemaMigrate_09to10(backupDataParsed09);
 
-	return backupDataParsed10;
+	const backupDataParsed11 =
+		backupDataParsed10.version !== 10
+			? backupDataParsed10
+			: backupSchemaMigrate_10to11(backupDataParsed10);
+
+	return backupDataParsed11;
 };

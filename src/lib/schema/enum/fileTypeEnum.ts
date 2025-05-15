@@ -9,6 +9,7 @@ export const fileTypeEnum = [
 	'svg',
 	'other'
 ] as const;
+
 export type FileTypeType = (typeof fileTypeEnum)[number];
 
 export const fileTypeEnumInfo = {

@@ -566,7 +566,7 @@ describe('accountActions', async () => {
 
 	describe('List', async () => {
 		testIT('List should return the correct number of items', async (db) => {
-			const accounts = await accountActions.list({ db });
+			const accounts = await accountActions.list({ db, filter: { page: 0, pageSize: 100000 } });
 
 			expect(accounts.count).toEqual(6);
 		});

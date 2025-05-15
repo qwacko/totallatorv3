@@ -20,7 +20,7 @@
 		form: SuperForm<T, unknown>;
 		field: FormPathLeaves<T>;
 		wrapperClass?: string;
-		title: string | null;
+		title?: string | null;
 		onTitle?: string;
 		offTitle?: string;
 		clearTitle?: string;

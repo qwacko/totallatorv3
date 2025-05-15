@@ -5,6 +5,9 @@ DROP INDEX IF EXISTS "materialized_budget_view_index"; --> statement-breakpoint
 DROP INDEX IF EXISTS "materialized_category_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_tag_view_index"; --> statement-breakpoint 
 DROP INDEX IF EXISTS "materialized_label_view_index"; --> statement-breakpoint 
+DROP INDEX IF EXISTS "materialized_import_check_view_index"; --> statement-breakpoint 
+DROP INDEX IF EXISTS "materialized_import_check_description_index"; --> statement-breakpoint 
+DROP MATERIALIZED VIEW IF EXISTS "import_check_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "date_range_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "label_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "category_materialized_view"; --> statement-breakpoint 
@@ -14,6 +17,7 @@ DROP MATERIALIZED VIEW IF EXISTS "tag_materialized_view"; --> statement-breakpoi
 DROP MATERIALIZED VIEW IF EXISTS "account_materialized_view"; --> statement-breakpoint 
 DROP MATERIALIZED VIEW IF EXISTS "journal_extended_view"; --> statement-breakpoint 
 
+DROP VIEW IF EXISTS "import_check_view"; --> statement-breakpoint 
 DROP VIEW IF EXISTS "label_view"; --> statement-breakpoint 
 DROP VIEW IF EXISTS "category_view"; --> statement-breakpoint 
 DROP VIEW IF EXISTS "budget_view"; --> statement-breakpoint 
@@ -22,43 +26,64 @@ DROP VIEW IF EXISTS "tag_view"; --> statement-breakpoint
 DROP VIEW IF EXISTS "account_view"; --> statement-breakpoint 
 DROP VIEW IF EXISTS "journal_view"; --> statement-breakpoint 
 
+CREATE VIEW "import_check_view" AS
+SELECT
+  "id",
+  "created_at",
+  "relation_id",
+  "relation_2_id",
+  PROCESSED_INFO -> 'dataToUse' ->> 'description' AS "description"
+FROM
+  "import_item_detail"
+WHERE
+  (
+    PROCESSED_INFO -> 'dataToUse' ->> 'description' IS NOT NULL
+    AND (
+      "import_item_detail"."relation_id" IS NOT NULL
+      OR "import_item_detail"."relation_2_id" IS NOT NULL
+    )
+  ); --> statement-breakpoint 
+
 CREATE VIEW "label_view" AS
 WITH
   "filessq" AS (
     SELECT
-      "label_id",
-      COUNT("id") AS "file_count"
+      "associated_info"."label_id",
+      COUNT("files"."id") AS "file_count"
     FROM
       "files"
+      LEFT JOIN "associated_info" ON "files"."associated_info_id" = "associated_info"."id"
     WHERE
-      "files"."label_id" IS NOT NULL
+      "associated_info"."label_id" IS NOT NULL
     GROUP BY
-      "files"."label_id"
+      "associated_info"."label_id"
   ),
   "notessq" AS (
     SELECT
-      "label_id",
-      COUNT("id") AS "note_count"
+      "associated_info"."label_id",
+      COUNT("notes"."id") AS "note_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
-      "notes"."label_id" IS NOT NULL
+      "associated_info"."label_id" IS NOT NULL
     GROUP BY
-      "notes"."label_id"
+      "associated_info"."label_id"
   ),
   "reminderssq" AS (
     SELECT
-      "label_id",
-      COUNT("id") AS "reminder_count"
+      "associated_info"."label_id",
+      COUNT("notes"."id") AS "reminder_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
       (
         "notes"."type" = 'reminder'
-        AND "notes"."label_id" IS NOT NULL
+        AND "associated_info"."label_id" IS NOT NULL
       )
     GROUP BY
-      "notes"."label_id"
+      "associated_info"."label_id"
   )
 SELECT
   "label"."id",
@@ -103,39 +128,42 @@ CREATE VIEW "category_view" AS
 WITH
   "filessq" AS (
     SELECT
-      "category_id",
-      COUNT("id") AS "file_count"
+      "associated_info"."category_id",
+      COUNT("files"."id") AS "file_count"
     FROM
       "files"
+      LEFT JOIN "associated_info" ON "files"."associated_info_id" = "associated_info"."id"
     WHERE
-      "files"."category_id" IS NOT NULL
+      "associated_info"."category_id" IS NOT NULL
     GROUP BY
-      "files"."category_id"
+      "associated_info"."category_id"
   ),
   "notessq" AS (
     SELECT
-      "category_id",
-      COUNT("id") AS "note_count"
+      "associated_info"."category_id",
+      COUNT("notes"."id") AS "note_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
-      "notes"."category_id" IS NOT NULL
+      "associated_info"."category_id" IS NOT NULL
     GROUP BY
-      "notes"."category_id"
+      "associated_info"."category_id"
   ),
   "reminderssq" AS (
     SELECT
-      "category_id",
-      COUNT("id") AS "reminder_count"
+      "associated_info"."category_id",
+      COUNT("notes"."id") AS "reminder_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
       (
         "notes"."type" = 'reminder'
-        AND "notes"."category_id" IS NOT NULL
+        AND "associated_info"."category_id" IS NOT NULL
       )
     GROUP BY
-      "notes"."category_id"
+      "associated_info"."category_id"
   )
 SELECT
   "category"."id",
@@ -181,39 +209,42 @@ CREATE VIEW "budget_view" AS
 WITH
   "filessq" AS (
     SELECT
-      "budget_id",
-      COUNT("id") AS "file_count"
+      "associated_info"."budget_id",
+      COUNT("files"."id") AS "file_count"
     FROM
       "files"
+      LEFT JOIN "associated_info" ON "files"."associated_info_id" = "associated_info"."id"
     WHERE
-      "files"."budget_id" IS NOT NULL
+      "associated_info"."budget_id" IS NOT NULL
     GROUP BY
-      "files"."budget_id"
+      "associated_info"."budget_id"
   ),
   "notessq" AS (
     SELECT
-      "budget_id",
-      COUNT("id") AS "note_count"
+      "associated_info"."budget_id",
+      COUNT("notes"."id") AS "note_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
-      "notes"."budget_id" IS NOT NULL
+      "associated_info"."budget_id" IS NOT NULL
     GROUP BY
-      "notes"."budget_id"
+      "associated_info"."budget_id"
   ),
   "reminderssq" AS (
     SELECT
-      "budget_id",
-      COUNT("id") AS "reminder_count"
+      "associated_info"."budget_id",
+      COUNT("notes"."id") AS "reminder_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
       (
         "notes"."type" = 'reminder'
-        AND "notes"."budget_id" IS NOT NULL
+        AND "associated_info"."budget_id" IS NOT NULL
       )
     GROUP BY
-      "notes"."budget_id"
+      "associated_info"."budget_id"
   )
 SELECT
   "budget"."id",
@@ -257,39 +288,42 @@ CREATE VIEW "bill_view" AS
 WITH
   "filessq" AS (
     SELECT
-      "bill_id",
-      COUNT("id") AS "file_count"
+      "associated_info"."bill_id",
+      COUNT("files"."id") AS "file_count"
     FROM
       "files"
+      LEFT JOIN "associated_info" ON "files"."associated_info_id" = "associated_info"."id"
     WHERE
-      "files"."bill_id" IS NOT NULL
+      "associated_info"."bill_id" IS NOT NULL
     GROUP BY
-      "files"."bill_id"
+      "associated_info"."bill_id"
   ),
   "notessq" AS (
     SELECT
-      "bill_id",
-      COUNT("id") AS "note_count"
+      "associated_info"."bill_id",
+      COUNT("notes"."id") AS "note_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
-      "notes"."bill_id" IS NOT NULL
+      "associated_info"."bill_id" IS NOT NULL
     GROUP BY
-      "notes"."bill_id"
+      "associated_info"."bill_id"
   ),
   "reminderssq" AS (
     SELECT
-      "bill_id",
-      COUNT("id") AS "reminder_count"
+      "associated_info"."bill_id",
+      COUNT("notes"."id") AS "reminder_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
       (
         "notes"."type" = 'reminder'
-        AND "notes"."bill_id" IS NOT NULL
+        AND "associated_info"."bill_id" IS NOT NULL
       )
     GROUP BY
-      "notes"."bill_id"
+      "associated_info"."bill_id"
   )
 SELECT
   "bill"."id",
@@ -333,39 +367,42 @@ CREATE VIEW "tag_view" AS
 WITH
   "filessq" AS (
     SELECT
-      "tag_id",
-      COUNT("id") AS "file_count"
+      "associated_info"."tag_id",
+      COUNT("files"."id") AS "file_count"
     FROM
       "files"
+      LEFT JOIN "associated_info" ON "files"."associated_info_id" = "associated_info"."id"
     WHERE
-      "files"."tag_id" IS NOT NULL
+      "associated_info"."tag_id" IS NOT NULL
     GROUP BY
-      "files"."tag_id"
+      "associated_info"."tag_id"
   ),
   "notessq" AS (
     SELECT
-      "tag_id",
-      COUNT("id") AS "note_count"
+      "associated_info"."tag_id",
+      COUNT("notes"."id") AS "note_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
-      "notes"."tag_id" IS NOT NULL
+      "associated_info"."tag_id" IS NOT NULL
     GROUP BY
-      "notes"."tag_id"
+      "associated_info"."tag_id"
   ),
   "reminderssq" AS (
     SELECT
-      "tag_id",
-      COUNT("id") AS "reminder_count"
+      "associated_info"."tag_id",
+      COUNT("notes"."id") AS "reminder_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
       (
         "notes"."type" = 'reminder'
-        AND "notes"."tag_id" IS NOT NULL
+        AND "associated_info"."tag_id" IS NOT NULL
       )
     GROUP BY
-      "notes"."tag_id"
+      "associated_info"."tag_id"
   )
 SELECT
   "tag"."id",
@@ -411,39 +448,42 @@ CREATE VIEW "account_view" AS
 WITH
   "filessq" AS (
     SELECT
-      "account_id",
-      COUNT("id") AS "file_count"
+      "associated_info"."account_id",
+      COUNT("files"."id") AS "file_count"
     FROM
       "files"
+      LEFT JOIN "associated_info" ON "files"."associated_info_id" = "associated_info"."id"
     WHERE
-      "files"."account_id" IS NOT NULL
+      "associated_info"."account_id" IS NOT NULL
     GROUP BY
-      "files"."account_id"
+      "associated_info"."account_id"
   ),
   "notessq" AS (
     SELECT
-      "account_id",
-      COUNT("id") AS "note_count"
+      "associated_info"."account_id",
+      COUNT("notes"."id") AS "note_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
-      "notes"."account_id" IS NOT NULL
+      "associated_info"."account_id" IS NOT NULL
     GROUP BY
-      "notes"."account_id"
+      "associated_info"."account_id"
   ),
   "reminderssq" AS (
     SELECT
-      "account_id",
-      COUNT("id") AS "reminder_count"
+      "associated_info"."account_id",
+      COUNT("notes"."id") AS "reminder_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
       (
         "notes"."type" = 'reminder'
-        AND "notes"."account_id" IS NOT NULL
+        AND "associated_info"."account_id" IS NOT NULL
       )
     GROUP BY
-      "notes"."account_id"
+      "associated_info"."account_id"
   )
 SELECT
   "account"."id",
@@ -487,39 +527,42 @@ CREATE VIEW "journal_view" AS
 WITH
   "filessq" AS (
     SELECT
-      "transaction_id",
-      COUNT("id") AS "file_count"
+      "associated_info"."transaction_id",
+      COUNT("files"."id") AS "file_count"
     FROM
       "files"
+      LEFT JOIN "associated_info" ON "files"."associated_info_id" = "associated_info"."id"
     WHERE
-      "files"."transaction_id" IS NOT NULL
+      "associated_info"."transaction_id" IS NOT NULL
     GROUP BY
-      "files"."transaction_id"
+      "associated_info"."transaction_id"
   ),
   "notessq" AS (
     SELECT
-      "transaction_id",
-      COUNT("id") AS "note_count"
+      "associated_info"."transaction_id",
+      COUNT("notes"."id") AS "note_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
-      "notes"."transaction_id" IS NOT NULL
+      "associated_info"."transaction_id" IS NOT NULL
     GROUP BY
-      "notes"."transaction_id"
+      "associated_info"."transaction_id"
   ),
   "reminderssq" AS (
     SELECT
-      "transaction_id",
-      COUNT("id") AS "reminder_count"
+      "associated_info"."transaction_id",
+      COUNT("notes"."id") AS "reminder_count"
     FROM
       "notes"
+      LEFT JOIN "associated_info" ON "notes"."associated_info_id" = "associated_info"."id"
     WHERE
       (
         "notes"."type" = 'reminder'
-        AND "notes"."transaction_id" IS NOT NULL
+        AND "associated_info"."transaction_id" IS NOT NULL
       )
     GROUP BY
-      "notes"."transaction_id"
+      "associated_info"."transaction_id"
   )
 SELECT
   "journal_entry"."id",
@@ -604,6 +647,16 @@ FROM
   LEFT JOIN "filessq" ON "journal_entry"."transaction_id" = "filessq"."transaction_id"
   LEFT JOIN "notessq" ON "journal_entry"."transaction_id" = "notessq"."transaction_id"
   LEFT JOIN "reminderssq" ON "journal_entry"."transaction_id" = "reminderssq"."transaction_id"; --> statement-breakpoint 
+
+CREATE MATERIALIZED VIEW "import_check_materialized_view" AS
+SELECT
+  "id",
+  "created_at",
+  "relation_id",
+  "relation_2_id",
+  "description"
+FROM
+  "import_check_view"; --> statement-breakpoint 
 
 CREATE MATERIALIZED VIEW "date_range_materialized_view" AS
 SELECT
@@ -840,3 +893,5 @@ CREATE UNIQUE INDEX IF NOT EXISTS "materialized_budget_view_index" ON "budget_ma
 CREATE UNIQUE INDEX IF NOT EXISTS "materialized_category_view_index" ON "category_materialized_view" ("category_materialized_view"."id"); --> statement-breakpoint 
 CREATE UNIQUE INDEX IF NOT EXISTS "materialized_tag_view_index" ON "tag_materialized_view" ("tag_materialized_view"."id"); --> statement-breakpoint 
 CREATE UNIQUE INDEX IF NOT EXISTS "materialized_label_view_index" ON "label_materialized_view" ("label_materialized_view"."id"); --> statement-breakpoint 
+CREATE UNIQUE INDEX IF NOT EXISTS "materialized_import_check_view_index" ON "import_check_materialized_view" ("import_check_materialized_view"."id"); --> statement-breakpoint 
+CREATE INDEX IF NOT EXISTS "materialized_import_check_description_index" ON "import_check_materialized_view" ("description"); --> statement-breakpoint 

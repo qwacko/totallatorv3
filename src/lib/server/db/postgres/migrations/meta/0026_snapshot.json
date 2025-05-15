@@ -1,10 +1,8 @@
 {
-	"id": "7d220113-5b1f-4ef7-82be-88f5f1b85de8",
-	"prevId": "9fb14c69-26e8-4069-9b6b-aab8672483e7",
-	"version": "5",
-	"dialect": "pg",
+	"version": "7",
+	"dialect": "postgresql",
 	"tables": {
-		"user_key": {
+		"public.user_key": {
 			"name": "user_key",
 			"schema": "",
 			"columns": {
@@ -32,17 +30,20 @@
 				"user_key_user_id_user_id_fk": {
 					"name": "user_key_user_id_user_id_fk",
 					"tableFrom": "user_key",
-					"tableTo": "user",
 					"columnsFrom": ["user_id"],
+					"tableTo": "user",
 					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "cascade"
 				}
 			},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"user_session": {
+		"public.user_session": {
 			"name": "user_session",
 			"schema": "",
 			"columns": {
@@ -76,17 +77,20 @@
 				"user_session_user_id_user_id_fk": {
 					"name": "user_session_user_id_user_id_fk",
 					"tableFrom": "user_session",
-					"tableTo": "user",
 					"columnsFrom": ["user_id"],
+					"tableTo": "user",
 					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "cascade"
 				}
 			},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"user": {
+		"public.user": {
 			"name": "user",
 			"schema": "",
 			"columns": {
@@ -137,12 +141,15 @@
 			"uniqueConstraints": {
 				"user_username_unique": {
 					"name": "user_username_unique",
-					"nullsNotDistinct": false,
-					"columns": ["username"]
+					"columns": ["username"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"account": {
+		"public.account": {
 			"name": "account",
 			"schema": "",
 			"columns": {
@@ -277,34 +284,94 @@
 			},
 			"indexes": {
 				"account_title_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "account_title_idx",
-					"columns": ["title"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"account_type_idx": {
+					"columns": [
+						{
+							"expression": "type",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "account_type_idx",
-					"columns": ["type"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"account_is_cash_idx": {
+					"columns": [
+						{
+							"expression": "is_cash",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "account_is_cash_idx",
-					"columns": ["is_cash"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"account_is_net_worth_idx": {
+					"columns": [
+						{
+							"expression": "is_net_worth",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "account_is_net_worth_idx",
-					"columns": ["is_net_worth"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"account_account_group_combined_idx": {
+					"columns": [
+						{
+							"expression": "account_group_combined",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "account_account_group_combined_idx",
-					"columns": ["account_group_combined"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"account_account_title_combined_idx": {
+					"columns": [
+						{
+							"expression": "account_title_combined",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "account_account_title_combined_idx",
-					"columns": ["account_title_combined"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
@@ -312,12 +379,15 @@
 			"uniqueConstraints": {
 				"account_account_title_combined_unique": {
 					"name": "account_account_title_combined_unique",
-					"nullsNotDistinct": false,
-					"columns": ["account_title_combined"]
+					"columns": ["account_title_combined"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"bill": {
+		"public.bill": {
 			"name": "bill",
 			"schema": "",
 			"columns": {
@@ -389,9 +459,19 @@
 			},
 			"indexes": {
 				"bill_title_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "bill_title_idx",
-					"columns": ["title"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
@@ -399,12 +479,15 @@
 			"uniqueConstraints": {
 				"bill_title_unique": {
 					"name": "bill_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"budget": {
+		"public.budget": {
 			"name": "budget",
 			"schema": "",
 			"columns": {
@@ -476,9 +559,19 @@
 			},
 			"indexes": {
 				"budget_title_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "budget_title_idx",
-					"columns": ["title"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
@@ -486,12 +579,15 @@
 			"uniqueConstraints": {
 				"budget_title_unique": {
 					"name": "budget_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"category": {
+		"public.category": {
 			"name": "category",
 			"schema": "",
 			"columns": {
@@ -575,19 +671,49 @@
 			},
 			"indexes": {
 				"category_title_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "category_title_idx",
-					"columns": ["title"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"category_group_idx": {
+					"columns": [
+						{
+							"expression": "group",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "category_group_idx",
-					"columns": ["group"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"category_single_idx": {
+					"columns": [
+						{
+							"expression": "single",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "category_single_idx",
-					"columns": ["single"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
@@ -595,12 +721,15 @@
 			"uniqueConstraints": {
 				"category_title_unique": {
 					"name": "category_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"single_filter": {
+		"public.single_filter": {
 			"name": "single_filter",
 			"schema": "",
 			"columns": {
@@ -638,16 +767,29 @@
 			},
 			"indexes": {
 				"filter_filter_text_idx": {
+					"columns": [
+						{
+							"expression": "filter_text",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_filter_text_idx",
-					"columns": ["filter_text"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"filters_to_report_configs": {
+		"public.filters_to_report_configs": {
 			"name": "filters_to_report_configs",
 			"schema": "",
 			"columns": {
@@ -692,14 +834,34 @@
 			},
 			"indexes": {
 				"report_element_config__from_filter_idx": {
+					"columns": [
+						{
+							"expression": "report_element_config_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_element_config__from_filter_idx",
-					"columns": ["report_element_config_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"filter_idx": {
+					"columns": [
+						{
+							"expression": "filter_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_idx",
-					"columns": ["filter_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
@@ -707,17 +869,20 @@
 			"uniqueConstraints": {
 				"filters_to_report_configs_report_element_config_id_filter_id_unique": {
 					"name": "filters_to_report_configs_report_element_config_id_filter_id_unique",
-					"nullsNotDistinct": false,
-					"columns": ["report_element_config_id", "filter_id"]
+					"columns": ["report_element_config_id", "filter_id"],
+					"nullsNotDistinct": false
 				},
 				"filters_to_report_configs_report_element_config_id_order_unique": {
 					"name": "filters_to_report_configs_report_element_config_id_order_unique",
-					"nullsNotDistinct": false,
-					"columns": ["report_element_config_id", "order"]
+					"columns": ["report_element_config_id", "order"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"import_item_detail": {
+		"public.import_item_detail": {
 			"name": "import_item_detail",
 			"schema": "",
 			"columns": {
@@ -798,36 +963,89 @@
 			},
 			"indexes": {
 				"importDetail_import_idx": {
+					"columns": [
+						{
+							"expression": "import_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_import_idx",
-					"columns": ["import_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"importDetail_duplicate_idx": {
+					"columns": [
+						{
+							"expression": "duplicate_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_duplicate_idx",
-					"columns": ["duplicate_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"importDetail_relation_idx": {
+					"columns": [
+						{
+							"expression": "relation_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_relation_idx",
-					"columns": ["relation_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"importDetail_relation_2_idx": {
+					"columns": [
+						{
+							"expression": "relation_2_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_relation_2_idx",
-					"columns": ["relation_2_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"importDetail_status_idx": {
+					"columns": [
+						{
+							"expression": "status",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "importDetail_status_idx",
-					"columns": ["status"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"import_mapping": {
+		"public.import_mapping": {
 			"name": "import_mapping",
 			"schema": "",
 			"columns": {
@@ -872,9 +1090,12 @@
 			"indexes": {},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"import": {
+		"public.import": {
 			"name": "import",
 			"schema": "",
 			"columns": {
@@ -952,31 +1173,74 @@
 			},
 			"indexes": {
 				"label_status_idx": {
+					"columns": [
+						{
+							"expression": "status",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_status_idx",
-					"columns": ["status"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"label_source_idx": {
+					"columns": [
+						{
+							"expression": "source",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_source_idx",
-					"columns": ["source"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"label_type_idx": {
+					"columns": [
+						{
+							"expression": "type",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_type_idx",
-					"columns": ["type"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"label_mapped_import_idx": {
+					"columns": [
+						{
+							"expression": "mapped_import_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_mapped_import_idx",
-					"columns": ["mapped_import_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"journal_entry": {
+		"public.journal_entry": {
 			"name": "journal_entry",
 			"schema": "",
 			"columns": {
@@ -1146,101 +1410,290 @@
 			},
 			"indexes": {
 				"journalEntry_created_at_idx": {
+					"columns": [
+						{
+							"expression": "created_at",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_created_at_idx",
-					"columns": ["created_at"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_transaction_id_idx": {
+					"columns": [
+						{
+							"expression": "transaction_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_transaction_id_idx",
-					"columns": ["transaction_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_date_amount_idx": {
+					"columns": [
+						{
+							"expression": "date",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "amount",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_date_amount_idx",
-					"columns": ["date", "amount"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_date_idx": {
+					"columns": [
+						{
+							"expression": "date",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_date_idx",
-					"columns": ["date"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_date_text_idx": {
+					"columns": [
+						{
+							"expression": "date_text",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_date_text_idx",
-					"columns": ["date_text"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_description_idx": {
+					"columns": [
+						{
+							"expression": "description",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_description_idx",
-					"columns": ["description"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_transfer_idx": {
+					"columns": [
+						{
+							"expression": "transfer",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_transfer_idx",
-					"columns": ["transfer"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_complete_idx": {
+					"columns": [
+						{
+							"expression": "complete",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_complete_idx",
-					"columns": ["complete"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_reconciled_idx": {
+					"columns": [
+						{
+							"expression": "reconciled",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_reconciled_idx",
-					"columns": ["reconciled"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_data_checked_idx": {
+					"columns": [
+						{
+							"expression": "data_checked",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_data_checked_idx",
-					"columns": ["data_checked"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_account_id_idx": {
+					"columns": [
+						{
+							"expression": "account_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_account_id_idx",
-					"columns": ["account_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_bill_id_idx": {
+					"columns": [
+						{
+							"expression": "bill_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_bill_id_idx",
-					"columns": ["bill_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_budget_id_idx": {
+					"columns": [
+						{
+							"expression": "budget_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_budget_id_idx",
-					"columns": ["budget_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_category_id_idx": {
+					"columns": [
+						{
+							"expression": "category_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_category_id_idx",
-					"columns": ["category_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_tag_id_idx": {
+					"columns": [
+						{
+							"expression": "tag_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_tag_id_idx",
-					"columns": ["tag_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_import_id_idx": {
+					"columns": [
+						{
+							"expression": "import_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_import_id_idx",
-					"columns": ["import_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_import_detail_id_idx": {
+					"columns": [
+						{
+							"expression": "import_detail_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_import_detail_id_idx",
-					"columns": ["import_detail_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journalEntry_year_month_idx": {
+					"columns": [
+						{
+							"expression": "year_month",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journalEntry_year_month_idx",
-					"columns": ["year_month"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"key_value_table": {
+		"public.key_value_table": {
 			"name": "key_value_table",
 			"schema": "",
 			"columns": {
@@ -1263,12 +1716,15 @@
 			"uniqueConstraints": {
 				"key_value_table_key_unique": {
 					"name": "key_value_table_key_unique",
-					"nullsNotDistinct": false,
-					"columns": ["key"]
+					"columns": ["key"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"label": {
+		"public.label": {
 			"name": "label",
 			"schema": "",
 			"columns": {
@@ -1344,12 +1800,15 @@
 			"uniqueConstraints": {
 				"label_title_unique": {
 					"name": "label_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"labels_to_journals": {
+		"public.labels_to_journals": {
 			"name": "labels_to_journals",
 			"schema": "",
 			"columns": {
@@ -1387,14 +1846,34 @@
 			},
 			"indexes": {
 				"label_idx": {
+					"columns": [
+						{
+							"expression": "label_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "label_idx",
-					"columns": ["label_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"journal_idx": {
+					"columns": [
+						{
+							"expression": "journal_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "journal_idx",
-					"columns": ["journal_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
@@ -1402,12 +1881,15 @@
 			"uniqueConstraints": {
 				"labels_to_journals_journal_id_label_id_unique": {
 					"name": "labels_to_journals_journal_id_label_id_unique",
-					"nullsNotDistinct": false,
-					"columns": ["journal_id", "label_id"]
+					"columns": ["journal_id", "label_id"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"report": {
+		"public.report": {
 			"name": "report",
 			"schema": "",
 			"columns": {
@@ -1465,36 +1947,95 @@
 			},
 			"indexes": {
 				"report_title_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_title_idx",
-					"columns": ["title"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_group_idx": {
+					"columns": [
+						{
+							"expression": "group",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_group_idx",
-					"columns": ["group"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_title_group_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "group",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_title_group_idx",
-					"columns": ["title", "group"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_locked_idx": {
+					"columns": [
+						{
+							"expression": "locked",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_locked_idx",
-					"columns": ["locked"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_filter_idx": {
+					"columns": [
+						{
+							"expression": "filter_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_filter_idx",
-					"columns": ["filter_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"report_element": {
+		"public.report_element": {
 			"name": "report_element",
 			"schema": "",
 			"columns": {
@@ -1565,26 +2106,59 @@
 			},
 			"indexes": {
 				"report_element_config_idx": {
+					"columns": [
+						{
+							"expression": "report_element_config_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_element_config_idx",
-					"columns": ["report_element_config_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_idx": {
+					"columns": [
+						{
+							"expression": "report_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_idx",
-					"columns": ["report_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_element_filter_idx": {
+					"columns": [
+						{
+							"expression": "filter_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_element_filter_idx",
-					"columns": ["filter_id"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"report_element_config": {
+		"public.report_element_config": {
 			"name": "report_element_config",
 			"schema": "",
 			"columns": {
@@ -1649,36 +2223,95 @@
 			},
 			"indexes": {
 				"report_element_config_title_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_element_config_title_idx",
-					"columns": ["title"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_element_config_group_idx": {
+					"columns": [
+						{
+							"expression": "group",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_element_config_group_idx",
-					"columns": ["group"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_element_config_reusable_idx": {
+					"columns": [
+						{
+							"expression": "reusable",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_element_config_reusable_idx",
-					"columns": ["reusable"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_element_config_title_group_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "group",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_element_config_title_group_idx",
-					"columns": ["title", "group"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"report_element_config_locked_idx": {
+					"columns": [
+						{
+							"expression": "locked",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "report_element_config_locked_idx",
-					"columns": ["locked"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"filter": {
+		"public.filter": {
 			"name": "filter",
 			"schema": "",
 			"columns": {
@@ -1789,51 +2422,134 @@
 			},
 			"indexes": {
 				"filter_title_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_title_idx",
-					"columns": ["title"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"filter_group_idx": {
+					"columns": [
+						{
+							"expression": "group",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_group_idx",
-					"columns": ["group"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"filter_can_apply_idx": {
+					"columns": [
+						{
+							"expression": "can_apply",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_can_apply_idx",
-					"columns": ["can_apply"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"filter_needs_update_idx": {
+					"columns": [
+						{
+							"expression": "needs_update",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_needs_update_idx",
-					"columns": ["needs_update"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"filter_apply_automatically_idx": {
+					"columns": [
+						{
+							"expression": "apply_automatically",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_apply_automatically_idx",
-					"columns": ["apply_automatically"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"filter_apply_following_import_idx": {
+					"columns": [
+						{
+							"expression": "apply_following_import",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_apply_following_import_idx",
-					"columns": ["apply_following_import"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"filter_listed_idx": {
+					"columns": [
+						{
+							"expression": "listed",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_listed_idx",
-					"columns": ["listed"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"filter_modification_type_idx": {
+					"columns": [
+						{
+							"expression": "modification_type",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "filter_modification_type_idx",
-					"columns": ["modification_type"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"tag": {
+		"public.tag": {
 			"name": "tag",
 			"schema": "",
 			"columns": {
@@ -1917,19 +2633,49 @@
 			},
 			"indexes": {
 				"tag_title_idx": {
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "tag_title_idx",
-					"columns": ["title"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"tag_group_idx": {
+					"columns": [
+						{
+							"expression": "group",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "tag_group_idx",
-					"columns": ["group"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				},
 				"tag_single_idx": {
+					"columns": [
+						{
+							"expression": "single",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
 					"name": "tag_single_idx",
-					"columns": ["single"],
-					"isUnique": false
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
 				}
 			},
 			"foreignKeys": {},
@@ -1937,12 +2683,15 @@
 			"uniqueConstraints": {
 				"tag_title_unique": {
 					"name": "tag_title_unique",
-					"nullsNotDistinct": false,
-					"columns": ["title"]
+					"columns": ["title"],
+					"nullsNotDistinct": false
 				}
-			}
+			},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		},
-		"transaction": {
+		"public.transaction": {
 			"name": "transaction",
 			"schema": "",
 			"columns": {
@@ -1969,34 +2718,40 @@
 			"indexes": {},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {}
+			"uniqueConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false,
+			"checkConstraints": {}
 		}
 	},
 	"enums": {
-		"report_layout": {
+		"public.report_layout": {
 			"name": "report_layout",
-			"values": {
-				"singleItem": "singleItem",
-				"twoItemsHorizontal": "twoItemsHorizontal",
-				"twoItemsVertical": "twoItemsVertical",
-				"twoLargeOneSmallVertical": "twoLargeOneSmallVertical",
-				"twoLargeOneSmallHorizontal": "twoLargeOneSmallHorizontal"
-			}
+			"schema": "public",
+			"values": [
+				"singleItem",
+				"twoItemsHorizontal",
+				"twoItemsVertical",
+				"twoLargeOneSmallVertical",
+				"twoLargeOneSmallHorizontal"
+			]
 		},
-		"report_size": {
+		"public.report_size": {
 			"name": "report_size",
-			"values": {
-				"sm": "sm",
-				"lg": "lg",
-				"xs": "xs",
-				"xl": "xl"
-			}
+			"schema": "public",
+			"values": ["sm", "lg", "xs", "xl"]
 		}
 	},
 	"schemas": {},
 	"_meta": {
-		"columns": {},
 		"schemas": {},
-		"tables": {}
-	}
+		"tables": {},
+		"columns": {}
+	},
+	"id": "7d220113-5b1f-4ef7-82be-88f5f1b85de8",
+	"prevId": "9fb14c69-26e8-4069-9b6b-aab8672483e7",
+	"sequences": {},
+	"policies": {},
+	"views": {},
+	"roles": {}
 }

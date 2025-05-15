@@ -10,25 +10,18 @@ import {
 	autoImportTable,
 	report,
 	reportElement,
-	user
+	user,
+	type FileTableType,
+	associatedInfoTable
 } from '../postgres/schema';
-import {
-	and,
-	count as drizzleCount,
-	eq,
-	desc,
-	getTableColumns,
-	isNull,
-	or,
-	isNotNull
-} from 'drizzle-orm';
+import { and, count as drizzleCount, eq, desc, getTableColumns } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { fileFilterToQuery, fileFilterToText } from './helpers/file/fileFilterToQuery';
 import { fileToOrderByToSQL } from './helpers/file/fileOrderByToSQL';
 import {
 	createFileSchema,
-	type CreateFileSchemaType,
+	type CreateFileSchemaCoreType,
 	type FileFilterSchemaType,
 	type FileFilterSchemaWithoutPaginationType,
 	type UpdateFileSchemaType
@@ -36,11 +29,6 @@ import {
 import type { FileTypeType } from '$lib/schema/enum/fileTypeEnum';
 import { fileFileHandler } from '$lib/server/files/fileHandler';
 import sharp from 'sharp';
-import {
-	fileRelationshipKeys,
-	type CreateFileNoteRelationshipSchemaType,
-	type KeysOfCreateFileNoteRelationshipSchemaType
-} from '$lib/schema/helpers/fileNoteRelationship';
 import { tActions } from './tActions';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
@@ -48,39 +36,61 @@ import { materializedViewActions } from './materializedViewActions';
 import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
 import { logging } from '$lib/server/logging';
 import { dbExecuteLogger } from '../dbLogger';
+import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
+import { associatedInfoActions } from './associatedInfoActions';
 
-type GroupingOptions =
-	| 'transaction'
-	| 'account'
-	| 'bill'
-	| 'budget'
-	| 'category'
-	| 'tag'
-	| 'label'
-	| 'autoImport'
-	| 'report'
-	| 'reportElement';
+type FilesActionsType = FilesAndNotesActions<
+	FileTableType,
+	CreateFileSchemaCoreType,
+	UpdateFileSchemaType,
+	FileFilterSchemaType,
+	FileFilterSchemaWithoutPaginationType,
+	GroupedFilesType,
+	{
+		files: GroupedFilesType;
+	}
+>;
 
-export const fileActions = {
-	getById: async (db: DBType, id: string) => {
+type GetFileFunction = (data: {
+	db: DBType;
+	id: string;
+}) => Promise<{ info: FileTableType; fileData: Promise<Buffer<ArrayBufferLike>> }>;
+
+type CheckFilesExistFunction = (data: { db: DBType }) => Promise<void>;
+type UpdateLinkedFunction = (data: { db: DBType }) => Promise<void>;
+
+export const fileActions: FilesActionsType & {
+	getFile: GetFileFunction;
+	getThumbnail: GetFileFunction;
+	checkFilesExist: CheckFilesExistFunction;
+	updateLinked: UpdateLinkedFunction;
+} = {
+	getById: async (db, id) => {
 		return dbExecuteLogger(
 			db.query.fileTable.findFirst({ where: ({ id: fileId }, { eq }) => eq(fileId, id) }),
 			'File - Get By ID'
 		);
 	},
-	filterToText: async ({ db, filter }: { db: DBType; filter: FileFilterSchemaType }) => {
+	filterToText: async ({ db, filter }) => {
 		return fileFilterToText({ db, filter });
 	},
-	list: async ({ db, filter }: { db: DBType; filter: FileFilterSchemaType }) => {
+	list: async ({ db, filter }) => {
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = fileFilterToQuery(restFilter);
 		const orderBySQL = fileToOrderByToSQL({ orderBy });
 
+		//Get the table columns but exclude the duplicated ones.
+		const { id, createdAt, updatedAt, ...associatedTableColumns } =
+			getTableColumns(associatedInfoTable);
+
 		const results = await dbExecuteLogger(
 			db
 				.select({
 					...getTableColumns(fileTable),
+					...associatedTableColumns,
+					associatedInfoCreatedAt: associatedInfoTable.createdAt,
+					associatedInfoUpdatedAt: associatedInfoTable.updatedAt,
 					accountTitle: account.title,
 					billTitle: bill.title,
 					budgetTitle: budget.title,
@@ -93,16 +103,17 @@ export const fileActions = {
 					createdBy: user.username
 				})
 				.from(fileTable)
-				.leftJoin(account, eq(account.id, fileTable.accountId))
-				.leftJoin(bill, eq(bill.id, fileTable.billId))
-				.leftJoin(budget, eq(budget.id, fileTable.budgetId))
-				.leftJoin(category, eq(category.id, fileTable.categoryId))
-				.leftJoin(tag, eq(tag.id, fileTable.tagId))
-				.leftJoin(label, eq(label.id, fileTable.labelId))
-				.leftJoin(autoImportTable, eq(autoImportTable.id, fileTable.autoImportId))
-				.leftJoin(report, eq(report.id, fileTable.reportId))
-				.leftJoin(reportElement, eq(reportElement.id, fileTable.reportElementId))
-				.leftJoin(user, eq(user.id, fileTable.createdById))
+				.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
+				.leftJoin(account, eq(account.id, associatedInfoTable.accountId))
+				.leftJoin(bill, eq(bill.id, associatedInfoTable.billId))
+				.leftJoin(budget, eq(budget.id, associatedInfoTable.budgetId))
+				.leftJoin(category, eq(category.id, associatedInfoTable.categoryId))
+				.leftJoin(tag, eq(tag.id, associatedInfoTable.tagId))
+				.leftJoin(label, eq(label.id, associatedInfoTable.labelId))
+				.leftJoin(autoImportTable, eq(autoImportTable.id, associatedInfoTable.autoImportId))
+				.leftJoin(report, eq(report.id, associatedInfoTable.reportId))
+				.leftJoin(reportElement, eq(reportElement.id, associatedInfoTable.reportElementId))
+				.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
 				.where(and(...where))
 				.limit(pageSize)
 				.offset(page * pageSize)
@@ -140,6 +151,7 @@ export const fileActions = {
 			db
 				.select({ count: drizzleCount(fileTable.id) })
 				.from(fileTable)
+				.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
 				.where(and(...where)),
 			'File - List - Get Count'
 		);
@@ -149,13 +161,7 @@ export const fileActions = {
 
 		return { count, data: resultsWithJournals, pageCount, page, pageSize };
 	},
-	listWithoutPagination: async ({
-		db,
-		filter
-	}: {
-		db: DBType;
-		filter: FileFilterSchemaWithoutPaginationType;
-	}) => {
+	listWithoutPagination: async ({ db, filter }) => {
 		return (
 			await fileActions.list({
 				db,
@@ -168,15 +174,7 @@ export const fileActions = {
 			})
 		).data;
 	},
-	listGrouped: async ({
-		db,
-		ids,
-		grouping
-	}: {
-		db: DBType;
-		ids: string[];
-		grouping: GroupingOptions;
-	}) => {
+	listGrouped: async ({ db, ids, grouping }) => {
 		const items = await db
 			.select({
 				id: fileTable.id,
@@ -187,13 +185,14 @@ export const fileActions = {
 				thumbnailFilename: fileTable.thumbnailFilename,
 				createdAt: fileTable.createdAt,
 				updatedAt: fileTable.updatedAt,
-				createdById: fileTable.createdById,
+				createdById: associatedInfoTable.createdById,
 				createdBy: user.username,
-				groupingId: fileTable[`${grouping}Id`]
+				groupingId: associatedInfoTable[`${grouping}Id`]
 			})
 			.from(fileTable)
-			.leftJoin(user, eq(user.id, fileTable.createdById))
-			.where(inArrayWrapped(fileTable[`${grouping}Id`], ids))
+			.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
+			.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
+			.where(inArrayWrapped(associatedInfoTable[`${grouping}Id`], ids))
 			.orderBy(desc(fileTable.createdAt));
 
 		const groupedItems = items.reduce(
@@ -211,15 +210,7 @@ export const fileActions = {
 
 		return groupedItems;
 	},
-	addFilesToSingleItem: async <T extends { id: string }>({
-		db,
-		item,
-		grouping
-	}: {
-		db: DBType;
-		item: T;
-		grouping: GroupingOptions;
-	}) => {
+	addToSingleItem: async ({ db, item, grouping }) => {
 		const ids = [item.id];
 		const groupedFiles = await fileActions.listGrouped({
 			db,
@@ -232,15 +223,7 @@ export const fileActions = {
 			files: groupedFiles[item.id] || []
 		};
 	},
-	addFilesToItems: async <T extends { id: string }>({
-		db,
-		data,
-		grouping
-	}: {
-		db: DBType;
-		data: { count: number; data: T[]; page: number; pageSize: number; pageCount: number };
-		grouping: GroupingOptions;
-	}) => {
+	addToItems: async ({ db, data, grouping }) => {
 		const ids = data.data.map((a) => a.id);
 		const groupedFiles = await fileActions.listGrouped({
 			db,
@@ -259,39 +242,14 @@ export const fileActions = {
 			})
 		};
 	},
-	create: async ({
-		db,
-		file,
-		creationUserId
-	}: {
-		db: DBType;
-		file: CreateFileSchemaType;
-		creationUserId: string;
-	}) => {
-		const result = createFileSchema.safeParse(file);
+	addToInfo: async ({ db, data, associatedId }) => {
+		const fileId = nanoid();
 
-		if (!result.success) {
-			throw new Error('Invalid input');
-		}
-
-		const id = nanoid();
-		const linked = Boolean(
-			result.data.accountId ||
-				result.data.billId ||
-				result.data.budgetId ||
-				result.data.categoryId ||
-				result.data.tagId ||
-				result.data.labelId ||
-				result.data.autoImportId ||
-				result.data.reportId ||
-				result.data.reportElementId
-		);
-
-		const { file: fileData, ...restData } = result.data;
+		const { file: fileData, reason, title, ...restData } = data;
 
 		const originalFilename = fileData.name;
-		const filename = `${id}-${originalFilename}`;
-		const thumbnailFilename = `${id}-thumbnail-${originalFilename}`;
+		const filename = `${fileId}-${originalFilename}`;
+		const thumbnailFilename = `${fileId}-thumbnail-${originalFilename}`;
 		const size = fileData.size;
 
 		const fileIsPDF = fileData.type === 'application/pdf';
@@ -331,96 +289,187 @@ export const fileActions = {
 			await fileFileHandler.write(thumbnailFilename, thumbnail);
 		}
 
-		const title = restData.title || originalFilename;
+		const titleUse = title || originalFilename;
 
 		type InsertFile = typeof fileTable.$inferInsert;
 		const createData: InsertFile = {
 			...restData,
-			id,
-			createdById: creationUserId,
+			id: fileId,
+			associatedInfoId: associatedId,
 			originalFilename,
 			filename,
 			thumbnailFilename: fileIsImage ? thumbnailFilename : null,
-			title,
+			title: titleUse,
 			size,
 			type,
 			fileExists: true,
-			linked,
+			reason,
 			...updatedTime()
 		};
 
 		await dbExecuteLogger(db.insert(fileTable).values(createData), 'File - Create');
+	},
+	create: async ({ db, data, creationUserId }) => {
+		const result = createFileSchema.safeParse(data);
+
+		if (!result.success) {
+			throw new Error('Invalid input');
+		}
+
+		const { file, title, reason, ...links } = data;
+
+		await associatedInfoActions.create({
+			db,
+			item: {
+				...links,
+				files: [{ file, title, reason }]
+			},
+			userId: creationUserId
+		});
+
+		// const fileId = nanoid();
+		// const associatedId = nanoid();
+		// const linked = Boolean(
+		// 	result.data.accountId ||
+		// 		result.data.billId ||
+		// 		result.data.budgetId ||
+		// 		result.data.categoryId ||
+		// 		result.data.tagId ||
+		// 		result.data.labelId ||
+		// 		result.data.autoImportId ||
+		// 		result.data.reportId ||
+		// 		result.data.reportElementId
+		// );
+
+		// const { file: fileData, reason, title, ...restData } = result.data;
+
+		// const originalFilename = fileData.name;
+		// const filename = `${fileId}-${originalFilename}`;
+		// const thumbnailFilename = `${fileId}-thumbnail-${originalFilename}`;
+		// const size = fileData.size;
+
+		// const fileIsPDF = fileData.type === 'application/pdf';
+		// const fileIsJPG = fileData.type === 'image/jpeg';
+		// const fileIsPNG = fileData.type === 'image/png';
+		// const fileIsWEBP = fileData.type === 'image/webp';
+		// const fileIsGIF = fileData.type === 'image/gif';
+		// const fileIsTIFF = fileData.type === 'image/tiff';
+		// const fileIsAVIF = fileData.type === 'image/avif';
+		// const fileIsSVG = fileData.type === 'image/svg+xml';
+		// const fileIsImage =
+		// 	fileIsJPG || fileIsPNG || fileIsWEBP || fileIsGIF || fileIsTIFF || fileIsAVIF || fileIsSVG;
+		// const type: FileTypeType = fileIsPDF
+		// 	? 'pdf'
+		// 	: fileIsJPG
+		// 		? 'jpg'
+		// 		: fileIsPNG
+		// 			? 'png'
+		// 			: fileIsWEBP
+		// 				? 'webp'
+		// 				: fileIsGIF
+		// 					? 'gif'
+		// 					: fileIsTIFF
+		// 						? 'tiff'
+		// 						: fileIsAVIF
+		// 							? 'avif'
+		// 							: fileIsSVG
+		// 								? 'svg'
+		// 								: 'other';
+
+		// const fileContents = Buffer.from(await fileData.arrayBuffer());
+
+		// const thumbnail = fileIsImage ? await sharp(fileContents).resize(400).toBuffer() : undefined;
+
+		// await fileFileHandler.write(filename, fileContents);
+		// if (thumbnail) {
+		// 	await fileFileHandler.write(thumbnailFilename, thumbnail);
+		// }
+
+		// const titleUse = title || originalFilename;
+
+		// type InsertFile = typeof fileTable.$inferInsert;
+		// const createData: InsertFile = {
+		// 	...restData,
+		// 	id: fileId,
+		// 	associatedInfoId: associatedId,
+		// 	originalFilename,
+		// 	filename,
+		// 	thumbnailFilename: fileIsImage ? thumbnailFilename : null,
+		// 	title: titleUse,
+		// 	size,
+		// 	type,
+		// 	fileExists: true,
+		// 	reason,
+		// 	...updatedTime()
+		// };
+
+		// type InsertAssociatedInfo = typeof associatedInfoTable.$inferInsert;
+		// const associatedInfoData: InsertAssociatedInfo = {
+		// 	id: associatedId,
+		// 	createdById: creationUserId,
+		// 	...updatedTime(),
+		// 	...restData,
+		// 	linked,
+		// 	title: titleUse
+		// };
+
+		// //Insert the file and associated info in a transaction to ensure atomicity
+		// await db.transaction(async (tx) => {
+		// 	await dbExecuteLogger(
+		// 		tx.insert(associatedInfoTable).values(associatedInfoData),
+		// 		'File - Create Associated Info'
+		// 	);
+		// 	await dbExecuteLogger(tx.insert(fileTable).values(createData), 'File - Create');
+		// });
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	updateLinked: async ({ db }: { db: DBType }) => {
-		await dbExecuteLogger(
-			db
-				.update(fileTable)
-				.set({ linked: false })
-				.where(
-					and(
-						eq(fileTable.linked, true),
-						...fileRelationshipKeys.map((key) =>
-							isNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
-						)
-					)
-				),
-			'File - Update Linked - False'
-		);
-
-		await dbExecuteLogger(
-			db
-				.update(fileTable)
-				.set({ linked: true })
-				.where(
-					and(
-						eq(fileTable.linked, false),
-						or(
-							...fileRelationshipKeys.map((key) =>
-								isNotNull(fileTable[key as unknown as KeysOfCreateFileNoteRelationshipSchemaType])
-							)
-						)
-					)
-				),
-			'File - Update Linked - True'
-		);
-
-		await materializedViewActions.setRefreshRequired(db);
+	updateLinked: async ({ db }) => {
+		await associatedInfoActions.updateLinked({ db });
 	},
-	updateMany: async ({
-		db,
-		filter,
-		update
-	}: {
-		db: DBType;
-		filter: FileFilterSchemaWithoutPaginationType;
-		update: UpdateFileSchemaType;
-	}) => {
-		const { id, ...restUpdate } = update;
-		const where = fileFilterToQuery(filter);
+	updateMany: async ({ db, filter, update }) => {
+		const { id, title, reason, ...restUpdate } = update;
 
-		await dbExecuteLogger(
-			db
-				.update(fileTable)
-				.set({
-					...restUpdate,
-					...updatedTime()
-				})
-				.where(and(...where)),
-			'File - Update Many'
-		);
+		const targetItems = await fileActions.listWithoutPagination({
+			db,
+			filter
+		});
+
+		if (targetItems.length === 0) {
+			return;
+		}
+
+		const targetFileIds = targetItems.map((a) => a.id);
+		const targetAssociatedIds = targetItems.map((a) => a.associatedInfoId);
+
+		await db.transaction(async (tx) => {
+			await dbExecuteLogger(
+				tx
+					.update(fileTable)
+					.set({
+						...restUpdate,
+						...updatedTime()
+					})
+					.where(inArrayWrapped(fileTable.id, targetFileIds)),
+				'File - Update Many - File'
+			);
+
+			await dbExecuteLogger(
+				tx
+					.update(associatedInfoTable)
+					.set({
+						...restUpdate,
+						...updatedTime()
+					})
+					.where(inArrayWrapped(associatedInfoTable.id, targetAssociatedIds)),
+				'File - Update Many - Associated Info'
+			);
+		});
 
 		await fileActions.updateLinked({ db });
 
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	deleteMany: async ({
-		db,
-		filter
-	}: {
-		db: DBType;
-		filter: FileFilterSchemaWithoutPaginationType;
-	}) => {
+	deleteMany: async ({ db, filter }) => {
 		const files = await fileActions.listWithoutPagination({ db, filter });
 
 		await Promise.all(
@@ -436,9 +485,10 @@ export const fileActions = {
 			})
 		);
 
+		await associatedInfoActions.removeUnnecessary({ db });
 		await materializedViewActions.setRefreshRequired(db);
 	},
-	getFile: async ({ db, id }: { db: DBType; id: string }) => {
+	getFile: async ({ db, id }) => {
 		const file = await dbExecuteLogger(
 			db.select().from(fileTable).where(eq(fileTable.id, id)),
 			'File - Get File'
@@ -455,7 +505,7 @@ export const fileActions = {
 			info: file[0]
 		};
 	},
-	getThumbnail: async ({ db, id }: { db: DBType; id: string }) => {
+	getThumbnail: async ({ db, id }) => {
 		const file = await dbExecuteLogger(
 			db.select().from(fileTable).where(eq(fileTable.id, id)),
 			'File - Get Thumbnail'
@@ -478,13 +528,7 @@ export const fileActions = {
 			info: file[0]
 		};
 	},
-	getLinkedText: async ({
-		db,
-		items
-	}: {
-		db: DBType;
-		items: CreateFileNoteRelationshipSchemaType;
-	}) => {
+	getLinkedText: async ({ db, items }) => {
 		const accountTitle = items.accountId
 			? await tActions.account.getById(db, items.accountId)
 			: undefined;
@@ -523,7 +567,10 @@ export const fileActions = {
 				: undefined,
 			reportTitle: reportTitle ? { description: 'Report', title: reportTitle.title } : undefined,
 			reportElementTitle: reportElementTitle
-				? { description: 'Report Element', title: reportElementTitle.title }
+				? {
+						description: 'Report Element',
+						title: reportElementTitle.title || 'Untitled Report Element'
+					}
 				: undefined
 		};
 
@@ -538,7 +585,7 @@ export const fileActions = {
 			).join(', ')
 		};
 	},
-	checkFilesExist: async ({ db }: { db: DBType }) => {
+	checkFilesExist: async ({ db }) => {
 		const dbFiles = await dbExecuteLogger(
 			db
 				.select({
@@ -592,4 +639,16 @@ export const fileActions = {
 	}
 };
 
-export type GroupedFilesType = Awaited<ReturnType<typeof fileActions.listGrouped>>[string];
+export type GroupedFilesType = {
+	id: string;
+	title: string | null;
+	type: FileTypeType;
+	filename: string;
+	originalFilename: string;
+	thumbnailFilename: string | null;
+	createdAt: Date;
+	updatedAt: Date;
+	createdById: string | null;
+	createdBy: string | null;
+	groupingId: string | null;
+}[];

@@ -4,12 +4,10 @@ import type {
 	UpdateBillSchemaType
 } from '$lib/schema/billSchema';
 import { nanoid } from 'nanoid';
-import type { DBType } from '../db';
-import { bill } from '../postgres/schema';
+import { bill, type BillTableType, type BillViewReturnType } from '../postgres/schema';
 import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
-import type { IdSchemaType } from '$lib/schema/idSchema';
 import { logging } from '$lib/server/logging';
 import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData';
 import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
@@ -17,24 +15,41 @@ import { createBill } from './helpers/seed/seedBillData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
 import { streamingDelay, testingDelay } from '$lib/server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
-import type { StatusEnumType } from '$lib/schema/statusSchema';
 import { materializedViewActions } from './materializedViewActions';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '../dbLogger';
 import { getCorrectBillTable } from './helpers/bill/getCorrectBillTable';
+import type { ItemActionsType } from './helpers/misc/ItemActionsType';
+import Papa from 'papaparse';
 
-export const billActions = {
-	latestUpdate: async ({ db }: { db: DBType }) => {
+export type BillDropdownType = {
+	id: string;
+	title: string;
+	enabled: boolean;
+}[];
+
+type BillActionsType = ItemActionsType<
+	BillTableType,
+	BillViewReturnType,
+	BillFilterSchemaType,
+	CreateBillSchemaType,
+	UpdateBillSchemaType,
+	BillDropdownType,
+	number
+>;
+
+export const billActions: BillActionsType = {
+	latestUpdate: async ({ db }) => {
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(bill.updatedAt) }).from(bill),
 			'Bill - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db: DBType, id: string) => {
+	getById: async (db, id) => {
 		return dbExecuteLogger(db.query.bill.findFirst({ where: eq(bill.id, id) }), 'Bill - Get By Id');
 	},
-	count: async (db: DBType, filter?: BillFilterSchemaType) => {
+	count: async (db, filter) => {
 		const { table, target } = await getCorrectBillTable(db);
 		const count = await dbExecuteLogger(
 			db
@@ -46,7 +61,7 @@ export const billActions = {
 
 		return count[0].count;
 	},
-	listWithTransactionCount: async (db: DBType) => {
+	listWithTransactionCount: async (db) => {
 		const { table } = await getCorrectBillTable(db);
 		const items = dbExecuteLogger(
 			db.select({ id: table.id, journalCount: table.count }).from(table),
@@ -55,7 +70,7 @@ export const billActions = {
 
 		return items;
 	},
-	list: async ({ db, filter }: { db: DBType; filter: BillFilterSchemaType }) => {
+	list: async ({ db, filter }) => {
 		const { table, target } = await getCorrectBillTable(db);
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
@@ -98,7 +113,34 @@ export const billActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	listForDropdown: async ({ db }: { db: DBType }) => {
+	generateCSVData: async ({ db, filter, returnType }) => {
+		const data = await billActions.list({
+			db,
+			filter: { ...filter, page: 0, pageSize: 100000 }
+		});
+
+		const preppedData = data.data.map((item, row) => {
+			if (returnType === 'import') {
+				return {
+					title: item.title,
+					status: item.status
+				} satisfies CreateBillSchemaType;
+			}
+			return {
+				row,
+				id: item.id,
+				title: item.title,
+				status: item.status,
+				sum: item.sum,
+				count: item.count
+			};
+		});
+
+		const csvData = Papa.unparse(preppedData);
+
+		return csvData;
+	},
+	listForDropdown: async ({ db }) => {
 		await testingDelay();
 		await streamingDelay();
 		const items = dbExecuteLogger(
@@ -108,25 +150,16 @@ export const billActions = {
 
 		return items;
 	},
-	createOrGet: async ({
-		db,
-		title,
-		id,
-		requireActive = true,
-		cachedData
-	}: {
-		db: DBType;
-		title?: string | null;
-		id?: string | null;
-		requireActive?: boolean;
-		cachedData?: { id: string; title: string; status: StatusEnumType }[];
-	}) => {
+	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
 		await materializedViewActions.setRefreshRequired(db);
 		if (id) {
 			const currentBill = cachedData
 				? cachedData.find((item) => item.id === id)
 				: await dbExecuteLogger(
-						db.query.bill.findFirst({ where: eq(bill.id, id) }),
+						db.query.bill.findFirst({
+							where: eq(bill.id, id),
+							columns: { id: true, title: true, status: true }
+						}),
 						'Bill - Create Or Get - By Id'
 					);
 
@@ -141,7 +174,10 @@ export const billActions = {
 			const currentBill = cachedData
 				? cachedData.find((item) => item.title === title)
 				: await dbExecuteLogger(
-						db.query.bill.findFirst({ where: eq(bill.title, title) }),
+						db.query.bill.findFirst({
+							where: eq(bill.title, title),
+							columns: { id: true, title: true, status: true }
+						}),
 						'Bill - Create Or Get - By Title'
 					);
 			if (currentBill) {
@@ -166,7 +202,7 @@ export const billActions = {
 			return undefined;
 		}
 	},
-	create: async (db: DBType, data: CreateBillSchemaType) => {
+	create: async (db, data) => {
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(bill).values(billCreateInsertionData(data, id)),
@@ -176,7 +212,7 @@ export const billActions = {
 		await materializedViewActions.setRefreshRequired(db);
 		return id;
 	},
-	createMany: async (db: DBType, data: CreateBillSchemaType[]) => {
+	createMany: async (db, data) => {
 		const ids = data.map(() => nanoid());
 		const insertData = data.map((currentData, index) =>
 			billCreateInsertionData(currentData, ids[index])
@@ -186,8 +222,7 @@ export const billActions = {
 		await materializedViewActions.setRefreshRequired(db);
 		return ids;
 	},
-	update: async (db: DBType, data: UpdateBillSchemaType) => {
-		const { id } = data;
+	update: async ({ db, data, id }) => {
 		const currentBill = await dbExecuteLogger(
 			db.query.bill.findFirst({ where: eq(bill.id, id) }),
 			'Bill - Update - Get Current'
@@ -214,14 +249,14 @@ export const billActions = {
 		return id;
 	},
 
-	canDeleteMany: async (db: DBType, ids: string[]) => {
+	canDeleteMany: async (db, ids) => {
 		const canDeleteList = await Promise.all(
 			ids.map(async (id) => billActions.canDelete(db, { id }))
 		);
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db: DBType, data: IdSchemaType) => {
+	canDelete: async (db, data) => {
 		const currentBill = await dbExecuteLogger(
 			db.query.bill.findFirst({ where: eq(bill.id, data.id), with: { journals: { limit: 1 } } }),
 			'Bill - Can Delete - Get Current'
@@ -232,7 +267,7 @@ export const billActions = {
 
 		return currentBill && currentBill.journals.length === 0;
 	},
-	delete: async (db: DBType, data: IdSchemaType) => {
+	delete: async (db, data) => {
 		if (await billActions.canDelete(db, data)) {
 			await dbExecuteLogger(db.delete(bill).where(eq(bill.id, data.id)), 'Bill - Delete');
 			await materializedViewActions.setRefreshRequired(db);
@@ -240,7 +275,7 @@ export const billActions = {
 
 		return data.id;
 	},
-	deleteMany: async (db: DBType, data: IdSchemaType[]) => {
+	deleteMany: async (db, data) => {
 		if (data.length === 0) return;
 		const currentBills = await billActions.listWithTransactionCount(db);
 		const itemsForDeletion = data.filter((item) => {
@@ -262,7 +297,7 @@ export const billActions = {
 		}
 		return false;
 	},
-	seed: async (db: DBType, count: number) => {
+	seed: async (db, count) => {
 		logging.info('Seeding Bills : ', count);
 
 		const existingTitles = (
@@ -281,5 +316,3 @@ export const billActions = {
 		await billActions.createMany(db, itemsToCreate);
 	}
 };
-
-export type BillDropdownType = Awaited<ReturnType<typeof billActions.listForDropdown>>;

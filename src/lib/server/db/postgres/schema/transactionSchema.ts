@@ -35,6 +35,7 @@ import type { CombinedBackupSchemaInfoType } from '$lib/server/backups/backupSch
 import { noteTypeEnum } from '../../../../schema/enum/noteTypeEnum';
 import { fileReasonEnum } from '../../../../schema/enum/fileReasonEnum';
 import { fileTypeEnum } from '../../../../schema/enum/fileTypeEnum';
+import { user } from './userSchema';
 
 const moneyType = customType<{ data: number }>({
 	dataType() {
@@ -102,6 +103,8 @@ export const account = pgTable(
 	})
 );
 
+export type AccountTableType = typeof account.$inferSelect;
+
 export const accountRelations = relations(account, ({ many, one }) => ({
 	journals: many(journalEntry),
 	importDetail: one(importItemDetail, {
@@ -133,6 +136,8 @@ export const tag = pgTable(
 		single: index('tag_single_idx').on(t.single)
 	})
 );
+
+export type TagTableType = typeof tag.$inferSelect;
 
 export const tagRelations = relations(tag, ({ many, one }) => ({
 	journals: many(journalEntry),
@@ -166,6 +171,8 @@ export const category = pgTable(
 	})
 );
 
+export type CategoryTableType = typeof category.$inferSelect;
+
 export const categoryRelations = relations(category, ({ many, one }) => ({
 	journals: many(journalEntry),
 	importDetail: one(importItemDetail, {
@@ -193,6 +200,8 @@ export const bill = pgTable(
 		title: index('bill_title_idx').on(t.title)
 	})
 );
+
+export type BillTableType = typeof bill.$inferSelect;
 
 export const billRelations = relations(bill, ({ many, one }) => ({
 	journals: many(journalEntry),
@@ -222,6 +231,8 @@ export const budget = pgTable(
 	})
 );
 
+export type BudgetTableType = typeof budget.$inferSelect;
+
 export const budgetRelations = relations(budget, ({ many, one }) => ({
 	journals: many(journalEntry),
 	importDetail: one(importItemDetail, {
@@ -243,6 +254,8 @@ export const label = pgTable('label', {
 	...statusColumns,
 	...timestampColumns
 });
+
+export type LabelTableType = typeof label.$inferSelect;
 
 export const labelRelations = relations(label, ({ many, one }) => ({
 	journals: many(labelsToJournals),
@@ -311,6 +324,8 @@ export const transaction = pgTable('transaction', {
 	...timestampColumns
 });
 
+export type TransactionTableType = typeof transaction.$inferSelect;
+
 export const transactionRelations = relations(transaction, ({ many }) => ({
 	journals: many(journalEntry),
 	files: many(fileTable),
@@ -350,6 +365,8 @@ export const journalEntry = pgTable(
 	})
 );
 
+export type JournalTableType = typeof journalEntry.$inferSelect;
+
 export const journalEntryRelations = relations(journalEntry, ({ one, many }) => ({
 	transaction: one(transaction, {
 		fields: [journalEntry.transactionId],
@@ -386,20 +403,15 @@ export const journalEntryRelations = relations(journalEntry, ({ one, many }) => 
 	labels: many(labelsToJournals)
 }));
 
-export const fileTable = pgTable(
-	'files',
+export const associatedInfoTable = pgTable(
+	'associated_info',
 	{
 		...idColumn,
 		...timestampColumns,
-		title: text('title'),
 		createdById: text('created_by').notNull(),
-		reason: text('reason', { enum: fileReasonEnum }).notNull(),
-		originalFilename: text('original_filename').notNull(),
-		filename: text('filename').notNull(),
-		thumbnailFilename: text('thumbnail_filename'),
-		type: text('type', { enum: fileTypeEnum }).notNull(),
-		size: integer('size').notNull(),
-		fileExists: boolean('file_exists').notNull(),
+		title: text('title'),
+
+		//Linked Information
 		linked: boolean('linked').notNull(),
 		transactionId: text('transaction_id'),
 		accountId: text('account_id'),
@@ -413,67 +425,170 @@ export const fileTable = pgTable(
 		reportElementId: text('report_element_id')
 	},
 	(t) => ({
+		createdByIdx: index('associated_info_created_by_idx').on(t.createdById),
+		transactionIdx: index('associated_info_transaction_idx').on(t.transactionId),
+		accountIdx: index('associated_info_account_idx').on(t.accountId),
+		billIdx: index('associated_info_bill_idx').on(t.billId),
+		budgetIdx: index('associated_info_budget_idx').on(t.budgetId),
+		categoryIdx: index('associated_info_category_idx').on(t.categoryId),
+		tagIdx: index('associated_info_tag_idx').on(t.tagId),
+		labelIdx: index('associated_info_label_idx').on(t.labelId),
+		autoImportIdx: index('associated_info_auto_import_idx').on(t.autoImportId),
+		reportIdx: index('associated_info_report_idx').on(t.reportId),
+		reportElementIdx: index('associated_info_report_element_idx').on(t.reportElementId)
+	})
+);
+
+export const associatedInfoTableRelations = relations(associatedInfoTable, ({ one, many }) => ({
+	transaction: one(transaction, {
+		fields: [associatedInfoTable.transactionId],
+		references: [transaction.id]
+	}),
+	account: one(account, {
+		fields: [associatedInfoTable.accountId],
+		references: [account.id]
+	}),
+	bill: one(bill, {
+		fields: [associatedInfoTable.billId],
+		references: [bill.id]
+	}),
+	budget: one(budget, {
+		fields: [associatedInfoTable.budgetId],
+		references: [budget.id]
+	}),
+	category: one(category, {
+		fields: [associatedInfoTable.categoryId],
+		references: [category.id]
+	}),
+	tag: one(tag, {
+		fields: [associatedInfoTable.tagId],
+		references: [tag.id]
+	}),
+	label: one(label, {
+		fields: [associatedInfoTable.labelId],
+		references: [label.id]
+	}),
+	autoImport: one(autoImportTable, {
+		fields: [associatedInfoTable.autoImportId],
+		references: [autoImportTable.id]
+	}),
+	report: one(report, {
+		fields: [associatedInfoTable.reportId],
+		references: [report.id]
+	}),
+	reportElement: one(reportElement, {
+		fields: [associatedInfoTable.reportElementId],
+		references: [reportElement.id]
+	}),
+	notes: many(notesTable),
+	files: many(fileTable),
+	journalSnapshots: many(journalSnapshotTable),
+	user: one(user, {
+		fields: [associatedInfoTable.createdById],
+		references: [user.id]
+	})
+}));
+
+export const fileTable = pgTable(
+	'files',
+	{
+		...idColumn,
+		...timestampColumns,
+		title: text('title'),
+		associatedInfoId: text('associated_info_id').notNull(),
+		// createdById: text('created_by').notNull(),
+		reason: text('reason', { enum: fileReasonEnum }).notNull(),
+		originalFilename: text('original_filename').notNull(),
+		filename: text('filename').notNull(),
+		thumbnailFilename: text('thumbnail_filename'),
+		type: text('type', { enum: fileTypeEnum }).notNull(),
+		size: integer('size').notNull(),
+		fileExists: boolean('file_exists').notNull()
+
+		//Hide From Here
+		// linked: boolean('linked').notNull(),
+		// transactionId: text('transaction_id'),
+		// accountId: text('account_id'),
+		// billId: text('bill_id'),
+		// budgetId: text('budget_id'),
+		// categoryId: text('category_id'),
+		// tagId: text('tag_id'),
+		// labelId: text('label_id'),
+		// autoImportId: text('auto_import_id'),
+		// reportId: text('report_id'),
+		// reportElementId: text('report_element_id')
+	},
+	(t) => ({
+		associatedInfoIdx: index('file_associated_info_idx').on(t.associatedInfoId),
 		reasonIdx: index('file_reason_idx').on(t.reason),
 		titleIdx: index('file_title_idx').on(t.title),
 		filenameIdx: index('file_filename_idx').on(t.filename),
 		typeIdx: index('file_type_idx').on(t.type),
 		sizeIdx: index('file_size_idx').on(t.size),
-		fileExistsIdx: index('file_file_exists_idx').on(t.fileExists),
-		transactionIdx: index('file_transaction_idx').on(t.transactionId),
-		accountIdx: index('file_account_idx').on(t.accountId),
-		billIdx: index('file_bill_idx').on(t.billId),
-		budgetIdx: index('file_budget_idx').on(t.budgetId),
-		categoryIdx: index('file_category_idx').on(t.categoryId),
-		tagIdx: index('file_tag_idx').on(t.tagId),
-		labelIdx: index('file_label_idx').on(t.labelId),
-		autoImportIdx: index('file_auto_import_idx').on(t.autoImportId),
-		reportIdx: index('file_report_idx').on(t.reportId),
-		reportElementIdx: index('file_report_element_idx').on(t.reportElementId)
+		fileExistsIdx: index('file_file_exists_idx').on(t.fileExists)
+
+		//Hide From Here
+		// transactionIdx: index('file_transaction_idx').on(t.transactionId),
+		// accountIdx: index('file_account_idx').on(t.accountId),
+		// billIdx: index('file_bill_idx').on(t.billId),
+		// budgetIdx: index('file_budget_idx').on(t.budgetId),
+		// categoryIdx: index('file_category_idx').on(t.categoryId),
+		// tagIdx: index('file_tag_idx').on(t.tagId),
+		// labelIdx: index('file_label_idx').on(t.labelId),
+		// autoImportIdx: index('file_auto_import_idx').on(t.autoImportId),
+		// reportIdx: index('file_report_idx').on(t.reportId),
+		// reportElementIdx: index('file_report_element_idx').on(t.reportElementId)
 	})
 );
 
+export type FileTableType = typeof fileTable.$inferSelect;
+
 export const fileTableRelations = relations(fileTable, ({ one, many }) => ({
-	transaction: one(transaction, {
-		fields: [fileTable.transactionId],
-		references: [transaction.id]
-	}),
-	account: one(account, {
-		fields: [fileTable.accountId],
-		references: [account.id]
-	}),
-	bill: one(bill, {
-		fields: [fileTable.billId],
-		references: [bill.id]
-	}),
-	budget: one(budget, {
-		fields: [fileTable.budgetId],
-		references: [budget.id]
-	}),
-	category: one(category, {
-		fields: [fileTable.categoryId],
-		references: [category.id]
-	}),
-	tag: one(tag, {
-		fields: [fileTable.tagId],
-		references: [tag.id]
-	}),
-	label: one(label, {
-		fields: [fileTable.labelId],
-		references: [label.id]
-	}),
-	autoImport: one(autoImportTable, {
-		fields: [fileTable.autoImportId],
-		references: [autoImportTable.id]
-	}),
-	report: one(report, {
-		fields: [fileTable.reportId],
-		references: [report.id]
-	}),
-	reportElement: one(reportElement, {
-		fields: [fileTable.reportElementId],
-		references: [reportElement.id]
-	}),
-	notes: many(notesTable)
+	associatedInfo: one(associatedInfoTable, {
+		fields: [fileTable.associatedInfoId],
+		references: [associatedInfoTable.id]
+	})
+	// transaction: one(transaction, {
+	// 	fields: [fileTable.transactionId],
+	// 	references: [transaction.id]
+	// }),
+	// account: one(account, {
+	// 	fields: [fileTable.accountId],
+	// 	references: [account.id]
+	// }),
+	// bill: one(bill, {
+	// 	fields: [fileTable.billId],
+	// 	references: [bill.id]
+	// }),
+	// budget: one(budget, {
+	// 	fields: [fileTable.budgetId],
+	// 	references: [budget.id]
+	// }),
+	// category: one(category, {
+	// 	fields: [fileTable.categoryId],
+	// 	references: [category.id]
+	// }),
+	// tag: one(tag, {
+	// 	fields: [fileTable.tagId],
+	// 	references: [tag.id]
+	// }),
+	// label: one(label, {
+	// 	fields: [fileTable.labelId],
+	// 	references: [label.id]
+	// }),
+	// autoImport: one(autoImportTable, {
+	// 	fields: [fileTable.autoImportId],
+	// 	references: [autoImportTable.id]
+	// }),
+	// report: one(report, {
+	// 	fields: [fileTable.reportId],
+	// 	references: [report.id]
+	// }),
+	// reportElement: one(reportElement, {
+	// 	fields: [fileTable.reportElementId],
+	// 	references: [reportElement.id]
+	// }),
+	// notes: many(notesTable)
 }));
 
 export const notesTable = pgTable(
@@ -483,81 +598,129 @@ export const notesTable = pgTable(
 		...timestampColumns,
 		note: text('note').notNull(),
 		type: text('type', { enum: noteTypeEnum }).notNull().default('info'),
-		createdById: text('created_by').notNull(),
-		transactionId: text('transaction_id'),
-		accountId: text('account_id'),
-		billId: text('bill_id'),
-		budgetId: text('budget_id'),
-		categoryId: text('category_id'),
-		tagId: text('tag_id'),
-		labelId: text('label_id'),
-		fileId: text('file_id'),
-		autoImportId: text('auto_import_id'),
-		reportId: text('report_id'),
-		reportElementId: text('report_element_id')
+		associatedInfoId: text('associated_info_id').notNull()
+
+		//Hide From Here
+		// createdById: text('created_by').notNull(),
+		// transactionId: text('transaction_id'),
+		// accountId: text('account_id'),
+		// billId: text('bill_id'),
+		// budgetId: text('budget_id'),
+		// categoryId: text('category_id'),
+		// tagId: text('tag_id'),
+		// labelId: text('label_id'),
+		// fileId: text('file_id'),
+		// autoImportId: text('auto_import_id'),
+		// reportId: text('report_id'),
+		// reportElementId: text('report_element_id')
 	},
 	(t) => ({
 		noteIdx: index('note_note_idx').on(t.note),
 		typeIdx: index('note_type_idx').on(t.type),
-		transactionIdx: index('note_transaction_idx').on(t.transactionId),
-		accountIdx: index('note_account_idx').on(t.accountId),
-		billIdx: index('note_bill_idx').on(t.billId),
-		budgetIdx: index('note_budget_idx').on(t.budgetId),
-		categoryIdx: index('note_category_idx').on(t.categoryId),
-		tagIdx: index('note_tag_idx').on(t.tagId),
-		labelIdx: index('note_label_idx').on(t.labelId),
-		createdByIdx: index('note_created_by_idx').on(t.createdById),
-		fileIdx: index('note_file_idx').on(t.fileId),
-		autoImportIdx: index('note_auto_import_idx').on(t.autoImportId),
-		reportIdx: index('note_report_idx').on(t.reportId),
-		reportElementIdx: index('note_report_element_idx').on(t.reportElementId)
+		associatedInfoIdx: index('note_associated_info_idx').on(t.associatedInfoId)
+
+		//Hide From Here
+		// transactionIdx: index('note_transaction_idx').on(t.transactionId),
+		// accountIdx: index('note_account_idx').on(t.accountId),
+		// billIdx: index('note_bill_idx').on(t.billId),
+		// budgetIdx: index('note_budget_idx').on(t.budgetId),
+		// categoryIdx: index('note_category_idx').on(t.categoryId),
+		// tagIdx: index('note_tag_idx').on(t.tagId),
+		// labelIdx: index('note_label_idx').on(t.labelId),
+		// createdByIdx: index('note_created_by_idx').on(t.createdById),
+		// fileIdx: index('note_file_idx').on(t.fileId),
+		// autoImportIdx: index('note_auto_import_idx').on(t.autoImportId),
+		// reportIdx: index('note_report_idx').on(t.reportId),
+		// reportElementIdx: index('note_report_element_idx').on(t.reportElementId)
 	})
 );
 
+export type NotesTableType = typeof notesTable.$inferSelect;
+
 export const notesTableRelations = relations(notesTable, ({ one }) => ({
-	transaction: one(transaction, {
-		fields: [notesTable.transactionId],
-		references: [transaction.id]
-	}),
-	account: one(account, {
-		fields: [notesTable.accountId],
-		references: [account.id]
-	}),
-	bill: one(bill, {
-		fields: [notesTable.billId],
-		references: [bill.id]
-	}),
-	budget: one(budget, {
-		fields: [notesTable.budgetId],
-		references: [budget.id]
-	}),
-	category: one(category, {
-		fields: [notesTable.categoryId],
-		references: [category.id]
-	}),
-	tag: one(tag, {
-		fields: [notesTable.tagId],
-		references: [tag.id]
-	}),
-	label: one(label, {
-		fields: [notesTable.labelId],
-		references: [label.id]
-	}),
-	file: one(fileTable, {
-		fields: [notesTable.fileId],
-		references: [fileTable.id]
-	}),
-	autoImport: one(autoImportTable, {
-		fields: [notesTable.autoImportId],
-		references: [autoImportTable.id]
-	}),
-	report: one(report, {
-		fields: [notesTable.reportId],
-		references: [report.id]
-	}),
-	reportElement: one(reportElement, {
-		fields: [notesTable.reportElementId],
-		references: [reportElement.id]
+	associatedInfo: one(associatedInfoTable, {
+		fields: [notesTable.associatedInfoId],
+		references: [associatedInfoTable.id]
+	})
+	// transaction: one(transaction, {
+	// 	fields: [notesTable.transactionId],
+	// 	references: [transaction.id]
+	// }),
+	// account: one(account, {
+	// 	fields: [notesTable.accountId],
+	// 	references: [account.id]
+	// }),
+	// bill: one(bill, {
+	// 	fields: [notesTable.billId],
+	// 	references: [bill.id]
+	// }),
+	// budget: one(budget, {
+	// 	fields: [notesTable.budgetId],
+	// 	references: [budget.id]
+	// }),
+	// category: one(category, {
+	// 	fields: [notesTable.categoryId],
+	// 	references: [category.id]
+	// }),
+	// tag: one(tag, {
+	// 	fields: [notesTable.tagId],
+	// 	references: [tag.id]
+	// }),
+	// label: one(label, {
+	// 	fields: [notesTable.labelId],
+	// 	references: [label.id]
+	// }),
+	// file: one(fileTable, {
+	// 	fields: [notesTable.fileId],
+	// 	references: [fileTable.id]
+	// }),
+	// autoImport: one(autoImportTable, {
+	// 	fields: [notesTable.autoImportId],
+	// 	references: [autoImportTable.id]
+	// }),
+	// report: one(report, {
+	// 	fields: [notesTable.reportId],
+	// 	references: [report.id]
+	// }),
+	// reportElement: one(reportElement, {
+	// 	fields: [notesTable.reportElementId],
+	// 	references: [reportElement.id]
+	// })
+}));
+
+export const journalSnapshotTable = pgTable(
+	'journal_snapshot',
+	{
+		...idColumn,
+		...timestampColumns,
+		associatedInfoId: text('associated_info_id').notNull(),
+
+		//Data To Store
+		count: integer('count').notNull(),
+		sum: moneyType('sum').notNull(),
+		average: moneyType('average').notNull(),
+		earliest: timestamp('earliest').notNull(),
+		latest: timestamp('latest').notNull(),
+		earliestText: text('earliestText').notNull(),
+		latestText: text('latestText').notNull(),
+		positiveSum: moneyType('positive_sum').notNull(),
+		positiveCount: integer('positive_count').notNull(),
+		negativeSum: moneyType('negative_sum').notNull(),
+		negativeCount: integer('negative_count').notNull(),
+		positiveSumNonTransfer: moneyType('positive_sum_non_transfer').notNull(),
+		positiveCountNonTransfer: integer('positive_count_non_transfer').notNull(),
+		negativeSumNonTransfer: moneyType('negative_sum_non_transfer').notNull(),
+		negativeCountNonTransfer: integer('negative_count_non_transfer').notNull()
+	},
+	(t) => ({
+		associatedInfoIdx: index('journal_snapshot_associated_info_idx').on(t.associatedInfoId)
+	})
+);
+
+export const journalSnapshotTableRelations = relations(journalSnapshotTable, ({ one }) => ({
+	associatedInfo: one(associatedInfoTable, {
+		fields: [journalSnapshotTable.associatedInfoId],
+		references: [associatedInfoTable.id]
 	})
 }));
 
@@ -598,6 +761,8 @@ export const importItemDetail = pgTable(
 		statusIdx: index('importDetail_status_idx').on(t.status)
 	})
 );
+
+export type ImportItemDetailTableType = typeof importItemDetail.$inferSelect;
 
 export const importItemDetailRelations = relations(importItemDetail, ({ one }) => ({
 	import: one(importTable, {
@@ -676,6 +841,8 @@ export const importTable = pgTable(
 	})
 );
 
+export type ImportTableType = typeof importTable.$inferSelect;
+
 export const importTableRelations = relations(importTable, ({ many, one }) => ({
 	importDetails: many(importItemDetail),
 	journals: many(journalEntry),
@@ -716,6 +883,8 @@ export const autoImportTable = pgTable(
 		typeIdx: index('auto_import_type_idx').on(t.type)
 	})
 );
+
+export type AutoImportTableType = typeof autoImportTable.$inferSelect;
 
 export const autoImportTableRelations = relations(autoImportTable, ({ one, many }) => ({
 	importMapping: one(importMapping, {
@@ -768,7 +937,7 @@ export const importMapping = pgTable('import_mapping', {
 	sampleData: text('sample_data')
 });
 
-export type ImportMappingType = typeof importMapping.$inferSelect;
+export type ImportMappingTableType = typeof importMapping.$inferSelect;
 
 export const importMappingRelations = relations(importMapping, ({ many }) => ({
 	imports: many(importTable)
@@ -786,6 +955,8 @@ export const filter = pgTable(
 		filterTextIdx: index('filter_filter_text_idx').on(t.filterText)
 	})
 );
+
+export type FilterTableType = typeof filter.$inferSelect;
 
 export const reportElementConfig = pgTable(
 	'report_element_config',
@@ -851,6 +1022,8 @@ export const report = pgTable(
 	})
 );
 
+export type ReportTableType = typeof report.$inferSelect;
+
 export const reportElement = pgTable(
 	'report_element',
 	{
@@ -874,6 +1047,8 @@ export const reportElement = pgTable(
 		filterIdx: index('report_element_filter_idx').on(t.filterId)
 	})
 );
+
+export type ReportElementTableType = typeof reportElement.$inferSelect;
 
 export const reportElementRelations = relations(reportElement, ({ one, many }) => ({
 	reportElementConfig: one(reportElementConfig, {
@@ -933,3 +1108,5 @@ export const backupTable = pgTable('backup_table', {
 	locked: boolean('locked').notNull().default(false),
 	information: jsonb('information').$type<CombinedBackupSchemaInfoType>().notNull()
 });
+
+export type BackupTableType = typeof backupTable.$inferSelect;

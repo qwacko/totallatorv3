@@ -3,6 +3,7 @@ import { serverPageInfo } from '$lib/routes.js';
 import { billFilterToText } from '$lib/server/db/actions/helpers/bill/billFilterToQuery.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { fileFormActions } from '$lib/server/fileFormActions';
+import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions.js';
 import { logging } from '$lib/server/logging';
 import { noteFormActions } from '$lib/server/noteFormActions.js';
 import { error, redirect } from '@sveltejs/kit';
@@ -32,11 +33,7 @@ export const load = async (data) => {
 	});
 
 	return {
-		bills: await tActions.file.addFilesToItems({
-			db,
-			grouping: 'bill',
-			data: await tActions.note.addNotesToItems({ db, data: bills, grouping: 'bill' })
-		}),
+		bills: tActions.associatedInfo.addToItems({ db, data: bills, grouping: 'billId' }),
 		searchParams: pageInfo.searchParams,
 		filterText
 	};
@@ -50,6 +47,7 @@ const submitValidation = z.object({
 export const actions = {
 	...noteFormActions,
 	...fileFormActions,
+	...associatedInfoFormActions,
 	update: async ({ request, locals }) => {
 		const db = locals.db;
 		const form = await superValidate(request, zod(submitValidation));
@@ -59,7 +57,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.bill.update(db, form.data);
+			await tActions.bill.update({ db: db, data: form.data, id: form.data.id });
 			return {
 				status: 200,
 				body: {

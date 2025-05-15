@@ -26,7 +26,7 @@ type journalsWithOtherJournalTypeAndAmount = {
 	otherJournals: { accountId: string; amount: number }[];
 }[];
 
-type getToFromAccountAmountDataReturn = {
+export type GetToFromAccountAmountDataReturn = {
 	toAccountId: string | undefined;
 	fromAccountId: string | undefined;
 	toAmount: number | undefined;
@@ -50,7 +50,7 @@ type getToFromAccountAmountDataReturn = {
  */
 export const getToFromAccountAmountData = <T extends journalsWithOtherJournalTypeAndAmount>(
 	data: T
-): getToFromAccountAmountDataReturn => {
+): GetToFromAccountAmountDataReturn => {
 	if (data.length === 0) {
 		return {
 			toAccountId: undefined,
@@ -76,7 +76,7 @@ export const getToFromAccountAmountData = <T extends journalsWithOtherJournalTyp
 		};
 	}
 
-	const firstItem: getToFromAccountAmountDataReturn =
+	const firstItem: GetToFromAccountAmountDataReturn =
 		data[0].amount > 0
 			? {
 					toAccountId: data[0].accountId,
@@ -112,7 +112,7 @@ export const getToFromAccountAmountData = <T extends journalsWithOtherJournalTyp
 						: undefined,
 				direction:
 					prev.direction !== undefined && prev.direction === true ? prev.direction : undefined
-			} as getToFromAccountAmountDataReturn;
+			} as GetToFromAccountAmountDataReturn;
 		}
 		return {
 			fromAccountId:
@@ -133,7 +133,7 @@ export const getToFromAccountAmountData = <T extends journalsWithOtherJournalTyp
 					: undefined,
 			direction:
 				prev.direction !== undefined && prev.direction === false ? prev.direction : undefined
-		} as getToFromAccountAmountDataReturn;
+		} as GetToFromAccountAmountDataReturn;
 	}, firstItem);
 
 	return returnData;
