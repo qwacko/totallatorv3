@@ -21,6 +21,7 @@
 	import { summaryColumns } from '$lib/schema/summarySchema.js';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
+	import SearchInput from '$lib/components/SearchInput.svelte';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/tags', $page));
@@ -187,6 +188,16 @@
 							placeholder="Filter..."
 							class="flex grow"
 						/>
+						<SearchInput
+							type="text"
+							bind:value={$urlStore.searchParams.title}
+							placeholder="Title..."
+							class="flex grow"
+							keys={[
+								{ key: 'title', desc: 'Title', invertable: false, type: 'text' },
+								{ key: 'group', desc: 'Group', invertable: false, type: 'text' },
+								{ key: 'single', desc: 'Single', invertable: false, type: 'text' }
+							]}/>
 					{/if}
 				</div>
 			{/snippet}
