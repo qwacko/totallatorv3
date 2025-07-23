@@ -190,8 +190,8 @@
 						/>
 						<SearchInput
 							type="text"
-							bind:value={$urlStore.searchParams.title}
-							placeholder="Title..."
+							bind:value={$urlStore.searchParams.textFilter}
+							placeholder="Filter..."
 							class="flex grow"
 							keys={[
 								{ key: 'title', desc: 'Title', invertable: false, type: 'text' },

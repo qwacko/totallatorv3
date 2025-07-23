@@ -1,5 +1,6 @@
 {
 	"files.autoSave": "off",
+	"editor.formatOnSave": false,
 	"[svelte]": {
 		"editor.defaultFormatter": "svelte.svelte-vscode"
 	}

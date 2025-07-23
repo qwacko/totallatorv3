@@ -30,4 +30,4 @@
 	$inspect("Search Input", keys)
 </script>
 
-<Input {type} bind:value {placeholder} class={className} />
+<Input {type} bind:value {placeholder} class={className} on:keypress={(e) => console.log(e) } />
