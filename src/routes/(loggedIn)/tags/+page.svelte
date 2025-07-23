@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
+	import { Button, ButtonGroup } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
@@ -22,6 +22,7 @@
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
 	import SearchInput from '$lib/components/SearchInput.svelte';
+	import { tagAutocompleteKeys } from '$lib/schema/filters/tagFilterConfig.js';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/tags', $page));
@@ -182,22 +183,12 @@
 			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
-						<Input
-							type="text"
-							bind:value={$urlStore.searchParams.textFilter}
-							placeholder="Filter..."
-							class="flex grow"
-						/>
 						<SearchInput
 							type="text"
 							bind:value={$urlStore.searchParams.textFilter}
 							placeholder="Filter..."
 							class="flex grow"
-							keys={[
-								{ key: 'title', desc: 'Title', invertable: false, type: 'text' },
-								{ key: 'group', desc: 'Group', invertable: false, type: 'text' },
-								{ key: 'single', desc: 'Single', invertable: false, type: 'text' }
-							]}/>
+							keys={tagAutocompleteKeys}/>
 					{/if}
 				</div>
 			{/snippet}
