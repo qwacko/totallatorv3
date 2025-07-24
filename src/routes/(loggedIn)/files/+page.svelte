@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, ButtonGroup, Input, Badge, Popover } from 'flowbite-svelte';
+	import { Button, ButtonGroup, Badge, Popover } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
@@ -27,6 +27,7 @@
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
 	import { customEnhance } from '$lib/helpers/customEnhance';
 	import ActionButton from '$lib/components/ActionButton.svelte';
+	import SearchInput from '$lib/components/SearchInput.svelte';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/files', $page));
@@ -310,11 +311,12 @@
 			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
-						<Input
+						<SearchInput
 							type="text"
 							bind:value={$urlStore.searchParams.textFilter}
 							placeholder="Filter..."
 							class="flex grow"
+							keys={data.autocompleteKeys}
 						/>
 					{/if}
 				</div>

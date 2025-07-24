@@ -15,6 +15,8 @@ import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions.
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
+import { extractAutocompleteFromTextFilter } from '$lib/server/helpers/filterConfigExtractor.js';
+import { journalFilterArray } from '$lib/server/db/actions/helpers/journal/journalTextFilter.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -35,7 +37,10 @@ export const load = async (data) => {
 
 	const latestUpdate = await tActions.journalView.getLatestUpdateDate({ db: data.locals.db });
 
-	return { searchParams: pageInfo.searchParams, searchParamsWithoutPagination, latestUpdate };
+	// Generate autocomplete configuration from server-side filter array
+	const autocompleteKeys = extractAutocompleteFromTextFilter(journalFilterArray, 'journal');
+
+	return { searchParams: pageInfo.searchParams, searchParamsWithoutPagination, latestUpdate, autocompleteKeys };
 };
 
 export const actions = {

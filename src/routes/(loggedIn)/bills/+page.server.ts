@@ -10,6 +10,8 @@ import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
+import { extractAutocompleteFromTextFilter } from '$lib/server/helpers/filterConfigExtractor.js';
+import { billFilterArray } from '$lib/server/db/actions/helpers/bill/billTextFilter.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -32,10 +34,14 @@ export const load = async (data) => {
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 
+	// Generate autocomplete configuration from server-side filter array
+	const autocompleteKeys = extractAutocompleteFromTextFilter(billFilterArray, 'bill');
+
 	return {
 		bills: tActions.associatedInfo.addToItems({ db, data: bills, grouping: 'billId' }),
 		searchParams: pageInfo.searchParams,
-		filterText
+		filterText,
+		autocompleteKeys
 	};
 };
 

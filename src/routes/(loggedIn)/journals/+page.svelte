@@ -38,6 +38,7 @@
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 	import RecommendationButton from '$lib/components/RecommendationButton.svelte';
 	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
+	import SearchInput from '$lib/components/SearchInput.svelte';
 
 	const { data } = $props();
 
@@ -205,11 +206,12 @@
 			{#snippet slotFilter()}
 				<div class="flex flex-row gap-2">
 					{#if $urlStore.searchParams}
-						<Input
+						<SearchInput
 							type="text"
 							bind:value={$urlStore.searchParams.textFilter}
 							placeholder="Filter..."
 							class="flex grow"
+							keys={data.autocompleteKeys}
 						/>
 					{/if}
 				</div>
