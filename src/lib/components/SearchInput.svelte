@@ -184,17 +184,10 @@
 
 	// Update cursor position tracking
 	function updateCursorPosition() {
-		console.log('DEBUG: updateCursorPosition called');
-		console.log('DEBUG: inputElement exists:', !!inputElement);
-		console.log('DEBUG: inputElement.selectionStart:', inputElement?.selectionStart);
-		console.log('DEBUG: lastCursorPosition before update:', lastCursorPosition);
-		
 		if (inputElement && inputElement.selectionStart !== null && inputElement.selectionStart !== undefined) {
 			lastCursorPosition = inputElement.selectionStart;
-			console.log('DEBUG: Updated lastCursorPosition to:', lastCursorPosition);
-		} else {
-			console.log('DEBUG: Could not update cursor position, keeping previous value');
 		}
+		// If we can't get a valid cursor position, keep the last known good position
 	}
 
 	// Handle input changes
@@ -250,17 +243,8 @@
 		// Use stored cursor position instead of current position
 		const cursorPosition = lastCursorPosition;
 		
-		// Debug logging
-		console.log('DEBUG: selectSuggestion called');
-		console.log('DEBUG: Current value:', JSON.stringify(value));
-		console.log('DEBUG: Stored cursor position (lastCursorPosition):', cursorPosition);
-		console.log('DEBUG: Input element cursor position (selectionStart):', inputElement.selectionStart);
-		console.log('DEBUG: Suggestion text:', JSON.stringify(suggestion.text));
-		
 		// Use the tested utility function for reliable text replacement
 		const result = replaceWordAtCursor(value, cursorPosition, suggestion.text);
-		
-		console.log('DEBUG: Result:', result);
 		
 		value = result.newText;
 		showDropdown = false;

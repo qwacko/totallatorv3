@@ -14,7 +14,7 @@ import {
 import { noteFilterArray } from '../note/noteTextFilter';
 import { fileFilterArray } from '../file/fileTextFilter';
 
-const filterArray = [
+export const categoryFilterArray = [
 	...importTextFilterArray,
 	...statusTextFilterArray,
 	...statisticsTextFilterArray,
@@ -26,7 +26,7 @@ const filterArray = [
 
 export const processCategoryTextFilter =
 	textFilterHandler<CategoryFilterSchemaWithoutPaginationType>(
-		filterArray,
+		categoryFilterArray,
 		(filter, currentFilter) => {
 			addToArray(filter, 'titleArray', currentFilter);
 		},
@@ -35,4 +35,4 @@ export const processCategoryTextFilter =
 		}
 	);
 
-export const categoryTextFilterKeys = filterArray.map((f) => f.key).flat();
+export const categoryTextFilterKeys = categoryFilterArray.map((f) => f.key).flat();

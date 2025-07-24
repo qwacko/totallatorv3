@@ -22,7 +22,6 @@
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
 	import SearchInput from '$lib/components/SearchInput.svelte';
-	import { tagAutocompleteKeys } from '$lib/schema/filters/tagFilterConfig.js';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/tags', $page));
@@ -188,7 +187,7 @@
 							bind:value={$urlStore.searchParams.textFilter}
 							placeholder="Filter..."
 							class="flex grow"
-							keys={tagAutocompleteKeys}/>
+							keys={data.autocompleteKeys}/>
 					{/if}
 				</div>
 			{/snippet}

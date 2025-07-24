@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, ButtonGroup, Input } from 'flowbite-svelte';
+	import { Button, ButtonGroup } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import { statusToDisplay } from '$lib/schema/statusSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
@@ -25,6 +25,7 @@
 	import { currencyFormat } from '$lib/stores/userInfoStore.js';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
+	import SearchInput from '$lib/components/SearchInput.svelte';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/accounts', $page));
@@ -252,11 +253,12 @@
 		{#snippet slotFilter()}
 			<div class="flex flex-col gap-2 md:flex-row">
 				{#if $urlStore.searchParams}
-					<Input
+					<SearchInput
 						type="text"
 						bind:value={$urlStore.searchParams.textFilter}
-						placeholder="Filter by Title"
+						placeholder="Filter..."
 						class="flex grow"
+						keys={data.autocompleteKeys}
 					/>
 					<div class="flex self-center">
 						<AccountTypeFilterLinks
