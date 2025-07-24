@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Input } from 'flowbite-svelte';
 	import { type ComponentProps } from 'svelte';
+	import { replaceWordAtCursor, getCurrentWordAtCursor } from '$lib/helpers/textReplacement';
 
 	type PassthroughProps = Pick<ComponentProps<Input>, 'type' | 'value' | 'placeholder' | 'class'>;
 
@@ -34,6 +35,7 @@
 	let selectedIndex = $state(-1);
 	let inputElement: any;
 	let dropdownElement = $state<HTMLDivElement|undefined>(undefined);
+	let lastCursorPosition = $state(0);
 
 	// Helper function to highlight matching text
 	function highlightText(text: string, searchTerm: string): string {
@@ -61,10 +63,8 @@
 		currentWord: string;
 		isNegated: boolean;
 	} {
-		// Find the current word being typed
-		const beforeCursor = inputValue.slice(0, cursorPosition);
-		const words = beforeCursor.split(/\s+/);
-		const currentWord = words[words.length - 1] || '';
+		// Use the tested utility to get the current word
+		const currentWord = getCurrentWordAtCursor(inputValue, cursorPosition);
 
 		// Check if we're typing a negated key
 		const isNegated = currentWord.startsWith('!');
@@ -182,10 +182,28 @@
 		return suggestions.slice(0, 15); // Limit to 15 suggestions
 	}
 
+	// Update cursor position tracking
+	function updateCursorPosition() {
+		console.log('DEBUG: updateCursorPosition called');
+		console.log('DEBUG: inputElement exists:', !!inputElement);
+		console.log('DEBUG: inputElement.selectionStart:', inputElement?.selectionStart);
+		console.log('DEBUG: lastCursorPosition before update:', lastCursorPosition);
+		
+		if (inputElement && inputElement.selectionStart !== null && inputElement.selectionStart !== undefined) {
+			lastCursorPosition = inputElement.selectionStart;
+			console.log('DEBUG: Updated lastCursorPosition to:', lastCursorPosition);
+		} else {
+			console.log('DEBUG: Could not update cursor position, keeping previous value');
+		}
+	}
+
 	// Handle input changes
 	function handleInput(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const cursorPosition = target.selectionStart || 0;
+		
+		// Store cursor position for later use
+		lastCursorPosition = cursorPosition;
 		
 		suggestions = generateSuggestions(target.value, cursorPosition);
 		showDropdown = suggestions.length > 0;
@@ -194,6 +212,9 @@
 
 	// Handle key presses
 	function handleKeydown(event: KeyboardEvent) {
+		// Update cursor position immediately for any key press while focused
+		updateCursorPosition();
+		
 		if (!showDropdown) return;
 
 		switch (event.key) {
@@ -226,29 +247,29 @@
 		if (index < 0 || index >= suggestions.length) return;
 
 		const suggestion = suggestions[index];
-		const cursorPosition = inputElement.selectionStart || 0;
+		// Use stored cursor position instead of current position
+		const cursorPosition = lastCursorPosition;
 		
-		// Find the current word by looking backwards from cursor to find word boundary
-		let wordStart = cursorPosition;
+		// Debug logging
+		console.log('DEBUG: selectSuggestion called');
+		console.log('DEBUG: Current value:', JSON.stringify(value));
+		console.log('DEBUG: Stored cursor position (lastCursorPosition):', cursorPosition);
+		console.log('DEBUG: Input element cursor position (selectionStart):', inputElement.selectionStart);
+		console.log('DEBUG: Suggestion text:', JSON.stringify(suggestion.text));
 		
-		// Go backwards until we hit whitespace or start of string
-		while (wordStart > 0 && value[wordStart - 1] && !/\s/.test(value[wordStart - 1])) {
-			wordStart--;
-		}
+		// Use the tested utility function for reliable text replacement
+		const result = replaceWordAtCursor(value, cursorPosition, suggestion.text);
 		
-		// Replace from word start to cursor position
-		const beforeWord = value.slice(0, wordStart);
-		const afterWord = value.slice(cursorPosition);
+		console.log('DEBUG: Result:', result);
 		
-		value = beforeWord + suggestion.text + afterWord;
+		value = result.newText;
 		showDropdown = false;
 		selectedIndex = -1;
 		
 		// Focus back to input and set cursor position at end of inserted text
 		setTimeout(() => {
 			inputElement.focus();
-			const newCursorPos = beforeWord.length + suggestion.text.length;
-			inputElement.setSelectionRange(newCursorPos, newCursorPos);
+			inputElement.setSelectionRange(result.newCursorPosition, result.newCursorPosition);
 		}, 0);
 	}
 
@@ -272,8 +293,10 @@
 		on:input={handleInput}
 		on:keydown={handleKeydown}
 		on:blur={handleBlur}
+		on:click={updateCursorPosition}
 		on:focus={() => {
 			const cursorPosition = inputElement.selectionStart || 0;
+			lastCursorPosition = cursorPosition;
 			suggestions = generateSuggestions(value, cursorPosition);
 			showDropdown = suggestions.length > 0;
 		}}
