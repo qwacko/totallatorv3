@@ -108,4 +108,22 @@ export const associatedInfoColumnsStore = writable<('actions' | 'links' | 'title
 	['actions', 'title', 'links', 'createdAt']
 );
 
+export const llmProviderColumnsStore = writable([
+	'actions',
+	'title',
+	'apiUrl',
+	'defaultModel',
+	'status',
+	'createdAt'
+]);
+
+export const llmLogColumnsStore = writable([
+	'actions',
+	'timestamp',
+	'status',
+	'llmSettings',
+	'duration',
+	'relatedJournal'
+]);
+
 export const numberRows = writable(10);

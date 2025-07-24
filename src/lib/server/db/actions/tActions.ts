@@ -18,6 +18,9 @@ import { noteActions } from './noteActions';
 import { fileActions } from './fileActions';
 import { queryLogActions } from './queryLogActions';
 import { associatedInfoActions } from './associatedInfoActions';
+import { llmActions } from './llmActions';
+import { llmLogActions } from './llmLogActions';
+import { journalLlmSuggestionActions } from './journalLlmSuggestionActions';
 
 export const tActions = {
 	tag: tagActions,
@@ -39,5 +42,8 @@ export const tActions = {
 	note: noteActions,
 	file: fileActions,
 	queryLog: queryLogActions,
-	associatedInfo: associatedInfoActions
+	associatedInfo: associatedInfoActions,
+	llm: llmActions,
+	llmLog: llmLogActions,
+	journalLlmSuggestion: journalLlmSuggestionActions
 };
