@@ -96,6 +96,8 @@ const filterArray = [
 	}
 ] satisfies TextFilterOptionsType<FileFilterSchemaWithoutPaginationType>;
 
+export const fileMainFilterArray = filterArray;
+
 export const processNoteTextFilter = textFilterHandler<FileFilterSchemaWithoutPaginationType>(
 	filterArray,
 	(filter, currentFilter) => {

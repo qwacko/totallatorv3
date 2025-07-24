@@ -254,6 +254,8 @@ const filterArray = [
 	...noteFilterArray
 ] satisfies TextFilterOptionsType<JournalFilterSchemaWithoutPaginationType>;
 
+export { filterArray as journalFilterArray };
+
 export const processJournalTextFilter = textFilterHandler(
 	filterArray,
 	(filter, currentFilter) => {

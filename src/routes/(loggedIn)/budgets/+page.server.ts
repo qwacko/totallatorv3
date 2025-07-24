@@ -10,6 +10,8 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import { fileFormActions } from '$lib/server/fileFormActions';
 import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions.js';
+import { extractAutocompleteFromTextFilter } from '$lib/server/helpers/filterConfigExtractor.js';
+import { budgetFilterArray } from '$lib/server/db/actions/helpers/budget/budgetTextFilter.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -32,10 +34,14 @@ export const load = async (data) => {
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 
+	// Generate autocomplete configuration from server-side filter array
+	const autocompleteKeys = extractAutocompleteFromTextFilter(budgetFilterArray, 'budget');
+
 	return {
 		budgets: tActions.associatedInfo.addToItems({ db, data: budgets, grouping: 'budgetId' }),
 		searchParams: pageInfo.searchParams,
-		filterText
+		filterText,
+		autocompleteKeys
 	};
 };
 

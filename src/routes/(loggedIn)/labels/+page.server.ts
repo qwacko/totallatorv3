@@ -11,6 +11,8 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import { fileFormActions } from '$lib/server/fileFormActions';
 import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions.js';
+import { extractAutocompleteFromTextFilter } from '$lib/server/helpers/filterConfigExtractor.js';
+import { labelFilterArray } from '$lib/server/db/actions/helpers/label/labelTextFilter.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -39,6 +41,9 @@ export const load = async (data) => {
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 
+	// Generate autocomplete configuration from server-side filter array
+	const autocompleteKeys = extractAutocompleteFromTextFilter(labelFilterArray, 'label');
+
 	return {
 		labels: await tActions.associatedInfo.addToItems({
 			db,
@@ -51,7 +56,8 @@ export const load = async (data) => {
 		}),
 		searchParams: pageInfo.searchParams,
 		filterText,
-		labelSummary
+		labelSummary,
+		autocompleteKeys
 	};
 };
 

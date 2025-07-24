@@ -1,6 +1,8 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions.js';
+import { extractAutocompleteFromTextFilter } from '$lib/server/helpers/filterConfigExtractor.js';
+import { fileMainFilterArray } from '$lib/server/db/actions/helpers/file/fileTextFilter.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -16,7 +18,10 @@ export const load = async (data) => {
 		filter: current.searchParams || { page: 0, pageSize: 10 }
 	});
 
-	return { searchParams: current.searchParams, files, filterText };
+	// Generate autocomplete configuration from server-side filter array
+	const autocompleteKeys = extractAutocompleteFromTextFilter(fileMainFilterArray, 'file');
+
+	return { searchParams: current.searchParams, files, filterText, autocompleteKeys };
 };
 
 export const actions = {

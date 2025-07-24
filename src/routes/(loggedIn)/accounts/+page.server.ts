@@ -15,6 +15,8 @@ import { z } from 'zod';
 import { noteFormActions } from '$lib/server/noteFormActions';
 import { fileFormActions } from '$lib/server/fileFormActions';
 import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions.js';
+import { extractAutocompleteFromTextFilter } from '$lib/server/helpers/filterConfigExtractor.js';
+import { accountFilterArray } from '$lib/server/db/actions/helpers/account/accountTextFilter.js';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -54,11 +56,15 @@ export const load = async (data) => {
 		db
 	});
 
+	// Generate autocomplete configuration from server-side filter array
+	const autocompleteKeys = extractAutocompleteFromTextFilter(accountFilterArray, 'account');
+
 	return {
 		accounts: tActions.associatedInfo.addToItems({ db, data: accounts, grouping: 'accountId' }),
 		searchParams: pageInfo.searchParams,
 		filterText,
-		accountSummary
+		accountSummary,
+		autocompleteKeys
 	};
 };
 

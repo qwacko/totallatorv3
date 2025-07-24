@@ -15,7 +15,7 @@ import {
 import { noteFilterArray } from '../note/noteTextFilter';
 import { fileFilterArray } from '../file/fileTextFilter';
 
-const filterArray = [
+export const accountFilterArray = [
 	...importTextFilterArray,
 	...statusTextFilterArray,
 	...statisticsTextFilterArray,
@@ -171,7 +171,7 @@ const filterArray = [
 ] satisfies TextFilterOptionsType<AccountFilterSchemaWithoutPaginationType>;
 
 export const processAccountTextFilter = textFilterHandler(
-	filterArray,
+	accountFilterArray,
 	(filter, currentFilter) => {
 		addToArray(filter, 'titleArray', currentFilter);
 	},
@@ -180,4 +180,4 @@ export const processAccountTextFilter = textFilterHandler(
 	}
 );
 
-export const accountTextFilterKeys = filterArray.map((f) => f.key).flat();
+export const accountTextFilterKeys = accountFilterArray.map((f) => f.key).flat();
