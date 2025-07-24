@@ -17,7 +17,7 @@ interface FilterMetadata {
  */
 export function extractAutocompleteFromTextFilter<T extends { textFilter?: string }>(
 	filterArray: TextFilterOptionsType<T>,
-	entityType: 'tag' | 'account' | 'category' | 'label' | 'bill' | 'budget' | 'journal'
+	entityType: 'tag' | 'account' | 'category' | 'label' | 'bill' | 'budget' | 'journal' | 'file'
 ): AutocompleteKey[] {
 	const autocompleteKeys: AutocompleteKey[] = [];
 	
@@ -76,7 +76,10 @@ export function extractAutocompleteFromTextFilter<T extends { textFilter?: strin
 /**
  * Infer metadata about a filter key based on its name and entity type
  */
-function inferFilterMetadata(key: string, entityType: string): Partial<FilterMetadata> {
+function inferFilterMetadata(
+	key: string,
+	entityType: string
+): Omit<FilterMetadata, 'keys' | 'invertable'> {
 	const lowerKey = key.toLowerCase();
 	
 	// Status-related keys
