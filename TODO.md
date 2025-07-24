@@ -1,94 +1,126 @@
-# LLM Integration TODO List (v2)
+# LLM Integration TODO List (v3)
 
 This document outlines the steps to integrate LLM-based features into the bookkeeping application. This revised plan prioritizes a test-driven development (TDD) approach and implements a more robust, extensible architecture where the LLM can call internal application tools.
 
-## Phase 1: Core Infrastructure & Testing Foundation
+## Phase 1: Core Infrastructure & Testing Foundation ✅ COMPLETED
 
 This phase focuses on building the essential backend components and establishing a testing framework from the outset to minimize costs and ensure reliability.
 
--   [ ] **Mock LLM Client & Initial Test Suite:**
-    -   [ ] Create a mock version of the `LLMClient` for use in automated tests (Vitest, Playwright). This client will return predefined, realistic JSON responses without making real network requests.
-    -   [ ] Set up the initial testing environment for backend services.
+-   [x] **Mock LLM Client & Initial Test Suite:**
+    -   [x] Create a mock version of the `LLMClient` for use in automated tests (Vitest, Playwright). This client will return predefined, realistic JSON responses without making real network requests.
+    -   [x] Set up the initial testing environment for backend services.
 
--   [ ] **Database Schema Updates:**
-    -   [ ] Create `llm_settings` table (id, title, api_url, encrypted api_key, default_model, enabled, timestamps).
-    -   [ ] Create `llm_logs` table (id, timestamp, llm_settings_id, request_payload, response_payload, duration_ms, status, related_journal_id).
+-   [x] **Database Schema Updates:**
+    -   [x] Create `llm_settings` table (id, title, api_url, encrypted api_key, default_model, enabled, timestamps).
+    -   [x] Create `llm_logs` table (id, timestamp, llm_settings_id, request_payload, response_payload, duration_ms, status, related_journal_id).
 
--   [ ] **Backend Configuration Service (TDD Approach):**
-    -   [ ] Write unit tests for CRUD operations on `llm_settings`.
-    -   [ ] Implement the API endpoints to make the tests pass. Logic must handle encryption/decryption of the `api_key`.
+-   [x] **Backend Configuration Service (TDD Approach):**
+    -   [x] Write unit tests for CRUD operations on `llm_settings`.
+    -   [x] Implement CRUD operations with encryption/decryption of the `api_key` (`src/lib/server/db/actions/llmActions.ts`).
+    -   [ ] **IN PROGRESS:** Implement API endpoints to expose CRUD operations via SvelteKit routes.
 
--   [ ] **Generic LLM API Client (TDD Approach):**
-    -   [ ] Write unit tests for the `LLMClient` that verify correct request formation and logging.
-    -   [ ] Implement the client to make the tests pass. It should be provider-agnostic and use the `llm_logs` table automatically.
+-   [x] **Generic LLM API Client (TDD Approach):**
+    -   [x] Write unit tests for the `LLMClient` that verify correct request formation and logging.
+    -   [x] Implement the client to make the tests pass. Provider-agnostic client supporting OpenAI and Anthropic with automatic logging (`src/lib/server/llm/client.ts`).
 
-## Phase 2: LLM Tool-Calling Framework
+## Phase 2: LLM Tool-Calling Framework ✅ COMPLETED
 
 This phase builds the system that allows the LLM to interact with the application's data and functions in a structured way.
 
--   [ ] **Tool Definition & Dispatcher:**
-    -   [ ] Design a framework for defining tools the LLM can use (e.g., a directory of tool definition files).
-    -   [ ] Create a central "tool dispatcher" service. This service will parse tool-call requests from the LLM, execute the corresponding application function, and return the result in a format the LLM can understand.
+-   [x] **Tool Definition & Dispatcher:**
+    -   [x] Design a framework for defining tools the LLM can use (`src/lib/server/llm/tools/types.ts`).
+    -   [x] Create a central "tool dispatcher" service (`src/lib/server/llm/tools/dispatcher.ts`). This service parses tool-call requests from the LLM, executes the corresponding application function, and returns the result in a format the LLM can understand.
 
--   [ ] **Implement Initial Tools (with Unit Tests):**
-    -   [ ] **`findSimilarJournalEntries`**: A tool that takes a description, amount, or payee and returns a list of existing journal entries that are potential matches.
-    -   [ ] **`getInvoiceText`**: A tool that takes a `file_id` or `journal_id` and returns the OCR text content of a linked invoice/receipt.
-    -   [ ] **`updateJournalEntry`**: A tool that allows the LLM to propose specific, structured updates to a journal entry (e.g., `{"id": "xyz", "updates": {"payee": "New Payee"}}`).
+-   [x] **Implement Initial Tools (with Unit Tests):**
+    -   [x] **`findSimilarJournalEntries`**: Leverages existing `journalMaterializedViewActions.listRecommendations()` for sophisticated import data similarity matching. Supports both journal_id-based similarity and general search criteria.
+    -   [x] **`getInvoiceText`**: A tool that takes a `file_id` or `journal_id` and returns the OCR text content of a linked invoice/receipt.
+    -   [x] **`updateJournalEntry`**: A tool that allows the LLM to propose specific, structured updates to a journal entry with validation and change tracking.
 
--   [ ] **Testing:**
-    -   [ ] Write unit tests for each tool to ensure it functions correctly.
-    -   [ ] Write integration tests for the tool dispatcher to verify it can correctly route and execute tool calls.
+-   [x] **Testing:**
+    -   [x] Write unit tests for each tool to ensure it functions correctly.
+    -   [x] Write integration tests for the tool dispatcher to verify it can correctly route and execute tool calls (`src/lib/server/llm/tools/dispatcher.test.ts`).
 
-## Phase 3: Frontend Configuration
+## Phase 3: Frontend Configuration & API Integration
 
-This phase involves building the UI for managing LLM settings and viewing logs.
+This phase involves building the UI for managing LLM settings and completing the API layer.
+
+-   [ ] **Complete API Endpoints:**
+    -   [ ] **IN PROGRESS:** Implement SvelteKit API routes for LLM settings CRUD operations (`/api/llm/settings/`).
+    -   [ ] Implement API routes for LLM logs viewing (`/api/llm/logs/`).
+    -   [ ] Add proper error handling and validation schemas.
 
 -   [ ] **LLM Settings Page:**
-    -   [ ] Create a new route and Svelte page for LLM Configuration.
-    -   [ ] Build components for CRUD operations on `llm_settings`.
-    -   [ ] **Testing:** Write Playwright E2E tests to simulate user interaction with the settings page, using the mocked backend.
+    -   [ ] Create a new route and Svelte page for LLM Configuration (`/settings/llm` or integrate into existing settings).
+    -   [ ] Build components for CRUD operations on `llm_settings` using the API endpoints.
+    -   [ ] Include provider selection (OpenAI/Anthropic), model configuration, and test connectivity.
+    -   [ ] **Testing:** Write Playwright E2E tests to simulate user interaction with the settings page.
 
 -   [ ] **LLM Log Viewer:**
-    -   [ ] Create a new route and Svelte page for viewing `llm_logs`.
-    -   [ ] Display logs in a table with a modal/expandable row for viewing full payloads.
+    -   [ ] Create a new route and Svelte page for viewing `llm_logs` (`/settings/llm/logs`).
+    -   [ ] Display logs in a table with filtering by status, provider, and date range.
+    -   [ ] Add modal/expandable row for viewing full request/response payloads.
     -   [ ] **Testing:** Write Playwright E2E tests for the log viewer.
 
-## Phase 4: Feature 1 - Journal Entry Recommendation (Using Tools)
+## Phase 4: Feature 1 - Journal Entry Recommendation Service
 
-This phase implements the first core AI feature using the new tool-calling architecture.
+This phase implements the first core AI feature using the established tool-calling architecture.
 
 -   [ ] **Extend Filter Functionality:**
-    -   [ ] Add `llm_review_required` boolean to the `filters` table.
-    -   [ ] Update the filter UI to include this option.
+    -   [ ] Add `llm_review_required` boolean to the `filters` table schema.
+    -   [ ] Update the filter UI components to include this option.
+    -   [ ] Modify journal queries to support filtering by LLM review status.
 
--   [ ] **Backend Recommendation Service (Refactored for Tools):**
-    -   [ ] Create a service that identifies journal entries needing review.
-    -   [ ] This service will orchestrate a multi-step conversation with the LLM, providing the journal data and the list of available tools.
-    -   [ ] The LLM can then decide to call tools like `findSimilarJournalEntries` or `getInvoiceText` to gather context before making a final recommendation.
+-   [ ] **Backend Recommendation Service:**
+    -   [ ] Create a journal recommendation service (`src/lib/server/llm/services/journalRecommendationService.ts`).
+    -   [ ] This service will orchestrate multi-step LLM conversations using the tool dispatcher.
+    -   [ ] Implement logic to identify journal entries needing review based on filter criteria.
+    -   [ ] The LLM can call tools like `findSimilarJournalEntries` or `getInvoiceText` before making recommendations.
 
 -   [ ] **Database for Suggestions:**
-    -   [ ] Create `journal_llm_suggestions` table (id, journal_id, suggested_payee, suggested_description, status, llm_log_id).
+    -   [ ] Create `journal_llm_suggestions` table schema (id, journal_id, suggested_payee, suggested_description, suggested_category_id, suggested_tag_id, confidence_score, status, llm_log_id, created_at).
+    -   [ ] Implement CRUD operations for managing suggestions.
 
 -   [ ] **Frontend for Suggestions:**
-    -   [ ] On the journal details page, display a "Suggestion Available" component showing original vs. suggested values.
-    -   [ ] Include "Accept" and "Reject" buttons to update the journal and suggestion status.
+    -   [ ] Add suggestion UI to journal details/edit pages.
+    -   [ ] Display "Suggestion Available" component showing original vs. suggested values.
+    -   [ ] Include "Accept", "Reject", and "Request New Suggestion" buttons.
+    -   [ ] Show confidence scores and link to LLM logs for transparency.
 
 -   [ ] **Testing:**
-    -   [ ] Write integration tests for the recommendation service, mocking the LLM's tool-calling responses to test the application logic robustly.
-    -   [ ] Write E2E tests for the suggestion UI.
+    -   [ ] Write integration tests for the recommendation service with mocked LLM responses.
+    -   [ ] Write E2E tests for the suggestion workflow.
 
-## Phase 5: Feature 2 - Invoice/Image Recognition (Vision)
+## Phase 5: Feature 2 - Invoice/Image Recognition (Vision Models)
 
-This phase extends the LLM functionality to handle image-based recognition.
+This phase extends the LLM functionality to handle image-based recognition using vision models.
 
 -   [ ] **Update LLM Client & Tools for Vision:**
-    -   [ ] Modify the `LLMClient` to handle multimodal (vision) requests.
-    -   [ ] Create a new tool: `analyzeInvoiceImage(file_id: string)` that uses a vision model to extract vendor, amount, date, etc.
+    -   [ ] Modify the `LLMClient` to handle multimodal (vision) requests with image data.
+    -   [ ] Create a new tool: `analyzeInvoiceImage(file_id: string)` that uses vision models to extract vendor, amount, date, line items, etc.
+    -   [ ] Add support for vision model providers (OpenAI GPT-4V, Anthropic Claude 3).
 
 -   [ ] **Frontend Integration:**
-    -   [ ] Add a "Scan with AI" button to the file/image attachment UI.
-    -   [ ] This button will trigger the `analyzeInvoiceImage` tool and display the extracted data, allowing the user to apply it to the journal entry.
+    -   [ ] Add "Scan with AI" button to the file/image attachment UI in journal entries.
+    -   [ ] Create modal/component to display extracted data and allow user to apply it to the journal.
+    -   [ ] Handle different image formats and file size limitations.
 
 -   [ ] **Testing:**
     -   [ ] Update the mock `LLMClient` to handle vision model requests and responses.
-    -   [ ] Write E2E tests for the "Scan with AI" feature.
+    -   [ ] Write E2E tests for the "Scan with AI" feature using test images.
+
+## Additional Enhancements (Future Phases)
+
+-   [ ] **Advanced Tool Integration:**
+    -   [ ] Create tools for account/category/tag suggestion based on transaction patterns.
+    -   [ ] Implement bulk processing workflows for multiple journal entries.
+    -   [ ] Add tools for budget analysis and financial insights.
+
+-   [ ] **Performance & Monitoring:**
+    -   [ ] Add metrics and monitoring for LLM usage and costs.
+    -   [ ] Implement rate limiting and usage quotas.
+    -   [ ] Add background job processing for batch LLM operations.
+
+-   [ ] **Security & Compliance:**
+    -   [ ] Add audit logging for all LLM-driven changes.
+    -   [ ] Implement user permissions for LLM features.
+    -   [ ] Add data retention policies for LLM logs and suggestions.

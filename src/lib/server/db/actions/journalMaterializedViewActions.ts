@@ -474,7 +474,7 @@ export const journalMaterializedViewActions = {
 				...labelData
 			}
 		};
-	},
+	},	
 	listRecommendations: async ({
 		db,
 		journals,
