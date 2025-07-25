@@ -70,14 +70,29 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 				);
 			}
 		} catch (e) {
-			logging.error('Import Item Error', JSON.stringify(e, null, 2));
+			// Enhanced error logging to capture more details
+			const errorDetails = {
+				message: e instanceof Error ? e.message : 'Unknown error',
+				stack: e instanceof Error ? e.stack : undefined,
+				name: e instanceof Error ? e.name : undefined,
+				code: (e as any)?.code,
+				severity: (e as any)?.severity,
+				query: (e as any)?.query,
+				parameters: (e as any)?.parameters,
+				errorObject: e
+			};
+			
+			logging.error('Import Item Error', errorDetails);
 
 			await dbExecuteLogger(
 				db
 					.update(importItemDetail)
 					.set({
 						status: 'importError',
-						errorInfo: { error: e as Record<string, unknown> },
+						errorInfo: { 
+							error: errorDetails,
+							timestamp: new Date().toISOString()
+						},
 						...updatedTime()
 					})
 					.where(eq(importItemDetail.id, item.id)),
@@ -122,7 +137,8 @@ export async function importTransaction({
 				const importedData = await tActions.journal.createManyTransactionJournals({
 					db: trx,
 					journalEntries: [processedCombinedTransaction.data],
-					isImport: true // This is from an import process
+					isImport: true, // This is from an import process
+					useExistingTransaction: true // Use the existing transaction from the import
 				});
 
 				await Promise.all(
@@ -165,14 +181,29 @@ export async function importTransaction({
 					})
 				);
 			} catch (e) {
-				logging.error('Import Transaction Error', JSON.stringify(e, null, 2));
+				// Enhanced error logging to capture more details
+				const errorDetails = {
+					message: e instanceof Error ? e.message : 'Unknown error',
+					stack: e instanceof Error ? e.stack : undefined,
+					name: e instanceof Error ? e.name : undefined,
+					code: (e as any)?.code,
+					severity: (e as any)?.severity,
+					query: (e as any)?.query,
+					parameters: (e as any)?.parameters,
+					errorObject: e
+				};
+				
+				logging.error('Import Transaction Error', errorDetails);
 
 				await dbExecuteLogger(
 					trx
 						.update(importItemDetail)
 						.set({
 							status: 'importError',
-							errorInfo: { error: e as Record<string, unknown> },
+							errorInfo: { 
+								error: errorDetails,
+								timestamp: new Date().toISOString()
+							},
 							...updatedTime()
 						})
 						.where(eq(importItemDetail.id, item.id)),

@@ -62,63 +62,77 @@ export const journalActions = {
 	createManyTransactionJournals: async ({
 		db,
 		journalEntries,
-		isImport = false
+		isImport = false,
+		useExistingTransaction = false
 	}: {
 		db: DBType;
 		journalEntries: CreateCombinedTransactionType[];
 		isImport?: boolean;
+		useExistingTransaction?: boolean;
 	}): Promise<string[]> => {
 		let transactionIds: string[] = [];
-		await tLogger(
-			'Create Many Transaction Journals',
-			db.transaction(async (db) => {
-				const cachedData = await getCachedData({ db, count: journalEntries.length });
-				const itemsForCreation = await Promise.all(
-					journalEntries.map(async (journalEntry) => {
-						return generateItemsForTransactionCreation({ db, data: journalEntry, cachedData, isImport });
-					})
+		
+		const executeTransactionWork = async (dbContext: DBType) => {
+			const cachedData = await getCachedData({ db: dbContext, count: journalEntries.length });
+			const itemsForCreation = await Promise.all(
+				journalEntries.map(async (journalEntry) => {
+					return generateItemsForTransactionCreation({ db: dbContext, data: journalEntry, cachedData, isImport });
+				})
+			);
+
+			const transactions = itemsForCreation
+				.map(({ transactions }) => transactions)
+				.reduce((a, b) => [...a, ...b], []);
+
+			transactionIds = transactions.map((trans) => trans.id);
+
+			const journals = itemsForCreation
+				.map(({ journals }) => journals)
+				.reduce((a, b) => [...a, ...b], []);
+			const labels = itemsForCreation
+				.map(({ labels }) => labels)
+				.reduce((a, b) => [...a, ...b], []);
+
+			const transactionChunks = splitArrayIntoChunks(transactions, 2000);
+			for (const chunk of transactionChunks) {
+				await dbExecuteLogger(
+					dbContext.insert(transaction).values(chunk),
+					'Transaction Journals - Create Many - Transaction'
 				);
+			}
 
-				const transactions = itemsForCreation
-					.map(({ transactions }) => transactions)
-					.reduce((a, b) => [...a, ...b], []);
+			const journalChunks = splitArrayIntoChunks(journals, 2000);
+			for (const chunk of journalChunks) {
+				await dbExecuteLogger(
+					dbContext.insert(journalEntry).values(chunk),
+					'Transaction Journals - Create Many - Journal'
+				);
+			}
 
-				transactionIds = transactions.map((trans) => trans.id);
+			const labelChunks = splitArrayIntoChunks(labels, 2000);
+			for (const chunk of labelChunks) {
+				await dbExecuteLogger(
+					dbContext.insert(labelsToJournals).values(chunk),
+					'Transaction Journals - Create Many - Labels'
+				);
+			}
 
-				const journals = itemsForCreation
-					.map(({ journals }) => journals)
-					.reduce((a, b) => [...a, ...b], []);
-				const labels = itemsForCreation
-					.map(({ labels }) => labels)
-					.reduce((a, b) => [...a, ...b], []);
+			await updateManyTransferInfo({ db: dbContext, transactionIds });
+		};
 
-				const transactionChunks = splitArrayIntoChunks(transactions, 2000);
-				for (const chunk of transactionChunks) {
-					await dbExecuteLogger(
-						db.insert(transaction).values(chunk),
-						'Transaction Journals - Create Many - Transaction'
-					);
-				}
-
-				const journalChunks = splitArrayIntoChunks(journals, 2000);
-				for (const chunk of journalChunks) {
-					await dbExecuteLogger(
-						db.insert(journalEntry).values(chunk),
-						'Transaction Journals - Create Many - Journal'
-					);
-				}
-
-				const labelChunks = splitArrayIntoChunks(labels, 2000);
-				for (const chunk of labelChunks) {
-					await dbExecuteLogger(
-						db.insert(labelsToJournals).values(chunk),
-						'Transaction Journals - Create Many - Labels'
-					);
-				}
-
-				await updateManyTransferInfo({ db, transactionIds });
-			})
-		);
+		if (useExistingTransaction) {
+			// Use the existing transaction context directly
+			await executeTransactionWork(db);
+		} else {
+			// Create a new transaction
+			await tLogger(
+				'Create Many Transaction Journals',
+				db.transaction(async (dbContext) => {
+					await executeTransactionWork(dbContext);
+				})
+			);
+		}
+		
 		await materializedViewActions.setRefreshRequired(db);
 
 		return transactionIds;
@@ -225,7 +239,8 @@ export const journalActions = {
 				await journalActions.createManyTransactionJournals({
 					db,
 					journalEntries: transactionsForCreation,
-					isImport: false // Seed data is not considered an import
+					isImport: false, // Seed data is not considered an import
+					useExistingTransaction: true // Use the existing transaction
 				});
 			})
 		);
@@ -752,7 +767,8 @@ export const journalActions = {
 				transactionIds = await journalActions.createManyTransactionJournals({
 					db,
 					journalEntries: transactionsForCreation,
-					isImport: false // Cloned journals are considered manual creation
+					isImport: false, // Cloned journals are considered manual creation
+					useExistingTransaction: true // Use the existing transaction
 				});
 
 				const {
