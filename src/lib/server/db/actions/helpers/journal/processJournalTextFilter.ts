@@ -1,4 +1,5 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '$lib/schema/journalSchema';
+import { llmReviewStatusEnum, type LlmReviewStatusEnumType } from '../../../../../../schema/llmReviewStatusEnum';
 import { accountTextFilterKeys } from '../account/accountTextFilter';
 import { billTextFilterKeys } from '../bill/billTextFilter';
 import { budgetTextFilterKeys } from '../budget/budgetTextFilter';
@@ -202,27 +203,22 @@ const filterArray = [
 		}
 	},
 	{
-		key: 'llm:not_required',
-		update: (filter) => {
-			filter.llmReviewStatus = 'not_required';
-		}
-	},
-	{
-		key: 'llm:required',
-		update: (filter) => {
-			filter.llmReviewStatus = 'required';
-		}
-	},
-	{
-		key: 'llm:complete',
-		update: (filter) => {
-			filter.llmReviewStatus = 'complete';
-		}
-	},
-	{
-		key: 'llm:error',
-		update: (filter) => {
-			filter.llmReviewStatus = 'error';
+		key: 'llm:',
+		update: (filter, newFilter) => {
+			if (newFilter.length === 0) return;
+
+			const splitFilter = newFilter.trim().replace('|', ',').split(',');
+
+			for (const currentFilter of splitFilter) {
+				const llmStatus = currentFilter.trim().toLowerCase() as LlmReviewStatusEnumType;
+
+				if (llmReviewStatusEnum.includes(llmStatus)) {
+					if (filter.llmReviewStatus === undefined) {
+						filter.llmReviewStatus = [];
+					}
+					filter.llmReviewStatus.push(llmStatus);
+				}
+			}
 		}
 	},
 	{

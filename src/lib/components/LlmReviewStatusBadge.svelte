@@ -24,7 +24,7 @@
 		address: '/(loggedIn)/journals',
 		searchParamsValue: {
 			...currentFilter,
-			llmReviewStatus: status
+			llmReviewStatus: [status]
 		}
 	});
 </script>

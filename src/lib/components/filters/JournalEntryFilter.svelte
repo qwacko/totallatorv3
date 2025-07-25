@@ -3,12 +3,14 @@
 	generics="F extends JournalFilterSchemaType | JournalFilterSchemaWithoutPaginationType"
 >
 	import { getDateSpanDropdown } from '$lib/schema/dateSpanSchema';
+	import { llmReviewStatusEnumSelection } from '../../../schema/llmReviewStatusEnum';
+	import EnumArraySelection from '../EnumArraySelection.svelte';
 
 	import type {
 		JournalFilterSchemaType,
 		JournalFilterSchemaWithoutPaginationType
 	} from '$lib/schema/journalSchema';
-	import { Input, Button, Select } from 'flowbite-svelte';
+	import { Input, Button } from 'flowbite-svelte';
 	import DateInput from '../DateInput.svelte';
 	import TextInput from '../TextInput.svelte';
 	import BooleanFilterButtons from './BooleanFilterButtons.svelte';
@@ -176,16 +178,9 @@
 		bind:value={activeFilter.reconciled}
 	/>
 	<div class="flex text-sm font-semibold text-black">LLM Review Status</div>
-	<Select
-		bind:value={activeFilter.llmReviewStatus}
-		placeholder="Filter by LLM Status"
-		size="sm"
-		items={[
-			{ value: undefined, name: 'All Statuses' },
-			{ value: 'not_required', name: 'No Review Needed' },
-			{ value: 'required', name: 'Needs LLM Review' },
-			{ value: 'complete', name: 'LLM Review Complete' },
-			{ value: 'error', name: 'LLM Processing Error' }
-		]}
+	<EnumArraySelection
+		bind:values={activeFilter.llmReviewStatus}
+		enumSelection={llmReviewStatusEnumSelection}
+		color="dark"
 	/>
 </div>

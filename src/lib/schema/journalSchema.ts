@@ -237,7 +237,7 @@ export const journalFilterSchemaWithoutPagination = z
 		reconciled: z.coerce.boolean().optional(),
 		dataChecked: z.coerce.boolean().optional(),
 		complete: z.boolean().optional(),
-		llmReviewStatus: z.enum(llmReviewStatusEnum).optional(),
+		llmReviewStatus: z.array(z.enum(llmReviewStatusEnum)).optional(),
 		importIdArray: z.array(z.string()).optional(),
 		importDetailIdArray: z.array(z.string()).optional(),
 

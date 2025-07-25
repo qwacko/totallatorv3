@@ -12,6 +12,7 @@ import { dateSpanInfo } from '$lib/schema/dateSpanSchema';
 import { processJournalTextFilter } from './processJournalTextFilter';
 import { linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterToText } from '../note/noteFilterToQuery';
+import { llmReviewStatusEnumTitles } from '../../../../../../schema/llmReviewStatusEnum';
 
 export const journalFilterToText = async ({
 	filter,
@@ -108,14 +109,9 @@ export const journalFilterToText = async ({
 		);
 	if (filterInternal.reconciled !== undefined)
 		stringArray.push(filterInternal.reconciled ? 'Is Reconciled' : 'Is Not Reconciled');
-	if (filterInternal.llmReviewStatus !== undefined) {
-		const statusTitles = {
-			not_required: 'No Review Needed',
-			required: 'Needs LLM Review',
-			complete: 'LLM Review Complete',
-			error: 'LLM Processing Error'
-		};
-		stringArray.push(`LLM Review Status is ${statusTitles[filterInternal.llmReviewStatus]}`);
+	if (filterInternal.llmReviewStatus && filterInternal.llmReviewStatus.length > 0) {
+		const statusNames = filterInternal.llmReviewStatus.map((status) => llmReviewStatusEnumTitles[status]);
+		stringArray.push(`LLM Review Status is ${statusNames.join(', ')}`);
 	}
 	if (filterInternal.importIdArray && filterInternal.importIdArray.length > 0)
 		stringArray.push(

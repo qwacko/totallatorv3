@@ -13,3 +13,10 @@ export const llmReviewStatusEnumTitles: Record<LlmReviewStatusEnumType, string> 
 	complete: 'LLM Review Complete',
 	error: 'LLM Processing Error'
 };
+
+export const llmReviewStatusEnumSelection = [
+	{ value: 'not_required', name: 'Not Required' },
+	{ value: 'required', name: 'Needs Review' },
+	{ value: 'complete', name: 'Complete' },
+	{ value: 'error', name: 'Error' }
+] satisfies { value: LlmReviewStatusEnumType; name: string }[];

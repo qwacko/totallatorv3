@@ -4,7 +4,7 @@
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
 	import { browser } from '$app/environment';
 	import { goto, onNavigate } from '$app/navigation';
-	import { Button, ButtonGroup, DropdownItem, Input, Select } from 'flowbite-svelte';
+	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
 	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { enhance } from '$app/forms';
@@ -40,6 +40,8 @@
 	import RecommendationButton from '$lib/components/RecommendationButton.svelte';
 	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
 	import SearchInput from '$lib/components/SearchInput.svelte';
+	import EnumArraySelection from '$lib/components/EnumArraySelection.svelte';
+	import { llmReviewStatusEnumSelection } from '../../../schema/llmReviewStatusEnum';
 
 	const { data } = $props();
 
@@ -457,16 +459,9 @@
 						<DropdownFilterNestedText bind:params={$urlStore.searchParams.payee} key="title" />
 					{:else if currentColumn.id === 'llmReviewStatus'}
 						<DropdownItem>
-							<Select
-								bind:value={$urlStore.searchParams.llmReviewStatus}
-								placeholder="Filter by LLM Status"
-								items={[
-									{ value: '', name: 'All Statuses' },
-									{ value: 'not_required', name: 'No Review Needed' },
-									{ value: 'required', name: 'Needs LLM Review' },
-									{ value: 'complete', name: 'LLM Review Complete' },
-									{ value: 'error', name: 'LLM Processing Error' }
-								]}
+							<EnumArraySelection
+								bind:values={$urlStore.searchParams.llmReviewStatus}
+								enumSelection={llmReviewStatusEnumSelection}
 							/>
 						</DropdownItem>
 					{:else if currentColumn.id === 'dateText'}
