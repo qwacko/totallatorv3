@@ -6,13 +6,11 @@
 		enumSelection,
 		onUpdate,
 		clearable = true,
-		color = 'dark'
 	}: {
 		values: T[] | undefined;
 		enumSelection: { value: T; name: string }[];
 		onUpdate?: (newValues: T[] | undefined) => void;
 		clearable?: boolean;
-		color?: 'dark' | 'light';
 	} = $props();
 
 	const toggleArray = (itemValue: T) => {

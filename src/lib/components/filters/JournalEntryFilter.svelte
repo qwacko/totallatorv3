@@ -181,6 +181,5 @@
 	<EnumArraySelection
 		bind:values={activeFilter.llmReviewStatus}
 		enumSelection={llmReviewStatusEnumSelection}
-		color="dark"
 	/>
 </div>
