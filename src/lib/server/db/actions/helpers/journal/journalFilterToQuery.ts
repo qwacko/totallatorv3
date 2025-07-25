@@ -108,6 +108,15 @@ export const journalFilterToText = async ({
 		);
 	if (filterInternal.reconciled !== undefined)
 		stringArray.push(filterInternal.reconciled ? 'Is Reconciled' : 'Is Not Reconciled');
+	if (filterInternal.llmReviewStatus !== undefined) {
+		const statusTitles = {
+			not_required: 'No Review Needed',
+			required: 'Needs LLM Review',
+			complete: 'LLM Review Complete',
+			error: 'LLM Processing Error'
+		};
+		stringArray.push(`LLM Review Status is ${statusTitles[filterInternal.llmReviewStatus]}`);
+	}
 	if (filterInternal.importIdArray && filterInternal.importIdArray.length > 0)
 		stringArray.push(
 			await arrayToText({

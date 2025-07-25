@@ -202,6 +202,30 @@ const filterArray = [
 		}
 	},
 	{
+		key: 'llm:not_required',
+		update: (filter) => {
+			filter.llmReviewStatus = 'not_required';
+		}
+	},
+	{
+		key: 'llm:required',
+		update: (filter) => {
+			filter.llmReviewStatus = 'required';
+		}
+	},
+	{
+		key: 'llm:complete',
+		update: (filter) => {
+			filter.llmReviewStatus = 'complete';
+		}
+	},
+	{
+		key: 'llm:error',
+		update: (filter) => {
+			filter.llmReviewStatus = 'error';
+		}
+	},
+	{
 		key: 'linked:',
 		update: (filter) => {
 			filter.linked = true;

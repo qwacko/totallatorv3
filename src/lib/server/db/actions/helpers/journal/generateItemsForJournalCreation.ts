@@ -5,6 +5,8 @@ import { nanoid } from 'nanoid';
 import { expandDate } from './expandDate';
 import { journalGetOrCreateLinkedItems } from './journalGetOrCreateLinkedItems';
 import type { StatusEnumType } from '$lib/schema/statusSchema';
+import { serverEnv } from '$lib/server/serverEnv';
+import type { LlmReviewStatusEnumType } from '../../../../../../schema/llmReviewStatusEnum';
 
 export const generateItemsForJournalCreation = async ({
 	db,
@@ -15,7 +17,8 @@ export const generateItemsForJournalCreation = async ({
 	cachedBudgets,
 	cachedTags,
 	cachedCategories,
-	cachedLabels
+	cachedLabels,
+	isImport = false
 }: {
 	db: DBType;
 	transactionId: string;
@@ -26,6 +29,7 @@ export const generateItemsForJournalCreation = async ({
 	cachedTags?: { id: string; title: string; status: StatusEnumType }[];
 	cachedCategories?: { id: string; title: string; status: StatusEnumType }[];
 	cachedLabels?: { id: string; title: string; status: StatusEnumType }[];
+	isImport?: boolean;
 }) => {
 	const linkedCorrections = await journalGetOrCreateLinkedItems({
 		db,
@@ -41,11 +45,35 @@ export const generateItemsForJournalCreation = async ({
 	const { labels, accountId, ...restJournalData } = processedJournalData;
 	const id = nanoid();
 
+	// Determine LLM review status based on environment variables
+	const determineReviewStatus = (): LlmReviewStatusEnumType => {
+		// If LLM review is globally disabled, never require review
+		if (!serverEnv.LLM_REVIEW_ENABLED) {
+			return 'not_required';
+		}
+
+		// If this is an import and auto-import review is enabled
+		if (isImport && serverEnv.LLM_REVIEW_AUTO_IMPORT) {
+			return 'required';
+		}
+
+		// If this is a manual creation and manual create review is enabled
+		if (!isImport && serverEnv.LLM_REVIEW_MANUAL_CREATE) {
+			return 'required';
+		}
+
+		// Default to not required
+		return 'not_required';
+	};
+
+	const llmReviewStatus = determineReviewStatus();
+
 	const journalForCreation = {
 		id,
 		transactionId,
 		accountId: accountId || '',
 		...restJournalData,
+		llmReviewStatus,
 		...updatedTime(),
 		...expandDate(restJournalData.date)
 	};

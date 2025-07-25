@@ -58,11 +58,13 @@ export type LinkedCachedData = Awaited<ReturnType<typeof getCachedData>>;
 export const generateItemsForTransactionCreation = async ({
 	db,
 	data,
-	cachedData
+	cachedData,
+	isImport = false
 }: {
 	db: DBType;
 	data: CreateCombinedTransactionType;
 	cachedData?: LinkedCachedData;
+	isImport?: boolean;
 }) => {
 	const transactionId = nanoid();
 	const itemsForCreation = [];
@@ -78,7 +80,8 @@ export const generateItemsForTransactionCreation = async ({
 			cachedBudgets: cachedData?.cachedBudgets,
 			cachedTags: cachedData?.cachedTags,
 			cachedCategories: cachedData?.cachedCategories,
-			cachedLabels: cachedData?.cachedLabels
+			cachedLabels: cachedData?.cachedLabels,
+			isImport
 		});
 		itemsForCreation.push(result);
 	}

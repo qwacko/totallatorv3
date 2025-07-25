@@ -86,6 +86,7 @@ export const journalColumnsStore = writable([
 	'description',
 	'amount',
 	'total',
+	'llmReviewStatus',
 	'relations'
 ]);
 

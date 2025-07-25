@@ -68,34 +68,54 @@ This phase involved building the UI for managing LLM providers and implementing 
     -   [x] Follows established patterns from bills/categories pages.
     -   [x] Supports any provider (OpenAI, Anthropic, custom) via flexible text inputs.
 
-## Phase 4: Feature 1 - Journal Entry Recommendation Service
+## Phase 4: Feature 1 - Journal Entry Recommendation Service ✅ COMPLETED
 
-This phase implements the first core AI feature using the established tool-calling architecture.
+This phase implements the first core AI feature using an enum-based status system with comprehensive UI integration and automatic status management.
 
--   [ ] **Extend Filter Functionality:**
-    -   [ ] Add `llm_review_required` boolean to the `filters` table schema.
-    -   [ ] Update the filter UI components to include this option.
-    -   [ ] Modify journal queries to support filtering by LLM review status.
+-   [x] **Database Schema Updates:**
+    -   [x] Create `journal_llm_suggestions` table with comprehensive suggestion tracking.
+    -   [x] Implement CRUD operations for managing LLM suggestions (`journalLlmSuggestionActions.ts`).
+    -   [x] Add `llmReviewStatus` enum to `journalEntry` table (`not_required`, `required`, `complete`, `error`).
+    -   [x] Create database migration with proper defaults for existing records.
+    -   [x] Add proper indexing for efficient status-based queries.
+    -   [x] Update materialized views (`journal_view`, `journal_extended_view`) to include `llmReviewStatus`.
 
--   [ ] **Backend Recommendation Service:**
-    -   [ ] Create a journal recommendation service (`src/lib/server/llm/services/journalRecommendationService.ts`).
-    -   [ ] This service will orchestrate multi-step LLM conversations using the tool dispatcher.
-    -   [ ] Implement logic to identify journal entries needing review based on filter criteria.
-    -   [ ] The LLM can call tools like `findSimilarJournalEntries` or `getInvoiceText` before making recommendations.
+-   [x] **Enhanced Recommendation System:**
+    -   [x] Create journal recommendation service that integrates with existing recommendation modal.
+    -   [x] Implement `journal_categorization` LLM tool for analyzing transactions.
+    -   [x] Extend existing recommendation display to show both similarity and LLM suggestions.
+    -   [x] Add visual indicators (AI vs Similarity badges) and reasoning display.
+    -   [x] Seamless integration with existing `RecommendationButton`/`RecommendationDisplay` components.
 
--   [ ] **Database for Suggestions:**
-    -   [ ] Create `journal_llm_suggestions` table schema (id, journal_id, suggested_payee, suggested_description, suggested_category_id, suggested_tag_id, confidence_score, status, llm_log_id, created_at).
-    -   [ ] Implement CRUD operations for managing suggestions.
+-   [x] **Environment Variable Configuration:**
+    -   [x] Add env vars to control when journals get marked as `required`:
+        - `LLM_REVIEW_ENABLED=false` (global enable/disable, default: disabled for security)
+        - `LLM_REVIEW_AUTO_IMPORT=true` (mark imported journals as required)
+        - `LLM_REVIEW_MANUAL_CREATE=false` (don't mark manual journals as required)
+        - `LLM_REVIEW_SCHEDULE=*/15 * * * *` (cron schedule for processing)
+    -   [x] Update journal creation/import logic to set status based on env vars.
+    -   [x] Automatic status assignment in `generateItemsForJournalCreation.ts`.
 
--   [ ] **Frontend for Suggestions:**
-    -   [ ] Add suggestion UI to journal details/edit pages.
-    -   [ ] Display "Suggestion Available" component showing original vs. suggested values.
-    -   [ ] Include "Accept", "Reject", and "Request New Suggestion" buttons.
-    -   [ ] Show confidence scores and link to LLM logs for transparency.
+-   [x] **Complete UI Integration:**
+    -   [x] Add `llmReviewStatus` column to journal table with color-coded badges.
+    -   [x] Column header dropdown filtering for LLM status.
+    -   [x] Filter modal integration with status selection dropdown.
+    -   [x] Text search keywords: `llm:not_required`, `llm:required`, `llm:complete`, `llm:error`.
+    -   [x] Filter-to-text conversion for displaying applied filters.
+    -   [x] Autocomplete support for text filter keywords.
+    -   [x] Create `LlmReviewStatusBadge` component with clickable filtering.
 
--   [ ] **Testing:**
-    -   [ ] Write integration tests for the recommendation service with mocked LLM responses.
-    -   [ ] Write E2E tests for the suggestion workflow.
+-   [x] **Backend Integration:**
+    -   [x] Extend `journalFilterSchema` to support `llmReviewStatus` enum filtering.
+    -   [x] Update `materializedJournalFilterToQuery` for database query support.
+    -   [x] Integrate with text filter processing system.
+    -   [x] Add to journal ordering and sorting capabilities.
+
+-   [ ] **Future Enhancements (Next Phase):**
+    -   [ ] ReusableFilter integration for automatic status assignment.
+    -   [ ] Background cron job for processing `required` journals.
+    -   [ ] Bulk status management operations.
+    -   [ ] Advanced LLM suggestion acceptance/rejection workflow.
 
 ## Phase 5: Feature 2 - Invoice/Image Recognition (Vision Models)
 

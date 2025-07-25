@@ -35,6 +35,10 @@ import { z } from 'zod';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import type { DownloadTypeEnumType } from '$lib/schema/downloadTypeSchema';
 import Papa from 'papaparse';
+import { 
+	journalRecommendationService, 
+	type EnhancedRecommendationType 
+} from '../../services/journalRecommendationService';
 
 export const journalMaterializedViewActions = {
 	getLatestUpdateDate: async ({ db }: { db: DBType }): Promise<Date> => {
@@ -586,6 +590,81 @@ export const journalMaterializedViewActions = {
 		}
 
 		return recommendation;
+	},
+
+	/**
+	 * Get combined recommendations (similarity + LLM) for a journal entry
+	 */
+	listCombinedRecommendations: async ({
+		db,
+		journals,
+		similarityThreshold = 0.3,
+		includeLlmSuggestions = true,
+		llmSettingsId
+	}: {
+		db: DBType;
+		similarityThreshold?: number;
+		includeLlmSuggestions?: boolean;
+		llmSettingsId?: string;
+		journals: {
+			id: string;
+			description: string;
+			dataChecked: boolean;
+			accountId: string;
+			amount: number;
+			date: Date;
+			importDetail?: { dataToUse?: any } | null;
+		}[];
+	}): Promise<undefined | EnhancedRecommendationType[]> => {
+		if (journals.length !== 1) {
+			return;
+		}
+
+		const journal = journals[0];
+		const recommendations: EnhancedRecommendationType[] = [];
+
+		// Get similarity-based recommendations first
+		const similarityRecommendations = await journalMaterializedViewActions.listRecommendations({
+			db,
+			journals,
+			similarityThreshold
+		});
+
+		if (similarityRecommendations) {
+			// Convert existing recommendations to enhanced format
+			const enhancedSimilarityRecommendations: EnhancedRecommendationType[] = 
+				similarityRecommendations.map(rec => ({
+					...rec,
+					source: 'similarity' as const
+				}));
+			
+			recommendations.push(...enhancedSimilarityRecommendations);
+		}
+
+		// Get LLM recommendations if enabled
+		if (includeLlmSuggestions) {
+			try {
+				const llmRecommendations = await journalRecommendationService.generateLLMRecommendations({
+					db,
+					journal,
+					llmSettingsId
+				});
+				
+				recommendations.push(...llmRecommendations);
+			} catch (error) {
+				console.error('Failed to get LLM recommendations:', error);
+				// Continue with just similarity recommendations
+			}
+		}
+
+		// Sort recommendations by confidence/similarity score (descending)
+		recommendations.sort((a, b) => {
+			const aScore = a.source === 'llm' ? (a.llmConfidence || 0) : a.checkSimilarity;
+			const bScore = b.source === 'llm' ? (b.llmConfidence || 0) : b.checkSimilarity;
+			return bScore - aScore;
+		});
+
+		return recommendations.length > 0 ? recommendations : undefined;
 	}
 };
 

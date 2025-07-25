@@ -58,6 +58,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Key Features
 - **Financial Tracking**: Accounts, transactions (journals), categories, budgets, bills
 - **Import System**: CSV/JSON import with mapping configuration and auto-import capabilities
+- **LLM Integration**: AI-powered journal categorization and recommendations with provider management
 - **Reporting**: Configurable reports with various chart types and layouts
 - **File Management**: Attachment system with thumbnails and linking
 - **Backup/Restore**: Compressed backup system with scheduled backups

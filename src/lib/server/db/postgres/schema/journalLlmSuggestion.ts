@@ -1,10 +1,10 @@
-import { pgTable, text, timestamp, real, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, real } from 'drizzle-orm/pg-core';
 import { llmSettings } from './llm';
-import { journal } from './transactionSchema';
+import { journalEntry } from './transactionSchema';
 
 export const journalLlmSuggestions = pgTable('journal_llm_suggestions', {
 	id: text('id').primaryKey(),
-	journalId: text('journal_id').references(() => journal.id).notNull(),
+	journalId: text('journal_id').references(() => journalEntry.id).notNull(),
 	llmSettingsId: text('llm_settings_id').references(() => llmSettings.id).notNull(),
 	
 	// Suggested field values

@@ -53,17 +53,20 @@ export const journalActions = {
 
 		const createdTransaction = await journalActions.createManyTransactionJournals({
 			db,
-			journalEntries: [combinedTransaction]
+			journalEntries: [combinedTransaction],
+			isImport: false // This is manual creation
 		});
 
 		return createdTransaction;
 	},
 	createManyTransactionJournals: async ({
 		db,
-		journalEntries
+		journalEntries,
+		isImport = false
 	}: {
 		db: DBType;
 		journalEntries: CreateCombinedTransactionType[];
+		isImport?: boolean;
 	}): Promise<string[]> => {
 		let transactionIds: string[] = [];
 		await tLogger(
@@ -72,7 +75,7 @@ export const journalActions = {
 				const cachedData = await getCachedData({ db, count: journalEntries.length });
 				const itemsForCreation = await Promise.all(
 					journalEntries.map(async (journalEntry) => {
-						return generateItemsForTransactionCreation({ db, data: journalEntry, cachedData });
+						return generateItemsForTransactionCreation({ db, data: journalEntry, cachedData, isImport });
 					})
 				);
 
@@ -221,7 +224,8 @@ export const journalActions = {
 			db.transaction(async (db) => {
 				await journalActions.createManyTransactionJournals({
 					db,
-					journalEntries: transactionsForCreation
+					journalEntries: transactionsForCreation,
+					isImport: false // Seed data is not considered an import
 				});
 			})
 		);
@@ -743,7 +747,8 @@ export const journalActions = {
 			db.transaction(async (db) => {
 				transactionIds = await journalActions.createManyTransactionJournals({
 					db,
-					journalEntries: transactionsForCreation
+					journalEntries: transactionsForCreation,
+					isImport: false // Cloned journals are considered manual creation
 				});
 
 				const {

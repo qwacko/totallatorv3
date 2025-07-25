@@ -78,6 +78,7 @@ export const materializedJournalFilterToQuery = async (
 	if (filter.linked !== undefined) where.push(eq(targetTable.linked, filter.linked));
 	if (filter.dataChecked !== undefined) where.push(eq(targetTable.dataChecked, filter.dataChecked));
 	if (filter.reconciled !== undefined) where.push(eq(targetTable.reconciled, filter.reconciled));
+	if (filter.llmReviewStatus !== undefined) where.push(eq(targetTable.llmReviewStatus, filter.llmReviewStatus));
 	if (filter.importIdArray && filter.importIdArray.length > 0)
 		where.push(inArrayWrapped(targetTable.importId, filter.importIdArray));
 	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)

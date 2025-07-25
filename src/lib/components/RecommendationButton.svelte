@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button, Modal, Spinner } from 'flowbite-svelte';
-	import type { RecommendationType } from '$lib/server/db/actions/journalMaterializedViewActions';
+	import type { EnhancedRecommendationType } from '$lib/server/services/journalRecommendationService';
 	import type { JournalViewReturnType } from '$lib/server/db/postgres/schema';
 	import IdeaIcon from './icons/IdeaIcon.svelte';
 	import RecommendationDisplay from './RecommendationDisplay.svelte';
@@ -19,7 +19,7 @@
 		recommendations,
 		journal
 	}: {
-		recommendations: Record<string, Promise<RecommendationType[] | undefined>>;
+		recommendations: Record<string, Promise<EnhancedRecommendationType[] | undefined>>;
 		journal: JournalViewReturnType;
 	} = $props();
 
@@ -51,7 +51,7 @@
 	const enhance = $derived(form.enhance);
 	const formData = $derived(form.form);
 
-	const updateAndEdit = async (rec: RecommendationType) => {
+	const updateAndEdit = async (rec: EnhancedRecommendationType) => {
 		loadingUpdate = rec.journalId;
 		await submitJournalUpdateForm(rec);
 		const targetUrl = urlGenerator({
@@ -67,7 +67,7 @@
 		loadingUpdate = undefined;
 	};
 
-	const updateAndSave = async (rec: RecommendationType) => {
+	const updateAndSave = async (rec: EnhancedRecommendationType) => {
 		loadingUpdateAndSave = rec.journalId;
 
 		console.log('Updating and saving journal with recommendation:', rec);
@@ -77,7 +77,7 @@
 		loadingUpdateAndSave = undefined;
 	};
 
-	const submitJournalUpdateForm = async (rec: RecommendationType) => {
+	const submitJournalUpdateForm = async (rec: EnhancedRecommendationType) => {
 		formData.set({
 			filter: {
 				idArray: [journal.id]

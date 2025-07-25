@@ -121,7 +121,8 @@ export async function importTransaction({
 			try {
 				const importedData = await tActions.journal.createManyTransactionJournals({
 					db: trx,
-					journalEntries: [processedCombinedTransaction.data]
+					journalEntries: [processedCombinedTransaction.data],
+					isImport: true // This is from an import process
 				});
 
 				await Promise.all(

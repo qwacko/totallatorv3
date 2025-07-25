@@ -4,7 +4,7 @@
 	import { pageInfo, pageInfoStore, urlGenerator } from '$lib/routes.js';
 	import { browser } from '$app/environment';
 	import { goto, onNavigate } from '$app/navigation';
-	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
+	import { Button, ButtonGroup, DropdownItem, Input, Select } from 'flowbite-svelte';
 	import { defaultAllJournalFilter, defaultJournalFilter } from '$lib/schema/journalSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import { enhance } from '$app/forms';
@@ -24,6 +24,7 @@
 	import BillBadge from '$lib/components/BillBadge.svelte';
 	import BudgetBadge from '$lib/components/BudgetBadge.svelte';
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
+	import LlmReviewStatusBadge from '$lib/components/LlmReviewStatusBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
@@ -159,6 +160,13 @@
 						amount: row.total
 					}),
 					showTitleOnMobile: true
+				},
+				{
+					id: 'llmReviewStatus',
+					title: 'LLM Status',
+					sortKey: 'llmReviewStatus',
+					customCell: true,
+					filterActive: Boolean($urlStore.searchParams.llmReviewStatus)
 				},
 				{ id: 'relations', title: 'Relations', customCell: true }
 			]}
@@ -426,6 +434,11 @@
 							/>
 						{/each}
 					</div>
+				{:else if currentColumn.id === 'llmReviewStatus'}
+					<LlmReviewStatusBadge
+						status={currentJournal.llmReviewStatus}
+						currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+					/>
 				{/if}
 			{/snippet}
 			{#snippet slotHeaderItem({ currentColumn })}
@@ -442,6 +455,20 @@
 						<DropdownFilterNestedText bind:params={$urlStore.searchParams.account} key="title" />
 					{:else if currentColumn.id === 'payee'}
 						<DropdownFilterNestedText bind:params={$urlStore.searchParams.payee} key="title" />
+					{:else if currentColumn.id === 'llmReviewStatus'}
+						<DropdownItem>
+							<Select
+								bind:value={$urlStore.searchParams.llmReviewStatus}
+								placeholder="Filter by LLM Status"
+								items={[
+									{ value: '', name: 'All Statuses' },
+									{ value: 'not_required', name: 'No Review Needed' },
+									{ value: 'required', name: 'Needs LLM Review' },
+									{ value: 'complete', name: 'LLM Review Complete' },
+									{ value: 'error', name: 'LLM Processing Error' }
+								]}
+							/>
+						</DropdownItem>
 					{:else if currentColumn.id === 'dateText'}
 						<DropdownItem>
 							<DateInput

@@ -62,7 +62,11 @@ const serverEnvValidation = z.object({
 	TRANSACTIONLOG_ENABLESTART: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TRANSACTIONLOG_TIME_MS: z.coerce.number().optional().default(100),
 	CONCURRENT_REFRESH: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
-	VIEW_REFRESH_TIMEOUT: z.coerce.number().optional().default(20000)
+	VIEW_REFRESH_TIMEOUT: z.coerce.number().optional().default(20000),
+	LLM_REVIEW_ENABLED: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
+	LLM_REVIEW_AUTO_IMPORT: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
+	LLM_REVIEW_MANUAL_CREATE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
+	LLM_REVIEW_SCHEDULE: z.string().optional().default('*/15 * * * *')
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -99,5 +103,9 @@ export const serverEnv = serverEnvValidation.parse({
 	TRANSACTIONLOG_TIME_MS: env.TRANSACTIONLOG_TIME_MS,
 	TRANSACTIONLOG_ENABLESTART: env.TRANSACTIONLOG_ENABLESTART,
 	CONCURRENT_REFRESH: env.CONCURRENT_REFRESH,
-	VIEW_REFRESH_TIMEOUT: env.VIEW_REFRESH_TIMEOUT
+	VIEW_REFRESH_TIMEOUT: env.VIEW_REFRESH_TIMEOUT,
+	LLM_REVIEW_ENABLED: env.LLM_REVIEW_ENABLED,
+	LLM_REVIEW_AUTO_IMPORT: env.LLM_REVIEW_AUTO_IMPORT,
+	LLM_REVIEW_MANUAL_CREATE: env.LLM_REVIEW_MANUAL_CREATE,
+	LLM_REVIEW_SCHEDULE: env.LLM_REVIEW_SCHEDULE
 });

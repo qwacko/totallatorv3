@@ -10,6 +10,7 @@ import { cloneDeep } from 'lodash-es';
 import { dateSpanEnum } from './dateSpanSchema';
 import { linkedFileFilterSchema } from './linkedFileFilterSchema';
 import { linkedNoteFilterSchema } from './linkedNoteFilterSchema';
+import { llmReviewStatusEnum } from '../../schema/llmReviewStatusEnum';
 
 const zodStringBlanking = z
 	.string()
@@ -35,7 +36,8 @@ export const createJournalDBCore = z.object({
 	linked: z.boolean().default(true).optional(),
 	reconciled: z.boolean().default(false).optional(),
 	dataChecked: z.boolean().default(false).optional(),
-	complete: z.boolean().default(false).optional()
+	complete: z.boolean().default(false).optional(),
+	llmReviewStatus: z.enum(llmReviewStatusEnum).optional()
 });
 
 export type CreateJournalDBCoreType = z.infer<typeof createJournalDBCore>;
@@ -206,6 +208,7 @@ export const journalOrderByEnum = [
 	'reconciled',
 	'dataChecked',
 	'complete',
+	'llmReviewStatus',
 	'accountName'
 ] as const;
 
@@ -234,6 +237,7 @@ export const journalFilterSchemaWithoutPagination = z
 		reconciled: z.coerce.boolean().optional(),
 		dataChecked: z.coerce.boolean().optional(),
 		complete: z.boolean().optional(),
+		llmReviewStatus: z.enum(llmReviewStatusEnum).optional(),
 		importIdArray: z.array(z.string()).optional(),
 		importDetailIdArray: z.array(z.string()).optional(),
 
@@ -334,6 +338,7 @@ const enumTitles: OrderByEnumTitles = {
 	reconciled: 'Reconciled',
 	dataChecked: 'Data Checked',
 	complete: 'Complete',
+	llmReviewStatus: 'LLM Review Status',
 	accountName: 'Account Title'
 };
 

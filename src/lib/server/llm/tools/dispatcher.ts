@@ -8,6 +8,7 @@ import type {
 import { findSimilarJournalEntriesTool } from './implementations/findSimilarJournalEntries';
 import { getInvoiceTextTool } from './implementations/getInvoiceText';
 import { updateJournalEntryTool } from './implementations/updateJournalEntry';
+import { journalCategorizationTool } from './implementations/journalCategorization';
 
 export class ToolDispatcher {
 	private tools: Map<string, Tool> = new Map();
@@ -16,6 +17,7 @@ export class ToolDispatcher {
 		this.registerTool(findSimilarJournalEntriesTool);
 		this.registerTool(getInvoiceTextTool);
 		this.registerTool(updateJournalEntryTool);
+		this.registerTool(journalCategorizationTool);
 	}
 
 	private registerTool(tool: Tool): void {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RecommendationType } from '$lib/server/db/actions/journalMaterializedViewActions';
+	import type { EnhancedRecommendationType } from '$lib/server/services/journalRecommendationService';
 	import { Heading, P } from 'flowbite-svelte';
 	import RecommendationDisplaySingle from './RecommendationDisplaySingle.svelte';
 	import { formatDate, getCurrencyFormatter } from '$lib/schema/userSchema';
@@ -16,9 +16,9 @@
 		loadingUpdateAndSave
 	}: {
 		hideHeading?: boolean;
-		recommendations: Promise<RecommendationType[] | undefined>;
-		update?: (rec: RecommendationType) => void;
-		updateAndSave?: (rec: RecommendationType) => void;
+		recommendations: Promise<EnhancedRecommendationType[] | undefined>;
+		update?: (rec: EnhancedRecommendationType) => void;
+		updateAndSave?: (rec: EnhancedRecommendationType) => void;
 		journal?: JournalViewReturnType;
 		loadingUpdate?: string | undefined;
 		loadingUpdateAndSave?: string | undefined;

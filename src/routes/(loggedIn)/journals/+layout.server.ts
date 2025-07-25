@@ -3,7 +3,7 @@ import { serverPageInfo } from '$lib/routes';
 import type { JournalFilterSchemaType } from '$lib/schema/journalSchema.js';
 import { bufferingHelper } from '$lib/server/bufferingHelper.js';
 import { journalFilterToText } from '$lib/server/db/actions/helpers/journal/journalFilterToQuery.js';
-import type { RecommendationType } from '$lib/server/db/actions/journalMaterializedViewActions.js';
+import type { EnhancedRecommendationType } from '$lib/server/services/journalRecommendationService.js';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { redirect } from '@sveltejs/kit';
 
@@ -32,9 +32,13 @@ export const load = async (data) => {
 	}
 
 	const journalRecommendations = journalData.data.reduce<
-		Record<string, Promise<RecommendationType[] | undefined>>
+		Record<string, Promise<EnhancedRecommendationType[] | undefined>>
 	>((acc, journal) => {
-		acc[journal.id] = tActions.journalView.listRecommendations({ db, journals: [journal] });
+		acc[journal.id] = tActions.journalView.listCombinedRecommendations({ 
+			db, 
+			journals: [journal],
+			includeLlmSuggestions: true
+		});
 		return acc;
 	}, {});
 

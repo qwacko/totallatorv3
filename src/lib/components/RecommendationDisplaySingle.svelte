@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RecommendationType } from '$lib/server/db/actions/journalMaterializedViewActions';
+	import type { EnhancedRecommendationType } from '$lib/server/services/journalRecommendationService';
 	import { Badge, Button, Card, P, Spinner } from 'flowbite-svelte';
 	import {
 		accountDropdownData,
@@ -20,7 +20,7 @@
 		loadingUpdate,
 		loadingUpdateAndSave
 	}: {
-		recommendation: RecommendationType;
+		recommendation: EnhancedRecommendationType;
 		update?: () => void;
 		updateAndSave?: () => void;
 		loadingUpdate?: string | undefined;
@@ -57,12 +57,20 @@
 
 {#snippet displayItem()}
 	<div class="flex flex-row items-center gap-4">
-		<P size="2xl" class="p-2">{(recommendation.checkSimilarity * 100).toFixed(0)}%</P><P>
-			{@render displaySimilarText(
-				recommendation.checkDescription,
-				recommendation.searchDescription
-			)}
-		</P>
+		{#if recommendation.source === 'llm'}
+			<Badge color="blue" class="mr-2">AI</Badge>
+			<P size="2xl" class="p-2">{((recommendation.llmConfidence || 0) * 100).toFixed(0)}%</P>
+			<P>{recommendation.checkDescription}</P>
+		{:else}
+			<Badge color="green" class="mr-2">Similar</Badge>
+			<P size="2xl" class="p-2">{(recommendation.checkSimilarity * 100).toFixed(0)}%</P>
+			<P>
+				{@render displaySimilarText(
+					recommendation.checkDescription,
+					recommendation.searchDescription
+				)}
+			</P>
+		{/if}
 	</div>
 	<div class="flex flex-row items-center gap-4">
 		<P color="text-slate-600 dark:text-slate-600">Dates:</P>
@@ -75,6 +83,11 @@
 		</P>
 	</div>
 	<P class="flex">{recommendation.journalDescription}</P>
+	{#if recommendation.source === 'llm' && recommendation.llmReasoning}
+		<div class="text-sm text-slate-500 italic border-l-2 border-blue-300 pl-3 mt-2">
+			<P size="sm" color="text-slate-500">AI Reasoning: {recommendation.llmReasoning}</P>
+		</div>
+	{/if}
 	<div class="item-center flex flex-row flex-wrap gap-2">
 		{#if recommendation.payeeAccountId}
 			{@render DisplayItemBadge(recommendation.payeeAccountId, $accountDropdownData)}

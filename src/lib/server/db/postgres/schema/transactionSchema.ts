@@ -35,6 +35,7 @@ import type { CombinedBackupSchemaInfoType } from '$lib/server/backups/backupSch
 import { noteTypeEnum } from '../../../../schema/enum/noteTypeEnum';
 import { fileReasonEnum } from '../../../../schema/enum/fileReasonEnum';
 import { fileTypeEnum } from '../../../../schema/enum/fileTypeEnum';
+import { llmReviewStatusEnum } from '../../../../../schema/llmReviewStatusEnum';
 import { user } from './userSchema';
 
 const moneyType = customType<{ data: number }>({
@@ -315,6 +316,7 @@ const journalSharedColumns = {
 	reconciled: boolean('reconciled').notNull().default(false),
 	dataChecked: boolean('data_checked').notNull().default(false),
 	complete: boolean('complete').notNull().default(false),
+	llmReviewStatus: text('llm_review_status', { enum: llmReviewStatusEnum }).notNull().default('not_required'),
 
 	transfer: boolean('transfer').notNull().default(true)
 };
@@ -354,6 +356,7 @@ export const journalEntry = pgTable(
 		complete: index('journalEntry_complete_idx').on(t.complete),
 		reconciled: index('journalEntry_reconciled_idx').on(t.reconciled),
 		dataChecked: index('journalEntry_data_checked_idx').on(t.dataChecked),
+		llmReviewStatus: index('journalEntry_llm_review_status_idx').on(t.llmReviewStatus),
 		accountId: index('journalEntry_account_id_idx').on(t.accountId),
 		billId: index('journalEntry_bill_id_idx').on(t.billId),
 		budgetId: index('journalEntry_budget_id_idx').on(t.budgetId),
