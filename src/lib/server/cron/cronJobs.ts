@@ -4,6 +4,7 @@ import { db } from '../db/db';
 import { logging } from '../logging';
 import { auth } from '../auth';
 import { serverEnv } from '../serverEnv';
+import { LLMJournalProcessingService } from '../services/llmJournalProcessingService';
 import type { CronJob } from './cron';
 
 export const cronJobs: CronJob[] = [
@@ -140,6 +141,34 @@ export const cronJobs: CronJob[] = [
 		job: async () => {
 			await tActions.file.checkFilesExist({ db });
 			await tActions.file.updateLinked({ db });
+		}
+	},
+	{
+		name: 'Process LLM Journal Reviews',
+		schedule: serverEnv.LLM_REVIEW_SCHEDULE,
+		job: async () => {
+			if (!serverEnv.LLM_REVIEW_ENABLED) {
+				return;
+			}
+
+			const llmProcessor = new LLMJournalProcessingService(db);
+			const startTime = new Date().getTime();
+
+			try {
+				const result = await llmProcessor.processRequiredJournals({
+					batchSize: 20, // Process smaller batches more frequently
+					maxProcessingTime: 45000, // 45 seconds max
+					skipIfNoProviders: true
+				});
+
+				if (result.processed > 0 || result.errors > 0) {
+					logging.info(
+						`CRON: LLM Journal Processing - Processed: ${result.processed}, Errors: ${result.errors}, Duration: ${result.duration}ms`
+					);
+				}
+			} catch (error) {
+				logging.error('CRON: LLM Journal Processing failed:', error);
+			}
 		}
 	}
 ];

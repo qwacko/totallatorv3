@@ -446,6 +446,8 @@ export const journalActions = {
 								? false
 								: undefined;
 
+				const llmReviewStatus = journalData.llmReviewStatus;
+
 				if (linkedJournals.length > 0) {
 					await dbExecuteLogger(
 						db
@@ -459,6 +461,7 @@ export const journalActions = {
 								dataChecked,
 								reconciled,
 								description: journalData.description,
+								llmReviewStatus,
 								...targetDate,
 								...updatedTime()
 							})
@@ -480,6 +483,7 @@ export const journalActions = {
 								complete,
 								dataChecked,
 								reconciled,
+								llmReviewStatus,
 								...targetDate,
 								...updatedTime()
 							})

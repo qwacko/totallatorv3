@@ -6,6 +6,7 @@
 	import DateInputForm from '$lib/components/DateInputForm.svelte';
 	import CurrencyInputForm from '$lib/components/CurrencyInputForm.svelte';
 	import BooleanSetClearForm from '$lib/components/BooleanSetClearForm.svelte';
+	import LlmStatusForm from '$lib/components/LlmStatusForm.svelte';
 
 	const { form }: { form: SuperForm<UpdateJournalSchemaType> } = $props();
 </script>
@@ -26,3 +27,4 @@
 	setField="setDataChecked"
 	clearField="clearDataChecked"
 />
+<LlmStatusForm title="LLM Review Status" {form} field="llmReviewStatus" />

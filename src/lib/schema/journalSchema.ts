@@ -176,7 +176,8 @@ export const updateJournalSchema = z.object({
 	setComplete: z.coerce.boolean().optional().default(false),
 	clearComplete: z.coerce.boolean().optional().default(false),
 	setLinked: z.coerce.boolean().optional().default(false),
-	clearLinked: z.coerce.boolean().optional().default(false)
+	clearLinked: z.coerce.boolean().optional().default(false),
+	llmReviewStatus: z.enum(llmReviewStatusEnum).optional()
 });
 
 export const cloneJournalUpdateSchema = updateJournalSchema

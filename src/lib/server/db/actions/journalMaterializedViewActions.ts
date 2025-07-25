@@ -428,6 +428,7 @@ export const journalMaterializedViewActions = {
 			reconciled: boolean | undefined;
 			complete: boolean | undefined;
 			dataChecked: boolean | undefined;
+			llmReviewStatus: string | undefined;
 			otherAccountId: string | undefined;
 			allLabelIds: string[];
 			commonLabelIds: string[];
@@ -453,6 +454,7 @@ export const journalMaterializedViewActions = {
 		const reconciled = getCommonData('reconciled', journalInformation.data);
 		const complete = getCommonData('complete', journalInformation.data);
 		const dataChecked = getCommonData('dataChecked', journalInformation.data);
+		const llmReviewStatus = getCommonData('llmReviewStatus', journalInformation.data);
 		const labelData = getCommonLabelData(journalInformation.data);
 		const otherAccountId = getCommonOtherAccountData(journalInformation.data);
 
@@ -474,6 +476,7 @@ export const journalMaterializedViewActions = {
 				reconciled,
 				complete,
 				dataChecked,
+				llmReviewStatus,
 				...cloneData,
 				...labelData
 			}

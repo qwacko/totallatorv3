@@ -19,6 +19,7 @@
 	import type { reusableFilterActions } from '$lib/server/db/actions/reusableFilterActions.js';
 	import type { ReusableFilterFilterSchemaType } from '$lib/schema/reusableFilterSchema';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import type { Writable } from 'svelte/store';
 
 	let {
 		dataForTable,
@@ -31,7 +32,7 @@
 	}: {
 		dataForTable: Awaited<ReturnType<(typeof reusableFilterActions)['list']>>;
 		filterText: string[];
-		urlParams: Writable<{params: undefined, searchParams: ReusableFilterFilterSchemaType}>
+		urlParams: Writable<{params: undefined, searchParams: ReusableFilterFilterSchemaType | undefined}>
 		dev: boolean;
 		urlForPage: (value: number) => string;
 		urlForSort: (value: ReusableFilterFilterSchemaType['orderBy']) => string;
