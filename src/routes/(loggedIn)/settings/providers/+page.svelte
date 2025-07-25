@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Button, ButtonGroup, Badge } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import { statusToDisplay } from '$lib/schema/statusSchema';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
@@ -15,11 +14,27 @@
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import EyeIcon from '$lib/components/icons/EyeIcon.svelte';
 	import { llmProviderColumnsStore } from '$lib/stores/columnDisplayStores.js';
+	import {  notificationStore } from '$lib/stores/notificationStore.js';
 
 	const { data } = $props();
 	const urlInfo = $derived(pageInfo('/(loggedIn)/settings/providers', $page));
 
 	let filterOpened = $state(false);
+	let processingJournals = $state(false);
+
+	// Check for success message from URL params
+	$effect(() => {
+		if ($page.url.searchParams.get('processed') === 'true') {
+			notificationStore.send({title: "LLM Processing Complete", type: "success", message: "Journals have been processed successfully", duration: 2000})
+			
+			// Clean up URL
+			if (browser) {
+				const url = new URL($page.url);
+				url.searchParams.delete('processed');
+				goto(url.toString(), { replaceState: true });
+			}
+		}
+	});
 
 	onNavigate(() => {
 		filterOpened = false;
@@ -42,9 +57,27 @@
 
 <PageLayout title="LLM Providers" size="xl">
 	{#snippet slotRight()}
-		<Button href={urlGenerator({ address: '/(loggedIn)/settings/providers/create' }).url} color="light" outline>
-			Create
-		</Button>
+		<ButtonGroup>
+			<form method="POST" action="?/processJournals" use:enhance={() => {
+				processingJournals = true;
+				
+				return ({ update }) => {
+					processingJournals = false;
+					update();
+				};
+			}}>
+				<Button 
+					type="submit" 
+					color="primary" 
+					disabled={processingJournals || data.providers.filter(p => p.enabled).length === 0}
+				>
+					{processingJournals ? 'Processing...' : 'Process Journals'}
+				</Button>
+			</form>
+			<Button href={urlGenerator({ address: '/(loggedIn)/settings/providers/create' }).url} color="light" outline>
+				Create
+			</Button>
+		</ButtonGroup>
 	{/snippet}
 
 	<CustomTable
@@ -154,7 +187,10 @@
 
 		{#snippet slotFilterButtons()}
 			<Button 
-				href={urlGenerator({ address: '/(loggedIn)/settings/providers/logs' }).url}
+				href={urlGenerator({ 
+					address: '/(loggedIn)/settings/providers/logs',
+					searchParamsValue: { page: 0, pageSize: 10 }
+				}).url}
 				color="light" 
 				outline
 			>

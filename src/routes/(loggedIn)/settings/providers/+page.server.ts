@@ -5,10 +5,11 @@ import { noteFormActions } from '$lib/server/noteFormActions';
 import { fileFormActions } from '$lib/server/fileFormActions';
 import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions';
 import { logging } from '$lib/server/logging';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
+import { LLMBatchProcessingService } from '$lib/server/services/llmBatchProcessingService';
 
 const submitValidation = z.object({
 	id: z.string(),
@@ -55,6 +56,27 @@ export const actions = {
 		} catch (e) {
 			logging.error('LLM Provider Update Error', e);
 			return error(500, 'Error updating LLM provider');
+		}
+	},
+
+	processJournals: async ({ locals }) => {
+		const db = locals.db;
+
+		try {
+			logging.info('Manual LLM batch processing triggered');
+			
+			const batchService = new LLMBatchProcessingService(db);
+			const stats = await batchService.processAllAccounts();
+			
+			logging.info('Manual LLM batch processing completed:', stats);
+			
+			// Redirect back with success message
+			throw redirect(302, '/settings/providers?processed=true');
+		} catch (e) {
+			if (e instanceof Response) throw e; // Re-throw redirects
+			
+			logging.error('LLM Batch Processing Error:', e);
+			return error(500, 'Error processing journals with LLM');
 		}
 	}
 };

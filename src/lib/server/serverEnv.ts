@@ -66,7 +66,8 @@ const serverEnvValidation = z.object({
 	LLM_REVIEW_ENABLED: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	LLM_REVIEW_AUTO_IMPORT: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
 	LLM_REVIEW_MANUAL_CREATE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
-	LLM_REVIEW_SCHEDULE: z.string().optional().default('*/15 * * * *')
+	LLM_REVIEW_SCHEDULE: z.string().optional().default('*/15 * * * *'),
+	LLM_AUTO_CREATE_ITEMS: parseEnvStringToBoolean({ defaultBoolean: true, optional: true })
 });
 
 export const serverEnv = serverEnvValidation.parse({
@@ -107,5 +108,6 @@ export const serverEnv = serverEnvValidation.parse({
 	LLM_REVIEW_ENABLED: env.LLM_REVIEW_ENABLED,
 	LLM_REVIEW_AUTO_IMPORT: env.LLM_REVIEW_AUTO_IMPORT,
 	LLM_REVIEW_MANUAL_CREATE: env.LLM_REVIEW_MANUAL_CREATE,
-	LLM_REVIEW_SCHEDULE: env.LLM_REVIEW_SCHEDULE
+	LLM_REVIEW_SCHEDULE: env.LLM_REVIEW_SCHEDULE,
+	LLM_AUTO_CREATE_ITEMS: env.LLM_AUTO_CREATE_ITEMS
 });
