@@ -23,7 +23,7 @@
 	let {
 		dataForTable,
 		filterText,
-		searchParams = $bindable(),
+		urlParams,
 		dev,
 		urlForPage,
 		urlForSort,
@@ -31,7 +31,7 @@
 	}: {
 		dataForTable: Awaited<ReturnType<(typeof reusableFilterActions)['list']>>;
 		filterText: string[];
-		searchParams: ReusableFilterFilterSchemaType | undefined;
+		urlParams: Writable<{params: undefined, searchParams: ReusableFilterFilterSchemaType}>
 		dev: boolean;
 		urlForPage: (value: number) => string;
 		urlForSort: (value: ReusableFilterFilterSchemaType['orderBy']) => string;
@@ -52,9 +52,9 @@
 	numPages={dataForTable.pageCount}
 />
 
-{#if searchParams}
+{#if $urlParams.searchParams}
 	<CustomTable
-		highlightText={searchParams.multipleText}
+		highlightText={$urlParams.searchParams.multipleText}
 		highlightTextColumns={['title', 'group', 'filterText', 'changeText']}
 		{filterText}
 		onSortURL={urlForSort}
@@ -67,10 +67,10 @@
 		}}
 		noneFoundText="No Matching Filters Found"
 		data={dataForTable.data}
-		currentOrder={searchParams?.orderBy}
-		currentFilter={searchParams}
+		currentOrder={$urlParams.searchParams?.orderBy}
+		currentFilter={$urlParams.searchParams}
 		filterModalTitle="Filter Reusable Filters"
-		bind:numberRows={searchParams.pageSize}
+		bind:numberRows={$urlParams.searchParams.pageSize}
 		bind:shownColumns={$reusableFilterColumnsStore}
 		bind:filterOpened
 		columns={[
@@ -80,7 +80,7 @@
 				title: 'Automatic',
 				rowToDisplay: (row) => (row.applyAutomatically ? 'Y' : ''),
 				sortKey: 'applyAutomatically',
-				filterActive: Boolean(searchParams.applyAutomatically !== undefined),
+				filterActive: Boolean($urlParams.searchParams.applyAutomatically !== undefined),
 				showTitleOnMobile: true
 			},
 			{
@@ -88,7 +88,7 @@
 				title: 'Import',
 				rowToDisplay: (row) => (row.applyFollowingImport ? 'Y' : ''),
 				sortKey: 'applyFollowingImport',
-				filterActive: Boolean(searchParams.applyFollowingImport !== undefined),
+				filterActive: Boolean($urlParams.searchParams.applyFollowingImport !== undefined),
 				showTitleOnMobile: true
 			},
 			{
@@ -96,14 +96,14 @@
 				title: 'Dropdown',
 				sortKey: 'listed',
 				rowToDisplay: (row) => (row.listed ? 'Y' : ''),
-				filterActive: Boolean(searchParams.listed !== undefined),
+				filterActive: Boolean($urlParams.searchParams.listed !== undefined),
 				showTitleOnMobile: true
 			},
 			{
 				id: 'modificationType',
 				title: 'Modifiation',
 				sortKey: 'modificationType',
-				filterActive: Boolean(searchParams.modificationType !== undefined),
+				filterActive: Boolean($urlParams.searchParams.modificationType !== undefined),
 				showTitleOnMobile: true
 			},
 			{
@@ -111,7 +111,7 @@
 				title: 'Group',
 				rowToDisplay: (row) => row.group || '',
 				sortKey: 'group',
-				filterActive: Boolean(searchParams.group !== undefined && searchParams.group !== ''),
+				filterActive: Boolean($urlParams.searchParams.group !== undefined && $urlParams.searchParams.group !== ''),
 				showTitleOnMobile: true
 			},
 			{
@@ -119,14 +119,14 @@
 				title: 'Title',
 				rowToDisplay: (row) => row.title,
 				sortKey: 'title',
-				filterActive: Boolean(searchParams.title !== undefined && searchParams.title !== '')
+				filterActive: Boolean($urlParams.searchParams.title !== undefined && $urlParams.searchParams.title !== '')
 			},
 			{
 				id: 'filterText',
 				title: 'Filter',
 				rowToDisplay: (row) => row.filterText,
 				sortKey: 'filterText',
-				filterActive: Boolean(searchParams.filterText !== undefined),
+				filterActive: Boolean($urlParams.searchParams.filterText !== undefined),
 				showTitleOnMobile: true
 			},
 			{
@@ -134,7 +134,7 @@
 				title: 'Change',
 				rowToDisplay: (row) => row.changeText || '',
 				sortKey: 'changeText',
-				filterActive: Boolean(searchParams.filterText !== undefined),
+				filterActive: Boolean($urlParams.searchParams.filterText !== undefined),
 				showTitleOnMobile: true
 			},
 			{
@@ -235,10 +235,10 @@
 		{/snippet}
 		{#snippet slotFilter()}
 			<div class="flex flex-row gap-2">
-				{#if searchParams}
+				{#if $urlParams.searchParams}
 					<Input
 						type="text"
-						bind:value={searchParams.multipleText}
+						bind:value={$urlParams.searchParams.multipleText}
 						placeholder="Filter by Group / Title / Filter / Change"
 						class="flex grow"
 					/>
@@ -247,27 +247,27 @@
 		{/snippet}
 
 		{#snippet slotHeaderItem({ currentColumn })}
-			{#if searchParams}
+			{#if $urlParams.searchParams}
 				{#if currentColumn.id === 'group'}
 					<DropdownItem>
-						<Input type="text" bind:value={searchParams.group} placeholder="Group Filter" />
+						<Input type="text" bind:value={$urlParams.searchParams.group} placeholder="Group Filter" />
 					</DropdownItem>
 				{:else if currentColumn.id === 'title'}
 					<DropdownItem>
-						<Input type="text" bind:value={searchParams.title} placeholder="Title Filter" />
+						<Input type="text" bind:value={$urlParams.searchParams.title} placeholder="Title Filter" />
 					</DropdownItem>
 				{:else if currentColumn.id === 'filterText'}
 					<DropdownItem>
-						<Input type="text" bind:value={searchParams.filterText} placeholder="Filter Filter" />
+						<Input type="text" bind:value={$urlParams.searchParams.filterText} placeholder="Filter Filter" />
 					</DropdownItem>
 				{:else if currentColumn.id === 'changeText'}
 					<DropdownItem>
-						<Input type="text" bind:value={searchParams.changeText} placeholder="Change Filter" />
+						<Input type="text" bind:value={$urlParams.searchParams.changeText} placeholder="Change Filter" />
 					</DropdownItem>
 				{:else if currentColumn.id === 'applyAutomatically'}
 					<DropdownItem>
 						<BooleanFilterButtons
-							bind:value={searchParams.applyAutomatically}
+							bind:value={$urlParams.searchParams.applyAutomatically}
 							onTitle="Y"
 							offTitle="N"
 						/>
@@ -275,21 +275,21 @@
 				{:else if currentColumn.id === 'applyFollowingImport'}
 					<DropdownItem>
 						<BooleanFilterButtons
-							bind:value={searchParams.applyFollowingImport}
+							bind:value={$urlParams.searchParams.applyFollowingImport}
 							onTitle="Y"
 							offTitle="N"
 						/>
 					</DropdownItem>
 				{:else if currentColumn.id === 'listed'}
 					<DropdownItem>
-						<BooleanFilterButtons bind:value={searchParams.listed} onTitle="Y" offTitle="N" />
+						<BooleanFilterButtons bind:value={$urlParams.searchParams.listed} onTitle="Y" offTitle="N" />
 					</DropdownItem>
 				{/if}
 			{/if}
 		{/snippet}
 		{#snippet slotFilterModal()}
-			{#if searchParams}
-				<ReusableFilterFilter bind:filter={searchParams} />
+			{#if $urlParams.searchParams}
+				<ReusableFilterFilter bind:filter={$urlParams.searchParams} />
 			{/if}
 		{/snippet}
 		{#snippet slotBulkActions()}

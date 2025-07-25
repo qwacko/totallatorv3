@@ -124,14 +124,14 @@
 			<FilterTable
 				dataForTable={data.filters}
 				loading={true}
-				bind:searchParams={$urlStore.searchParams}
+				urlParams={urlStore}
 				{...tableConfig}
 			/>
 		{:then dataForUse}
 			<FilterTable
 				dataForTable={dataForUse}
 				loading={false}
-				bind:searchParams={$urlStore.searchParams}
+				urlParams={urlStore}
 				{...tableConfig}
 			/>
 		{/await}
