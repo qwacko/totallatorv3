@@ -208,24 +208,41 @@ export class LLMJournalProcessingService {
 	}
 
 	/**
-	 * Build a prompt for journal categorization
+	 * Build a comprehensive prompt for journal categorization
 	 */
 	private buildJournalCategorizationPrompt(journal: {
 		description: string | null;
 		amount: number;
 	}): string {
-		return `Please analyze this financial transaction and provide categorization suggestions:
+		const amount = Math.abs(journal.amount);
+		const isExpense = journal.amount < 0;
+		const isIncome = journal.amount > 0;
+		
+		return `You are a financial categorization expert. Analyze this transaction and provide accurate categorization suggestions.
 
-Transaction Details:
-- Description: ${journal.description || 'Not provided'}
-- Amount: $${journal.amount}
+TRANSACTION TO ANALYZE:
+Description: "${journal.description || 'No description'}"
+Amount: $${journal.amount} ${isExpense ? '(Expense)' : isIncome ? '(Income)' : '(Transfer)'}
 
-Please use the available tools to:
-1. Find similar transactions using the journal_categorization tool
-2. Suggest appropriate categorization based on the transaction details
-3. Provide reasoning for your suggestions
+CONTEXT & GUIDELINES:
+- This is a ${isExpense ? 'expense transaction' : isIncome ? 'income transaction' : 'transfer transaction'}
+- Amount magnitude: $${amount}
+- Look for merchant names, transaction types, and patterns in the description
+- Consider common abbreviations (e.g., "SQ *" = Square payments, "TST*" = Toast POS, "AMZN" = Amazon)
+- Be conservative with confidence - only high if very certain
 
-Focus on accuracy and consistency with existing transaction patterns.`;
+REQUIRED ACTIONS:
+1. Use the 'findSimilarJournalEntries' tool to search for similar transactions in the database
+2. Use the 'journal_categorization' tool to analyze and suggest categorization
+3. Provide clear reasoning for your suggestions
+
+KEY PRIORITIES:
+- Consistency with existing categorization patterns
+- Accurate payee identification
+- Appropriate category/tag/bill assignment
+- Clear confidence assessment (0.0-1.0)
+
+Please proceed with the analysis using the available tools.`;
 	}
 
 	/**

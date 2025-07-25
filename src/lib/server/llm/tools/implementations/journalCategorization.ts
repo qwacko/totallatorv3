@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 export const journalCategorizationTool: Tool = {
 	definition: {
 		name: 'journal_categorization',
-		description: 'Analyze a transaction and suggest categorization including payee, category, tags, bills, budgets, and target account based on description and amount.',
+		description: 'Analyze a transaction and suggest categorization including payee, category, tags, bills, budgets, and target account. Returns suggestions with confidence scores and reasoning.',
 		parameters: {
 			transaction: {
 				type: 'object',
@@ -18,20 +18,60 @@ export const journalCategorizationTool: Tool = {
 					},
 					amount: {
 						type: 'number',
-						description: 'Transaction amount'
+						description: 'Transaction amount (negative for expenses, positive for income)'
 					},
 					date: {
 						type: 'string',
-						description: 'Transaction date in YYYY-MM-DD format'
+						description: 'Transaction date in YYYY-MM-DD format (optional)'
 					},
 					accountId: {
 						type: 'string',
-						description: 'Source account ID'
+						description: 'Source account ID (optional)'
 					}
-				}
+				},
+				required: ['description', 'amount']
+			},
+			suggestions: {
+				type: 'object',
+				description: 'Your categorization suggestions based on analysis',
+				properties: {
+					payee: {
+						type: 'string',
+						description: 'Suggested payee/merchant name (cleaned and standardized)'
+					},
+					description: {
+						type: 'string',
+						description: 'Improved/cleaned transaction description (optional)'
+					},
+					category: {
+						type: 'string',
+						description: 'Suggested category name (will be created if not exists)'
+					},
+					tag: {
+						type: 'string',
+						description: 'Suggested tag name (optional, will be created if not exists)'
+					},
+					bill: {
+						type: 'string',
+						description: 'Suggested bill title for recurring payments (optional)'
+					},
+					budget: {
+						type: 'string',
+						description: 'Suggested budget category (optional)'
+					},
+					confidence: {
+						type: 'number',
+						description: 'Confidence score from 0.0 to 1.0 (be conservative)'
+					},
+					reasoning: {
+						type: 'string',
+						description: 'Clear explanation of why you made these suggestions'
+					}
+				},
+				required: ['payee', 'confidence', 'reasoning']
 			}
 		},
-		required: ['transaction']
+		required: ['transaction', 'suggestions']
 	},
 
 	async execute(
@@ -39,7 +79,7 @@ export const journalCategorizationTool: Tool = {
 		context: ToolExecutionContext
 	): Promise<ToolExecutionResult> {
 		try {
-			const { transaction } = parameters;
+			const { transaction, suggestions } = parameters;
 
 			if (!transaction || typeof transaction !== 'object') {
 				return {
@@ -48,7 +88,15 @@ export const journalCategorizationTool: Tool = {
 				};
 			}
 
-			const { description, amount, date, accountId } = transaction;
+			if (!suggestions || typeof suggestions !== 'object') {
+				return {
+					success: false,
+					error: 'suggestions parameter must be an object with your categorization analysis'
+				};
+			}
+
+			const { description, amount } = transaction;
+			const { payee, category, tag, bill, budget, confidence, reasoning } = suggestions;
 
 			if (!description || typeof description !== 'string') {
 				return {
@@ -57,54 +105,118 @@ export const journalCategorizationTool: Tool = {
 				};
 			}
 
-			// Get available accounts, categories, tags, bills, and budgets for context
-			const [accounts, categories, tags, bills, budgets] = await Promise.all([
-				dbExecuteLogger(
-					context.db.select({ id: account.id, title: account.title }).from(account),
-					'Journal Categorization - Get Accounts'
-				),
-				dbExecuteLogger(
-					context.db.select({ id: category.id, name: category.name }).from(category),
-					'Journal Categorization - Get Categories'
-				),
-				dbExecuteLogger(
-					context.db.select({ id: tag.id, name: tag.name }).from(tag),
-					'Journal Categorization - Get Tags'
-				),
-				dbExecuteLogger(
-					context.db.select({ id: bill.id, title: bill.title }).from(bill),
-					'Journal Categorization - Get Bills'
-				),
-				dbExecuteLogger(
-					context.db.select({ id: budget.id, title: budget.title }).from(budget),
-					'Journal Categorization - Get Budgets'
-				)
-			]);
+			if (!payee || typeof payee !== 'string') {
+				return {
+					success: false,
+					error: 'suggestions.payee must be a non-empty string'
+				};
+			}
 
-			// Create contextual information for the LLM
-			const availableOptions = {
-				accounts: accounts.map(a => ({ id: a.id, title: a.title })),
-				categories: categories.map(c => ({ id: c.id, name: c.name })),
-				tags: tags.map(t => ({ id: t.id, name: t.name })),
-				bills: bills.map(b => ({ id: b.id, title: b.title })),
-				budgets: budgets.map(b => ({ id: b.id, title: b.title }))
-			};
+			// Get or create the suggested items
+			const tActions = await import('../../../db/actions/tActions');
+			
+			let categoryId: string | undefined;
+			let tagId: string | undefined;
+			let billId: string | undefined;
+			let budgetId: string | undefined;
 
-			// Analyze the transaction description and amount to suggest categorization
-			const analysis = analyzeTransaction(description, amount, availableOptions);
+			// Create/get category if suggested
+			if (category && typeof category === 'string' && category.trim()) {
+				try {
+					const categoryResult = await tActions.tActions.category.createOrGet({
+						db: context.db,
+						title: category.trim(),
+						requireActive: false
+					});
+					categoryId = categoryResult.id;
+				} catch (error) {
+					// If category creation fails, continue without it
+					console.warn('Failed to create/get category:', category, error);
+				}
+			}
+
+			// Create/get tag if suggested
+			if (tag && typeof tag === 'string' && tag.trim()) {
+				try {
+					const tagResult = await tActions.tActions.tag.createOrGet({
+						db: context.db,
+						title: tag.trim(),
+						requireActive: false
+					});
+					tagId = tagResult.id;
+				} catch (error) {
+					console.warn('Failed to create/get tag:', tag, error);
+				}
+			}
+
+			// Create/get bill if suggested
+			if (bill && typeof bill === 'string' && bill.trim()) {
+				try {
+					const billResult = await tActions.tActions.bill.createOrGet({
+						db: context.db,
+						title: bill.trim(),
+						requireActive: false
+					});
+					billId = billResult.id;
+				} catch (error) {
+					console.warn('Failed to create/get bill:', bill, error);
+				}
+			}
+
+			// Create/get budget if suggested
+			if (budget && typeof budget === 'string' && budget.trim()) {
+				try {
+					const budgetResult = await tActions.tActions.budget.createOrGet({
+						db: context.db,
+						title: budget.trim(),
+						requireActive: false
+					});
+					budgetId = budgetResult.id;
+				} catch (error) {
+					console.warn('Failed to create/get budget:', budget, error);
+				}
+			}
+
+			// Create the LLM suggestion record if we have a journal context
+			if (context.journalId) {
+				try {
+					await tActions.tActions.journalLlmSuggestion.create({
+						db: context.db,
+						data: {
+							journalId: context.journalId,
+							llmSettingsId: 'system', // We'll need to pass this properly
+							suggestedPayee: payee,
+							suggestedDescription: suggestions.description || undefined,
+							suggestedCategoryId: categoryId,
+							suggestedTagId: tagId,
+							suggestedBillId: billId,
+							suggestedBudgetId: budgetId,
+							confidenceScore: typeof confidence === 'number' ? confidence : 0.5,
+							reasoning: reasoning || 'LLM analysis'
+						}
+					});
+				} catch (error) {
+					console.warn('Failed to create LLM suggestion record:', error);
+				}
+			}
 
 			return {
 				success: true,
 				data: {
-					payee: analysis.payee,
-					description: analysis.description || description,
-					categoryId: analysis.categoryId,
-					tagId: analysis.tagId,
-					billId: analysis.billId,
-					budgetId: analysis.budgetId,
-					accountId: analysis.accountId,
-					confidence: analysis.confidence,
-					reasoning: analysis.reasoning
+					payee,
+					description: suggestions.description || description,
+					categoryId,
+					tagId,
+					billId,
+					budgetId,
+					confidence: typeof confidence === 'number' ? confidence : 0.5,
+					reasoning: reasoning || 'LLM categorization analysis',
+					suggestedItems: {
+						category: category || undefined,
+						tag: tag || undefined,
+						bill: bill || undefined,
+						budget: budget || undefined
+					}
 				}
 			};
 
@@ -117,74 +229,3 @@ export const journalCategorizationTool: Tool = {
 	}
 };
 
-/**
- * Analyze transaction and suggest categorization
- * This is a simplified analysis that would typically be enhanced with ML/LLM calls
- */
-function analyzeTransaction(
-	description: string, 
-	amount: number, 
-	options: {
-		accounts: Array<{ id: string; title: string }>;
-		categories: Array<{ id: string; name: string }>;
-		tags: Array<{ id: string; name: string }>;
-		bills: Array<{ id: string; title: string }>;
-		budgets: Array<{ id: string; title: string }>;
-	}
-) {
-	const desc = description.toLowerCase();
-	let payee = '';
-	let categoryId: string | undefined;
-	let tagId: string | undefined;
-	let billId: string | undefined;
-	let budgetId: string | undefined;
-	let accountId: string | undefined;
-	let confidence = 0.7;
-	let reasoning = 'Based on transaction description analysis';
-
-	// Extract payee from common patterns
-	if (desc.includes('amazon')) {
-		payee = 'Amazon';
-		categoryId = options.categories.find(c => c.name.toLowerCase().includes('shopping'))?.id;
-	} else if (desc.includes('grocery') || desc.includes('supermarket')) {
-		payee = 'Grocery Store';
-		categoryId = options.categories.find(c => c.name.toLowerCase().includes('groceries') || c.name.toLowerCase().includes('food'))?.id;
-	} else if (desc.includes('gas') || desc.includes('fuel')) {
-		payee = 'Gas Station';
-		categoryId = options.categories.find(c => c.name.toLowerCase().includes('fuel') || c.name.toLowerCase().includes('gas'))?.id;
-	} else if (desc.includes('restaurant') || desc.includes('cafe')) {
-		payee = 'Restaurant';
-		categoryId = options.categories.find(c => c.name.toLowerCase().includes('dining') || c.name.toLowerCase().includes('restaurant'))?.id;
-	} else if (desc.includes('utility') || desc.includes('electric') || desc.includes('water')) {
-		payee = 'Utility Company';
-		categoryId = options.categories.find(c => c.name.toLowerCase().includes('utilities'))?.id;
-		billId = options.bills.find(b => b.title.toLowerCase().includes('utility') || b.title.toLowerCase().includes('electric') || b.title.toLowerCase().includes('water'))?.id;
-	} else {
-		// Try to extract a payee name from the description
-		const words = description.split(' ');
-		payee = words.slice(0, 2).join(' ').replace(/[^a-zA-Z0-9\s]/g, '').trim();
-		if (!payee) {
-			payee = 'Unknown Payee';
-		}
-	}
-
-	// Adjust confidence based on matches found
-	if (categoryId) confidence += 0.1;
-	if (billId) confidence += 0.1;
-	if (payee !== 'Unknown Payee') confidence += 0.05;
-
-	// Cap confidence at 0.95
-	confidence = Math.min(confidence, 0.95);
-
-	return {
-		payee,
-		description: undefined, // Keep original description
-		categoryId,
-		tagId,
-		billId,
-		budgetId,
-		accountId,
-		confidence,
-		reasoning: `Analyzed "${description}" and suggested categorization based on common patterns. ${categoryId ? 'Found matching category. ' : ''}${billId ? 'Found matching bill. ' : ''}`
-	};
-}
