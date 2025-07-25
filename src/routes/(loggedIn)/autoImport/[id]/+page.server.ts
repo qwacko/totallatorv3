@@ -60,17 +60,18 @@ export const actions = {
 		const db = request.locals.db;
 		const form = await request.request.formData();
 
-		const enable = form.get('enable');
-		const disable = form.get('disable');
-
+		const enable = form.get('enable') !== null;
+		const disable = form.get('disable') !== null;
 		try {
-			if (enable && enable.toString() === 'true') {
+			if (enable) {
+				console.log('Enabling autoImport', id);
 				await tActions.autoImport.update({
 					db,
 					data: { id, enabled: true }
 				});
 			}
-			if (disable && disable.toString() === 'true') {
+			if (disable) {
+				console.log('Disabling autoImport', id);
 				await tActions.autoImport.update({
 					db,
 					data: { id, enabled: false }
