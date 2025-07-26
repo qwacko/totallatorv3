@@ -70,13 +70,12 @@ export const actions = {
 			
 			logging.info('Manual LLM batch processing completed:', stats);
 			
-			// Redirect back with success message
-			throw redirect(302, '/settings/providers?processed=true');
 		} catch (e) {
-			if (e instanceof Response) throw e; // Re-throw redirects
-			
 			logging.error('LLM Batch Processing Error:', e);
 			return error(500, 'Error processing journals with LLM');
 		}
+		
+		// Redirect back with success message after successful processing
+		throw redirect(302, '/settings/providers?processed=true');
 	}
 };

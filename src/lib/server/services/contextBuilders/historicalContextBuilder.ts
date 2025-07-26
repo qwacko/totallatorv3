@@ -25,13 +25,19 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 	}): Promise<Partial<LLMBatchContext>> {
 		const { db, accountId, config } = params;
 		
-		// Build filter for historical journals
+		// Build filter for historical journals from same asset/liability account
 		const filter: JournalFilterSchemaInputType = {
 			account: {
-				idArray: [accountId]
+				idArray: [accountId],
+				type: ['asset', 'liability'] // Only process these account types
 			},
-			dataChecked: true, // Only include reviewed/categorized journals
-			llmReviewStatus: ['complete'], // Only completed LLM reviews
+			// Remove dataChecked filter - journals with categorization (even if not manually reviewed)
+			// can provide valuable context patterns
+			// Remove llmReviewStatus filter - journals with 'not_required' or null status 
+			// can still provide valuable categorization patterns
+			
+			// Exclude journals that are currently being processed
+			llmReviewStatus: ['not_required', 'complete'], // Exclude 'required' (being processed) and 'error'
 			page: 0,
 			pageSize: Math.min(config.maxHistoricalJournals * 2, 200), // Get extra for deduplication
 			orderBy: [
@@ -45,6 +51,8 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 			filter
 		});
 		
+		console.log(`Historical Context: Found ${historicalResult.count} total, showing ${historicalResult.data.length} journals for account ${accountId}`);
+		
 		// Convert to our BatchJournalData format
 		const historicalJournals: BatchJournalData[] = historicalResult.data.map(journal => ({
 			id: journal.id,
@@ -53,7 +61,7 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 			amount: Number(journal.amount),
 			accountId: journal.accountId || '',
 			accountTitle: journal.accountTitle || '',
-			payee: journal.payee,
+			payee: journal.description || '', // Use description as payee fallback
 			categoryId: journal.categoryId,
 			categoryTitle: journal.categoryTitle,
 			tagId: journal.tagId,
@@ -62,10 +70,10 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 			billTitle: journal.billTitle,
 			budgetId: journal.budgetId,
 			budgetTitle: journal.budgetTitle,
-			labels: journal.labels || [],
-			labelTitles: journal.labelTitles || [],
+			labels: journal.labels ? journal.labels.map((l: any) => l.id || l) : [],
+			labelTitles: journal.labels ? journal.labels.map((l: any) => l.title || l) : [],
 			importDetail: journal.importDetail,
-			llmReviewStatus: journal.llmReviewStatus as any || 'complete'
+			llmReviewStatus: journal.llmReviewStatus as any || 'not_required'
 		}));
 		
 		// Apply deduplication

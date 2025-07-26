@@ -29,6 +29,8 @@ export class FuzzyMatchContextBuilder extends BaseContextBuilder {
 		// Process each uncategorized journal to find fuzzy matches
 		for (const journal of uncategorizedJournals) {
 			try {
+				console.log(`Fuzzy Match: Processing journal ${journal.id}, has importDetail: ${!!journal.importDetail}`);
+				
 				// Use existing recommendation system for import-based similarity
 				const recommendations = await journalMaterializedViewActions.listRecommendations({
 					db,
@@ -41,6 +43,8 @@ export class FuzzyMatchContextBuilder extends BaseContextBuilder {
 					}],
 					similarityThreshold: config.similarityThreshold
 				});
+				
+				console.log(`Fuzzy Match: Found ${recommendations?.length || 0} recommendations for journal ${journal.id}`);
 				
 				if (recommendations && recommendations.length > 0) {
 					// Convert recommendations to BatchJournalData format

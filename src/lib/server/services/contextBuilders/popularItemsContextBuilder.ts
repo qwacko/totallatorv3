@@ -29,7 +29,7 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 		const { db, accountId, config } = params;
 		
 		// Fetch account details
-		const account = await tActions.account.getById({ db, id: accountId });
+		const account = await tActions.account.getById(db, accountId);
 		if (!account) {
 			throw new Error(`Account ${accountId} not found`);
 		}
@@ -61,9 +61,11 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 		
 		const filter: JournalFilterSchemaInputType = {
 			account: {
-				idArray: [accountId]
+				idArray: [accountId],
+				type: ['asset', 'liability'] // Only same account types
 			},
-			dataChecked: true, // Only include reviewed transactions
+			// Remove dataChecked filter - include all journals with categorization data
+			// Don't filter by llmReviewStatus - any journal with categories/tags is useful
 			dateAfter: sixMonthsAgo.toISOString().split('T')[0],
 			page: 0,
 			pageSize: 1000, // Large enough to get good statistics
@@ -175,35 +177,35 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 	 */
 	private async getAllCategorizationOptions(db: DBType): Promise<CategorizationOptions> {
 		const [categories, tags, bills, budgets, labels] = await Promise.all([
-			tActions.category.list({ db }),
-			tActions.tag.list({ db }),
-			tActions.bill.list({ db }),
-			tActions.budget.list({ db }),
-			tActions.label.list({ db })
+			tActions.category.list({ db, filter: {} }),
+			tActions.tag.list({ db, filter: {} }),
+			tActions.bill.list({ db, filter: {} }),
+			tActions.budget.list({ db, filter: {} }),
+			tActions.label.list({ db, filter: {} })
 		]);
 		
 		return {
-			categories: categories.map(item => ({ 
+			categories: categories.data.map(item => ({ 
 				id: item.id, 
 				title: item.title, 
 				active: item.active 
 			})),
-			tags: tags.map(item => ({ 
+			tags: tags.data.map(item => ({ 
 				id: item.id, 
 				title: item.title, 
 				active: item.active 
 			})),
-			bills: bills.map(item => ({ 
+			bills: bills.data.map(item => ({ 
 				id: item.id, 
 				title: item.title, 
 				active: item.active 
 			})),
-			budgets: budgets.map(item => ({ 
+			budgets: budgets.data.map(item => ({ 
 				id: item.id, 
 				title: item.title, 
 				active: item.active 
 			})),
-			labels: labels.map(item => ({ 
+			labels: labels.data.map(item => ({ 
 				id: item.id, 
 				title: item.title, 
 				active: item.active 

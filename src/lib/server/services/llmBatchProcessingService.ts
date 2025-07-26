@@ -258,7 +258,7 @@ export class LLMBatchProcessingService {
 	constructor(db: DBType) {
 		this.db = db;
 		
-		// Initialize context builders in priority order
+		// Initialize context builders in priority orde
 		this.contextBuilders = [
 			new HistoricalContextBuilder(),
 			new FuzzyMatchContextBuilder(),
@@ -279,23 +279,25 @@ export class LLMBatchProcessingService {
 		
 		// Check if LLM processing is enabled
 		if (!serverEnv.LLM_REVIEW_ENABLED) {
-			logging.debug('LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false');
+			logging.info('LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false');
 			return this.emptyStats(Date.now() - startTime);
 		}
 		
 		// Get enabled LLM providers
 		const allProviders = await tActions.llm.list({ db: this.db });
 		const enabledProviders = allProviders.filter(p => p.enabled);
+		logging.info(`LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`);
 		if (enabledProviders.length === 0) {
-			logging.debug('LLM Batch Processing: Skipped - No enabled providers');
+			logging.info('LLM Batch Processing: Skipped - No enabled providers');
 			return this.emptyStats(Date.now() - startTime);
 		}
 		
 		// Get accounts that have journals requiring processing
 		const accountsWithWork = await this.getAccountsWithRequiredJournals();
 		
+		logging.info(`LLM Batch Processing: Found ${accountsWithWork.length} accounts with journals requiring processing`);
 		if (accountsWithWork.length === 0) {
-			logging.debug('LLM Batch Processing: No accounts with journals requiring processing');
+			logging.info('LLM Batch Processing: No accounts with journals requiring processing');
 			return this.emptyStats(Date.now() - startTime);
 		}
 		
@@ -400,12 +402,16 @@ export class LLMBatchProcessingService {
 	
 	/**
 	 * Get accounts that have journals requiring processing
+	 * Only processes asset and liability accounts since expense/income accounts 
+	 * are already categorized in a double-entry system
 	 */
 	private async getAccountsWithRequiredJournals(): Promise<Array<{ id: string; title: string }>> {
-		// This would need a custom query to find accounts with journals that have llmReviewStatus = 'required'
-		// For now, we'll use a simplified approach
+		// Filter for journals in asset/liability accounts that need processing
 		const filter: JournalFilterSchemaInputType = {
 			llmReviewStatus: ['required'],
+			account: {
+				type: ['asset', 'liability'] // Only process these account types
+			},
 			page: 0,
 			pageSize: 100,
 			orderBy: [{ field: 'date', direction: 'desc' }]
@@ -413,22 +419,32 @@ export class LLMBatchProcessingService {
 		
 		const result = await journalMaterialisedList({ db: this.db, filter });
 		
+		logging.info(`LLM Batch Processing: Found ${result.count} journals with status 'required' in asset/liability accounts (showing ${result.data.length})`);
+		
 		// Extract unique account IDs
 		const accountIds = new Set(result.data.map(j => j.accountId).filter(Boolean));
 		
-		// Get account details
+		logging.info(`LLM Batch Processing: Journals span ${accountIds.size} asset/liability accounts: ${Array.from(accountIds).join(', ')}`);
+		
+		// Get account details and verify they are asset/liability accounts
 		const accounts = await Promise.all(
 			Array.from(accountIds).map(async (id) => {
-				const account = await tActions.account.getById(this.db, id);
-				return account ? { id: account.id, title: account.title } : null;
+				const account = await tActions.account.getById(this.db, id!);
+				if (account && (account.type === 'asset' || account.type === 'liability')) {
+					return { id: account.id, title: account.title, type: account.type };
+				}
+				return null;
 			})
 		);
 		
-		return accounts.filter(Boolean) as Array<{ id: string; title: string }>;
+		const validAccounts = accounts.filter(Boolean) as Array<{ id: string; title: string; type: string }>;
+		logging.info(`LLM Batch Processing: Processing ${validAccounts.length} asset/liability accounts: ${validAccounts.map(a => `${a.title} (${a.type})`).join(', ')}`);
+		
+		return validAccounts;
 	}
 	
 	/**
-	 * Get uncategorized journals for an account
+	 * Get uncategorized journals for an account (asset/liability accounts only)
 	 */
 	private async getUncategorizedJournals(
 		accountId: string, 
@@ -436,9 +452,9 @@ export class LLMBatchProcessingService {
 	): Promise<BatchJournalData[]> {
 		const filter: JournalFilterSchemaInputType = {
 			account: {
-				idArray: [accountId]
+				idArray: [accountId],
+				type: ['asset', 'liability'] // Double-check account type
 			},
-			llmReviewStatus: ['required'],
 			page: 0,
 			pageSize: config.maxUncategorizedJournals,
 			orderBy: [
@@ -455,7 +471,7 @@ export class LLMBatchProcessingService {
 			amount: Number(journal.amount),
 			accountId: journal.accountId || '',
 			accountTitle: journal.accountTitle || '',
-			payee: journal.payee,
+			payee: journal.description || '', // Use description as payee fallback
 			categoryId: journal.categoryId,
 			categoryTitle: journal.categoryTitle,
 			tagId: journal.tagId,
@@ -464,8 +480,8 @@ export class LLMBatchProcessingService {
 			billTitle: journal.billTitle,
 			budgetId: journal.budgetId,
 			budgetTitle: journal.budgetTitle,
-			labels: journal.labels || [],
-			labelTitles: journal.labelTitles || [],
+			labels: journal.labels ? journal.labels.map((l: any) => l.id || l) : [],
+			labelTitles: journal.labels ? journal.labels.map((l: any) => l.title || l) : [],
 			importDetail: journal.importDetail,
 			llmReviewStatus: journal.llmReviewStatus as any || 'required'
 		}));
