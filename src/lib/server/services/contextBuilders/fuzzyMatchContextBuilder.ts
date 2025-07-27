@@ -1,9 +1,7 @@
-import { BaseContextBuilder } from './baseContextBuilder';
-import type { DBType } from '../../db/db';
+import { deduplicateJournals, type ContextBuilderParams } from './baseContextBuilder';
 import type {
 	LLMBatchContext,
-	BatchJournalData,
-	LLMBatchProcessingConfig
+	BatchJournalData
 } from '../llmBatchProcessingService';
 import { journalMaterializedViewActions } from '../../db/actions/journalMaterializedViewActions';
 
@@ -11,17 +9,7 @@ import { journalMaterializedViewActions } from '../../db/actions/journalMaterial
  * Builds fuzzy match context using the existing similarity algorithm
  * Leverages import data matching for better transaction recognition
  */
-export class FuzzyMatchContextBuilder extends BaseContextBuilder {
-	name = 'fuzzy_match';
-	enabled = true;
-	priority = 2;
-
-	async build(params: {
-		db: DBType;
-		accountId: string;
-		uncategorizedJournals: BatchJournalData[];
-		config: LLMBatchProcessingConfig;
-	}): Promise<Partial<LLMBatchContext>> {
+export async function buildFuzzyMatchContext(params: ContextBuilderParams): Promise<Partial<LLMBatchContext>> {
 		const { db, uncategorizedJournals, config } = params;
 
 		const allFuzzyMatches: BatchJournalData[] = [];
@@ -85,7 +73,7 @@ export class FuzzyMatchContextBuilder extends BaseContextBuilder {
 		}
 
 		// Remove duplicates and limit results
-		const deduplicatedMatches = this.deduplicateJournals(allFuzzyMatches);
+		const deduplicatedMatches = deduplicateJournals(allFuzzyMatches);
 		const limitedMatches = deduplicatedMatches.slice(0, 50); // Reasonable limit for context
 
 		return {
@@ -97,5 +85,4 @@ export class FuzzyMatchContextBuilder extends BaseContextBuilder {
 				fuzzyMatchesFound: limitedMatches.length
 			}
 		};
-	}
 }

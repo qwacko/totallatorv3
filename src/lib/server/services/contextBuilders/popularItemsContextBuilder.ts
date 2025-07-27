@@ -1,31 +1,19 @@
-import { BaseContextBuilder } from './baseContextBuilder';
-import type { DBType } from '../../db/db';
+import type { ContextBuilderParams } from './baseContextBuilder';
 import type {
 	LLMBatchContext,
-	BatchJournalData,
-	LLMBatchProcessingConfig,
 	PopularItems,
 	CategorizationOptions
 } from '../llmBatchProcessingService';
 import { tActions } from '../../db/actions/tActions';
 import { journalMaterialisedList } from '../../db/actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '$lib/schema/journalSchema';
+import type { DBType } from '../../db/db';
 
 /**
  * Builds context for popular items (most used categories, tags, etc.) for the account
  * Also fetches all available categorization options
  */
-export class PopularItemsContextBuilder extends BaseContextBuilder {
-	name = 'popular_items';
-	enabled = true;
-	priority = 3;
-
-	async build(params: {
-		db: DBType;
-		accountId: string;
-		uncategorizedJournals: BatchJournalData[];
-		config: LLMBatchProcessingConfig;
-	}): Promise<Partial<LLMBatchContext>> {
+export async function buildPopularItemsContext(params: ContextBuilderParams): Promise<Partial<LLMBatchContext>> {
 		const { db, accountId, config } = params;
 
 		// Fetch account details
@@ -35,10 +23,10 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 		}
 
 		// Get popular items by analyzing recent journal usage
-		const popularItems = await this.getPopularItems(db, accountId, config.maxPopularItems);
+		const popularItems = await getPopularItems(db, accountId, config.maxPopularItems);
 
 		// Get all available options
-		const allOptions = await this.getAllCategorizationOptions(db);
+		const allOptions = await getAllCategorizationOptions(db);
 
 		return {
 			account: {
@@ -49,16 +37,16 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 			popularItems,
 			allOptions
 		};
-	}
+}
 
-	/**
-	 * Get most popular categorization items for the account
-	 */
-	private async getPopularItems(
-		db: DBType,
-		accountId: string,
-		maxItems: number
-	): Promise<PopularItems> {
+/**
+ * Get most popular categorization items for the account
+ */
+async function getPopularItems(
+	db: DBType,
+	accountId: string,
+	maxItems: number
+): Promise<PopularItems> {
 		// Get journals from the last 6 months to analyze usage patterns
 		const sixMonthsAgo = new Date();
 		sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
@@ -170,12 +158,12 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 				.slice(0, maxItems)
 				.map((item) => ({ id: item.id, title: item.title, usageCount: item.count }))
 		};
-	}
+}
 
-	/**
-	 * Get all available categorization options
-	 */
-	private async getAllCategorizationOptions(db: DBType): Promise<CategorizationOptions> {
+/**
+ * Get all available categorization options
+ */
+async function getAllCategorizationOptions(db: DBType): Promise<CategorizationOptions> {
 		const [categories, tags, bills, budgets, labels] = await Promise.all([
 			tActions.category.list({ db, filter: {} }),
 			tActions.tag.list({ db, filter: {} }),
@@ -211,5 +199,4 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 				active: item.active
 			}))
 		};
-	}
 }

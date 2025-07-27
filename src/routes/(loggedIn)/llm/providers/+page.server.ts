@@ -8,7 +8,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
-import { LLMBatchProcessingService } from '$lib/server/services/llmBatchProcessingService';
+import { processAllAccounts } from '$lib/server/services/llmBatchProcessingService';
 
 const submitValidation = z.object({
 	id: z.string(),
@@ -64,8 +64,7 @@ export const actions = {
 		try {
 			logging.info('Manual LLM batch processing triggered');
 
-			const batchService = new LLMBatchProcessingService(db);
-			const stats = await batchService.processAllAccounts();
+			const stats = await processAllAccounts(db);
 
 			logging.info('Manual LLM batch processing completed:', stats);
 		} catch (e) {

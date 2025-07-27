@@ -1,9 +1,7 @@
-import { BaseContextBuilder } from './baseContextBuilder';
-import type { DBType } from '../../db/db';
+import { deduplicateJournals, type ContextBuilderParams } from './baseContextBuilder';
 import type {
 	LLMBatchContext,
-	BatchJournalData,
-	LLMBatchProcessingConfig
+	BatchJournalData
 } from '../llmBatchProcessingService';
 import { journalMaterialisedList } from '../../db/actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '$lib/schema/journalSchema';
@@ -12,17 +10,7 @@ import type { JournalFilterSchemaInputType } from '$lib/schema/journalSchema';
  * Builds historical context by fetching recent, data-checked journals from the same account
  * Applies deduplication to remove similar transactions
  */
-export class HistoricalContextBuilder extends BaseContextBuilder {
-	name = 'historical';
-	enabled = true;
-	priority = 1;
-
-	async build(params: {
-		db: DBType;
-		accountId: string;
-		uncategorizedJournals: BatchJournalData[];
-		config: LLMBatchProcessingConfig;
-	}): Promise<Partial<LLMBatchContext>> {
+export async function buildHistoricalContext(params: ContextBuilderParams): Promise<Partial<LLMBatchContext>> {
 		const { db, accountId, config } = params;
 
 		// Build filter for historical journals from same asset/liability account
@@ -79,7 +67,7 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 		}));
 
 		// Apply deduplication
-		const deduplicatedJournals = this.deduplicateJournals(historicalJournals);
+		const deduplicatedJournals = deduplicateJournals(historicalJournals);
 
 		// Limit to configured maximum
 		const limitedJournals = deduplicatedJournals.slice(0, config.maxHistoricalJournals);
@@ -93,5 +81,4 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 				fuzzyMatchesFound: 0 // Will be set by fuzzy matcher
 			}
 		};
-	}
 }

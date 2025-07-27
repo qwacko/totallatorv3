@@ -7,10 +7,9 @@ import { tActions } from '../db/actions/tActions';
 import { LLMClient } from '../llm/client';
 
 // Context Builders
-import { HistoricalContextBuilder } from './contextBuilders/historicalContextBuilder';
-import { FuzzyMatchContextBuilder } from './contextBuilders/fuzzyMatchContextBuilder';
-import { PopularItemsContextBuilder } from './contextBuilders/popularItemsContextBuilder';
-import type { ContextBuilder } from './contextBuilders/baseContextBuilder';
+import { buildHistoricalContext } from './contextBuilders/historicalContextBuilder';
+import { buildFuzzyMatchContext } from './contextBuilders/fuzzyMatchContextBuilder';
+import { buildPopularItemsContext } from './contextBuilders/popularItemsContextBuilder';
 
 // ============================================================================
 // Core Types for Batch LLM Processing
@@ -246,176 +245,178 @@ export interface BatchProcessingStats {
 // Main Service Implementation
 // ============================================================================
 
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+
 /**
- * Main LLM Batch Processing Service
- * Orchestrates the entire batch processing workflow
+ * Create empty stats object
  */
-export class LLMBatchProcessingService {
-	private db: DBType;
-	private contextBuilders: ContextBuilder[];
+function emptyStats(processingTime: number): BatchProcessingStats {
+	return {
+		totalBatchesProcessed: 0,
+		totalJournalsProcessed: 0,
+		totalSuggestionsCreated: 0,
+		averageConfidence: 0,
+		processingTime,
+		errors: 0
+	};
+}
 
-	constructor(db: DBType) {
-		this.db = db;
+/**
+ * Process all accounts that have journals requiring LLM review
+ */
+export async function processAllAccounts(
+	db: DBType,
+	config: Partial<LLMBatchProcessingConfig> = {}
+): Promise<BatchProcessingStats> {
+	const finalConfig = {
+		...DEFAULT_BATCH_CONFIG,
+		...config,
+		allowAutoCreation: serverEnv.LLM_AUTO_CREATE_ITEMS // Override with env setting
+	};
+	const startTime = Date.now();
 
-		// Initialize context builders in priority orde
-		this.contextBuilders = [
-			new HistoricalContextBuilder(),
-			new FuzzyMatchContextBuilder(),
-			new PopularItemsContextBuilder()
-		].sort((a, b) => a.priority - b.priority);
+	// Check if LLM processing is enabled
+	if (!serverEnv.LLM_REVIEW_ENABLED) {
+		logging.info('LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false');
+		return emptyStats(Date.now() - startTime);
 	}
 
-	/**
-	 * Process all accounts that have journals requiring LLM review
-	 */
-	async processAllAccounts(
-		config: Partial<LLMBatchProcessingConfig> = {}
-	): Promise<BatchProcessingStats> {
-		const finalConfig = {
-			...DEFAULT_BATCH_CONFIG,
-			...config,
-			allowAutoCreation: serverEnv.LLM_AUTO_CREATE_ITEMS // Override with env setting
-		};
-		const startTime = Date.now();
-
-		// Check if LLM processing is enabled
-		if (!serverEnv.LLM_REVIEW_ENABLED) {
-			logging.info('LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false');
-			return this.emptyStats(Date.now() - startTime);
-		}
-
-		// Get enabled LLM providers
-		const allProviders = await tActions.llm.list({ db: this.db });
-		const enabledProviders = allProviders.filter((p) => p.enabled);
-		logging.info(
-			`LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`
-		);
-		if (enabledProviders.length === 0) {
-			logging.info('LLM Batch Processing: Skipped - No enabled providers');
-			return this.emptyStats(Date.now() - startTime);
-		}
-
-		// Get accounts that have journals requiring processing
-		const accountsWithWork = await this.getAccountsWithRequiredJournals();
-
-		logging.info(
-			`LLM Batch Processing: Found ${accountsWithWork.length} accounts with journals requiring processing`
-		);
-		if (accountsWithWork.length === 0) {
-			logging.info('LLM Batch Processing: No accounts with journals requiring processing');
-			return this.emptyStats(Date.now() - startTime);
-		}
-
-		logging.info(`LLM Batch Processing: Processing ${accountsWithWork.length} accounts`);
-
-		const stats: BatchProcessingStats = {
-			totalBatchesProcessed: 0,
-			totalJournalsProcessed: 0,
-			totalSuggestionsCreated: 0,
-			averageConfidence: 0,
-			processingTime: 0,
-			errors: 0
-		};
-
-		// Process each account
-		for (const account of accountsWithWork) {
-			try {
-				const result = await this.processAccount(account.id, finalConfig);
-
-				stats.totalBatchesProcessed++;
-				stats.totalJournalsProcessed += result.journalsProcessed;
-				stats.totalSuggestionsCreated += result.suggestionsCreated;
-
-				if (result.llmResponse) {
-					const confidence = result.llmResponse.processingMetadata.averageConfidence;
-					stats.averageConfidence = (stats.averageConfidence + confidence) / 2;
-				}
-
-				logging.info(
-					`LLM Batch Processing: Account ${account.title} - ${result.journalsProcessed} journals processed`
-				);
-			} catch (error) {
-				stats.errors++;
-				logging.error(`LLM Batch Processing: Error processing account ${account.id}:`, error);
-			}
-		}
-
-		stats.processingTime = Date.now() - startTime;
-		logging.info(
-			`LLM Batch Processing: Completed - ${stats.totalBatchesProcessed} batches, ${stats.totalJournalsProcessed} journals`
-		);
-
-		return stats;
+	// Get enabled LLM providers
+	const allProviders = await tActions.llm.list({ db });
+	const enabledProviders = allProviders.filter((p) => p.enabled);
+	logging.info(
+		`LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`
+	);
+	if (enabledProviders.length === 0) {
+		logging.info('LLM Batch Processing: Skipped - No enabled providers');
+		return emptyStats(Date.now() - startTime);
 	}
 
-	/**
-	 * Process a specific account
-	 */
-	async processAccount(
-		accountId: string,
-		config: LLMBatchProcessingConfig
-	): Promise<BatchProcessingResult> {
-		const startTime = Date.now();
+	// Get accounts that have journals requiring processing
+	const accountsWithWork = await getAccountsWithRequiredJournals(db);
 
+	logging.info(
+		`LLM Batch Processing: Found ${accountsWithWork.length} accounts with journals requiring processing`
+	);
+	if (accountsWithWork.length === 0) {
+		logging.info('LLM Batch Processing: No accounts with journals requiring processing');
+		return emptyStats(Date.now() - startTime);
+	}
+
+	logging.info(`LLM Batch Processing: Processing ${accountsWithWork.length} accounts`);
+
+	const stats: BatchProcessingStats = {
+		totalBatchesProcessed: 0,
+		totalJournalsProcessed: 0,
+		totalSuggestionsCreated: 0,
+		averageConfidence: 0,
+		processingTime: 0,
+		errors: 0
+	};
+
+	// Process each account
+	for (const account of accountsWithWork) {
 		try {
-			// Get uncategorized journals for this account
-			const uncategorizedJournals = await this.getUncategorizedJournals(accountId, config);
+			const result = await processAccount(db, account.id, finalConfig);
 
-			if (uncategorizedJournals.length === 0) {
-				return {
-					success: true,
-					accountId,
-					journalsProcessed: 0,
-					suggestionsCreated: 0,
-					processingTime: Date.now() - startTime
-				};
+			stats.totalBatchesProcessed++;
+			stats.totalJournalsProcessed += result.journalsProcessed;
+			stats.totalSuggestionsCreated += result.suggestionsCreated;
+
+			if (result.llmResponse) {
+				const confidence = result.llmResponse.processingMetadata.averageConfidence;
+				stats.averageConfidence = (stats.averageConfidence + confidence) / 2;
 			}
 
-			// Build context using all enabled builders
-			const context = await this.buildContext(accountId, uncategorizedJournals, config);
+			logging.info(
+				`LLM Batch Processing: Account ${account.title} - ${result.journalsProcessed} journals processed`
+			);
+		} catch (error) {
+			stats.errors++;
+			logging.error(`LLM Batch Processing: Error processing account ${account.id}:`, error);
+		}
+	}
 
-			// Call LLM for batch processing
-			const llmResponse = await this.callLLMForBatch(context);
+	stats.processingTime = Date.now() - startTime;
+	logging.info(
+		`LLM Batch Processing: Completed - ${stats.totalBatchesProcessed} batches, ${stats.totalJournalsProcessed} journals`
+	);
 
-			// Process the LLM response (create items if enabled, store suggestions)
-			const processResult = await this.processLLMResponse(llmResponse, config);
+	return stats;
+}
 
-			// For now, just log the response - we'll implement suggestion storage later
-			logging.info(`LLM Batch Processing Result for account ${accountId}:`, {
-				journalsProcessed: uncategorizedJournals.length,
-				suggestionsCount: llmResponse.journalSuggestions.length,
-				averageConfidence: llmResponse.processingMetadata.averageConfidence,
-				patternsFound: llmResponse.batchInsights.patternsFound.length
-			});
+/**
+ * Process a specific account
+ */
+export async function processAccount(
+	db: DBType,
+	accountId: string,
+	config: LLMBatchProcessingConfig
+): Promise<BatchProcessingResult> {
+	const startTime = Date.now();
 
+	try {
+		// Get uncategorized journals for this account
+		const uncategorizedJournals = await getUncategorizedJournals(db, accountId, config);
+
+		if (uncategorizedJournals.length === 0) {
 			return {
 				success: true,
 				accountId,
-				journalsProcessed: uncategorizedJournals.length,
-				suggestionsCreated: llmResponse.journalSuggestions.length,
-				itemsCreated: processResult.itemsCreated,
-				processingTime: Date.now() - startTime,
-				llmResponse
-			};
-		} catch (error) {
-			logging.error(`LLM Batch Processing: Error processing account ${accountId}:`, error);
-			return {
-				success: false,
-				accountId,
 				journalsProcessed: 0,
 				suggestionsCreated: 0,
-				processingTime: Date.now() - startTime,
-				error: error instanceof Error ? error.message : 'Unknown error'
+				processingTime: Date.now() - startTime
 			};
 		}
-	}
 
-	/**
-	 * Get accounts that have journals requiring processing
-	 * Only processes asset and liability accounts since expense/income accounts
-	 * are already categorized in a double-entry system
-	 */
-	private async getAccountsWithRequiredJournals(): Promise<Array<{ id: string; title: string }>> {
+		// Build context using all enabled builders
+		const context = await buildContext(db, accountId, uncategorizedJournals, config);
+
+		// Call LLM for batch processing
+		const llmResponse = await callLLMForBatch(db, context);
+
+		// Process the LLM response (create items if enabled, store suggestions)
+		const processResult = await processLLMResponse(db, llmResponse, config);
+
+		// For now, just log the response - we'll implement suggestion storage later
+		logging.info(`LLM Batch Processing Result for account ${accountId}:`, {
+			journalsProcessed: uncategorizedJournals.length,
+			suggestionsCount: llmResponse.journalSuggestions.length,
+			averageConfidence: llmResponse.processingMetadata.averageConfidence,
+			patternsFound: llmResponse.batchInsights.patternsFound.length
+		});
+
+		return {
+			success: true,
+			accountId,
+			journalsProcessed: uncategorizedJournals.length,
+			suggestionsCreated: llmResponse.journalSuggestions.length,
+			itemsCreated: processResult.itemsCreated,
+			processingTime: Date.now() - startTime,
+			llmResponse
+		};
+	} catch (error) {
+		logging.error(`LLM Batch Processing: Error processing account ${accountId}:`, error);
+		return {
+			success: false,
+			accountId,
+			journalsProcessed: 0,
+			suggestionsCreated: 0,
+			processingTime: Date.now() - startTime,
+			error: error instanceof Error ? error.message : 'Unknown error'
+		};
+	}
+}
+
+/**
+ * Get accounts that have journals requiring processing
+ * Only processes asset and liability accounts since expense/income accounts
+ * are already categorized in a double-entry system
+ */
+async function getAccountsWithRequiredJournals(db: DBType): Promise<Array<{ id: string; title: string }>> {
 		// Filter for journals in asset/liability accounts that need processing
 		const filter: JournalFilterSchemaInputType = {
 			llmReviewStatus: ['required'],
@@ -427,7 +428,7 @@ export class LLMBatchProcessingService {
 			orderBy: [{ field: 'date', direction: 'desc' }]
 		};
 
-		const result = await journalMaterialisedList({ db: this.db, filter });
+		const result = await journalMaterialisedList({ db, filter });
 
 		logging.info(
 			`LLM Batch Processing: Found ${result.count} journals with status 'required' in asset/liability accounts (showing ${result.data.length})`
@@ -443,7 +444,7 @@ export class LLMBatchProcessingService {
 		// Get account details and verify they are asset/liability accounts
 		const accounts = await Promise.all(
 			Array.from(accountIds).map(async (id) => {
-				const account = await tActions.account.getById(this.db, id!);
+				const account = await tActions.account.getById(db, id!);
 				if (account && (account.type === 'asset' || account.type === 'liability')) {
 					return { id: account.id, title: account.title, type: account.type };
 				}
@@ -461,15 +462,16 @@ export class LLMBatchProcessingService {
 		);
 
 		return validAccounts;
-	}
+}
 
-	/**
-	 * Get uncategorized journals for an account (asset/liability accounts only)
-	 */
-	private async getUncategorizedJournals(
-		accountId: string,
-		config: LLMBatchProcessingConfig
-	): Promise<BatchJournalData[]> {
+/**
+ * Get uncategorized journals for an account (asset/liability accounts only)
+ */
+async function getUncategorizedJournals(
+	db: DBType,
+	accountId: string,
+	config: LLMBatchProcessingConfig
+): Promise<BatchJournalData[]> {
 		const filter: JournalFilterSchemaInputType = {
 			account: {
 				idArray: [accountId],
@@ -483,7 +485,7 @@ export class LLMBatchProcessingService {
 			]
 		};
 
-		const result = await journalMaterialisedList({ db: this.db, filter });
+		const result = await journalMaterialisedList({ db, filter });
 
 		return result.data.map((journal) => ({
 			id: journal.id,
@@ -506,41 +508,48 @@ export class LLMBatchProcessingService {
 			importDetail: journal.importDetail,
 			llmReviewStatus: (journal.llmReviewStatus as any) || 'required'
 		}));
-	}
+}
 
-	/**
-	 * Build complete context using all enabled context builders
-	 */
-	private async buildContext(
-		accountId: string,
-		uncategorizedJournals: BatchJournalData[],
-		config: LLMBatchProcessingConfig
-	): Promise<LLMBatchContext> {
-		let context: Partial<LLMBatchContext> = {
-			config,
-			uncategorizedJournals
-		};
+/**
+ * Build complete context using all enabled context builders
+ */
+async function buildContext(
+	db: DBType,
+	accountId: string,
+	uncategorizedJournals: BatchJournalData[],
+	config: LLMBatchProcessingConfig
+): Promise<LLMBatchContext> {
+	let context: Partial<LLMBatchContext> = {
+		config,
+		uncategorizedJournals
+	};
 
-		// Run each enabled context builder
-		for (const builder of this.contextBuilders) {
-			if (!builder.enabled) continue;
+	// Run each context builder
+	const contextBuilders = [
+		{ name: 'historical', enabled: true, priority: 1, build: buildHistoricalContext },
+		{ name: 'fuzzy_match', enabled: true, priority: 2, build: buildFuzzyMatchContext },
+		{ name: 'popular_items', enabled: true, priority: 3, build: buildPopularItemsContext }
+	].sort((a, b) => a.priority - b.priority);
 
-			try {
-				logging.debug(`LLM Batch Processing: Running context builder '${builder.name}'`);
-				const builderContext = await builder.build({
-					db: this.db,
-					accountId,
-					uncategorizedJournals,
-					config
-				});
+	for (const builder of contextBuilders) {
+		if (!builder.enabled) continue;
 
-				// Merge builder results into main context
-				context = { ...context, ...builderContext };
-			} catch (error) {
-				logging.error(`LLM Batch Processing: Context builder '${builder.name}' failed:`, error);
-				// Continue with other builders
-			}
+		try {
+			logging.debug(`LLM Batch Processing: Running context builder '${builder.name}'`);
+			const builderContext = await builder.build({
+				db,
+				accountId,
+				uncategorizedJournals,
+				config
+			});
+
+			// Merge builder results into main context
+			context = { ...context, ...builderContext };
+		} catch (error) {
+			logging.error(`LLM Batch Processing: Context builder '${builder.name}' failed:`, error);
+			// Continue with other builders
 		}
+	}
 
 		// Ensure required fields are present
 		if (!context.account) {
@@ -568,36 +577,36 @@ export class LLMBatchProcessingService {
 		}
 
 		return context as LLMBatchContext;
+}
+
+/**
+ * Call LLM with batch context
+ */
+async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LLMBatchResponse> {
+	// Get first enabled LLM provider
+	const allProviders = await tActions.llm.list({ db });
+	const providers = allProviders.filter((p) => p.enabled);
+	if (providers.length === 0) {
+		throw new Error('No enabled LLM providers found');
 	}
 
-	/**
-	 * Call LLM with batch context
-	 */
-	private async callLLMForBatch(context: LLMBatchContext): Promise<LLMBatchResponse> {
-		// Get first enabled LLM provider
-		const allProviders = await tActions.llm.list({ db: this.db });
-		const providers = allProviders.filter((p) => p.enabled);
-		if (providers.length === 0) {
-			throw new Error('No enabled LLM providers found');
-		}
+	const provider = providers[0];
+	const llmSettings = await tActions.llm.getById({
+		db,
+		id: provider.id,
+		includeApiKey: true
+	});
 
-		const provider = providers[0];
-		const llmSettings = await tActions.llm.getById({
-			db: this.db,
-			id: provider.id,
-			includeApiKey: true
-		});
+	if (!llmSettings || !llmSettings.defaultModel) {
+		throw new Error(`LLM provider ${provider.id} not configured properly`);
+	}
 
-		if (!llmSettings || !llmSettings.defaultModel) {
-			throw new Error(`LLM provider ${provider.id} not configured properly`);
-		}
+	// Create LLM client
+	const llmClient = new LLMClient(llmSettings, db);
+	console.log('LLM Client', !!llmClient);
 
-		// Create LLM client
-		const llmClient = new LLMClient(llmSettings, this.db);
-		console.log('LLM Client', !!llmClient);
-
-		// Build comprehensive prompt
-		const prompt = this.buildBatchPrompt(context);
+	// Build comprehensive prompt
+	const prompt = buildBatchPrompt(context);
 
 		// For now, we'll just log the context and return a mock response
 		// In the next iteration, we'll implement the actual LLM call
@@ -636,46 +645,32 @@ export class LLMBatchProcessingService {
 		};
 
 		return mockResponse;
-	}
+}
 
-	/**
-	 * Build comprehensive prompt for batch processing
-	 */
-	private buildBatchPrompt(context: LLMBatchContext): string {
-		// This will be implemented in the next iteration
-		return `Batch processing prompt for ${context.uncategorizedJournals.length} journals`;
-	}
+/**
+ * Build comprehensive prompt for batch processing
+ */
+function buildBatchPrompt(context: LLMBatchContext): string {
+	// This will be implemented in the next iteration
+	return `Batch processing prompt for ${context.uncategorizedJournals.length} journals`;
+}
 
-	/**
-	 * Process LLM response (create items, store suggestions)
-	 */
-	private async processLLMResponse(
-		response: LLMBatchResponse,
-		config: LLMBatchProcessingConfig
-	): Promise<{
-		itemsCreated?: {
-			categories: number;
-			tags: number;
-			bills: number;
-			budgets: number;
-			labels: number;
-		};
-	}> {
-		// This will be implemented in the next iteration
-		return {};
-	}
-
-	/**
-	 * Create empty stats object
-	 */
-	private emptyStats(processingTime: number): BatchProcessingStats {
-		return {
-			totalBatchesProcessed: 0,
-			totalJournalsProcessed: 0,
-			totalSuggestionsCreated: 0,
-			averageConfidence: 0,
-			processingTime,
-			errors: 0
-		};
-	}
+/**
+ * Process LLM response (create items, store suggestions)
+ */
+async function processLLMResponse(
+	db: DBType,
+	response: LLMBatchResponse,
+	config: LLMBatchProcessingConfig
+): Promise<{
+	itemsCreated?: {
+		categories: number;
+		tags: number;
+		bills: number;
+		budgets: number;
+		labels: number;
+	};
+}> {
+	// This will be implemented in the next iteration
+	return {};
 }
