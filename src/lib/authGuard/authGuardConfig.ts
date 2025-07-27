@@ -96,7 +96,10 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		'/(loggedIn)/settings': {
 			...adminOnlyConfig
 		},
-		'/(loggedIn)/settings/providers': {
+
+		// LLM Actions
+		// ----------------------------------------
+		'/(loggedIn)/llm/providers': {
 			...adminOnlyConfig,
 			POSTCheck: {
 				update: POSTAllowAdminOnly,
@@ -106,25 +109,25 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 				...associatedInfoActions
 			}
 		},
-		'/(loggedIn)/settings/providers/create': {
+		'/(loggedIn)/llm/providers/create': {
 			...adminOnlyConfig,
 			POSTCheck: {
 				default: POSTAllowAdminOnly
 			}
 		},
-		'/(loggedIn)/settings/providers/[id]': {
+		'/(loggedIn)/llm/providers/[id]': {
 			...adminOnlyConfig,
 			POSTCheck: {
 				default: POSTAllowAdminOnly
 			}
 		},
-		'/(loggedIn)/settings/providers/[id]/delete': {
+		'/(loggedIn)/llm/providers/[id]/delete': {
 			...adminOnlyConfig,
 			POSTCheck: {
 				default: POSTAllowAdminOnly
 			}
 		},
-		'/(loggedIn)/settings/providers/logs': {
+		'/(loggedIn)/llm/logs': {
 			...adminOnlyConfig
 		},
 

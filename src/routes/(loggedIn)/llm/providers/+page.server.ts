@@ -74,6 +74,6 @@ export const actions = {
 		}
 
 		// Redirect back with success message after successful processing
-		throw redirect(302, '/settings/providers?processed=true');
+		throw redirect(302, '/llm/providers?processed=true');
 	}
 };

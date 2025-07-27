@@ -18,10 +18,10 @@ export const load = async (data) => {
 	const db = data.locals.db;
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) redirect(302, '/settings/providers');
+	if (!pageInfo.current.params?.id) redirect(302, '/llm/providers');
 
 	const provider = await tActions.llm.getById({ db, id: pageInfo.current.params?.id });
-	if (!provider) redirect(302, '/settings/providers');
+	if (!provider) redirect(302, '/llm/providers');
 
 	const form = await superValidate({ id: provider.id }, zod(deleteLLMProviderSchema));
 
@@ -49,6 +49,6 @@ export const actions = {
 			logging.error('Delete LLM Provider Error', e);
 			return message(form, 'Error Deleting LLM Provider');
 		}
-		redirect(302, form.data.prevPage || '/settings/providers');
+		redirect(302, form.data.prevPage || '/llm/providers');
 	}
 };

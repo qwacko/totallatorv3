@@ -12,7 +12,7 @@
 	const { data } = $props();
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
-	const urlInfo = $derived(pageInfo('/(loggedIn)/settings/providers/create', $page));
+	const urlInfo = $derived(pageInfo('/(loggedIn)/llm/providers/create', $page));
 </script>
 
 <CustomHeader pageTitle="Create LLM Provider" />

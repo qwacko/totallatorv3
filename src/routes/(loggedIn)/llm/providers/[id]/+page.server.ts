@@ -23,10 +23,10 @@ export const load = async (data) => {
 	const db = data.locals.db;
 	const pageInfo = serverPageInfo(data.route.id, data);
 
-	if (!pageInfo.current.params?.id) redirect(302, '/settings/providers');
+	if (!pageInfo.current.params?.id) redirect(302, '/llm/providers');
 
 	const provider = await tActions.llm.getById({ db, id: pageInfo.current.params?.id });
-	if (!provider) redirect(302, '/settings/providers');
+	if (!provider) redirect(302, '/llm/providers');
 
 	// Don't include the actual API key in the form for security
 	const form = await superValidate(
@@ -71,6 +71,6 @@ export const actions = {
 			logging.error('Update LLM Provider Error', e);
 			return message(form, 'Error Updating LLM Provider');
 		}
-		redirect(302, form.data.prevPage || '/settings/providers');
+		redirect(302, form.data.prevPage || '/llm/providers');
 	}
 };

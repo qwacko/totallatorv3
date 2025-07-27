@@ -83,7 +83,7 @@
 				</Button>
 			</form>
 			<Button
-				href={urlGenerator({ address: '/(loggedIn)/settings/providers/create' }).url}
+				href={urlGenerator({ address: '/(loggedIn)/llm/providers/create' }).url}
 				color="light"
 				outline
 			>
@@ -145,17 +145,17 @@
 		{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 			{#if currentColumn.id === 'actions'}
 				{@const detailURL = urlGenerator({
-					address: '/(loggedIn)/settings/providers/[id]',
+					address: '/(loggedIn)/llm/providers/[id]',
 					paramsValue: { id: currentRow.id }
 				}).url}
 
 				{@const deleteURL = urlGenerator({
-					address: '/(loggedIn)/settings/providers/[id]/delete',
+					address: '/(loggedIn)/llm/providers/[id]/delete',
 					paramsValue: { id: currentRow.id }
 				}).url}
 
 				{@const logsURL = urlGenerator({
-					address: '/(loggedIn)/settings/providers/logs',
+					address: '/(loggedIn)/llm/logs',
 					searchParamsValue: { page: 0, pageSize: 20, llmSettingsId: currentRow.id }
 				}).url}
 
@@ -195,7 +195,7 @@
 		{#snippet slotFilterButtons()}
 			<Button
 				href={urlGenerator({
-					address: '/(loggedIn)/settings/providers/logs',
+					address: '/(loggedIn)/llm/logs',
 					searchParamsValue: { page: 0, pageSize: 10 }
 				}).url}
 				color="light"
@@ -210,7 +210,7 @@
 		<div class="space-y-4 py-8 text-center">
 			<p class="text-gray-500">No LLM providers configured</p>
 			<Button
-				href={urlGenerator({ address: '/(loggedIn)/settings/providers/create' }).url}
+				href={urlGenerator({ address: '/(loggedIn)/llm/providers/create' }).url}
 				color="primary"
 			>
 				Add Your First LLM Provider

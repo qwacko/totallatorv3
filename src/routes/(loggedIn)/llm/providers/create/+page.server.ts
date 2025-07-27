@@ -43,6 +43,6 @@ export const actions = {
 			logging.error('Create LLM Provider Error', e);
 			return message(form, 'Error Creating LLM Provider, Possibly Already Exists');
 		}
-		redirect(302, form.data.prevPage || '/settings/providers');
+		redirect(302, form.data.prevPage || '/llm/providers');
 	}
 };

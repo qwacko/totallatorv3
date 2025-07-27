@@ -14,25 +14,25 @@
 
 	const { form, errors, constraints, message, enhance } = superForm(data.form);
 
-	const urlInfo = $derived(pageInfo('/(loggedIn)/settings/providers/[id]', $page));
+	const urlInfo = $derived(pageInfo('/(loggedIn)/llm/providers/[id]', $page));
 
 	const deleteURL = $derived(
 		urlGenerator({
-			address: '/(loggedIn)/settings/providers/[id]/delete',
+			address: '/(loggedIn)/llm/providers/[id]/delete',
 			paramsValue: { id: data.provider.id }
 		}).url
 	);
 
 	const testConnectionURL = $derived(
 		urlGenerator({
-			address: '/(loggedIn)/settings/providers/[id]',
+			address: '/(loggedIn)/llm/providers/[id]',
 			paramsValue: { id: data.provider.id }
 		}).url
 	);
 
 	const logsURL = $derived(
 		urlGenerator({
-			address: '/(loggedIn)/settings/providers/logs',
+			address: '/(loggedIn)/llm/logs',
 			searchParamsValue: { page: 0, pageSize: 20, llmSettingsId: data.provider.id }
 		}).url
 	);

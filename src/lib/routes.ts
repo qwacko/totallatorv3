@@ -51,15 +51,18 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 		// Settings
 		// ----------------------------------------
 		'/(loggedIn)/settings': {},
-		'/(loggedIn)/settings/providers': {},
-		'/(loggedIn)/settings/providers/create': {},
-		'/(loggedIn)/settings/providers/[id]': {
+
+		// LLM
+		// ----------------------------------------
+		'/(loggedIn)/llm/providers': {},
+		'/(loggedIn)/llm/providers/create': {},
+		'/(loggedIn)/llm/providers/[id]': {
 			paramsValidation: z.object({ id: z.string() }).parse
 		},
-		'/(loggedIn)/settings/providers/[id]/delete': {
+		'/(loggedIn)/llm/providers/[id]/delete': {
 			paramsValidation: z.object({ id: z.string() }).parse
 		},
-		'/(loggedIn)/settings/providers/logs': {
+		'/(loggedIn)/llm/logs': {
 			searchParamsValidation: z
 				.object({
 					page: z.coerce.number().optional().default(0),

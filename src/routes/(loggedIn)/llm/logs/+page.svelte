@@ -11,10 +11,10 @@
 	import { llmLogColumnsStore } from '$lib/stores/columnDisplayStores.js';
 
 	const { data } = $props();
-	const urlInfo = $derived(pageInfo('/(loggedIn)/settings/providers/logs', $page));
+	const urlInfo = $derived(pageInfo('/(loggedIn)/llm/logs', $page));
 
 	const urlStore = pageInfoStore({
-		routeId: '/(loggedIn)/settings/providers/logs',
+		routeId: '/(loggedIn)/llm/logs',
 		pageInfo: page,
 		onUpdate: (newURL) => {
 			if (browser && newURL !== urlInfo.current.url) {

@@ -27,6 +27,8 @@
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import MenuIcon from '$lib/components/icons/MenuIcon.svelte';
 	import SettingsIcon from '$lib/components/icons/SettingsIcon.svelte';
+	import IdeaIcon from '$lib/components/icons/IdeaIcon.svelte';
+	import EyeIcon from '$lib/components/icons/EyeIcon.svelte';
 	import FilterSelectionModal from '$lib/components/FilterSelectionModal.svelte';
 
 	const { data, children } = $props();
@@ -59,6 +61,7 @@
 	const pageIsQueryLog = $derived($page.route.id?.startsWith('/(loggedIn)/queries/list'));
 	const pageIsGroupedQueries = $derived($page.route.id?.startsWith('/(loggedIn)/queries/grouped'));
 	const pageIsSettings = $derived($page.route.id?.startsWith('/(loggedIn)/settings'));
+	const pageIsLLM = $derived($page.route.id?.startsWith('/(loggedIn)/llm'));
 
 	const pageMap = $derived([
 		{
@@ -177,6 +180,12 @@
 						href: urlGenerator({ address: '/(loggedIn)/users', searchParamsValue: { page: 0 } })
 					},
 					{
+						label: 'LLM',
+						active: pageIsLLM,
+						icon: IdeaIcon,
+						href: urlGenerator({ address: '/(loggedIn)/llm/providers' })
+					},
+					{
 						label: 'Settings',
 						active: pageIsSettings,
 						icon: SettingsIcon,
@@ -239,6 +248,22 @@
 				Journals
 			</DropdownItem>
 
+			{#if data.user?.admin}
+				<DropdownItem class="flex flex-row gap-2"><ArrowLeftIcon />LLM</DropdownItem>
+				<Dropdown placement="left">
+					<DropdownItem href={urlGenerator({ address: '/(loggedIn)/llm/providers' }).url}>
+						<div class="flex flex-row items-center gap-2">
+							<IdeaIcon />Providers
+						</div>
+					</DropdownItem>
+					<DropdownItem href={urlGenerator({ address: '/(loggedIn)/llm/logs', searchParamsValue: { page: 0, pageSize: 20 } }).url}>
+						<div class="flex flex-row items-center gap-2">
+							<EyeIcon />Logs
+						</div>
+					</DropdownItem>
+				</Dropdown>
+			{/if}
+
 			<DropdownItem class="flex flex-row gap-2"><ArrowLeftIcon />Config</DropdownItem>
 			<Dropdown placement="left">
 				{#each pageMap as currentPage}
@@ -280,6 +305,22 @@
 				}).url}
 			currentFilter={{ page: 0, pageSize: 10, orderBy: [{ field: 'date', direction: 'desc' }] }}
 		/>
+		{#if data.user?.admin}
+			<Button outline>LLM</Button>
+			<Dropdown>
+				<DropdownItem href={urlGenerator({ address: '/(loggedIn)/llm/providers' }).url}>
+					<div class="flex flex-row items-center gap-2">
+						<IdeaIcon />Providers
+					</div>
+				</DropdownItem>
+				<DropdownItem href={urlGenerator({ address: '/(loggedIn)/llm/logs', searchParamsValue: { page: 0, pageSize: 20 } }).url}>
+					<div class="flex flex-row items-center gap-2">
+						<EyeIcon />Logs
+					</div>
+				</DropdownItem>
+			</Dropdown>
+		{/if}
+
 		<Button outline>Config</Button>
 		<Dropdown>
 			{#each pageMap as currentPage, i}
