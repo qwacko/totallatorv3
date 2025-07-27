@@ -574,6 +574,7 @@ export class LLMBatchProcessingService {
 		
 		// Create LLM client
 		const llmClient = new LLMClient(llmSettings, this.db);
+		console.log("LLM Client", !!llmClient)
 		
 		// Build comprehensive prompt
 		const prompt = this.buildBatchPrompt(context);
@@ -587,6 +588,8 @@ export class LLMBatchProcessingService {
 			fuzzyMatchCount: context.fuzzyMatches.length,
 			popularCategoriesCount: context.popularItems.categories.length
 		});
+
+		logging.info('LLM Prompt:', prompt)
 		
 		// Mock response for now
 		const mockResponse: LLMBatchResponse = {

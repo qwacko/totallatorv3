@@ -1,10 +1,12 @@
-import type { LlmSettings } from '../schema/llmSchema';
+import type { LLMSettings } from '$lib/server/db/postgres/schema';
 
 export class MockLLMClient {
-	private settings: LlmSettings;
+	private settings: LLMSettings;
 
-	constructor(settings: LlmSettings) {
+	
+	constructor(settings: LLMSettings) {
 		this.settings = settings;
+		console.log("Mock Settings", !!this.settings)
 	}
 
 	public async call(prompt: string): Promise<any> {

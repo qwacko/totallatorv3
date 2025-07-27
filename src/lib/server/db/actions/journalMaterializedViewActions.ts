@@ -39,6 +39,7 @@ import {
 	journalRecommendationService, 
 	type EnhancedRecommendationType 
 } from '../../services/journalRecommendationService';
+import type { LlmReviewStatusEnumType } from '../../../../schema/llmReviewStatusEnum';
 
 export const journalMaterializedViewActions = {
 	getLatestUpdateDate: async ({ db }: { db: DBType }): Promise<Date> => {
@@ -428,7 +429,7 @@ export const journalMaterializedViewActions = {
 			reconciled: boolean | undefined;
 			complete: boolean | undefined;
 			dataChecked: boolean | undefined;
-			llmReviewStatus: string | undefined;
+			llmReviewStatus: LlmReviewStatusEnumType | undefined;
 			otherAccountId: string | undefined;
 			allLabelIds: string[];
 			commonLabelIds: string[];

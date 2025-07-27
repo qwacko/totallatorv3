@@ -1,5 +1,4 @@
 import { authGuard } from '$lib/authGuard/authGuardConfig';
-import { serverPageInfo } from '$lib/routes';
 import { tActions } from '$lib/server/db/actions/tActions';
 import { noteFormActions } from '$lib/server/noteFormActions';
 import { fileFormActions } from '$lib/server/fileFormActions';

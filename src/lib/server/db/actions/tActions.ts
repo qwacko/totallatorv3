@@ -22,7 +22,8 @@ import { llmActions } from './llmActions';
 import { llmLogActions } from './llmLogActions';
 import { journalLlmSuggestionActions } from './journalLlmSuggestionActions';
 
-export const tActions = {
+export const 
+tActions = {
 	tag: tagActions,
 	category: categoryActions,
 	bill: billActions,

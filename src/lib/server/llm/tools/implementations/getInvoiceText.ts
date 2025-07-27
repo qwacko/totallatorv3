@@ -1,10 +1,7 @@
 import type { Tool, ToolExecutionContext, ToolExecutionResult } from '../types';
-import { fileTable } from '../../../db/postgres/schema/transactionSchema';
+import { fileTable, associatedInfoTable } from '../../../db/postgres/schema/transactionSchema';
 import { dbExecuteLogger } from '../../../db/dbLogger';
-import { eq, and } from 'drizzle-orm';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import { serverEnv } from '../../../serverEnv';
+import { eq } from 'drizzle-orm';
 
 export const getInvoiceTextTool: Tool = {
 	definition: {
@@ -38,15 +35,73 @@ export const getInvoiceTextTool: Tool = {
 			}
 
 			// Build query based on provided parameters
-			let query = context.db.select().from(fileTable);
-
+			// If file_id is provided, get specific file
 			if (file_id) {
-				query = query.where(eq(fileTable.id, file_id));
-			} else if (journal_id) {
-				query = query.where(eq(fileTable.linkedTransactionId, journal_id));
+				const files = await dbExecuteLogger(
+					context.db.select().from(fileTable).where(eq(fileTable.id, file_id)),
+					'Get Invoice Text - Find File by ID'
+				);
+				
+				if (files.length === 0) {
+					return {
+						success: false,
+						error: `No file found with id: ${file_id}`
+					};
+				}
+				
+				// Process the single file
+				const file = files[0];
+				const results = [];
+				
+				// For now, we'll indicate that OCR would be needed
+				if (file.filename) {
+					results.push({
+						file_id: file.id,
+						filename: file.filename,
+						original_filename: file.originalFilename || file.filename,
+						text_content: null, // Text content would be extracted via OCR
+						source: 'file_system',
+						note: 'OCR processing would be required to extract text from this file',
+						file_type: file.filename.split('.').pop()?.toLowerCase() || 'unknown',
+						reason: file.reason
+					});
+				} else {
+					results.push({
+						file_id: file.id,
+						filename: 'unknown',
+						text_content: null,
+						source: 'error',
+						error: 'File has no filename'
+					});
+				}
+				
+				return {
+					success: true,
+					data: {
+						files: results,
+						count: results.length
+					}
+				};
 			}
-
-			const files = await dbExecuteLogger(query, 'Get Invoice Text - Find Files');
+			
+			// For journal_id, we need to find files linked to the transaction
+			// Files are linked through associatedInfo -> transaction
+			const filesWithAssociatedInfo = await dbExecuteLogger(
+				context.db
+					.select({
+						id: fileTable.id,
+						title: fileTable.title,
+						filename: fileTable.filename,
+						originalFilename: fileTable.originalFilename,
+						type: fileTable.type,
+						reason: fileTable.reason
+					})
+					.from(fileTable)
+					.innerJoin(associatedInfoTable, eq(fileTable.associatedInfoId, associatedInfoTable.id))
+					.where(eq(associatedInfoTable.transactionId, journal_id)),
+				'Get Invoice Text - Find Files by Journal'
+			);
+			const files = filesWithAssociatedInfo;
 
 			if (files.length === 0) {
 				return {
@@ -61,54 +116,32 @@ export const getInvoiceTextTool: Tool = {
 
 			for (const file of files) {
 				try {
-					// Check if file has text content
-					if (file.textContent) {
+					// For now, we'll indicate that OCR would be needed
+					// In a real implementation, you might integrate with OCR services
+					if (file.filename) {
 						results.push({
 							file_id: file.id,
 							filename: file.filename,
-							text_content: file.textContent,
-							source: 'database'
+							original_filename: file.originalFilename || file.filename,
+							text_content: null, // Text content would be extracted via OCR
+							source: 'file_system',
+							note: 'OCR processing would be required to extract text from this file',
+							file_type: file.filename.split('.').pop()?.toLowerCase() || 'unknown',
+							reason: file.reason
 						});
-						continue;
-					}
-
-					// Try to read text from file system if available
-					if (file.filename) {
-						const filePath = join(serverEnv.FILE_DIR, file.filename);
-						
-						try {
-							// For now, we'll indicate that OCR would be needed
-							// In a real implementation, you might integrate with OCR services
-							results.push({
-								file_id: file.id,
-								filename: file.filename,
-								text_content: null,
-								source: 'file_system',
-								note: 'OCR processing would be required to extract text from this file',
-								file_type: file.filename.split('.').pop()?.toLowerCase() || 'unknown'
-							});
-						} catch (fileError) {
-							results.push({
-								file_id: file.id,
-								filename: file.filename,
-								text_content: null,
-								source: 'error',
-								error: `Could not access file: ${fileError instanceof Error ? fileError.message : 'Unknown error'}`
-							});
-						}
 					} else {
 						results.push({
 							file_id: file.id,
-							filename: file.filename,
+							filename: 'unknown',
 							text_content: null,
 							source: 'no_file',
-							note: 'No filename or text content available'
+							note: 'No filename available'
 						});
 					}
 				} catch (error) {
 					results.push({
 						file_id: file.id,
-						filename: file.filename,
+						filename: file.filename || 'unknown',
 						text_content: null,
 						source: 'error',
 						error: error instanceof Error ? error.message : 'Unknown error'
@@ -116,24 +149,17 @@ export const getInvoiceTextTool: Tool = {
 				}
 			}
 
-			// Filter out results that have actual text content
-			const textResults = results.filter(r => r.text_content);
-
 			return {
 				success: true,
 				data: {
-					message: textResults.length > 0 
-						? `Found text content in ${textResults.length} of ${files.length} files`
-						: `Found ${files.length} files but no text content available`,
+					message: `Found ${files.length} files but no text content available (OCR would be required)`,
 					query_info: {
 						file_id: file_id || null,
 						journal_id: journal_id || null,
 						files_found: files.length
 					},
 					files: results,
-					extracted_text: textResults.length > 0 
-						? textResults.map(r => r.text_content).join('\n\n---\n\n')
-						: null
+					extracted_text: null
 				}
 			};
 

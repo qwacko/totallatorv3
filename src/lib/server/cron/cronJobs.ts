@@ -152,7 +152,6 @@ export const cronJobs: CronJob[] = [
 			}
 
 			const llmProcessor = new LLMJournalProcessingService(db);
-			const startTime = new Date().getTime();
 
 			try {
 				const result = await llmProcessor.processRequiredJournals({

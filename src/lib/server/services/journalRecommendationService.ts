@@ -2,7 +2,6 @@ import type { DBType } from '../db/db';
 import type { RecommendationType } from '../db/actions/journalMaterializedViewActions';
 import { journalLlmSuggestionActions } from '../db/actions/journalLlmSuggestionActions';
 import { llmActions } from '../db/actions/llmActions';
-import { llmLogActions } from '../db/actions/llmLogActions';
 import { ToolDispatcher } from '../llm/tools/dispatcher';
 import type { ToolExecutionContext } from '../llm/tools/types';
 
@@ -50,7 +49,7 @@ export const journalRecommendationService = {
 
 		// Get enabled LLM provider if none specified
 		if (!llmSettingsId) {
-			const enabledProviders = await llmActions.list({ db, enabled: true });
+			const enabledProviders = await llmActions.getEnabled({ db });
 			if (enabledProviders.length === 0) {
 				return [];
 			}
@@ -114,10 +113,10 @@ export const journalRecommendationService = {
 			// Convert to RecommendationType format for existing modal system
 			const recommendation: EnhancedRecommendationType = {
 				journalId: journal.id,
-				journalBillId: suggestion.billId,
-				journalBudgetId: suggestion.budgetId,
-				journalCategoryId: suggestion.categoryId,
-				journalTagId: suggestion.tagId,
+				journalBillId: suggestion.billId || undefined,
+				journalBudgetId: suggestion.budgetId || undefined,
+				journalCategoryId: suggestion.categoryId || undefined,
+				journalTagId: suggestion.tagId || undefined,
 				journalAccountId: journal.accountId,
 				journalDescription: suggestion.description || journal.description,
 				journalDate: journal.date,
@@ -129,8 +128,8 @@ export const journalRecommendationService = {
 				searchDescription: journal.description,
 				// Enhanced fields
 				source: 'llm',
-				llmConfidence: suggestion.confidence,
-				llmReasoning: suggestion.reasoning,
+				llmConfidence: suggestion.confidence ?? undefined,
+				llmReasoning: suggestion.reasoning ?? undefined,
 				llmSuggestionId: llmSuggestion.id
 			};
 
@@ -139,22 +138,9 @@ export const journalRecommendationService = {
 		} catch (error) {
 			console.error('Error generating LLM recommendations:', error);
 			
-			// Log the error
-			try {
-				await llmLogActions.create({
-					db,
-					data: {
-						llmSettingsId,
-						toolName: 'journal_categorization',
-						input: JSON.stringify({ journalId: journal.id, description: journal.description }),
-						output: '',
-						success: false,
-						error: error instanceof Error ? error.message : 'Unknown error'
-					}
-				});
-			} catch (logError) {
-				console.error('Failed to log LLM error:', logError);
-			}
+			// Note: llmLogActions doesn't have a create method
+			// Logging will be handled by the tool dispatcher or LLM layer
+			console.error('LLM service error for journal:', journal.id, error);
 
 			return [];
 		}
@@ -177,10 +163,10 @@ export const journalRecommendationService = {
 
 		return suggestions.map(suggestion => ({
 			journalId: suggestion.journalId,
-			journalBillId: suggestion.suggestedBillId,
-			journalBudgetId: suggestion.suggestedBudgetId,
-			journalCategoryId: suggestion.suggestedCategoryId,
-			journalTagId: suggestion.suggestedTagId,
+			journalBillId: suggestion.suggestedBillId || undefined,
+			journalBudgetId: suggestion.suggestedBudgetId || undefined,
+			journalCategoryId: suggestion.suggestedCategoryId || undefined,
+			journalTagId: suggestion.suggestedTagId || undefined,
 			journalAccountId: suggestion.journalId, // Will need to be fetched from journal
 			journalDescription: suggestion.suggestedDescription || '',
 			journalDate: new Date(), // Will need to be fetched from journal
@@ -192,8 +178,8 @@ export const journalRecommendationService = {
 			searchDescription: '',
 			// Enhanced fields
 			source: 'llm',
-			llmConfidence: suggestion.confidenceScore,
-			llmReasoning: suggestion.reasoning,
+			llmConfidence: suggestion.confidenceScore ?? undefined,
+			llmReasoning: suggestion.reasoning ?? undefined,
 			llmSuggestionId: suggestion.id
 		}));
 	},

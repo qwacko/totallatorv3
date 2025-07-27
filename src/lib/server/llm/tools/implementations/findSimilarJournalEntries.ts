@@ -202,8 +202,8 @@ export const findSimilarJournalEntriesTool: Tool = {
 						date: entry.date?.toISOString().split('T')[0] || null,
 						amount: Number(entry.amount),
 						description: entry.description,
-						payee: entry.payee,
-						note: entry.note,
+						payee: entry.otherJournals?.[0]?.accountTitle || entry.description, // Use first otherJournal account title as payee, fallback to description
+						note: entry.notes?.[0]?.note || null, // Get first note if available
 						account_id: entry.accountId,
 						account_title: entry.accountTitle,
 						category_id: entry.categoryId,

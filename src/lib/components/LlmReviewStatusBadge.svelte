@@ -14,7 +14,7 @@
 	} = $props();
 
 	const statusColors = {
-		not_required: 'gray',
+		not_required: 'dark',
 		required: 'yellow',
 		complete: 'green',
 		error: 'red'

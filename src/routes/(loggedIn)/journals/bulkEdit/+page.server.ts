@@ -23,10 +23,21 @@ export const load = async (data) => {
 		filter: pageInfo.current.searchParams || defaultJournalFilter()
 	});
 
-	const recommendations = tActions.journalView.listRecommendations({
+	const getRecommendations = async() => {
+const baseRecommendations = await tActions.journalView.listRecommendations({
 		db,
 		journals: journalData.journals.data
 	});
+
+	return baseRecommendations?.map(rec => ({
+		...rec,
+		source: 'similarity' as const
+	}));
+	}
+
+	const recommendations = getRecommendations()
+
+	
 
 	const {
 		allLabelIds,
@@ -48,7 +59,7 @@ export const load = async (data) => {
 			setComplete: complete === true ? true : undefined,
 			clearComplete: complete === false ? true : undefined,
 			setLinked: linked === true ? true : undefined,
-			clearLinked: linked === false ? true : undefined
+			clearLinked: linked === false ? true : undefined,
 		},
 		zod(updateJournalSchema)
 	);

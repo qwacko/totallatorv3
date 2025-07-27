@@ -1,7 +1,5 @@
 import type { Tool, ToolExecutionContext, ToolExecutionResult } from '../types';
-import { dbExecuteLogger } from '../../../db/dbLogger';
-import { account, category, tag, bill, budget } from '../../../db/postgres/schema';
-import { eq } from 'drizzle-orm';
+import { tActions } from '$lib/server/db/actions/tActions';
 
 export const journalCategorizationTool: Tool = {
 	definition: {
@@ -28,8 +26,7 @@ export const journalCategorizationTool: Tool = {
 						type: 'string',
 						description: 'Source account ID (optional)'
 					}
-				},
-				required: ['description', 'amount']
+				}
 			},
 			suggestions: {
 				type: 'object',
@@ -67,8 +64,7 @@ export const journalCategorizationTool: Tool = {
 						type: 'string',
 						description: 'Clear explanation of why you made these suggestions'
 					}
-				},
-				required: ['payee', 'confidence', 'reasoning']
+				}
 			}
 		},
 		required: ['transaction', 'suggestions']
@@ -95,7 +91,7 @@ export const journalCategorizationTool: Tool = {
 				};
 			}
 
-			const { description, amount } = transaction;
+			const { description } = transaction;
 			const { payee, category, tag, bill, budget, confidence, reasoning } = suggestions;
 
 			if (!description || typeof description !== 'string') {
@@ -112,8 +108,6 @@ export const journalCategorizationTool: Tool = {
 				};
 			}
 
-			// Get or create the suggested items
-			const tActions = await import('../../../db/actions/tActions');
 			
 			let categoryId: string | undefined;
 			let tagId: string | undefined;
@@ -123,12 +117,12 @@ export const journalCategorizationTool: Tool = {
 			// Create/get category if suggested
 			if (category && typeof category === 'string' && category.trim()) {
 				try {
-					const categoryResult = await tActions.tActions.category.createOrGet({
+					const categoryResult = await tActions.category.createOrGet({
 						db: context.db,
 						title: category.trim(),
 						requireActive: false
 					});
-					categoryId = categoryResult.id;
+					categoryId = categoryResult?.id;
 				} catch (error) {
 					// If category creation fails, continue without it
 					console.warn('Failed to create/get category:', category, error);
@@ -138,12 +132,12 @@ export const journalCategorizationTool: Tool = {
 			// Create/get tag if suggested
 			if (tag && typeof tag === 'string' && tag.trim()) {
 				try {
-					const tagResult = await tActions.tActions.tag.createOrGet({
+					const tagResult = await tActions.tag.createOrGet({
 						db: context.db,
 						title: tag.trim(),
 						requireActive: false
 					});
-					tagId = tagResult.id;
+					tagId = tagResult?.id;
 				} catch (error) {
 					console.warn('Failed to create/get tag:', tag, error);
 				}
@@ -152,12 +146,12 @@ export const journalCategorizationTool: Tool = {
 			// Create/get bill if suggested
 			if (bill && typeof bill === 'string' && bill.trim()) {
 				try {
-					const billResult = await tActions.tActions.bill.createOrGet({
+					const billResult = await tActions.bill.createOrGet({
 						db: context.db,
 						title: bill.trim(),
 						requireActive: false
 					});
-					billId = billResult.id;
+					billId = billResult?.id;
 				} catch (error) {
 					console.warn('Failed to create/get bill:', bill, error);
 				}
@@ -166,12 +160,12 @@ export const journalCategorizationTool: Tool = {
 			// Create/get budget if suggested
 			if (budget && typeof budget === 'string' && budget.trim()) {
 				try {
-					const budgetResult = await tActions.tActions.budget.createOrGet({
+					const budgetResult = await tActions.budget.createOrGet({
 						db: context.db,
 						title: budget.trim(),
 						requireActive: false
 					});
-					budgetId = budgetResult.id;
+					budgetId = budgetResult?.id;
 				} catch (error) {
 					console.warn('Failed to create/get budget:', budget, error);
 				}
@@ -180,7 +174,7 @@ export const journalCategorizationTool: Tool = {
 			// Create the LLM suggestion record if we have a journal context
 			if (context.journalId) {
 				try {
-					await tActions.tActions.journalLlmSuggestion.create({
+					await tActions.journalLlmSuggestion.create({
 						db: context.db,
 						data: {
 							journalId: context.journalId,

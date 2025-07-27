@@ -11,10 +11,10 @@
 
 	const { data } = $props();
 
-	const { form, message, enhance } = superForm(data.form);
+	const { message, enhance } = superForm(data.form);
 	const urlInfo = $derived(pageInfo('/(loggedIn)/settings/providers/[id]/delete', $page));
 
-	const formatTimestamp = (timestamp: string) => {
+	const formatTimestamp = (timestamp: string | Date) => {
 		return new Date(timestamp).toLocaleString();
 	};
 </script>

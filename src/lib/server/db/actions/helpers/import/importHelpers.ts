@@ -90,8 +90,7 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 					.set({
 						status: 'importError',
 						errorInfo: { 
-							error: errorDetails,
-							timestamp: new Date().toISOString()
+							error: errorDetails,							
 						},
 						...updatedTime()
 					})
@@ -201,8 +200,7 @@ export async function importTransaction({
 						.set({
 							status: 'importError',
 							errorInfo: { 
-								error: errorDetails,
-								timestamp: new Date().toISOString()
+								error: errorDetails
 							},
 							...updatedTime()
 						})

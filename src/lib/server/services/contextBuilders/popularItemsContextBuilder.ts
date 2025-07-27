@@ -125,17 +125,15 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 			}
 			
 			// Count labels
-			if (journal.labels && journal.labelTitles) {
-				for (let i = 0; i < journal.labels.length; i++) {
-					const labelId = journal.labels[i];
-					const labelTitle = journal.labelTitles[i];
-					if (labelId && labelTitle) {
-						const existing = labelCounts.get(labelId) || { 
-							id: labelId, 
-							title: labelTitle, 
+			if (journal.labels && journal.labels.length > 0) {
+				for (const labelData of journal.labels) {
+					if (labelData.id && labelData.title) {
+						const existing = labelCounts.get(labelData.id) || { 
+							id: labelData.id, 
+							title: labelData.title, 
 							count: 0 
 						};
-						labelCounts.set(labelId, { ...existing, count: existing.count + 1 });
+						labelCounts.set(labelData.id, { ...existing, count: existing.count + 1 });
 					}
 				}
 			}

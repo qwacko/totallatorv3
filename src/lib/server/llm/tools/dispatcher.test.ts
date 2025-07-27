@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getTestDB, closeTestDB, initialiseTestDB } from '../../db/test/dbTest';
+import { getTestDB, closeTestDB} from '../../db/test/dbTest';
 import { ToolDispatcher } from './dispatcher';
 import type { ToolExecutionContext } from './types';
 import type { DBType } from '../../db/db';
-import { journalEntry, account } from '../../db/postgres/schema/transactionSchema';
+import { journalEntry, account, transaction } from '../../db/postgres/schema/transactionSchema';
 import { nanoid } from 'nanoid';
 
 describe('ToolDispatcher', () => {
@@ -89,46 +89,79 @@ describe('ToolDispatcher', () => {
 			const accountId = nanoid();
 			await db.insert(account).values({
 				id: accountId,
-				name: 'Test Account',
+				title: 'Test Account',
+				type: 'asset',
 				accountGroup: 'Asset',
-				accountType: 'Checking',
 				accountGroup2: 'Current',
 				accountGroup3: 'Cash',
-				startDate: new Date('2024-01-01'),
-				endDate: null,
-				title: 'Test Account'
+				accountGroupCombined: 'Asset.Current.Cash',
+				accountTitleCombined: 'Asset.Current.Cash.Test Account',
+				createdAt: new Date(),
+				updatedAt: new Date()
 			});
+
+			// Create transactions for the journal entries
+			const txn1 = nanoid();
+			const txn2 = nanoid();
+			const txn3 = nanoid();
+			
+			await db.insert(transaction).values([
+				{ id: txn1, createdAt: new Date(), updatedAt: new Date() },
+				{ id: txn2, createdAt: new Date(), updatedAt: new Date() },
+				{ id: txn3, createdAt: new Date(), updatedAt: new Date() }
+			]);
 
 			await db.insert(journalEntry).values([
 				{
 					id: nanoid(),
 					amount: 50.00,
 					description: 'Coffee purchase',
-					payee: 'Local Coffee Shop',
-					note: 'Morning coffee',
 					date: new Date('2024-01-15'),
+					dateText: '2024-01-15',
 					accountId,
-					complete: true
+					transactionId: txn1,
+					complete: true,
+					yearMonthDay: '2024-01-15',
+					yearWeek: '2024-W03',
+					yearMonth: '2024-01',
+					yearQuarter: '2024-Q1',
+					year: '2024',
+					createdAt: new Date(),
+					updatedAt: new Date()
 				},
 				{
 					id: nanoid(),
 					amount: 45.50,
 					description: 'Coffee and pastry',
-					payee: 'Another Coffee Place',
-					note: 'Breakfast',
 					date: new Date('2024-01-16'),
+					dateText: '2024-01-16',
 					accountId,
-					complete: true
+					transactionId: txn2,
+					complete: true,
+					yearMonthDay: '2024-01-16',
+					yearWeek: '2024-W03',
+					yearMonth: '2024-01',
+					yearQuarter: '2024-Q1',
+					year: '2024',
+					createdAt: new Date(),
+					updatedAt: new Date()
 				},
 				{
 					id: nanoid(),
 					amount: 1000.00,
 					description: 'Rent payment',
-					payee: 'Landlord',
-					note: 'Monthly rent',
 					date: new Date('2024-01-01'),
+					dateText: '2024-01-01',
 					accountId,
-					complete: true
+					transactionId: txn3,
+					complete: true,
+					yearMonthDay: '2024-01-01',
+					yearWeek: '2024-W01',
+					yearMonth: '2024-01',
+					yearQuarter: '2024-Q1',
+					year: '2024',
+					createdAt: new Date(),
+					updatedAt: new Date()
 				}
 			]);
 		});
@@ -219,26 +252,43 @@ describe('ToolDispatcher', () => {
 			const accountId = nanoid();
 			await db.insert(account).values({
 				id: accountId,
-				name: 'Test Account',
+				title: 'Test Account',
+				type: 'asset',
 				accountGroup: 'Asset',
-				accountType: 'Checking',
 				accountGroup2: 'Current',
 				accountGroup3: 'Cash',
-				startDate: new Date('2024-01-01'),
-				endDate: null,
-				title: 'Test Account'
+				accountGroupCombined: 'Asset.Current.Cash',
+				accountTitleCombined: 'Asset.Current.Cash.Test Account',
+				createdAt: new Date(),
+				updatedAt: new Date()
 			});
 
 			testJournalId = nanoid();
+			const transactionId = nanoid();
+			
+			// First create a transaction
+			await db.insert(transaction).values({
+				id: transactionId,
+				createdAt: new Date(),
+				updatedAt: new Date()
+			});
+			
 			await db.insert(journalEntry).values({
 				id: testJournalId,
 				amount: 100.00,
 				description: 'Original description',
-				payee: 'Original payee',
-				note: 'Original note',
 				date: new Date('2024-01-15'),
+				dateText: '2024-01-15',
 				accountId,
-				complete: false
+				transactionId,
+				complete: false,
+				yearMonthDay: '2024-01-15',
+				yearWeek: '2024-W03',
+				yearMonth: '2024-01',
+				yearQuarter: '2024-Q1',
+				year: '2024',
+				createdAt: new Date(),
+				updatedAt: new Date()
 			});
 		});
 

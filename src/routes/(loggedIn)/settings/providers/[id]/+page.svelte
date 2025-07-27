@@ -3,7 +3,7 @@
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { pageInfo, urlGenerator } from '$lib/routes.js';
-	import { Button, ButtonGroup, Toggle } from 'flowbite-svelte';
+	import { Button, ButtonGroup } from 'flowbite-svelte';
 	import { superForm } from 'sveltekit-superforms';
 	import PrevPageButton from '$lib/components/PrevPageButton.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
@@ -25,7 +25,7 @@
 
 	const testConnectionURL = $derived(
 		urlGenerator({
-			address: '/(loggedIn)/settings/providers/[id]/test',
+			address: '/(loggedIn)/settings/providers/[id]',
 			paramsValue: { id: data.provider.id }
 		}).url
 	);
@@ -33,13 +33,10 @@
 	const logsURL = $derived(
 		urlGenerator({
 			address: '/(loggedIn)/settings/providers/logs',
-			searchParamsValue: { llmSettingsId: data.provider.id }
+			searchParamsValue: { page: 0, pageSize: 20, llmSettingsId: data.provider.id }
 		}).url
 	);
 
-	const formatTimestamp = (timestamp: string) => {
-		return new Date(timestamp).toLocaleString();
-	};
 </script>
 
 <CustomHeader pageTitle="Edit LLM Provider" filterText={data.provider.title} />

@@ -142,9 +142,7 @@ export const updateJournalEntryTool: Tool = {
 					changes_made: changes,
 					updated_entry: {
 						id: updatedEntry.id,
-						payee: updatedEntry.payee,
 						description: updatedEntry.description,
-						note: updatedEntry.note,
 						complete: updatedEntry.complete,
 						amount: Number(updatedEntry.amount),
 						date: updatedEntry.date?.toISOString().split('T')[0] || null,

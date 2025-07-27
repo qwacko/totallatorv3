@@ -4,7 +4,7 @@
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import { page } from '$app/stores';
-	import { pageInfo, urlGenerator } from '$lib/routes.js';
+	import { urlGenerator } from '$lib/routes.js';
 	import { goto, onNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
@@ -17,7 +17,6 @@
 	import {  notificationStore } from '$lib/stores/notificationStore.js';
 
 	const { data } = $props();
-	const urlInfo = $derived(pageInfo('/(loggedIn)/settings/providers', $page));
 
 	let filterOpened = $state(false);
 	let processingJournals = $state(false);
@@ -40,7 +39,7 @@
 		filterOpened = false;
 	});
 
-	const formatTimestamp = (timestamp: string) => {
+	const formatTimestamp = (timestamp: string | Date) => {
 		return new Date(timestamp).toLocaleDateString();
 	};
 
@@ -81,7 +80,7 @@
 	{/snippet}
 
 	<CustomTable
-		filterText=""
+		filterText={[]}
 		onSortURL={() => ''}
 		paginationInfo={{
 			page: 0,
@@ -144,7 +143,7 @@
 
 				{@const logsURL = urlGenerator({
 					address: '/(loggedIn)/settings/providers/logs',
-					searchParamsValue: { llmSettingsId: currentRow.id }
+					searchParamsValue: { page: 0, pageSize: 20, llmSettingsId: currentRow.id }
 				}).url}
 
 				<div class="flex flex-row justify-center">

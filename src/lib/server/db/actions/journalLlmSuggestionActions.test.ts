@@ -3,7 +3,6 @@ import { getTestDB, clearTestDB, closeTestDB, initialiseTestDB } from '../test/d
 import { journalLlmSuggestionActions } from './journalLlmSuggestionActions';
 import { llmActions } from './llmActions';
 import { journalActions } from './journalActions';
-import { accountActions } from './accountActions';
 import { materializedViewActions } from './materializedViewActions';
 
 describe('journalLlmSuggestionActions', () => {

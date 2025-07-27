@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Badge, Card, Modal, Select, Input, Label } from 'flowbite-svelte';
+	import { Button, Badge, Card, Modal, Select, Input } from 'flowbite-svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
@@ -49,7 +49,7 @@
 		return `${(ms / 1000).toFixed(2)}s`;
 	};
 
-	const formatTimestamp = (timestamp: string) => {
+	const formatTimestamp = (timestamp: string | Date) => {
 		return new Date(timestamp).toLocaleString();
 	};
 
@@ -91,8 +91,8 @@
 
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
-			filterText=""
-			onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+			filterText={[]}
+			onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: JSON.stringify(newSort) } }).url}
 			paginationInfo={{
 				page: data.pagination.page,
 				count: data.pagination.totalCount,
@@ -102,7 +102,7 @@
 			}}
 			noneFoundText="No LLM Logs Found"
 			data={data.logs}
-			currentOrder={data.searchParams?.orderBy}
+			currentOrder={data.searchParams?.orderBy ? JSON.parse(data.searchParams.orderBy) : undefined}
 			currentFilter={data.searchParams}
 			filterModalTitle="Filter LLM Logs"
 			bind:numberRows={$urlStore.searchParams.pageSize}
