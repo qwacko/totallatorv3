@@ -11,4 +11,4 @@ export const llmSettings = pgTable('llm_settings', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
 
-export type LLMSettings = typeof llmSettings.$inferSelect
+export type LLMSettings = typeof llmSettings.$inferSelect;

@@ -12,7 +12,7 @@ describe('llmActions', () => {
 	beforeEach(async () => {
 		dbConnection = await getTestDB();
 		db = dbConnection.testDB;
-		
+
 		// Clear LLM tables before each test
 		await db.delete(llmLogs);
 		await db.delete(llmSettings);
@@ -80,8 +80,8 @@ describe('llmActions', () => {
 			expect(results).toHaveLength(2);
 			expect(results[0]).not.toHaveProperty('apiKey');
 			expect(results[1]).not.toHaveProperty('apiKey');
-			expect(results.find(r => r.title === 'OpenAI')).toBeDefined();
-			expect(results.find(r => r.title === 'Claude')).toBeDefined();
+			expect(results.find((r) => r.title === 'OpenAI')).toBeDefined();
+			expect(results.find((r) => r.title === 'Claude')).toBeDefined();
 		});
 
 		it('should return empty array when no settings exist', async () => {
@@ -136,7 +136,7 @@ describe('llmActions', () => {
 			};
 
 			const created = await llmActions.create({ db, data });
-			
+
 			const updateData: UpdateLLMSettingsType = {
 				title: 'Updated',
 				enabled: false
@@ -159,7 +159,7 @@ describe('llmActions', () => {
 			};
 
 			const created = await llmActions.create({ db, data });
-			
+
 			const updateData: UpdateLLMSettingsType = {
 				apiKey: 'new-secret-key'
 			};
@@ -175,10 +175,10 @@ describe('llmActions', () => {
 		});
 
 		it('should return undefined for non-existent ID', async () => {
-			const result = await llmActions.update({ 
-				db, 
-				id: 'non-existent', 
-				data: { title: 'Updated' } 
+			const result = await llmActions.update({
+				db,
+				id: 'non-existent',
+				data: { title: 'Updated' }
 			});
 			expect(result).toBeUndefined();
 		});

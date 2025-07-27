@@ -5,7 +5,7 @@
 		value = $bindable(undefined),
 		enumSelection,
 		onUpdate,
-		clearable = true,
+		clearable = true
 	}: {
 		value: T | undefined;
 		enumSelection: { value: T; name: string }[];
@@ -20,7 +20,7 @@
 		} else {
 			value = itemValue;
 		}
-		
+
 		if (onUpdate) {
 			onUpdate(value);
 		}

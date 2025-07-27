@@ -35,9 +35,9 @@ export const actions = {
 
 		try {
 			const { prevPage, currentPage, ...providerData } = form.data;
-			await tActions.llm.create({ 
-				db, 
-				data: providerData 
+			await tActions.llm.create({
+				db,
+				data: providerData
 			});
 		} catch (e) {
 			logging.error('Create LLM Provider Error', e);

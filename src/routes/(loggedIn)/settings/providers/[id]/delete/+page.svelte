@@ -22,20 +22,35 @@
 <CustomHeader pageTitle="Delete LLM Provider" filterText={data.provider.title} />
 
 <PageLayout title="Delete LLM Provider" size="sm">
-	<div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-		<h3 class="font-semibold text-red-800 mb-2">⚠️ Warning</h3>
-		<p class="text-red-700 mb-4">
+	<div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+		<h3 class="mb-2 font-semibold text-red-800">⚠️ Warning</h3>
+		<p class="mb-4 text-red-700">
 			You are about to permanently delete this LLM provider. This action cannot be undone.
 		</p>
-		
-		<div class="bg-white p-3 rounded border">
-			<h4 class="font-medium mb-2">Provider Details:</h4>
+
+		<div class="rounded border bg-white p-3">
+			<h4 class="mb-2 font-medium">Provider Details:</h4>
 			<div class="space-y-1 text-sm">
-				<div><span class="font-medium">Title:</span> {data.provider.title}</div>
-				<div><span class="font-medium">API URL:</span> {data.provider.apiUrl}</div>
-				<div><span class="font-medium">Default Model:</span> {data.provider.defaultModel || 'Not set'}</div>
-				<div><span class="font-medium">Status:</span> {data.provider.enabled ? 'Enabled' : 'Disabled'}</div>
-				<div><span class="font-medium">Created:</span> {formatTimestamp(data.provider.createdAt)}</div>
+				<div>
+					<span class="font-medium">Title:</span>
+					{data.provider.title}
+				</div>
+				<div>
+					<span class="font-medium">API URL:</span>
+					{data.provider.apiUrl}
+				</div>
+				<div>
+					<span class="font-medium">Default Model:</span>
+					{data.provider.defaultModel || 'Not set'}
+				</div>
+				<div>
+					<span class="font-medium">Status:</span>
+					{data.provider.enabled ? 'Enabled' : 'Disabled'}
+				</div>
+				<div>
+					<span class="font-medium">Created:</span>
+					{formatTimestamp(data.provider.createdAt)}
+				</div>
 			</div>
 		</div>
 	</div>
@@ -49,7 +64,7 @@
 			<Button type="submit" color="red">Delete LLM Provider</Button>
 			<PrevPageButton outline>Cancel</PrevPageButton>
 		</div>
-		
+
 		<ErrorText message={$message} />
 	</form>
 </PageLayout>

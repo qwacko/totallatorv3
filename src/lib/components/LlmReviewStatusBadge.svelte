@@ -29,10 +29,6 @@
 	});
 </script>
 
-<Badge 
-	color={statusColors[status]}
-	href={filterUrl.url}
-	class="cursor-pointer hover:opacity-80"
->
+<Badge color={statusColors[status]} href={filterUrl.url} class="cursor-pointer hover:opacity-80">
 	{llmReviewStatusEnumTitles[status]}
 </Badge>

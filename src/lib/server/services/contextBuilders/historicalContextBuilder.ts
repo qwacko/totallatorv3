@@ -1,9 +1,9 @@
 import { BaseContextBuilder } from './baseContextBuilder';
 import type { DBType } from '../../db/db';
-import type { 
-	LLMBatchContext, 
-	BatchJournalData, 
-	LLMBatchProcessingConfig 
+import type {
+	LLMBatchContext,
+	BatchJournalData,
+	LLMBatchProcessingConfig
 } from '../llmBatchProcessingService';
 import { journalMaterialisedList } from '../../db/actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '$lib/schema/journalSchema';
@@ -16,7 +16,7 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 	name = 'historical';
 	enabled = true;
 	priority = 1;
-	
+
 	async build(params: {
 		db: DBType;
 		accountId: string;
@@ -24,7 +24,7 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 		config: LLMBatchProcessingConfig;
 	}): Promise<Partial<LLMBatchContext>> {
 		const { db, accountId, config } = params;
-		
+
 		// Build filter for historical journals from same asset/liability account
 		const filter: JournalFilterSchemaInputType = {
 			account: {
@@ -33,9 +33,9 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 			},
 			// Remove dataChecked filter - journals with categorization (even if not manually reviewed)
 			// can provide valuable context patterns
-			// Remove llmReviewStatus filter - journals with 'not_required' or null status 
+			// Remove llmReviewStatus filter - journals with 'not_required' or null status
 			// can still provide valuable categorization patterns
-			
+
 			// Exclude journals that are currently being processed
 			llmReviewStatus: ['not_required', 'complete'], // Exclude 'required' (being processed) and 'error'
 			page: 0,
@@ -44,17 +44,19 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 				{ field: 'date', direction: 'desc' } // Most recent first
 			]
 		};
-		
+
 		// Fetch historical journals
 		const historicalResult = await journalMaterialisedList({
 			db,
 			filter
 		});
-		
-		console.log(`Historical Context: Found ${historicalResult.count} total, showing ${historicalResult.data.length} journals for account ${accountId}`);
-		
+
+		console.log(
+			`Historical Context: Found ${historicalResult.count} total, showing ${historicalResult.data.length} journals for account ${accountId}`
+		);
+
 		// Convert to our BatchJournalData format
-		const historicalJournals: BatchJournalData[] = historicalResult.data.map(journal => ({
+		const historicalJournals: BatchJournalData[] = historicalResult.data.map((journal) => ({
 			id: journal.id,
 			date: journal.date || new Date(),
 			description: journal.description || '',
@@ -73,15 +75,15 @@ export class HistoricalContextBuilder extends BaseContextBuilder {
 			labels: journal.labels ? journal.labels.map((l: any) => l.id || l) : [],
 			labelTitles: journal.labels ? journal.labels.map((l: any) => l.title || l) : [],
 			importDetail: journal.importDetail,
-			llmReviewStatus: journal.llmReviewStatus as any || 'not_required'
+			llmReviewStatus: (journal.llmReviewStatus as any) || 'not_required'
 		}));
-		
+
 		// Apply deduplication
 		const deduplicatedJournals = this.deduplicateJournals(historicalJournals);
-		
+
 		// Limit to configured maximum
 		const limitedJournals = deduplicatedJournals.slice(0, config.maxHistoricalJournals);
-		
+
 		return {
 			historicalJournals: limitedJournals,
 			metadata: {

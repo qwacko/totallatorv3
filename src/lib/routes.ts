@@ -60,16 +60,19 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 			paramsValidation: z.object({ id: z.string() }).parse
 		},
 		'/(loggedIn)/settings/providers/logs': {
-			searchParamsValidation: z.object({
-				page: z.coerce.number().optional().default(0),
-				pageSize: z.coerce.number().optional().default(20),
-				status: z.enum(['SUCCESS', 'ERROR']).optional(),
-				llmSettingsId: z.string().optional(),
-				dateFrom: z.string().optional(),
-				dateTo: z.string().optional(),
-				relatedJournalId: z.string().optional(),
-				orderBy: z.string().optional()
-			}).optional().catch({ page: 0, pageSize: 20 }).parse
+			searchParamsValidation: z
+				.object({
+					page: z.coerce.number().optional().default(0),
+					pageSize: z.coerce.number().optional().default(20),
+					status: z.enum(['SUCCESS', 'ERROR']).optional(),
+					llmSettingsId: z.string().optional(),
+					dateFrom: z.string().optional(),
+					dateTo: z.string().optional(),
+					relatedJournalId: z.string().optional(),
+					orderBy: z.string().optional()
+				})
+				.optional()
+				.catch({ page: 0, pageSize: 20 }).parse
 		},
 
 		// Imports

@@ -21,21 +21,21 @@ export function findWordBoundariesAtCursor(text: string, cursorPosition: number)
 	if (cursorPosition < 0 || cursorPosition > text.length) {
 		throw new Error(`Invalid cursor position: ${cursorPosition} for text length: ${text.length}`);
 	}
-	
+
 	// Find start of current word (go backwards until whitespace or start)
 	let start = cursorPosition;
 	while (start > 0 && !/\s/.test(text[start - 1])) {
 		start--;
 	}
-	
+
 	// Find end of current word (go forwards until whitespace or end)
 	let end = cursorPosition;
 	while (end < text.length && !/\s/.test(text[end])) {
 		end++;
 	}
-	
+
 	const word = text.slice(start, end);
-	
+
 	return { start, end, word };
 }
 
@@ -43,18 +43,18 @@ export function findWordBoundariesAtCursor(text: string, cursorPosition: number)
  * Replace the word at cursor position with a new word
  */
 export function replaceWordAtCursor(
-	text: string, 
-	cursorPosition: number, 
+	text: string,
+	cursorPosition: number,
 	replacement: string
 ): TextReplacementResult {
 	const boundary = findWordBoundariesAtCursor(text, cursorPosition);
-	
+
 	const beforeWord = text.slice(0, boundary.start);
 	const afterWord = text.slice(boundary.end);
-	
+
 	const newText = beforeWord + replacement + afterWord;
 	const newCursorPosition = beforeWord.length + replacement.length;
-	
+
 	return {
 		newText,
 		newCursorPosition

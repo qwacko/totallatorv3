@@ -40,7 +40,12 @@ export const load = async (data) => {
 	// Generate autocomplete configuration from server-side filter array
 	const autocompleteKeys = extractAutocompleteFromTextFilter(journalFilterArray, 'journal');
 
-	return { searchParams: pageInfo.searchParams, searchParamsWithoutPagination, latestUpdate, autocompleteKeys };
+	return {
+		searchParams: pageInfo.searchParams,
+		searchParamsWithoutPagination,
+		latestUpdate,
+		autocompleteKeys
+	};
 };
 
 export const actions = {

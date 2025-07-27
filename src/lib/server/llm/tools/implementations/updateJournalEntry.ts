@@ -7,7 +7,8 @@ import { eq } from 'drizzle-orm';
 export const updateJournalEntryTool: Tool = {
 	definition: {
 		name: 'updateJournalEntry',
-		description: 'Update specific fields of a journal entry. Can be used to modify payee, description, or other journal entry attributes based on LLM analysis.',
+		description:
+			'Update specific fields of a journal entry. Can be used to modify payee, description, or other journal entry attributes based on LLM analysis.',
 		parameters: {
 			journal_id: {
 				type: 'string',
@@ -62,7 +63,7 @@ export const updateJournalEntryTool: Tool = {
 
 			// Validate that we have valid update fields
 			const allowedFields = ['payee', 'description', 'note', 'complete'];
-			const updateFields = Object.keys(updates).filter(key => allowedFields.includes(key));
+			const updateFields = Object.keys(updates).filter((key) => allowedFields.includes(key));
 
 			if (updateFields.length === 0) {
 				return {
@@ -100,13 +101,14 @@ export const updateJournalEntryTool: Tool = {
 				'Update Journal Entry via LLM Tool',
 				context.db.transaction(async (trx) => {
 					const updated = await dbExecuteLogger(
-						trx.update(journalEntry)
+						trx
+							.update(journalEntry)
 							.set(updateData)
 							.where(eq(journalEntry.id, journal_id))
 							.returning(),
 						'Update Journal Entry - Execute Update'
 					);
-					
+
 					return updated;
 				})
 			);
@@ -150,7 +152,6 @@ export const updateJournalEntryTool: Tool = {
 					}
 				}
 			};
-
 		} catch (error) {
 			return {
 				success: false,

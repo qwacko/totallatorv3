@@ -84,7 +84,7 @@
 	</div>
 	<P class="flex">{recommendation.journalDescription}</P>
 	{#if recommendation.source === 'llm' && recommendation.llmReasoning}
-		<div class="text-sm text-slate-500 italic border-l-2 border-blue-300 pl-3 mt-2">
+		<div class="mt-2 border-l-2 border-blue-300 pl-3 text-sm text-slate-500 italic">
 			<P size="sm" color="text-slate-500">AI Reasoning: {recommendation.llmReasoning}</P>
 		</div>
 	{/if}

@@ -38,9 +38,9 @@
 	// LLM Settings options for filter
 	const llmSettingsOptions = [
 		{ value: '', name: 'All Settings' },
-		...data.llmSettings.map(setting => ({ 
-			value: setting.id, 
-			name: setting.title 
+		...data.llmSettings.map((setting) => ({
+			value: setting.id,
+			name: setting.title
 		}))
 	];
 
@@ -76,23 +76,22 @@
 	};
 </script>
 
-<CustomHeader 
-	pageTitle="LLM Logs" 
+<CustomHeader
+	pageTitle="LLM Logs"
 	pageNumber={data.pagination.page}
 	numPages={data.pagination.pageCount}
 />
 
 <PageLayout title="LLM Logs" size="xl">
 	{#snippet slotRight()}
-		<Button href="/settings/llm" color="light" outline>
-			Back to Settings
-		</Button>
+		<Button href="/settings/llm" color="light" outline>Back to Settings</Button>
 	{/snippet}
 
 	{#if $urlStore.searchParams && data.searchParams}
 		<CustomTable
 			filterText={[]}
-			onSortURL={(newSort) => urlInfo.updateParams({ searchParams: { orderBy: JSON.stringify(newSort) } }).url}
+			onSortURL={(newSort) =>
+				urlInfo.updateParams({ searchParams: { orderBy: JSON.stringify(newSort) } }).url}
 			paginationInfo={{
 				page: data.pagination.page,
 				count: data.pagination.totalCount,
@@ -144,12 +143,7 @@
 			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === 'actions'}
 					<div class="flex flex-row justify-center">
-						<Button 
-							class="p-2" 
-							outline 
-							color="blue"
-							onclick={() => openLogModal(currentRow)}
-						>
+						<Button class="p-2" outline color="blue" onclick={() => openLogModal(currentRow)}>
 							<EyeIcon height={15} width={15} />
 						</Button>
 					</div>
@@ -204,7 +198,7 @@
 		<div class="space-y-4">
 			<!-- Overview -->
 			<Card>
-				<h4 class="font-semibold mb-3">Overview</h4>
+				<h4 class="mb-3 font-semibold">Overview</h4>
 				<div class="grid grid-cols-2 gap-4 text-sm">
 					<div>
 						<span class="font-medium">Status:</span>
@@ -227,7 +221,7 @@
 					{#if selectedLog.relatedJournalId}
 						<div class="col-span-2">
 							<span class="font-medium">Related Journal:</span>
-							<Button 
+							<Button
 								href="/journals?id={selectedLog.relatedJournalId}"
 								size="xs"
 								color="blue"
@@ -242,14 +236,20 @@
 
 			<!-- Request Payload -->
 			<Card>
-				<h4 class="font-semibold mb-3">Request Payload</h4>
-				<pre class="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">{formatJSON(selectedLog.requestPayload)}</pre>
+				<h4 class="mb-3 font-semibold">Request Payload</h4>
+				<pre
+					class="max-h-64 overflow-auto rounded bg-gray-100 p-3 text-sm whitespace-pre-wrap">{formatJSON(
+						selectedLog.requestPayload
+					)}</pre>
 			</Card>
 
 			<!-- Response Payload -->
 			<Card>
-				<h4 class="font-semibold mb-3">Response Payload</h4>
-				<pre class="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">{formatJSON(selectedLog.responsePayload)}</pre>
+				<h4 class="mb-3 font-semibold">Response Payload</h4>
+				<pre
+					class="max-h-64 overflow-auto rounded bg-gray-100 p-3 text-sm whitespace-pre-wrap">{formatJSON(
+						selectedLog.responsePayload
+					)}</pre>
 			</Card>
 		</div>
 

@@ -1,16 +1,21 @@
 import type { Tool, ToolExecutionContext, ToolExecutionResult } from '../types';
-import { journalMaterializedViewActions, type RecommendationType } from '../../../db/actions/journalMaterializedViewActions';
+import {
+	journalMaterializedViewActions,
+	type RecommendationType
+} from '../../../db/actions/journalMaterializedViewActions';
 import { journalMaterialisedList } from '../../../db/actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '$lib/schema/journalSchema';
 
 export const findSimilarJournalEntriesTool: Tool = {
 	definition: {
 		name: 'findSimilarJournalEntries',
-		description: 'Find journal entries that are similar to the given criteria. Uses existing matching logic including import data similarity for better results. Can search by journal_id for import-based recommendations or by general criteria.',
+		description:
+			'Find journal entries that are similar to the given criteria. Uses existing matching logic including import data similarity for better results. Can search by journal_id for import-based recommendations or by general criteria.',
 		parameters: {
 			journal_id: {
 				type: 'string',
-				description: 'ID of a specific journal entry to find similar entries for (uses import data similarity)'
+				description:
+					'ID of a specific journal entry to find similar entries for (uses import data similarity)'
 			},
 			description: {
 				type: 'string',
@@ -57,14 +62,14 @@ export const findSimilarJournalEntriesTool: Tool = {
 		context: ToolExecutionContext
 	): Promise<ToolExecutionResult> {
 		try {
-			const { 
-				journal_id, 
-				description, 
-				account_id, 
-				amount_min, 
-				amount_max, 
-				date_from, 
-				date_to, 
+			const {
+				journal_id,
+				description,
+				account_id,
+				amount_min,
+				amount_max,
+				date_from,
+				date_to,
 				similarity_threshold = 0.3,
 				limit = 10,
 				data_checked_only = true
@@ -97,13 +102,17 @@ export const findSimilarJournalEntriesTool: Tool = {
 					// Use the existing recommendation system
 					const recommendations = await journalMaterializedViewActions.listRecommendations({
 						db: context.db,
-						journals: [{
-							id: targetJournal.id,
-							description: targetJournal.description,
-							dataChecked: targetJournal.dataChecked,
-							accountId: targetJournal.accountId,
-							importDetail: targetJournal.importDetail ? { dataToUse: targetJournal.importDetail } : null
-						}],
+						journals: [
+							{
+								id: targetJournal.id,
+								description: targetJournal.description,
+								dataChecked: targetJournal.dataChecked,
+								accountId: targetJournal.accountId,
+								importDetail: targetJournal.importDetail
+									? { dataToUse: targetJournal.importDetail }
+									: null
+							}
+						],
 						similarityThreshold: similarity_threshold
 					});
 
@@ -153,7 +162,6 @@ export const findSimilarJournalEntriesTool: Tool = {
 							}))
 						}
 					};
-
 				} catch (error) {
 					return {
 						success: false,
@@ -196,7 +204,7 @@ export const findSimilarJournalEntriesTool: Tool = {
 					},
 					total_count: results.count,
 					page_count: results.pageCount,
-					entries: results.data.map(entry => ({
+					entries: results.data.map((entry) => ({
 						id: entry.id,
 						transaction_id: entry.transactionId,
 						date: entry.date?.toISOString().split('T')[0] || null,
@@ -219,7 +227,7 @@ export const findSimilarJournalEntriesTool: Tool = {
 						reconciled: entry.reconciled,
 						transfer: entry.transfer,
 						has_import_detail: !!entry.importDetail,
-						other_journals: entry.otherJournals.map(oj => ({
+						other_journals: entry.otherJournals.map((oj) => ({
 							account_id: oj.accountId,
 							account_title: oj.accountTitle,
 							amount: oj.amount
@@ -227,7 +235,6 @@ export const findSimilarJournalEntriesTool: Tool = {
 					}))
 				}
 			};
-
 		} catch (error) {
 			return {
 				success: false,

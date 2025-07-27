@@ -31,7 +31,7 @@ export const actions = {
 	...noteFormActions,
 	...fileFormActions,
 	...associatedInfoFormActions,
-	
+
 	update: async ({ request, locals }) => {
 		const db = locals.db;
 		const form = await superValidate(request, zod(submitValidation));
@@ -41,10 +41,10 @@ export const actions = {
 		}
 
 		try {
-			await tActions.llm.update({ 
-				db: db, 
-				data: { enabled: form.data.status === 'active' }, 
-				id: form.data.id 
+			await tActions.llm.update({
+				db: db,
+				data: { enabled: form.data.status === 'active' },
+				id: form.data.id
 			});
 			return {
 				status: 200,
@@ -63,17 +63,16 @@ export const actions = {
 
 		try {
 			logging.info('Manual LLM batch processing triggered');
-			
+
 			const batchService = new LLMBatchProcessingService(db);
 			const stats = await batchService.processAllAccounts();
-			
+
 			logging.info('Manual LLM batch processing completed:', stats);
-			
 		} catch (e) {
 			logging.error('LLM Batch Processing Error:', e);
 			return error(500, 'Error processing journals with LLM');
 		}
-		
+
 		// Redirect back with success message after successful processing
 		throw redirect(302, '/settings/providers?processed=true');
 	}

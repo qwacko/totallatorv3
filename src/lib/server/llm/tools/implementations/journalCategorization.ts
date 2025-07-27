@@ -4,7 +4,8 @@ import { tActions } from '$lib/server/db/actions/tActions';
 export const journalCategorizationTool: Tool = {
 	definition: {
 		name: 'journal_categorization',
-		description: 'Analyze a transaction and suggest categorization including payee, category, tags, bills, budgets, and target account. Returns suggestions with confidence scores and reasoning.',
+		description:
+			'Analyze a transaction and suggest categorization including payee, category, tags, bills, budgets, and target account. Returns suggestions with confidence scores and reasoning.',
 		parameters: {
 			transaction: {
 				type: 'object',
@@ -108,7 +109,6 @@ export const journalCategorizationTool: Tool = {
 				};
 			}
 
-			
 			let categoryId: string | undefined;
 			let tagId: string | undefined;
 			let billId: string | undefined;
@@ -213,7 +213,6 @@ export const journalCategorizationTool: Tool = {
 					}
 				}
 			};
-
 		} catch (error) {
 			return {
 				success: false,
@@ -222,4 +221,3 @@ export const journalCategorizationTool: Tool = {
 		}
 	}
 };
-

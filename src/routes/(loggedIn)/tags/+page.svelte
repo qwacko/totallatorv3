@@ -187,7 +187,8 @@
 							bind:value={$urlStore.searchParams.textFilter}
 							placeholder="Filter..."
 							class="flex grow"
-							keys={data.autocompleteKeys}/>
+							keys={data.autocompleteKeys}
+						/>
 					{/if}
 				</div>
 			{/snippet}

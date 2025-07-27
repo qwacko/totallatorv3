@@ -14,13 +14,7 @@ export type LLMLogFilterType = {
 };
 
 export const llmLogActions = {
-	list: async ({
-		db,
-		filter = {}
-	}: {
-		db: DBType;
-		filter?: LLMLogFilterType;
-	}) => {
+	list: async ({ db, filter = {} }: { db: DBType; filter?: LLMLogFilterType }) => {
 		const {
 			page = 0,
 			pageSize = 50,
@@ -33,23 +27,23 @@ export const llmLogActions = {
 
 		// Build where conditions
 		const conditions = [];
-		
+
 		if (status) {
 			conditions.push(eq(llmLogs.status, status));
 		}
-		
+
 		if (llmSettingsId) {
 			conditions.push(eq(llmLogs.llmSettingsId, llmSettingsId));
 		}
-		
+
 		if (relatedJournalId) {
 			conditions.push(eq(llmLogs.relatedJournalId, relatedJournalId));
 		}
-		
+
 		if (dateFrom) {
 			conditions.push(gte(llmLogs.timestamp, new Date(dateFrom)));
 		}
-		
+
 		if (dateTo) {
 			conditions.push(lte(llmLogs.timestamp, new Date(dateTo)));
 		}
@@ -103,13 +97,7 @@ export const llmLogActions = {
 		};
 	},
 
-	getById: async ({
-		db,
-		id
-	}: {
-		db: DBType;
-		id: string;
-	}) => {
+	getById: async ({ db, id }: { db: DBType; id: string }) => {
 		const results = await dbExecuteLogger(
 			db
 				.select({
@@ -134,20 +122,12 @@ export const llmLogActions = {
 		return results[0] || null;
 	},
 
-	deleteOlderThan: async ({
-		db,
-		days
-	}: {
-		db: DBType;
-		days: number;
-	}) => {
+	deleteOlderThan: async ({ db, days }: { db: DBType; days: number }) => {
 		const cutoffDate = new Date();
 		cutoffDate.setDate(cutoffDate.getDate() - days);
 
 		const result = await dbExecuteLogger(
-			db
-				.delete(llmLogs)
-				.where(lte(llmLogs.timestamp, cutoffDate)),
+			db.delete(llmLogs).where(lte(llmLogs.timestamp, cutoffDate)),
 			'LLM Log Actions - Delete Older Than'
 		);
 
@@ -167,7 +147,7 @@ export const llmLogActions = {
 		cutoffDate.setDate(cutoffDate.getDate() - days);
 
 		const conditions = [gte(llmLogs.timestamp, cutoffDate)];
-		
+
 		if (llmSettingsId) {
 			conditions.push(eq(llmLogs.llmSettingsId, llmSettingsId));
 		}

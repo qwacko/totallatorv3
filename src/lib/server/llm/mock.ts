@@ -3,10 +3,9 @@ import type { LLMSettings } from '$lib/server/db/postgres/schema';
 export class MockLLMClient {
 	private settings: LLMSettings;
 
-	
 	constructor(settings: LLMSettings) {
 		this.settings = settings;
-		console.log("Mock Settings", !!this.settings)
+		console.log('Mock Settings', !!this.settings);
 	}
 
 	public async call(prompt: string): Promise<any> {
@@ -18,11 +17,11 @@ export class MockLLMClient {
 			return { error: 'Simulated error' };
 		}
 
-		return { 
+		return {
 			choices: [
-				{ 
-					message: { 
-						content: 'This is a mock response.' 
+				{
+					message: {
+						content: 'This is a mock response.'
 					}
 				}
 			]

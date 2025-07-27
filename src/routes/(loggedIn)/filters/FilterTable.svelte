@@ -32,7 +32,10 @@
 	}: {
 		dataForTable: Awaited<ReturnType<(typeof reusableFilterActions)['list']>>;
 		filterText: string[];
-		urlParams: Writable<{params: undefined, searchParams: ReusableFilterFilterSchemaType | undefined}>
+		urlParams: Writable<{
+			params: undefined;
+			searchParams: ReusableFilterFilterSchemaType | undefined;
+		}>;
 		dev: boolean;
 		urlForPage: (value: number) => string;
 		urlForSort: (value: ReusableFilterFilterSchemaType['orderBy']) => string;
@@ -112,7 +115,9 @@
 				title: 'Group',
 				rowToDisplay: (row) => row.group || '',
 				sortKey: 'group',
-				filterActive: Boolean($urlParams.searchParams.group !== undefined && $urlParams.searchParams.group !== ''),
+				filterActive: Boolean(
+					$urlParams.searchParams.group !== undefined && $urlParams.searchParams.group !== ''
+				),
 				showTitleOnMobile: true
 			},
 			{
@@ -120,7 +125,9 @@
 				title: 'Title',
 				rowToDisplay: (row) => row.title,
 				sortKey: 'title',
-				filterActive: Boolean($urlParams.searchParams.title !== undefined && $urlParams.searchParams.title !== '')
+				filterActive: Boolean(
+					$urlParams.searchParams.title !== undefined && $urlParams.searchParams.title !== ''
+				)
 			},
 			{
 				id: 'filterText',
@@ -251,19 +258,35 @@
 			{#if $urlParams.searchParams}
 				{#if currentColumn.id === 'group'}
 					<DropdownItem>
-						<Input type="text" bind:value={$urlParams.searchParams.group} placeholder="Group Filter" />
+						<Input
+							type="text"
+							bind:value={$urlParams.searchParams.group}
+							placeholder="Group Filter"
+						/>
 					</DropdownItem>
 				{:else if currentColumn.id === 'title'}
 					<DropdownItem>
-						<Input type="text" bind:value={$urlParams.searchParams.title} placeholder="Title Filter" />
+						<Input
+							type="text"
+							bind:value={$urlParams.searchParams.title}
+							placeholder="Title Filter"
+						/>
 					</DropdownItem>
 				{:else if currentColumn.id === 'filterText'}
 					<DropdownItem>
-						<Input type="text" bind:value={$urlParams.searchParams.filterText} placeholder="Filter Filter" />
+						<Input
+							type="text"
+							bind:value={$urlParams.searchParams.filterText}
+							placeholder="Filter Filter"
+						/>
 					</DropdownItem>
 				{:else if currentColumn.id === 'changeText'}
 					<DropdownItem>
-						<Input type="text" bind:value={$urlParams.searchParams.changeText} placeholder="Change Filter" />
+						<Input
+							type="text"
+							bind:value={$urlParams.searchParams.changeText}
+							placeholder="Change Filter"
+						/>
 					</DropdownItem>
 				{:else if currentColumn.id === 'applyAutomatically'}
 					<DropdownItem>
@@ -283,7 +306,11 @@
 					</DropdownItem>
 				{:else if currentColumn.id === 'listed'}
 					<DropdownItem>
-						<BooleanFilterButtons bind:value={$urlParams.searchParams.listed} onTitle="Y" offTitle="N" />
+						<BooleanFilterButtons
+							bind:value={$urlParams.searchParams.listed}
+							onTitle="Y"
+							offTitle="N"
+						/>
 					</DropdownItem>
 				{/if}
 			{/if}

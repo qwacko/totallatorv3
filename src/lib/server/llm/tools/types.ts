@@ -30,7 +30,7 @@ export interface ToolExecutionResult {
 export interface Tool {
 	definition: ToolDefinition;
 	execute: (
-		parameters: Record<string, any>, 
+		parameters: Record<string, any>,
 		context: ToolExecutionContext
 	) => Promise<ToolExecutionResult>;
 }

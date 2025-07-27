@@ -30,9 +30,9 @@ export const load = async (data) => {
 
 	// Don't include the actual API key in the form for security
 	const form = await superValidate(
-		{ 
-			id: provider.id, 
-			title: provider.title, 
+		{
+			id: provider.id,
+			title: provider.title,
 			apiUrl: provider.apiUrl,
 			defaultModel: provider.defaultModel || '',
 			enabled: provider.enabled,
@@ -58,16 +58,14 @@ export const actions = {
 
 		try {
 			const { prevPage, currentPage, apiKey, ...updateData } = form.data;
-			
-			// Only include API key in update if it was provided
-			const dataToUpdate = apiKey && apiKey.trim() !== '' 
-				? { ...updateData, apiKey }
-				: updateData;
 
-			await tActions.llm.update({ 
-				db, 
-				data: dataToUpdate, 
-				id: form.data.id 
+			// Only include API key in update if it was provided
+			const dataToUpdate = apiKey && apiKey.trim() !== '' ? { ...updateData, apiKey } : updateData;
+
+			await tActions.llm.update({
+				db,
+				data: dataToUpdate,
+				id: form.data.id
 			});
 		} catch (e) {
 			logging.error('Update LLM Provider Error', e);

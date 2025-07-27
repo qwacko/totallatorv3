@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { 
-	findWordBoundariesAtCursor, 
-	replaceWordAtCursor, 
-	getCurrentWordAtCursor 
+import {
+	findWordBoundariesAtCursor,
+	replaceWordAtCursor,
+	getCurrentWordAtCursor
 } from './textReplacement';
 
 describe('textReplacement utilities', () => {
@@ -149,28 +149,28 @@ describe('textReplacement utilities', () => {
 		it('should handle exact user scenario: title:Name sing -> single:', () => {
 			// Test different cursor positions in "sing"
 			const text = 'title:Name sing';
-			
+
 			// Cursor at 's' (position 11)
 			let result = replaceWordAtCursor(text, 11, 'single:');
 			expect(result.newText).toBe('title:Name single:');
-			
-			// Cursor at 'i' (position 12) 
+
+			// Cursor at 'i' (position 12)
 			result = replaceWordAtCursor(text, 12, 'single:');
 			expect(result.newText).toBe('title:Name single:');
-			
+
 			// Cursor at 'n' (position 13)
 			result = replaceWordAtCursor(text, 13, 'single:');
 			expect(result.newText).toBe('title:Name single:');
-			
+
 			// Cursor at 'g' (position 14)
 			result = replaceWordAtCursor(text, 14, 'single:');
 			expect(result.newText).toBe('title:Name single:');
-			
+
 			// Cursor at end (position 15)
 			result = replaceWordAtCursor(text, 15, 'single:');
 			expect(result.newText).toBe('title:Name single:');
 		});
-		
+
 		it('should verify what the user is experiencing', () => {
 			// This should NOT happen according to user report
 			const result = replaceWordAtCursor('title:Name sing', 13, 'single:');

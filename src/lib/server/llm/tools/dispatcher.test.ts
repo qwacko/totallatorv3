@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getTestDB, closeTestDB} from '../../db/test/dbTest';
+import { getTestDB, closeTestDB } from '../../db/test/dbTest';
 import { ToolDispatcher } from './dispatcher';
 import type { ToolExecutionContext } from './types';
 import type { DBType } from '../../db/db';
@@ -38,8 +38,10 @@ describe('ToolDispatcher', () => {
 		it('should provide tool definitions in LLM format', () => {
 			const definitions = dispatcher.getToolDefinitions();
 			expect(definitions).toHaveLength(3);
-			
-			const findSimilarTool = definitions.find(d => d.function.name === 'findSimilarJournalEntries');
+
+			const findSimilarTool = definitions.find(
+				(d) => d.function.name === 'findSimilarJournalEntries'
+			);
 			expect(findSimilarTool).toBeDefined();
 			expect(findSimilarTool!.type).toBe('function');
 			expect(findSimilarTool!.function.description).toContain('Find journal entries');
@@ -61,9 +63,9 @@ describe('ToolDispatcher', () => {
 
 		it('should validate parameter types', async () => {
 			const response = await dispatcher.executeToolCall(
-				{ 
-					name: 'findSimilarJournalEntries', 
-					parameters: { amount: 'not-a-number' } 
+				{
+					name: 'findSimilarJournalEntries',
+					parameters: { amount: 'not-a-number' }
 				},
 				context
 			);
@@ -104,7 +106,7 @@ describe('ToolDispatcher', () => {
 			const txn1 = nanoid();
 			const txn2 = nanoid();
 			const txn3 = nanoid();
-			
+
 			await db.insert(transaction).values([
 				{ id: txn1, createdAt: new Date(), updatedAt: new Date() },
 				{ id: txn2, createdAt: new Date(), updatedAt: new Date() },
@@ -114,7 +116,7 @@ describe('ToolDispatcher', () => {
 			await db.insert(journalEntry).values([
 				{
 					id: nanoid(),
-					amount: 50.00,
+					amount: 50.0,
 					description: 'Coffee purchase',
 					date: new Date('2024-01-15'),
 					dateText: '2024-01-15',
@@ -131,7 +133,7 @@ describe('ToolDispatcher', () => {
 				},
 				{
 					id: nanoid(),
-					amount: 45.50,
+					amount: 45.5,
 					description: 'Coffee and pastry',
 					date: new Date('2024-01-16'),
 					dateText: '2024-01-16',
@@ -148,7 +150,7 @@ describe('ToolDispatcher', () => {
 				},
 				{
 					id: nanoid(),
-					amount: 1000.00,
+					amount: 1000.0,
 					description: 'Rent payment',
 					date: new Date('2024-01-01'),
 					dateText: '2024-01-01',
@@ -168,9 +170,9 @@ describe('ToolDispatcher', () => {
 
 		it('should find entries by description', async () => {
 			const response = await dispatcher.executeToolCall(
-				{ 
-					name: 'findSimilarJournalEntries', 
-					parameters: { description: 'coffee' } 
+				{
+					name: 'findSimilarJournalEntries',
+					parameters: { description: 'coffee' }
 				},
 				context
 			);
@@ -182,9 +184,9 @@ describe('ToolDispatcher', () => {
 
 		it('should find entries by payee', async () => {
 			const response = await dispatcher.executeToolCall(
-				{ 
-					name: 'findSimilarJournalEntries', 
-					parameters: { payee: 'coffee' } 
+				{
+					name: 'findSimilarJournalEntries',
+					parameters: { payee: 'coffee' }
 				},
 				context
 			);
@@ -195,9 +197,9 @@ describe('ToolDispatcher', () => {
 
 		it('should find entries by amount with tolerance', async () => {
 			const response = await dispatcher.executeToolCall(
-				{ 
-					name: 'findSimilarJournalEntries', 
-					parameters: { amount: 48 } 
+				{
+					name: 'findSimilarJournalEntries',
+					parameters: { amount: 48 }
 				},
 				context
 			);
@@ -232,9 +234,9 @@ describe('ToolDispatcher', () => {
 
 		it('should handle non-existent file_id', async () => {
 			const response = await dispatcher.executeToolCall(
-				{ 
-					name: 'getInvoiceText', 
-					parameters: { file_id: 'non-existent' } 
+				{
+					name: 'getInvoiceText',
+					parameters: { file_id: 'non-existent' }
 				},
 				context
 			);
@@ -265,17 +267,17 @@ describe('ToolDispatcher', () => {
 
 			testJournalId = nanoid();
 			const transactionId = nanoid();
-			
+
 			// First create a transaction
 			await db.insert(transaction).values({
 				id: transactionId,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			});
-			
+
 			await db.insert(journalEntry).values({
 				id: testJournalId,
-				amount: 100.00,
+				amount: 100.0,
 				description: 'Original description',
 				date: new Date('2024-01-15'),
 				dateText: '2024-01-15',
@@ -294,16 +296,16 @@ describe('ToolDispatcher', () => {
 
 		it('should update journal entry fields', async () => {
 			const response = await dispatcher.executeToolCall(
-				{ 
-					name: 'updateJournalEntry', 
-					parameters: { 
+				{
+					name: 'updateJournalEntry',
+					parameters: {
 						journal_id: testJournalId,
 						updates: {
 							payee: 'Updated payee',
 							description: 'Updated description',
 							complete: true
 						}
-					} 
+					}
 				},
 				context
 			);
@@ -317,15 +319,15 @@ describe('ToolDispatcher', () => {
 
 		it('should reject invalid update fields', async () => {
 			const response = await dispatcher.executeToolCall(
-				{ 
-					name: 'updateJournalEntry', 
-					parameters: { 
+				{
+					name: 'updateJournalEntry',
+					parameters: {
 						journal_id: testJournalId,
 						updates: {
 							invalidField: 'value',
 							amount: 999 // amount updates not allowed via this tool
 						}
-					} 
+					}
 				},
 				context
 			);
@@ -336,12 +338,12 @@ describe('ToolDispatcher', () => {
 
 		it('should handle non-existent journal entry', async () => {
 			const response = await dispatcher.executeToolCall(
-				{ 
-					name: 'updateJournalEntry', 
-					parameters: { 
+				{
+					name: 'updateJournalEntry',
+					parameters: {
 						journal_id: 'non-existent',
 						updates: { payee: 'New payee' }
-					} 
+					}
 				},
 				context
 			);
@@ -353,10 +355,13 @@ describe('ToolDispatcher', () => {
 
 	describe('Multiple Tool Execution', () => {
 		it('should execute multiple tools in parallel', async () => {
-			const responses = await dispatcher.executeToolCalls([
-				{ name: 'findSimilarJournalEntries', parameters: {} },
-				{ name: 'getInvoiceText', parameters: { file_id: 'test' } }
-			], context);
+			const responses = await dispatcher.executeToolCalls(
+				[
+					{ name: 'findSimilarJournalEntries', parameters: {} },
+					{ name: 'getInvoiceText', parameters: { file_id: 'test' } }
+				],
+				context
+			);
 
 			expect(responses).toHaveLength(2);
 			expect(responses[0].name).toBe('findSimilarJournalEntries');

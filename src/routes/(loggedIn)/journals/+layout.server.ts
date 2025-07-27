@@ -34,8 +34,8 @@ export const load = async (data) => {
 	const journalRecommendations = journalData.data.reduce<
 		Record<string, Promise<EnhancedRecommendationType[] | undefined>>
 	>((acc, journal) => {
-		acc[journal.id] = tActions.journalView.listCombinedRecommendations({ 
-			db, 
+		acc[journal.id] = tActions.journalView.listCombinedRecommendations({
+			db,
 			journals: [journal],
 			includeLlmSuggestions: true
 		});

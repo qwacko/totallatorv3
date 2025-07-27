@@ -1,9 +1,9 @@
-import type { 
-	Tool, 
-	ToolCallRequest, 
-	ToolCallResponse, 
+import type {
+	Tool,
+	ToolCallRequest,
+	ToolCallResponse,
 	ToolExecutionContext,
-	ToolExecutionResult 
+	ToolExecutionResult
 } from './types';
 import { findSimilarJournalEntriesTool } from './implementations/findSimilarJournalEntries';
 import { getInvoiceTextTool } from './implementations/getInvoiceText';
@@ -39,7 +39,7 @@ export class ToolDispatcher {
 			};
 		};
 	}> {
-		return Array.from(this.tools.values()).map(tool => ({
+		return Array.from(this.tools.values()).map((tool) => ({
 			type: 'function',
 			function: {
 				name: tool.definition.name,
@@ -87,7 +87,7 @@ export class ToolDispatcher {
 
 			// Execute the tool
 			const result = await tool.execute(request.parameters, context);
-			
+
 			return {
 				name: request.name,
 				result
@@ -110,9 +110,7 @@ export class ToolDispatcher {
 		requests: ToolCallRequest[],
 		context: ToolExecutionContext
 	): Promise<ToolCallResponse[]> {
-		return Promise.all(
-			requests.map(request => this.executeToolCall(request, context))
-		);
+		return Promise.all(requests.map((request) => this.executeToolCall(request, context)));
 	}
 
 	/**
@@ -131,7 +129,7 @@ export class ToolDispatcher {
 
 	private validateParameters(tool: Tool, parameters: Record<string, any>): ToolExecutionResult {
 		const definition = tool.definition;
-		
+
 		// Check required parameters
 		const required = definition.required || [];
 		for (const requiredParam of required) {
@@ -165,11 +163,7 @@ export class ToolDispatcher {
 		return { success: true };
 	}
 
-	private validateParameterType(
-		name: string, 
-		value: any, 
-		definition: any
-	): string | null {
+	private validateParameterType(name: string, value: any, definition: any): string | null {
 		const expectedType = definition.type;
 
 		switch (expectedType) {

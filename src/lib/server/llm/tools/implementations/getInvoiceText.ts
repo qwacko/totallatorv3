@@ -6,7 +6,8 @@ import { eq } from 'drizzle-orm';
 export const getInvoiceTextTool: Tool = {
 	definition: {
 		name: 'getInvoiceText',
-		description: 'Extract text content from an invoice or receipt file. Can be used with file_id or journal_id to get OCR text from attached documents.',
+		description:
+			'Extract text content from an invoice or receipt file. Can be used with file_id or journal_id to get OCR text from attached documents.',
 		parameters: {
 			file_id: {
 				type: 'string',
@@ -41,18 +42,18 @@ export const getInvoiceTextTool: Tool = {
 					context.db.select().from(fileTable).where(eq(fileTable.id, file_id)),
 					'Get Invoice Text - Find File by ID'
 				);
-				
+
 				if (files.length === 0) {
 					return {
 						success: false,
 						error: `No file found with id: ${file_id}`
 					};
 				}
-				
+
 				// Process the single file
 				const file = files[0];
 				const results = [];
-				
+
 				// For now, we'll indicate that OCR would be needed
 				if (file.filename) {
 					results.push({
@@ -74,7 +75,7 @@ export const getInvoiceTextTool: Tool = {
 						error: 'File has no filename'
 					});
 				}
-				
+
 				return {
 					success: true,
 					data: {
@@ -83,7 +84,7 @@ export const getInvoiceTextTool: Tool = {
 					}
 				};
 			}
-			
+
 			// For journal_id, we need to find files linked to the transaction
 			// Files are linked through associatedInfo -> transaction
 			const filesWithAssociatedInfo = await dbExecuteLogger(
@@ -106,8 +107,8 @@ export const getInvoiceTextTool: Tool = {
 			if (files.length === 0) {
 				return {
 					success: false,
-					error: file_id 
-						? `No file found with id: ${file_id}` 
+					error: file_id
+						? `No file found with id: ${file_id}`
 						: `No files found for journal entry: ${journal_id}`
 				};
 			}
@@ -162,7 +163,6 @@ export const getInvoiceTextTool: Tool = {
 					extracted_text: null
 				}
 			};
-
 		} catch (error) {
 			return {
 				success: false,

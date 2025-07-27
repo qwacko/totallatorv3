@@ -81,7 +81,7 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 				parameters: (e as any)?.parameters,
 				errorObject: e
 			};
-			
+
 			logging.error('Import Item Error', errorDetails);
 
 			await dbExecuteLogger(
@@ -89,8 +89,8 @@ const importItem = async <T extends Record<string, unknown>, DBT extends { id: s
 					.update(importItemDetail)
 					.set({
 						status: 'importError',
-						errorInfo: { 
-							error: errorDetails,							
+						errorInfo: {
+							error: errorDetails
 						},
 						...updatedTime()
 					})
@@ -191,7 +191,7 @@ export async function importTransaction({
 					parameters: (e as any)?.parameters,
 					errorObject: e
 				};
-				
+
 				logging.error('Import Transaction Error', errorDetails);
 
 				await dbExecuteLogger(
@@ -199,7 +199,7 @@ export async function importTransaction({
 						.update(importItemDetail)
 						.set({
 							status: 'importError',
-							errorInfo: { 
+							errorInfo: {
 								error: errorDetails
 							},
 							...updatedTime()

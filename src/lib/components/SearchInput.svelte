@@ -34,7 +34,7 @@
 	let suggestions = $state<Suggestion[]>([]);
 	let selectedIndex = $state(-1);
 	let inputElement: any;
-	let dropdownElement = $state<HTMLDivElement|undefined>(undefined);
+	let dropdownElement = $state<HTMLDivElement | undefined>(undefined);
 	let lastCursorPosition = $state(0);
 
 	// Helper function to highlight matching text
@@ -58,7 +58,10 @@
 	}
 
 	// Parse input to find current context for suggestions
-	function getCurrentContext(inputValue: string, cursorPosition: number): {
+	function getCurrentContext(
+		inputValue: string,
+		cursorPosition: number
+	): {
 		type: 'key' | 'value';
 		currentWord: string;
 		isNegated: boolean;
@@ -93,7 +96,7 @@
 						description: key.desc,
 						type: 'key'
 					});
-					
+
 					// Also add negated version if invertable
 					if (key.invertable) {
 						suggestions.push({
@@ -109,11 +112,11 @@
 				for (const key of keys) {
 					const keyVariant = key.key.endsWith(':') ? key.key : key.key + ':';
 					const searchKey = context.isNegated ? '!' + keyVariant : keyVariant;
-					
+
 					// Check if search term matches key or description
 					const keyMatches = searchKey.toLowerCase().includes(searchTerm);
 					const descMatches = key.desc.toLowerCase().includes(searchTerm);
-					
+
 					if (keyMatches || descMatches) {
 						suggestions.push({
 							text: searchKey,
@@ -122,13 +125,13 @@
 							highlightTerm: searchTerm
 						});
 					}
-					
+
 					// Also suggest the negated version if it's invertable
 					if (key.invertable && !context.isNegated) {
 						const negatedKey = '!' + keyVariant;
 						const negatedKeyMatches = negatedKey.toLowerCase().includes(searchTerm);
 						const negatedDescMatches = `NOT ${key.desc}`.toLowerCase().includes(searchTerm);
-						
+
 						if (negatedKeyMatches || negatedDescMatches) {
 							suggestions.push({
 								text: negatedKey,
@@ -184,7 +187,11 @@
 
 	// Update cursor position tracking
 	function updateCursorPosition() {
-		if (inputElement && inputElement.selectionStart !== null && inputElement.selectionStart !== undefined) {
+		if (
+			inputElement &&
+			inputElement.selectionStart !== null &&
+			inputElement.selectionStart !== undefined
+		) {
 			lastCursorPosition = inputElement.selectionStart;
 		}
 		// If we can't get a valid cursor position, keep the last known good position
@@ -194,10 +201,10 @@
 	function handleInput(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const cursorPosition = target.selectionStart || 0;
-		
+
 		// Store cursor position for later use
 		lastCursorPosition = cursorPosition;
-		
+
 		suggestions = generateSuggestions(target.value, cursorPosition);
 		showDropdown = suggestions.length > 0;
 		selectedIndex = -1;
@@ -207,7 +214,7 @@
 	function handleKeydown(event: KeyboardEvent) {
 		// Update cursor position immediately for any key press while focused
 		updateCursorPosition();
-		
+
 		if (!showDropdown) return;
 
 		switch (event.key) {
@@ -242,14 +249,14 @@
 		const suggestion = suggestions[index];
 		// Use stored cursor position instead of current position
 		const cursorPosition = lastCursorPosition;
-		
+
 		// Use the tested utility function for reliable text replacement
 		const result = replaceWordAtCursor(value, cursorPosition, suggestion.text);
-		
+
 		value = result.newText;
 		showDropdown = false;
 		selectedIndex = -1;
-		
+
 		// Focus back to input and set cursor position at end of inserted text
 		setTimeout(() => {
 			inputElement.focus();
@@ -285,15 +292,18 @@
 			showDropdown = suggestions.length > 0;
 		}}
 	/>
-	
+
 	{#if showDropdown && suggestions.length > 0}
-		<div 
+		<div
 			bind:this={dropdownElement}
-			class="absolute z-50 w-full top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+			class="absolute top-full z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white shadow-lg"
 		>
 			{#each suggestions as suggestion, index}
 				<button
-					class="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 {selectedIndex === index ? 'bg-blue-100' : ''}"
+					class="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 {selectedIndex ===
+					index
+						? 'bg-blue-100'
+						: ''}"
 					onclick={() => selectSuggestion(index)}
 				>
 					<div class="font-medium text-gray-900">

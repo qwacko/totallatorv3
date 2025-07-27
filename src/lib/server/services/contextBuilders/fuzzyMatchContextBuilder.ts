@@ -1,9 +1,9 @@
 import { BaseContextBuilder } from './baseContextBuilder';
 import type { DBType } from '../../db/db';
-import type { 
-	LLMBatchContext, 
-	BatchJournalData, 
-	LLMBatchProcessingConfig 
+import type {
+	LLMBatchContext,
+	BatchJournalData,
+	LLMBatchProcessingConfig
 } from '../llmBatchProcessingService';
 import { journalMaterializedViewActions } from '../../db/actions/journalMaterializedViewActions';
 
@@ -15,7 +15,7 @@ export class FuzzyMatchContextBuilder extends BaseContextBuilder {
 	name = 'fuzzy_match';
 	enabled = true;
 	priority = 2;
-	
+
 	async build(params: {
 		db: DBType;
 		accountId: string;
@@ -23,32 +23,38 @@ export class FuzzyMatchContextBuilder extends BaseContextBuilder {
 		config: LLMBatchProcessingConfig;
 	}): Promise<Partial<LLMBatchContext>> {
 		const { db, uncategorizedJournals, config } = params;
-		
+
 		const allFuzzyMatches: BatchJournalData[] = [];
-		
+
 		// Process each uncategorized journal to find fuzzy matches
 		for (const journal of uncategorizedJournals) {
 			try {
-				console.log(`Fuzzy Match: Processing journal ${journal.id}, has importDetail: ${!!journal.importDetail}`);
-				
+				console.log(
+					`Fuzzy Match: Processing journal ${journal.id}, has importDetail: ${!!journal.importDetail}`
+				);
+
 				// Use existing recommendation system for import-based similarity
 				const recommendations = await journalMaterializedViewActions.listRecommendations({
 					db,
-					journals: [{
-						id: journal.id,
-						description: journal.description,
-						dataChecked: false, // We want recommendations for unchecked items
-						accountId: journal.accountId,
-						importDetail: journal.importDetail ? { dataToUse: journal.importDetail } : null
-					}],
+					journals: [
+						{
+							id: journal.id,
+							description: journal.description,
+							dataChecked: false, // We want recommendations for unchecked items
+							accountId: journal.accountId,
+							importDetail: journal.importDetail ? { dataToUse: journal.importDetail } : null
+						}
+					],
 					similarityThreshold: config.similarityThreshold
 				});
-				
-				console.log(`Fuzzy Match: Found ${recommendations?.length || 0} recommendations for journal ${journal.id}`);
-				
+
+				console.log(
+					`Fuzzy Match: Found ${recommendations?.length || 0} recommendations for journal ${journal.id}`
+				);
+
 				if (recommendations && recommendations.length > 0) {
 					// Convert recommendations to BatchJournalData format
-					const matches: BatchJournalData[] = recommendations.map(rec => ({
+					const matches: BatchJournalData[] = recommendations.map((rec) => ({
 						id: rec.journalId,
 						date: rec.journalDate,
 						description: rec.journalDescription || '',
@@ -69,7 +75,7 @@ export class FuzzyMatchContextBuilder extends BaseContextBuilder {
 						importDetail: undefined,
 						llmReviewStatus: rec.journalDataChecked ? 'complete' : 'required'
 					}));
-					
+
 					allFuzzyMatches.push(...matches);
 				}
 			} catch (error) {
@@ -77,11 +83,11 @@ export class FuzzyMatchContextBuilder extends BaseContextBuilder {
 				// Continue processing other journals
 			}
 		}
-		
+
 		// Remove duplicates and limit results
 		const deduplicatedMatches = this.deduplicateJournals(allFuzzyMatches);
 		const limitedMatches = deduplicatedMatches.slice(0, 50); // Reasonable limit for context
-		
+
 		return {
 			fuzzyMatches: limitedMatches,
 			metadata: {

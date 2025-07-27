@@ -36,7 +36,6 @@
 			searchParamsValue: { page: 0, pageSize: 20, llmSettingsId: data.provider.id }
 		}).url
 	);
-
 </script>
 
 <CustomHeader pageTitle="Edit LLM Provider" filterText={data.provider.title} />
@@ -83,14 +82,14 @@
 			<Button
 				class="grow basis-0 flex-row gap-2"
 				disabled={$form.enabled === true}
-				onclick={() => $form.enabled = true}
+				onclick={() => ($form.enabled = true)}
 			>
 				Enabled
 			</Button>
 			<Button
 				class="grow basis-0 flex-row gap-2"
 				disabled={$form.enabled === false}
-				onclick={() => $form.enabled = false}
+				onclick={() => ($form.enabled = false)}
 			>
 				Disabledd
 			</Button>

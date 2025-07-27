@@ -8,9 +8,9 @@ export const load = async (data) => {
 	const db = data.locals.db;
 	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 
-	const filter = pageInfo.searchParams || { 
-		page: 0, 
-		pageSize: 20 
+	const filter = pageInfo.searchParams || {
+		page: 0,
+		pageSize: 20
 	};
 
 	// Get LLM logs with pagination

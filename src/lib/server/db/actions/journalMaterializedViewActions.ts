@@ -35,9 +35,9 @@ import { z } from 'zod';
 import { filterNullUndefinedAndDuplicates } from '$lib/helpers/filterNullUndefinedAndDuplicates';
 import type { DownloadTypeEnumType } from '$lib/schema/downloadTypeSchema';
 import Papa from 'papaparse';
-import { 
-	journalRecommendationService, 
-	type EnhancedRecommendationType 
+import {
+	journalRecommendationService,
+	type EnhancedRecommendationType
 } from '../../services/journalRecommendationService';
 import type { LlmReviewStatusEnumType } from '../../../../schema/llmReviewStatusEnum';
 
@@ -482,7 +482,7 @@ export const journalMaterializedViewActions = {
 				...labelData
 			}
 		};
-	},	
+	},
 	listRecommendations: async ({
 		db,
 		journals,
@@ -636,12 +636,12 @@ export const journalMaterializedViewActions = {
 
 		if (similarityRecommendations) {
 			// Convert existing recommendations to enhanced format
-			const enhancedSimilarityRecommendations: EnhancedRecommendationType[] = 
-				similarityRecommendations.map(rec => ({
+			const enhancedSimilarityRecommendations: EnhancedRecommendationType[] =
+				similarityRecommendations.map((rec) => ({
 					...rec,
 					source: 'similarity' as const
 				}));
-			
+
 			recommendations.push(...enhancedSimilarityRecommendations);
 		}
 
@@ -653,7 +653,7 @@ export const journalMaterializedViewActions = {
 					journal,
 					llmSettingsId
 				});
-				
+
 				recommendations.push(...llmRecommendations);
 			} catch (error) {
 				console.error('Failed to get LLM recommendations:', error);
@@ -663,8 +663,8 @@ export const journalMaterializedViewActions = {
 
 		// Sort recommendations by confidence/similarity score (descending)
 		recommendations.sort((a, b) => {
-			const aScore = a.source === 'llm' ? (a.llmConfidence || 0) : a.checkSimilarity;
-			const bScore = b.source === 'llm' ? (b.llmConfidence || 0) : b.checkSimilarity;
+			const aScore = a.source === 'llm' ? a.llmConfidence || 0 : a.checkSimilarity;
+			const bScore = b.source === 'llm' ? b.llmConfidence || 0 : b.checkSimilarity;
 			return bScore - aScore;
 		});
 

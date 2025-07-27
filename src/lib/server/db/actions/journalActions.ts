@@ -71,12 +71,17 @@ export const journalActions = {
 		useExistingTransaction?: boolean;
 	}): Promise<string[]> => {
 		let transactionIds: string[] = [];
-		
+
 		const executeTransactionWork = async (dbContext: DBType) => {
 			const cachedData = await getCachedData({ db: dbContext, count: journalEntries.length });
 			const itemsForCreation = await Promise.all(
 				journalEntries.map(async (journalEntry) => {
-					return generateItemsForTransactionCreation({ db: dbContext, data: journalEntry, cachedData, isImport });
+					return generateItemsForTransactionCreation({
+						db: dbContext,
+						data: journalEntry,
+						cachedData,
+						isImport
+					});
 				})
 			);
 
@@ -132,7 +137,7 @@ export const journalActions = {
 				})
 			);
 		}
-		
+
 		await materializedViewActions.setRefreshRequired(db);
 
 		return transactionIds;

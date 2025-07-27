@@ -15,36 +15,35 @@ export async function testLlmCategorization(
 	}>
 ) {
 	const llmProcessor = new LLMJournalProcessingService(db);
-	
+
 	console.log('🧪 Testing LLM Categorization');
 	console.log('================================');
-	
+
 	for (const [index, transaction] of testTransactions.entries()) {
 		console.log(`\n📄 Test ${index + 1}:`);
 		console.log(`Description: "${transaction.description}"`);
 		console.log(`Amount: $${transaction.amount}`);
-		
+
 		if (transaction.expectedCategory) {
 			console.log(`Expected Category: ${transaction.expectedCategory}`);
 		}
 		if (transaction.expectedPayee) {
 			console.log(`Expected Payee: ${transaction.expectedPayee}`);
 		}
-		
+
 		try {
 			// Test the prompt building
 			const prompt = (llmProcessor as any).buildJournalCategorizationPrompt({
 				description: transaction.description,
 				amount: transaction.amount
 			});
-			
+
 			console.log(`\n📝 Generated Prompt Preview:`);
 			console.log(prompt.substring(0, 200) + '...');
-			
 		} catch (error) {
 			console.error(`❌ Error testing transaction ${index + 1}:`, error);
 		}
-		
+
 		console.log('---');
 	}
 }
@@ -54,52 +53,52 @@ export async function testLlmCategorization(
  */
 export const sampleTestTransactions = [
 	{
-		description: "AMAZON.COM*M12ABC123 AMZN.COM/BILLWA",
+		description: 'AMAZON.COM*M12ABC123 AMZN.COM/BILLWA',
 		amount: -45.67,
-		expectedCategory: "Shopping",
-		expectedPayee: "Amazon"
+		expectedCategory: 'Shopping',
+		expectedPayee: 'Amazon'
 	},
 	{
-		description: "SQ *COFFEE CORNER Seattle WA",
-		amount: -8.50,
-		expectedCategory: "Dining",
-		expectedPayee: "Coffee Corner"
+		description: 'SQ *COFFEE CORNER Seattle WA',
+		amount: -8.5,
+		expectedCategory: 'Dining',
+		expectedPayee: 'Coffee Corner'
 	},
 	{
-		description: "SHELL OIL 12345678 SEATTLE WA",
-		amount: -52.30,
-		expectedCategory: "Transportation",
-		expectedPayee: "Shell"
+		description: 'SHELL OIL 12345678 SEATTLE WA',
+		amount: -52.3,
+		expectedCategory: 'Transportation',
+		expectedPayee: 'Shell'
 	},
 	{
-		description: "COSTCO WHOLESALE #123 BELLEVUE WA",
+		description: 'COSTCO WHOLESALE #123 BELLEVUE WA',
 		amount: -127.84,
-		expectedCategory: "Groceries",
-		expectedPayee: "Costco"
+		expectedCategory: 'Groceries',
+		expectedPayee: 'Costco'
 	},
 	{
-		description: "ACH DIRECT DEP SALARY COMPANY INC",
-		amount: 3250.00,
-		expectedCategory: "Income",
-		expectedPayee: "Company Inc"
+		description: 'ACH DIRECT DEP SALARY COMPANY INC',
+		amount: 3250.0,
+		expectedCategory: 'Income',
+		expectedPayee: 'Company Inc'
 	},
 	{
-		description: "ELECTRIC BILL PSE 04/15",
+		description: 'ELECTRIC BILL PSE 04/15',
 		amount: -89.45,
-		expectedCategory: "Utilities",
-		expectedPayee: "PSE"
+		expectedCategory: 'Utilities',
+		expectedPayee: 'PSE'
 	},
 	{
-		description: "RECURRING PMT MORTGAGE LENDER",
-		amount: -1245.00,
-		expectedCategory: "Housing",
-		expectedPayee: "Mortgage Lender"
+		description: 'RECURRING PMT MORTGAGE LENDER',
+		amount: -1245.0,
+		expectedCategory: 'Housing',
+		expectedPayee: 'Mortgage Lender'
 	},
 	{
-		description: "VENMO *JOHN-SMITH",
-		amount: -25.00,
-		expectedCategory: "Transfer",
-		expectedPayee: "John Smith"
+		description: 'VENMO *JOHN-SMITH',
+		amount: -25.0,
+		expectedCategory: 'Transfer',
+		expectedPayee: 'John Smith'
 	}
 ];
 
@@ -109,9 +108,9 @@ export const sampleTestTransactions = [
 export function analyzeTransactionPattern(description: string, amount: number) {
 	const isExpense = amount < 0;
 	const absAmount = Math.abs(amount);
-	
+
 	console.log(`\n🔍 Analyzing: "${description}" ($${amount})`);
-	
+
 	// Common patterns to look for
 	const patterns = {
 		amazon: /amazon|amzn/i,
@@ -132,13 +131,13 @@ export function analyzeTransactionPattern(description: string, amount: number) {
 		mortgage: /mortgage|rent/i,
 		bank: /bank|atm|fee/i
 	};
-	
+
 	const matches = Object.entries(patterns)
 		.filter(([name, pattern]) => pattern.test(description))
 		.map(([name]) => name);
-	
+
 	console.log(`Detected patterns: ${matches.length > 0 ? matches.join(', ') : 'none'}`);
-	
+
 	// Category suggestions based on patterns and amount
 	let suggestedCategory = 'Other';
 	if (matches.includes('amazon') || matches.includes('target') || matches.includes('costco')) {
@@ -158,10 +157,10 @@ export function analyzeTransactionPattern(description: string, amount: number) {
 	} else if (matches.includes('venmo') || matches.includes('paypal')) {
 		suggestedCategory = 'Transfer';
 	}
-	
+
 	console.log(`Suggested category: ${suggestedCategory}`);
 	console.log(`Transaction type: ${isExpense ? 'Expense' : 'Income'}`);
-	
+
 	return {
 		patterns: matches,
 		suggestedCategory,

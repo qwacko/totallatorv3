@@ -116,8 +116,8 @@ export class LLMClient {
 	}
 
 	private buildRequestUrl(): string {
-		const baseUrl = this.settings.apiUrl.endsWith('/') 
-			? this.settings.apiUrl.slice(0, -1) 
+		const baseUrl = this.settings.apiUrl.endsWith('/')
+			? this.settings.apiUrl.slice(0, -1)
 			: this.settings.apiUrl;
 
 		// Detect provider based on URL
@@ -163,14 +163,14 @@ export class LLMClient {
 
 	private adaptToAnthropicFormat(request: LLMRequest): any {
 		// Convert OpenAI format to Anthropic format
-		const systemMessage = request.messages.find(m => m.role === 'system');
-		const userMessages = request.messages.filter(m => m.role !== 'system');
+		const systemMessage = request.messages.find((m) => m.role === 'system');
+		const userMessages = request.messages.filter((m) => m.role !== 'system');
 
 		return {
 			model: request.model || this.settings.defaultModel || 'claude-3-sonnet-20240229',
 			max_tokens: request.max_tokens || 1000,
 			system: systemMessage?.content,
-			messages: userMessages.map(msg => ({
+			messages: userMessages.map((msg) => ({
 				role: msg.role === 'assistant' ? 'assistant' : 'user',
 				content: msg.content
 			}))
@@ -194,14 +194,16 @@ export class LLMClient {
 			object: 'chat.completion',
 			created: Math.floor(Date.now() / 1000),
 			model: data.model,
-			choices: [{
-				index: 0,
-				message: {
-					role: 'assistant',
-					content: data.content?.[0]?.text || data.content
-				},
-				finish_reason: data.stop_reason === 'end_turn' ? 'stop' : data.stop_reason
-			}],
+			choices: [
+				{
+					index: 0,
+					message: {
+						role: 'assistant',
+						content: data.content?.[0]?.text || data.content
+					},
+					finish_reason: data.stop_reason === 'end_turn' ? 'stop' : data.stop_reason
+				}
+			],
 			usage: {
 				prompt_tokens: data.usage?.input_tokens || 0,
 				completion_tokens: data.usage?.output_tokens || 0,

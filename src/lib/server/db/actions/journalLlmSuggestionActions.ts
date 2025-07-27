@@ -26,22 +26,16 @@ export type UpdateJournalLlmSuggestionType = {
 };
 
 export const journalLlmSuggestionActions = {
-	create: async ({
-		db,
-		data
-	}: {
-		db: DBType;
-		data: CreateJournalLlmSuggestionType;
-	}) => {
+	create: async ({ db, data }: { db: DBType; data: CreateJournalLlmSuggestionType }) => {
 		const id = nanoid();
-		
+
 		// Mark any existing suggestions for this journal as superseded
 		await dbExecuteLogger(
 			db
 				.update(journalLlmSuggestions)
-				.set({ 
+				.set({
 					status: 'superseded',
-					processedAt: new Date() 
+					processedAt: new Date()
 				})
 				.where(
 					and(
@@ -77,7 +71,7 @@ export const journalLlmSuggestionActions = {
 		includeSuperseded?: boolean;
 	}) => {
 		const whereConditions = [eq(journalLlmSuggestions.journalId, journalId)];
-		
+
 		if (!includeSuperseded) {
 			whereConditions.push(eq(journalLlmSuggestions.status, 'pending'));
 		}
@@ -94,19 +88,9 @@ export const journalLlmSuggestionActions = {
 		return results;
 	},
 
-	getById: async ({
-		db,
-		id
-	}: {
-		db: DBType;
-		id: string;
-	}) => {
+	getById: async ({ db, id }: { db: DBType; id: string }) => {
 		const results = await dbExecuteLogger(
-			db
-				.select()
-				.from(journalLlmSuggestions)
-				.where(eq(journalLlmSuggestions.id, id))
-				.limit(1),
+			db.select().from(journalLlmSuggestions).where(eq(journalLlmSuggestions.id, id)).limit(1),
 			'Journal LLM Suggestion Actions - Get By ID'
 		);
 
@@ -137,29 +121,15 @@ export const journalLlmSuggestionActions = {
 		return result[0];
 	},
 
-	delete: async ({
-		db,
-		id
-	}: {
-		db: DBType;
-		id: string;
-	}) => {
+	delete: async ({ db, id }: { db: DBType; id: string }) => {
 		await dbExecuteLogger(
-			db
-				.delete(journalLlmSuggestions)
-				.where(eq(journalLlmSuggestions.id, id)),
+			db.delete(journalLlmSuggestions).where(eq(journalLlmSuggestions.id, id)),
 			'Journal LLM Suggestion Actions - Delete'
 		);
 	},
 
 	// Get pending suggestions across multiple journals (for bulk processing)
-	getPendingByJournalIds: async ({
-		db,
-		journalIds
-	}: {
-		db: DBType;
-		journalIds: string[];
-	}) => {
+	getPendingByJournalIds: async ({ db, journalIds }: { db: DBType; journalIds: string[] }) => {
 		if (journalIds.length === 0) return [];
 
 		const results = await dbExecuteLogger(
@@ -180,13 +150,7 @@ export const journalLlmSuggestionActions = {
 	},
 
 	// Statistics for monitoring
-	getStats: async ({
-		db,
-		days = 30
-	}: {
-		db: DBType;
-		days?: number;
-	}) => {
+	getStats: async ({ db, days = 30 }: { db: DBType; days?: number }) => {
 		const cutoffDate = new Date();
 		cutoffDate.setDate(cutoffDate.getDate() - days);
 

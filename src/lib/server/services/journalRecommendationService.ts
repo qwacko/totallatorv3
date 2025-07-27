@@ -24,7 +24,7 @@ export type EnhancedRecommendationType = RecommendationType & {
 
 /**
  * Journal Recommendation Service
- * 
+ *
  * Generates LLM-powered recommendations for journal entries that integrate
  * with the existing recommendation modal system. Works alongside the current
  * similarity-based recommendations.
@@ -71,17 +71,20 @@ export const journalRecommendationService = {
 			};
 
 			// Call the journal categorization tool
-			const toolResponse = await dispatcher.executeToolCall({
-				name: 'journal_categorization',
-				parameters: {
-					transaction: {
-						description: journal.description,
-						amount: journal.amount,
-						date: journal.date.toISOString().split('T')[0],
-						accountId: journal.accountId
+			const toolResponse = await dispatcher.executeToolCall(
+				{
+					name: 'journal_categorization',
+					parameters: {
+						transaction: {
+							description: journal.description,
+							amount: journal.amount,
+							date: journal.date.toISOString().split('T')[0],
+							accountId: journal.accountId
+						}
 					}
-				}
-			}, context);
+				},
+				context
+			);
 
 			if (!toolResponse.result.success) {
 				console.error('LLM journal categorization failed:', toolResponse.result.error);
@@ -134,10 +137,9 @@ export const journalRecommendationService = {
 			};
 
 			return [recommendation];
-
 		} catch (error) {
 			console.error('Error generating LLM recommendations:', error);
-			
+
 			// Note: llmLogActions doesn't have a create method
 			// Logging will be handled by the tool dispatcher or LLM layer
 			console.error('LLM service error for journal:', journal.id, error);
@@ -161,7 +163,7 @@ export const journalRecommendationService = {
 			journalId
 		});
 
-		return suggestions.map(suggestion => ({
+		return suggestions.map((suggestion) => ({
 			journalId: suggestion.journalId,
 			journalBillId: suggestion.suggestedBillId || undefined,
 			journalBudgetId: suggestion.suggestedBudgetId || undefined,

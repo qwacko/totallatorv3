@@ -186,7 +186,7 @@ export const journalMaterialisedList = async ({
 
 	const transactionFiles = await tActions.file.listGrouped({
 		db,
-	ids: transactionIds,
+		ids: transactionIds,
 		grouping: 'transaction'
 	});
 

@@ -316,7 +316,9 @@ const journalSharedColumns = {
 	reconciled: boolean('reconciled').notNull().default(false),
 	dataChecked: boolean('data_checked').notNull().default(false),
 	complete: boolean('complete').notNull().default(false),
-	llmReviewStatus: text('llm_review_status', { enum: llmReviewStatusEnum }).notNull().default('not_required'),
+	llmReviewStatus: text('llm_review_status', { enum: llmReviewStatusEnum })
+		.notNull()
+		.default('not_required'),
 
 	transfer: boolean('transfer').notNull().default(true)
 };

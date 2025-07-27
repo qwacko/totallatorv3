@@ -9,7 +9,7 @@ describe('MockLLMClient', () => {
 			title: 'test',
 			apiUrl: 'http://localhost:8080',
 			apiKey: 'test',
-			defaultModel: "claude",
+			defaultModel: 'claude',
 			enabled: true,
 			createdAt: new Date(),
 			updatedAt: new Date()
@@ -26,7 +26,7 @@ describe('MockLLMClient', () => {
 			apiUrl: 'http://localhost:8080',
 			apiKey: 'test',
 			enabled: true,
-			defaultModel: "claude",
+			defaultModel: 'claude',
 			createdAt: new Date(),
 			updatedAt: new Date()
 		};

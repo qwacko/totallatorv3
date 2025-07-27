@@ -37,17 +37,20 @@ export const llmActions = {
 			'Create LLM Settings',
 			db.transaction(async (trx) => {
 				const inserted = await dbExecuteLogger(
-					trx.insert(llmSettings).values({
-						id,
-						title: data.title,
-						apiUrl: data.apiUrl,
-						apiKey: encryptedApiKey,
-						defaultModel: data.defaultModel || null,
-						enabled: data.enabled ?? true
-					}).returning(),
+					trx
+						.insert(llmSettings)
+						.values({
+							id,
+							title: data.title,
+							apiUrl: data.apiUrl,
+							apiKey: encryptedApiKey,
+							defaultModel: data.defaultModel || null,
+							enabled: data.enabled ?? true
+						})
+						.returning(),
 					'LLM Settings - Create'
 				);
-				
+
 				return inserted[0];
 			})
 		);
@@ -61,28 +64,30 @@ export const llmActions = {
 
 	list: async ({ db }: { db: DBType }): Promise<Omit<LLMSettings, 'apiKey'>[]> => {
 		const results = await dbExecuteLogger(
-			db.select({
-				id: llmSettings.id,
-				title: llmSettings.title,
-				apiUrl: llmSettings.apiUrl,
-				defaultModel: llmSettings.defaultModel,
-				enabled: llmSettings.enabled,
-				createdAt: llmSettings.createdAt,
-				updatedAt: llmSettings.updatedAt
-			}).from(llmSettings),
+			db
+				.select({
+					id: llmSettings.id,
+					title: llmSettings.title,
+					apiUrl: llmSettings.apiUrl,
+					defaultModel: llmSettings.defaultModel,
+					enabled: llmSettings.enabled,
+					createdAt: llmSettings.createdAt,
+					updatedAt: llmSettings.updatedAt
+				})
+				.from(llmSettings),
 			'LLM Settings - List'
 		);
 
 		return results;
 	},
 
-	getById: async ({ 
-		db, 
-		id, 
-		includeApiKey = false 
-	}: { 
-		db: DBType; 
-		id: string; 
+	getById: async ({
+		db,
+		id,
+		includeApiKey = false
+	}: {
+		db: DBType;
+		id: string;
 		includeApiKey?: boolean;
 	}): Promise<LLMSettings | undefined> => {
 		const results = await dbExecuteLogger(
@@ -95,7 +100,7 @@ export const llmActions = {
 		}
 
 		const result = results[0];
-		
+
 		if (includeApiKey) {
 			// Decrypt the API key
 			result.apiKey = decryptText(result.apiKey);
@@ -130,13 +135,10 @@ export const llmActions = {
 			'Update LLM Settings',
 			db.transaction(async (trx) => {
 				const updated = await dbExecuteLogger(
-					trx.update(llmSettings)
-						.set(updateData)
-						.where(eq(llmSettings.id, id))
-						.returning(),
+					trx.update(llmSettings).set(updateData).where(eq(llmSettings.id, id)).returning(),
 					'LLM Settings - Update'
 				);
-				
+
 				return updated.length > 0 ? updated[0] : undefined;
 			})
 		);
@@ -163,7 +165,7 @@ export const llmActions = {
 					trx.delete(llmSettings).where(eq(llmSettings.id, id)).returning(),
 					'LLM Settings - Delete'
 				);
-				
+
 				return deleted.length > 0;
 			})
 		);
@@ -178,7 +180,7 @@ export const llmActions = {
 		);
 
 		// Decrypt API keys for enabled settings
-		return results.map(result => ({
+		return results.map((result) => ({
 			...result,
 			apiKey: decryptText(result.apiKey)
 		}));

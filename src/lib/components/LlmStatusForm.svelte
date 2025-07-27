@@ -1,7 +1,10 @@
 <script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
 	import { onMount } from 'svelte';
 	import EnumSingleSelection from './EnumSingleSelection.svelte';
-	import { llmReviewStatusEnumSelection, type LlmReviewStatusEnumType } from '../../schema/llmReviewStatusEnum';
+	import {
+		llmReviewStatusEnumSelection,
+		type LlmReviewStatusEnumType
+	} from '../../schema/llmReviewStatusEnum';
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
 	import type { Writable } from 'svelte/store';

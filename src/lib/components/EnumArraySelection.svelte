@@ -5,7 +5,7 @@
 		values = $bindable(undefined),
 		enumSelection,
 		onUpdate,
-		clearable = true,
+		clearable = true
 	}: {
 		values: T[] | undefined;
 		enumSelection: { value: T; name: string }[];

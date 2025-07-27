@@ -1,8 +1,8 @@
 import { BaseContextBuilder } from './baseContextBuilder';
 import type { DBType } from '../../db/db';
-import type { 
-	LLMBatchContext, 
-	BatchJournalData, 
+import type {
+	LLMBatchContext,
+	BatchJournalData,
 	LLMBatchProcessingConfig,
 	PopularItems,
 	CategorizationOptions
@@ -19,7 +19,7 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 	name = 'popular_items';
 	enabled = true;
 	priority = 3;
-	
+
 	async build(params: {
 		db: DBType;
 		accountId: string;
@@ -27,19 +27,19 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 		config: LLMBatchProcessingConfig;
 	}): Promise<Partial<LLMBatchContext>> {
 		const { db, accountId, config } = params;
-		
+
 		// Fetch account details
 		const account = await tActions.account.getById(db, accountId);
 		if (!account) {
 			throw new Error(`Account ${accountId} not found`);
 		}
-		
+
 		// Get popular items by analyzing recent journal usage
 		const popularItems = await this.getPopularItems(db, accountId, config.maxPopularItems);
-		
+
 		// Get all available options
 		const allOptions = await this.getAllCategorizationOptions(db);
-		
+
 		return {
 			account: {
 				id: account.id,
@@ -50,15 +50,19 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 			allOptions
 		};
 	}
-	
+
 	/**
 	 * Get most popular categorization items for the account
 	 */
-	private async getPopularItems(db: DBType, accountId: string, maxItems: number): Promise<PopularItems> {
+	private async getPopularItems(
+		db: DBType,
+		accountId: string,
+		maxItems: number
+	): Promise<PopularItems> {
 		// Get journals from the last 6 months to analyze usage patterns
 		const sixMonthsAgo = new Date();
 		sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-		
+
 		const filter: JournalFilterSchemaInputType = {
 			account: {
 				idArray: [accountId],
@@ -69,107 +73,105 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 			dateAfter: sixMonthsAgo.toISOString().split('T')[0],
 			page: 0,
 			pageSize: 1000, // Large enough to get good statistics
-			orderBy: [
-				{ field: 'date', direction: 'desc' }
-			]
+			orderBy: [{ field: 'date', direction: 'desc' }]
 		};
-		
+
 		const journalsResult = await journalMaterialisedList({ db, filter });
-		
+
 		// Count usage frequency for each type
 		const categoryCounts = new Map<string, { id: string; title: string; count: number }>();
 		const tagCounts = new Map<string, { id: string; title: string; count: number }>();
 		const billCounts = new Map<string, { id: string; title: string; count: number }>();
 		const budgetCounts = new Map<string, { id: string; title: string; count: number }>();
 		const labelCounts = new Map<string, { id: string; title: string; count: number }>();
-		
+
 		for (const journal of journalsResult.data) {
 			// Count categories
 			if (journal.categoryId && journal.categoryTitle) {
-				const existing = categoryCounts.get(journal.categoryId) || { 
-					id: journal.categoryId, 
-					title: journal.categoryTitle, 
-					count: 0 
+				const existing = categoryCounts.get(journal.categoryId) || {
+					id: journal.categoryId,
+					title: journal.categoryTitle,
+					count: 0
 				};
 				categoryCounts.set(journal.categoryId, { ...existing, count: existing.count + 1 });
 			}
-			
+
 			// Count tags
 			if (journal.tagId && journal.tagTitle) {
-				const existing = tagCounts.get(journal.tagId) || { 
-					id: journal.tagId, 
-					title: journal.tagTitle, 
-					count: 0 
+				const existing = tagCounts.get(journal.tagId) || {
+					id: journal.tagId,
+					title: journal.tagTitle,
+					count: 0
 				};
 				tagCounts.set(journal.tagId, { ...existing, count: existing.count + 1 });
 			}
-			
+
 			// Count bills
 			if (journal.billId && journal.billTitle) {
-				const existing = billCounts.get(journal.billId) || { 
-					id: journal.billId, 
-					title: journal.billTitle, 
-					count: 0 
+				const existing = billCounts.get(journal.billId) || {
+					id: journal.billId,
+					title: journal.billTitle,
+					count: 0
 				};
 				billCounts.set(journal.billId, { ...existing, count: existing.count + 1 });
 			}
-			
+
 			// Count budgets
 			if (journal.budgetId && journal.budgetTitle) {
-				const existing = budgetCounts.get(journal.budgetId) || { 
-					id: journal.budgetId, 
-					title: journal.budgetTitle, 
-					count: 0 
+				const existing = budgetCounts.get(journal.budgetId) || {
+					id: journal.budgetId,
+					title: journal.budgetTitle,
+					count: 0
 				};
 				budgetCounts.set(journal.budgetId, { ...existing, count: existing.count + 1 });
 			}
-			
+
 			// Count labels
 			if (journal.labels && journal.labels.length > 0) {
 				for (const labelData of journal.labels) {
 					if (labelData.id && labelData.title) {
-						const existing = labelCounts.get(labelData.id) || { 
-							id: labelData.id, 
-							title: labelData.title, 
-							count: 0 
+						const existing = labelCounts.get(labelData.id) || {
+							id: labelData.id,
+							title: labelData.title,
+							count: 0
 						};
 						labelCounts.set(labelData.id, { ...existing, count: existing.count + 1 });
 					}
 				}
 			}
 		}
-		
+
 		// Convert to sorted arrays (most used first)
 		const sortByUsage = (a: { count: number }, b: { count: number }) => b.count - a.count;
-		
+
 		return {
 			categories: Array.from(categoryCounts.values())
 				.sort(sortByUsage)
 				.slice(0, maxItems)
-				.map(item => ({ id: item.id, title: item.title, usageCount: item.count })),
-			
+				.map((item) => ({ id: item.id, title: item.title, usageCount: item.count })),
+
 			tags: Array.from(tagCounts.values())
 				.sort(sortByUsage)
 				.slice(0, maxItems)
-				.map(item => ({ id: item.id, title: item.title, usageCount: item.count })),
-			
+				.map((item) => ({ id: item.id, title: item.title, usageCount: item.count })),
+
 			bills: Array.from(billCounts.values())
 				.sort(sortByUsage)
 				.slice(0, maxItems)
-				.map(item => ({ id: item.id, title: item.title, usageCount: item.count })),
-			
+				.map((item) => ({ id: item.id, title: item.title, usageCount: item.count })),
+
 			budgets: Array.from(budgetCounts.values())
 				.sort(sortByUsage)
 				.slice(0, maxItems)
-				.map(item => ({ id: item.id, title: item.title, usageCount: item.count })),
-			
+				.map((item) => ({ id: item.id, title: item.title, usageCount: item.count })),
+
 			labels: Array.from(labelCounts.values())
 				.sort(sortByUsage)
 				.slice(0, maxItems)
-				.map(item => ({ id: item.id, title: item.title, usageCount: item.count }))
+				.map((item) => ({ id: item.id, title: item.title, usageCount: item.count }))
 		};
 	}
-	
+
 	/**
 	 * Get all available categorization options
 	 */
@@ -181,32 +183,32 @@ export class PopularItemsContextBuilder extends BaseContextBuilder {
 			tActions.budget.list({ db, filter: {} }),
 			tActions.label.list({ db, filter: {} })
 		]);
-		
+
 		return {
-			categories: categories.data.map(item => ({ 
-				id: item.id, 
-				title: item.title, 
-				active: item.active 
+			categories: categories.data.map((item) => ({
+				id: item.id,
+				title: item.title,
+				active: item.active
 			})),
-			tags: tags.data.map(item => ({ 
-				id: item.id, 
-				title: item.title, 
-				active: item.active 
+			tags: tags.data.map((item) => ({
+				id: item.id,
+				title: item.title,
+				active: item.active
 			})),
-			bills: bills.data.map(item => ({ 
-				id: item.id, 
-				title: item.title, 
-				active: item.active 
+			bills: bills.data.map((item) => ({
+				id: item.id,
+				title: item.title,
+				active: item.active
 			})),
-			budgets: budgets.data.map(item => ({ 
-				id: item.id, 
-				title: item.title, 
-				active: item.active 
+			budgets: budgets.data.map((item) => ({
+				id: item.id,
+				title: item.title,
+				active: item.active
 			})),
-			labels: labels.data.map(item => ({ 
-				id: item.id, 
-				title: item.title, 
-				active: item.active 
+			labels: labels.data.map((item) => ({
+				id: item.id,
+				title: item.title,
+				active: item.active
 			}))
 		};
 	}

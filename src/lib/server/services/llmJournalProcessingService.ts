@@ -35,10 +35,10 @@ export class LLMJournalProcessingService {
 		duration: number;
 	}> {
 		const startTime = Date.now();
-		const { 
-			batchSize = 50, 
+		const {
+			batchSize = 50,
 			maxProcessingTime = 60000, // 1 minute default
-			skipIfNoProviders = true 
+			skipIfNoProviders = true
 		} = options;
 
 		// Check if LLM review is enabled
@@ -49,7 +49,7 @@ export class LLMJournalProcessingService {
 
 		// Get enabled LLM providers
 		const allProviders = await tActions.llm.list({ db: this.db });
-		const enabledProviders = allProviders.filter(p => p.enabled);
+		const enabledProviders = allProviders.filter((p) => p.enabled);
 
 		if (enabledProviders.length === 0) {
 			if (skipIfNoProviders) {
@@ -83,7 +83,9 @@ export class LLMJournalProcessingService {
 			return { processed: 0, errors: 0, skipped: 0, duration: Date.now() - startTime };
 		}
 
-		logging.info(`LLM Journal Processing: Starting batch processing of ${journalsToProcess.length} journals`);
+		logging.info(
+			`LLM Journal Processing: Starting batch processing of ${journalsToProcess.length} journals`
+		);
 
 		let processed = 0;
 		let errors = 0;
@@ -104,7 +106,7 @@ export class LLMJournalProcessingService {
 			} catch (error) {
 				errors++;
 				logging.error(`LLM Journal Processing: Error processing journal ${journal.id}:`, error);
-				
+
 				// Mark journal as error status
 				await this.db
 					.update(journalEntry)
@@ -114,7 +116,9 @@ export class LLMJournalProcessingService {
 		}
 
 		const duration = Date.now() - startTime;
-		logging.info(`LLM Journal Processing: Completed batch - Processed: ${processed}, Errors: ${errors}, Duration: ${duration}ms`);
+		logging.info(
+			`LLM Journal Processing: Completed batch - Processed: ${processed}, Errors: ${errors}, Duration: ${duration}ms`
+		);
 
 		return { processed, errors, skipped, duration };
 	}
@@ -133,13 +137,13 @@ export class LLMJournalProcessingService {
 			billId: string | null;
 			budgetId: string | null;
 		},
-		llmProvider: { id: string; title: string; apiUrl: string; defaultModel: string | null; }
+		llmProvider: { id: string; title: string; apiUrl: string; defaultModel: string | null }
 	): Promise<void> {
 		// Get LLM settings with API key
-		const llmSettings = await tActions.llm.getById({ 
-			db: this.db, 
-			id: llmProvider.id, 
-			includeApiKey: true 
+		const llmSettings = await tActions.llm.getById({
+			db: this.db,
+			id: llmProvider.id,
+			includeApiKey: true
 		});
 
 		if (!llmSettings || !llmSettings.defaultModel) {
@@ -153,38 +157,38 @@ export class LLMJournalProcessingService {
 		const prompt = this.buildJournalCategorizationPrompt(journal);
 
 		// Call LLM with tool calling capability
-		const response = await llmClient.call({
-			model: llmSettings.defaultModel,
-			messages: [
-				{
-					role: 'user',
-					content: prompt
-				}
-			],
-			tools: this.toolDispatcher.getToolDefinitions()
-		}, journal.id);
+		const response = await llmClient.call(
+			{
+				model: llmSettings.defaultModel,
+				messages: [
+					{
+						role: 'user',
+						content: prompt
+					}
+				],
+				tools: this.toolDispatcher.getToolDefinitions()
+			},
+			journal.id
+		);
 
 		// Process any tool calls from the LLM response
 		const toolCalls = response.choices[0]?.message?.tool_calls;
 		if (toolCalls && toolCalls.length > 0) {
 			// Convert LLM tool calls to our format
-			const toolCallRequests = toolCalls.map(tc => ({
+			const toolCallRequests = toolCalls.map((tc) => ({
 				name: tc.function.name,
 				parameters: JSON.parse(tc.function.arguments)
 			}));
 
-			const toolResults = await this.toolDispatcher.executeToolCalls(
-				toolCallRequests,
-				{
-					db: this.db,
-					userId: 'system', // System user for cron job processing
-					journalId: journal.id
-				}
-			);
+			const toolResults = await this.toolDispatcher.executeToolCalls(toolCallRequests, {
+				db: this.db,
+				userId: 'system', // System user for cron job processing
+				journalId: journal.id
+			});
 
 			// Check if any tool calls succeeded
-			const hasSuccessfulTools = toolResults.some(result => result.result.success);
-			
+			const hasSuccessfulTools = toolResults.some((result) => result.result.success);
+
 			if (hasSuccessfulTools) {
 				// Mark journal as complete if LLM tools executed successfully
 				await this.db
@@ -217,7 +221,7 @@ export class LLMJournalProcessingService {
 		const amount = Math.abs(journal.amount);
 		const isExpense = journal.amount < 0;
 		const isIncome = journal.amount > 0;
-		
+
 		return `You are a financial categorization expert. Analyze this transaction and provide accurate categorization suggestions.
 
 TRANSACTION TO ANALYZE:
@@ -248,12 +252,14 @@ Please proceed with the analysis using the available tools.`;
 	/**
 	 * Reset failed journals back to 'required' status for retry
 	 */
-	async retryFailedJournals(options: { 
-		olderThanMinutes?: number;
-		batchSize?: number;
-	} = {}): Promise<number> {
+	async retryFailedJournals(
+		options: {
+			olderThanMinutes?: number;
+			batchSize?: number;
+		} = {}
+	): Promise<number> {
 		const { olderThanMinutes = 60 } = options;
-		
+
 		const cutoffTime = new Date();
 		cutoffTime.setMinutes(cutoffTime.getMinutes() - olderThanMinutes);
 
@@ -262,16 +268,18 @@ Please proceed with the analysis using the available tools.`;
 			.set({ llmReviewStatus: 'required' })
 			.where(
 				and(
-					eq(journalEntry.llmReviewStatus, 'error'),
+					eq(journalEntry.llmReviewStatus, 'error')
 					// Add condition for journals updated before cutoff time
 				)
 			);
 
 		// Note: Drizzle doesn't provide rowCount, we'd need to count separately
 		const affectedRows = 0; // TODO: Implement proper row counting
-		
+
 		if (affectedRows > 0) {
-			logging.info(`LLM Journal Processing: Reset ${affectedRows} failed journals back to 'required' status`);
+			logging.info(
+				`LLM Journal Processing: Reset ${affectedRows} failed journals back to 'required' status`
+			);
 		}
 
 		return affectedRows;

@@ -23,10 +23,7 @@ export const load = async (data) => {
 	const provider = await tActions.llm.getById({ db, id: pageInfo.current.params?.id });
 	if (!provider) redirect(302, '/settings/providers');
 
-	const form = await superValidate(
-		{ id: provider.id },
-		zod(deleteLLMProviderSchema)
-	);
+	const form = await superValidate({ id: provider.id }, zod(deleteLLMProviderSchema));
 
 	return {
 		provider,
@@ -44,9 +41,9 @@ export const actions = {
 		}
 
 		try {
-			await tActions.llm.delete({ 
-				db, 
-				id: form.data.id 
+			await tActions.llm.delete({
+				db,
+				id: form.data.id
 			});
 		} catch (e) {
 			logging.error('Delete LLM Provider Error', e);

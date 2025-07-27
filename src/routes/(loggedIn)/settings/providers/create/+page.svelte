@@ -21,7 +21,7 @@
 	<form method="POST" use:enhance class="flex flex-col gap-4">
 		<PreviousUrlInput name="prevPage" />
 		<input type="hidden" name="currentPage" value={urlInfo.current.url} />
-		
+
 		<TextInput
 			title="Title"
 			errorMessage={$errors.title}

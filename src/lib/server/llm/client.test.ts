@@ -16,7 +16,7 @@ describe('LLMClient', () => {
 	beforeEach(async () => {
 		dbConnection = await getTestDB();
 		db = dbConnection.testDB;
-		
+
 		openAISettings = {
 			id: 'openai-test',
 			title: 'OpenAI Test',
@@ -53,14 +53,16 @@ describe('LLMClient', () => {
 				object: 'chat.completion',
 				created: 1234567890,
 				model: 'gpt-4',
-				choices: [{
-					index: 0,
-					message: {
-						role: 'assistant',
-						content: 'Test response'
-					},
-					finish_reason: 'stop'
-				}],
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: 'assistant',
+							content: 'Test response'
+						},
+						finish_reason: 'stop'
+					}
+				],
 				usage: {
 					prompt_tokens: 10,
 					completion_tokens: 5,
@@ -76,9 +78,7 @@ describe('LLMClient', () => {
 			const client = new LLMClient(openAISettings, db);
 			const request: LLMRequest = {
 				model: 'gpt-4',
-				messages: [
-					{ role: 'user', content: 'Hello' }
-				]
+				messages: [{ role: 'user', content: 'Hello' }]
 			};
 
 			const response = await client.call(request);
@@ -90,7 +90,7 @@ describe('LLMClient', () => {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer sk-test123'
+						Authorization: 'Bearer sk-test123'
 					},
 					body: JSON.stringify(request)
 				})
@@ -110,7 +110,9 @@ describe('LLMClient', () => {
 				messages: [{ role: 'user', content: 'Hello' }]
 			};
 
-			await expect(client.call(request)).rejects.toThrow('LLM API request failed: 401 Unauthorized');
+			await expect(client.call(request)).rejects.toThrow(
+				'LLM API request failed: 401 Unauthorized'
+			);
 		});
 
 		it('should use default model when none specified', async () => {
@@ -119,11 +121,13 @@ describe('LLMClient', () => {
 				object: 'chat.completion',
 				created: 123,
 				model: 'gpt-4',
-				choices: [{
-					index: 0,
-					message: { role: 'assistant', content: 'Test' },
-					finish_reason: 'stop'
-				}]
+				choices: [
+					{
+						index: 0,
+						message: { role: 'assistant', content: 'Test' },
+						finish_reason: 'stop'
+					}
+				]
 			};
 
 			(fetch as any).mockResolvedValueOnce({
@@ -258,11 +262,13 @@ describe('LLMClient', () => {
 				object: 'chat.completion',
 				created: 123,
 				model: 'gpt-4',
-				choices: [{
-					index: 0,
-					message: { role: 'assistant', content: 'Test' },
-					finish_reason: 'stop'
-				}]
+				choices: [
+					{
+						index: 0,
+						message: { role: 'assistant', content: 'Test' },
+						finish_reason: 'stop'
+					}
+				]
 			};
 
 			(fetch as any).mockResolvedValueOnce({
@@ -306,22 +312,26 @@ describe('LLMClient', () => {
 				object: 'chat.completion',
 				created: 123,
 				model: 'gpt-4',
-				choices: [{
-					index: 0,
-					message: {
-						role: 'assistant',
-						content: null,
-						tool_calls: [{
-							id: 'call_123',
-							type: 'function',
-							function: {
-								name: 'get_weather',
-								arguments: '{"location": "New York"}'
-							}
-						}]
-					},
-					finish_reason: 'tool_calls'
-				}]
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: 'assistant',
+							content: null,
+							tool_calls: [
+								{
+									id: 'call_123',
+									type: 'function',
+									function: {
+										name: 'get_weather',
+										arguments: '{"location": "New York"}'
+									}
+								}
+							]
+						},
+						finish_reason: 'tool_calls'
+					}
+				]
 			};
 
 			(fetch as any).mockResolvedValueOnce({
@@ -333,20 +343,22 @@ describe('LLMClient', () => {
 			const request: LLMRequest = {
 				model: 'gpt-4',
 				messages: [{ role: 'user', content: 'What is the weather in New York?' }],
-				tools: [{
-					type: 'function',
-					function: {
-						name: 'get_weather',
-						description: 'Get weather information',
-						parameters: {
-							type: 'object',
-							properties: {
-								location: { type: 'string' }
-							},
-							required: ['location']
+				tools: [
+					{
+						type: 'function',
+						function: {
+							name: 'get_weather',
+							description: 'Get weather information',
+							parameters: {
+								type: 'object',
+								properties: {
+									location: { type: 'string' }
+								},
+								required: ['location']
+							}
 						}
 					}
-				}],
+				],
 				tool_choice: 'auto'
 			};
 
