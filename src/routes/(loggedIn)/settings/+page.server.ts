@@ -53,7 +53,8 @@ export const load = async (data) => {
 			s3AccessKeyPresent: !!serverEnv.S3_ACCESS_KEY_ID,
 			s3SecretKeyPresent: !!serverEnv.S3_SECRET_ACCESS_KEY,
 			s3Region: serverEnv.S3_REGION,
-			s3AccessUrl: serverEnv.S3_ACCESS_URL
+			s3AccessUrl: serverEnv.S3_ACCESS_URL,
+			s3DisableChecksum: serverEnv.S3_DISABLE_CHECKSUM
 		},
 		backup: {
 			backupSchedule: serverEnv.BACKUP_SCHEDULE,
@@ -63,6 +64,14 @@ export const load = async (data) => {
 		import: {
 			importTimeoutMin: serverEnv.IMPORT_TIMEOUT_MIN,
 			retentionDays: serverEnv.IMPORT_RETENTION_DAYS
+		},
+		llm: {
+			llmReviewEnabled: serverEnv.LLM_REVIEW_ENABLED,
+			llmReviewAutoImport: serverEnv.LLM_REVIEW_AUTO_IMPORT,
+			llmReviewManualCreate: serverEnv.LLM_REVIEW_MANUAL_CREATE,
+			llmReviewSchedule: serverEnv.LLM_REVIEW_SCHEDULE,
+			llmReviewScheduleText: cronstrue.toString(serverEnv.LLM_REVIEW_SCHEDULE),
+			llmAutoCreateItems: serverEnv.LLM_AUTO_CREATE_ITEMS
 		}
 	};
 

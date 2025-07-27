@@ -14,6 +14,7 @@
 	let openDB = $state(true);
 	let openStorage = $state(true);
 	let openS3 = $state(true);
+	let openLLM = $state(true);
 
 	const trueFalseToButtons = (
 		value: boolean,
@@ -84,6 +85,10 @@
 							'Present',
 							'Not Present'
 						)
+					},
+					{
+						title: 'Disable Checksum',
+						options: trueFalseToButtons(data.settingsToSend.s3config.s3DisableChecksum)
 					}
 				]}
 			/>
@@ -252,6 +257,34 @@
 					{
 						title: 'View Refresh Timeout',
 						textValue: `${data.settingsToSend.database.viewRefreshTimeout / 1000} seconds`
+					}
+				]}
+			/>
+		</AccordionItem>
+		<AccordionItem bind:open={openLLM}>
+			<span slot="header">LLM Configuration</span>
+			<DisplaySettingGroup
+				rawData={data.settingsToSend.llm}
+				data={[
+					{
+						title: 'LLM Review Enabled',
+						options: trueFalseToButtons(data.settingsToSend.llm.llmReviewEnabled)
+					},
+					{
+						title: 'LLM Review Auto Import',
+						options: trueFalseToButtons(data.settingsToSend.llm.llmReviewAutoImport)
+					},
+					{
+						title: 'LLM Review Manual Create',
+						options: trueFalseToButtons(data.settingsToSend.llm.llmReviewManualCreate)
+					},
+					{
+						title: 'LLM Review Schedule',
+						textValue: `${data.settingsToSend.llm.llmReviewScheduleText}  (${data.settingsToSend.llm.llmReviewSchedule})`
+					},
+					{
+						title: 'LLM Auto Create Items',
+						options: trueFalseToButtons(data.settingsToSend.llm.llmAutoCreateItems)
 					}
 				]}
 			/>
