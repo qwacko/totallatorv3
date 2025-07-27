@@ -473,8 +473,9 @@ export class LLMBatchProcessingService {
 		const filter: JournalFilterSchemaInputType = {
 			account: {
 				idArray: [accountId],
-				type: ['asset', 'liability'] // Double-check account type
+				type: ['asset', 'liability'],
 			},
+			llmReviewStatus: ["required"],
 			page: 0,
 			pageSize: config.maxUncategorizedJournals,
 			orderBy: [

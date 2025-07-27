@@ -61,7 +61,7 @@
 
 <PageLayout title="LLM Providers" size="xl">
 	{#snippet slotRight()}
-		<ButtonGroup>
+		<div class="flex gap-2">
 			<form
 				method="POST"
 				action="?/processJournals"
@@ -89,7 +89,7 @@
 			>
 				Create
 			</Button>
-		</ButtonGroup>
+		</div>
 	{/snippet}
 
 	<CustomTable

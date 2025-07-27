@@ -42,7 +42,7 @@ export class FuzzyMatchContextBuilder extends BaseContextBuilder {
 							description: journal.description,
 							dataChecked: false, // We want recommendations for unchecked items
 							accountId: journal.accountId,
-							importDetail: journal.importDetail ? { dataToUse: journal.importDetail } : null
+							importDetail: journal.importDetail
 						}
 					],
 					similarityThreshold: config.similarityThreshold
