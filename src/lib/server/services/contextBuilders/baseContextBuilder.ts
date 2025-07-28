@@ -1,8 +1,5 @@
 import type { DBType } from '../../db/db';
-import type {
-	BatchJournalData,
-	LLMBatchProcessingConfig
-} from '../llmBatchProcessingService';
+import type { BatchJournalData, LLMBatchProcessingConfig } from '../llmBatchProcessingService';
 
 /**
  * Interface for context building functions

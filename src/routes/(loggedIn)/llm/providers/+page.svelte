@@ -16,6 +16,9 @@
 	import { llmProviderColumnsStore } from '$lib/stores/columnDisplayStores.js';
 	import { notificationStore } from '$lib/stores/notificationStore.js';
 
+	// Provider display utilities
+	import { getProviderDisplayName, resolveApiUrl } from '$lib/llm/providerConfig';
+
 	const { data } = $props();
 
 	let filterOpened = $state(false);
@@ -118,9 +121,9 @@
 				sortKey: 'title'
 			},
 			{
-				id: 'apiUrl',
-				title: 'API URL',
-				rowToDisplay: (row) => row.apiUrl
+				id: 'provider',
+				title: 'Provider',
+				rowToDisplay: (row) => getProviderDisplayName(row.apiUrl)
 			},
 			{
 				id: 'defaultModel',
@@ -189,6 +192,15 @@
 				<Badge color={getStatusColor(currentRow.enabled)}>
 					{getStatusText(currentRow.enabled)}
 				</Badge>
+			{:else if currentColumn.id === 'provider'}
+				<div class="space-y-1">
+					<div class="font-medium text-gray-900 dark:text-white">
+						{getProviderDisplayName(currentRow.apiUrl)}
+					</div>
+					<div class="font-mono text-sm text-gray-500">
+						{resolveApiUrl(currentRow.apiUrl)}
+					</div>
+				</div>
 			{/if}
 		{/snippet}
 

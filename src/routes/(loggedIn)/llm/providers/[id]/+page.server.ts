@@ -6,11 +6,18 @@ import { redirect } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
+import { getAllPredefinedProviders, isPredefinedProvider } from '$lib/llm/providerConfig';
 
 const updateLLMProviderSchema = z.object({
 	id: z.string(),
 	title: z.string().min(1, 'Title is required'),
-	apiUrl: z.string().url('Valid API URL is required'),
+	apiUrl: z
+		.string()
+		.min(1, 'Provider is required')
+		.refine((value) => {
+			// Must be a predefined provider ID
+			return isPredefinedProvider(value);
+		}, 'Must be a supported provider'),
 	apiKey: z.string().optional(), // Optional for updates - keep existing if not provided
 	defaultModel: z.string().min(1, 'Default model is required'),
 	enabled: z.boolean(),
@@ -43,7 +50,8 @@ export const load = async (data) => {
 
 	return {
 		provider,
-		form
+		form,
+		predefinedProviders: getAllPredefinedProviders()
 	};
 };
 

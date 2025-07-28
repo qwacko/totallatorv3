@@ -256,7 +256,12 @@
 							<IdeaIcon />Providers
 						</div>
 					</DropdownItem>
-					<DropdownItem href={urlGenerator({ address: '/(loggedIn)/llm/logs', searchParamsValue: { page: 0, pageSize: 20 } }).url}>
+					<DropdownItem
+						href={urlGenerator({
+							address: '/(loggedIn)/llm/logs',
+							searchParamsValue: { page: 0, pageSize: 20 }
+						}).url}
+					>
 						<div class="flex flex-row items-center gap-2">
 							<EyeIcon />Logs
 						</div>
@@ -313,7 +318,12 @@
 						<IdeaIcon />Providers
 					</div>
 				</DropdownItem>
-				<DropdownItem href={urlGenerator({ address: '/(loggedIn)/llm/logs', searchParamsValue: { page: 0, pageSize: 20 } }).url}>
+				<DropdownItem
+					href={urlGenerator({
+						address: '/(loggedIn)/llm/logs',
+						searchParamsValue: { page: 0, pageSize: 20 }
+					}).url}
+				>
 					<div class="flex flex-row items-center gap-2">
 						<EyeIcon />Logs
 					</div>

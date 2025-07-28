@@ -77,6 +77,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } = skRoute
 				.optional()
 				.catch({ page: 0, pageSize: 20 }).parse
 		},
+		'/(loggedIn)/llm/logs/[id]': {
+			paramsValidation: z.object({ id: z.string() }).parse
+		},
 
 		// Imports
 		// ----------------------------------------

@@ -709,107 +709,117 @@ function buildBatchPrompt(context: LLMBatchContext): string {
 		allOptions
 	} = context;
 
-	// Build structured data for LLM
-	const structuredData = {
-		instruction:
-			'You are a financial transaction categorization assistant. Your task is to analyze uncategorized journal entries and suggest appropriate categories, tags, bills, budgets, and labels based on historical patterns and context.',
-		account: {
-			id: account.id,
-			title: account.title,
-			type: account.type,
-			processingCount: uncategorizedJournals.length
-		},
-		availableOptions: {
-			categories: allOptions.categories
-				.filter((c) => c.active)
-				.map((c) => ({ id: c.id, title: c.title })),
-			tags: allOptions.tags.filter((t) => t.active).map((t) => ({ id: t.id, title: t.title })),
-			bills: allOptions.bills.filter((b) => b.active).map((b) => ({ id: b.id, title: b.title })),
-			budgets: allOptions.budgets
-				.filter((b) => b.active)
-				.map((b) => ({ id: b.id, title: b.title })),
-			labels: allOptions.labels.filter((l) => l.active).map((l) => ({ id: l.id, title: l.title }))
-		},
-		popularItems: {
-			categories: popularItems.categories
-				.slice(0, 5)
-				.map((c) => ({ id: c.id, title: c.title, usageCount: c.usageCount })),
-			tags: popularItems.tags
-				.slice(0, 5)
-				.map((t) => ({ id: t.id, title: t.title, usageCount: t.usageCount }))
-		},
-		historicalContext: {
-			transactions: historicalJournals.slice(0, 10).map((j) => ({
-				id: j.id,
-				date: j.date.toISOString().split('T')[0],
-				description: j.description,
-				amount: j.amount,
-				category: j.categoryTitle || null,
-				tag: j.tagTitle || null,
-				bill: j.billTitle || null,
-				budget: j.budgetTitle || null
-			})),
-			totalCount: historicalJournals.length
-		},
-		fuzzyMatches: {
-			transactions: fuzzyMatches.slice(0, 5).map((j) => ({
-				id: j.id,
-				description: j.description,
-				amount: j.amount,
-				category: j.categoryTitle || null,
-				tag: j.tagTitle || null
-			})),
-			totalCount: fuzzyMatches.length
-		},
-		uncategorizedTransactions: uncategorizedJournals.map((j) => ({
-			id: j.id,
-			date: j.date.toISOString().split('T')[0],
-			description: j.description,
-			amount: j.amount,
-			payee: j.payee || null,
-			importDetail: j.importDetail || null
-		})),
-		instructions: {
-			guidelines: [
-				'For each uncategorized transaction, provide suggestions with high confidence scores only when you have strong evidence from the context',
-				'Only suggest categories/tags/etc that exist in the available options',
-				"Omit any field where you don't have a confident suggestion"
-			],
-			responseFormat: {
-				batchInsights: {
-					patternsFound: 'Array of patterns discovered',
-					historicalMatches: 'Array of historical matches found',
-					suggestedWorkflows: 'Array of workflow suggestions'
-				},
-				journalSuggestions: [
-					{
-						journalId: 'Required: ID of the journal',
-						confidence: 'Required: 0.0-1.0 confidence score',
-						suggestedCategory: 'Optional: category ID or name',
-						suggestedTag: 'Optional: tag ID or name',
-						suggestedBill: 'Optional: bill ID or name',
-						suggestedBudget: 'Optional: budget ID or name',
-						suggestedLabels: 'Optional: array of label IDs or names',
-						suggestedPayee: 'Optional: suggested payee name',
-						reasoning: 'Required: explanation of suggestions',
-						matchType: 'Required: exact_historical|fuzzy_import|pattern_based|educated_guess',
-						confidenceFactors: 'Required: array of factors supporting confidence'
-					}
-				],
-				processingMetadata: {
-					totalJournalsProcessed: uncategorizedJournals.length,
-					highConfidenceSuggestions: 'Count of suggestions with confidence >= 0.8',
-					mediumConfidenceSuggestions: 'Count of suggestions with confidence 0.5-0.79',
-					lowConfidenceSuggestions: 'Count of suggestions with confidence < 0.5',
-					averageConfidence: 'Average confidence across all suggestions'
-				}
-			}
-		}
-	};
+	// Build the system prompt
+	const systemPrompt = `You are a financial transaction categorization assistant. Your task is to analyze uncategorized journal entries and suggest appropriate categories, tags, bills, budgets, and labels based on historical patterns and context.
 
-	return `Please analyze this structured transaction data and provide categorization suggestions in the specified JSON format:
+ACCOUNT CONTEXT:
+- Account: ${account.title} (${account.type})
+- Processing ${uncategorizedJournals.length} uncategorized transactions
 
-${JSON.stringify(structuredData, null, 2)}`;
+AVAILABLE CATEGORIZATION OPTIONS:
+Categories: ${allOptions.categories
+		.filter((c) => c.active)
+		.map((c) => `${c.title} (ID: ${c.id})`)
+		.join(', ')}
+Tags: ${allOptions.tags
+		.filter((t) => t.active)
+		.map((t) => `${t.title} (ID: ${t.id})`)
+		.join(', ')}
+Bills: ${allOptions.bills
+		.filter((b) => b.active)
+		.map((b) => `${b.title} (ID: ${b.id})`)
+		.join(', ')}
+Budgets: ${allOptions.budgets
+		.filter((b) => b.active)
+		.map((b) => `${b.title} (ID: ${b.id})`)
+		.join(', ')}
+Labels: ${allOptions.labels
+		.filter((l) => l.active)
+		.map((l) => `${l.title} (ID: ${l.id})`)
+		.join(', ')}
+
+POPULAR ITEMS (most frequently used):
+Top Categories: ${popularItems.categories
+		.slice(0, 5)
+		.map((c) => `${c.title} (${c.usageCount} uses)`)
+		.join(', ')}
+Top Tags: ${popularItems.tags
+		.slice(0, 5)
+		.map((t) => `${t.title} (${t.usageCount} uses)`)
+		.join(', ')}
+
+HISTORICAL CONTEXT (${historicalJournals.length} recent transactions):
+${historicalJournals
+	.slice(0, 10)
+	.map(
+		(j) =>
+			`- ${j.date.toISOString().split('T')[0]} | ${j.description} | $${j.amount} | Cat: ${j.categoryTitle || 'None'} | Tag: ${j.tagTitle || 'None'}`
+	)
+	.join('\n')}
+
+FUZZY MATCHES (${fuzzyMatches.length} similar transactions):
+${fuzzyMatches
+	.slice(0, 5)
+	.map(
+		(j) =>
+			`- ${j.description} | $${j.amount} | Cat: ${j.categoryTitle || 'None'} | Tag: ${j.tagTitle || 'None'}`
+	)
+	.join('\n')}
+
+INSTRUCTIONS:
+For each uncategorized transaction, provide suggestions with high confidence scores only when you have strong evidence from the context. 
+
+Respond with a JSON object in this exact format:
+{
+  "batchInsights": {
+    "patternsFound": ["pattern1", "pattern2"],
+    "historicalMatches": ["match1", "match2"],
+    "suggestedWorkflows": ["workflow1", "workflow2"]
+  },
+  "journalSuggestions": [
+    {
+      "journalId": "journal_id",
+      "confidence": 0.85,
+      "suggestedCategory": "category_id_or_category_name",
+      "suggestedTag": "tag_id_or_tag_name", 
+      "suggestedBill": "bill_id_or_bill_name",
+      "suggestedBudget": "budget_id_or_budget_name",
+      "suggestedLabels": ["label_id1", "label_id2"],
+      "suggestedPayee": "suggested_payee",
+      "reasoning": "explanation of why these suggestions were made",
+      "matchType": "exact_historical|fuzzy_import|pattern_based|educated_guess",
+      "confidenceFactors": ["factor1", "factor2"]
+    }
+  ],
+  "processingMetadata": {
+    "totalJournalsProcessed": ${uncategorizedJournals.length},
+    "highConfidenceSuggestions": 0,
+    "mediumConfidenceSuggestions": 0, 
+    "lowConfidenceSuggestions": 0,
+    "averageConfidence": 0.0
+  }
+}
+
+Only suggest categories/tags/etc that exist in the available options. Omit any field where you don't have a confident suggestion.`;
+
+	// Build the user prompt with uncategorized transactions
+	const userPrompt = `Please analyze and categorize these ${uncategorizedJournals.length} uncategorized transactions:
+
+${uncategorizedJournals
+	.map(
+		(j) =>
+			`ID: ${j.id}
+Date: ${j.date.toISOString().split('T')[0]}
+Description: ${j.description}
+Amount: $${j.amount}
+Payee: ${j.payee || 'Unknown'}
+Import Detail: ${j.importDetail ? JSON.stringify(j.importDetail).substring(0, 100) + '...' : 'None'}`
+	)
+	.join('\n\n')}
+
+Provide categorization suggestions following the JSON format specified above.`;
+
+	return `${systemPrompt}\n\nUSER REQUEST:\n${userPrompt}`;
 }
 
 /**

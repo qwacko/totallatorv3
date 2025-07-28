@@ -130,6 +130,9 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		'/(loggedIn)/llm/logs': {
 			...adminOnlyConfig
 		},
+		'/(loggedIn)/llm/logs/[id]': {
+			...adminOnlyConfig
+		},
 
 		// Dev Actions
 		// ----------------------------------------
