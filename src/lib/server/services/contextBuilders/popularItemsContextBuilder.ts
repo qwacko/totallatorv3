@@ -167,11 +167,11 @@ async function getPopularItems(
  */
 async function getAllCategorizationOptions(db: DBType): Promise<CategorizationOptions> {
 	const [categories, tags, bills, budgets, labels] = await Promise.all([
-		tActions.category.list({ db, filter: {} }),
-		tActions.tag.list({ db, filter: {} }),
-		tActions.bill.list({ db, filter: {} }),
-		tActions.budget.list({ db, filter: {} }),
-		tActions.label.list({ db, filter: {} })
+		tActions.category.list({ db, filter: { pageSize: 1000 } }),
+		tActions.tag.list({ db, filter: { pageSize: 1000 } }),
+		tActions.bill.list({ db, filter: { pageSize: 1000 } }),
+		tActions.budget.list({ db, filter: { pageSize: 1000 } }),
+		tActions.label.list({ db, filter: { pageSize: 1000 } })
 	]);
 
 	return {
