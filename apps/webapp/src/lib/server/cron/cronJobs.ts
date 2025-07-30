@@ -1,6 +1,5 @@
 import { actionHelpers, tActions } from "@totallator/business-logic";
 
-import { db } from "../db/db";
 import { logging } from "../logging";
 import { serverEnv } from "../serverEnv";
 import type { CronJob } from "./cron";
@@ -9,10 +8,10 @@ export const cronJobs: CronJob[] = [
   {
     name: "Backup SQLite Database",
     schedule: serverEnv.BACKUP_SCHEDULE,
-    job: async () => {
+    job: async (context) => {
       logging.debug("CRON: Backing Up Database");
       await tActions.backup.storeBackup({
-        db: db,
+        db: context.db,
         title: "Scheduled Backup",
         compress: true,
         createdBy: "System",
@@ -23,17 +22,17 @@ export const cronJobs: CronJob[] = [
   {
     name: "Regular Journal Cleanup / Fix",
     schedule: "0 * * * *",
-    job: async () => {
+    job: async (context) => {
       logging.debug("CRON: Updating Journal Transfer Settings");
-      actionHelpers.updateManyTransferInfo({ db: db });
+      actionHelpers.updateManyTransferInfo({ db: context.db });
     },
   },
   {
     name: "Recurring Running Of Automatic Filters",
     schedule: serverEnv.AUTOMATIC_FILTER_SCHEDULE,
-    job: async () => {
+    job: async (context) => {
       const startTime = new Date().getTime();
-      await tActions.reusableFitler.applyAllAutomatic({ db });
+      await tActions.reusableFitler.applyAllAutomatic({ db: context.db });
       logging.debug(
         "CRON: Running Automatic Filters - Took " +
           (new Date().getTime() - startTime) +
@@ -44,10 +43,10 @@ export const cronJobs: CronJob[] = [
   {
     name: "Update All Resuable Filters (Every Day)",
     schedule: "11 0 * * *",
-    job: async () => {
+    job: async (context) => {
       const startTime = new Date().getTime();
       const numberModified = await tActions.reusableFitler.refreshAll({
-        db,
+        db: context.db,
         maximumTime: 60000,
       });
 
@@ -65,10 +64,10 @@ export const cronJobs: CronJob[] = [
   {
     name: "Update Reusable Filters (Every hour)",
     schedule: "3 * * * *",
-    job: async () => {
+    job: async (context) => {
       const startTime = new Date().getTime();
       const numberModified = await tActions.reusableFitler.refresh({
-        db,
+        db: context.db,
         maximumTime: 60000,
       });
 
@@ -86,33 +85,33 @@ export const cronJobs: CronJob[] = [
   {
     name: "Cleanup Sessions",
     schedule: "0 0 * * *",
-    job: async () => {
-      await tActions.auth.deleteExpiredSessions(db);
+    job: async (context) => {
+      await tActions.auth.deleteExpiredSessions(context.db);
     },
   },
   {
     name: "Automatic Import Processing",
     schedule: "* * * * * ",
-    job: async () => {
+    job: async (context) => {
       //This Runs Every Mintue, but doesn't allow for multiple imports to
       //occur at the same time within the function which is called.
-      await tActions.import.doRequiredImports({ db });
+      await tActions.import.doRequiredImports({ db: context.db });
     },
   },
   {
     name: "Regular Update And Cleansing Of Backups",
     schedule: "0 0 * * *",
-    job: async () => {
-      await tActions.backup.refreshList({ db });
-      await tActions.backup.trimBackups({ db });
+    job: async (context) => {
+      await tActions.backup.refreshList({ db : context.db});
+      await tActions.backup.trimBackups({ db: context.db });
     },
   },
   {
     name: "Clean Old Imports",
     schedule: "0 1 * * *",
-    job: async () => {
+    job: async (context) => {
       await tActions.import.autoCleanAll({
-        db,
+        db: context.db,
         retainDays: serverEnv.IMPORT_RETENTION_DAYS,
       });
     },
@@ -120,41 +119,41 @@ export const cronJobs: CronJob[] = [
   {
     name: "Run Auto Imports - Daily",
     schedule: "0 2 * * *",
-    job: async () => {
-      await tActions.autoImport.triggerMany({ db, frequency: "daily" });
+    job: async (context) => {
+      await tActions.autoImport.triggerMany({ db: context.db, frequency: "daily" });
     },
   },
   {
     name: "Run Auto Imports - Weekly",
     schedule: "0 3 * * 0",
-    job: async () => {
-      await tActions.autoImport.triggerMany({ db, frequency: "weekly" });
+    job: async (context) => {
+      await tActions.autoImport.triggerMany({ db: context.db, frequency: "weekly" });
     },
   },
   {
     name: "Run Auto Imports - Monthly",
     schedule: "0 4 1 * *",
-    job: async () => {
-      await tActions.autoImport.triggerMany({ db, frequency: "monthly" });
+    job: async (context) => {
+      await tActions.autoImport.triggerMany({ db: context.db, frequency: "monthly" });
     },
   },
   {
     name: "Check Stored Files - Daily",
     schedule: "0 5 * * *",
-    job: async () => {
-      await tActions.file.checkFilesExist({ db });
-      await tActions.file.updateLinked({ db });
+    job: async (context) => {
+      await tActions.file.checkFilesExist({ db: context.db });
+      await tActions.file.updateLinked({ db: context.db });
     },
   },
   {
     name: "Process LLM Journal Reviews",
     schedule: serverEnv.LLM_REVIEW_SCHEDULE,
-    job: async () => {
+    job: async (context) => {
       if (!serverEnv.LLM_REVIEW_ENABLED) {
         return;
       }
 
-      const llmProcessor = new actionHelpers.LLMJournalProcessingService(db);
+      const llmProcessor = new actionHelpers.LLMJournalProcessingService(context.db);
 
       try {
         const result = await llmProcessor.processRequiredJournals({
