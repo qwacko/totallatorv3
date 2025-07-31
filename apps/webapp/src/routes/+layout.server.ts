@@ -5,6 +5,9 @@ import { dev } from "$app/environment";
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ locals }) => {
+
+  console.log("Loading layout server data");
+
   const userCountValue = await dbUserCount(locals.db);
   const adminCountValue = await dbAdminCount(locals.db);
   return {

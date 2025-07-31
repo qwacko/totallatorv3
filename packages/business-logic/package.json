@@ -11,8 +11,8 @@
 		}
 	},
 	"scripts": {
-		"build": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project tsconfig.build.json",
-		"dev": "tsc --watch",
+		"build": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+		"dev": "tsc --watch --project tsconfig.build.json & tsc-alias --watch -p tsconfig.build.json",
 		"clean": "rm -rf dist",
 		"test": "vitest",
 		"check": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project tsconfig.check.json",
@@ -65,6 +65,7 @@
 		"@types/node": "^22.13.14",
 		"@types/node-schedule": "^2.1.7",
 		"knip": "^5.62.0",
+		"tsc-alias": "^1.8.16",
 		"typescript": "^5.8.2",
 		"vitest": "^3.1.1"
 	}

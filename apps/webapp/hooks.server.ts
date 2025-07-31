@@ -15,12 +15,23 @@ import { building } from "$app/environment";
 import { authGuard } from "./src/lib/authGuard/authGuardConfig";
 import { initateCronJobs } from "./src/lib/server/cron/cron";
 import { serverEnv } from "./src/lib/server/serverEnv";
-import { materializedViewActions, tActions } from "@totallator/business-logic";
+import { actionHelpers, materializedViewActions, tActions } from "@totallator/business-logic";
 
 // Global context will be initialized in the init function
 let globalContext: GlobalContext;
 
 const handleAuth: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => {
+
+  if (!globalContext) {
+    throw new Error("Global context is not initialized. Please call init() before handling requests.");
+  } else {
+    console.log("Global context is initialized", globalContext);
+  }
+
+  if (!globalContext.db) {
+    throw new Error("Database is not initialized in the global context.");
+  }
+
   const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
   if (!sessionToken) {
     event.locals.user = undefined;
@@ -61,11 +72,21 @@ export const init: ServerInit = async () => {
   // Initialize cron jobs
   initateCronJobs(() => ({db: globalContext.db}));
 
+  //Setup DB Logger
+  actionHelpers.initDBLogger(globalContext.db);
 
-  globalContext.logger.info("Server initialization complete");
+
+  globalContext.logger.info("Server initialization complete", global.db);
 };
 
 const handleRoute: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => {
+  if(!globalContext) {
+    throw new Error("Global context is not initialized. Please call init() before handling requests.");
+  }
+
+  if(!globalContext.db) {
+    throw new Error("Database is not initialized in the global context.");
+  }
   // Set up contexts in locals
   event.locals.global = globalContext;
   event.locals.request = createRequestContext(event);

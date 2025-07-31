@@ -1,6 +1,7 @@
 import { expandDate } from './actions/helpers/journal/expandDate.js';
 import { journalMaterialisedList } from './actions/helpers/journal/journalList.js';
 import { updateManyTransferInfo } from './actions/helpers/journal/updateTransactionTransfer.js';
+import { initDBLogger } from './server/db/dbLogger.js';
 import {
 	getAllPredefinedProviders,
 	getProviderDisplayName,
@@ -86,5 +87,6 @@ export const actionHelpers = {
 	getProviderDisplayName,
 	resolveApiUrl,
 	LLMJournalProcessingService,
-	processAllAccounts
+	processAllAccounts,
+	initDBLogger: initDBLogger
 };

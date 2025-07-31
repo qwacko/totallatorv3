@@ -11,8 +11,8 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc",
-		"dev": "tsc --watch",
+		"build": "tsc && tsc-alias",
+		"dev": "tsc --watch & tsc-alias --watch",
 		"clean": "rm -rf dist",
 		"check": "tsc --noEmit",
 		"format": "prettier --write .",
@@ -34,6 +34,7 @@
 		"@types/node": "^24.1.0",
 		"drizzle-kit": "^0.31.4",
 		"knip": "^5.62.0",
+		"tsc-alias": "^1.8.16",
 		"typescript": "^5.8.3"
 	}
 }
