@@ -2,7 +2,7 @@
   import { Badge, Button, ButtonGroup } from "flowbite-svelte";
 
   // Provider display utilities
-  import { actionHelpers } from "@totallator/business-logic";
+  import { clientHelpers } from "@totallator/business-logic";
 
   import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
@@ -126,7 +126,7 @@
       {
         id: "provider",
         title: "Provider",
-        rowToDisplay: (row) => actionHelpers.getProviderDisplayName(row.apiUrl),
+        rowToDisplay: (row) => clientHelpers.getProviderDisplayName(row.apiUrl),
       },
       {
         id: "defaultModel",
@@ -218,10 +218,10 @@
       {:else if currentColumn.id === "provider"}
         <div class="space-y-1">
           <div class="font-medium text-gray-900 dark:text-white">
-            {actionHelpers.getProviderDisplayName(currentRow.apiUrl)}
+            {clientHelpers.getProviderDisplayName(currentRow.apiUrl)}
           </div>
           <div class="font-mono text-sm text-gray-500">
-            {actionHelpers.resolveApiUrl(currentRow.apiUrl)}
+            {clientHelpers.resolveApiUrl(currentRow.apiUrl)}
           </div>
         </div>
       {/if}

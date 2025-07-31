@@ -102,3 +102,8 @@ export const actionHelpers = {
 	processAllAccounts,
 	initDBLogger: initDBLogger
 };
+
+export const clientHelpers  = {
+	resolveApiUrl, 
+	getProviderDisplayName
+}
