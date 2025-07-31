@@ -9,15 +9,22 @@ export const actions = {
     try {
       await tActions.import.reprocess({ db: locals.db, id: params.id });
     } catch (e) {
-      locals.global.logger.error("Reprocess Import Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error(
+        "Reprocess Import Error",
+        JSON.stringify(e, null, 2),
+      );
     }
   },
-  triggerImport: async ({ params, locals }) => tActions.import.triggerImport({ db: locals.db, id: params.id }),
+  triggerImport: async ({ params, locals }) =>
+    tActions.import.triggerImport({ db: locals.db, id: params.id }),
   clean: async ({ params, locals }) => {
     try {
       await tActions.import.clean({ db: locals.db, id: params.id });
     } catch (e) {
-      locals.global.logger.error("Clean Import Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error(
+        "Clean Import Error",
+        JSON.stringify(e, null, 2),
+      );
     }
 
     const importData = await tActions.import.get({

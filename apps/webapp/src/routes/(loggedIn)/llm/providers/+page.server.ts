@@ -67,7 +67,10 @@ export const actions = {
 
       const stats = await actionHelpers.processAllAccounts(db);
 
-      locals.global.logger.info("Manual LLM batch processing completed:", stats);
+      locals.global.logger.info(
+        "Manual LLM batch processing completed:",
+        stats,
+      );
     } catch (e) {
       locals.global.logger.error("LLM Batch Processing Error:", e);
       return error(500, "Error processing journals with LLM");

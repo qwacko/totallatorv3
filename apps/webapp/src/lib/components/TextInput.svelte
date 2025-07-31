@@ -24,10 +24,11 @@
     tainted?: boolean;
     highlightTainted?: boolean;
     class?: string;
-  } & Omit<InputProps<string>, "value" | "name" | "required" |"children"> = $props();
-
+  } & Omit<
+    InputProps<string>,
+    "value" | "name" | "required" | "children"
+  > = $props();
 </script>
-
 
 <div class="flex flex-col gap-2 {wrapperClass}">
   {#if title}

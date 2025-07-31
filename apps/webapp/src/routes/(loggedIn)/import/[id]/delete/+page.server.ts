@@ -28,7 +28,10 @@ export const actions = {
       await tActions.import.delete({ db, id: params.id });
       deleted = true;
     } catch (e) {
-      locals.global.logger.error("Import Delete Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error(
+        "Import Delete Error",
+        JSON.stringify(e, null, 2),
+      );
     }
 
     if (deleted) {

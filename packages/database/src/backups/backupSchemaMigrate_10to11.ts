@@ -20,7 +20,7 @@ export const backupSchemaMigrate_10to11Information = (
 };
 
 export const backupSchemaMigrate_10to11 = (
-	backup10: BackupSchemaRev10Type,
+	backup10: BackupSchemaRev10Type
 ): BackupSchemaRev11Type => {
 	getLogger().info('Transforming Backup From Rev 10 to Rev 11');
 	return {

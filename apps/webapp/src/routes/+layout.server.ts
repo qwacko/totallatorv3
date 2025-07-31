@@ -2,8 +2,9 @@ import { getAdminCount, getUserCount } from "@totallator/business-logic";
 
 import { dev } from "$app/environment";
 
-import type { LayoutServerLoad } from "./$types";
 import { ensureInitialized } from "$lib/server/context";
+
+import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ locals }) => {
   const globalContext = await ensureInitialized();

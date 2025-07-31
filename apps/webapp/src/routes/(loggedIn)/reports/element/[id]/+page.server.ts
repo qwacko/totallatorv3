@@ -44,7 +44,10 @@ export const actions = {
     try {
       await tActions.report.reportElement.addFilter({ db, id });
     } catch (e) {
-      data.locals.global.logger.error("Error Adding Filter to Report Element", e);
+      data.locals.global.logger.error(
+        "Error Adding Filter to Report Element",
+        e,
+      );
     }
 
     return;
@@ -78,7 +81,10 @@ export const actions = {
         filter: transformedFilterText.data,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Updating Filter to Report Element", e);
+      data.locals.global.logger.error(
+        "Error Updating Filter to Report Element",
+        e,
+      );
     }
 
     return;
@@ -90,7 +96,10 @@ export const actions = {
     try {
       await tActions.report.reportElement.removeFilter({ db, id });
     } catch (e) {
-      data.locals.global.logger.error("Error Removing Filter to Report Element", e);
+      data.locals.global.logger.error(
+        "Error Removing Filter to Report Element",
+        e,
+      );
     }
 
     return;
@@ -115,7 +124,10 @@ export const actions = {
         data: formData.data,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Updating Report Element Config : ", e);
+      data.locals.global.logger.error(
+        "Error Updating Report Element Config : ",
+        e,
+      );
       return message(formData, "Error Updating Report Element Config", {
         status: 400,
       });
@@ -138,7 +150,10 @@ export const actions = {
         configId: reportElement.reportElementConfigId,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Adding Filter to Report Element", e);
+      data.locals.global.logger.error(
+        "Error Adding Filter to Report Element",
+        e,
+      );
       return fail(400, { message: "Error Adding Filter to Report Element" });
     }
 
@@ -184,7 +199,10 @@ export const actions = {
         filter: transformedFilterText.data,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Updating Filter on Report Configuration", e);
+      data.locals.global.logger.error(
+        "Error Updating Filter on Report Configuration",
+        e,
+      );
       return fail(400, { message: "Error Updating Filter to Report Element" });
     }
 
@@ -214,7 +232,10 @@ export const actions = {
         filterId: filterId.toString(),
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Removing Filter to Report Element", e);
+      data.locals.global.logger.error(
+        "Error Removing Filter to Report Element",
+        e,
+      );
       return fail(400, { message: "Error Removing Filter to Report Element" });
     }
 

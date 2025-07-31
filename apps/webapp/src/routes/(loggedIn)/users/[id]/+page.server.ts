@@ -73,7 +73,7 @@ export const actions = {
   setAdmin: async (data) => {
     const authUser = data.locals.user;
     if (!authUser) return;
-     const targetUser = await tActions.user.get({
+    const targetUser = await tActions.user.get({
       db: data.locals.db,
       userId: data.params.id,
     });
@@ -91,7 +91,6 @@ export const actions = {
       initiatingUser: authUser,
     });
 
-
     return;
   },
   removeAdmin: async (data) => {
@@ -101,7 +100,7 @@ export const actions = {
       db: data.locals.db,
       userId: data.params.id,
     });
-   
+
     if (!targetUser) return;
     const canRemoveAdmin =
       authUser.admin && authUser.id !== targetUser.id && targetUser.admin;
@@ -113,8 +112,7 @@ export const actions = {
       db: data.locals.db,
       userId: data.params.id,
       initiatingUser: authUser,
-    })
-
+    });
 
     return;
   },

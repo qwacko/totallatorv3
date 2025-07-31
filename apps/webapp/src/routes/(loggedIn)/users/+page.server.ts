@@ -1,15 +1,15 @@
 import { redirect } from "@sveltejs/kit";
 
+import { tActions } from "@totallator/business-logic";
+
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo, urlGenerator } from "$lib/routes";
-import { tActions } from "@totallator/business-logic";
 
 export const load = async (data) => {
   authGuard(data);
   const db = data.locals.db;
   const { current } = serverPageInfo(data.route.id, data);
-  const allUsers = await tActions.user.listAll({db})
-
+  const allUsers = await tActions.user.listAll({ db });
 
   const perPage = 5;
   const page = current.searchParams ? current.searchParams.page : 0;

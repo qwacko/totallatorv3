@@ -1,8 +1,9 @@
 import { redirect } from "@sveltejs/kit";
 
+import { tActions } from "@totallator/business-logic";
+
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { urlGenerator } from "$lib/routes";
-import { tActions } from "@totallator/business-logic";
 
 export const load = (data) => {
   authGuard(data);

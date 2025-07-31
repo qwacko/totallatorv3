@@ -17,7 +17,7 @@
     flexGrow = false,
     class: className = "",
     ...restProps
-  }: Omit<InputProps<string>, "name" | "required" | "value"|"children"> & {
+  }: Omit<InputProps<string>, "name" | "required" | "value" | "children"> & {
     errorMessage: string | string[] | null | undefined;
     title: string | null;
     name: string;
@@ -70,11 +70,7 @@
         <CancelIcon />
       </Button>
     {/snippet}
-    <input
-      type="date"
-      value={usedValue}
-      onchange={handleUpdate}
-    />
+    <input type="date" value={usedValue} onchange={handleUpdate} />
   </Input>
   <ErrorText message={errorMessage} />
 </Label>

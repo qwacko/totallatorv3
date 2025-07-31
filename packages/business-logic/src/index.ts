@@ -46,12 +46,24 @@ export type { AssociatedInfoLinkType } from './actions/associatedInfoActions.js'
 export type { EnhancedRecommendationType } from './server/services/journalRecommendationService.js';
 
 // Export functions and actions that are imported by the webapp
-export { dbAdminCount, dbUserCount, dbNoAdmins, noAdmins, isFirstUser, getAdminCount, getUserCount } from './actions/firstUser.js';
+export {
+	dbAdminCount,
+	dbUserCount,
+	dbNoAdmins,
+	noAdmins,
+	isFirstUser,
+	getAdminCount,
+	getUserCount
+} from './actions/firstUser.js';
 export { userActions } from './actions/userActions.js';
 export { reusableFilterActions } from './actions/reusableFilterActions.js';
 
 // Export key-value store utilities
-export { keyValueStore, booleanKeyValueStore, enumKeyValueStore } from './actions/helpers/keyValueStore.js';
+export {
+	keyValueStore,
+	booleanKeyValueStore,
+	enumKeyValueStore
+} from './actions/helpers/keyValueStore.js';
 
 // Export materialized view actions
 export { materializedViewActions } from './actions/materializedViewActions.js';

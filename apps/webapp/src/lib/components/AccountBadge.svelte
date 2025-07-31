@@ -84,7 +84,7 @@
     {/if}
     {accountInfo.title}
   </Badge>
-  <Dropdown bind:isOpen={opened} class="w-52 p-2 border" >
+  <Dropdown bind:isOpen={opened} class="w-52 p-2 border">
     <div class="flex flex-col gap-1">
       <div class="flex flex-row items-center gap-2 font-normal italic">
         {#if accountInfo.type === "asset"}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button ,type AnchorProps} from "flowbite-svelte";
+  import { type AnchorProps, Button } from "flowbite-svelte";
   import type { Snippet } from "svelte";
 
   import { routeStore } from "$lib/prevPageStore";

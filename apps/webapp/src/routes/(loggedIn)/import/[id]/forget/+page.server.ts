@@ -12,7 +12,10 @@ export const actions = {
       await tActions.import.forgetImport({ db, id: params.id });
       deleted = true;
     } catch (e) {
-      locals.global.logger.error("Import Forget Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error(
+        "Import Forget Error",
+        JSON.stringify(e, null, 2),
+      );
     }
 
     if (deleted) {

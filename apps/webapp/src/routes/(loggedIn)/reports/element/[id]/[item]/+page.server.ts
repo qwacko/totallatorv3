@@ -73,7 +73,10 @@ export const actions = {
         data: form.data,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Updating Report Element Item : ", e);
+      data.locals.global.logger.error(
+        "Error Updating Report Element Item : ",
+        e,
+      );
       return message(form, "Error Updating Report Element Item", {
         status: 400,
       });

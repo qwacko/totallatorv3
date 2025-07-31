@@ -4,7 +4,8 @@ import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import Icons from "unplugin-icons/vite";
 import { defineConfig, type ViteUserConfig } from "vitest/config";
 
-export default defineConfig(({mode}): ViteUserConfig => {return {  
+export default defineConfig(({ mode }): ViteUserConfig => {
+  return {
     server: {
       allowedHosts: true as const,
     },
@@ -68,4 +69,5 @@ export default defineConfig(({mode}): ViteUserConfig => {return {
       pool: "forks",
       poolOptions: { forks: { singleFork: true } },
     },
-  }});
+  };
+});

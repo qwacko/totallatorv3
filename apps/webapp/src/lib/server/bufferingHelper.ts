@@ -1,7 +1,8 @@
 import type { ServerLoadEvent } from "@sveltejs/kit";
 
-import { serverEnv } from "./serverEnv";
 import type { RouteId } from "$app/types";
+
+import { serverEnv } from "./serverEnv";
 
 export const bufferingHelper = <
   ServerData extends ServerLoadEvent<

@@ -48,7 +48,10 @@ export const actions = {
         data: form.data,
       });
     } catch (e) {
-      locals.global.logger.error("Import Create Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error(
+        "Import Create Error",
+        JSON.stringify(e, null, 2),
+      );
       const parsedError = z.object({ message: z.string() }).safeParse(e);
       if (parsedError.success) {
         return message(form, parsedError.data.message, { status: 400 });

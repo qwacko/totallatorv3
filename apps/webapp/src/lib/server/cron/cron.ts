@@ -1,7 +1,8 @@
 import schedule from "node-schedule";
 
-import { cronJobs } from "./cronJobs";
 import type { GlobalContext } from "@totallator/context";
+
+import { cronJobs } from "./cronJobs";
 
 export type CronJob = {
   name: string;
@@ -9,14 +10,21 @@ export type CronJob = {
   job: (context: GlobalContext) => void;
 };
 
-
-export const processCronJobs = (getContext: () => GlobalContext, cronJobs: CronJob[]) => {
+export const processCronJobs = (
+  getContext: () => GlobalContext,
+  cronJobs: CronJob[],
+) => {
   return cronJobs.map((cronJob) => {
     return schedule.scheduleJob(cronJob.name, cronJob.schedule, () => {
       try {
         cronJob.job(getContext());
       } catch (e) {
-        getContext().logger.error("Error in cron job", cronJob.name, cronJob.schedule, e);
+        getContext().logger.error(
+          "Error in cron job",
+          cronJob.name,
+          cronJob.schedule,
+          e,
+        );
       }
     });
   });

@@ -65,7 +65,10 @@ export const actions = {
     );
 
     if (!parsedFilter.success) {
-      locals.global.logger.error("Update Filter Is Not Valid", parsedFilter.error);
+      locals.global.logger.error(
+        "Update Filter Is Not Valid",
+        parsedFilter.error,
+      );
       redirect(302, form.data.currentPage);
     }
 

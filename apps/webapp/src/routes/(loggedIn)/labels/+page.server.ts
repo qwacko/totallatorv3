@@ -98,7 +98,10 @@ export const actions = {
         },
       };
     } catch (e) {
-      locals.global.logger.error("Label Update Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error(
+        "Label Update Error",
+        JSON.stringify(e, null, 2),
+      );
       return error(500, "Error updating label");
     }
   },

@@ -181,7 +181,10 @@ export const actions = {
 
       await tActions.reusableFitler.seed({ db: data.locals.db, count });
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Bulk Reusable Filters : ", e);
+      data.locals.global.logger.error(
+        "Error Creating Bulk Reusable Filters : ",
+        e,
+      );
     }
   },
   deleteUnusedJournals: async (data) => {
@@ -276,10 +279,10 @@ export const actions = {
   },
   deleteReusableFilters: async ({ locals }) => {
     try {
-      const items= await tActions.reusableFitler.list({
+      const items = await tActions.reusableFitler.list({
         db: locals.db,
         filter: { pageSize: 10000 },
-      })      
+      });
       await tActions.reusableFitler.deleteMany({
         db: locals.db,
         ids: items.data.map((item) => item.id),

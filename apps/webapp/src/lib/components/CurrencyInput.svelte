@@ -24,7 +24,10 @@
     tainted?: boolean;
     highlightTainted?: boolean;
     class?: string;
-  } & Omit<InputProps<number>, "type" | "value" | "step" | "required"|"children"> = $props();
+  } & Omit<
+    InputProps<number>,
+    "type" | "value" | "step" | "required" | "children"
+  > = $props();
 </script>
 
 <div class="flex flex-col gap-2 {wrapperClass}">

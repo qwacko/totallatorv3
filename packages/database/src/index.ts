@@ -5,4 +5,4 @@ export type { DatabaseConfig, CoreDBType, TransactionType, DBType } from './conn
 // Export all schema definitions
 export * from './schema';
 
-export * from './backups/backupSchema'
+export * from './backups/backupSchema';

@@ -70,7 +70,10 @@ export const actions = {
     );
 
     if (!data.success) {
-      locals.global.logger.error("Update Filter Parsing Error : ", data.error.message);
+      locals.global.logger.error(
+        "Update Filter Parsing Error : ",
+        data.error.message,
+      );
       return failWrapper("Invalid Filter");
     }
 

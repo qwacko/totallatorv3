@@ -133,7 +133,11 @@ export const noteFormActions = {
         filter: { idArray: [noteIdString] },
       });
     } catch (error) {
-      data.locals.global.logger.error("Error Deleting Note ", noteIdString, error);
+      data.locals.global.logger.error(
+        "Error Deleting Note ",
+        noteIdString,
+        error,
+      );
     }
   },
 };

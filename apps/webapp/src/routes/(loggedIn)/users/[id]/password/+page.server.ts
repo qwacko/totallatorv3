@@ -46,8 +46,10 @@ export const actions = {
       return message(form, "You're not allowed to do this");
     }
 
-    const targetUser = await tActions.user.get({ db: locals.db, userId: targetUserId });
-    
+    const targetUser = await tActions.user.get({
+      db: locals.db,
+      userId: targetUserId,
+    });
 
     if (!targetUser) {
       return message(form, "User Not Found");

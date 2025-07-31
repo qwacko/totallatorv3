@@ -146,7 +146,7 @@ export const backupSchemaInfoToLatest = (
 };
 
 export const backupSchemaToLatest = (
-	backupDataParsed: CombinedBackupSchemaType,
+	backupDataParsed: CombinedBackupSchemaType
 ): CurrentBackupSchemaType => {
 	const backupDataParsed02 =
 		backupDataParsed.version !== 1

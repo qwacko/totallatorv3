@@ -8,10 +8,12 @@ export type { GlobalContext, RequestContext } from '@totallator/context';
 
 // Legacy function - use getGlobalContext from @totallator/context instead
 export const getContext = (): GlobalContext => {
-  throw new Error('getContext is deprecated. Use getGlobalContext from @totallator/context instead.');
+	throw new Error(
+		'getContext is deprecated. Use getGlobalContext from @totallator/context instead.'
+	);
 };
 
 // Legacy function - context is now initialized in the webapp hooks
 export const initContext = (): void => {
-  throw new Error('initContext is deprecated. Context is now initialized in the webapp hooks.');
+	throw new Error('initContext is deprecated. Context is now initialized in the webapp hooks.');
 };

@@ -12,7 +12,7 @@ export const backupSchemaMigrate_01to02Information = (
 };
 
 export const backupSchemaMigrate_01to02 = (
-	backup01: BackupSchemaRev01Type,
+	backup01: BackupSchemaRev01Type
 ): BackupSchemaRev02Type => {
 	getLogger().info('Transforming Backup From Rev 01 to Rev 02');
 	return {

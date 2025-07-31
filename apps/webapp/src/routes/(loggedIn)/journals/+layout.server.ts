@@ -2,12 +2,12 @@ import { redirect } from "@sveltejs/kit";
 
 import { journalFilterToText } from "@totallator/business-logic";
 import { tActions } from "@totallator/business-logic";
+import type { EnhancedRecommendationType } from "@totallator/business-logic";
 import type { JournalFilterSchemaType } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes";
 import { bufferingHelper } from "$lib/server/bufferingHelper.js";
-import type { EnhancedRecommendationType } from "@totallator/business-logic";
 
 export const load = async (data) => {
   authGuard(data);

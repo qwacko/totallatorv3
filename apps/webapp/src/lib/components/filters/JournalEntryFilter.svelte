@@ -118,12 +118,12 @@
     {/if}
   {/if}
   {#if activeFilter.description !== null}
-  <TextInput
-    bind:value={activeFilter.description}
-    name="description"
-    title="Description"
-    errorMessage=""
-  />
+    <TextInput
+      bind:value={activeFilter.description}
+      name="description"
+      title="Description"
+      errorMessage=""
+    />
   {/if}
   <TextInput
     bind:value={activeFilter.excludeDescription}

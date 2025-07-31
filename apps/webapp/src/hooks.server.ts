@@ -1,18 +1,17 @@
 import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
-import { 
-  createRequestContext,
-} from "@totallator/context";
-
+import { actionHelpers, tActions } from "@totallator/business-logic";
+import { createRequestContext } from "@totallator/context";
 
 import { authGuard } from "./lib/authGuard/authGuardConfig.js";
-import { initateCronJobs } from "./lib/server/cron/cron.js";
-import { actionHelpers, tActions } from "@totallator/business-logic";
 import { ensureInitialized } from "./lib/server/context.js";
+import { initateCronJobs } from "./lib/server/cron/cron.js";
 
-
-const handleAuth: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => {
+const handleAuth: Handle = async ({
+  event,
+  resolve,
+}: Parameters<Handle>[0]) => {
   const context = await ensureInitialized();
   console.log("Auth hook - Global context is initialized");
 
@@ -27,8 +26,10 @@ const handleAuth: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => 
     return resolve(event);
   }
 
-
-  const { session, user } = await tActions.auth.validateSessionToken(context.db, sessionToken);
+  const { session, user } = await tActions.auth.validateSessionToken(
+    context.db,
+    sessionToken,
+  );
   if (session !== null) {
     tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
   } else {
@@ -43,17 +44,20 @@ const handleAuth: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => 
 export const init: ServerInit = async () => {
   const context = await ensureInitialized();
   // Initialize cron jobs
-  initateCronJobs(() => (context));
+  initateCronJobs(() => context);
 
   //Setup DB Logger
   actionHelpers.initDBLogger(context.db);
 };
 
-const handleRoute: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => {
+const handleRoute: Handle = async ({
+  event,
+  resolve,
+}: Parameters<Handle>[0]) => {
   const context = await ensureInitialized();
   console.log("Route hook - Global context is initialized");
 
-  if(!context.db) {
+  if (!context.db) {
     throw new Error("Database is not initialized in the global context.");
   }
   // Set up contexts in locals
@@ -65,7 +69,7 @@ const handleRoute: Handle = async ({ event, resolve }: Parameters<Handle>[0]) =>
   const timeout = setTimeout(() => {
     context.logger.warn(`Request took longer than ${timeLimit}ms to resolve`, {
       requestId: event.locals.request.requestId,
-      requestURL: event.request.url
+      requestURL: event.request.url,
     });
   }, timeLimit);
 

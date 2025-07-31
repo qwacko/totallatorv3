@@ -17,7 +17,7 @@ export const backupSchemaMigrate_08to09Information = (
 };
 
 export const backupSchemaMigrate_08to09 = (
-	backup08: BackupSchemaRev08Type,
+	backup08: BackupSchemaRev08Type
 ): BackupSchemaRev09Type => {
 	getLogger().info('Transforming Backup From Rev 08 to Rev 09');
 	return {

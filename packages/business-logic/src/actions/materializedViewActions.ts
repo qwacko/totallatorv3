@@ -243,10 +243,10 @@ export const materializedViewActions = {
 		logStats?: boolean;
 		items?: itemsType;
 	}): Promise<boolean> => {
-		return materializedViewActions.conditionalRefresh({ 
-			db: global.db, 
-			logStats, 
-			items 
+		return materializedViewActions.conditionalRefresh({
+			db: global.db,
+			logStats,
+			items
 		});
 	},
 	setRefreshRequired: async (db: DBType): Promise<void> => {
@@ -270,15 +270,15 @@ export const materializedViewActions = {
 		]);
 
 		// Update the materialized view refresh rate limiter
-	// This will reset the timeout - if no more setRefreshRequired calls come in within
-	// the timeout period, the refresh will be triggered automatically
-	try {
-		const { getGlobalContext } = await import('@totallator/context');
-		const globalContext = getGlobalContext();
-		globalContext.viewRefreshLimiter.updateLastRequest();
-	} catch (error) {
-		// If context is not available (e.g., during tests), just skip the rate limiting
-		console.warn('Could not access global context for view refresh rate limiting:', error);
-	}
+		// This will reset the timeout - if no more setRefreshRequired calls come in within
+		// the timeout period, the refresh will be triggered automatically
+		try {
+			const { getGlobalContext } = await import('@totallator/context');
+			const globalContext = getGlobalContext();
+			globalContext.viewRefreshLimiter.updateLastRequest();
+		} catch (error) {
+			// If context is not available (e.g., during tests), just skip the rate limiting
+			console.warn('Could not access global context for view refresh rate limiting:', error);
+		}
 	}
 };

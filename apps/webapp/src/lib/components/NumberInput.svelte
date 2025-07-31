@@ -3,10 +3,10 @@
 
   import ErrorText from "./ErrorText.svelte";
 
-  type Props =  Omit<
+  type Props = Omit<
     InputProps<number>,
-    "type" | "value" | "name" | "required" | "step" |"children"
-  >
+    "type" | "value" | "name" | "required" | "step" | "children"
+  >;
 
   let {
     errorMessage,
@@ -18,7 +18,7 @@
     tainted,
     highlightTainted,
     numberDecimals = 0,
-    class: className = "",  
+    class: className = "",
     ...restProps
   }: {
     errorMessage?: string | string[] | null | undefined;
@@ -32,10 +32,7 @@
     numberDecimals?: 0 | 1 | 2;
     class?: string;
   } & Props = $props();
-  
-
 </script>
-
 
 <div class="flex flex-col gap-2 {wrapperClass}">
   {#if title}
@@ -50,11 +47,11 @@
         </div>
       </span>
     </Label>
-  {/if}  
-  
+  {/if}
+
   <Input
     type="number"
-    bind:value={value}
+    bind:value
     step={numberDecimals === 0
       ? 1
       : numberDecimals === 1
@@ -62,7 +59,7 @@
         : numberDecimals === 2
           ? 0.01
           : 1}
-{...restProps}
+    {...restProps}
     {name}
     {required}
     class="{className} {highlightTainted && tainted ? 'ring-2' : ''} "

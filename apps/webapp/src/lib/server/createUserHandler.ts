@@ -6,7 +6,6 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import { tActions } from "@totallator/business-logic";
 import { signupSchema } from "@totallator/shared";
 
-
 export const createUserHandler = async ({
   request,
   locals,
@@ -40,7 +39,11 @@ export const createUserHandler = async ({
 
     if (setSession) {
       const token = tActions.auth.generateSessionToken();
-      const session = await tActions.auth.createSession(locals.db, token, user.id);
+      const session = await tActions.auth.createSession(
+        locals.db,
+        token,
+        user.id,
+      );
       tActions.auth.setSessionTokenCookie(request, token, session.expiresAt);
     }
   } catch (e) {

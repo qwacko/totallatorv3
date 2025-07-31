@@ -101,7 +101,7 @@ export const cronJobs: CronJob[] = [
     name: "Regular Update And Cleansing Of Backups",
     schedule: "0 0 * * *",
     job: async (context) => {
-      await tActions.backup.refreshList({ db : context.db});
+      await tActions.backup.refreshList({ db: context.db });
       await tActions.backup.trimBackups({ db: context.db });
     },
   },
@@ -119,21 +119,30 @@ export const cronJobs: CronJob[] = [
     name: "Run Auto Imports - Daily",
     schedule: "0 2 * * *",
     job: async (context) => {
-      await tActions.autoImport.triggerMany({ db: context.db, frequency: "daily" });
+      await tActions.autoImport.triggerMany({
+        db: context.db,
+        frequency: "daily",
+      });
     },
   },
   {
     name: "Run Auto Imports - Weekly",
     schedule: "0 3 * * 0",
     job: async (context) => {
-      await tActions.autoImport.triggerMany({ db: context.db, frequency: "weekly" });
+      await tActions.autoImport.triggerMany({
+        db: context.db,
+        frequency: "weekly",
+      });
     },
   },
   {
     name: "Run Auto Imports - Monthly",
     schedule: "0 4 1 * *",
     job: async (context) => {
-      await tActions.autoImport.triggerMany({ db: context.db, frequency: "monthly" });
+      await tActions.autoImport.triggerMany({
+        db: context.db,
+        frequency: "monthly",
+      });
     },
   },
   {
@@ -152,7 +161,9 @@ export const cronJobs: CronJob[] = [
         return;
       }
 
-      const llmProcessor = new actionHelpers.LLMJournalProcessingService(context.db);
+      const llmProcessor = new actionHelpers.LLMJournalProcessingService(
+        context.db,
+      );
 
       try {
         const result = await llmProcessor.processRequiredJournals({

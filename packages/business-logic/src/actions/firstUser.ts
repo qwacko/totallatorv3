@@ -13,7 +13,7 @@ export const dbUserCount = async (db: DBType): Promise<number> => {
 // New context-based function
 export const getUserCount = async ({ global }: { global: GlobalContext }): Promise<number> => {
 	const resultCount = await dbExecuteLogger(
-		global.db.select({ count: count() }).from(user), 
+		global.db.select({ count: count() }).from(user),
 		'User Count'
 	);
 	return resultCount[0].count;
