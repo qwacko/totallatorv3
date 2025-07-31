@@ -2,7 +2,7 @@
   import { Badge, Button, ButtonGroup } from "flowbite-svelte";
 
   // Provider display utilities
-  import { clientHelpers } from "@totallator/business-logic";
+  import { clientHelpers } from "@totallator/business-logic/client";
 
   import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
