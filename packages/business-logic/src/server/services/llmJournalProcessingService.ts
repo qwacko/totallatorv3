@@ -2,7 +2,6 @@ import { eq } from 'drizzle-orm';
 import type { DBType } from '@totallator/database';
 import { journalEntry } from '@totallator/database';
 import { createLLMClient } from '../llm/modernClient';
-import { tActions } from '../../actions/tActions';
 import { getServerEnv } from '@/serverEnv';
 import { getLogger } from '@/logger';
 import { LLMContextService } from './llmContextService';
@@ -17,6 +16,7 @@ import type {
 } from '@totallator/database';
 import type { MostUsedItemsType } from './llmContextService';
 import type { RecommendationType } from '../../actions/journalMaterializedViewActions';
+import { llmActions } from '@/actions/llmActions';
 
 // Define an expanded JournalTableType that includes related data
 export type ExpandedJournalTableType = JournalTableType & {
@@ -72,7 +72,7 @@ export class LLMJournalProcessingService {
 		}
 
 		// Get enabled LLM providers
-		const allProviders = await tActions.llm.list({ db: this.db });
+		const allProviders = await llmActions.list({ db: this.db });
 		const enabledProviders = allProviders.filter((p) => p.enabled);
 
 		if (enabledProviders.length === 0) {
@@ -166,7 +166,7 @@ export class LLMJournalProcessingService {
 		llmProvider: { id: string; title: string; apiUrl: string; defaultModel: string | null }
 	): Promise<void> {
 		// Get LLM settings with API key
-		const llmSettings = await tActions.llm.getById({
+		const llmSettings = await llmActions.getById({
 			db: this.db,
 			id: llmProvider.id,
 			includeApiKey: true

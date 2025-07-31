@@ -4,10 +4,15 @@ import type {
 	PopularItems,
 	CategorizationOptions
 } from '../llmBatchProcessingService';
-import { tActions } from '../../../actions/tActions';
 import { journalMaterialisedList } from '../../../actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '@totallator/shared';
 import type { DBType } from '@totallator/database';
+import { accountActions } from '@/actions/accountActions';
+import { categoryActions } from '@/actions/categoryActions';
+import { tagActions } from '@/actions/tagActions';
+import { budgetActions } from '@/actions/budgetActions';
+import { labelActions } from '@/actions/labelActions';
+import { billActions } from '@/actions/billActions';
 
 /**
  * Builds context for popular items (most used categories, tags, etc.) for the account
@@ -19,7 +24,7 @@ export async function buildPopularItemsContext(
 	const { db, accountId, config } = params;
 
 	// Fetch account details
-	const account = await tActions.account.getById(db, accountId);
+	const account = await accountActions.getById(db, accountId);
 	if (!account) {
 		throw new Error(`Account ${accountId} not found`);
 	}
@@ -167,11 +172,11 @@ async function getPopularItems(
  */
 async function getAllCategorizationOptions(db: DBType): Promise<CategorizationOptions> {
 	const [categories, tags, bills, budgets, labels] = await Promise.all([
-		tActions.category.list({ db, filter: { pageSize: 1000 } }),
-		tActions.tag.list({ db, filter: { pageSize: 1000 } }),
-		tActions.bill.list({ db, filter: { pageSize: 1000 } }),
-		tActions.budget.list({ db, filter: { pageSize: 1000 } }),
-		tActions.label.list({ db, filter: { pageSize: 1000 } })
+		categoryActions.list({ db, filter: { pageSize: 1000 } }),
+		tagActions.list({ db, filter: { pageSize: 1000 } }),
+		billActions.list({ db, filter: { pageSize: 1000 } }),
+		budgetActions.list({ db, filter: { pageSize: 1000 } }),
+		labelActions.list({ db, filter: { pageSize: 1000 } })
 	]);
 
 	return {

@@ -1,5 +1,9 @@
+import { categoryActions } from '@/actions/categoryActions';
 import type { Tool, ToolExecutionContext, ToolExecutionResult } from '../types';
-import { tActions } from '@/actions/tActions';
+import { tagActions } from '@/actions/tagActions';
+import { billActions } from '@/actions/billActions';
+import { budgetActions } from '@/actions/budgetActions';
+import { journalLlmSuggestionActions } from '@/actions/journalLlmSuggestionActions';
 
 export const journalCategorizationTool: Tool = {
 	definition: {
@@ -117,7 +121,7 @@ export const journalCategorizationTool: Tool = {
 			// Create/get category if suggested
 			if (category && typeof category === 'string' && category.trim()) {
 				try {
-					const categoryResult = await tActions.category.createOrGet({
+					const categoryResult = await categoryActions.createOrGet({
 						db: context.db,
 						title: category.trim(),
 						requireActive: false
@@ -132,7 +136,7 @@ export const journalCategorizationTool: Tool = {
 			// Create/get tag if suggested
 			if (tag && typeof tag === 'string' && tag.trim()) {
 				try {
-					const tagResult = await tActions.tag.createOrGet({
+					const tagResult = await tagActions.createOrGet({
 						db: context.db,
 						title: tag.trim(),
 						requireActive: false
@@ -146,7 +150,7 @@ export const journalCategorizationTool: Tool = {
 			// Create/get bill if suggested
 			if (bill && typeof bill === 'string' && bill.trim()) {
 				try {
-					const billResult = await tActions.bill.createOrGet({
+					const billResult = await billActions.createOrGet({
 						db: context.db,
 						title: bill.trim(),
 						requireActive: false
@@ -160,7 +164,7 @@ export const journalCategorizationTool: Tool = {
 			// Create/get budget if suggested
 			if (budget && typeof budget === 'string' && budget.trim()) {
 				try {
-					const budgetResult = await tActions.budget.createOrGet({
+					const budgetResult = await budgetActions.createOrGet({
 						db: context.db,
 						title: budget.trim(),
 						requireActive: false
@@ -174,7 +178,7 @@ export const journalCategorizationTool: Tool = {
 			// Create the LLM suggestion record if we have a journal context
 			if (context.journalId) {
 				try {
-					await tActions.journalLlmSuggestion.create({
+					await journalLlmSuggestionActions.create({
 						db: context.db,
 						data: {
 							journalId: context.journalId,

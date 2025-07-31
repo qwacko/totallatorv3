@@ -1,47 +1,22 @@
 <script lang="ts">
+  import { createSearchRegex } from "$lib/helpers/regexConstants";
 
+  const {
+    text = "",
+    searchText = "",
+    highlight = true,
+  }: {
+    text?: string;
+    searchText?: string | null | undefined;
+    highlight?: boolean;
+  } = $props();
 
+  function highlightText(fullText: string, search: string | null | undefined) {
+    if (!search) return fullText;
 
-	const {
-		text = '',
-		searchText = '',
-		highlight = true
-	}: { text?: string; searchText?: string | null | undefined; highlight?: boolean } = $props();
-
-	const regexEscape = (s: string) => {
-		return s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\
-
-
-	const {
-		text = '',
-		searchText = '',
-		highlight = true
-	}: { text?: string; searchText?: string | null | undefined; highlight?: boolean } = $props();
-
-	const regexEscape = (s: string) => {
-		return s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-	};
-
-	function highlightText(fullText: string, search: string | null | undefined) {
-		if (!search) return fullText;
-
-		const regex = new RegExp(`(${regexEscape(search)})`, 'gi');
-		return fullText.replace(regex, '<span class="bg-yellow-300">$1</span>');
-	}
-
-
-');
-	};
-
-	function highlightText(fullText: string, search: string | null | undefined) {
-		if (!search) return fullText;
-
-		const regex = new RegExp(`(${regexEscape(search)})`, 'gi');
-		return fullText.replace(regex, '<span class="bg-yellow-300">$1</span>');
-	}
-
-
-
+    const regex = createSearchRegex(search);
+    return fullText.replace(regex, '<span class="bg-yellow-300">$1</span>');
+  }
 </script>
 
 {#if highlight}

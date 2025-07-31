@@ -47,7 +47,6 @@ import type { CreateNoteSchemaCoreType } from '@totallator/shared';
 import { noteActions } from './noteActions';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import type { IdSchemaType } from '@totallator/shared';
-import { tActions } from './tActions';
 
 type CreateAssociatedInfoFunction = (data: {
 	db: DBType;
@@ -191,7 +190,7 @@ export const associatedInfoActions: {
 		const filter = linksToFilter(links);
 
 		if (canAddSummary && createSummary && journalSummaryFile) {
-			const csvData: string = await tActions.journalView.generateCSVData({
+			const csvData: string = await journalMaterializedViewActions.generateCSVData({
 				db,
 				filter,
 				returnType: 'default'

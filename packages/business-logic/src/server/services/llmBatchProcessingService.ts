@@ -3,13 +3,14 @@ import { journalMaterialisedList } from '@/actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '@totallator/shared';
 import { getServerEnv } from '@/serverEnv';
 import { getLogger } from '@/logger';
-import { tActions } from '@/actions/tActions';
 import { createLLMClient } from '../llm/modernClient';
 
 // Context Builders
 import { buildHistoricalContext } from './contextBuilders/historicalContextBuilder';
 import { buildFuzzyMatchContext } from './contextBuilders/fuzzyMatchContextBuilder';
 import { buildPopularItemsContext } from './contextBuilders/popularItemsContextBuilder';
+import { llmActions } from '@/actions/llmActions';
+import { accountActions } from '@/actions/accountActions';
 
 // ============================================================================
 // Core Types for Batch LLM Processing
@@ -284,7 +285,7 @@ export async function processAllAccounts(
 	}
 
 	// Get enabled LLM providers
-	const allProviders = await tActions.llm.list({ db });
+	const allProviders = await llmActions.list({ db });
 	const enabledProviders = allProviders.filter((p) => p.enabled);
 	getLogger().info(
 		`LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`
@@ -445,7 +446,7 @@ async function getAccountsWithRequiredJournals(
 	// Get account details and verify they are asset/liability accounts
 	const accounts = await Promise.all(
 		Array.from(accountIds).map(async (id) => {
-			const account = await tActions.account.getById(db, id!);
+			const account = await accountActions.getById(db, id!);
 			if (account && (account.type === 'asset' || account.type === 'liability')) {
 				return { id: account.id, title: account.title, type: account.type };
 			}
@@ -585,14 +586,14 @@ async function buildContext(
  */
 async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LLMBatchResponse> {
 	// Get first enabled LLM provider
-	const allProviders = await tActions.llm.list({ db });
+	const allProviders = await llmActions.list({ db });
 	const providers = allProviders.filter((p) => p.enabled);
 	if (providers.length === 0) {
 		throw new Error('No enabled LLM providers found');
 	}
 
 	const provider = providers[0];
-	const llmSettings = await tActions.llm.getById({
+	const llmSettings = await llmActions.getById({
 		db,
 		id: provider.id,
 		includeApiKey: true

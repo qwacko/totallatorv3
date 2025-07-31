@@ -15,7 +15,6 @@ import { updatedTime } from './helpers/misc/updatedTime';
 import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '@totallator/shared';
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
-import { tActions } from './tActions';
 import { streamingDelay, testingDelay } from '../server/testingDelay';
 import { getLogger } from '@/logger';
 import { count as drizzleCount } from 'drizzle-orm';
@@ -23,6 +22,8 @@ import { seedReusableFilterData } from './helpers/seed/seedReusableFilterData';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { tLogger } from '../server/db/transactionLogger';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
+import { journalActions } from './journalActions';
 
 export const reusableFilterActions = {
 	count: async (db: DBType) => {
@@ -42,7 +43,7 @@ export const reusableFilterActions = {
 	}) => {
 		const itemUnpacked = await reusableFilterDBUnpacked(currentFilter);
 
-		const count = await tActions.journalView.count(db, itemUnpacked.filter);
+		const count = await journalMaterializedViewActions.count(db, itemUnpacked.filter);
 		const canApply =
 			count > 0 &&
 			currentFilter.change !== null &&
@@ -253,7 +254,7 @@ export const reusableFilterActions = {
 		}
 
 		if (item.change) {
-			await tActions.journal.updateJournals({
+			await journalActions.updateJournals({
 				db,
 				filter: {
 					...item.filter,

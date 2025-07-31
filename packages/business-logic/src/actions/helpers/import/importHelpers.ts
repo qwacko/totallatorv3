@@ -12,7 +12,6 @@ import {
 import { updatedTime } from '../misc/updatedTime';
 import { eq } from 'drizzle-orm';
 import { createCombinedTransactionSchema, createSimpleTransactionSchema } from '@totallator/shared';
-import { tActions } from '../../tActions';
 import { createAccountSchema } from '@totallator/shared';
 import type { ZodType } from 'zod';
 import { createBillSchema } from '@totallator/shared';
@@ -23,6 +22,13 @@ import { createLabelSchema } from '@totallator/shared';
 import { simpleSchemaToCombinedSchema } from '../journal/simpleSchemaToCombinedSchema';
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { journalActions } from '@/actions/journalActions';
+import { accountActions } from '@/actions/accountActions';
+import { categoryActions } from '@/actions/categoryActions';
+import { tagActions } from '@/actions/tagActions';
+import { budgetActions } from '@/actions/budgetActions';
+import { billActions } from '@/actions/billActions';
+import { labelActions } from '@/actions/labelActions';
 
 const importItem = async <T extends Record<string, unknown>, DBT extends { id: string }>({
 	db,
@@ -130,7 +136,7 @@ export async function importTransaction({
 			createCombinedTransactionSchema.safeParse(combinedTransaction);
 		if (processedCombinedTransaction.success) {
 			try {
-				const importedData = await tActions.journal.createManyTransactionJournals({
+				const importedData = await journalActions.createManyTransactionJournals({
 					db: trx,
 					journalEntries: [processedCombinedTransaction.data],
 					isImport: true, // This is from an import process
@@ -244,7 +250,7 @@ export const importAccount = async ({
 		item,
 		schema: createAccountSchema,
 		createItem: async (data) => {
-			const importedData = await tActions.account.create(data.db, {
+			const importedData = await accountActions.create(data.db, {
 				...data.item,
 				type: data.item.type || 'expense',
 				status: data.item.status || 'active',
@@ -274,7 +280,7 @@ export const importBill = async ({
 		item,
 		schema: createBillSchema,
 		createItem: async (data) => {
-			const importedData = await tActions.bill.create(data.db, {
+			const importedData = await billActions.create(data.db, {
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,
@@ -303,7 +309,7 @@ export const importBudget = async ({
 		item,
 		schema: createBudgetSchema,
 		createItem: async (data) => {
-			const importedData = await tActions.budget.create(data.db, {
+			const importedData = await budgetActions.create(data.db, {
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,
@@ -332,7 +338,7 @@ export const importCategory = async ({
 		item,
 		schema: createCategorySchema,
 		createItem: async (data) => {
-			const importedData = await tActions.category.create(data.db, {
+			const importedData = await categoryActions.create(data.db, {
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,
@@ -361,7 +367,7 @@ export const importTag = async ({
 		item,
 		schema: createTagSchema,
 		createItem: async (data) => {
-			const importedData = await tActions.tag.create(data.db, {
+			const importedData = await tagActions.create(data.db, {
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,
@@ -390,7 +396,7 @@ export const importLabel = async ({
 		item,
 		schema: createLabelSchema,
 		createItem: async (data) => {
-			const importedData = await tActions.label.create(data.db, {
+			const importedData = await labelActions.create(data.db, {
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,
