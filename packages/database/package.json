@@ -11,7 +11,7 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc && tsc-alias",
+		"build": "tsc && tsc-alias && cp -r src/migrations dist/",
 		"dev": "tsc --watch & tsc-alias --watch",
 		"clean": "rm -rf dist",
 		"check": "tsc --noEmit",

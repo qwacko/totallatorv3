@@ -29,6 +29,7 @@ export interface GlobalContextConfig {
   serverEnv: ServerEnvSchemaType;
   isBuilding?: boolean;
   viewRefreshAction?: () => Promise<boolean>;
+  migrationsPath: string;
 }
 
 export function initializeGlobalContext(config: GlobalContextConfig): GlobalContext {
@@ -46,6 +47,7 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     isBuilding: config.isBuilding || false,
     isTestEnv: config.serverEnv.TEST_ENV,
     logger: (message: string, data?: any) => logger.debug(message, data),
+    migrationsPath: config.migrationsPath,
   });
 
   // Run migrations
@@ -57,6 +59,7 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     isBuilding: config.isBuilding || false,
     isTestEnv: config.serverEnv.TEST_ENV,
     logger: (message: string) => logger.info(message),
+    migrationsPath: config.migrationsPath,
   });
 
   // Create key-value store utilities

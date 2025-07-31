@@ -12,6 +12,7 @@ export interface DatabaseConfig {
 	isBuilding: boolean;
 	isTestEnv: boolean;
 	logger?: (message: string, data?: any) => void;
+	migrationsPath:string
 }
 
 class DatabaseLogger implements Logger {
@@ -30,7 +31,6 @@ class DatabaseLogger implements Logger {
 
 export function createDatabase(config: DatabaseConfig) {
 
-	console.log('Creating database connection with config:', config)
 
 	const postgresDatabase = postgres(config.isBuilding ? '' : config.postgresUrl || '', {
 		debug: config.isDev,
@@ -55,7 +55,9 @@ export async function migrateDatabase(config: DatabaseConfig) {
 		config.logger?.('Migrating DB!!');
 		const migrationClient = postgres(config.postgresUrl, { max: 1 });
 		const migrationDB = drizzle(migrationClient);
-		await migrate(migrationDB, { migrationsFolder: './migrations' });
+
+		
+		await migrate(migrationDB, { migrationsFolder: config.migrationsPath });
 		config.logger?.('DB Migration Complete');
 	} else if (!config.postgresUrl) {
 		config.logger?.('No POSTGRES_URL found, skipping migration!');

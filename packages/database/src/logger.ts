@@ -1,18 +1,15 @@
-import { createLogger, Logger } from '@totallator/shared';
+import { getLogger as createLogger, type LoggerType } from '@totallator/shared';
 
-let _logger: Logger | null = null;
+let _logger: LoggerType | null = null;
 
-export const getLogger = (): Logger => {
+export const getLogger = (): LoggerType => {
   if (!_logger) {
-    // Default configuration for business-logic package
-    _logger = createLogger({
-      LOGGING: true,
-      LOGGING_CLASSES: ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'],
-    });
+    // Default configuration for database package
+    _logger = createLogger(true, ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE']);
   }
   return _logger;
 };
 
-export const setLogger = (loggerInstance: Logger) => {
+export const setLogger = (loggerInstance: LoggerType) => {
   _logger = loggerInstance;
 };
