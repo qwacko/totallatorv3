@@ -1,40 +1,17 @@
-import { Logger } from '@totallator/shared';
-import { setLogger } from '@/logger';
-import { type ServerEnvSchemaType } from '@totallator/shared';
-import { setServerEnv } from '@/serverEnv';
-import { materializedViewActions } from './actions/materializedViewActions';
-import { materializedViewRefreshRateLimiter } from '@/actions/helpers/journalMaterializedView/materializedViewRefreshRateLimiter';
-import type { DBType } from '@totallator/database';
-import { initDBLogger } from '@/server/db/dbLogger';
+// This file is deprecated - context is now handled by @totallator/context package
+// Keep this for backward compatibility during migration
 
-type ContextType = {
-	loggerInstance: Logger;
-	serverEnv: ServerEnvSchemaType;
-	viewRefresh: ReturnType<typeof materializedViewRefreshRateLimiter>;
-	db: DBType;
-	logger: Logger;
+import type { GlobalContext, RequestContext } from '@totallator/context';
+
+// Re-export context types for backward compatibility
+export type { GlobalContext, RequestContext } from '@totallator/context';
+
+// Legacy function - use getGlobalContext from @totallator/context instead
+export const getContext = (): GlobalContext => {
+  throw new Error('getContext is deprecated. Use getGlobalContext from @totallator/context instead.');
 };
 
-type InitContextType = Omit<ContextType, 'viewRefresh'>;
-
-let context: ContextType | undefined;
-
-export const getContext = (): ContextType => {
-	if (context === undefined) {
-		throw new Error('Context is not set');
-	}
-	return context;
-};
-
-export const initContext = (newContext: InitContextType): void => {
-	const viewRefresh = materializedViewRefreshRateLimiter({
-		timeout: newContext.serverEnv.VIEW_REFRESH_TIMEOUT,
-		performRefresh: async () => materializedViewActions.conditionalRefresh({ db: newContext.db })
-	});
-
-	context = { ...newContext, viewRefresh };
-
-	setLogger(newContext.loggerInstance);
-	setServerEnv(newContext.serverEnv);
-	initDBLogger(newContext.db);
+// Legacy function - context is now initialized in the webapp hooks
+export const initContext = (): void => {
+  throw new Error('initContext is deprecated. Context is now initialized in the webapp hooks.');
 };

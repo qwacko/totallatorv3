@@ -1,51 +1,36 @@
 import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
-import { setLogger as setBusinessLogicLogger } from "@totallator/business-logic";
-import { createLogger, LogClass } from "@totallator/shared";
+import { 
+  initializeGlobalContext, 
+  createRequestContext,
+  type GlobalContext 
+} from "@totallator/context";
 
 import { building } from "$app/environment";
 
-import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { auth } from "$lib/server/auth";
-import { initateCronJobs } from "$lib/server/cron/cron";
-import { dbNoAdmins } from "$lib/server/db/actions/firstUser";
-import { materializedViewRefreshRateLimiter } from "$lib/server/db/actions/helpers/journalMaterializedView/materializedViewRefreshRateLimiter";
-import { tActions } from "$lib/server/db/actions/tActions";
-import { db } from "$lib/server/db/db";
-import { logging } from "$lib/server/logging";
-import { serverEnv } from "$lib/server/serverEnv";
+import { authGuard } from "./src/lib/authGuard/authGuardConfig";
+import { initateCronJobs } from "./src/lib/server/cron/cron";
+import { serverEnv } from "./src/lib/server/serverEnv";
+import { materializedViewActions, tActions } from "@totallator/business-logic";
 
-export let viewRefresh:
-  | undefined
-  | ReturnType<typeof materializedViewRefreshRateLimiter> = undefined;
-
-// Configure business-logic logger
-const businessLogicLoggerConfig = {
-  LOGGING: serverEnv.LOGGING,
-  LOGGING_CLASSES: serverEnv.LOGGING_CLASSES as LogClass[],
-};
-setBusinessLogicLogger(createLogger(businessLogicLoggerConfig));
-
-// Set Refresh Required on Startup in case there are any changes
-//!building &&
-//	tActions &&
-//	tActions.materializedViews &&
-//	tActions.materializedViews.setRefreshRequired(db);
+// Global context will be initialized in the init function
+let globalContext: GlobalContext;
 
 const handleAuth: Handle = async ({ event, resolve }) => {
-  const sessionToken = event.cookies.get(auth.sessionCookieName);
+  const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
   if (!sessionToken) {
     event.locals.user = undefined;
     event.locals.session = undefined;
     return resolve(event);
   }
 
-  const { session, user } = await auth.validateSessionToken(db, sessionToken);
+
+  const { session, user } = await tActions.auth.validateSessionToken(globalContext.db, sessionToken);
   if (session !== null) {
-    auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+    tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
   } else {
-    auth.deleteSessionTokenCookie(event);
+    tActions.auth.deleteSessionTokenCookie(event);
   }
 
   event.locals.user = user || undefined;
@@ -58,39 +43,49 @@ export const init: ServerInit = async () => {
   if (building) {
     return;
   }
+  
   console.log("Server Init Function");
 
-  initateCronJobs();
-
-  viewRefresh = materializedViewRefreshRateLimiter({
-    timeout: serverEnv.VIEW_REFRESH_TIMEOUT,
-    performRefresh: async () =>
-      tActions.materializedViews.conditionalRefresh({ db }),
+  // Initialize global context
+  globalContext = initializeGlobalContext({
+    serverEnv,
+    isBuilding: building,
+    viewRefreshAction: async () => {
+      return await materializedViewActions.conditionalRefreshWithContext({ global: globalContext });
+    }
   });
-  // tActions && tActions.materializedViews && tActions.materializedViews.setRefreshRequired(db);
+
+  // Initialize cron jobs
+  initateCronJobs(() => ({db: globalContext.db}));
+
+
+  globalContext.logger.info("Server initialization complete");
 };
 
 const handleRoute: Handle = async ({ event, resolve }) => {
-  //Update the locals to have the DB
-  event.locals.db = db;
+  // Set up contexts in locals
+  event.locals.global = globalContext;
+  event.locals.request = createRequestContext(event);
+  event.locals.db = globalContext.db; // Keep for backward compatibility
 
-  const timeLimit = serverEnv.PAGE_TIMEOUT_MS;
+  const timeLimit = globalContext.serverEnv.PAGE_TIMEOUT_MS;
   const timeout = setTimeout(() => {
-    // logging.error(`Request took longer than ${timeLimit}ms to resolve`, {
-    // 	request: event.request,
-    // 	elapsedTime: Date.now() - start,
-    // 	requestURL: event.request.url
-    // });
+    globalContext.logger.warn(`Request took longer than ${timeLimit}ms to resolve`, {
+      requestId: event.locals.request.requestId,
+      requestURL: event.request.url
+    });
   }, timeLimit);
 
-  const noAdmin = await dbNoAdmins(event.locals.db);
+  // Import the business logic function we need
+  const { noAdmins } = await import("@totallator/business-logic");
+  const noAdmin = await noAdmins({ global: globalContext });
 
   if (!event.route.id) {
     redirect(302, "/login");
   }
 
   if (event.route.id === "/(loggedOut)/firstUser" && !noAdmin) {
-    logging.info("Redirecting from firstUser");
+    globalContext.logger.info("Redirecting from firstUser");
     if (event.locals.user) {
       redirect(302, "/users");
     } else {

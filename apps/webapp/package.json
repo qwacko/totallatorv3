@@ -94,6 +94,7 @@
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/vite": "^4.1.11",
     "@totallator/business-logic": "workspace:*",
+    "@totallator/context": "workspace:*",
     "@totallator/database": "workspace:*",
     "@totallator/shared": "workspace:*",
     "ai": "^4.3.19",

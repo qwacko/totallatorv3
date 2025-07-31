@@ -37,6 +37,7 @@
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
 		"@sveltejs/kit": "^2.26.1",
+		"@totallator/context": "workspace:*",
 		"@totallator/database": "workspace:*",
 		"@totallator/shared": "workspace:*",
 		"@types/papaparse": "^5.3.15",
