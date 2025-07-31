@@ -1,34 +1,22 @@
 import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
-// Import app types to ensure they're available
-import type {} from "./src/app.js";
-
 import { 
-  initializeGlobalContext, 
   createRequestContext,
-  type GlobalContext 
 } from "@totallator/context";
 
-import { building } from "$app/environment";
 
-import { authGuard } from "./src/lib/authGuard/authGuardConfig";
-import { initateCronJobs } from "./src/lib/server/cron/cron";
-import { serverEnv } from "./src/lib/server/serverEnv";
-import { actionHelpers, materializedViewActions, tActions } from "@totallator/business-logic";
+import { authGuard } from "./lib/authGuard/authGuardConfig.js";
+import { initateCronJobs } from "./lib/server/cron/cron.js";
+import { actionHelpers, tActions } from "@totallator/business-logic";
+import { ensureInitialized } from "./lib/server/context.js";
 
-// Global context will be initialized in the init function
-let globalContext: GlobalContext;
 
 const handleAuth: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => {
+  const context = await ensureInitialized();
+  console.log("Auth hook - Global context is initialized");
 
-  if (!globalContext) {
-    throw new Error("Global context is not initialized. Please call init() before handling requests.");
-  } else {
-    console.log("Global context is initialized", globalContext);
-  }
-
-  if (!globalContext.db) {
+  if (!context.db) {
     throw new Error("Database is not initialized in the global context.");
   }
 
@@ -40,7 +28,7 @@ const handleAuth: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => 
   }
 
 
-  const { session, user } = await tActions.auth.validateSessionToken(globalContext.db, sessionToken);
+  const { session, user } = await tActions.auth.validateSessionToken(context.db, sessionToken);
   if (session !== null) {
     tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
   } else {
@@ -53,48 +41,29 @@ const handleAuth: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => 
 };
 
 export const init: ServerInit = async () => {
-  // This functionality is not required if the server is being built.
-  if (building) {
-    return;
-  }
-  
-  console.log("Server Init Function");
-
-  // Initialize global context
-  globalContext = initializeGlobalContext({
-    serverEnv,
-    isBuilding: building,
-    viewRefreshAction: async () => {
-      return await materializedViewActions.conditionalRefreshWithContext({ global: globalContext });
-    }
-  });
-
+  const context = await ensureInitialized();
   // Initialize cron jobs
-  initateCronJobs(() => ({db: globalContext.db}));
+  initateCronJobs(() => ({db: context.db}));
 
   //Setup DB Logger
-  actionHelpers.initDBLogger(globalContext.db);
-
-
-  globalContext.logger.info("Server initialization complete", global.db);
+  actionHelpers.initDBLogger(context.db);
 };
 
 const handleRoute: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => {
-  if(!globalContext) {
-    throw new Error("Global context is not initialized. Please call init() before handling requests.");
-  }
+  const context = await ensureInitialized();
+  console.log("Route hook - Global context is initialized");
 
-  if(!globalContext.db) {
+  if(!context.db) {
     throw new Error("Database is not initialized in the global context.");
   }
   // Set up contexts in locals
-  event.locals.global = globalContext;
+  event.locals.global = context;
   event.locals.request = createRequestContext(event);
-  event.locals.db = globalContext.db; // Keep for backward compatibility
+  event.locals.db = context.db; // Keep for backward compatibility
 
-  const timeLimit = globalContext.serverEnv.PAGE_TIMEOUT_MS;
+  const timeLimit = context.serverEnv.PAGE_TIMEOUT_MS;
   const timeout = setTimeout(() => {
-    globalContext.logger.warn(`Request took longer than ${timeLimit}ms to resolve`, {
+    context.logger.warn(`Request took longer than ${timeLimit}ms to resolve`, {
       requestId: event.locals.request.requestId,
       requestURL: event.request.url
     });
@@ -102,14 +71,14 @@ const handleRoute: Handle = async ({ event, resolve }: Parameters<Handle>[0]) =>
 
   // Import the business logic function we need
   const { noAdmins } = await import("@totallator/business-logic");
-  const noAdmin = await noAdmins({ global: globalContext });
+  const noAdmin = await noAdmins({ global: context });
 
   if (!event.route.id) {
     redirect(302, "/login");
   }
 
   if (event.route.id === "/(loggedOut)/firstUser" && !noAdmin) {
-    globalContext.logger.info("Redirecting from firstUser");
+    context.logger.info("Redirecting from firstUser");
     if (event.locals.user) {
       redirect(302, "/users");
     } else {

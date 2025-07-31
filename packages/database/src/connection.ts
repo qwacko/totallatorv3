@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import * as schema from './schema';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import { type Logger } from 'drizzle-orm';
+import {  type Logger } from 'drizzle-orm';
 import postgres from 'postgres';
 
 export interface DatabaseConfig {
@@ -29,6 +29,9 @@ class DatabaseLogger implements Logger {
 }
 
 export function createDatabase(config: DatabaseConfig) {
+
+	console.log('Creating database connection with config:', config)
+
 	const postgresDatabase = postgres(config.isBuilding ? '' : config.postgresUrl || '', {
 		debug: config.isDev,
 		max: config.maxConnections

@@ -2,10 +2,9 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import Icons from "unplugin-icons/vite";
-import { defineConfig } from "vitest/config";
+import { defineConfig, type ViteUserConfig } from "vitest/config";
 
-export default defineConfig(({ mode }) => {
-  return {
+export default defineConfig(({mode}): ViteUserConfig => {return {  
     server: {
       allowedHosts: true as const,
     },
@@ -56,7 +55,7 @@ export default defineConfig(({ mode }) => {
           type: "module",
           navigateFallback: "/",
         },
-      }) as any,
+      }),
     ],
     optimizeDeps: {
       exclude: ["@node-rs/argon2", "@node-rs/bcrypt"],
@@ -69,5 +68,4 @@ export default defineConfig(({ mode }) => {
       pool: "forks",
       poolOptions: { forks: { singleFork: true } },
     },
-  };
-});
+  }});

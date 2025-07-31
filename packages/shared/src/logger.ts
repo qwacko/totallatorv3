@@ -1,5 +1,6 @@
 export type LogClass = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE';
 export type LogParams = Parameters<typeof console.log>;
+import type {} from '@totallator/context'
 
 export interface LoggerConfig {
 	LOGGING: boolean;

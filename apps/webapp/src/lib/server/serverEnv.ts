@@ -2,7 +2,8 @@ import { dev } from "$app/environment";
 import { env } from "$env/dynamic/private";
 import { serverEnvSchema } from "@totallator/shared";
 
-export const serverEnv = serverEnvSchema.parse({
+
+export const getServerEnv = () => serverEnvSchema.parse({
   DEV: dev,
   LOGGING: env.LOGGING,
   LOGGING_CLASSES: env.LOGGING_CLASSES,
@@ -46,3 +47,5 @@ export const serverEnv = serverEnvSchema.parse({
   DBLOG_STORAGE_HOURS: env.DBLOG_STORAGE_HOURS,
   DBLOG_STORAGE_COUNT: env.DBLOG_STORAGE_COUNT,
 });
+
+export const serverEnv= getServerEnv();
