@@ -56,7 +56,7 @@ export default defineConfig(({ mode }) => {
           type: "module",
           navigateFallback: "/",
         },
-      }),
+      }) as any,
     ],
     optimizeDeps: {
       exclude: ["@node-rs/argon2", "@node-rs/bcrypt"],

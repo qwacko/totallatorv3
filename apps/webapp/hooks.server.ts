@@ -1,6 +1,5 @@
 import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
-import type { RequestEvent } from "@sveltejs/kit";
 
 // Import app types to ensure they're available
 import type {} from "./src/app.js";
