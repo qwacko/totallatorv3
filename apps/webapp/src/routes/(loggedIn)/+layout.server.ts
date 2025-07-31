@@ -3,8 +3,6 @@ import { tActions } from "@totallator/business-logic";
 import { serverEnv } from "$lib/server/serverEnv";
 
 export const load = async ({ locals }) => {
-  console.log("tActions Keys", Object.keys(tActions));
-  console.log("JournalViewKeys", Object.keys(tActions.journalView));
   const latestJournalUpdate = await tActions.journalView.getLatestUpdateDate({
     db: locals.db,
   });
