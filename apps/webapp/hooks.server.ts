@@ -1,5 +1,9 @@
 import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
+import type { RequestEvent } from "@sveltejs/kit";
+
+// Import app types to ensure they're available
+import type {} from "./src/app.js";
 
 import { 
   initializeGlobalContext, 
@@ -17,7 +21,7 @@ import { materializedViewActions, tActions } from "@totallator/business-logic";
 // Global context will be initialized in the init function
 let globalContext: GlobalContext;
 
-const handleAuth: Handle = async ({ event, resolve }) => {
+const handleAuth: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => {
   const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
   if (!sessionToken) {
     event.locals.user = undefined;
@@ -62,7 +66,7 @@ export const init: ServerInit = async () => {
   globalContext.logger.info("Server initialization complete");
 };
 
-const handleRoute: Handle = async ({ event, resolve }) => {
+const handleRoute: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => {
   // Set up contexts in locals
   event.locals.global = globalContext;
   event.locals.request = createRequestContext(event);
