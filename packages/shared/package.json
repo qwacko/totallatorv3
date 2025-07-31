@@ -16,6 +16,8 @@
 		"dev": "tsc --watch & tsc-alias --watch",
 		"clean": "rm -rf dist",
 		"check": "tsc --noEmit",
+		"circular": "madge --circular --extensions ts src/",
+		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
 		"format": "prettier --write .",
 		"lint": "prettier --check ."
 	},
@@ -29,6 +31,7 @@
 	"devDependencies": {
 		"@trivago/prettier-plugin-sort-imports": "^5.2.2",
 		"@types/lodash-es": "^4.17.12",
+		"madge": "^8.0.0",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.8.3"
 	}

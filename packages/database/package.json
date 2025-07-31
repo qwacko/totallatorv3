@@ -15,6 +15,8 @@
 		"dev": "tsc --watch & tsc-alias --watch",
 		"clean": "rm -rf dist",
 		"check": "tsc --noEmit",
+		"circular": "madge --circular --extensions ts src/",
+		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
 		"format": "prettier --write .",
 		"lint": "prettier --check .",
 		"db:generate": "drizzle-kit generate --config=\"drizzle.config.ts\"",
@@ -36,6 +38,7 @@
 		"@types/node": "^24.1.0",
 		"drizzle-kit": "^0.31.4",
 		"knip": "^5.62.0",
+		"madge": "^8.0.0",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.8.3"
 	}

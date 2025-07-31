@@ -23,7 +23,13 @@
     "db:studio": "pnpm --filter @totallator/database db:studio",
     "docs:dev": "pnpm --filter @totallator/webapp docs:dev",
     "docs:build": "pnpm --filter @totallator/webapp docs:build",
-    "docs:preview": "pnpm --filter @totallator/webapp docs:preview"
+    "docs:preview": "pnpm --filter @totallator/webapp docs:preview",
+    "circular": "pnpm --recursive circular",
+    "circular:business-logic": "pnpm --filter @totallator/business-logic circular",
+    "circular:webapp": "pnpm --filter @totallator/webapp circular",
+    "circular:shared": "pnpm --filter @totallator/shared circular",
+    "circular:database": "pnpm --filter @totallator/database circular",
+    "circular:context": "pnpm --filter @totallator/context circular"
   },
   "devDependencies": {
     "typescript": "^5.8.2"

@@ -18,6 +18,8 @@
 		"check": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project tsconfig.check.json",
 		"check:full": "NODE_OPTIONS='--max-old-space-size=12288' tsc --noEmit",
 		"check:help": "echo '📋 Available check commands:\\n  • pnpm check          - Fast optimized TypeScript check (daily use)\\n  • pnpm check:full      - Full TypeScript check (periodic testing)\\n\\n💡 Use check:full periodically to test if your optimizations allow full checking!'",
+		"circular": "madge --circular --extensions ts src/",
+		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
 		"format": "prettier --write .",
 		"lint": "prettier --check .",
 		"knip": "knip"
@@ -65,6 +67,7 @@
 		"@types/node": "^22.13.14",
 		"@types/node-schedule": "^2.1.7",
 		"knip": "^5.62.0",
+		"madge": "^8.0.0",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.8.2",
 		"vitest": "^3.1.1"
