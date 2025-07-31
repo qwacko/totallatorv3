@@ -5,7 +5,6 @@ import { tActions } from "@totallator/business-logic";
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { failWrapper } from "$lib/helpers/customEnhance";
 import { serverPageInfo, urlGenerator } from "$lib/routes";
-import { logging } from "$lib/server/logging.js";
 
 export const load = async (data) => {
   authGuard(data);
@@ -51,7 +50,7 @@ export const actions = {
     try {
       await tActions.backup.lock({ db: locals.db, id });
     } catch (e) {
-      logging.error("Error Locking Backup: " + e);
+      locals.global.logger.error("Error Locking Backup: " + e);
     }
     return;
   },
@@ -63,7 +62,7 @@ export const actions = {
     try {
       await tActions.backup.unlock({ db: locals.db, id });
     } catch (e) {
-      logging.error("Error Unlocking Backup: " + e);
+      locals.global.logger.error("Error Unlocking Backup: " + e);
     }
     return;
   },
@@ -80,7 +79,7 @@ export const actions = {
     try {
       await tActions.backup.updateTitle({ db: locals.db, id, title });
     } catch (e) {
-      logging.error("Error Updating Backup Title: " + e);
+      locals.global.logger.error("Error Updating Backup Title: " + e);
     }
     return;
   },
@@ -97,7 +96,7 @@ export const actions = {
         includeUsers: false,
       });
     } catch (e) {
-      logging.error("Error Restoring Backup: " + e);
+      locals.global.logger.error("Error Restoring Backup: " + e);
       return failWrapper("Error Restoring Backup");
     }
     redirect(
@@ -117,7 +116,7 @@ export const actions = {
     try {
       await tActions.backup.deleteBackup({ id, db: locals.db });
     } catch (e) {
-      logging.error("Error Deleting Backup: " + e);
+      locals.global.logger.error("Error Deleting Backup: " + e);
       return failWrapper("Error Deleting Backup");
     }
 

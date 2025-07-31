@@ -43,7 +43,7 @@ const handleAuth: Handle = async ({ event, resolve }: Parameters<Handle>[0]) => 
 export const init: ServerInit = async () => {
   const context = await ensureInitialized();
   // Initialize cron jobs
-  initateCronJobs(() => ({db: context.db}));
+  initateCronJobs(() => (context));
 
   //Setup DB Logger
   actionHelpers.initDBLogger(context.db);

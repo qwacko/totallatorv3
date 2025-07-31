@@ -9,7 +9,6 @@ import { updateBudgetSchema } from "@totallator/shared";
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { labelPageAndFilterValidation } from "$lib/pageAndFilterValidation";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -51,7 +50,7 @@ export const actions = {
     try {
       await tActions.budget.update({ db, data: form.data, id: form.data.id });
     } catch (e) {
-      logging.error("Update Budget Error", e);
+      locals.global.logger.error("Update Budget Error", e);
       return message(form, "Error Updating Budget");
     }
     redirect(302, form.data.prevPage);

@@ -4,7 +4,6 @@ import { nanoid } from "nanoid";
 import { tActions } from "@totallator/business-logic";
 
 import { urlGenerator } from "$lib/routes.js";
-import { logging } from "$lib/server/logging.js";
 
 export const actions = {
   import: async ({ request, locals }) => {
@@ -16,10 +15,10 @@ export const actions = {
     try {
       await tActions.backup.importFile({ db: locals.db, backupFile, id });
     } catch (e) {
-      logging.error(
+      locals.global.logger.error(
         `Backup Import Failed. Incorrect Contents - ${backupFile.name}`,
       );
-      logging.error("Error", e);
+      locals.global.logger.error("Error", e);
       return;
     }
 

@@ -4,7 +4,6 @@ import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes";
 import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.js";
 import { fileFormActions } from "$lib/server/fileFormActions";
-import { logging } from "$lib/server/logging.js";
 import { noteFormActions } from "$lib/server/noteFormActions";
 
 export const load = async (request) => {
@@ -46,7 +45,7 @@ export const actions = {
         id: id.toString(),
       });
     } catch (e) {
-      logging.error("Error Cloning Auto Import", e);
+      locals.global.logger.error("Error Cloning Auto Import", e);
     }
   },
 };

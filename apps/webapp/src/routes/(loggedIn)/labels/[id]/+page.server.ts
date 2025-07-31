@@ -9,7 +9,6 @@ import { updateLabelSchema } from "@totallator/shared";
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { labelPageAndFilterValidation } from "$lib/pageAndFilterValidation";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -51,7 +50,7 @@ export const actions = {
     try {
       await tActions.label.update({ db, data: form.data, id: form.data.id });
     } catch (e) {
-      logging.error("Update Label Error", e);
+      locals.global.logger.error("Update Label Error", e);
       return message(form, "Error Updating Label");
     }
     redirect(302, form.data.prevPage);

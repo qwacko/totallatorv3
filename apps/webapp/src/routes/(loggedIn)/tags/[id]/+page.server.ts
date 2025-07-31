@@ -9,7 +9,6 @@ import { updateTagSchema } from "@totallator/shared";
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { tagPageAndFilterValidation } from "$lib/pageAndFilterValidation.js";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -51,7 +50,7 @@ export const actions = {
     try {
       await tActions.tag.update({ db, data: form.data, id: form.data.id });
     } catch (e) {
-      logging.error("Update Tag Error", e);
+      locals.global.logger.error("Update Tag Error", e);
       return message(form, "Error Updating Tag");
     }
     redirect(302, form.data.prevPage);

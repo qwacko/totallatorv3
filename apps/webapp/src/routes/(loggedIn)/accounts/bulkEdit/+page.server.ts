@@ -10,7 +10,6 @@ import { accountFilterSchema, updateAccountSchema } from "@totallator/shared";
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { accountPageAndFilterValidation } from "$lib/pageAndFilterValidation.js";
 import { serverPageInfo, urlGenerator } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -74,7 +73,7 @@ export const actions = {
         data: restData,
       });
     } catch (e) {
-      logging.error("Error Updating Journal State : ", e);
+      locals.global.logger.error("Error Updating Journal State : ", e);
       redirect(
         302,
         form.data.prevPage ||

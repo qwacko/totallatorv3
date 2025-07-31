@@ -1,5 +1,5 @@
 import type { DBType } from '@totallator/database';
-import type { Logger } from '@totallator/shared';
+import type { Logger } from '../logger.js';
 
 export interface KeyValueStoreOptions {
   db: DBType;

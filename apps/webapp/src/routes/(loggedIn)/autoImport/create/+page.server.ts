@@ -10,7 +10,6 @@ import {
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { urlGenerator } from "$lib/routes.js";
-import { logging } from "$lib/server/logging.js";
 
 export const load = async (request) => {
   authGuard(request);
@@ -53,7 +52,7 @@ export const actions = {
         data: validatedData.data,
       });
     } catch (e) {
-      logging.error("Error Creating Auto Import", e);
+      locals.global.logger.error("Error Creating Auto Import", e);
       return message(form, "Error Creating Auto Import");
     }
     return redirect(

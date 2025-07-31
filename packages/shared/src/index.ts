@@ -61,7 +61,6 @@ export * from './schemas/reportHelpers/spanOptions.js';
 export * from './schemas/reportHelpers/summingEnum.js';
 export * from './schemas/reportHelpers/timeGroupingEnum.js';
 
-export * from './logger.js';
 export * from './schemas/serverEnvSchema.js';
 
 // Export report layout options

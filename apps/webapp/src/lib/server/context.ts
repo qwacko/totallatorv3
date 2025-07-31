@@ -7,7 +7,7 @@ import {
 
 import { building } from "$app/environment";
 
-import { getServerEnv, serverEnv } from "./serverEnv.js";
+import { getServerEnv } from "./serverEnv.js";
 import { materializedViewActions,  } from "@totallator/business-logic";
 
 // Global context will be initialized in the init function

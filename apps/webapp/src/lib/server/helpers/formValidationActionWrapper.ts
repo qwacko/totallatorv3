@@ -1,10 +1,8 @@
-import { logging } from '$lib/server/logging';
 import { type ActionFailure, type RequestEvent } from '@sveltejs/kit';
 import { superValidate, type SuperValidated, message } from 'sveltekit-superforms';
 import { zod4,   type Infer, type ZodValidationSchema, type InferIn } from 'sveltekit-superforms/adapters';
 import type { DBType } from '@totallator/database';
 import type { RouteId } from '$app/types';
-
 
 
 type ValidatedForm<T extends ZodValidationSchema> = SuperValidated<
@@ -43,12 +41,12 @@ export const formValidationActionWrapper = <T extends ZodValidationSchema, Requi
 		const creationPerson = data.locals.user?.id;
 
 		if (!creationPerson && requireUser) {
-			logging.error(`${title} : User not found`);
+			data.locals.global.logger.error(`${title} : User not found`);
 			throw new Error(`${title} : User not found`);
 		}
 
 		if (!form.valid) {
-			logging.error(`${title} : Form Validation Error`, form.errors);
+			data.locals.global.logger.error(`${title} : Form Validation Error`, form.errors);
 			sanitiseFormData(form);
 			return { form };
 		}
@@ -73,7 +71,7 @@ export const formValidationActionWrapper = <T extends ZodValidationSchema, Requi
 				return result;
 			}
 		} catch (e) {
-			logging.error(`${title} : Error`, e);
+			data.locals.global.logger.error(`${title} : Error`, e);
 			sanitiseFormData(form);
 			return message(form, `${title} : Error`);
 		}

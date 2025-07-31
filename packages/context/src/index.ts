@@ -32,6 +32,9 @@ export {
   type EnumKeyValueStore,
 } from './utils/keyValueStore.js';
 
+// Logger
+export { createLogger, type Logger, type LogClass } from './logger.js';
+
 // Re-export commonly used types for convenience
-export type { Logger, ServerEnvSchemaType } from '@totallator/shared';
+export type { ServerEnvSchemaType } from '@totallator/shared';
 export type { DBType, UserDBType, SessionDBType } from '@totallator/database';

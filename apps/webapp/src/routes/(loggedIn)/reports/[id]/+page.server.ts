@@ -7,7 +7,6 @@ import { journalFilterSchemaWithoutPagination } from "@totallator/shared";
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { failWrapper } from "$lib/helpers/customEnhance";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging.js";
 
 export const load = async (data) => {
   authGuard(data);
@@ -53,7 +52,7 @@ export const actions = {
         layoutConfig: data.data,
       });
     } catch (e) {
-      logging.error("Error updating report layout", e);
+      locals.global.logger.error("Error updating report layout", e);
       return;
     }
 
@@ -71,7 +70,7 @@ export const actions = {
     );
 
     if (!data.success) {
-      logging.error("Update Filter Parsing Error : ", data.error.message);
+      locals.global.logger.error("Update Filter Parsing Error : ", data.error.message);
       return failWrapper("Invalid Filter");
     }
 
@@ -82,7 +81,7 @@ export const actions = {
         filter: data.data,
       });
     } catch (e) {
-      logging.error("Error updating report filter", e);
+      locals.global.logger.error("Error updating report filter", e);
       return failWrapper("Error updating report filter");
     }
 

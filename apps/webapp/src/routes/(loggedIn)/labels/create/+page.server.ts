@@ -8,7 +8,6 @@ import { createLabelSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { labelPageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -38,7 +37,7 @@ export const actions = {
     try {
       await tActions.label.create(db, form.data);
     } catch (e) {
-      logging.error("Create Label Error", e);
+      locals.global.logger.error("Create Label Error", e);
       return message(form, "Error Creating Label, Possibly Already Exists");
     }
     redirect(302, form.data.prevPage);

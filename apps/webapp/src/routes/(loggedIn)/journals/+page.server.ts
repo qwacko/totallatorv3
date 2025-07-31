@@ -17,7 +17,6 @@ import { serverPageInfo } from "$lib/routes";
 import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.js";
 import { fileFormActions } from "$lib/server/fileFormActions";
 import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";
-import { logging } from "$lib/server/logging";
 import { noteFormActions } from "$lib/server/noteFormActions.js";
 
 export const load = async (data) => {
@@ -75,14 +74,14 @@ export const actions = {
     );
 
     if (!form.valid) {
-      logging.error("Update Form Is Not Valid");
+      data.locals.global.logger.error("Update Form Is Not Valid");
       return { form };
     }
 
     const parsedFilter = journalFilterSchema.safeParse(form.data.filter);
 
     if (!parsedFilter.success) {
-      logging.error("Filter Is Not Valid");
+      data.locals.global.logger.error("Filter Is Not Valid");
       return { form };
     }
 
@@ -95,7 +94,7 @@ export const actions = {
         journalData: form.data,
       });
     } catch (e) {
-      logging.error("Error Updating Journals : ", e);
+      data.locals.global.logger.error("Error Updating Journals : ", e);
 
       return message(form, "Error Updating Journals");
     }
@@ -145,7 +144,7 @@ export const actions = {
       }
       return;
     } catch (error) {
-      logging.error(error);
+      data.locals.global.logger.error(error);
       return;
     }
   },

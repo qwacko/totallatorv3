@@ -6,7 +6,6 @@ import { tActions, userActions } from "@totallator/business-logic";
 import { loginSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { logging } from "$lib/server/logging";
 import { serverEnv } from "$lib/server/serverEnv";
 
 import type { Actions } from "./$types";
@@ -41,7 +40,7 @@ export const actions: Actions = {
       const session = await tActions.auth.createSession(locals.db, token, user.id);
       tActions.auth.setSessionTokenCookie(request, token, session.expiresAt);
     } catch (e) {
-      logging.error("Error Logging In", e);
+      request.locals.global.logger.error("Error Logging In", e);
       return setMessage(form, "Incorrect username or password", {
         status: 400,
       });

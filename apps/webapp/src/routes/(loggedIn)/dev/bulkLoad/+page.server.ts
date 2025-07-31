@@ -1,7 +1,6 @@
 import { tActions } from "@totallator/business-logic";
 
 import { filterNullUndefinedAndDuplicates } from "$lib/helpers/filterNullUndefinedAndDuplicates.js";
-import { logging } from "$lib/server/logging.js";
 
 export const load = async ({ locals }) => {
   const accountCount = await tActions.account.count(locals.db);
@@ -96,11 +95,11 @@ export const actions = {
       await tActions.journal.seed(data.locals.db, count);
       const endTime = new Date();
       const timeDiff = (endTime.getTime() - startTime.getTime()) / 1000;
-      logging.info(
+      data.locals.global.logger.info(
         `Added ${count} transactions in ${timeDiff.toString()} seconds`,
       );
     } catch (e) {
-      logging.error("Error Creating Bulk Journals : ", e);
+      data.locals.global.logger.error("Error Creating Bulk Journals : ", e);
     }
   },
   bulkAddAccounts: async (data) => {
@@ -122,7 +121,7 @@ export const actions = {
         countLiabilities,
       });
     } catch (e) {
-      logging.error("Error Creating Bulk Accounts : ", e);
+      data.locals.global.logger.error("Error Creating Bulk Accounts : ", e);
     }
   },
   bulkAddTags: async (data) => {
@@ -132,7 +131,7 @@ export const actions = {
 
       await tActions.tag.seed(data.locals.db, count);
     } catch (e) {
-      logging.error("Error Creating Bulk Tags : ", e);
+      data.locals.global.logger.error("Error Creating Bulk Tags : ", e);
     }
   },
   bulkAddBills: async (data) => {
@@ -142,7 +141,7 @@ export const actions = {
 
       await tActions.bill.seed(data.locals.db, count);
     } catch (e) {
-      logging.error("Error Creating Bulk Bills : ", e);
+      data.locals.global.logger.error("Error Creating Bulk Bills : ", e);
     }
   },
   bulkAddBudgets: async (data) => {
@@ -152,7 +151,7 @@ export const actions = {
 
       await tActions.budget.seed(data.locals.db, count);
     } catch (e) {
-      logging.error("Error Creating Budget Tags : ", e);
+      data.locals.global.logger.error("Error Creating Budget Tags : ", e);
     }
   },
   bulkAddCategories: async (data) => {
@@ -162,7 +161,7 @@ export const actions = {
 
       await tActions.category.seed(data.locals.db, count);
     } catch (e) {
-      logging.error("Error Creating Bulk Categories : ", e);
+      data.locals.global.logger.error("Error Creating Bulk Categories : ", e);
     }
   },
   bulkAddLabels: async (data) => {
@@ -172,7 +171,7 @@ export const actions = {
 
       await tActions.label.seed(data.locals.db, count);
     } catch (e) {
-      logging.error("Error Creating Bulk Labels : ", e);
+      data.locals.global.logger.error("Error Creating Bulk Labels : ", e);
     }
   },
   bulkAddReusableFilters: async (data) => {
@@ -182,7 +181,7 @@ export const actions = {
 
       await tActions.reusableFitler.seed({ db: data.locals.db, count });
     } catch (e) {
-      logging.error("Error Creating Bulk Reusable Filters : ", e);
+      data.locals.global.logger.error("Error Creating Bulk Reusable Filters : ", e);
     }
   },
   deleteUnusedJournals: async (data) => {
@@ -199,7 +198,7 @@ export const actions = {
         transactionIds,
       });
     } catch (e) {
-      logging.error("Error Deleting Unused Journals : ", e);
+      data.locals.global.logger.error("Error Deleting Unused Journals : ", e);
     }
   },
   deleteUnusedAccounts: async (data) => {
@@ -211,7 +210,7 @@ export const actions = {
       );
       await tActions.account.deleteMany(data.locals.db, items);
     } catch (e) {
-      logging.error("Error Deleting Unused Accounts : ", e);
+      data.locals.global.logger.error("Error Deleting Unused Accounts : ", e);
     }
   },
   deleteUnusedTags: async (data) => {
@@ -224,7 +223,7 @@ export const actions = {
       );
       await tActions.tag.deleteMany(data.locals.db, items);
     } catch (e) {
-      logging.error("Error Deleting Unused Tags : ", e);
+      data.locals.global.logger.error("Error Deleting Unused Tags : ", e);
     }
   },
   deleteUnusedCategories: async ({ locals }) => {
@@ -236,7 +235,7 @@ export const actions = {
       );
       await tActions.category.deleteMany(locals.db, items);
     } catch (e) {
-      logging.error("Error Deleting Unused Categories : ", e);
+      locals.global.logger.error("Error Deleting Unused Categories : ", e);
     }
   },
   deleteUnusedBills: async ({ locals }) => {
@@ -248,7 +247,7 @@ export const actions = {
       );
       await tActions.bill.deleteMany(locals.db, items);
     } catch (e) {
-      logging.error("Error Deleting Unused Bills : ", e);
+      locals.global.logger.error("Error Deleting Unused Bills : ", e);
     }
   },
   deleteUnusedBudgets: async ({ locals }) => {
@@ -260,7 +259,7 @@ export const actions = {
       );
       await tActions.budget.deleteMany(locals.db, items);
     } catch (e) {
-      logging.error("Error Deleting Unused Budgets : ", e);
+      locals.global.logger.error("Error Deleting Unused Budgets : ", e);
     }
   },
   deleteUnusedLabels: async ({ locals }) => {
@@ -272,7 +271,7 @@ export const actions = {
       );
       await tActions.label.hardDeleteMany(locals.db, items);
     } catch (e) {
-      logging.error("Error Deleting Unused Labels : ", e);
+      locals.global.logger.error("Error Deleting Unused Labels : ", e);
     }
   },
   deleteReusableFilters: async ({ locals }) => {
@@ -286,7 +285,7 @@ export const actions = {
         ids: items.data.map((item) => item.id),
       });
     } catch (e) {
-      logging.error("Error Deleting Reusable Filters : ", e);
+      locals.global.logger.error("Error Deleting Reusable Filters : ", e);
     }
   },
 };

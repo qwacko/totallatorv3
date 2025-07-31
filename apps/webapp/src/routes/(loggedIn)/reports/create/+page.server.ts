@@ -9,7 +9,6 @@ import { createReportSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { urlGenerator } from "$lib/routes.js";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -41,7 +40,7 @@ export const actions = {
     try {
       newReportId = await tActions.report.create({ db, data: form.data });
     } catch (e) {
-      logging.error("Create Report Error", e);
+      locals.global.logger.error("Create Report Error", e);
       return message(
         form,
         "Error Creating Report, Possibly Group / Title Already Exists",

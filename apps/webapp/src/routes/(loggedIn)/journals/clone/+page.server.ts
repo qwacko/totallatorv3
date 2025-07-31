@@ -13,7 +13,6 @@ import {
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { pageAndFilterValidation } from "$lib/pageAndFilterValidation";
 import { serverPageInfo } from "$lib/routes.js";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -60,7 +59,7 @@ export const actions = {
     const form = await superValidate(request, zod4(cloneValidation));
 
     if (!form.valid) {
-      logging.error("Clone Form Is Not Valid");
+      locals.global.logger.error("Clone Form Is Not Valid");
       redirect(302, form.data.currentPage);
     }
 
@@ -69,7 +68,7 @@ export const actions = {
     );
 
     if (!parsedFilter.success) {
-      logging.error("Clone Filter Is Not Valid");
+      locals.global.logger.error("Clone Filter Is Not Valid");
       redirect(302, form.data.currentPage);
     }
 
@@ -80,7 +79,7 @@ export const actions = {
         journalData: form.data,
       });
     } catch (e) {
-      logging.error("Error Cloning Journals : ", e);
+      locals.global.logger.error("Error Cloning Journals : ", e);
 
       return message(form, "Error Cloning Journals");
     }

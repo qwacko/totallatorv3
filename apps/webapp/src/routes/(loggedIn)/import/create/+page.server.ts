@@ -8,7 +8,6 @@ import { createImportSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { urlGenerator } from "$lib/routes.js";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -49,7 +48,7 @@ export const actions = {
         data: form.data,
       });
     } catch (e) {
-      logging.error("Import Create Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error("Import Create Error", JSON.stringify(e, null, 2));
       const parsedError = z.object({ message: z.string() }).safeParse(e);
       if (parsedError.success) {
         return message(form, parsedError.data.message, { status: 400 });

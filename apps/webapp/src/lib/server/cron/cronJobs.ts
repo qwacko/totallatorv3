@@ -1,6 +1,5 @@
 import { actionHelpers, tActions } from "@totallator/business-logic";
 
-import { logging } from "../logging";
 import { serverEnv } from "../serverEnv";
 import type { CronJob } from "./cron";
 
@@ -9,7 +8,7 @@ export const cronJobs: CronJob[] = [
     name: "Backup SQLite Database",
     schedule: serverEnv.BACKUP_SCHEDULE,
     job: async (context) => {
-      logging.debug("CRON: Backing Up Database");
+      context.logger.debug("CRON: Backing Up Database");
       await tActions.backup.storeBackup({
         db: context.db,
         title: "Scheduled Backup",
@@ -23,7 +22,7 @@ export const cronJobs: CronJob[] = [
     name: "Regular Journal Cleanup / Fix",
     schedule: "0 * * * *",
     job: async (context) => {
-      logging.debug("CRON: Updating Journal Transfer Settings");
+      context.logger.debug("CRON: Updating Journal Transfer Settings");
       actionHelpers.updateManyTransferInfo({ db: context.db });
     },
   },
@@ -33,7 +32,7 @@ export const cronJobs: CronJob[] = [
     job: async (context) => {
       const startTime = new Date().getTime();
       await tActions.reusableFitler.applyAllAutomatic({ db: context.db });
-      logging.debug(
+      context.logger.debug(
         "CRON: Running Automatic Filters - Took " +
           (new Date().getTime() - startTime) +
           "ms",
@@ -51,7 +50,7 @@ export const cronJobs: CronJob[] = [
       });
 
       if (numberModified > 0) {
-        logging.debug(
+        context.logger.debug(
           "CRON: Updating All Reusable Filters - Took " +
             (new Date().getTime() - startTime) +
             "ms - Updated " +
@@ -72,7 +71,7 @@ export const cronJobs: CronJob[] = [
       });
 
       if (numberModified > 0) {
-        logging.debug(
+        context.logger.debug(
           "CRON: Updating Reusable Filters Needing Update - Took " +
             (new Date().getTime() - startTime) +
             "ms - Updated " +
@@ -163,12 +162,12 @@ export const cronJobs: CronJob[] = [
         });
 
         if (result.processed > 0 || result.errors > 0) {
-          logging.info(
+          context.logger.info(
             `CRON: LLM Journal Processing - Processed: ${result.processed}, Errors: ${result.errors}, Duration: ${result.duration}ms`,
           );
         }
       } catch (error) {
-        logging.error("CRON: LLM Journal Processing failed:", error);
+        context.logger.error("CRON: LLM Journal Processing failed:", error);
       }
     },
   },

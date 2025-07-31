@@ -9,7 +9,6 @@ import { updateCategorySchema } from "@totallator/shared";
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { categoryPageAndFilterValidation } from "$lib/pageAndFilterValidation";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -54,7 +53,7 @@ export const actions = {
     try {
       await tActions.category.update({ db, data: form.data, id: form.data.id });
     } catch (e) {
-      logging.error("Update Category Error", e);
+      locals.global.logger.error("Update Category Error", e);
       return message(form, "Error Updating Category");
     }
     redirect(302, form.data.prevPage);

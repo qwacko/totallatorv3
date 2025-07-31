@@ -1,4 +1,5 @@
-import { createLogger, type Logger, type ServerEnvSchemaType } from '@totallator/shared';
+import { type ServerEnvSchemaType } from '@totallator/shared';
+import { createLogger, type Logger } from './logger.js';
 import { createDatabase, migrateDatabase, type DBType } from '@totallator/database';
 import { createRateLimiter, type RateLimiter } from './utils/rateLimiter.js';
 import { createKeyValueStore, createBooleanKeyValueStore, createEnumKeyValueStore, type KeyValueStore, type BooleanKeyValueStore, type EnumKeyValueStore } from './utils/keyValueStore.js';
@@ -35,10 +36,7 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     return globalContext;
   }
 
-  const logger = createLogger({
-    LOGGING: config.serverEnv.LOGGING,
-    LOGGING_CLASSES: config.serverEnv.LOGGING_CLASSES as Array<'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE'>,
-  });
+  const logger = createLogger(config.serverEnv.LOGGING, config.serverEnv.LOGGING_CLASSES);
 
   const { db, postgresDatabase } = createDatabase({
     postgresUrl: config.serverEnv.POSTGRES_URL || '',

@@ -5,7 +5,6 @@ import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -51,7 +50,7 @@ export const actions = {
 
       return;
     } catch (error) {
-      logging.error(error);
+      data.locals.global.logger.error(error);
       return;
     }
   },

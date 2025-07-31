@@ -1,25 +1,19 @@
 export type LogClass = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE';
 export type LogParams = Parameters<typeof console.log>;
-import type {} from '@totallator/context'
 
-export interface LoggerConfig {
-	LOGGING: boolean;
-	LOGGING_CLASSES: LogClass[];
-}
-
-export const createLogger = (config: LoggerConfig) => {
+export const createLogger = (enable: boolean, logClasses: string[]) => {
 	const loggingFunction = (logClass: LogClass = 'INFO', ...params: LogParams) => {
-		if (config.LOGGING) {
+		if (enable) {
 			const time = new Date().toISOString();
 			console.log(`${time} - ${logClass} : `, ...params);
 		}
 	};
 
-	const logErrors = config.LOGGING_CLASSES.includes('ERROR');
-	const logWarns = config.LOGGING_CLASSES.includes('WARN');
-	const logInfos = config.LOGGING_CLASSES.includes('INFO');
-	const logDebugs = config.LOGGING_CLASSES.includes('DEBUG');
-	const logTraces = config.LOGGING_CLASSES.includes('TRACE');
+	const logErrors = logClasses.includes('ERROR');
+	const logWarns = logClasses.includes('WARN');
+	const logInfos = logClasses.includes('INFO');
+	const logDebugs = logClasses.includes('DEBUG');
+	const logTraces = logClasses.includes('TRACE');
 
 	return {
 		error: (...params: LogParams) => {

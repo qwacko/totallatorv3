@@ -7,7 +7,6 @@ import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 const deleteLLMProviderSchema = z.object({
   id: z.string(),
@@ -54,7 +53,7 @@ export const actions = {
         id: form.data.id,
       });
     } catch (e) {
-      logging.error("Delete LLM Provider Error", e);
+      locals.global.logger.error("Delete LLM Provider Error", e);
       return message(form, "Error Deleting LLM Provider");
     }
     redirect(302, form.data.prevPage || "/llm/providers");

@@ -6,7 +6,6 @@ import { updateUserSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { defaultJournalRedirect } from "$lib/helpers/defaultRedirect.js";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -65,7 +64,7 @@ export const actions = {
         initiatingUser: authUser,
       });
     } catch (e) {
-      logging.error("updateInfoError : ", e);
+      data.locals.global.logger.error("updateInfoError : ", e);
       return message(form, "Error Updating User", { status: 401 });
     }
 

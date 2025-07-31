@@ -13,7 +13,6 @@ import {
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo, urlGenerator } from "$lib/routes.js";
 import { bufferingHelper } from "$lib/server/bufferingHelper.js";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -67,7 +66,7 @@ export const actions = {
         },
       });
     } catch (e) {
-      logging.error("Import Mapping Create Error", JSON.stringify(e, null, 2));
+      data.locals.global.logger.error("Import Mapping Create Error", JSON.stringify(e, null, 2));
 
       return fail(400, { message: "Unknown Error Creating Import Mapping" });
     }

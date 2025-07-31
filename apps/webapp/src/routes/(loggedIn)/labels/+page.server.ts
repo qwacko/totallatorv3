@@ -13,7 +13,6 @@ import { serverPageInfo } from "$lib/routes.js";
 import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.js";
 import { fileFormActions } from "$lib/server/fileFormActions";
 import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";
-import { logging } from "$lib/server/logging";
 import { noteFormActions } from "$lib/server/noteFormActions.js";
 
 export const load = async (data) => {
@@ -99,7 +98,7 @@ export const actions = {
         },
       };
     } catch (e) {
-      logging.error("Label Update Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error("Label Update Error", JSON.stringify(e, null, 2));
       return error(500, "Error updating label");
     }
   },

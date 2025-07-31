@@ -13,7 +13,6 @@ import {
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { pageAndFilterValidation } from "$lib/pageAndFilterValidation";
 import { serverPageInfo, urlGenerator } from "$lib/routes.js";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -146,7 +145,7 @@ export const actions = {
         });
       }
     } catch (e) {
-      logging.error("Error Updating Journal State : ", e);
+      locals.global.logger.error("Error Updating Journal State : ", e);
       redirect(
         302,
         form.data.prevPage ||
@@ -164,7 +163,7 @@ export const actions = {
     const form = await superValidate(request, zod4(updateValidation));
 
     if (!form.valid) {
-      logging.error("Update Form Is Not Valid");
+      locals.global.logger.error("Update Form Is Not Valid");
       redirect(302, form.data.currentPage);
     }
 
@@ -173,7 +172,7 @@ export const actions = {
     );
 
     if (!parsedFilter.success) {
-      logging.error("Update Filter Is Not Valid");
+      locals.global.logger.error("Update Filter Is Not Valid");
       redirect(302, form.data.currentPage);
     }
 
@@ -184,7 +183,7 @@ export const actions = {
         journalData: form.data,
       });
     } catch (e) {
-      logging.error("Error Updating Journals : ", e);
+      locals.global.logger.error("Error Updating Journals : ", e);
 
       return message(form, "Error Updating Journals");
     }

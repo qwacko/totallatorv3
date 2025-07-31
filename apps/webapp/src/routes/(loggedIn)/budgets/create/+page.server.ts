@@ -8,7 +8,6 @@ import { createBudgetSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { budgetPageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -38,7 +37,7 @@ export const actions = {
     try {
       await tActions.budget.create(db, form.data);
     } catch (e) {
-      logging.error("Create Budget Error", e);
+      locals.global.logger.error("Create Budget Error", e);
       return message(form, "Error Creating Budget, Possibly Already Exists");
     }
     redirect(302, form.data.prevPage);

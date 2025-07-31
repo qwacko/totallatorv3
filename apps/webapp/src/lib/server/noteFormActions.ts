@@ -6,7 +6,6 @@ import { tActions } from "@totallator/business-logic";
 import { createNoteJournalSchema, createNoteSchema } from "@totallator/shared";
 import { formatDate, getCurrencyFormatter } from "@totallator/shared";
 
-import { logging } from "$lib/server/logging";
 import type { RouteId } from "$app/types";
 
 export const noteFormActions = {
@@ -92,7 +91,7 @@ export const noteFormActions = {
         creationUserId: creationPerson,
       });
     } catch (e) {
-      logging.error("Error Creating Note", e);
+      data.locals.global.logger.error("Error Creating Note", e);
     }
 
     return { form };
@@ -118,7 +117,7 @@ export const noteFormActions = {
         creationUserId: creationPerson,
       });
     } catch (e) {
-      logging.error("Error Creating Note", e);
+      data.locals.global.logger.error("Error Creating Note", e);
     }
   },
   deleteNote: async (
@@ -134,7 +133,7 @@ export const noteFormActions = {
         filter: { idArray: [noteIdString] },
       });
     } catch (error) {
-      logging.error("Error Deleting Note ", noteIdString, error);
+      data.locals.global.logger.error("Error Deleting Note ", noteIdString, error);
     }
   },
 };

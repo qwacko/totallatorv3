@@ -3,7 +3,6 @@ import { tActions } from "@totallator/business-logic";
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { defaultReportRedirect } from "$lib/helpers/defaultRedirect";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -31,7 +30,7 @@ export const actions = {
       await tActions.report.delete({ db, id });
       defaultReportRedirect();
     } catch (e) {
-      logging.error("Error deleting report", e);
+      data.locals.global.logger.error("Error deleting report", e);
     }
   },
 };

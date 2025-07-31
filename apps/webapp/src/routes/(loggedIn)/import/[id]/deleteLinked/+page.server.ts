@@ -3,7 +3,6 @@ import { redirect } from "@sveltejs/kit";
 import { tActions } from "@totallator/business-logic";
 
 import { urlGenerator } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   const parentData = await data.parent();
@@ -29,7 +28,7 @@ export const actions = {
       await tActions.import.deleteLinked({ db, id: params.id });
       deleted = true;
     } catch (e) {
-      logging.error("Import Delete Linked Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error("Import Delete Linked Error", JSON.stringify(e, null, 2));
     }
 
     if (deleted) {

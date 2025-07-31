@@ -8,7 +8,6 @@ import { reportConfigPartFormSchema } from "@totallator/shared";
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { defaultReportRedirect } from "$lib/helpers/defaultRedirect.js";
 import { serverPageInfo, urlGenerator } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -74,7 +73,7 @@ export const actions = {
         data: form.data,
       });
     } catch (e) {
-      logging.error("Error Updating Report Element Item : ", e);
+      data.locals.global.logger.error("Error Updating Report Element Item : ", e);
       return message(form, "Error Updating Report Element Item", {
         status: 400,
       });

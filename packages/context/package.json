@@ -12,7 +12,8 @@
   },
   "scripts": {
     "build": "tsc && tsc-alias",
-    "dev": "tsc --watch & tsc-alias --watch"
+    "dev": "tsc --watch & tsc-alias --watch",    
+		"check": "tsc --noEmit"
   },
   "dependencies": {
     "@totallator/database": "workspace:*",

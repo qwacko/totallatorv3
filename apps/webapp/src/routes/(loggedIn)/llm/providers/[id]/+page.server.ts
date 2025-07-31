@@ -8,7 +8,6 @@ import { actionHelpers } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 const updateLLMProviderSchema = z.object({
   id: z.string(),
@@ -82,7 +81,7 @@ export const actions = {
         id: form.data.id,
       });
     } catch (e) {
-      logging.error("Update LLM Provider Error", e);
+      locals.global.logger.error("Update LLM Provider Error", e);
       return message(form, "Error Updating LLM Provider");
     }
     redirect(302, form.data.prevPage || "/llm/providers");

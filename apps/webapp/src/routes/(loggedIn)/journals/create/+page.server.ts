@@ -11,7 +11,6 @@ import {
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { pageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -57,7 +56,7 @@ export const actions = {
     const form = await superValidate(request, zod4(createValidation));
 
     if (!form.valid) {
-      logging.error("Update Form Is Not Valid", form.errors);
+      locals.global.logger.error("Update Form Is Not Valid", form.errors);
       return { form };
     }
 
@@ -66,7 +65,7 @@ export const actions = {
     );
 
     if (!parsedFilter.success) {
-      logging.error("Update Filter Is Not Valid", parsedFilter.error);
+      locals.global.logger.error("Update Filter Is Not Valid", parsedFilter.error);
       redirect(302, form.data.currentPage);
     }
 
@@ -76,7 +75,7 @@ export const actions = {
         transaction: form.data,
       });
     } catch (e) {
-      logging.error("Create Transaction Error", e);
+      locals.global.logger.error("Create Transaction Error", e);
       return message(form, "Error Creating Transaction");
     }
     redirect(302, form.data.prevPage);

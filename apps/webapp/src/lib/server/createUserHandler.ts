@@ -6,7 +6,6 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import { tActions } from "@totallator/business-logic";
 import { signupSchema } from "@totallator/shared";
 
-import { logging } from "$lib/server/logging";
 
 export const createUserHandler = async ({
   request,
@@ -45,7 +44,7 @@ export const createUserHandler = async ({
       tActions.auth.setSessionTokenCookie(request, token, session.expiresAt);
     }
   } catch (e) {
-    logging.error("Error creating user", e);
+    locals.global.logger.error("Error creating user", e);
     return setError(
       form,
       "username",

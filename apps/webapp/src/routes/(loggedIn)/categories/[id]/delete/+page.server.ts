@@ -5,7 +5,6 @@ import { idSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -31,7 +30,7 @@ export const actions = {
     try {
       await tActions.category.delete(db, idSchema.parse(params));
     } catch (e) {
-      logging.error("Delete Category Error", e);
+      locals.global.logger.error("Delete Category Error", e);
       return {};
     }
     redirect(302, "/categories");

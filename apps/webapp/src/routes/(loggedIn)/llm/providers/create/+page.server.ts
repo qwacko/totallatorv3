@@ -7,7 +7,6 @@ import { tActions } from "@totallator/business-logic";
 import { actionHelpers } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { logging } from "$lib/server/logging";
 
 const createLLMProviderSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -53,7 +52,7 @@ export const actions = {
         data: providerData,
       });
     } catch (e) {
-      logging.error("Create LLM Provider Error", e);
+      locals.global.logger.error("Create LLM Provider Error", e);
       return message(
         form,
         "Error Creating LLM Provider, Possibly Already Exists",

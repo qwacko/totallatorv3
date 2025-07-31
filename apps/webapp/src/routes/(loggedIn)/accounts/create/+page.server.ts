@@ -8,7 +8,6 @@ import { createAccountSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { accountPageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -38,7 +37,7 @@ export const actions = {
     try {
       await tActions.account.create(db, form.data);
     } catch (e) {
-      logging.error("Create Account Error", e);
+      locals.global.logger.error("Create Account Error", e);
       return message(form, "Error Creating Account, Possibly Already Exists");
     }
     redirect(302, form.data.prevPage);

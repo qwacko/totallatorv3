@@ -3,14 +3,13 @@ import { redirect } from "@sveltejs/kit";
 import { tActions } from "@totallator/business-logic";
 
 import { urlGenerator } from "$lib/routes";
-import { logging } from "$lib/server/logging";
 
 export const actions = {
   reprocess: async ({ params, locals }) => {
     try {
       await tActions.import.reprocess({ db: locals.db, id: params.id });
     } catch (e) {
-      logging.error("Reprocess Import Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error("Reprocess Import Error", JSON.stringify(e, null, 2));
     }
   },
   triggerImport: async ({ params, locals }) => tActions.import.triggerImport({ db: locals.db, id: params.id }),
@@ -18,7 +17,7 @@ export const actions = {
     try {
       await tActions.import.clean({ db: locals.db, id: params.id });
     } catch (e) {
-      logging.error("Clean Import Error", JSON.stringify(e, null, 2));
+      locals.global.logger.error("Clean Import Error", JSON.stringify(e, null, 2));
     }
 
     const importData = await tActions.import.get({

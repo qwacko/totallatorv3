@@ -6,7 +6,6 @@ import { tActions } from "@totallator/business-logic";
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo } from "$lib/routes.js";
 import { bufferingHelper } from "$lib/server/bufferingHelper.js";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -60,7 +59,7 @@ export const actions = {
     try {
       await tActions.reusableFitler.refreshSome({ db, ids: idsArray });
     } catch (e) {
-      logging.error("Error Refreshing Some Filters", e);
+      locals.global.logger.error("Error Refreshing Some Filters", e);
     }
   },
 };

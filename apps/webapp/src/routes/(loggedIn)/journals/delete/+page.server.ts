@@ -10,7 +10,6 @@ import { filterNullUndefinedAndDuplicates } from "$lib/helpers/filterNullUndefin
 import { pageAndFilterValidation } from "$lib/pageAndFilterValidation";
 import { serverPageInfo } from "$lib/routes.js";
 import { urlGenerator } from "$lib/routes.js";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -54,7 +53,7 @@ export const actions = {
 
       await tActions.journal.hardDeleteTransactions({ db, transactionIds });
     } catch (e) {
-      logging.error("Error Updating Journal State : ", e);
+      locals.global.logger.error("Error Updating Journal State : ", e);
       redirect(
         302,
         form.data.prevPage ||

@@ -16,7 +16,6 @@ import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { reusableFilterPageAndFilterValidation } from "$lib/pageAndFilterValidation";
 import { serverPageInfo, urlGenerator } from "$lib/routes";
 import { bufferingHelper } from "$lib/server/bufferingHelper.js";
-import { logging } from "$lib/server/logging";
 
 export const load = async (data) => {
   authGuard(data);
@@ -115,7 +114,7 @@ export const actions = {
     });
 
     if (!processedUpdate.success) {
-      logging.error(
+      data.locals.global.logger.error(
         "Update Filter Error",
         JSON.stringify(processedUpdate.error, null, 2),
       );
@@ -129,7 +128,7 @@ export const actions = {
         data: processedUpdate.data,
       });
     } catch (e) {
-      logging.error("Reusable Filter Update Error", e);
+      data.locals.global.logger.error("Reusable Filter Update Error", e);
       return setError(form, "Reusable Filter Update Error");
     }
 
@@ -149,14 +148,14 @@ export const actions = {
     const { filter } = form.data;
 
     if (!filter) {
-      logging.error("Filter Is Required");
+      data.locals.global.logger.error("Filter Is Required");
       return setError(form, "Filter Is Required");
     }
 
     const filterProcessed = journalFilterSchema.safeParse(JSON.parse(filter));
 
     if (!filterProcessed.success) {
-      logging.error(
+      data.locals.global.logger.error(
         "Filter Is Invalid",
         JSON.stringify(filterProcessed.error, null, 2),
       );
@@ -170,7 +169,7 @@ export const actions = {
         data: { filter: filterProcessed.data },
       });
     } catch (e) {
-      logging.error("Reusable Filter Update Error", e);
+      data.locals.global.logger.error("Reusable Filter Update Error", e);
       return setError(form, "Reusable Filter Update Error");
     }
 
@@ -191,7 +190,7 @@ export const actions = {
         data: { change: form.data },
       });
     } catch (e) {
-      logging.error("Reusable Filter Update Change Error", e);
+      data.locals.global.logger.error("Reusable Filter Update Change Error", e);
       return setError(form, "Reusable Filter Update Change Error");
     }
 

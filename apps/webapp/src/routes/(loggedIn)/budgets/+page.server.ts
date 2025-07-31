@@ -12,7 +12,6 @@ import { serverPageInfo } from "$lib/routes.js";
 import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.js";
 import { fileFormActions } from "$lib/server/fileFormActions";
 import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";
-import { logging } from "$lib/server/logging";
 import { noteFormActions } from "$lib/server/noteFormActions.js";
 
 export const load = async (data) => {
@@ -83,7 +82,7 @@ export const actions = {
         },
       };
     } catch (e) {
-      logging.error("Budget Update Error", e);
+      locals.global.logger.error("Budget Update Error", e);
       return error(500, "Error updating budget");
     }
   },

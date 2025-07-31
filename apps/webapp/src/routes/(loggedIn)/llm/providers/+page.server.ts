@@ -9,7 +9,6 @@ import { actionHelpers } from "@totallator/business-logic";
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions";
 import { fileFormActions } from "$lib/server/fileFormActions";
-import { logging } from "$lib/server/logging";
 import { noteFormActions } from "$lib/server/noteFormActions";
 
 const submitValidation = z.object({
@@ -55,7 +54,7 @@ export const actions = {
         },
       };
     } catch (e) {
-      logging.error("LLM Provider Update Error", e);
+      locals.global.logger.error("LLM Provider Update Error", e);
       return error(500, "Error updating LLM provider");
     }
   },
@@ -64,13 +63,13 @@ export const actions = {
     const db = locals.db;
 
     try {
-      logging.info("Manual LLM batch processing triggered");
+      locals.global.logger.info("Manual LLM batch processing triggered");
 
       const stats = await actionHelpers.processAllAccounts(db);
 
-      logging.info("Manual LLM batch processing completed:", stats);
+      locals.global.logger.info("Manual LLM batch processing completed:", stats);
     } catch (e) {
-      logging.error("LLM Batch Processing Error:", e);
+      locals.global.logger.error("LLM Batch Processing Error:", e);
       return error(500, "Error processing journals with LLM");
     }
 
