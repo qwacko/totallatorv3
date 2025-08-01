@@ -103,7 +103,7 @@ export const actionHelpers = {
 	initDBLogger: initDBLogger
 };
 
-export const clientHelpers  = {
-	resolveApiUrl, 
+export const clientHelpers = {
+	resolveApiUrl,
 	getProviderDisplayName
-}
+};

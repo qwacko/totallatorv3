@@ -99,7 +99,6 @@
         disabled={currentButton.current}
         color={currentButton.current ? "blue" : "light"}
         data-sveltekit-noscroll
-        
       >
         {currentButton.title}
       </Button>

@@ -10,7 +10,7 @@ import {
 
 // Export client-safe helpers
 export const clientHelpers = {
-	resolveApiUrl, 
+	resolveApiUrl,
 	getProviderDisplayName,
 	getAllPredefinedProviders
 };

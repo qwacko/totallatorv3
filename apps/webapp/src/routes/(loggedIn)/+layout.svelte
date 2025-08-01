@@ -403,9 +403,9 @@
       <Dropdown simple>
         <DropdownItem
           href={urlGenerator({ address: "/(loggedIn)/llm/providers" }).url}
-          classes={{ anchor : "flex flex-row items-center gap-2"}}
+          classes={{ anchor: "flex flex-row items-center gap-2" }}
         >
-            <IdeaIcon />Provider
+          <IdeaIcon />Provider
         </DropdownItem>
         <DropdownItem
           href={urlGenerator({
