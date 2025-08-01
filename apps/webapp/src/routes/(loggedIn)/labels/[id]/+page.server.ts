@@ -12,12 +12,11 @@ import { serverPageInfo } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   if (!pageInfo.current.params?.id) redirect(302, "/labels");
 
-  const label = await tActions.label.getById(db, pageInfo.current.params?.id);
+  const label = await tActions.label.getById(pageInfo.current.params?.id);
   if (!label) redirect(302, "/labels");
   const form = await superValidate(
     { id: label.id, title: label.title, status: label.status },
@@ -37,7 +36,6 @@ const updateLabelSchemaWithPageAndFilter = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(updateLabelSchemaWithPageAndFilter),
@@ -48,7 +46,7 @@ export const actions = {
     }
 
     try {
-      await tActions.label.update({ db, data: form.data, id: form.data.id });
+      await tActions.label.update({ data: form.data, id: form.data.id });
     } catch (e) {
       locals.global.logger.error("Update Label Error", e);
       return message(form, "Error Updating Label");

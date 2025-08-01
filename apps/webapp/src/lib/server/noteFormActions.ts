@@ -35,7 +35,6 @@ export const noteFormActions = {
     }
 
     const summaryData = await tActions.journalView.simpleSummary({
-      db: data.locals.db,
       filter: form.data.filter,
     });
 
@@ -73,7 +72,6 @@ export const noteFormActions = {
 
     try {
       await tActions.note.create({
-        db: data.locals.db,
         data: {
           type: "info",
           note: combinedNoteMessage,
@@ -112,7 +110,6 @@ export const noteFormActions = {
 
     try {
       await tActions.note.create({
-        db: data.locals.db,
         data: form.data,
         creationUserId: creationPerson,
       });
@@ -129,7 +126,6 @@ export const noteFormActions = {
     const noteIdString = noteId.toString();
     try {
       await tActions.note.deleteMany({
-        db: data.locals.db,
         filter: { idArray: [noteIdString] },
       });
     } catch (error) {

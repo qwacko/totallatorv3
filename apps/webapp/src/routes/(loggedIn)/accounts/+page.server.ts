@@ -30,7 +30,6 @@ export const load = async (data) => {
   const searchParams = pageInfo.searchParams || { page: 0, pageSize: 10 };
 
   const accounts = await tActions.account.list({
-    db,
     filter: searchParams,
   });
   const redirectRequired = accounts.page >= accounts.pageCount;
@@ -51,7 +50,6 @@ export const load = async (data) => {
   } satisfies JournalFilterSchemaInputType;
 
   const accountSummary = await tActions.journalView.summary({
-    db,
     filter: filteredItems,
   });
 
@@ -68,7 +66,6 @@ export const load = async (data) => {
 
   return {
     accounts: tActions.associatedInfo.addToItems({
-      db,
       data: accounts,
       grouping: "accountId",
     }),
@@ -89,7 +86,6 @@ export const actions = {
   ...fileFormActions,
   ...associatedInfoFormActions,
   update: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(submitValidation));
 
     if (!form.valid) {
@@ -98,7 +94,7 @@ export const actions = {
 
     try {
       const { id, ...restData } = form.data;
-      await tActions.account.update({ db, id, data: restData });
+      await tActions.account.update({ id, data: restData });
       return {
         status: 200,
         body: {

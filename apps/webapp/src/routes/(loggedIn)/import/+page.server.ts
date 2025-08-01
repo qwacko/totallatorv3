@@ -11,10 +11,10 @@ export const load = async (data) => {
 
   const searchParams = current.searchParams || {};
 
-  const imports = await tActions.import.list({ db, filter: searchParams });
+  const imports = await tActions.import.list({ filter: searchParams });
 
   const filterText = await importFilterToText({ db, filter: searchParams });
-  const needsRefresh = (await tActions.import.numberActive(db)) > 0;
+  const needsRefresh = (await tActions.import.numberActive()) > 0;
 
   return {
     imports,

@@ -14,7 +14,6 @@ export const GET = async (data) => {
   }
 
   const backupInfo = await tActions.backup.getBackupInfoByFilename({
-    db: data.locals.db,
     filename: params.filename,
   });
 
@@ -25,7 +24,6 @@ export const GET = async (data) => {
   const fileData = (await tActions.backup.getBackupData({
     id: backupInfo.id,
     returnRaw: true,
-    db: data.locals.db,
   })) as Buffer;
 
   return new Response(fileData, {

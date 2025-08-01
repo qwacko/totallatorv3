@@ -1,8 +1,7 @@
 import type { CreateReusableFilterSchemaType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
 import { getRandomBoolean } from '../misc/getRandom';
 
-export const seedReusableFilterData = ({ db, id }: { db: DBType; id: number }) => {
+export const seedReusableFilterData = ({ id }: { id: number }) => {
 	const filterData: CreateReusableFilterSchemaType = {
 		applyAutomatically: false,
 		title: `Test Filter ${id}`,

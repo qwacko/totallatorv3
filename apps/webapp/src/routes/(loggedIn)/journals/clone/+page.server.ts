@@ -16,11 +16,9 @@ import { serverPageInfo } from "$lib/routes.js";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   const journalData = await tActions.journalView.listWithCommonData({
-    db: db,
     filter: pageInfo.current.searchParams || defaultJournalFilter(),
   });
 
@@ -55,7 +53,6 @@ const cloneValidation = z.object({
 
 export const actions = {
   clone: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(cloneValidation));
 
     if (!form.valid) {
@@ -74,7 +71,6 @@ export const actions = {
 
     try {
       await tActions.journal.cloneJournals({
-        db,
         filter: parsedFilter.data,
         journalData: form.data,
       });

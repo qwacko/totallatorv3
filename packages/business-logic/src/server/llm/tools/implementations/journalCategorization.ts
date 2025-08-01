@@ -122,7 +122,6 @@ export const journalCategorizationTool: Tool = {
 			if (category && typeof category === 'string' && category.trim()) {
 				try {
 					const categoryResult = await categoryActions.createOrGet({
-						db: context.db,
 						title: category.trim(),
 						requireActive: false
 					});
@@ -137,7 +136,6 @@ export const journalCategorizationTool: Tool = {
 			if (tag && typeof tag === 'string' && tag.trim()) {
 				try {
 					const tagResult = await tagActions.createOrGet({
-						db: context.db,
 						title: tag.trim(),
 						requireActive: false
 					});
@@ -151,7 +149,6 @@ export const journalCategorizationTool: Tool = {
 			if (bill && typeof bill === 'string' && bill.trim()) {
 				try {
 					const billResult = await billActions.createOrGet({
-						db: context.db,
 						title: bill.trim(),
 						requireActive: false
 					});
@@ -165,7 +162,6 @@ export const journalCategorizationTool: Tool = {
 			if (budget && typeof budget === 'string' && budget.trim()) {
 				try {
 					const budgetResult = await budgetActions.createOrGet({
-						db: context.db,
 						title: budget.trim(),
 						requireActive: false
 					});

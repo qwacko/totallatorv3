@@ -6,10 +6,9 @@ import { urlGenerator } from "$lib/routes";
 
 export const actions = {
   default: async ({ params, locals }) => {
-    const db = locals.db;
     let deleted = false;
     try {
-      await tActions.import.forgetImport({ db, id: params.id });
+      await tActions.import.forgetImport({ id: params.id });
       deleted = true;
     } catch (e) {
       locals.global.logger.error(

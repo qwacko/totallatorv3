@@ -254,7 +254,6 @@ export const autoImportActions = {
 		});
 
 		await importActions.store({
-			db,
 			autoImportId: id,
 			data: {
 				autoClean: autoImport.autoClean,

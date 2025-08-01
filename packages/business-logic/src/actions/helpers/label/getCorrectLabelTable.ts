@@ -1,10 +1,8 @@
-import type { DBType } from '@totallator/database';
 import { labelMaterializedView, labelView } from '@totallator/database';
 import { materializedViewActions } from '../../materializedViewActions';
 
-export const getCorrectLabelTable = async (db: DBType) => {
+export const getCorrectLabelTable = async () => {
 	const needsRefresh = await materializedViewActions.needsRefresh({
-		db,
 		items: { label: true }
 	});
 

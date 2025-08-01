@@ -9,7 +9,6 @@ import { tagActions } from '../../tagActions';
 import type { CreateOrGetType } from '../misc/createOrGetType';
 
 export const journalGetOrCreateLinkedItems = async ({
-	db,
 	journalEntry,
 	cachedAccounts,
 	cachedBills,
@@ -43,32 +42,27 @@ export const journalGetOrCreateLinkedItems = async ({
 		...restJournalData
 	} = journalEntry;
 	const targetAccount = await accountActions.createOrGet({
-		db,
 		id: accountId,
 		title: accountTitle,
 		cachedData: cachedAccounts
 	});
 	const targetBill = await billActions.createOrGet({
-		db,
 		id: billId,
 		title: billTitle,
 		cachedData: cachedBills
 	});
 	const targetBudget = await budgetActions.createOrGet({
-		db,
 		id: budgetId,
 		title: budgetTitle,
 		cachedData: cachedBudgets
 	});
 	const targetCategory = await categoryActions.createOrGet({
-		db,
 		id: categoryId,
 		title: categoryTitle,
 		cachedData: cachedCategories
 	});
 
 	const targetTag = await tagActions.createOrGet({
-		db,
 		id: tagId,
 		title: tagTitle,
 		cachedData: cachedTags
@@ -78,7 +72,6 @@ export const journalGetOrCreateLinkedItems = async ({
 		? await Promise.all(
 				labels.map(async (label) => {
 					return await labelActions.createOrGet({
-						db,
 						id: label,
 						cachedData: cachedLabels
 					});
@@ -90,7 +83,6 @@ export const journalGetOrCreateLinkedItems = async ({
 		? await Promise.all(
 				labelTitles.map(async (labelTitle) => {
 					return await labelActions.createOrGet({
-						db,
 						title: labelTitle,
 						cachedData: cachedLabels
 					});

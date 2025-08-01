@@ -32,15 +32,13 @@ export const dbLoggerCreate = ({
 	localCacheTimeout,
 	storeQueries,
 	disable = () => false,
-	logError = (...args) => console.error(...args),
-	db
+	logError = (...args) => console.error(...args)
 }: {
 	localCacheSize: () => number;
 	localCacheTimeout: () => number;
 	disable?: () => boolean;
 	storeQueries: (query: QueryCache[]) => Promise<void>;
 	logError?: (message?: any, ...optionalParams: any[]) => void;
-	db: DBType;
 }) => {
 	let timeoutId: NodeJS.Timeout;
 
@@ -151,7 +149,6 @@ let dbLoggerInstance: ReturnType<typeof dbLoggerCreate> | undefined;
 
 export const initDBLogger = async (db: DBType) => {
 	dbLoggerInstance = dbLoggerCreate({
-		db,
 		localCacheSize: () => getServerEnv().DBLOG_CACHE_SIZE,
 		localCacheTimeout: () => getServerEnv().DBLOG_CACHE_TIMEOUT,
 		disable: () => !getServerEnv().DBLOG_ENABLE,

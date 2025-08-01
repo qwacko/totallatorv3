@@ -9,7 +9,6 @@ import {
 	type CurrentBackupSchemaInfoType
 } from '@totallator/database';
 import { desc, eq } from 'drizzle-orm';
-import type { DBType } from '@totallator/database';
 import {
 	user,
 	session,
@@ -52,6 +51,7 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { tLogger } from '../server/db/transactionLogger';
 import { materializedViewActions } from './materializedViewActions';
+import { getContextDB } from '@totallator/context';
 
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -75,7 +75,8 @@ const chunker = async <D, R>(
 };
 
 export const backupActions = {
-	trimBackups: async ({ db }: { db: DBType }): Promise<void> => {
+	trimBackups: async (): Promise<void> => {
+		const db = getContextDB();
 		const firstBackup = await dbExecuteLogger(
 			db.query.backupTable.findFirst({
 				orderBy: ({ createdAt }, { asc }) => asc(createdAt)
@@ -199,14 +200,9 @@ export const backupActions = {
 				`Retention Policy Not Met. Percentage To Delete: ${percentageToDelete}. Max Percentage To Delete: ${maxPercentageToDelete}`
 			);
 		} else if (backupsToDelete.length > 0) {
-			await tLogger(
-				'Trim Backups',
-				db.transaction(async (trx) => {
-					await Promise.all(
-						backupsToDelete.map(async (backup) => {
-							await backupActions.deleteBackup({ db: trx, id: backup.id });
-						})
-					);
+			await Promise.all(
+				backupsToDelete.map(async (backup) => {
+					await backupActions.deleteBackup({ id: backup.id });
 				})
 			);
 
@@ -214,14 +210,13 @@ export const backupActions = {
 		}
 	},
 	importFile: async ({
-		db,
 		backupFile,
 		id
 	}: {
-		db: DBType;
 		backupFile: File;
 		id: string;
 	}): Promise<string | undefined> => {
+		const db = getContextDB();
 		const getFilenameInfo = (filename: string) => {
 			const extension = filename.split('.').pop();
 			const withoutExtension = extension
@@ -279,20 +274,19 @@ export const backupActions = {
 		return id;
 	},
 	storeBackup: async ({
-		db,
 		title = 'Backup',
 		compress = true,
 		creationReason,
 		createdBy,
 		locked = false
 	}: {
-		db: DBType;
 		title?: string;
 		compress?: boolean;
 		creationReason: string;
 		createdBy: string;
 		locked?: boolean;
 	}): Promise<void> => {
+		const db = getContextDB();
 		const date = new Date();
 		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
@@ -449,7 +443,8 @@ export const backupActions = {
 			'Backup - Store Backup - Insert Backup Table'
 		);
 	},
-	getBackupData: async ({ returnRaw, id, db }: { id: string; returnRaw: boolean; db: DBType }) => {
+	getBackupData: async ({ returnRaw, id }: { id: string; returnRaw: boolean }) => {
+		const db = getContextDB();
 		const backupFiles = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.id, id)),
 			'Backup - Get Backup Data'
@@ -489,20 +484,15 @@ export const backupActions = {
 
 		return loadedBackupData;
 	},
-	getBackupDataStrutured: async ({
-		id,
-		db
-	}: {
-		id: string;
-		db: DBType;
-	}): Promise<CurrentBackupSchemaType> => {
-		const backupData = await backupActions.getBackupData({ id, returnRaw: false, db });
+	getBackupDataStrutured: async ({ id }: { id: string }): Promise<CurrentBackupSchemaType> => {
+		const backupData = await backupActions.getBackupData({ id, returnRaw: false });
 
 		const backupDataParsed = combinedBackupSchema.parse(backupData);
 
 		return backupSchemaToLatest(backupDataParsed);
 	},
-	lock: async ({ id, db }: { id: string; db: DBType }): Promise<void> => {
+	lock: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		await dbExecuteLogger(
 			db
 				.update(backupTable)
@@ -511,7 +501,8 @@ export const backupActions = {
 			'Backup - Lock Backup'
 		);
 	},
-	unlock: async ({ id, db }: { id: string; db: DBType }): Promise<void> => {
+	unlock: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		await dbExecuteLogger(
 			db
 				.update(backupTable)
@@ -520,15 +511,8 @@ export const backupActions = {
 			'Backup - Unlock Backup'
 		);
 	},
-	updateTitle: async ({
-		id,
-		title,
-		db
-	}: {
-		id: string;
-		title: string;
-		db: DBType;
-	}): Promise<void> => {
+	updateTitle: async ({ id, title }: { id: string; title: string }): Promise<void> => {
+		const db = getContextDB();
 		await dbExecuteLogger(
 			db
 				.update(backupTable)
@@ -537,7 +521,8 @@ export const backupActions = {
 			'Backup - Update Title'
 		);
 	},
-	deleteBackup: async ({ id, db }: { id: string; db: DBType }): Promise<void> => {
+	deleteBackup: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		const backupFilesInDB = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.id, id)),
 			'Backup - Delete Backup - Get Details'
@@ -566,14 +551,13 @@ export const backupActions = {
 		return;
 	},
 	restoreBackup: async ({
-		db,
 		id,
 		includeUsers = false
 	}: {
-		db: DBType;
 		id: string;
 		includeUsers?: boolean;
 	}): Promise<void> => {
+		const db = getContextDB();
 		const backups = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.id, id)),
 			'Backup - Restore Backup - Get Backup'
@@ -583,11 +567,10 @@ export const backupActions = {
 		}
 		const backup = backups[0];
 
-		const checkedBackupData = await backupActions.getBackupDataStrutured({ id, db });
+		const checkedBackupData = await backupActions.getBackupDataStrutured({ id });
 
 		//Produce a new backup prior to any restore.
 		await backupActions.storeBackup({
-			db,
 			title: `Pre-Restore - ${backup.createdAt.toISOString().substring(0, 10)} - ${backup.title}`,
 			compress: true,
 			createdBy: 'System',
@@ -806,7 +789,7 @@ export const backupActions = {
 				await chunker(checkedBackupData.data.backup, 1000, async (data) => {
 					dbExecuteLogger(
 						trx.insert(backupTable).values(
-							data.map((item, rowNo) => {
+							data.map((item) => {
 								const parsedInformation = superjson.parse(item.information);
 
 								//@ts-expect-error I know the data strcuture, and this is correct
@@ -859,9 +842,10 @@ export const backupActions = {
 			})
 		);
 		getLogger().info(`Backup Restored - ${backup.filename} - ${backup.createdAt.toISOString()}`);
-		materializedViewActions.setRefreshRequired(db);
+		materializedViewActions.setRefreshRequired();
 	},
-	refreshList: async ({ db }: { db: DBType }): Promise<void> => {
+	refreshList: async (): Promise<void> => {
+		const db = getContextDB();
 		const [backupsInDB, backupFiles] = await Promise.all([
 			dbExecuteLogger(db.select().from(backupTable), 'Backup - Refresh List - Get Backups In DB'),
 			backupFileHandler.list('')
@@ -951,13 +935,10 @@ export const backupActions = {
 			);
 		}
 	},
-	list: async ({
-		db
-	}: {
-		db: DBType;
-	}): Promise<
+	list: async (): Promise<
 		(Omit<BackupTableType, 'information'> & { information: CurrentBackupSchemaInfoType })[]
 	> => {
+		const db = getContextDB();
 		const listData = await dbExecuteLogger(
 			db.select().from(backupTable).orderBy(desc(backupTable.createdAt)),
 			'Backup - List'
@@ -969,15 +950,14 @@ export const backupActions = {
 		}));
 	},
 	getBackupInfo: async ({
-		db,
 		id
 	}: {
-		db: DBType;
 		id: string;
 	}): Promise<
 		| undefined
 		| (Omit<BackupTableType, 'information'> & { information: CurrentBackupSchemaInfoType })
 	> => {
+		const db = getContextDB();
 		const data = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.id, id)),
 			'Backup - Get Info'
@@ -988,7 +968,8 @@ export const backupActions = {
 
 		return { ...data[0], information: backupSchemaInfoToLatest(data[0].information) };
 	},
-	getBackupInfoByFilename: async ({ db, filename }: { db: DBType; filename: string }) => {
+	getBackupInfoByFilename: async ({ filename }: { filename: string }) => {
+		const db = getContextDB();
 		const data = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.filename, filename)),
 			'Backup - Get Info By Filename'
@@ -997,7 +978,7 @@ export const backupActions = {
 			return undefined;
 		}
 
-		return backupActions.getBackupInfo({ db, id: data[0].id });
+		return backupActions.getBackupInfo({ id: data[0].id });
 	}
 };
 

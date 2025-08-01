@@ -21,6 +21,7 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getCorrectBillTable } from './helpers/bill/getCorrectBillTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import Papa from 'papaparse';
+import { getContextDB } from '@totallator/context';
 
 export type BillDropdownType = {
 	id: string;
@@ -39,18 +40,21 @@ type BillActionsType = ItemActionsType<
 >;
 
 export const billActions: BillActionsType = {
-	latestUpdate: async ({ db }) => {
+	latestUpdate: async () => {
+		const db = getContextDB();
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(bill.updatedAt) }).from(bill),
 			'Bill - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db, id) => {
+	getById: async (id) => {
+		const db = getContextDB();
 		return dbExecuteLogger(db.query.bill.findFirst({ where: eq(bill.id, id) }), 'Bill - Get By Id');
 	},
-	count: async (db, filter) => {
-		const { table, target } = await getCorrectBillTable(db);
+	count: async (filter) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectBillTable();
 		const count = await dbExecuteLogger(
 			db
 				.select({ count: drizzleCount(table.id) })
@@ -61,8 +65,9 @@ export const billActions: BillActionsType = {
 
 		return count[0].count;
 	},
-	listWithTransactionCount: async (db) => {
-		const { table } = await getCorrectBillTable(db);
+	listWithTransactionCount: async () => {
+		const db = getContextDB();
+		const { table } = await getCorrectBillTable();
 		const items = dbExecuteLogger(
 			db.select({ id: table.id, journalCount: table.count }).from(table),
 			'Bill - List With Transaction Count'
@@ -70,8 +75,9 @@ export const billActions: BillActionsType = {
 
 		return items;
 	},
-	list: async ({ db, filter }) => {
-		const { table, target } = await getCorrectBillTable(db);
+	list: async ({ filter }) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectBillTable();
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = billFilterToQuery({ filter: restFilter, target });
@@ -113,9 +119,8 @@ export const billActions: BillActionsType = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	generateCSVData: async ({ db, filter, returnType }) => {
+	generateCSVData: async ({ filter, returnType }) => {
 		const data = await billActions.list({
-			db,
 			filter: { ...filter, page: 0, pageSize: 100000 }
 		});
 
@@ -140,7 +145,8 @@ export const billActions: BillActionsType = {
 
 		return csvData;
 	},
-	listForDropdown: async ({ db }) => {
+	listForDropdown: async () => {
+		const db = getContextDB();
 		await testingDelay();
 		await streamingDelay();
 		const items = dbExecuteLogger(
@@ -150,8 +156,10 @@ export const billActions: BillActionsType = {
 
 		return items;
 	},
-	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
-		await materializedViewActions.setRefreshRequired(db);
+	createOrGet: async ({ title, id, requireActive = true, cachedData }) => {
+		const db = getContextDB();
+
+		await materializedViewActions.setRefreshRequired();
 		if (id) {
 			const currentBill = cachedData
 				? cachedData.find((item) => item.id === id)
@@ -186,7 +194,7 @@ export const billActions: BillActionsType = {
 				}
 				return currentBill;
 			}
-			const newBillId = await billActions.create(db, {
+			const newBillId = await billActions.create({
 				title,
 				status: 'active'
 			});
@@ -202,27 +210,30 @@ export const billActions: BillActionsType = {
 			return undefined;
 		}
 	},
-	create: async (db, data) => {
+	create: async (data) => {
+		const db = getContextDB();
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(bill).values(billCreateInsertionData(data, id)),
 			'Bill - Create'
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
-	createMany: async (db, data) => {
+	createMany: async (data) => {
+		const db = getContextDB();
 		const ids = data.map(() => nanoid());
 		const insertData = data.map((currentData, index) =>
 			billCreateInsertionData(currentData, ids[index])
 		);
 		await dbExecuteLogger(db.insert(bill).values(insertData), 'Bill - Create Many');
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return ids;
 	},
-	update: async ({ db, data, id }) => {
+	update: async ({ data, id }) => {
+		const db = getContextDB();
 		const currentBill = await dbExecuteLogger(
 			db.query.bill.findFirst({ where: eq(bill.id, id) }),
 			'Bill - Update - Get Current'
@@ -245,18 +256,17 @@ export const billActions: BillActionsType = {
 			'Bill - Update'
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
 
-	canDeleteMany: async (db, ids) => {
-		const canDeleteList = await Promise.all(
-			ids.map(async (id) => billActions.canDelete(db, { id }))
-		);
+	canDeleteMany: async (ids) => {
+		const canDeleteList = await Promise.all(ids.map(async (id) => billActions.canDelete({ id })));
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db, data) => {
+	canDelete: async (data) => {
+		const db = getContextDB();
 		const currentBill = await dbExecuteLogger(
 			db.query.bill.findFirst({ where: eq(bill.id, data.id), with: { journals: { limit: 1 } } }),
 			'Bill - Can Delete - Get Current'
@@ -267,17 +277,19 @@ export const billActions: BillActionsType = {
 
 		return currentBill && currentBill.journals.length === 0;
 	},
-	delete: async (db, data) => {
-		if (await billActions.canDelete(db, data)) {
+	delete: async (data) => {
+		const db = getContextDB();
+		if (await billActions.canDelete(data)) {
 			await dbExecuteLogger(db.delete(bill).where(eq(bill.id, data.id)), 'Bill - Delete');
-			await materializedViewActions.setRefreshRequired(db);
+			await materializedViewActions.setRefreshRequired();
 		}
 
 		return data.id;
 	},
-	deleteMany: async (db, data) => {
+	deleteMany: async (data) => {
+		const db = getContextDB();
 		if (data.length === 0) return;
-		const currentBills = await billActions.listWithTransactionCount(db);
+		const currentBills = await billActions.listWithTransactionCount();
 		const itemsForDeletion = data.filter((item) => {
 			const currentBill = currentBills.find((current) => current.id === item.id);
 			return currentBill && currentBill.journalCount === 0;
@@ -292,12 +304,13 @@ export const billActions: BillActionsType = {
 				),
 				'Bill - Delete Many'
 			);
-			await materializedViewActions.setRefreshRequired(db);
+			await materializedViewActions.setRefreshRequired();
 			return true;
 		}
 		return false;
 	},
-	seed: async (db, count) => {
+	seed: async (count) => {
+		const db = getContextDB();
 		getLogger().info('Seeding Bills : ', count);
 
 		const existingTitles = (
@@ -313,6 +326,6 @@ export const billActions: BillActionsType = {
 			count
 		});
 
-		await billActions.createMany(db, itemsToCreate);
+		await billActions.createMany(itemsToCreate);
 	}
 };

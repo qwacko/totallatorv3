@@ -1,6 +1,5 @@
 import { getServerEnv } from '@/serverEnv';
 import { nanoid } from 'nanoid';
-import type { DBType } from '@totallator/database';
 import {
 	account,
 	autoImportTable,
@@ -60,9 +59,11 @@ import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { tLogger } from '../server/db/transactionLogger';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
+import { getContextDB } from '@totallator/context';
 
 export const importActions = {
-	numberActive: async (db: DBType): Promise<number> => {
+	numberActive: async (): Promise<number> => {
+		const db = getContextDB();
 		const result = await dbExecuteLogger(
 			db
 				.select({ count: drizzleCount(importTable.id) })
@@ -74,12 +75,11 @@ export const importActions = {
 		return result[0].count;
 	},
 	list: async ({
-		db,
 		filter
 	}: {
-		db: DBType;
 		filter: ImportFilterSchemaType;
 	}): Promise<PaginatedResults<ImportSubqueryReturnData>> => {
+		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const internalQuery = importListSubquery(db);
@@ -111,15 +111,14 @@ export const importActions = {
 		return { count, data: results, pageCount, page, pageSize };
 	},
 	listDetails: async ({
-		db,
 		filter
 	}: {
-		db: DBType;
 		filter: ImportFilterSchemaType;
 	}): Promise<
 		PaginatedResults<ImportSubqueryReturnData> & { details: GetImportDetailReturnType[] }
 	> => {
-		const imports = await importActions.list({ db, filter });
+		const db = getContextDB();
+		const imports = await importActions.list({ filter });
 
 		const importDetails = await Promise.all(
 			imports.data.map(async (item) => {
@@ -129,7 +128,8 @@ export const importActions = {
 
 		return { ...imports, details: importDetails };
 	},
-	update: async ({ db, data }: { db: DBType; data: UpdateImportSchemaType }): Promise<void> => {
+	update: async ({ data }: { data: UpdateImportSchemaType }): Promise<void> => {
+		const db = getContextDB();
 		const { id, ...restData } = data;
 
 		await dbExecuteLogger(
@@ -138,14 +138,13 @@ export const importActions = {
 		);
 	},
 	store: async ({
-		db,
 		data,
 		autoImportId
 	}: {
-		db: DBType;
 		data: CreateImportSchemaType;
 		autoImportId?: string;
 	}): Promise<string> => {
+		const db = getContextDB();
 		const { file: newFile, importType: type, ...restData } = data;
 
 		if (newFile.type !== 'text/csv') {
@@ -217,7 +216,6 @@ export const importActions = {
 		return id;
 	},
 	processItems: async <S extends Record<string, unknown>>({
-		db,
 		id,
 		data,
 		schema,
@@ -225,7 +223,6 @@ export const importActions = {
 		getUniqueIdentifier,
 		checkUniqueIdentifiers
 	}: {
-		db: DBType;
 		id: string;
 		data: Papa.ParseResult<unknown> | { data: Record<string, any>[] };
 		schema: ZodSchema<S>;
@@ -233,6 +230,7 @@ export const importActions = {
 		getUniqueIdentifier?: ((data: S) => string | null | undefined) | undefined;
 		checkUniqueIdentifiers?: (data: string[]) => Promise<string[]>;
 	}): Promise<void> => {
+		const db = getContextDB();
 		await Promise.all(
 			data.data.map(async (currentRow) => {
 				const row = currentRow as Record<string, unknown>;
@@ -312,10 +310,8 @@ export const importActions = {
 		);
 	},
 	get: async ({
-		id,
-		db
+		id
 	}: {
-		db: DBType;
 		id: string;
 	}): Promise<
 		| { importInfo: undefined }
@@ -327,6 +323,7 @@ export const importActions = {
 				};
 		  }
 	> => {
+		const db = getContextDB();
 		const data = await dbExecuteLogger(
 			db
 				.select()
@@ -343,7 +340,8 @@ export const importActions = {
 
 		return { importInfo: data[0] };
 	},
-	getDetail: async ({ db, id }: { db: DBType; id: string }): Promise<GetImportDetailReturnType> => {
+	getDetail: async ({ id }: { id: string }): Promise<GetImportDetailReturnType> => {
+		const db = getContextDB();
 		await streamingDelay();
 		const data = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
@@ -362,7 +360,8 @@ export const importActions = {
 
 		return getImportDetail({ db, id });
 	},
-	reprocess: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
+	reprocess: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		const item = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
 			'Import - Reprocess - Get'
@@ -413,7 +412,8 @@ export const importActions = {
 			})
 		);
 	},
-	triggerImport: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
+	triggerImport: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		try {
 			const importInfoList = await dbExecuteLogger(
 				db.select().from(importTable).where(eq(importTable.id, id)),
@@ -443,7 +443,8 @@ export const importActions = {
 				.where(eq(importTable.id, id));
 		}
 	},
-	doRequiredImports: async ({ db }: { db: DBType }): Promise<void> => {
+	doRequiredImports: async (): Promise<void> => {
+		const db = getContextDB();
 		const importTimeoutms = getServerEnv().IMPORT_TIMEOUT_MIN * 60 * 1000;
 		const earliestUpdatedAt = new Date(Date.now() - importTimeoutms);
 
@@ -495,11 +496,12 @@ export const importActions = {
 
 		await Promise.all(
 			importDetails.map(async (item) => {
-				await importActions.doImport({ db, id: item.id });
+				await importActions.doImport({ id: item.id });
 			})
 		);
 	},
-	doImport: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
+	doImport: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		const importInfoList = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
 			'Import - Do Import - Get'
@@ -568,7 +570,6 @@ export const importActions = {
 				})
 			);
 			await reusableFilterActions.applyFollowingImport({
-				db,
 				importId: id,
 				timeout: maxTime
 			});
@@ -602,7 +603,8 @@ export const importActions = {
 			}
 		}
 	},
-	forgetImport: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
+	forgetImport: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		await tLogger(
 			'Forget Import',
 			db.transaction(async (db) => {
@@ -668,7 +670,8 @@ export const importActions = {
 			})
 		);
 	},
-	canDelete: async ({ db, id }: { db: DBType; id: string }): Promise<boolean> => {
+	canDelete: async ({ id }: { id: string }): Promise<boolean> => {
+		const db = getContextDB();
 		const importDetails = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
 			'Import - Can Delete - Get Details'
@@ -693,63 +696,46 @@ export const importActions = {
 				db.select().from(account).where(eq(account.importId, id)),
 				'Import - Can Delete - Account'
 			);
-			return accountActions.canDeleteMany(
-				db,
-				accounts.map((item) => item.id)
-			);
+			return accountActions.canDeleteMany(accounts.map((item) => item.id));
 		} else if (importInfo.type === 'bill') {
 			const bills = await dbExecuteLogger(
 				db.select().from(bill).where(eq(bill.importId, id)),
 				'Import - Can Delete - Bill'
 			);
-			return billActions.canDeleteMany(
-				db,
-				bills.map((item) => item.id)
-			);
+			return billActions.canDeleteMany(bills.map((item) => item.id));
 		} else if (importInfo.type === 'budget') {
 			const budgets = await dbExecuteLogger(
 				db.select().from(budget).where(eq(budget.importId, id)),
 				'Import - Can Delete - Budget'
 			);
-			return budgetActions.canDeleteMany(
-				db,
-				budgets.map((item) => item.id)
-			);
+			return budgetActions.canDeleteMany(budgets.map((item) => item.id));
 		} else if (importInfo.type === 'category') {
 			const categories = await dbExecuteLogger(
 				db.select().from(category).where(eq(category.importId, id)),
 				'Import - Can Delete - Category'
 			);
-			return categoryActions.canDeleteMany(
-				db,
-				categories.map((item) => item.id)
-			);
+			return categoryActions.canDeleteMany(categories.map((item) => item.id));
 		} else if (importInfo.type === 'label') {
 			const labels = await dbExecuteLogger(
 				db.select().from(label).where(eq(label.importId, id)),
 				'Import - Can Delete - Label'
 			);
-			return labelActions.canDeleteMany(
-				db,
-				labels.map((item) => item.id)
-			);
+			return labelActions.canDeleteMany(labels.map((item) => item.id));
 		} else if (importInfo.type === 'tag') {
 			const tags = await dbExecuteLogger(
 				db.select().from(tag).where(eq(tag.importId, id)),
 				'Import - Can Delete - Tag'
 			);
-			return tagActions.canDeleteMany(
-				db,
-				tags.map((item) => item.id)
-			);
+			return tagActions.canDeleteMany(tags.map((item) => item.id));
 		} else if (importInfo.type === 'mappedImport') {
 			return false;
 		} else {
 			throw new Error('Import Type Error');
 		}
 	},
-	deleteLinked: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
-		const canDelete = await importActions.canDelete({ db, id });
+	deleteLinked: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
+		const canDelete = await importActions.canDelete({ id });
 
 		if (canDelete) {
 			const importDetails = await dbExecuteLogger(
@@ -773,26 +759,15 @@ export const importActions = {
 						const transactionIds = filterNullUndefinedAndDuplicates(
 							importDetails.journals.map((item) => item.transactionId)
 						);
-						await journalActions.hardDeleteTransactions({ db, transactionIds });
+						await journalActions.hardDeleteTransactions({ transactionIds });
 
-						await billActions.deleteMany(
-							db,
-							importDetails.bills.map((item) => ({ id: item.id }))
-						);
-						await budgetActions.deleteMany(
-							db,
-							importDetails.budgets.map((item) => ({ id: item.id }))
-						);
+						await billActions.deleteMany(importDetails.bills.map((item) => ({ id: item.id })));
+						await budgetActions.deleteMany(importDetails.budgets.map((item) => ({ id: item.id })));
 						await categoryActions.deleteMany(
-							db,
 							importDetails.categories.map((item) => ({ id: item.id }))
 						);
-						await tagActions.deleteMany(
-							db,
-							importDetails.tags.map((item) => ({ id: item.id }))
-						);
+						await tagActions.deleteMany(importDetails.tags.map((item) => ({ id: item.id })));
 						await labelActions.hardDeleteMany(
-							db,
 							importDetails.labels.map((item) => ({ id: item.id }))
 						);
 						await dbExecuteLogger(
@@ -808,14 +783,15 @@ export const importActions = {
 			);
 		}
 	},
-	delete: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
-		const canDelete = await importActions.canDelete({ db, id });
+	delete: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
+		const canDelete = await importActions.canDelete({ id });
 
 		if (canDelete) {
 			await tLogger(
 				'Import Delete',
 				db.transaction(async (db) => {
-					await importActions.deleteLinked({ db, id });
+					await importActions.deleteLinked({ id });
 					await dbExecuteLogger(
 						db.delete(importTable).where(eq(importTable.id, id)),
 						'Import - Delete - Delete Import'
@@ -824,7 +800,8 @@ export const importActions = {
 			);
 		}
 	},
-	autoCleanAll: async ({ db, retainDays }: { db: DBType; retainDays: number }): Promise<void> => {
+	autoCleanAll: async ({ retainDays }: { retainDays: number }): Promise<void> => {
+		const db = getContextDB();
 		const importsToClean = await dbExecuteLogger(
 			db
 				.select({ id: importTable.id })
@@ -866,11 +843,12 @@ export const importActions = {
 			);
 
 			if (numberNotImported[0].count > 0 || numberImported[0].count === 0) {
-				await importActions.clean({ db, id: importToClean.id });
+				await importActions.clean({ id: importToClean.id });
 			}
 		}
 	},
-	clean: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
+	clean: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		const foundImports = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
 			'Import - Clean - Get Import'
@@ -896,7 +874,7 @@ export const importActions = {
 
 		//When there is no imported items, delete the entire import, when there is some imported, then remove everything that is not "imported"
 		if (numberImported.length === 0) {
-			await importActions.forgetImport({ db, id });
+			await importActions.forgetImport({ id });
 		} else {
 			await dbExecuteLogger(
 				db

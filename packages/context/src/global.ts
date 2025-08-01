@@ -108,6 +108,8 @@ export function getGlobalContext(): GlobalContext {
   return globalContext;
 }
 
+
+
 export function resetGlobalContext(): void {
   if (globalContext?.postgresDatabase) {
     globalContext.postgresDatabase.end();

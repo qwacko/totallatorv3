@@ -10,12 +10,10 @@ export const load = async (data) => {
   const { current } = serverPageInfo(data.route.id, data);
 
   const files = await tActions.file.list({
-    db: data.locals.db,
     filter: current.searchParams || { page: 0, pageSize: 10 },
   });
 
   const filterText = await tActions.file.filterToText({
-    db: data.locals.db,
     filter: current.searchParams || { page: 0, pageSize: 10 },
   });
 
@@ -35,6 +33,6 @@ export const load = async (data) => {
 
 export const actions = {
   checkFiles: async (data) => {
-    await tActions.file.checkFilesExist({ db: data.locals.db });
+    await tActions.file.checkFilesExist();
   },
 };

@@ -5,7 +5,6 @@ import {
 	updateAccountSchema
 } from '@totallator/shared';
 import { nanoid } from 'nanoid';
-import type { DBType } from '@totallator/database';
 import { account, type AccountTableType, type AccountViewReturnType } from '@totallator/database';
 import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { statusUpdate } from './helpers/misc/statusUpdate';
@@ -31,6 +30,7 @@ import { tLogger } from '../server/db/transactionLogger';
 import { getCorrectAccountTable } from './helpers/account/getCorrectAccountTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import Papa from 'papaparse';
+import { getContextDB } from '@totallator/context';
 
 export type AccountDropdownType = {
 	id: string;
@@ -50,18 +50,15 @@ type AccountActionsType = ItemActionsType<
 >;
 
 type ListCommonPropertiesFunction = (data: {
-	db: DBType;
 	filter?: AccountFilterSchemaType;
 }) => Promise<UpdateAccountSchemaType>;
 
 type UpdateManyAccountsFunction = (data: {
-	db: DBType;
 	data: UpdateAccountSchemaType;
 	filter: AccountFilterSchemaType;
 }) => Promise<void>;
 
 type CreateAndGetAccountFunction = (
-	db: DBType,
 	data: CreateAccountSchemaType
 ) => Promise<AccountTableType | undefined>;
 
@@ -70,21 +67,24 @@ export const accountActions: AccountActionsType & {
 	updateMany: UpdateManyAccountsFunction;
 	createAndGet: CreateAndGetAccountFunction;
 } = {
-	latestUpdate: async ({ db }) => {
+	latestUpdate: async () => {
+		const db = getContextDB();
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(account.updatedAt) }).from(account),
 			'Accounts - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db, id) => {
+	getById: async (id) => {
+		const db = getContextDB();
 		return dbExecuteLogger(
 			db.query.account.findFirst({ where: eq(account.id, id) }),
 			'Accounts - Get By ID'
 		);
 	},
-	count: async (db, filter) => {
-		const { table, target } = await getCorrectAccountTable(db);
+	count: async (filter) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectAccountTable();
 
 		const count = await dbExecuteLogger(
 			db
@@ -96,8 +96,9 @@ export const accountActions: AccountActionsType & {
 
 		return count[0].count;
 	},
-	listWithTransactionCount: async (db) => {
-		const { table } = await getCorrectAccountTable(db);
+	listWithTransactionCount: async () => {
+		const db = getContextDB();
+		const { table } = await getCorrectAccountTable();
 
 		const items = dbExecuteLogger(
 			db.select({ id: table.id, journalCount: table.count }).from(table),
@@ -106,8 +107,9 @@ export const accountActions: AccountActionsType & {
 
 		return items;
 	},
-	list: async ({ db, filter }) => {
-		const { table, target } = await getCorrectAccountTable(db);
+	list: async ({ filter }) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectAccountTable();
 
 		const {
 			page = 0,
@@ -153,9 +155,8 @@ export const accountActions: AccountActionsType & {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	generateCSVData: async ({ db, filter, returnType }) => {
+	generateCSVData: async ({ filter, returnType }) => {
 		const data = await accountActions.list({
-			db,
 			filter: { ...filter, page: 0, pageSize: 100000 }
 		});
 
@@ -196,7 +197,8 @@ export const accountActions: AccountActionsType & {
 
 		return csvData;
 	},
-	listForDropdown: async ({ db }) => {
+	listForDropdown: async () => {
+		const db = getContextDB();
 		await streamingDelay();
 		const items = await dbExecuteLogger(
 			db
@@ -212,9 +214,8 @@ export const accountActions: AccountActionsType & {
 
 		return items;
 	},
-	listCommonProperties: async ({ db, filter }) => {
+	listCommonProperties: async ({ filter }) => {
 		const { data: accounts } = await accountActions.list({
-			db,
 			filter: { ...filter, page: 0, pageSize: 1000000 }
 		});
 
@@ -248,7 +249,8 @@ export const accountActions: AccountActionsType & {
 			endDate
 		};
 	},
-	create: async (db, data) => {
+	create: async (data) => {
+		const db = getContextDB();
 		const id = nanoid();
 
 		await dbExecuteLogger(
@@ -256,18 +258,20 @@ export const accountActions: AccountActionsType & {
 			'Accounts - Create'
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return id;
 	},
-	createAndGet: async (db, data) => {
-		const id = await accountActions.create(db, data);
+	createAndGet: async (data) => {
+		const db = getContextDB();
+		const id = await accountActions.create(data);
 		return dbExecuteLogger(
 			db.query.account.findFirst({ where: eq(account.id, id) }),
 			'Accounts - Create And Get - Get'
 		);
 	},
-	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
+	createOrGet: async ({ title, id, requireActive = true, cachedData }) => {
+		const db = getContextDB();
 		if (id) {
 			const currentAccount = cachedData
 				? cachedData.find((item) => item.id === id)
@@ -307,7 +311,7 @@ export const accountActions: AccountActionsType & {
 				return currentAccount;
 			}
 
-			const newAccountId = await accountActions.create(db, {
+			const newAccountId = await accountActions.create({
 				...accountTitleInfo,
 				type: isExpense ? 'expense' : 'asset',
 				status: 'active'
@@ -324,7 +328,8 @@ export const accountActions: AccountActionsType & {
 			return undefined;
 		}
 	},
-	updateMany: async ({ db, data, filter }) => {
+	updateMany: async ({ data, filter }) => {
+		const db = getContextDB();
 		const processedData = updateAccountSchema.safeParse(data);
 
 		if (!processedData.success) {
@@ -332,22 +337,22 @@ export const accountActions: AccountActionsType & {
 		}
 
 		const items = await accountActions.list({
-			db,
 			filter: { ...filter, pageSize: 100000, page: 0 }
 		});
 
 		await tLogger(
 			'Update Many Accounts',
-			db.transaction(async (db) => {
+			db.transaction(async () => {
 				await Promise.all(
 					items.data.map(async (item) => {
-						await accountActions.update({ db, data, id: item.id });
+						await accountActions.update({ data, id: item.id });
 					})
 				);
 			})
 		);
 	},
-	update: async ({ db, data, id }) => {
+	update: async ({ data, id }) => {
+		const db = getContextDB();
 		const {
 			accountGroup2,
 			accountGroup3,
@@ -371,7 +376,7 @@ export const accountActions: AccountActionsType & {
 			throw new Error(`Account ${id} not found`);
 		}
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		const changingToExpenseOrIncome =
 			type && (type === 'expense' || type === 'income') && type !== currentAccount.type;
 
@@ -439,14 +444,15 @@ export const accountActions: AccountActionsType & {
 		}
 		return id;
 	},
-	canDeleteMany: async (db, ids) => {
+	canDeleteMany: async (ids) => {
 		const canDeleteList = await Promise.all(
-			ids.map(async (id) => accountActions.canDelete(db, { id }))
+			ids.map(async (id) => accountActions.canDelete({ id }))
 		);
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db, data) => {
+	canDelete: async (data) => {
+		const db = getContextDB();
 		const currentAccount = await dbExecuteLogger(
 			db.query.account.findFirst({
 				where: eq(account.id, data.id),
@@ -459,17 +465,19 @@ export const accountActions: AccountActionsType & {
 		}
 		return currentAccount && currentAccount.journals.length === 0;
 	},
-	delete: async (db, data) => {
+	delete: async (data) => {
+		const db = getContextDB();
 		// If the account has no journals, then mark as deleted, otherwise do nothing
-		if (await accountActions.canDelete(db, data)) {
+		if (await accountActions.canDelete(data)) {
 			await dbExecuteLogger(db.delete(account).where(eq(account.id, data.id)), 'Accounts - Delete');
 		}
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return data.id;
 	},
-	deleteMany: async (db, data) => {
-		const currentAccounts = await accountActions.listWithTransactionCount(db);
+	deleteMany: async (data) => {
+		const db = getContextDB();
+		const currentAccounts = await accountActions.listWithTransactionCount();
 		const itemsForDeletion = data.filter((item) => {
 			const currentAccount = currentAccounts.find((current) => current.id === item.id);
 			return currentAccount && currentAccount.journalCount === 0;
@@ -484,12 +492,13 @@ export const accountActions: AccountActionsType & {
 				),
 				'Accounts - Delete Many'
 			);
-			await materializedViewActions.setRefreshRequired(db);
+			await materializedViewActions.setRefreshRequired();
 			return true;
 		}
 		return false;
 	},
-	createMany: async (db, data) => {
+	createMany: async (data) => {
+		const db = getContextDB();
 		const dataForInsertion = data.map((currentAccount) => {
 			const id = nanoid();
 			return accountCreateInsertionData(currentAccount, id);
@@ -505,10 +514,10 @@ export const accountActions: AccountActionsType & {
 			})
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return dataForInsertion.map((item) => item.id);
 	},
-	seed: async (db: DBType, { countAssets, countLiabilities, countIncome, countExpenses }) => {
+	seed: async ({ countAssets, countLiabilities, countIncome, countExpenses }) => {
 		getLogger().info('Seeding Accounts : ', {
 			countAssets,
 			countLiabilities,
@@ -535,7 +544,7 @@ export const accountActions: AccountActionsType & {
 			...expensesToCreate
 		];
 
-		await accountActions.createMany(db, itemsToCreate);
-		await materializedViewActions.setRefreshRequired(db);
+		await accountActions.createMany(itemsToCreate);
+		await materializedViewActions.setRefreshRequired();
 	}
 };

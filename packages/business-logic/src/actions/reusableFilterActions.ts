@@ -6,7 +6,6 @@ import {
 	type updateReusableFilterSchemaType
 } from '@totallator/shared';
 import { and, asc, desc, eq, type InferSelectModel } from 'drizzle-orm';
-import type { DBType } from '@totallator/database';
 import { importTable, reusableFilter } from '@totallator/database';
 import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
 import { nanoid } from 'nanoid';
@@ -24,9 +23,11 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { tLogger } from '../server/db/transactionLogger';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { journalActions } from './journalActions';
+import { getContextDB } from '@totallator/context';
 
 export const reusableFilterActions = {
-	count: async (db: DBType) => {
+	count: async () => {
+		const db = getContextDB();
 		const count = await dbExecuteLogger(
 			db.select({ count: drizzleCount(reusableFilter.id) }).from(reusableFilter),
 			'Reusable Filter - Count'
@@ -34,16 +35,11 @@ export const reusableFilterActions = {
 
 		return count[0].count;
 	},
-	refreshFilterSummary: async ({
-		db,
-		currentFilter
-	}: {
-		db: DBType;
-		currentFilter: ReusableFilterTableType;
-	}) => {
+	refreshFilterSummary: async ({ currentFilter }: { currentFilter: ReusableFilterTableType }) => {
+		const db = getContextDB();
 		const itemUnpacked = await reusableFilterDBUnpacked(currentFilter);
 
-		const count = await journalMaterializedViewActions.count(db, itemUnpacked.filter);
+		const count = await journalMaterializedViewActions.count(itemUnpacked.filter);
 		const canApply =
 			count > 0 &&
 			currentFilter.change !== null &&
@@ -79,7 +75,8 @@ export const reusableFilterActions = {
 
 		return { ...itemUnpacked, canApply, journalCount: count };
 	},
-	getById: async ({ db, id }: { db: DBType; id: string }) => {
+	getById: async ({ id }: { id: string }) => {
+		const db = getContextDB();
 		const item = await dbExecuteLogger(
 			db.select().from(reusableFilter).where(eq(reusableFilter.id, id)),
 			'Reusable Filter - Get By ID'
@@ -89,23 +86,24 @@ export const reusableFilterActions = {
 		}
 
 		const updatedFilter = await reusableFilterActions.refreshFilterSummary({
-			db,
 			currentFilter: item[0]
 		});
 
 		return updatedFilter;
 	},
-	refreshAll: async ({ db, maximumTime }: { db: DBType; maximumTime: number }) => {
+	refreshAll: async ({ maximumTime }: { maximumTime: number }) => {
+		const db = getContextDB();
 		await dbExecuteLogger(
 			db.update(reusableFilter).set({ needsUpdate: true }),
 			'Reusable Filter - Refresh All'
 		);
-		return reusableFilterActions.refresh({ db, maximumTime });
+		return reusableFilterActions.refresh({ maximumTime });
 	},
-	refreshSome: async ({ db, ids }: { db: DBType; ids: string[] }) => {
-		await Promise.all(ids.map((id) => reusableFilterActions.getById({ db, id })));
+	refreshSome: async ({ ids }: { ids: string[] }) => {
+		await Promise.all(ids.map((id) => reusableFilterActions.getById({ id })));
 	},
-	refresh: async ({ db, maximumTime }: { db: DBType; maximumTime: number }) => {
+	refresh: async ({ maximumTime }: { maximumTime: number }) => {
+		const db = getContextDB();
 		const startTime = Date.now();
 
 		let numberModified = 0;
@@ -120,7 +118,7 @@ export const reusableFilterActions = {
 			}
 			const currentFilter = filter[0];
 
-			await reusableFilterActions.refreshFilterSummary({ db, currentFilter });
+			await reusableFilterActions.refreshFilterSummary({ currentFilter });
 
 			numberModified++;
 		}
@@ -136,21 +134,20 @@ export const reusableFilterActions = {
 		return numberModified;
 	},
 	updateAndList: async ({
-		db,
 		filter,
 		maximumTime
 	}: {
-		db: DBType;
 		filter: ReusableFilterFilterSchemaType;
 		maximumTime: number;
 	}) => {
 		await streamingDelay();
 
 		await testingDelay();
-		await reusableFilterActions.refresh({ db, maximumTime });
-		return reusableFilterActions.list({ db, filter });
+		await reusableFilterActions.refresh({ maximumTime });
+		return reusableFilterActions.list({ filter });
 	},
-	list: async ({ db, filter }: { db: DBType; filter: ReusableFilterFilterSchemaType }) => {
+	list: async ({ filter }: { filter: ReusableFilterFilterSchemaType }) => {
+		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = reusableFilterToQuery(restFilter);
@@ -198,7 +195,8 @@ export const reusableFilterActions = {
 
 		return { count, data: resultsProcessed, pageCount, page, pageSize };
 	},
-	listForDropdown: async ({ db }: { db: DBType }) => {
+	listForDropdown: async () => {
+		const db = getContextDB();
 		const allResults = await dbExecuteLogger(
 			db
 				.select()
@@ -246,8 +244,8 @@ export const reusableFilterActions = {
 			...resultsWithoutGroup
 		};
 	},
-	applyById: async ({ db, id, importId }: { db: DBType; id: string; importId?: string }) => {
-		const item = await reusableFilterActions.getById({ db, id });
+	applyById: async ({ id, importId }: { id: string; importId?: string }) => {
+		const item = await reusableFilterActions.getById({ id });
 
 		if (!item) {
 			return;
@@ -255,7 +253,6 @@ export const reusableFilterActions = {
 
 		if (item.change) {
 			await journalActions.updateJournals({
-				db,
 				filter: {
 					...item.filter,
 					importIdArray: importId
@@ -271,19 +268,12 @@ export const reusableFilterActions = {
 		}
 
 		//This is called to refresh the filter summary after running the action, as the journal count should almost certainly change.
-		await reusableFilterActions.getById({ db, id });
+		await reusableFilterActions.getById({ id });
 
 		return;
 	},
-	applyFollowingImport: async ({
-		db,
-		importId,
-		timeout
-	}: {
-		db: DBType;
-		importId: string;
-		timeout?: Date;
-	}) => {
+	applyFollowingImport: async ({ importId, timeout }: { importId: string; timeout?: Date }) => {
+		const db = getContextDB();
 		const items = await dbExecuteLogger(
 			db
 				.select({ id: reusableFilter.id })
@@ -332,7 +322,6 @@ export const reusableFilterActions = {
 				'Apply Following Import',
 				db.transaction(async (db) => {
 					await reusableFilterActions.applyById({
-						db,
 						id: currentImportId,
 						importId
 					});
@@ -377,7 +366,8 @@ export const reusableFilterActions = {
 			'Reusable Filter - Apply Following Import - Clear Import Status'
 		);
 	},
-	applyAllAutomatic: async ({ db }: { db: DBType }) => {
+	applyAllAutomatic: async () => {
+		const db = getContextDB();
 		const items = await dbExecuteLogger(
 			db
 				.select({ id: reusableFilter.id })
@@ -388,17 +378,18 @@ export const reusableFilterActions = {
 
 		await Promise.all(
 			items.map(async (currentItem) => {
-				await reusableFilterActions.applyById({ db, id: currentItem.id });
+				await reusableFilterActions.applyById({ id: currentItem.id });
 			})
 		);
 	},
-	createMany: async ({ db, data }: { db: DBType; data: CreateReusableFilterSchemaType[] }) => {
+	createMany: async ({ data }: { data: CreateReusableFilterSchemaType[] }) => {
+		const db = getContextDB();
 		const newFilters = await tLogger(
 			'Create Many Reusable Filters',
-			db.transaction(async (db) => {
+			db.transaction(async () => {
 				return Promise.all(
 					data.map(async (currentItem) => {
-						return reusableFilterActions.create({ db, data: currentItem });
+						return reusableFilterActions.create({ data: currentItem });
 					})
 				);
 			})
@@ -406,7 +397,8 @@ export const reusableFilterActions = {
 
 		return newFilters;
 	},
-	create: async ({ db, data }: { db: DBType; data: CreateReusableFilterSchemaType }) => {
+	create: async ({ data }: { data: CreateReusableFilterSchemaType }) => {
+		const db = getContextDB();
 		const processedData = createReusableFilterSchema.safeParse(data);
 
 		if (!processedData.success) {
@@ -440,17 +432,10 @@ export const reusableFilterActions = {
 			'Reusable Filter - Create'
 		);
 
-		return reusableFilterActions.getById({ db, id: idUse });
+		return reusableFilterActions.getById({ id: idUse });
 	},
-	update: async ({
-		db,
-		id,
-		data
-	}: {
-		db: DBType;
-		id: string;
-		data: updateReusableFilterSchemaType;
-	}) => {
+	update: async ({ id, data }: { id: string; data: updateReusableFilterSchemaType }) => {
+		const db = getContextDB();
 		const processedData = updateReusableFilterSchema.safeParse(data);
 
 		if (!processedData.success) {
@@ -491,15 +476,17 @@ export const reusableFilterActions = {
 			'Reusable Filter - Update'
 		);
 
-		return reusableFilterActions.getById({ db, id });
+		return reusableFilterActions.getById({ id });
 	},
-	delete: async ({ db, id }: { db: DBType; id: string }) => {
+	delete: async ({ id }: { id: string }) => {
+		const db = getContextDB();
 		await dbExecuteLogger(
 			db.delete(reusableFilter).where(eq(reusableFilter.id, id)),
 			'Reusable Filter - Delete'
 		);
 	},
-	deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
+	deleteMany: async ({ ids }: { ids: string[] }) => {
+		const db = getContextDB();
 		if (ids.length > 0) {
 			await dbExecuteLogger(
 				db.delete(reusableFilter).where(inArrayWrapped(reusableFilter.id, ids)),
@@ -507,14 +494,14 @@ export const reusableFilterActions = {
 			);
 		}
 	},
-	seed: async ({ db, count }: { db: DBType; count: number }) => {
+	seed: async ({ count }: { count: number }) => {
 		const newFilters = Array(count)
 			.fill(0)
 			.map((_, index) => {
-				return seedReusableFilterData({ db, id: index });
+				return seedReusableFilterData({ id: index });
 			});
 
-		await reusableFilterActions.createMany({ db, data: newFilters });
+		await reusableFilterActions.createMany({ data: newFilters });
 	}
 };
 

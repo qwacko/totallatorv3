@@ -44,7 +44,6 @@ export const actions = {
         }
       }
       newId = await tActions.import.store({
-        db,
         data: form.data,
       });
     } catch (e) {

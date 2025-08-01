@@ -9,14 +9,12 @@ import { bufferingHelper } from "$lib/server/bufferingHelper.js";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const { current, updateParams } = serverPageInfo(data.route.id, data);
   bufferingHelper(data);
 
   const filterInfo = current.searchParams || {};
 
   const filters = await tActions.reusableFitler.list({
-    db,
     filter: filterInfo,
   });
 
@@ -34,7 +32,6 @@ export const load = async (data) => {
     searchParams: current.searchParams,
     streamed: {
       filters: tActions.reusableFitler.updateAndList({
-        db,
         filter: filterInfo,
         maximumTime: 2000,
       }),
@@ -44,20 +41,16 @@ export const load = async (data) => {
 
 export const actions = {
   refreshAll: async ({ locals }) => {
-    const db = locals.db;
-
-    await tActions.reusableFitler.refreshAll({ db, maximumTime: 60000 });
+    await tActions.reusableFitler.refreshAll({ maximumTime: 60000 });
   },
   refreshSome: async ({ locals, params, request }) => {
-    const db = locals.db;
-
     const form = await request.formData();
     const ids = form.getAll("id");
 
     const idsArray = ids.map((id) => id.toString());
 
     try {
-      await tActions.reusableFitler.refreshSome({ db, ids: idsArray });
+      await tActions.reusableFitler.refreshSome({ ids: idsArray });
     } catch (e) {
       locals.global.logger.error("Error Refreshing Some Filters", e);
     }

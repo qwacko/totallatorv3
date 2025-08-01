@@ -9,7 +9,7 @@ import { serverPageInfo, urlGenerator } from "$lib/routes";
 export const load = async (data) => {
   authGuard(data);
   const { current } = serverPageInfo(data.route.id, data);
-  const allBackupFiles = await tActions.backup.list({ db: data.locals.db });
+  const allBackupFiles = await tActions.backup.list();
 
   const perPage = 20;
   const page = current.searchParams ? current.searchParams.page : 0;
@@ -49,16 +49,13 @@ export const load = async (data) => {
 
 export const actions = {
   refresh: async ({ request, locals }) => {
-    const db = locals.db;
-    await tActions.backup.refreshList({ db });
+    await tActions.backup.refreshList();
   },
   tidyBackups: async ({ request, locals }) => {
-    const db = locals.db;
-    await tActions.backup.trimBackups({ db });
+    await tActions.backup.trimBackups();
   },
   backup: async ({ request, locals }) => {
     try {
-      const db = locals.db;
       const formData = await request.formData();
       const backupName = formData.get("backupName")?.toString();
 
@@ -66,7 +63,6 @@ export const actions = {
         backupName && backupName.length > 0 ? backupName : "Manual Backup";
 
       await tActions.backup.storeBackup({
-        db: db,
         title: backupNameValidated,
         compress: true,
         createdBy: "User",
@@ -80,7 +76,6 @@ export const actions = {
   },
   backupUncompressed: async ({ request, locals }) => {
     try {
-      const db = locals.db;
       const formData = await request.formData();
       const backupName = formData.get("backupName")?.toString();
 
@@ -88,7 +83,6 @@ export const actions = {
         backupName && backupName.length > 0 ? backupName : "Manual Backup";
 
       await tActions.backup.storeBackup({
-        db: db,
         title: backupNameValidated,
         compress: false,
         createdBy: "User",

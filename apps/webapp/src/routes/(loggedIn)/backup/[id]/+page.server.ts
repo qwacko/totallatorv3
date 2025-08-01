@@ -21,7 +21,6 @@ export const load = async (data) => {
   }
 
   const backupInformation = await tActions.backup.getBackupInfo({
-    db: data.locals.db,
     id: current.params.id,
   });
 
@@ -48,7 +47,7 @@ export const actions = {
       return;
     }
     try {
-      await tActions.backup.lock({ db: locals.db, id });
+      await tActions.backup.lock({ id });
     } catch (e) {
       locals.global.logger.error("Error Locking Backup: " + e);
     }
@@ -60,7 +59,7 @@ export const actions = {
       return;
     }
     try {
-      await tActions.backup.unlock({ db: locals.db, id });
+      await tActions.backup.unlock({ id });
     } catch (e) {
       locals.global.logger.error("Error Unlocking Backup: " + e);
     }
@@ -77,7 +76,7 @@ export const actions = {
       return;
     }
     try {
-      await tActions.backup.updateTitle({ db: locals.db, id, title });
+      await tActions.backup.updateTitle({ id, title });
     } catch (e) {
       locals.global.logger.error("Error Updating Backup Title: " + e);
     }
@@ -91,7 +90,6 @@ export const actions = {
 
     try {
       await tActions.backup.restoreBackup({
-        db: locals.db,
         id,
         includeUsers: false,
       });
@@ -114,7 +112,7 @@ export const actions = {
     }
 
     try {
-      await tActions.backup.deleteBackup({ id, db: locals.db });
+      await tActions.backup.deleteBackup({ id });
     } catch (e) {
       locals.global.logger.error("Error Deleting Backup: " + e);
       return failWrapper("Error Deleting Backup");

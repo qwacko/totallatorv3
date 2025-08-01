@@ -30,7 +30,7 @@ export const groupedQueryLogSubquery = ({ db, where }: { db: DBType; where: SQL<
 				.raw(
 					` jsonb_build_object( ${timeBuckets
 						.map(
-							(time, index) =>
+							(time) =>
 								`'${time.toString().padStart(4, '0')}to${(time + timeBucketStep).toString().padStart(4, '0')}', COUNT(*) FILTER (WHERE ${queryLogTable.duration.name} >= ${time} AND ${queryLogTable.duration.name} < ${time + timeBucketStep})`
 						)
 						.join(',')})`

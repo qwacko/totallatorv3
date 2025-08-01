@@ -16,7 +16,6 @@ export const load = async (data) => {
   }
 
   const fileInfo = await tActions.file.list({
-    db: data.locals.db,
     filter: { idArray: [current.params.id] },
   });
 

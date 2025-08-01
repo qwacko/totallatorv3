@@ -37,9 +37,11 @@ import {
 	type EnhancedRecommendationType
 } from '@/server/services/journalRecommendationService';
 import type { LlmReviewStatusEnumType } from '@totallator/shared';
+import { getContextDB } from '@totallator/context';
 
 export const journalMaterializedViewActions = {
-	getLatestUpdateDate: async ({ db }: { db: DBType }): Promise<Date> => {
+	getLatestUpdateDate: async (): Promise<Date> => {
+		const db = getContextDB();
 		const latestUpdateDate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(journalEntry.updatedAt) }).from(journalEntry),
 			'Journal Materialized - Get Latest Update Date'
@@ -47,8 +49,9 @@ export const journalMaterializedViewActions = {
 
 		return latestUpdateDate[0].lastUpdated || new Date();
 	},
-	count: async (db: DBType, filter?: JournalFilterSchemaType): Promise<number> => {
-		const { table, target } = await getCorrectJournalTable(db);
+	count: async (filter?: JournalFilterSchemaType): Promise<number> => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectJournalTable();
 		const countQuery = await dbExecuteLogger(
 			db
 				.select({ count: count(table.id) })
@@ -66,10 +69,8 @@ export const journalMaterializedViewActions = {
 		return countQuery[0].count;
 	},
 	simpleSummary: async ({
-		db,
 		filter
 	}: {
-		db: DBType;
 		filter?: JournalFilterSchemaType | JournalFilterSchemaWithoutPaginationType;
 	}): Promise<{
 		count: number;
@@ -88,7 +89,8 @@ export const journalMaterializedViewActions = {
 		negativeSumNonTransfer: number;
 		negativeCountNonTransfer: number;
 	}> => {
-		const { table, target } = await getCorrectJournalTable(db);
+		const db = getContextDB();
+		const { table, target } = await getCorrectJournalTable();
 
 		const summaryQueryCore = db
 			.select({
@@ -137,17 +139,16 @@ export const journalMaterializedViewActions = {
 		return summaryQuery;
 	},
 	summary: async ({
-		db,
 		filter,
 		startDate,
 		endDate
 	}: {
-		db: DBType;
 		filter?: JournalFilterSchemaType | JournalFilterSchemaWithoutPaginationType;
 		startDate?: string;
 		endDate?: string;
 	}): Promise<SummaryCacheSchemaDataType> => {
-		const { table, target } = await getCorrectJournalTable(db);
+		const db = getContextDB();
+		const { table, target } = await getCorrectJournalTable();
 
 		const startDate12Months = new Date();
 		startDate12Months.setMonth(startDate12Months.getMonth() - 12 + 1);
@@ -323,27 +324,21 @@ export const journalMaterializedViewActions = {
 		return parsedData;
 	},
 	list: async ({
-		db,
-		filter,
-		disableRefresh = false
+		filter
 	}: {
-		db: DBType;
 		filter: JournalFilterSchemaInputType;
-		disableRefresh?: boolean;
 	}): Promise<JournalMLExpandedWithPagination> => {
+		const db = getContextDB();
 		return journalMaterialisedList({ db, filter });
 	},
 	generateCSVData: async ({
-		db,
 		filter,
 		returnType
 	}: {
-		db: DBType;
 		filter?: JournalFilterSchemaInputType;
 		returnType: DownloadTypeEnumType;
 	}): Promise<string> => {
 		const journalData = await journalMaterializedViewActions.list({
-			db,
 			filter: { ...filter, page: 0, pageSize: 100000 }
 		});
 
@@ -412,13 +407,9 @@ export const journalMaterializedViewActions = {
 		return csvData;
 	},
 	listWithCommonData: async ({
-		db,
-		filter,
-		disableRefresh = false
+		filter
 	}: {
-		db: DBType;
 		filter: JournalFilterSchemaInputType;
-		disableRefresh?: boolean;
 	}): Promise<{
 		journals: JournalMLExpandedWithPagination;
 		common: {
@@ -441,9 +432,7 @@ export const journalMaterializedViewActions = {
 		} & GetToFromAccountAmountDataReturn;
 	}> => {
 		const journalInformation = await journalMaterializedViewActions.list({
-			db,
-			filter,
-			disableRefresh
+			filter
 		});
 
 		const accountId = getCommonData('accountId', journalInformation.data);
@@ -489,11 +478,9 @@ export const journalMaterializedViewActions = {
 		};
 	},
 	listRecommendations: async ({
-		db,
 		journals,
 		similarityThreshold = 0.3
 	}: {
-		db: DBType;
 		similarityThreshold?: number;
 		journals: {
 			id: string;
@@ -503,6 +490,7 @@ export const journalMaterializedViewActions = {
 			importDetail?: { dataToUse?: any } | null;
 		}[];
 	}): Promise<undefined | RecommendationType[]> => {
+		const db = getContextDB();
 		if (journals.length !== 1) {
 			return;
 		}
@@ -529,8 +517,8 @@ export const journalMaterializedViewActions = {
 
 		const description = validated.data.description;
 
-		const { table } = await getCorrectJournalTable(db);
-		const { table: importCheckTable } = await getCorrectImportCheckTable(db);
+		const { table } = await getCorrectJournalTable();
+		const { table: importCheckTable } = await getCorrectImportCheckTable();
 
 		const recommendation = await dbExecuteLogger(
 			(() => {
@@ -634,7 +622,6 @@ export const journalMaterializedViewActions = {
 
 		// Get similarity-based recommendations first
 		const similarityRecommendations = await journalMaterializedViewActions.listRecommendations({
-			db,
 			journals,
 			similarityThreshold
 		});

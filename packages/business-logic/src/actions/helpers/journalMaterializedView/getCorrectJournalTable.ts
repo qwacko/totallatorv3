@@ -1,4 +1,3 @@
-import type { DBType } from '@totallator/database';
 import {
 	importCheckMaterializedView,
 	journalExtendedView,
@@ -6,9 +5,8 @@ import {
 } from '@totallator/database';
 import { materializedViewActions } from '../../materializedViewActions';
 
-export const getCorrectJournalTable = async (db: DBType) => {
+export const getCorrectJournalTable = async () => {
 	const needsRefresh = await materializedViewActions.needsRefresh({
-		db,
 		items: { journals: true }
 	});
 
@@ -19,9 +17,8 @@ export const getCorrectJournalTable = async (db: DBType) => {
 	return { table: journalExtendedView, target: 'materialized' as 'view' | 'materialized' };
 };
 
-export const getCorrectImportCheckTable = async (db: DBType) => {
+export const getCorrectImportCheckTable = async () => {
 	const needsRefresh = await materializedViewActions.needsRefresh({
-		db,
 		items: { importCheck: true }
 	});
 

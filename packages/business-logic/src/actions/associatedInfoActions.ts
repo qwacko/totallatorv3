@@ -47,32 +47,28 @@ import type { CreateNoteSchemaCoreType } from '@totallator/shared';
 import { noteActions } from './noteActions';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import type { IdSchemaType } from '@totallator/shared';
+import { getContextDB } from '@totallator/context';
 
 type CreateAssociatedInfoFunction = (data: {
-	db: DBType;
 	item: CreateAssociatedInfoSchemaType;
 	userId: string;
 }) => Promise<string>;
-type UpdateLinkedFunction = (data: { db: DBType }) => Promise<void>;
-type RemoveUnnecessaryFunction = (data: { db: DBType }) => Promise<void>;
+type UpdateLinkedFunction = () => Promise<void>;
+type RemoveUnnecessaryFunction = () => Promise<void>;
 
 type ListAsscociatedInfoFunction = (data: {
-	db: DBType;
 	filter: AssociatedInfoFilterSchemaWithPaginationType;
 }) => Promise<PaginatedResults<AssociatedInfoReturnType>>;
 
 type ListGroupedFunction = (data: {
-	db: DBType;
 	ids: string[];
 	grouping: GroupingIdOptions;
 }) => Promise<Record<string, AssociatedInfoDataType[]>>;
 type AddToSingleItemFunction = <T extends { id: string }>(data: {
-	db: DBType;
 	item: T;
 	grouping: GroupingIdOptions;
 }) => T & { associated: Promise<AssociatedInfoDataType[]> };
 type AddToItemsFunction = <T extends { id: string }>(data: {
-	db: DBType;
 	data: PaginatedResults<T>;
 	grouping: GroupingIdOptions;
 }) => PaginatedResults<T & { associated: Promise<AssociatedInfoDataType[]> }>;
@@ -128,16 +124,18 @@ export const associatedInfoActions: {
 	create: CreateAssociatedInfoFunction;
 	removeSummary: RemoveSummaryFunction;
 } = {
-	removeSummary: async ({ db, data }) => {
+	removeSummary: async ({ data }) => {
+		const db = getContextDB();
 		await dbExecuteLogger(
 			db.delete(journalSnapshotTable).where(eq(journalSnapshotTable.id, data.id))
 		);
 
-		await associatedInfoActions.removeUnnecessary({ db });
+		await associatedInfoActions.removeUnnecessary();
 
 		return;
 	},
-	create: async ({ db, item, userId }) => {
+	create: async ({ item, userId }) => {
+		const db = getContextDB();
 		const {
 			files,
 			notes,
@@ -191,7 +189,6 @@ export const associatedInfoActions: {
 
 		if (canAddSummary && createSummary && journalSummaryFile) {
 			const csvData: string = await journalMaterializedViewActions.generateCSVData({
-				db,
 				filter,
 				returnType: 'default'
 			});
@@ -217,7 +214,6 @@ export const associatedInfoActions: {
 			await Promise.all(
 				filesToCreate.map(async (file) =>
 					fileActions.addToInfo({
-						db: tx,
 						associatedId: associatedInfoId,
 						data: file
 					})
@@ -227,7 +223,6 @@ export const associatedInfoActions: {
 			await Promise.all(
 				notesToCreate.map(async (note) =>
 					noteActions.addToInfo({
-						db: tx,
 						associatedId: associatedInfoId,
 						data: note
 					})
@@ -235,7 +230,7 @@ export const associatedInfoActions: {
 			);
 
 			if (createSummary && canAddSummary) {
-				const summaryData = await journalMaterializedViewActions.simpleSummary({ db, filter });
+				const summaryData = await journalMaterializedViewActions.simpleSummary({ filter });
 
 				const newItem: typeof journalSnapshotTable.$inferInsert = {
 					id: nanoid(),
@@ -247,10 +242,11 @@ export const associatedInfoActions: {
 				await dbExecuteLogger(tx.insert(journalSnapshotTable).values(newItem));
 			}
 		});
-		await associatedInfoActions.removeUnnecessary({ db });
+		await associatedInfoActions.removeUnnecessary();
 		return associatedInfoId;
 	},
-	removeUnnecessary: async ({ db }) => {
+	removeUnnecessary: async () => {
+		const db = getContextDB();
 		const itemsToDelete = await db
 			.select({ id: associatedInfoTable.id, fileId: fileTable.id, noteId: notesTable.id })
 			.from(associatedInfoTable)
@@ -277,9 +273,10 @@ export const associatedInfoActions: {
 			);
 		}
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	updateLinked: async ({ db }) => {
+	updateLinked: async () => {
+		const db = getContextDB();
 		await dbExecuteLogger(
 			db
 				.update(associatedInfoTable)
@@ -316,9 +313,10 @@ export const associatedInfoActions: {
 			'File - Update Linked - True'
 		);
 
-		await associatedInfoActions.removeUnnecessary({ db });
+		await associatedInfoActions.removeUnnecessary();
 	},
-	list: async ({ db, filter }) => {
+	list: async ({ filter }) => {
+		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...filterWithoutPagination } = filter;
 
 		const where = associatedInfoFilterToQuery({ filter: filterWithoutPagination });
@@ -435,7 +433,8 @@ export const associatedInfoActions: {
 
 		return { count, data: resultsWithAdditionalInfo, pageCount, page, pageSize };
 	},
-	listGrouped: async ({ db, ids, grouping }) => {
+	listGrouped: async ({ ids, grouping }) => {
+		const db = getContextDB();
 		const items = await db.query.associatedInfoTable.findMany({
 			where: (targetTable, { inArray }) => inArray(targetTable[grouping], ids),
 			orderBy: (targetTable, { desc }) => [desc(targetTable.createdAt)],
@@ -464,11 +463,10 @@ export const associatedInfoActions: {
 
 		return groupedItems;
 	},
-	addToSingleItem: ({ db, item, grouping }) => {
+	addToSingleItem: ({ item, grouping }) => {
 		const addFunction = async () => {
 			const ids = [item.id];
 			const groupedAssociatedInfos = await associatedInfoActions.listGrouped({
-				db,
 				ids,
 				grouping
 			});
@@ -487,10 +485,9 @@ export const associatedInfoActions: {
 			associated
 		};
 	},
-	addToItems: ({ db, data, grouping }) => {
+	addToItems: ({ data, grouping }) => {
 		const ids = data.data.map((a) => a.id);
 		const groupedAssociatedInfos = associatedInfoActions.listGrouped({
-			db,
 			ids,
 			grouping
 		});

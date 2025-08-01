@@ -35,7 +35,7 @@ export const actions = {
     }
 
     try {
-      await tActions.category.create(db, form.data);
+      await tActions.category.create(form.data);
     } catch (e) {
       locals.global.logger.error("Create Category Error", e);
       return message(form, "Error Creating Category, Possibly Already Exists");

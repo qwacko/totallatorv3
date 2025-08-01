@@ -1,6 +1,5 @@
 import type { DownloadTypeEnumType } from '@totallator/shared';
 import type { IdSchemaType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
 import type { PaginatedResults } from '../journal/PaginationType';
 import type { CreateOrGetType } from './createOrGetType';
 
@@ -13,30 +12,29 @@ export type ItemActionsType<
 	DropdownType extends Record<string, any>[],
 	SeedCountType
 > = {
-	latestUpdate: (data: { db: DBType }) => Promise<Date>;
-	getById: (db: DBType, id: string) => Promise<TableType | undefined>;
-	count: (db: DBType, filter?: FilterSchema) => Promise<number>;
-	listWithTransactionCount: (db: DBType) => Promise<{ id: string; journalCount: number }[]>;
-	list: (data: { db: DBType; filter: FilterSchema }) => Promise<PaginatedResults<ViewTableType>>;
+	latestUpdate: () => Promise<Date>;
+	getById: ( id: string) => Promise<TableType | undefined>;
+	count: ( filter?: FilterSchema) => Promise<number>;
+	listWithTransactionCount: () => Promise<{ id: string; journalCount: number }[]>;
+	list: (data: {  filter: FilterSchema }) => Promise<PaginatedResults<ViewTableType>>;
 	generateCSVData: (data: {
-		db: DBType;
+		
 		filter?: FilterSchema;
 		returnType: DownloadTypeEnumType;
 	}) => Promise<string>;
-	listForDropdown: (data: { db: DBType }) => Promise<DropdownType>;
+	listForDropdown: () => Promise<DropdownType>;
 	createOrGet: (data: {
-		db: DBType;
 		title?: string | null;
 		id?: string | null;
 		requireActive?: boolean;
 		cachedData?: CreateOrGetType[];
 	}) => Promise<CreateOrGetType | undefined | null>;
-	create: (db: DBType, data: CreateSchema) => Promise<string>;
-	createMany: (db: DBType, data: CreateSchema[]) => Promise<string[] | undefined>;
-	update: (data: { db: DBType; data: UpdateSchema; id: string }) => Promise<string>;
-	canDeleteMany: (db: DBType, ids: string[]) => Promise<boolean>;
-	canDelete: (db: DBType, data: IdSchemaType) => Promise<boolean>;
-	delete: (db: DBType, data: IdSchemaType) => Promise<string>;
-	deleteMany: (db: DBType, data: IdSchemaType[]) => Promise<boolean | undefined>;
-	seed: (db: DBType, count: SeedCountType) => Promise<void>;
+	create: (data: CreateSchema) => Promise<string>;
+	createMany: (data: CreateSchema[]) => Promise<string[] | undefined>;
+	update: (data: { data: UpdateSchema; id: string }) => Promise<string>;
+	canDeleteMany: (ids: string[]) => Promise<boolean>;
+	canDelete: (data: IdSchemaType) => Promise<boolean>;
+	delete: (data: IdSchemaType) => Promise<string>;
+	deleteMany: (data: IdSchemaType[]) => Promise<boolean | undefined>;
+	seed: (count: SeedCountType) => Promise<void>;
 };

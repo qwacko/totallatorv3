@@ -39,9 +39,7 @@ export const load = async (data) => {
     redirect(302, updateParams({ searchParams: { pageSize: 10 } }).url);
   }
 
-  const latestUpdate = await tActions.journalView.getLatestUpdateDate({
-    db: data.locals.db,
-  });
+  const latestUpdate = await tActions.journalView.getLatestUpdateDate();
 
   // Generate autocomplete configuration from server-side filter array
   const autocompleteKeys = extractAutocompleteFromTextFilter(
@@ -62,7 +60,6 @@ export const actions = {
   ...fileFormActions,
   ...associatedInfoFormActions,
   updateJournal: async (data) => {
-    const db = data.locals.db;
     const form = await superValidate(
       data.request,
       zod4(
@@ -89,7 +86,6 @@ export const actions = {
 
     try {
       await tActions.journal.updateJournals({
-        db,
         filter: parsedFilter.data,
         journalData: form.data,
       });
@@ -109,35 +105,31 @@ export const actions = {
     if (!journalId || !action) return;
     try {
       if (action === "uncomplete") {
-        await tActions.journal.markUncomplete(data.locals.db, journalId);
+        await tActions.journal.markUncomplete(journalId);
       }
       if (action === "complete") {
-        await tActions.journal.markComplete(data.locals.db, journalId);
+        await tActions.journal.markComplete(journalId);
       }
       if (action === "reconcile") {
         await tActions.journal.updateJournals({
-          db: data.locals.db,
           filter: { id: journalId },
           journalData: { setReconciled: true },
         });
       }
       if (action === "unreconcile") {
         await tActions.journal.updateJournals({
-          db: data.locals.db,
           filter: { id: journalId },
           journalData: { clearReconciled: true },
         });
       }
       if (action === "check") {
         await tActions.journal.updateJournals({
-          db: data.locals.db,
           filter: { id: journalId },
           journalData: { setDataChecked: true },
         });
       }
       if (action === "uncheck") {
         await tActions.journal.updateJournals({
-          db: data.locals.db,
           filter: { id: journalId },
           journalData: { clearDataChecked: true },
         });

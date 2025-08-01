@@ -58,7 +58,7 @@ describe('journalLlmSuggestionActions', () => {
 		testLlmSettingsId = createdLlmSettings.id;
 
 		// Refresh materialized views
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	});
 
 	afterAll(async () => {

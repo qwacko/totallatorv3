@@ -26,6 +26,7 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getCorrectCategoryTable } from './helpers/category/getCorrectCategoryTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import Papa from 'papaparse';
+import { getContextDB } from '@totallator/context';
 
 export type CategoryDropdownType = {
 	id: string;
@@ -45,21 +46,24 @@ type CategoryActionsType = ItemActionsType<
 >;
 
 export const categoryActions: CategoryActionsType = {
-	latestUpdate: async ({ db }) => {
+	latestUpdate: async () => {
+		const db = getContextDB();
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(category.updatedAt) }).from(category),
 			'Category - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db, id) => {
+	getById: async (id) => {
+		const db = getContextDB();
 		return dbExecuteLogger(
 			db.query.category.findFirst({ where: eq(category.id, id) }),
 			'Category - Get By Id'
 		);
 	},
-	count: async (db, filter) => {
-		const { table, target } = await getCorrectCategoryTable(db);
+	count: async (filter) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectCategoryTable();
 
 		const count = await dbExecuteLogger(
 			db
@@ -71,8 +75,9 @@ export const categoryActions: CategoryActionsType = {
 
 		return count[0].count;
 	},
-	listWithTransactionCount: async (db) => {
-		const { table } = await getCorrectCategoryTable(db);
+	listWithTransactionCount: async () => {
+		const db = getContextDB();
+		const { table } = await getCorrectCategoryTable();
 		const items = dbExecuteLogger(
 			db.select({ id: table.id, journalCount: table.count }).from(table),
 			'Category - List With Transaction Count'
@@ -80,8 +85,9 @@ export const categoryActions: CategoryActionsType = {
 
 		return items;
 	},
-	list: async ({ db, filter }) => {
-		const { table, target } = await getCorrectCategoryTable(db);
+	list: async ({ filter }) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectCategoryTable();
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
@@ -124,9 +130,8 @@ export const categoryActions: CategoryActionsType = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	generateCSVData: async ({ db, filter, returnType }) => {
+	generateCSVData: async ({ filter, returnType }) => {
 		const data = await categoryActions.list({
-			db,
 			filter: { ...filter, page: 0, pageSize: 100000 }
 		});
 
@@ -153,7 +158,8 @@ export const categoryActions: CategoryActionsType = {
 
 		return csvData;
 	},
-	listForDropdown: async ({ db }) => {
+	listForDropdown: async () => {
+		const db = getContextDB();
 		await streamingDelay();
 		const items = dbExecuteLogger(
 			db
@@ -169,7 +175,8 @@ export const categoryActions: CategoryActionsType = {
 
 		return items;
 	},
-	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
+	createOrGet: async ({ title, id, requireActive = true, cachedData }) => {
+		const db = getContextDB();
 		if (id) {
 			const currentCategory = cachedData
 				? cachedData.find((item) => item.id === id)
@@ -198,7 +205,7 @@ export const categoryActions: CategoryActionsType = {
 				}
 				return currentCategory;
 			}
-			const newCategoryId = await categoryActions.create(db, {
+			const newCategoryId = await categoryActions.create({
 				title,
 				status: 'active'
 			});
@@ -214,27 +221,30 @@ export const categoryActions: CategoryActionsType = {
 			return undefined;
 		}
 	},
-	create: async (db, data) => {
+	create: async (data) => {
+		const db = getContextDB();
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(category).values(categoryCreateInsertionData(data, id)),
 			'Category - Create'
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return id;
 	},
-	createMany: async (db, data) => {
+	createMany: async (data) => {
+		const db = getContextDB();
 		const ids = data.map(() => nanoid());
 		const insertData = data.map((currentData, index) =>
 			categoryCreateInsertionData(currentData, ids[index])
 		);
 		await dbExecuteLogger(db.insert(category).values(insertData), 'Category - Create Many');
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return ids;
 	},
-	update: async ({ db, data, id }) => {
+	update: async ({ data, id }) => {
+		const db = getContextDB();
 		const currentCategory = await dbExecuteLogger(
 			db.query.category.findFirst({ where: eq(category.id, id) }),
 			'Category - Update - Current Category'
@@ -256,17 +266,18 @@ export const categoryActions: CategoryActionsType = {
 				.where(eq(category.id, id)),
 			'Category - Update'
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
-	canDeleteMany: async (db, ids) => {
+	canDeleteMany: async (ids) => {
 		const canDeleteList = await Promise.all(
-			ids.map(async (id) => categoryActions.canDelete(db, { id }))
+			ids.map(async (id) => categoryActions.canDelete({ id }))
 		);
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db, data) => {
+	canDelete: async (data) => {
+		const db = getContextDB();
 		const currentCategory = await dbExecuteLogger(
 			db.query.category.findFirst({
 				where: eq(category.id, data.id),
@@ -281,20 +292,22 @@ export const categoryActions: CategoryActionsType = {
 		// If the category has no journals, then mark as deleted, otherwise do nothing
 		return currentCategory && currentCategory.journals.length === 0;
 	},
-	delete: async (db, data) => {
-		if (await categoryActions.canDelete(db, data)) {
+	delete: async (data) => {
+		const db = getContextDB();
+		if (await categoryActions.canDelete(data)) {
 			await dbExecuteLogger(
 				db.delete(category).where(eq(category.id, data.id)),
 				'Category - Delete'
 			);
 		}
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return data.id;
 	},
-	deleteMany: async (db, data) => {
+	deleteMany: async (data) => {
+		const db = getContextDB();
 		if (data.length === 0) return;
-		const currentCategories = await categoryActions.listWithTransactionCount(db);
+		const currentCategories = await categoryActions.listWithTransactionCount();
 		const itemsForDeletion = data.filter((item) => {
 			const currentCategory = currentCategories.find((current) => current.id === item.id);
 			return currentCategory && currentCategory.journalCount === 0;
@@ -309,12 +322,13 @@ export const categoryActions: CategoryActionsType = {
 				),
 				'Category - Delete Many'
 			);
-			await materializedViewActions.setRefreshRequired(db);
+			await materializedViewActions.setRefreshRequired();
 			return true;
 		}
 		return false;
 	},
-	seed: async (db, count) => {
+	seed: async (count) => {
+		const db = getContextDB();
 		getLogger().info('Seeding Categories : ', count);
 
 		const existingTitles = (
@@ -330,6 +344,6 @@ export const categoryActions: CategoryActionsType = {
 			count
 		});
 
-		await categoryActions.createMany(db, itemsToCreate);
+		await categoryActions.createMany(itemsToCreate);
 	}
 };

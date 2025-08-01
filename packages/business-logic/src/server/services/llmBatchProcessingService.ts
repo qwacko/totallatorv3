@@ -446,7 +446,7 @@ async function getAccountsWithRequiredJournals(
 	// Get account details and verify they are asset/liability accounts
 	const accounts = await Promise.all(
 		Array.from(accountIds).map(async (id) => {
-			const account = await accountActions.getById(db, id!);
+			const account = await accountActions.getById(id!);
 			if (account && (account.type === 'asset' || account.type === 'liability')) {
 				return { id: account.id, title: account.title, type: account.type };
 			}
@@ -913,6 +913,8 @@ async function processLLMResponse(
 		labels: number;
 	};
 }> {
+	console.log('Processing LLM response:', response, !!db, config);
+
 	// This will be implemented in the next iteration
 	return {};
 }

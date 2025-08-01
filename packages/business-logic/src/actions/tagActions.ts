@@ -22,6 +22,7 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getCorrectTagTable } from './helpers/tag/getCorrectTagTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import Papa from 'papaparse';
+import { getContextDB } from '@totallator/context';
 
 export type TagDropdownType = {
 	id: string;
@@ -41,18 +42,21 @@ type TagActionsType = ItemActionsType<
 >;
 
 export const tagActions: TagActionsType = {
-	latestUpdate: async ({ db }) => {
+	latestUpdate: async () => {
+		const db = getContextDB();
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(tag.updatedAt) }).from(tag),
 			'Tags - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db, id) => {
+	getById: async (id) => {
+		const db = getContextDB();
 		return dbExecuteLogger(db.query.tag.findFirst({ where: eq(tag.id, id) }), 'Tags - Get By Id');
 	},
-	count: async (db, filter) => {
-		const { table, target } = await getCorrectTagTable(db);
+	count: async (filter) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectTagTable();
 		const where = filter ? tagFilterToQuery({ filter, target }) : [];
 
 		const result = await dbExecuteLogger(
@@ -65,7 +69,8 @@ export const tagActions: TagActionsType = {
 
 		return result[0].count;
 	},
-	listWithTransactionCount: async (db) => {
+	listWithTransactionCount: async () => {
+		const db = getContextDB();
 		const items = dbExecuteLogger(
 			db
 				.select({ id: tag.id, journalCount: count(journalEntry.id) })
@@ -77,8 +82,9 @@ export const tagActions: TagActionsType = {
 
 		return items;
 	},
-	list: async ({ db, filter }) => {
-		const { table, target } = await getCorrectTagTable(db);
+	list: async ({ filter }) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectTagTable();
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
@@ -121,9 +127,8 @@ export const tagActions: TagActionsType = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	generateCSVData: async ({ db, filter, returnType }) => {
+	generateCSVData: async ({ filter, returnType }) => {
 		const data = await tagActions.list({
-			db,
 			filter: { ...filter, page: 0, pageSize: 100000 }
 		});
 
@@ -150,7 +155,8 @@ export const tagActions: TagActionsType = {
 
 		return csvData;
 	},
-	listForDropdown: async ({ db }) => {
+	listForDropdown: async () => {
+		const db = getContextDB();
 		await streamingDelay();
 		const items = dbExecuteLogger(
 			db
@@ -161,7 +167,8 @@ export const tagActions: TagActionsType = {
 
 		return items;
 	},
-	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
+	createOrGet: async ({ title, id, requireActive = true, cachedData }) => {
+		const db = getContextDB();
 		if (id) {
 			const currentTag = cachedData
 				? cachedData.find((current) => current.id === id)
@@ -190,7 +197,7 @@ export const tagActions: TagActionsType = {
 				}
 				return currentTag;
 			}
-			const newTagId = await tagActions.create(db, {
+			const newTagId = await tagActions.create({
 				title,
 				status: 'active'
 			});
@@ -207,24 +214,27 @@ export const tagActions: TagActionsType = {
 			return undefined;
 		}
 	},
-	create: async (db, data) => {
+	create: async (data) => {
+		const db = getContextDB();
 		const id = nanoid();
 		await dbExecuteLogger(db.insert(tag).values(tagCreateInsertionData(data, id)), 'Tags - Create');
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
-	createMany: async (db, data) => {
+	createMany: async (data) => {
+		const db = getContextDB();
 		const ids = data.map(() => nanoid());
 		const insertData = data.map((currentData, index) =>
 			tagCreateInsertionData(currentData, ids[index])
 		);
 		await dbExecuteLogger(db.insert(tag).values(insertData), 'Tags - Create Many');
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return ids;
 	},
-	update: async ({ db, data, id }) => {
+	update: async ({ data, id }) => {
+		const db = getContextDB();
 		const currentTag = await dbExecuteLogger(
 			db.query.tag.findFirst({ where: eq(tag.id, id) }),
 			'Tags - Update - Current Tag'
@@ -247,17 +257,16 @@ export const tagActions: TagActionsType = {
 			'Tags - Update'
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return id;
 	},
-	canDeleteMany: async (db, ids) => {
-		const canDeleteList = await Promise.all(
-			ids.map(async (id) => tagActions.canDelete(db, { id }))
-		);
+	canDeleteMany: async (ids) => {
+		const canDeleteList = await Promise.all(ids.map(async (id) => tagActions.canDelete({ id })));
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db, data) => {
+	canDelete: async (data) => {
+		const db = getContextDB();
 		const currentTag = await dbExecuteLogger(
 			db.query.tag.findFirst({ where: eq(tag.id, data.id), with: { journals: { limit: 1 } } }),
 			'Tags - Can Delete'
@@ -269,18 +278,20 @@ export const tagActions: TagActionsType = {
 		// If the tag has no journals, then mark as deleted, otherwise do nothing
 		return currentTag && currentTag.journals.length === 0;
 	},
-	delete: async (db, data) => {
+	delete: async (data) => {
+		const db = getContextDB();
 		// If the tag has no journals, then mark as deleted, otherwise do nothing
-		if (await tagActions.canDelete(db, data)) {
+		if (await tagActions.canDelete(data)) {
 			await dbExecuteLogger(db.delete(tag).where(eq(tag.id, data.id)), 'Tags - Delete');
 		}
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return data.id;
 	},
-	deleteMany: async (db, data) => {
+	deleteMany: async (data) => {
+		const db = getContextDB();
 		if (data.length === 0) return;
-		const currentTags = await tagActions.listWithTransactionCount(db);
+		const currentTags = await tagActions.listWithTransactionCount();
 		const itemsForDeletion = data.filter((item) => {
 			const currentTag = currentTags.find((current) => current.id === item.id);
 			return currentTag && currentTag.journalCount === 0;
@@ -295,12 +306,13 @@ export const tagActions: TagActionsType = {
 				),
 				'Tags - Delete Many'
 			);
-			await materializedViewActions.setRefreshRequired(db);
+			await materializedViewActions.setRefreshRequired();
 			return true;
 		}
 		return false;
 	},
-	seed: async (db, count) => {
+	seed: async (count) => {
+		const db = getContextDB();
 		getLogger().info('Seeding Tags : ', count);
 
 		const existingTitles = (
@@ -316,6 +328,6 @@ export const tagActions: TagActionsType = {
 			count
 		});
 
-		await tagActions.createMany(db, itemsToCreate);
+		await tagActions.createMany(itemsToCreate);
 	}
 };

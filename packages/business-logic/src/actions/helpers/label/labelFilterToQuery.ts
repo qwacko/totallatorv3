@@ -88,12 +88,10 @@ export const labelFilterToQuery = ({
 
 export const labelFilterToSubQuery = ({
 	filter,
-	includeSummary = false,
 	db
 }: {
 	db: DBType;
 	filter: Omit<LabelFilterSchemaType, 'pageNo' | 'pageSize' | 'orderBy'>;
-	includeSummary?: boolean;
 }) => {
 	const restFilter = processLabelTextFilter.process(filter);
 

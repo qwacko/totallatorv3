@@ -18,12 +18,10 @@ export const load = async (data) => {
   }
 
   const titleInfo = await tActions.file.getLinkedText({
-    db: data.locals.db,
     items: current.searchParams,
   });
 
   const unlinkedItems = await tActions.file.listWithoutPagination({
-    db: data.locals.db,
     filter: {
       linked: false,
     },

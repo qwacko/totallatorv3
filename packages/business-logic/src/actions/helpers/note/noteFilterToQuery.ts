@@ -2,7 +2,6 @@ import { notesTable } from '@totallator/database';
 import { SQL, not, gt, isNull } from 'drizzle-orm';
 import { idTitleFilterToQueryMapped } from '../misc/filterToQueryTitleIDCore';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
-import type { DBType } from '@totallator/database';
 import { processNoteTextFilter } from './noteTextFilter';
 import type { NoteFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type { LinkedNoteFilterSchemaType } from '@totallator/shared';
@@ -43,12 +42,10 @@ export const noteFilterToQuery = (filter: NoteFilterSchemaWithoutPaginationType)
 };
 
 export const noteFilterToText = async ({
-	db,
 	filter,
 	prefix,
 	allText = true
 }: {
-	db: DBType;
 	filter: NoteFilterSchemaWithoutPaginationType;
 	prefix?: string;
 	allText?: boolean;

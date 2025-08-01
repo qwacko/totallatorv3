@@ -103,14 +103,12 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 		} else {
 			if (importData.type === 'transaction') {
 				await importActions.processItems({
-					db,
 					id,
 					data: processedData,
 					schema: createSimpleTransactionSchema
 				});
 			} else if (importData.type === 'account') {
 				await importActions.processItems({
-					db,
 					id,
 					data: processedData,
 					schema: createAccountSchema,
@@ -126,7 +124,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 				});
 			} else if (importData.type === 'bill') {
 				await importActions.processItems({
-					db,
 					id,
 					data: processedData,
 					schema: createBillSchema,
@@ -141,7 +138,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 				});
 			} else if (importData.type === 'budget') {
 				await importActions.processItems({
-					db,
 					id,
 					data: processedData,
 					schema: createBudgetSchema,
@@ -156,7 +152,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 				});
 			} else if (importData.type === 'category') {
 				await importActions.processItems({
-					db,
 					id,
 					data: processedData,
 					schema: createCategorySchema,
@@ -171,7 +166,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 				});
 			} else if (importData.type === 'tag') {
 				await importActions.processItems({
-					db,
 					id,
 					data: processedData,
 					schema: createTagSchema,
@@ -186,7 +180,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 				});
 			} else if (importData.type === 'label') {
 				await importActions.processItems({
-					db,
 					id,
 					data: processedData,
 					schema: createLabelSchema,
@@ -211,7 +204,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 							const config = importMappingDetail.configuration;
 
 							await importActions.processItems<CreateSimpleTransactionType>({
-								db,
 								id,
 								data: processedData,
 								schema: createSimpleTransactionSchema as ZodSchema<CreateSimpleTransactionType>,
@@ -298,7 +290,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 		const processedData = parsedData.data;
 
 		await importActions.processItems<CreateSimpleTransactionType>({
-			db,
 			id,
 			data: { data: processedData },
 			schema: createSimpleTransactionSchema as ZodSchema<CreateSimpleTransactionType>,

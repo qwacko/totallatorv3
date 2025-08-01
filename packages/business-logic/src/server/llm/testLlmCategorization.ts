@@ -133,7 +133,7 @@ export function analyzeTransactionPattern(description: string, amount: number) {
 	};
 
 	const matches = Object.entries(patterns)
-		.filter(([name, pattern]) => pattern.test(description))
+		.filter(([_, pattern]) => pattern.test(description))
 		.map(([name]) => name);
 
 	console.log(`Detected patterns: ${matches.length > 0 ? matches.join(', ') : 'none'}`);

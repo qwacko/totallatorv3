@@ -1,10 +1,8 @@
-import type { DBType } from '@totallator/database';
 import { budgetMaterializedView, budgetView } from '@totallator/database';
 import { materializedViewActions } from '../../materializedViewActions';
 
-export const getCorrectBudgetTable = async (db: DBType) => {
+export const getCorrectBudgetTable = async () => {
 	const needsRefresh = await materializedViewActions.needsRefresh({
-		db,
 		items: { budget: true }
 	});
 

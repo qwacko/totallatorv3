@@ -42,6 +42,7 @@ export {
   getGlobalContext as getGlobalContextFromStore,
   getRequestContext as getRequestContextFromStore,
   getContext as getContextStore,
+  getContextDB,
   runWithContext,
 } from './asyncStorage.js';
 

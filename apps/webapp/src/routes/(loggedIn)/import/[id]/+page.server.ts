@@ -7,7 +7,7 @@ import { urlGenerator } from "$lib/routes";
 export const actions = {
   reprocess: async ({ params, locals }) => {
     try {
-      await tActions.import.reprocess({ db: locals.db, id: params.id });
+      await tActions.import.reprocess({ id: params.id });
     } catch (e) {
       locals.global.logger.error(
         "Reprocess Import Error",
@@ -16,10 +16,10 @@ export const actions = {
     }
   },
   triggerImport: async ({ params, locals }) =>
-    tActions.import.triggerImport({ db: locals.db, id: params.id }),
+    tActions.import.triggerImport({ id: params.id }),
   clean: async ({ params, locals }) => {
     try {
-      await tActions.import.clean({ db: locals.db, id: params.id });
+      await tActions.import.clean({ id: params.id });
     } catch (e) {
       locals.global.logger.error(
         "Clean Import Error",
@@ -28,7 +28,6 @@ export const actions = {
     }
 
     const importData = await tActions.import.get({
-      db: locals.db,
       id: params.id,
     });
 
@@ -41,32 +40,28 @@ export const actions = {
     }
   },
   toggleAutoClean: async ({ params, locals }) => {
-    const db = locals.db;
     const id = params.id;
 
-    const importData = await tActions.import.get({ db, id });
+    const importData = await tActions.import.get({ id });
 
     if (!importData.importInfo) {
       return;
     }
 
     await tActions.import.update({
-      db,
       data: { id, autoClean: !importData.importInfo.import.autoClean },
     });
   },
   toggleAutoProcess: async ({ params, locals }) => {
-    const db = locals.db;
     const id = params.id;
 
-    const importData = await tActions.import.get({ db, id });
+    const importData = await tActions.import.get({ id });
 
     if (!importData.importInfo) {
       return;
     }
 
     await tActions.import.update({
-      db,
       data: { id, autoProcess: !importData.importInfo.import.autoProcess },
     });
   },

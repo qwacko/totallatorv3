@@ -13,7 +13,6 @@ export const GET = async (data) => {
   } = serverPageInfo(data.route.id, data);
 
   const summaryData = await tActions.journalView.summary({
-    db: data.locals.db,
     filter: searchParams,
   });
 

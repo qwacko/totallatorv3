@@ -10,7 +10,6 @@ export const GET = async (data) => {
   } = serverPageInfo(data.route.id, data);
 
   const csvData = await tActions.journalView.generateCSVData({
-    db: data.locals.db,
     filter: searchParams,
     returnType: searchParams?.downloadType || "default",
   });

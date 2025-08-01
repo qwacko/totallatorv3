@@ -24,7 +24,7 @@ export async function buildPopularItemsContext(
 	const { db, accountId, config } = params;
 
 	// Fetch account details
-	const account = await accountActions.getById(db, accountId);
+	const account = await accountActions.getById(accountId);
 	if (!account) {
 		throw new Error(`Account ${accountId} not found`);
 	}
@@ -33,7 +33,7 @@ export async function buildPopularItemsContext(
 	const popularItems = await getPopularItems(db, accountId, config.maxPopularItems);
 
 	// Get all available options
-	const allOptions = await getAllCategorizationOptions(db);
+	const allOptions = await getAllCategorizationOptions();
 
 	return {
 		account: {
@@ -170,13 +170,13 @@ async function getPopularItems(
 /**
  * Get all available categorization options
  */
-async function getAllCategorizationOptions(db: DBType): Promise<CategorizationOptions> {
+async function getAllCategorizationOptions(): Promise<CategorizationOptions> {
 	const [categories, tags, bills, budgets, labels] = await Promise.all([
-		categoryActions.list({ db, filter: { pageSize: 1000 } }),
-		tagActions.list({ db, filter: { pageSize: 1000 } }),
-		billActions.list({ db, filter: { pageSize: 1000 } }),
-		budgetActions.list({ db, filter: { pageSize: 1000 } }),
-		labelActions.list({ db, filter: { pageSize: 1000 } })
+		categoryActions.list({ filter: { pageSize: 1000 } }),
+		tagActions.list({ filter: { pageSize: 1000 } }),
+		billActions.list({ filter: { pageSize: 1000 } }),
+		budgetActions.list({ filter: { pageSize: 1000 } }),
+		labelActions.list({ filter: { pageSize: 1000 } })
 	]);
 
 	return {

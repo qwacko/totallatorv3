@@ -137,7 +137,6 @@ export async function importTransaction({
 		if (processedCombinedTransaction.success) {
 			try {
 				const importedData = await journalActions.createManyTransactionJournals({
-					db: trx,
 					journalEntries: [processedCombinedTransaction.data],
 					isImport: true, // This is from an import process
 					useExistingTransaction: true // Use the existing transaction from the import
@@ -250,7 +249,7 @@ export const importAccount = async ({
 		item,
 		schema: createAccountSchema,
 		createItem: async (data) => {
-			const importedData = await accountActions.create(data.db, {
+			const importedData = await accountActions.create({
 				...data.item,
 				type: data.item.type || 'expense',
 				status: data.item.status || 'active',
@@ -280,7 +279,7 @@ export const importBill = async ({
 		item,
 		schema: createBillSchema,
 		createItem: async (data) => {
-			const importedData = await billActions.create(data.db, {
+			const importedData = await billActions.create({
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,
@@ -309,7 +308,7 @@ export const importBudget = async ({
 		item,
 		schema: createBudgetSchema,
 		createItem: async (data) => {
-			const importedData = await budgetActions.create(data.db, {
+			const importedData = await budgetActions.create({
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,
@@ -338,7 +337,7 @@ export const importCategory = async ({
 		item,
 		schema: createCategorySchema,
 		createItem: async (data) => {
-			const importedData = await categoryActions.create(data.db, {
+			const importedData = await categoryActions.create({
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,
@@ -367,7 +366,7 @@ export const importTag = async ({
 		item,
 		schema: createTagSchema,
 		createItem: async (data) => {
-			const importedData = await tagActions.create(data.db, {
+			const importedData = await tagActions.create({
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,
@@ -396,7 +395,7 @@ export const importLabel = async ({
 		item,
 		schema: createLabelSchema,
 		createItem: async (data) => {
-			const importedData = await labelActions.create(data.db, {
+			const importedData = await labelActions.create({
 				...data.item,
 				status: data.item.status || 'active',
 				importId: item.importId,

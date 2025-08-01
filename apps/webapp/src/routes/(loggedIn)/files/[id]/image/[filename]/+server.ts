@@ -14,7 +14,6 @@ export const GET = async (data) => {
   }
 
   const fileData = await tActions.file.getThumbnail({
-    db: data.locals.db,
     id: params.id,
   });
 

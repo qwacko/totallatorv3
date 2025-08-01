@@ -19,7 +19,6 @@ export const load = async (data) => {
   }
 
   const journals = await tActions.journalView.list({
-    db: data.locals.db,
     filter: { transactionIdArray: [current.params.id] },
   });
 
@@ -46,7 +45,6 @@ export const load = async (data) => {
     accounts.length > 0
       ? (
           await tActions.file.listWithoutPagination({
-            db: data.locals.db,
             filter: { accountIdArray: accounts },
           })
         ).map((item) => item.id)
@@ -56,7 +54,6 @@ export const load = async (data) => {
     bills.length > 0
       ? (
           await tActions.file.listWithoutPagination({
-            db: data.locals.db,
             filter: { billIdArray: bills },
           })
         ).map((item) => item.id)
@@ -66,7 +63,6 @@ export const load = async (data) => {
     categories.length > 0
       ? (
           await tActions.file.listWithoutPagination({
-            db: data.locals.db,
             filter: { categoryIdArray: categories },
           })
         ).map((item) => item.id)
@@ -76,7 +72,6 @@ export const load = async (data) => {
     tags.length > 0
       ? (
           await tActions.file.listWithoutPagination({
-            db: data.locals.db,
             filter: { tagIdArray: tags },
           })
         ).map((item) => item.id)
@@ -86,7 +81,6 @@ export const load = async (data) => {
     budgets.length > 0
       ? (
           await tActions.file.listWithoutPagination({
-            db: data.locals.db,
             filter: { budgetIdArray: budgets },
           })
         ).map((item) => item.id)
@@ -96,7 +90,6 @@ export const load = async (data) => {
     labels.length > 0
       ? (
           await tActions.file.listWithoutPagination({
-            db: data.locals.db,
             filter: { labelIdArray: labels },
           })
         ).map((item) => item.id)
@@ -114,18 +107,15 @@ export const load = async (data) => {
   const likelyFiles =
     fileIds.length > 0
       ? await tActions.file.listWithoutPagination({
-          db: data.locals.db,
           filter: { idArray: fileIds, linked: true },
         })
       : [];
 
   const unlinkedFiles = await tActions.file.listWithoutPagination({
-    db: data.locals.db,
     filter: { linked: false },
   });
 
   const currentlyLinkedItems = await tActions.file.listWithoutPagination({
-    db: data.locals.db,
     filter: {
       transactionIdArray: [current.params.id],
     },

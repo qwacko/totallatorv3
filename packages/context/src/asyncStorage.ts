@@ -33,6 +33,14 @@ export function getContext(): ContextStore {
   return store;
 }
 
+export function getContextDB() {
+  const context = getGlobalContext();
+  if (!context.db) {
+    throw new Error('Database not initialized in the global context.');
+  }
+  return context.db;
+}
+
 export function runWithContext<T>(
   global: GlobalContext,
   request: RequestContext,

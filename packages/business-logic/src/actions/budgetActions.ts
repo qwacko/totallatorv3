@@ -21,6 +21,7 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getCorrectBudgetTable } from './helpers/budget/getCorrectBudgetTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import Papa from 'papaparse';
+import { getContextDB } from '@totallator/context';
 
 export type BudgetDropdownType = {
 	id: string;
@@ -39,21 +40,24 @@ type BudgetActionsType = ItemActionsType<
 >;
 
 export const budgetActions: BudgetActionsType = {
-	latestUpdate: async ({ db }) => {
+	latestUpdate: async () => {
+		const db = getContextDB();
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(budget.updatedAt) }).from(budget),
 			'Budgets - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db, id) => {
+	getById: async (id) => {
+		const db = getContextDB();
 		return dbExecuteLogger(
 			db.query.budget.findFirst({ where: eq(budget.id, id) }),
 			'Budget - Get By Id'
 		);
 	},
-	count: async (db, filter) => {
-		const { table, target } = await getCorrectBudgetTable(db);
+	count: async (filter) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectBudgetTable();
 		const count = await dbExecuteLogger(
 			db
 				.select({ count: drizzleCount(table.id) })
@@ -64,8 +68,9 @@ export const budgetActions: BudgetActionsType = {
 
 		return count[0].count;
 	},
-	listWithTransactionCount: async (db) => {
-		const { table } = await getCorrectBudgetTable(db);
+	listWithTransactionCount: async () => {
+		const db = getContextDB();
+		const { table } = await getCorrectBudgetTable();
 
 		const items = dbExecuteLogger(
 			db.select({ id: table.id, journalCount: table.count }).from(table),
@@ -74,8 +79,9 @@ export const budgetActions: BudgetActionsType = {
 
 		return items;
 	},
-	list: async ({ db, filter }) => {
-		const { table, target } = await getCorrectBudgetTable(db);
+	list: async ({ filter }) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectBudgetTable();
 
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
@@ -118,9 +124,8 @@ export const budgetActions: BudgetActionsType = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	generateCSVData: async ({ db, filter, returnType }) => {
+	generateCSVData: async ({ filter, returnType }) => {
 		const data = await budgetActions.list({
-			db,
 			filter: { ...filter, page: 0, pageSize: 100000 }
 		});
 
@@ -145,7 +150,8 @@ export const budgetActions: BudgetActionsType = {
 
 		return csvData;
 	},
-	listForDropdown: async ({ db }) => {
+	listForDropdown: async () => {
+		const db = getContextDB();
 		await streamingDelay();
 		const items = dbExecuteLogger(
 			db.select({ id: budget.id, title: budget.title, enabled: budget.allowUpdate }).from(budget),
@@ -154,7 +160,8 @@ export const budgetActions: BudgetActionsType = {
 
 		return items;
 	},
-	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
+	createOrGet: async ({ title, id, requireActive = true, cachedData }) => {
+		const db = getContextDB();
 		if (id) {
 			const currentBudget = cachedData
 				? cachedData.find((item) => item.id === id)
@@ -183,7 +190,7 @@ export const budgetActions: BudgetActionsType = {
 				}
 				return currentBudget;
 			}
-			const newBudgetId = await budgetActions.create(db, {
+			const newBudgetId = await budgetActions.create({
 				title,
 				status: 'active'
 			});
@@ -199,28 +206,31 @@ export const budgetActions: BudgetActionsType = {
 			return undefined;
 		}
 	},
-	create: async (db, data) => {
+	create: async (data) => {
+		const db = getContextDB();
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(budget).values(budgetCreateInsertionData(data, id)),
 			'Budget - Create'
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return id;
 	},
-	createMany: async (db, data) => {
+	createMany: async (data) => {
+		const db = getContextDB();
 		const items = data.map((item) => {
 			const id = nanoid();
 			return budgetCreateInsertionData(item, id);
 		});
 		const ids = items.map((item) => item.id);
 		await dbExecuteLogger(db.insert(budget).values(items), 'Budget - Create Many');
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 		return ids;
 	},
-	update: async ({ db, data, id }) => {
+	update: async ({ data, id }) => {
+		const db = getContextDB();
 		const currentBudget = await dbExecuteLogger(
 			db.query.budget.findFirst({ where: eq(budget.id, id) }),
 			'Budget - Update - Find'
@@ -243,18 +253,17 @@ export const budgetActions: BudgetActionsType = {
 			'Budget - Update'
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return id;
 	},
-	canDeleteMany: async (db, ids) => {
-		const canDeleteList = await Promise.all(
-			ids.map(async (id) => budgetActions.canDelete(db, { id }))
-		);
+	canDeleteMany: async (ids) => {
+		const canDeleteList = await Promise.all(ids.map(async (id) => budgetActions.canDelete({ id })));
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db, data) => {
+	canDelete: async (data) => {
+		const db = getContextDB();
 		const currentBudget = await dbExecuteLogger(
 			db.query.budget.findFirst({
 				where: eq(budget.id, data.id),
@@ -269,17 +278,19 @@ export const budgetActions: BudgetActionsType = {
 		// If the budget has no journals, then mark as deleted, otherwise do nothing
 		return currentBudget && currentBudget.journals.length === 0;
 	},
-	delete: async (db, data) => {
-		if (await budgetActions.canDelete(db, data)) {
+	delete: async (data) => {
+		const db = getContextDB();
+		if (await budgetActions.canDelete(data)) {
 			await dbExecuteLogger(db.delete(budget).where(eq(budget.id, data.id)), 'Budget - Delete');
 		}
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return data.id;
 	},
-	deleteMany: async (db, data) => {
+	deleteMany: async (data) => {
+		const db = getContextDB();
 		if (data.length === 0) return;
-		const currentBudgets = await budgetActions.listWithTransactionCount(db);
+		const currentBudgets = await budgetActions.listWithTransactionCount();
 		const itemsForDeletion = data.filter((item) => {
 			const currentBudget = currentBudgets.find((current) => current.id === item.id);
 			return currentBudget && currentBudget.journalCount === 0;
@@ -295,12 +306,13 @@ export const budgetActions: BudgetActionsType = {
 				),
 				'Budget - Delete Many'
 			);
-			await materializedViewActions.setRefreshRequired(db);
+			await materializedViewActions.setRefreshRequired();
 			return true;
 		}
 		return false;
 	},
-	seed: async (db, count) => {
+	seed: async (count) => {
+		const db = getContextDB();
 		getLogger().info('Seeding Budgets : ', count);
 
 		const existingTitles = (
@@ -313,6 +325,6 @@ export const budgetActions: BudgetActionsType = {
 			count
 		});
 
-		await budgetActions.createMany(db, itemsToCreate);
+		await budgetActions.createMany(itemsToCreate);
 	}
 };

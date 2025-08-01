@@ -101,7 +101,6 @@ export const findSimilarJournalEntriesTool: Tool = {
 
 					// Use the existing recommendation system
 					const recommendations = await journalMaterializedViewActions.listRecommendations({
-						db: context.db,
 						journals: [
 							{
 								id: targetJournal.id,

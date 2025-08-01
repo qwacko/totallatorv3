@@ -10,7 +10,6 @@ export const cronJobs: CronJob[] = [
     job: async (context) => {
       context.logger.debug("CRON: Backing Up Database");
       await tActions.backup.storeBackup({
-        db: context.db,
         title: "Scheduled Backup",
         compress: true,
         createdBy: "System",
@@ -31,7 +30,7 @@ export const cronJobs: CronJob[] = [
     schedule: serverEnv.AUTOMATIC_FILTER_SCHEDULE,
     job: async (context) => {
       const startTime = new Date().getTime();
-      await tActions.reusableFitler.applyAllAutomatic({ db: context.db });
+      await tActions.reusableFitler.applyAllAutomatic();
       context.logger.debug(
         "CRON: Running Automatic Filters - Took " +
           (new Date().getTime() - startTime) +
@@ -45,7 +44,6 @@ export const cronJobs: CronJob[] = [
     job: async (context) => {
       const startTime = new Date().getTime();
       const numberModified = await tActions.reusableFitler.refreshAll({
-        db: context.db,
         maximumTime: 60000,
       });
 
@@ -66,7 +64,6 @@ export const cronJobs: CronJob[] = [
     job: async (context) => {
       const startTime = new Date().getTime();
       const numberModified = await tActions.reusableFitler.refresh({
-        db: context.db,
         maximumTime: 60000,
       });
 
@@ -94,15 +91,15 @@ export const cronJobs: CronJob[] = [
     job: async (context) => {
       //This Runs Every Mintue, but doesn't allow for multiple imports to
       //occur at the same time within the function which is called.
-      await tActions.import.doRequiredImports({ db: context.db });
+      await tActions.import.doRequiredImports();
     },
   },
   {
     name: "Regular Update And Cleansing Of Backups",
     schedule: "0 0 * * *",
     job: async (context) => {
-      await tActions.backup.refreshList({ db: context.db });
-      await tActions.backup.trimBackups({ db: context.db });
+      await tActions.backup.refreshList();
+      await tActions.backup.trimBackups();
     },
   },
   {
@@ -110,7 +107,6 @@ export const cronJobs: CronJob[] = [
     schedule: "0 1 * * *",
     job: async (context) => {
       await tActions.import.autoCleanAll({
-        db: context.db,
         retainDays: serverEnv.IMPORT_RETENTION_DAYS,
       });
     },
@@ -149,8 +145,8 @@ export const cronJobs: CronJob[] = [
     name: "Check Stored Files - Daily",
     schedule: "0 5 * * *",
     job: async (context) => {
-      await tActions.file.checkFilesExist({ db: context.db });
-      await tActions.file.updateLinked({ db: context.db });
+      await tActions.file.checkFilesExist();
+      await tActions.file.updateLinked();
     },
   },
   {

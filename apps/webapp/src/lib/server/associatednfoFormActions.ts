@@ -12,7 +12,6 @@ export const associatedInfoFormActions = {
     requireUser: true,
     action: async ({ db, data, userId, form }) => {
       await tActions.associatedInfo.create({
-        db,
         item: data,
         userId,
       });

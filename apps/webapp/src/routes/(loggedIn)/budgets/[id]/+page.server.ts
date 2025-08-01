@@ -12,12 +12,11 @@ import { serverPageInfo } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   if (!pageInfo.current.params?.id) redirect(302, "/budgets");
 
-  const budget = await tActions.budget.getById(db, pageInfo.current.params?.id);
+  const budget = await tActions.budget.getById(pageInfo.current.params?.id);
   if (!budget) redirect(302, "/budgets");
   const form = await superValidate(
     { id: budget.id, title: budget.title, status: budget.status },
@@ -37,7 +36,6 @@ const updateBudgetSchemaWithPageAndFilter = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(updateBudgetSchemaWithPageAndFilter),
@@ -48,7 +46,7 @@ export const actions = {
     }
 
     try {
-      await tActions.budget.update({ db, data: form.data, id: form.data.id });
+      await tActions.budget.update({ data: form.data, id: form.data.id });
     } catch (e) {
       locals.global.logger.error("Update Budget Error", e);
       return message(form, "Error Updating Budget");

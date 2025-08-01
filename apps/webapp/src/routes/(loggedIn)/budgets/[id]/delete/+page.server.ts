@@ -8,12 +8,11 @@ import { serverPageInfo } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   if (!pageInfo.current.params?.id) redirect(302, "/budgets");
 
-  const budget = await tActions.budget.getById(db, pageInfo.current.params?.id);
+  const budget = await tActions.budget.getById(pageInfo.current.params?.id);
   if (!budget) redirect(302, "/budgets");
 
   return {
@@ -23,9 +22,8 @@ export const load = async (data) => {
 
 export const actions = {
   default: async ({ params, locals }) => {
-    const db = locals.db;
     try {
-      await tActions.budget.delete(db, idSchema.parse(params));
+      await tActions.budget.delete(idSchema.parse(params));
     } catch (e) {
       locals.global.logger.error("Delete Budget Error", e);
       return {};

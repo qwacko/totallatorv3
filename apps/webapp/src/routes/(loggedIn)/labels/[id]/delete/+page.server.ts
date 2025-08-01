@@ -8,12 +8,11 @@ import { serverPageInfo } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   if (!pageInfo.current.params?.id) redirect(302, "/labels");
 
-  const label = await tActions.label.getById(db, pageInfo.current.params?.id);
+  const label = await tActions.label.getById(pageInfo.current.params?.id);
   if (!label) redirect(302, "/labels");
 
   return {
@@ -23,9 +22,8 @@ export const load = async (data) => {
 
 export const actions = {
   default: async ({ params, locals }) => {
-    const db = locals.db;
     try {
-      await tActions.label.softDelete(db, idSchema.parse(params));
+      await tActions.label.softDelete(idSchema.parse(params));
     } catch (e) {
       locals.global.logger.error("Delete Label Error", e);
       return {};

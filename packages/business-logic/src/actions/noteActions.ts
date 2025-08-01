@@ -41,6 +41,7 @@ import { labelActions } from './labelActions';
 import { autoImportActions } from './autoImportActions';
 import { reportActions } from './reportActions';
 import { billActions } from './billActions';
+import { getContextDB } from '@totallator/context';
 
 type NotesActionsType = FilesAndNotesActions<
 	NotesTableType,
@@ -54,16 +55,18 @@ type NotesActionsType = FilesAndNotesActions<
 	}
 >;
 export const noteActions: NotesActionsType = {
-	getById: async (db, id) => {
+	getById: async (id) => {
+		const db = getContextDB();
 		return dbExecuteLogger(
 			db.query.notesTable.findFirst({ where: ({ id: noteId }, { eq }) => eq(noteId, id) }),
 			'Note - Get By Id'
 		);
 	},
-	filterToText: async ({ db, filter }) => {
-		return noteFilterToText({ db, filter });
+	filterToText: async ({ filter }) => {
+		return noteFilterToText({ filter });
 	},
-	list: async ({ db, filter }) => {
+	list: async ({ filter }) => {
+		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = noteFilterToQuery(restFilter);
@@ -117,7 +120,6 @@ export const noteActions: NotesActionsType = {
 		const journalInformation =
 			transactionIdArray.length > 0
 				? await journalMaterializedViewActions.list({
-						db,
 						filter: {
 							transactionIdArray,
 							pageSize: 100000,
@@ -150,10 +152,9 @@ export const noteActions: NotesActionsType = {
 
 		return { count, data: resultsWithJournals, pageCount, page, pageSize };
 	},
-	listWithoutPagination: async ({ db, filter }) => {
+	listWithoutPagination: async ({ filter }) => {
 		return (
 			await noteActions.list({
-				db,
 				filter: {
 					...filter,
 					page: 0,
@@ -163,7 +164,8 @@ export const noteActions: NotesActionsType = {
 			})
 		).data;
 	},
-	listGrouped: async ({ db, ids, grouping }) => {
+	listGrouped: async ({ ids, grouping }) => {
+		const db = getContextDB();
 		const items = await dbExecuteLogger(
 			db
 				.select({
@@ -199,10 +201,9 @@ export const noteActions: NotesActionsType = {
 
 		return groupedItems;
 	},
-	addToSingleItem: async ({ db, item, grouping }) => {
+	addToSingleItem: async ({ item, grouping }) => {
 		const ids = [item.id];
 		const groupedNotes = await noteActions.listGrouped({
-			db,
 			ids,
 			grouping
 		});
@@ -212,10 +213,9 @@ export const noteActions: NotesActionsType = {
 			notes: groupedNotes[item.id] || []
 		};
 	},
-	addToItems: async ({ db, data, grouping }) => {
+	addToItems: async ({ data, grouping }) => {
 		const ids = data.data.map((a) => a.id);
 		const groupedNotes = await noteActions.listGrouped({
-			db,
 			ids,
 			grouping
 		});
@@ -231,7 +231,8 @@ export const noteActions: NotesActionsType = {
 			})
 		};
 	},
-	addToInfo: async ({ db, data, associatedId }) => {
+	addToInfo: async ({ data, associatedId }) => {
+		const db = getContextDB();
 		const noteId = nanoid();
 
 		const insertNoteData: typeof notesTable.$inferInsert = {
@@ -244,9 +245,9 @@ export const noteActions: NotesActionsType = {
 
 		await dbExecuteLogger(db.insert(notesTable).values(insertNoteData), 'Note - Create - Note');
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	create: async ({ db, data, creationUserId }) => {
+	create: async ({ data, creationUserId }) => {
 		const result = createNoteSchema.safeParse(data);
 
 		if (!result.success) {
@@ -256,7 +257,6 @@ export const noteActions: NotesActionsType = {
 		const { note, type, ...links } = result.data;
 
 		await associatedInfoActions.create({
-			db,
 			item: {
 				...links,
 				note,
@@ -265,9 +265,10 @@ export const noteActions: NotesActionsType = {
 			userId: creationUserId
 		});
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	updateMany: async ({ db, filter, update }) => {
+	updateMany: async ({ filter, update }) => {
+		const db = getContextDB();
 		const where = noteFilterToQuery(filter);
 
 		await dbExecuteLogger(
@@ -281,11 +282,11 @@ export const noteActions: NotesActionsType = {
 			'Note - Update Many'
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	deleteMany: async ({ db, filter }) => {
+	deleteMany: async ({ filter }) => {
+		const db = getContextDB();
 		const notes = await noteActions.listWithoutPagination({
-			db,
 			filter
 		});
 
@@ -296,23 +297,22 @@ export const noteActions: NotesActionsType = {
 			'Note - Delete Many'
 		);
 
-		await associatedInfoActions.removeUnnecessary({ db });
+		await associatedInfoActions.removeUnnecessary();
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	getLinkedText: async ({ db, items }) => {
+	getLinkedText: async ({ items }) => {
+		const db = getContextDB();
 		const accountTitle = items.accountId
-			? await accountActions.getById(db, items.accountId)
+			? await accountActions.getById(items.accountId)
 			: undefined;
-		const billTitle = items.billId ? await billActions.getById(db, items.billId) : undefined;
-		const budgetTitle = items.budgetId
-			? await budgetActions.getById(db, items.budgetId)
-			: undefined;
+		const billTitle = items.billId ? await billActions.getById(items.billId) : undefined;
+		const budgetTitle = items.budgetId ? await budgetActions.getById(items.budgetId) : undefined;
 		const categoryTitle = items.categoryId
-			? await categoryActions.getById(db, items.categoryId)
+			? await categoryActions.getById(items.categoryId)
 			: undefined;
-		const tagTitle = items.tagId ? await tagActions.getById(db, items.tagId) : undefined;
-		const labelTitle = items.labelId ? await labelActions.getById(db, items.labelId) : undefined;
+		const tagTitle = items.tagId ? await tagActions.getById(items.tagId) : undefined;
+		const labelTitle = items.labelId ? await labelActions.getById(items.labelId) : undefined;
 		const autoImportTitle = items.autoImportId
 			? await autoImportActions.getById({ db, id: items.autoImportId })
 			: undefined;

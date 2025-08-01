@@ -1,10 +1,8 @@
-import type { DBType } from '@totallator/database';
 import { tagMaterializedView, tagView } from '@totallator/database';
 import { materializedViewActions } from '../../materializedViewActions';
 
-export const getCorrectTagTable = async (db: DBType) => {
+export const getCorrectTagTable = async () => {
 	const needsRefresh = await materializedViewActions.needsRefresh({
-		db,
 		items: { tag: true }
 	});
 

@@ -7,7 +7,6 @@ import { serverPageInfo, urlGenerator } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const { current: pageInfo } = serverPageInfo(data.route.id, data);
 
   if (!pageInfo.params?.id) {
@@ -18,7 +17,7 @@ export const load = async (data) => {
     );
   }
 
-  const info = await tActions.import.get({ id: pageInfo.params.id, db });
+  const info = await tActions.import.get({ id: pageInfo.params.id });
 
   if (!info?.importInfo) {
     redirect(
@@ -29,7 +28,6 @@ export const load = async (data) => {
   }
 
   const canDelete = await tActions.import.canDelete({
-    db,
     id: pageInfo.params.id,
   });
 
@@ -38,7 +36,7 @@ export const load = async (data) => {
     info,
     canDelete,
     streaming: {
-      data: await tActions.import.getDetail({ db, id: pageInfo.params.id }),
+      data: await tActions.import.getDetail({ id: pageInfo.params.id }),
     },
   };
 };

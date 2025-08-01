@@ -124,7 +124,7 @@ export const journalMaterialisedList = async ({
 	const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
 
 	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
-	const { table: targetTable, target } = await getCorrectJournalTable(db);
+	const { table: targetTable, target } = await getCorrectJournalTable();
 
 	const andFilter = await materializedJournalFilterToQuery(db, restFilter, { target });
 	const orderBy = materializedJournalFilterToOrderBy(processedFilter, target);
@@ -179,19 +179,16 @@ export const journalMaterialisedList = async ({
 	);
 
 	const transactionNotes = await noteActions.listGrouped({
-		db,
 		ids: transactionIds,
 		grouping: 'transaction'
 	});
 
 	const transactionFiles = await fileActions.listGrouped({
-		db,
 		ids: transactionIds,
 		grouping: 'transaction'
 	});
 
 	const associatedInfo = associatedInfoActions.listGrouped({
-		db,
 		ids: transactionIds,
 		grouping: 'transactionId'
 	});

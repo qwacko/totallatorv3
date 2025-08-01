@@ -52,7 +52,6 @@ export const load = async (request) => {
   };
 
   const imports = tActions.import.listDetails({
-    db: request.locals.db,
     filter: importListFilter,
   });
 

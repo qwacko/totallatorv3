@@ -1,7 +1,7 @@
 // This file is deprecated - context is now handled by @totallator/context package
 // Keep this for backward compatibility during migration
 
-import type { GlobalContext, RequestContext } from '@totallator/context';
+import type { GlobalContext } from '@totallator/context';
 
 // Re-export context types for backward compatibility
 export type { GlobalContext, RequestContext } from '@totallator/context';

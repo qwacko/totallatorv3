@@ -54,7 +54,7 @@ export const load = async (data) => {
     zod4(updateJournalSchema),
   );
 
-  const numberResults = await tActions.journalView.count(db, filter);
+  const numberResults = await tActions.journalView.count(filter);
 
   return {
     searchParams: current.searchParams,
@@ -121,7 +121,6 @@ export const actions = {
 
     try {
       const newFilter = await tActions.reusableFitler.create({
-        db: data.locals.db,
         data: processedCreation.data,
       });
       if (newFilter?.id) {

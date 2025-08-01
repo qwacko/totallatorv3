@@ -21,10 +21,9 @@ export const load = async (data) => {
   if (!filter) redirect(302, "/accounts");
 
   const commonData = await tActions.account.listCommonProperties({
-    db,
     filter,
   });
-  const accounts = await tActions.account.list({ db, filter });
+  const accounts = await tActions.account.list({ filter });
 
   if (!commonData) redirect(302, "/accounts");
 
@@ -51,7 +50,6 @@ const submitValidation = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(submitValidation));
     if (!form.valid) {
       redirect(302, form.data.currentPage);
@@ -68,7 +66,6 @@ export const actions = {
     try {
       const { currentPage, prevPage, filter, ...restData } = form.data;
       await tActions.account.updateMany({
-        db,
         filter: parsedFilter.data,
         data: restData,
       });

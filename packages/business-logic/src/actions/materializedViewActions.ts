@@ -1,5 +1,4 @@
 import { eq, sql } from 'drizzle-orm';
-import type { DBType } from '@totallator/database';
 import { reusableFilter } from '@totallator/database';
 import {
 	journalExtendedView,
@@ -17,7 +16,7 @@ import { booleanKeyValueStore } from './helpers/keyValueStore';
 import { getLogger } from '@/logger';
 import { dbExecuteRawLogger, dbExecuteLogger } from '@/server/db/dbLogger';
 import { getServerEnv } from '@/serverEnv';
-import { getContext } from '@/context';
+import { getContextStore } from '@totallator/context';
 
 const refreshRequiredStore = booleanKeyValueStore('journalExtendedViewRefresh', true);
 const accountRefreshRequiredStore = booleanKeyValueStore('accountViewRefresh', true);
@@ -71,13 +70,14 @@ const useConcurrentRefresh = () =>
 
 export const materializedViewActions = {
 	refresh: async ({
-		db,
 		items = itemsDefault
 	}: {
-		db: DBType;
 		logStats?: boolean;
 		items?: itemsType;
-	}): Promise<void> => {
+	} = {}): Promise<void> => {
+		const context = getContextStore();
+		const db = context.global.db;
+
 		await Promise.all([
 			timePromise('Journal Extended View Refresh', items.journals, async () => {
 				if (useConcurrentRefresh()) {
@@ -192,13 +192,10 @@ export const materializedViewActions = {
 			})
 		]);
 	},
-	needsRefresh: async ({
-		db,
-		items = itemsDefault
-	}: {
-		db: DBType;
-		items?: itemsType;
-	}): Promise<boolean> => {
+	needsRefresh: async ({ items = itemsDefault }: { items?: itemsType }): Promise<boolean> => {
+		const context = getContextStore();
+		const db = context.global.db;
+
 		const itemsRequiringUpdate = {
 			account: await accountRefreshRequiredStore.get(db),
 			tag: await tagRefreshRequiredStore.get(db),
@@ -217,39 +214,37 @@ export const materializedViewActions = {
 		return needsUpdate;
 	},
 	conditionalRefresh: async ({
-		db,
 		logStats = false,
 		items = itemsDefault
 	}: {
-		db: DBType;
 		logStats?: boolean;
 		items?: itemsType;
 	}): Promise<boolean> => {
-		const needsUpdate = await materializedViewActions.needsRefresh({ db, items });
+		const needsUpdate = await materializedViewActions.needsRefresh({ items });
 
 		if (!needsUpdate) return false;
 
-		await materializedViewActions.refresh({ db, logStats, items });
+		await materializedViewActions.refresh({ logStats, items });
 		return true;
 	},
 
 	// Context-based version
 	conditionalRefreshWithContext: async ({
-		global,
 		logStats = false,
 		items = itemsDefault
 	}: {
-		global: any; // Will be properly typed once we import GlobalContext
 		logStats?: boolean;
 		items?: itemsType;
 	}): Promise<boolean> => {
 		return materializedViewActions.conditionalRefresh({
-			db: global.db,
 			logStats,
 			items
 		});
 	},
-	setRefreshRequired: async (db: DBType): Promise<void> => {
+	setRefreshRequired: async (): Promise<void> => {
+		const context = getContextStore();
+		const db = context.global.db;
+
 		await Promise.all([
 			refreshRequiredStore.set(db, true),
 			accountRefreshRequiredStore.set(db, true),
@@ -269,16 +264,6 @@ export const materializedViewActions = {
 			)
 		]);
 
-		// Update the materialized view refresh rate limiter
-		// This will reset the timeout - if no more setRefreshRequired calls come in within
-		// the timeout period, the refresh will be triggered automatically
-		try {
-			const { getGlobalContext } = await import('@totallator/context');
-			const globalContext = getGlobalContext();
-			globalContext.viewRefreshLimiter.updateLastRequest();
-		} catch (error) {
-			// If context is not available (e.g., during tests), just skip the rate limiting
-			console.warn('Could not access global context for view refresh rate limiting:', error);
-		}
+		context.global.viewRefreshLimiter.updateLastRequest();
 	}
 };

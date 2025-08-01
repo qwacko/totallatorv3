@@ -22,10 +22,9 @@ export const load = async (data) => {
 
 export const actions = {
   default: async ({ params, locals }) => {
-    const db = locals.db;
     let deleted = false;
     try {
-      await tActions.import.delete({ db, id: params.id });
+      await tActions.import.delete({ id: params.id });
       deleted = true;
     } catch (e) {
       locals.global.logger.error(

@@ -23,7 +23,6 @@ export const load = async (data) => {
   );
 
   const bills = await tActions.bill.list({
-    db,
     filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
   });
 
@@ -46,7 +45,6 @@ export const load = async (data) => {
 
   return {
     bills: tActions.associatedInfo.addToItems({
-      db,
       data: bills,
       grouping: "billId",
     }),
@@ -66,7 +64,6 @@ export const actions = {
   ...fileFormActions,
   ...associatedInfoFormActions,
   update: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(submitValidation));
 
     if (!form.valid) {
@@ -74,7 +71,7 @@ export const actions = {
     }
 
     try {
-      await tActions.bill.update({ db: db, data: form.data, id: form.data.id });
+      await tActions.bill.update({ data: form.data, id: form.data.id });
       return {
         status: 200,
         body: {

@@ -1,15 +1,10 @@
-import { createLogger, Logger, LogClass } from '@totallator/context';
+import { getContextStore} from '@totallator/context';
 
-let _logger: Logger | null = null;
+export const getLogger = () => {
 
-export const getLogger = (): Logger => {
-	if (!_logger) {
-		// Default configuration for business-logic package
-		_logger = createLogger(true, ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE']);
-	}
-	return _logger;
+	const context = getContextStore();
+
+	return context.global.logger
+
 };
 
-export const setLogger = (loggerInstance: Logger) => {
-	_logger = loggerInstance;
-};

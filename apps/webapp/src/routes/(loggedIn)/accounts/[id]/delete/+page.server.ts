@@ -8,15 +8,11 @@ import { serverPageInfo } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   if (!pageInfo.current.params?.id) redirect(302, "/accounts");
 
-  const account = await tActions.account.getById(
-    db,
-    pageInfo.current.params?.id,
-  );
+  const account = await tActions.account.getById(pageInfo.current.params?.id);
   if (!account) redirect(302, "/accounts");
 
   return {
@@ -26,9 +22,8 @@ export const load = async (data) => {
 
 export const actions = {
   default: async ({ params, locals }) => {
-    const db = locals.db;
     try {
-      await tActions.account.delete(db, idSchema.parse(params));
+      await tActions.account.delete(idSchema.parse(params));
     } catch (e) {
       locals.global.logger.error("Delete Account Error", e);
       return {};

@@ -1,5 +1,4 @@
 import type { CreateFileNoteRelationshipSchemaType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
 import type { JournalViewReturnType } from '@totallator/database';
 import type { PaginatedResults } from '../journal/PaginationType';
 
@@ -38,44 +37,37 @@ export type FilesAndNotesActions<
 	GroupedType,
 	AddedToItems extends Record<string, any>
 > = {
-	getById: (db: DBType, id: string) => Promise<TableType | undefined>;
-	filterToText: (data: { db: DBType; filter: FilterSchema }) => Promise<string[]>;
+	getById: (id: string) => Promise<TableType | undefined>;
+	filterToText: (data: { filter: FilterSchema }) => Promise<string[]>;
 	list: (data: {
-		db: DBType;
 		filter: FilterSchema;
 	}) => Promise<PaginatedResults<TableType & FilesAndNotesAdditionalColumns>>;
 	listWithoutPagination: (data: {
-		db: DBType;
 		filter: FilterSchema;
 	}) => Promise<(TableType & FilesAndNotesAdditionalColumns)[]>;
 	listGrouped: (data: {
-		db: DBType;
 		ids: string[];
 		grouping: GroupingOptions;
 	}) => Promise<Record<string, GroupedType>>;
 	addToSingleItem: <T extends { id: string }>(data: {
-		db: DBType;
 		item: T;
 		grouping: GroupingOptions;
 	}) => Promise<T & AddedToItems>;
 	addToItems: <T extends { id: string }>(data: {
-		db: DBType;
 		data: PaginatedResults<T>;
 		grouping: GroupingOptions;
 	}) => Promise<PaginatedResults<T & AddedToItems>>;
 	create: (date: {
-		db: DBType;
 		data: CreateSchema & CreateFileNoteRelationshipSchemaType;
 		creationUserId: string;
 	}) => Promise<void>;
-	addToInfo: (data: { db: DBType; data: CreateSchema; associatedId: string }) => Promise<void>;
+	addToInfo: (data: { data: CreateSchema; associatedId: string }) => Promise<void>;
 	updateMany: (data: {
-		db: DBType;
 		filter: FilterSchemaWithoutPagination;
 		update: UpdateSchema;
 	}) => Promise<void>;
-	deleteMany: (data: { db: DBType; filter: FilterSchemaWithoutPagination }) => Promise<void>;
-	getLinkedText: (data: { db: DBType; items: CreateFileNoteRelationshipSchemaType }) => Promise<{
+	deleteMany: (data: { filter: FilterSchemaWithoutPagination }) => Promise<void>;
+	getLinkedText: (data: { items: CreateFileNoteRelationshipSchemaType }) => Promise<{
 		data: {
 			accountTitle: LinkedTextType | undefined;
 			billTitle: LinkedTextType | undefined;

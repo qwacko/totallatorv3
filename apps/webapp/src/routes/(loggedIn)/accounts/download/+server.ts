@@ -5,13 +5,11 @@ import { serverPageInfo } from "$lib/routes.js";
 
 export const GET = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const {
     current: { searchParams },
   } = serverPageInfo(data.route.id, data);
 
   const csvData = await tActions.account.generateCSVData({
-    db,
     filter: searchParams,
     returnType: searchParams?.downloadType || "default",
   });

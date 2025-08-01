@@ -9,7 +9,7 @@ import { journalMaterializedViewActions } from '../../../actions/journalMaterial
 export async function buildFuzzyMatchContext(
 	params: ContextBuilderParams
 ): Promise<Partial<LLMBatchContext>> {
-	const { db, uncategorizedJournals, config } = params;
+	const { uncategorizedJournals, config } = params;
 
 	const allFuzzyMatches: BatchJournalData[] = [];
 
@@ -22,7 +22,6 @@ export async function buildFuzzyMatchContext(
 
 			// Use existing recommendation system for import-based similarity
 			const recommendations = await journalMaterializedViewActions.listRecommendations({
-				db,
 				journals: [
 					{
 						id: journal.id,

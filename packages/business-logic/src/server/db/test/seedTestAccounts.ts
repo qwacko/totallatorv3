@@ -3,7 +3,7 @@ import { account } from '@totallator/database';
 import { accountCreateInsertionData } from '@/actions/helpers/account/accountCreateInsertionData';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 
-export const seedTestAccounts = async (db: DBType, id: string) => {
+export const seedTestAccounts = async (db: DBType) => {
 	await dbExecuteLogger(
 		db.insert(account).values([
 			accountCreateInsertionData(

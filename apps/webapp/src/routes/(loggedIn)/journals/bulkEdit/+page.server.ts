@@ -98,7 +98,6 @@ const updateValidation = z.object({
 
 export const actions = {
   updateState: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(updateStateActionValidation),
@@ -119,12 +118,10 @@ export const actions = {
     try {
       if (form.data.action === "complete") {
         await tActions.journal.markManyComplete({
-          db,
           journalFilter: parsedFilter.data,
         });
       } else if (form.data.action === "incomplete") {
         await tActions.journal.markManyUncomplete({
-          db,
           journalFilter: parsedFilter.data,
         });
       } else {
@@ -134,7 +131,6 @@ export const actions = {
         const clearDataChecked = form.data.action === "dataNotChecked";
 
         await tActions.journal.updateJournals({
-          db,
           filter: parsedFilter.data,
           journalData: {
             setReconciled,
@@ -159,7 +155,6 @@ export const actions = {
     redirect(302, form.data.prevPage);
   },
   update: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(updateValidation));
 
     if (!form.valid) {
@@ -178,7 +173,6 @@ export const actions = {
 
     try {
       await tActions.journal.updateJournals({
-        db,
         filter: parsedFilter.data,
         journalData: form.data,
       });

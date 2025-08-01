@@ -125,7 +125,6 @@ export class LLMContextService {
 	 */
 	async getExistingRecommendations(journalId: string) {
 		const recommendations = await journalMaterializedViewActions.listRecommendations({
-			db: this.db,
 			journals: [{ id: journalId, description: '', dataChecked: false, accountId: '' }]
 		});
 		return recommendations;

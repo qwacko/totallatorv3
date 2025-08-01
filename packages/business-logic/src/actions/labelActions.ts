@@ -4,7 +4,6 @@ import type {
 	UpdateLabelSchemaType
 } from '@totallator/shared';
 import { nanoid } from 'nanoid';
-import type { DBType } from '@totallator/database';
 import {
 	label,
 	labelsToJournals,
@@ -29,6 +28,7 @@ import { tLogger } from '../server/db/transactionLogger';
 import { getCorrectLabelTable } from './helpers/label/getCorrectLabelTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import Papa from 'papaparse';
+import { getContextDB } from '@totallator/context';
 
 export type LabelDropdownType = {
 	id: string;
@@ -46,33 +46,33 @@ type LabelActionsType = ItemActionsType<
 	number
 >;
 
-type HardDeleteManyFunction = (db: DBType, data: IdSchemaType[]) => Promise<void>;
-type SoftDeleteFunction = (db: DBType, data: IdSchemaType) => Promise<string>;
-type CreateLinkFunction = (
-	db: DBType,
-	data: { journalId: string; labelId: string }
-) => Promise<void>;
+type HardDeleteManyFunction = (data: IdSchemaType[]) => Promise<void>;
+type SoftDeleteFunction = (data: IdSchemaType) => Promise<string>;
+type CreateLinkFunction = (data: { journalId: string; labelId: string }) => Promise<void>;
 
 export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 	hardDeleteMany: HardDeleteManyFunction;
 	softDelete: SoftDeleteFunction;
 	createLink: CreateLinkFunction;
 } = {
-	latestUpdate: async ({ db }) => {
+	latestUpdate: async () => {
+		const db = getContextDB();
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(label.updatedAt) }).from(label),
 			'Labels - Latest Update'
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (db, id) => {
+	getById: async (id) => {
+		const db = getContextDB();
 		return dbExecuteLogger(
 			db.query.label.findFirst({ where: eq(label.id, id) }),
 			'Labels - Get By ID'
 		);
 	},
-	count: async (db, filter) => {
-		const { table, target } = await getCorrectLabelTable(db);
+	count: async (filter) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectLabelTable();
 		const count = await dbExecuteLogger(
 			db
 				.select({ count: drizzleCount(table.id) })
@@ -83,8 +83,9 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 
 		return count[0].count;
 	},
-	listWithTransactionCount: async (db: DBType) => {
-		const { table } = await getCorrectLabelTable(db);
+	listWithTransactionCount: async () => {
+		const db = getContextDB();
+		const { table } = await getCorrectLabelTable();
 		const items = dbExecuteLogger(
 			db.select({ id: table.id, journalCount: table.count }).from(table),
 			'Labels - List With Transaction Count'
@@ -92,8 +93,9 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 
 		return items;
 	},
-	list: async ({ db, filter }: { db: DBType; filter: LabelFilterSchemaType }) => {
-		const { table, target } = await getCorrectLabelTable(db);
+	list: async ({ filter }: { filter: LabelFilterSchemaType }) => {
+		const db = getContextDB();
+		const { table, target } = await getCorrectLabelTable();
 		const { page = 0, pageSize = 10, orderBy } = filter;
 
 		const where = labelFilterToQuery({ filter, target });
@@ -135,9 +137,8 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	generateCSVData: async ({ db, filter, returnType }) => {
+	generateCSVData: async ({ filter, returnType }) => {
 		const data = await labelActions.list({
-			db,
 			filter: { ...filter, page: 0, pageSize: 100000 }
 		});
 
@@ -162,7 +163,8 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 
 		return csvData;
 	},
-	listForDropdown: async ({ db }: { db: DBType }) => {
+	listForDropdown: async () => {
+		const db = getContextDB();
 		await streamingDelay();
 		const items = dbExecuteLogger(
 			db.select({ id: label.id, title: label.title, enabled: label.allowUpdate }).from(label),
@@ -171,7 +173,8 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 
 		return items;
 	},
-	createOrGet: async ({ db, title, id, requireActive = true, cachedData }) => {
+	createOrGet: async ({ title, id, requireActive = true, cachedData }) => {
+		const db = getContextDB();
 		if (id) {
 			const currentLabel = cachedData
 				? cachedData.find((currentData) => currentData.id === id)
@@ -200,7 +203,7 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 				}
 				return currentLabel;
 			}
-			const newLabelId = await labelActions.create(db, {
+			const newLabelId = await labelActions.create({
 				title,
 				status: 'active'
 			});
@@ -216,40 +219,41 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 			throw new Error(`Label id or title required`);
 		}
 	},
-	create: async (db: DBType, data: CreateLabelSchemaType) => {
+	create: async (data: CreateLabelSchemaType) => {
+		const db = getContextDB();
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(label).values(labelCreateInsertionData(data, id)),
 			'Labels - Create'
 		);
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return id;
 	},
-	createLink: async (
-		db: DBType,
-		{ journalId, labelId }: { journalId: string; labelId: string }
-	) => {
+	createLink: async ({ journalId, labelId }: { journalId: string; labelId: string }) => {
+		const db = getContextDB();
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(labelsToJournals).values({ id, journalId, labelId, ...updatedTime() }),
 			'Labels - Create Link'
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	createMany: async (db: DBType, data: CreateLabelSchemaType[]) => {
+	createMany: async (data: CreateLabelSchemaType[]) => {
+		const db = getContextDB();
 		const ids = data.map(() => nanoid());
 		const insertData = data.map((currentData, index) =>
 			labelCreateInsertionData(currentData, ids[index])
 		);
 
 		await dbExecuteLogger(db.insert(label).values(insertData), 'Labels - Create Many');
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return ids;
 	},
-	update: async ({ db, data, id }) => {
+	update: async ({ data, id }) => {
+		const db = getContextDB();
 		const currentLabel = await dbExecuteLogger(
 			db.query.label.findFirst({ where: eq(label.id, id) }),
 			'Labels - Update - Get By ID'
@@ -271,18 +275,17 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 				.where(eq(label.id, id)),
 			'Labels - Update'
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return id;
 	},
-	canDeleteMany: async (db: DBType, ids: string[]) => {
-		const canDeleteList = await Promise.all(
-			ids.map(async (id) => labelActions.canDelete(db, { id }))
-		);
+	canDeleteMany: async (ids: string[]) => {
+		const canDeleteList = await Promise.all(ids.map(async (id) => labelActions.canDelete({ id })));
 
 		return canDeleteList.reduce((prev, current) => (current === false ? false : prev), true);
 	},
-	canDelete: async (db: DBType, data: IdSchemaType) => {
+	canDelete: async (data: IdSchemaType) => {
+		const db = getContextDB();
 		const currentLabel = await dbExecuteLogger(
 			db.query.label.findFirst({ where: eq(label.id, data.id), with: { journals: { limit: 1 } } }),
 			'Labels - Can Delete - Get By ID'
@@ -294,12 +297,13 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 		//If the Label has no journals, then mark as deleted, otherwise do nothing
 		return currentLabel && currentLabel.journals.length === 0;
 	},
-	softDelete: async (db: DBType, data: IdSchemaType) => {
+	softDelete: async (data: IdSchemaType) => {
+		const db = getContextDB();
 		return tLogger(
 			'Soft Delete Label',
 			db.transaction(async (transDb) => {
 				//If the Label has no journals, then mark as deleted, otherwise do nothing
-				if (await labelActions.canDelete(db, data)) {
+				if (await labelActions.canDelete(data)) {
 					await dbExecuteLogger(
 						transDb.delete(labelsToJournals).where(eq(labelsToJournals.labelId, data.id)),
 						'Labels - Soft Delete - Delete Links'
@@ -309,14 +313,15 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 						transDb.delete(label).where(eq(label.id, data.id)),
 						'Labels - Soft Delete'
 					);
-					await materializedViewActions.setRefreshRequired(db);
+					await materializedViewActions.setRefreshRequired();
 				}
 
 				return data.id;
 			})
 		);
 	},
-	hardDeleteMany: async (db: DBType, data: IdSchemaType[]) => {
+	hardDeleteMany: async (data: IdSchemaType[]) => {
+		const db = getContextDB();
 		if (data.length === 0) return;
 		const idList = data.map((currentData) => currentData.id);
 
@@ -334,9 +339,10 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 				);
 			})
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	seed: async (db: DBType, count: number) => {
+	seed: async (count: number) => {
+		const db = getContextDB();
 		getLogger().info('Seeding Labels : ', count);
 
 		const existingTitles = (
@@ -352,6 +358,6 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 			count
 		});
 
-		await labelActions.createMany(db, itemsToCreate);
+		await labelActions.createMany(itemsToCreate);
 	}
 };

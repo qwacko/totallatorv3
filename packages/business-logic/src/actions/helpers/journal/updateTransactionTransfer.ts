@@ -90,7 +90,7 @@ export const updateManyTransferInfo = async ({
 }) => {
 	const journals2 = await dbExecuteLogger(
 		db.query.transaction.findMany({
-			where: (transaction, { inArray }) =>
+			where: (transaction) =>
 				transactionIds ? inArrayWrapped(transaction.id, transactionIds) : undefined,
 			with: {
 				journals: {

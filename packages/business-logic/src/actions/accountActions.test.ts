@@ -53,7 +53,7 @@ describe('accountActions', async () => {
 					toAccountTitle: undefined
 				}
 			});
-			await materializedViewActions.setRefreshRequired(db);
+			await materializedViewActions.setRefreshRequired();
 		}
 	});
 

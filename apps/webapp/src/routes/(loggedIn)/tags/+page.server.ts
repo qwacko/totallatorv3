@@ -24,7 +24,6 @@ export const load = async (data) => {
   );
 
   const tags = await tActions.tag.list({
-    db,
     filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
   });
   const redirectRequired = tags.page >= tags.pageCount;
@@ -34,7 +33,6 @@ export const load = async (data) => {
   }
 
   const tagSummary = tActions.journalView.summary({
-    db,
     filter: { ...defaultJournalFilter(), tag: pageInfo.searchParams },
   });
 
@@ -51,7 +49,6 @@ export const load = async (data) => {
 
   return {
     tags: tActions.associatedInfo.addToItems({
-      db,
       grouping: "tagId",
       data: tags,
     }),
@@ -72,7 +69,6 @@ export const actions = {
   ...fileFormActions,
   ...associatedInfoFormActions,
   update: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(submitValidation));
 
     if (!form.valid) {
@@ -80,7 +76,7 @@ export const actions = {
     }
 
     try {
-      await tActions.tag.update({ db, data: form.data, id: form.data.id });
+      await tActions.tag.update({ data: form.data, id: form.data.id });
       return {
         status: 200,
         body: {

@@ -70,13 +70,12 @@ export const clearTestDB = async (db: DBType) => {
 	await db.delete(schema.journalEntry).execute();
 	await db.delete(schema.transaction).execute();
 	await db.delete(schema.reusableFilter).execute();
-	await materializedViewActions.refresh({ db });
-	await materializedViewActions.setRefreshRequired(db);
+	await materializedViewActions.refresh();
+	await materializedViewActions.setRefreshRequired();
 };
 
 export const initialiseTestDB = async ({
 	db,
-	id,
 	accounts = false,
 	bills = false,
 	budgets = false,
@@ -86,7 +85,6 @@ export const initialiseTestDB = async ({
 	tags = false
 }: {
 	db: DBType;
-	id: string;
 	accounts?: boolean;
 	bills?: boolean;
 	budgets?: boolean;
@@ -98,7 +96,7 @@ export const initialiseTestDB = async ({
 	let itemCount = 0;
 
 	if (accounts) {
-		await seedTestAccounts(db, id);
+		await seedTestAccounts(db);
 	}
 	if (bills) {
 		await seedTestBills(db);
@@ -119,8 +117,8 @@ export const initialiseTestDB = async ({
 		await seedTestTags(db);
 	}
 
-	await materializedViewActions.refresh({ db });
-	await materializedViewActions.setRefreshRequired(db);
+	await materializedViewActions.refresh();
+	await materializedViewActions.setRefreshRequired();
 
 	return itemCount;
 };

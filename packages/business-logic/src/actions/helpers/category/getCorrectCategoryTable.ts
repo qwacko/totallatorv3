@@ -1,10 +1,8 @@
-import type { DBType } from '@totallator/database';
 import { categoryMaterializedView, categoryView } from '@totallator/database';
 import { materializedViewActions } from '../../materializedViewActions';
 
-export const getCorrectCategoryTable = async (db: DBType) => {
+export const getCorrectCategoryTable = async () => {
 	const needsRefresh = await materializedViewActions.needsRefresh({
-		db,
 		items: { category: true }
 	});
 

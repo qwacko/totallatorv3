@@ -39,13 +39,12 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { tLogger } from '../server/db/transactionLogger';
+import { getContextDB } from '@totallator/context';
 
 export const journalActions = {
 	createFromSimpleTransaction: async ({
-		db,
 		transaction
 	}: {
-		db: DBType;
 		transaction: CreateSimpleTransactionType;
 	}): Promise<string[]> => {
 		const processedTransaction = createSimpleTransactionSchema.safeParse(transaction);
@@ -57,7 +56,6 @@ export const journalActions = {
 		const combinedTransaction = simpleSchemaToCombinedSchema(processedTransaction.data);
 
 		const createdTransaction = await journalActions.createManyTransactionJournals({
-			db,
 			journalEntries: [combinedTransaction],
 			isImport: false // This is manual creation
 		});
@@ -65,16 +63,15 @@ export const journalActions = {
 		return createdTransaction;
 	},
 	createManyTransactionJournals: async ({
-		db,
 		journalEntries,
 		isImport = false,
 		useExistingTransaction = false
 	}: {
-		db: DBType;
 		journalEntries: CreateCombinedTransactionType[];
 		isImport?: boolean;
 		useExistingTransaction?: boolean;
 	}): Promise<string[]> => {
+		const db = getContextDB();
 		let transactionIds: string[] = [];
 
 		const executeTransactionWork = async (dbContext: DBType) => {
@@ -143,17 +140,16 @@ export const journalActions = {
 			);
 		}
 
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return transactionIds;
 	},
 	hardDeleteTransactions: async ({
-		db,
 		transactionIds
 	}: {
-		db: DBType;
 		transactionIds: string[];
 	}): Promise<void> => {
+		const db = getContextDB();
 		if (transactionIds.length === 0) return;
 		await tLogger(
 			'Hard Delete Transactions',
@@ -192,40 +188,33 @@ export const journalActions = {
 				);
 			})
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	seed: async (db: DBType, count: number): Promise<void> => {
+	seed: async (count: number): Promise<void> => {
+		const db = getContextDB();
 		const startTime = Date.now();
 		const { data: assetLiabilityAccounts } = await accountActions.list({
-			db,
 			filter: { type: ['asset', 'liability'], allowUpdate: true, pageSize: 10000 }
 		});
 		const { data: incomeAccounts } = await accountActions.list({
-			db,
 			filter: { type: ['income'], allowUpdate: true, pageSize: 10000 }
 		});
 		const { data: expenseAccounts } = await accountActions.list({
-			db,
 			filter: { type: ['expense'], allowUpdate: true, pageSize: 10000 }
 		});
 		const { data: bills } = await billActions.list({
-			db,
 			filter: { allowUpdate: true, pageSize: 10000 }
 		});
 		const { data: budgets } = await budgetActions.list({
-			db,
 			filter: { allowUpdate: true, pageSize: 10000 }
 		});
 		const { data: categories } = await categoryActions.list({
-			db,
 			filter: { allowUpdate: true, pageSize: 10000 }
 		});
 		const { data: tags } = await tagActions.list({
-			db,
 			filter: { allowUpdate: true, pageSize: 10000 }
 		});
 		const { data: labels } = await labelActions.list({
-			db,
 			filter: { allowUpdate: true, pageSize: 10000 }
 		});
 		const transactionsForCreation = Array(count)
@@ -245,9 +234,8 @@ export const journalActions = {
 
 		await tLogger(
 			'Seed Transactions',
-			db.transaction(async (db) => {
+			db.transaction(async () => {
 				await journalActions.createManyTransactionJournals({
-					db,
 					journalEntries: transactionsForCreation,
 					isImport: false, // Seed data is not considered an import
 					useExistingTransaction: true // Use the existing transaction
@@ -258,48 +246,47 @@ export const journalActions = {
 		getLogger().info(`Seeding ${count} transactions took ${endTime - startTime}ms`);
 	},
 	markManyComplete: async ({
-		db,
 		journalFilter
 	}: {
-		db: DBType;
 		journalFilter: JournalFilterSchemaInputType;
 	}): Promise<void> => {
-		const journals = await journalViewActions.list({ db, filter: journalFilter });
+		const db = getContextDB();
+		const journals = await journalViewActions.list({ filter: journalFilter });
 
 		await tLogger(
 			'Mark Many Journals Complete',
-			db.transaction(async (db) => {
+			db.transaction(async () => {
 				await Promise.all(
 					journals.data.map((journal) => {
-						return journalActions.markComplete(db, journal.id);
+						return journalActions.markComplete(journal.id);
 					})
 				);
 			})
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
 	markManyUncomplete: async ({
-		db,
 		journalFilter
 	}: {
-		db: DBType;
 		journalFilter: JournalFilterSchemaInputType;
 	}): Promise<void> => {
-		const journals = await journalViewActions.list({ db, filter: journalFilter });
+		const db = getContextDB();
+		const journals = await journalViewActions.list({ filter: journalFilter });
 
 		await tLogger(
 			'Mark Many Journals Incomplete',
-			db.transaction(async (db) => {
+			db.transaction(async () => {
 				await Promise.all(
 					journals.data.map((journal) => {
-						return journalActions.markUncomplete(db, journal.id);
+						return journalActions.markUncomplete(journal.id);
 					})
 				);
 			})
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	markComplete: async (db: DBType, journalId: string): Promise<void> => {
+	markComplete: async (journalId: string): Promise<void> => {
+		const db = getContextDB();
 		const journal = await dbExecuteLogger(
 			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
 			'Transaction Journals - Mark Complete - Find Journal'
@@ -313,9 +300,10 @@ export const journalActions = {
 				.where(eq(journalEntry.transactionId, transactionId)),
 			'Transaction Journals - Mark Complete - Update Journal'
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
-	markUncomplete: async (db: DBType, journalId: string): Promise<void> => {
+	markUncomplete: async (journalId: string): Promise<void> => {
+		const db = getContextDB();
 		const journal = await dbExecuteLogger(
 			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
 			'Transaction Journals - Mark Uncomplete - Find Journal'
@@ -329,17 +317,16 @@ export const journalActions = {
 				.where(eq(journalEntry.transactionId, transactionId)),
 			'Transaction Journals - Mark Uncomplete - Update Journal'
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 	},
 	updateJournals: async ({
-		db,
 		filter,
 		journalData
 	}: {
-		db: DBType;
 		filter: JournalFilterSchemaInputType;
 		journalData: UpdateJournalSchemaInputType;
 	}): Promise<undefined | string[]> => {
+		const db = getContextDB();
 		const processedData = updateJournalSchema.safeParse(journalData);
 
 		if (!processedData.success) {
@@ -348,7 +335,7 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
-		const journals = await journalViewActions.list({ db, filter: processedFilter });
+		const journals = await journalViewActions.list({ filter: processedFilter });
 
 		if (journals.data.length === 0) return;
 
@@ -430,7 +417,6 @@ export const journalActions = {
 
 				const accountId = (
 					await accountActions.createOrGet({
-						db,
 						title: processedData.data.accountTitle || undefined,
 						id: processedData.data.accountId || undefined,
 						requireActive: true
@@ -439,7 +425,6 @@ export const journalActions = {
 
 				const otherAccountId = (
 					await accountActions.createOrGet({
-						db,
 						title: processedData.data.otherAccountTitle || undefined,
 						id: processedData.data.otherAccountId || undefined,
 						requireActive: true
@@ -633,13 +618,13 @@ export const journalActions = {
 
 				const labelSettingIds = await Promise.all(
 					labelSetting.map(async (currentAdd) => {
-						return labelActions.createOrGet({ db, ...currentAdd, requireActive: true });
+						return labelActions.createOrGet({ ...currentAdd, requireActive: true });
 					})
 				);
 
 				const labelAdditionIds = await Promise.all(
 					labelAddition.map(async (currentAdd) => {
-						return labelActions.createOrGet({ db, ...currentAdd, requireActive: true });
+						return labelActions.createOrGet({ ...currentAdd, requireActive: true });
 					})
 				);
 
@@ -718,19 +703,18 @@ export const journalActions = {
 				await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
 			})
 		);
-		await materializedViewActions.setRefreshRequired(db);
+		await materializedViewActions.setRefreshRequired();
 
 		return targetJournals;
 	},
 	cloneJournals: async ({
-		db,
 		filter,
 		journalData
 	}: {
-		db: DBType;
 		filter: JournalFilterSchemaInputType;
 		journalData: CloneJournalUpdateSchemaType;
 	}): Promise<undefined | string[]> => {
+		const db = getContextDB();
 		const processedData = cloneJournalUpdateSchema.safeParse(journalData);
 
 		if (!processedData.success) {
@@ -739,7 +723,7 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.parse(filter);
-		const journals = await journalViewActions.list({ db, filter: processedFilter });
+		const journals = await journalViewActions.list({ filter: processedFilter });
 
 		if (journals.data.length === 0) return;
 
@@ -784,9 +768,8 @@ export const journalActions = {
 
 		await tLogger(
 			'Clone Journals',
-			db.transaction(async (db) => {
+			db.transaction(async () => {
 				transactionIds = await journalActions.createManyTransactionJournals({
-					db,
 					journalEntries: transactionsForCreation,
 					isImport: false, // Cloned journals are considered manual creation
 					useExistingTransaction: true // Use the existing transaction
@@ -803,7 +786,6 @@ export const journalActions = {
 				} = processedData.data;
 
 				await journalActions.updateJournals({
-					db,
 					filter: {
 						transactionIdArray: transactionIds,
 						page: 0,
@@ -818,7 +800,6 @@ export const journalActions = {
 					fromAmount !== undefined
 				) {
 					await journalActions.updateJournals({
-						db,
 						filter: {
 							transactionIdArray: transactionIds,
 							maxAmount: 0,
@@ -834,7 +815,6 @@ export const journalActions = {
 				}
 				if (toAccountId !== undefined || toAccountTitle !== undefined || toAmount !== undefined) {
 					await journalActions.updateJournals({
-						db,
 						filter: {
 							transactionIdArray: transactionIds,
 							minAmount: 0,

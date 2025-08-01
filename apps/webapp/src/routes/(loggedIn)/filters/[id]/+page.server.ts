@@ -32,7 +32,6 @@ export const load = async (data) => {
   }
 
   const reusableFilter = await tActions.reusableFitler.getById({
-    db,
     id: current.params.id,
   });
 
@@ -76,7 +75,7 @@ export const load = async (data) => {
     zod4(updateJournalSchema),
   );
 
-  const numberResults = await tActions.journalView.count(db, filter);
+  const numberResults = await tActions.journalView.count(filter);
 
   return {
     searchParams: current.searchParams,
@@ -123,7 +122,6 @@ export const actions = {
 
     try {
       await tActions.reusableFitler.update({
-        db: data.locals.db,
         id,
         data: processedUpdate.data,
       });
@@ -164,7 +162,6 @@ export const actions = {
 
     try {
       await tActions.reusableFitler.update({
-        db: data.locals.db,
         id,
         data: { filter: filterProcessed.data },
       });
@@ -185,7 +182,6 @@ export const actions = {
 
     try {
       await tActions.reusableFitler.update({
-        db: data.locals.db,
         id,
         data: { change: form.data },
       });

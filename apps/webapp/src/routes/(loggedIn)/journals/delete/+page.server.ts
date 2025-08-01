@@ -13,11 +13,9 @@ import { urlGenerator } from "$lib/routes.js";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   const journalData = await tActions.journalView.list({
-    db: db,
     filter: pageInfo.current.searchParams || defaultJournalFilter(),
   });
 
@@ -26,7 +24,6 @@ export const load = async (data) => {
 
 export const actions = {
   delete: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(pageAndFilterValidation));
 
     if (!form.valid) {
@@ -43,7 +40,6 @@ export const actions = {
 
     try {
       const journals = await tActions.journalView.list({
-        db,
         filter: parsedFilter.data,
       });
 
@@ -51,7 +47,7 @@ export const actions = {
         journals.data.map((item) => item.transactionId),
       );
 
-      await tActions.journal.hardDeleteTransactions({ db, transactionIds });
+      await tActions.journal.hardDeleteTransactions({ transactionIds });
     } catch (e) {
       locals.global.logger.error("Error Updating Journal State : ", e);
       redirect(

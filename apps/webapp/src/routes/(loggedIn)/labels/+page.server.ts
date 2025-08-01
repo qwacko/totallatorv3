@@ -25,7 +25,6 @@ export const load = async (data) => {
   );
 
   const labels = await tActions.label.list({
-    db,
     filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
   });
 
@@ -36,7 +35,6 @@ export const load = async (data) => {
   }
 
   const labelSummary = tActions.journalView.summary({
-    db,
     filter: { ...defaultJournalFilter(), label: pageInfo.searchParams },
   });
 
@@ -53,13 +51,10 @@ export const load = async (data) => {
 
   return {
     labels: await tActions.associatedInfo.addToItems({
-      db,
       grouping: "labelId",
       data: await tActions.file.addToItems({
-        db,
         grouping: "label",
         data: await tActions.note.addToItems({
-          db,
           data: labels,
           grouping: "label",
         }),
@@ -82,7 +77,6 @@ export const actions = {
   ...fileFormActions,
   ...associatedInfoFormActions,
   update: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(submitValidation));
 
     if (!form.valid) {
@@ -90,7 +84,7 @@ export const actions = {
     }
 
     try {
-      await tActions.label.update({ db, data: form.data, id: form.data.id });
+      await tActions.label.update({ data: form.data, id: form.data.id });
       return {
         status: 200,
         body: {
