@@ -178,7 +178,7 @@
       {/if}
       {#if importData.detail.status !== "awaitingImport" && importData.detail.status !== "importing"}
         <Button color="red" outline><DeleteIcon /></Button>
-        <Dropdown>
+        <Dropdown simple>
           {#if data.canDelete}
             <DropdownItem
               color="red"

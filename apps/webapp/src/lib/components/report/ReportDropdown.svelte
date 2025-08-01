@@ -16,13 +16,13 @@
 </script>
 
 <Button class="p-2" outline>Reports</Button>
-<Dropdown>
+<Dropdown simple>
   {#each items as currentItem}
     {#if "reports" in currentItem}
       <DropdownItem class="flex items-center justify-between gap-2">
         {currentItem.group}<ArrowRightIcon />
       </DropdownItem>
-      <Dropdown>
+      <Dropdown simple>
         {#each currentItem.reports as report}
           <DropdownItem
             href={urlGenerator({

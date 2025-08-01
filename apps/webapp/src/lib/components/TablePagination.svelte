@@ -33,7 +33,7 @@
     Pg {page + 1} / {paginationInfo.lastPage + 1}
     <ArrowDownIcon />
   </Button>
-  <Dropdown>
+  <Dropdown simple>
     <DropdownItemWithDisabling
       href={urlForPage(paginationInfo.firstPage)}
       disabled={!paginationInfo.enableFirst}

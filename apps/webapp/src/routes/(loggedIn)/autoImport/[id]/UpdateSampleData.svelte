@@ -30,7 +30,7 @@
 <Button color="light" size="sm" class="flex flex-row gap-2">
   {#if loading}<Spinner size="6" />{/if}Actions<ArrowDownIcon />
 </Button>
-<Dropdown>
+<Dropdown simple>
   <DropdownItem
     href={urlGenerator({
       address: "/(loggedIn)/autoImport/[id]/[filename]",

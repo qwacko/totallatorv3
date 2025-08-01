@@ -75,7 +75,7 @@
     {#if buttonText}{buttonText}{:else}<FilterMenuIcon />{/if}
   </Button>
 {/if}
-<Dropdown {placement}>
+<Dropdown {placement} simple>
   {#if showDefaultJournalFilters}
     <DropdownItem
       href={filterToURL({
@@ -113,10 +113,10 @@
         {filter.group ? `${filter.group} : ` : ""}{filter.title}
       </DropdownItem>
     {:else}
-      <DropdownItem class="flex items-center justify-between gap-2">
+      <DropdownItem classes={{anchor: "flex items-center justify-between gap-2"}}>
         {filterKey}<ArrowRightIcon />
       </DropdownItem>
-      <Dropdown>
+      <Dropdown simple>
         {#each currentFilter as filter}
           <DropdownItem href={filterToURL(filter)} class="flex flex-row gap-2">
             {#if !hideIcon}

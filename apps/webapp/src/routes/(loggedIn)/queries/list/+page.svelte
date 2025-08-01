@@ -146,7 +146,7 @@
           <div class="flex flex-row items-center gap-2">
             {timeString}
             <Button size="xs" outline class="border-0"><FilterIcon /></Button>
-            <Dropdown>
+            <Dropdown simple>
               <DropdownItem
                 href={urlInfo.updateParams({
                   searchParams: {
@@ -183,7 +183,7 @@
           <div class="flex flex-row items-center gap-2">
             {duration.toFixed() || ""}ms
             <Button size="xs" outline class="border-0"><FilterIcon /></Button>
-            <Dropdown>
+            <Dropdown simple>
               <DropdownItem
                 href={urlInfo.updateParams({
                   searchParams: {

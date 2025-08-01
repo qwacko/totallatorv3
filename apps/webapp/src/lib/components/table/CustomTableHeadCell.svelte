@@ -128,7 +128,7 @@
     {/if}
   </button>
   {#if showDropdownCalculated}
-    <Dropdown bind:isOpen={opened}>
+    <Dropdown bind:isOpen={opened} simple>
       {#if sortKey !== undefined}
         <DropdownItem class="flex flex-row items-center gap-2">
           <div class="flex grow pr-4">Sorting</div>

@@ -33,7 +33,7 @@
 </script>
 
 <Button outline class="flex p-2"><SortingIcon /></Button>
-<Dropdown>
+<Dropdown simple>
   {#each currentSort || [] as sort}
     <DropdownItem
       href={onSortURL(modifyOrderBy(currentSort, sort.field, "toggleOnly"))}

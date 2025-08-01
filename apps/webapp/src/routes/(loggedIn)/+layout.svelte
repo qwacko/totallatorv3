@@ -306,7 +306,7 @@
     <div class="flex grow"></div>
     <DarkMode />
     <Button outline><MenuIcon /></Button>
-    <Dropdown>
+    <Dropdown simple>
       <DropdownItem
         class="flex flex-row gap-2"
         href={urlGenerator({ address: "/(loggedIn)/files/create" }).url}
@@ -324,7 +324,7 @@
         <DropdownItem class="flex flex-row gap-2"
           ><ArrowLeftIcon />LLM</DropdownItem
         >
-        <Dropdown placement="left">
+        <Dropdown placement="left" simple>
           <DropdownItem
             href={urlGenerator({ address: "/(loggedIn)/llm/providers" }).url}
           >
@@ -348,7 +348,7 @@
       <DropdownItem class="flex flex-row gap-2"
         ><ArrowLeftIcon />Config</DropdownItem
       >
-      <Dropdown placement="left">
+      <Dropdown placement="left" simple>
         {#each pageMap as currentPage}
           <DropdownItem href={currentPage.href.url}>
             <div class="flex flex-row items-center gap-2">
@@ -400,13 +400,12 @@
     />
     {#if data.user?.admin}
       <Button outline>LLM</Button>
-      <Dropdown>
+      <Dropdown simple>
         <DropdownItem
           href={urlGenerator({ address: "/(loggedIn)/llm/providers" }).url}
+          classes={{ anchor : "flex flex-row items-center gap-2"}}
         >
-          <div class="flex flex-row items-center gap-2">
-            <IdeaIcon />Providers
-          </div>
+            <IdeaIcon />Provider
         </DropdownItem>
         <DropdownItem
           href={urlGenerator({
@@ -422,7 +421,7 @@
     {/if}
 
     <Button outline>Config</Button>
-    <Dropdown>
+    <Dropdown simple>
       {#each pageMap as currentPage, i}
         {@const DisplayIcon = currentPage.icon}
         <DropdownItem

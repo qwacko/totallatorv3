@@ -98,13 +98,13 @@
   <Button outline color="light" size="xs"
     >All Journal Actions ({allCount})</Button
   >
-  <Dropdown>
+  <Dropdown simple>
     <DropdownItem>
       <div class="flex flex-row items-center justify-between gap-1">
         All<ArrowRightIcon />
       </div>
     </DropdownItem>
-    <Dropdown>
+    <Dropdown simple>
       <DropdownItem
         href={urlGenerator({
           address: "/(loggedIn)/journals/bulkEdit",
@@ -141,7 +141,7 @@
         Incomplete<ArrowRightIcon />
       </div>
     </DropdownItem>
-    <Dropdown>
+    <Dropdown simple>
       <DropdownItem
         href={urlGenerator({
           address: "/(loggedIn)/journals/bulkEdit",
@@ -203,7 +203,7 @@
         Data Unchecked<ArrowRightIcon />
       </div>
     </DropdownItem>
-    <Dropdown>
+    <Dropdown simple>
       <DropdownItem
         href={urlGenerator({
           address: "/(loggedIn)/journals/bulkEdit",
@@ -265,7 +265,7 @@
         Unreconciled<ArrowRightIcon />
       </div>
     </DropdownItem>
-    <Dropdown>
+    <Dropdown simple>
       <DropdownItem
         href={urlGenerator({
           address: "/(loggedIn)/journals/bulkEdit",
@@ -327,7 +327,7 @@
         Unchecked and Incomplete<ArrowRightIcon />
       </div>
     </DropdownItem>
-    <Dropdown>
+    <Dropdown simple>
       <DropdownItem
         href={urlGenerator({
           address: "/(loggedIn)/journals/bulkEdit",

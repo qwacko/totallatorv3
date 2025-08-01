@@ -163,7 +163,7 @@
     <Button outline class="flex flex-row items-center gap-2" color="light">
       {numberRows} Rows <ArrowDownIcon />
     </Button>
-    <Dropdown>
+    <Dropdown simple>
       {#each numberRowsOptions as option}
         <DropdownItem
           onclick={() => {

@@ -60,7 +60,7 @@
 </script>
 
 <Button class="flex p-2" outline><ColumnOrderIcon /></Button>
-<Dropdown>
+<Dropdown simple>
   {#each shownColumns as currentColumn}
     <DropdownItem>
       <div class="flex flex-row gap-2">

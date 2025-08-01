@@ -17,7 +17,7 @@
 <Button size="sm" class="flex p-2" color="blue" outline>
   <DownloadIcon />
 </Button>
-<Dropdown data-sveltekit-preload-data="off">
+<Dropdown data-sveltekit-preload-data="off" simple>
   {#each downloadTypeEnum as currentDownloadType}
     <DropdownItem href={urlGenerator(currentDownloadType)}>
       {downloadTypeToString(currentDownloadType)}
