@@ -82,7 +82,7 @@
         filter: defaultAllJournalFilter(),
         modificationType: "replace",
       })}
-      class="flex flex-row gap-2"
+       classes={{anchor: "flex flex-row gap-2"}}
     >
       All
     </DropdownItem>
@@ -91,7 +91,7 @@
         filter: defaultJournalFilter(),
         modificationType: "replace",
       })}
-      class="flex flex-row gap-2"
+       classes={{anchor: "flex flex-row gap-2"}}
     >
       Assets / Liabilities
     </DropdownItem>
@@ -102,7 +102,7 @@
     )}
     {#if currentFilter.length === 1}
       {@const filter = currentFilter[0]}
-      <DropdownItem href={filterToURL(filter)} class="flex flex-row gap-2">
+      <DropdownItem href={filterToURL(filter)} classes={{anchor: "flex flex-row gap-2"}}>
         {#if !hideIcon}
           {#if filter.modificationType === "modify"}
             <FilterModifyIcon />
@@ -118,7 +118,7 @@
       </DropdownItem>
       <Dropdown simple>
         {#each currentFilter as filter}
-          <DropdownItem href={filterToURL(filter)} class="flex flex-row gap-2">
+          <DropdownItem href={filterToURL(filter)} classes={{anchor: "flex flex-row gap-2"}}>
             {#if !hideIcon}
               {#if filter.modificationType === "modify"}
                 <FilterModifyIcon />
