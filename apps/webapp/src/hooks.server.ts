@@ -13,7 +13,6 @@ const handleAuth: Handle = async ({
   resolve,
 }: Parameters<Handle>[0]) => {
   const context = await ensureInitialized();
-  console.log("Auth hook - Global context is initialized");
 
   if (!context.db) {
     throw new Error("Database is not initialized in the global context.");
@@ -55,7 +54,6 @@ const handleRoute: Handle = async ({
   resolve,
 }: Parameters<Handle>[0]) => {
   const context = await ensureInitialized();
-  console.log("Route hook - Global context is initialized");
 
   if (!context.db) {
     throw new Error("Database is not initialized in the global context.");
