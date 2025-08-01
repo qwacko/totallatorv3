@@ -2,7 +2,7 @@ import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
 import { actionHelpers, tActions } from "@totallator/business-logic";
-import { createRequestContext } from "@totallator/context";
+import { createRequestContext, runWithContext } from "@totallator/context";
 
 import { authGuard } from "./lib/authGuard/authGuardConfig.js";
 import { ensureInitialized } from "./lib/server/context.js";
@@ -58,49 +58,55 @@ const handleRoute: Handle = async ({
   if (!context.db) {
     throw new Error("Database is not initialized in the global context.");
   }
-  // Set up contexts in locals
+  // Create request context
+  const requestContext = createRequestContext(event);
+  
+  // Set up contexts in locals (for backward compatibility)
   event.locals.global = context;
-  event.locals.request = createRequestContext(event);
+  event.locals.request = requestContext;
   event.locals.db = context.db; // Keep for backward compatibility
 
   const timeLimit = context.serverEnv.PAGE_TIMEOUT_MS;
   const timeout = setTimeout(() => {
     context.logger.warn(`Request took longer than ${timeLimit}ms to resolve`, {
-      requestId: event.locals.request.requestId,
+      requestId: requestContext.requestId,
       requestURL: event.request.url,
     });
   }, timeLimit);
 
-  // Import the business logic function we need
-  const { noAdmins } = await import("@totallator/business-logic");
-  const noAdmin = await noAdmins({ global: context });
+  // Run everything within AsyncLocalStorage context
+  return runWithContext(context, requestContext, async () => {
+    // Import the business logic function we need
+    const { noAdmins } = await import("@totallator/business-logic");
+    const noAdmin = await noAdmins({ global: context });
 
-  if (!event.route.id) {
-    redirect(302, "/login");
-  }
-
-  if (event.route.id === "/(loggedOut)/firstUser" && !noAdmin) {
-    context.logger.info("Redirecting from firstUser");
-    if (event.locals.user) {
-      redirect(302, "/users");
-    } else {
+    if (!event.route.id) {
       redirect(302, "/login");
     }
-  }
 
-  if (event.route.id !== "/(loggedOut)/firstUser" && noAdmin) {
-    redirect(302, "/firstUser");
-  }
+    if (event.route.id === "/(loggedOut)/firstUser" && !noAdmin) {
+      context.logger.info("Redirecting from firstUser");
+      if (event.locals.user) {
+        redirect(302, "/users");
+      } else {
+        redirect(302, "/login");
+      }
+    }
 
-  if (event.route.id) {
-    authGuard(event as Parameters<typeof authGuard>[0]);
-  }
+    if (event.route.id !== "/(loggedOut)/firstUser" && noAdmin) {
+      redirect(302, "/firstUser");
+    }
 
-  const result = await resolve(event);
+    if (event.route.id) {
+      authGuard(event as Parameters<typeof authGuard>[0]);
+    }
 
-  clearTimeout(timeout);
+    const result = await resolve(event);
 
-  return result;
+    clearTimeout(timeout);
+
+    return result;
+  });
 };
 
 export const handle = sequence(handleAuth, handleRoute);

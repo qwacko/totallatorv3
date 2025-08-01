@@ -35,6 +35,16 @@ export {
 // Logger
 export { createLogger, type Logger, type LogClass } from './logger.js';
 
+// AsyncLocalStorage Context Management
+export {
+  type ContextStore,
+  contextStorage,
+  getGlobalContext as getGlobalContextFromStore,
+  getRequestContext as getRequestContextFromStore,
+  getContext as getContextStore,
+  runWithContext,
+} from './asyncStorage.js';
+
 // Re-export commonly used types for convenience
 export type { ServerEnvSchemaType } from '@totallator/shared';
 export type { DBType, UserDBType, SessionDBType } from '@totallator/database';
