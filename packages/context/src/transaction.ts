@@ -92,12 +92,6 @@ export async function runInTransactionWithLogging<T>(
   }
 }
 
-/**
- * Check if currently running within a transaction context
- */
-export function isInTransaction(): boolean {
-  return !!transactionStorage.getStore();
-}
 
 /**
  * Run the request handler within a transaction (for non-GET requests)

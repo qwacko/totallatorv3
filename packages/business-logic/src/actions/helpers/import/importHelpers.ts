@@ -138,8 +138,7 @@ export async function importTransaction({
 			try {
 				const importedData = await journalActions.createManyTransactionJournals({
 					journalEntries: [processedCombinedTransaction.data],
-					isImport: true, // This is from an import process
-					useExistingTransaction: true // Use the existing transaction from the import
+					isImport: true // This is from an import process
 				});
 
 				await Promise.all(

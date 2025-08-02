@@ -38,7 +38,7 @@ import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefined
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getContextDB, runInTransactionWithLogging, isInTransaction } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export const journalActions = {
 	createFromSimpleTransaction: async ({
@@ -63,14 +63,11 @@ export const journalActions = {
 	},
 	createManyTransactionJournals: async ({
 		journalEntries,
-		isImport = false,
-		useExistingTransaction = false
+		isImport = false
 	}: {
 		journalEntries: CreateCombinedTransactionType[];
 		isImport?: boolean;
-		useExistingTransaction?: boolean;
 	}): Promise<string[]> => {
-		const db = getContextDB();
 		let transactionIds: string[] = [];
 
 		const executeTransactionWork = async (dbContext: DBType) => {
@@ -126,15 +123,10 @@ export const journalActions = {
 			await updateManyTransferInfo({ db: dbContext, transactionIds });
 		};
 
-		if (useExistingTransaction || isInTransaction()) {
-			// Use the existing transaction context directly
-			await executeTransactionWork(db);
-		} else {
-			// Create a new transaction
-			await runInTransactionWithLogging('Create Many Transaction Journals', async () => {
-				await executeTransactionWork(getContextDB());
-			});
-		}
+		// Create a new transaction
+		await runInTransactionWithLogging('Create Many Transaction Journals', async (trx) => {
+			await executeTransactionWork(trx);
+		});
 
 		await materializedViewActions.setRefreshRequired();
 
@@ -228,8 +220,7 @@ export const journalActions = {
 		await runInTransactionWithLogging('Seed Transactions', async () => {
 			await journalActions.createManyTransactionJournals({
 				journalEntries: transactionsForCreation,
-				isImport: false, // Seed data is not considered an import
-				useExistingTransaction: true // Use the existing transaction
+				isImport: false // Seed data is not considered an import
 			});
 		});
 		const endTime = Date.now();
@@ -746,8 +737,7 @@ export const journalActions = {
 		await runInTransactionWithLogging('Clone Journals', async () => {
 			transactionIds = await journalActions.createManyTransactionJournals({
 				journalEntries: transactionsForCreation,
-				isImport: false, // Cloned journals are considered manual creation
-				useExistingTransaction: true // Use the existing transaction
+				isImport: false // Cloned journals are considered manual creation
 			});
 
 			const {

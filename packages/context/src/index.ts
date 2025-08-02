@@ -50,11 +50,8 @@ export {
 
 // Transaction Context Management
 export {
-  getTransactionDB,
-  getContextOrTransactionDB,
   runInTransaction,
   runInTransactionWithLogging,
-  isInTransaction,
   runRequestInTransaction,
 } from './transaction.js';
 
