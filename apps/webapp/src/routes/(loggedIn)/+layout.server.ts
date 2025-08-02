@@ -20,7 +20,7 @@ export const load = async ({ locals }) => {
       categories: (await tActions.category.latestUpdate()).getTime() || 0,
       importMappings:
         (
-          await tActions.importMapping.latestUpdate({ db: locals.db })
+          await tActions.importMapping.latestUpdate()
         ).getTime() || 0,
     },
   };

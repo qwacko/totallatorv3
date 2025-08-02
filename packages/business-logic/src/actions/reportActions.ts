@@ -6,7 +6,6 @@ import type {
 	UpdateReportLayoutType
 } from '@totallator/shared';
 import { nanoid } from 'nanoid';
-import type { DBType } from '@totallator/database';
 import {
 	report,
 	reportElement,
@@ -36,10 +35,12 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { tLogger } from '../server/db/transactionLogger';
+import { getContextDB } from '@totallator/context';
 
 export const reportActions = {
-	delete: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
-		const reportInfo = await reportActions.getReportConfig({ db, id });
+	delete: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
+		const reportInfo = await reportActions.getReportConfig({ id });
 
 		if (!reportInfo) throw new Error('Report not found');
 
@@ -54,7 +55,6 @@ export const reportActions = {
 			'Delete Report',
 			db.transaction(async (trx) => {
 				await reportActions.reportElement.deleteMany({
-					db: trx,
 					ids: reportInfo.reportElements.map((item) => item.id)
 				});
 				if (reportInfo.filterId) {
@@ -70,7 +70,8 @@ export const reportActions = {
 			})
 		);
 	},
-	create: async ({ db, data }: { db: DBType; data: CreateReportType }): Promise<string> => {
+	create: async ({ data }: { data: CreateReportType }): Promise<string> => {
+		const db = getContextDB();
 		const id = nanoid();
 
 		const reportElementCreationList: CreateReportElementType[] = reportLayoutOptions[
@@ -86,7 +87,6 @@ export const reportActions = {
 				);
 
 				await reportActions.reportElement.createMany({
-					db: trx,
 					configurations: reportElementCreationList
 				});
 			})
@@ -94,7 +94,8 @@ export const reportActions = {
 
 		return id;
 	},
-	listForDropdown: async ({ db }: { db: DBType }): Promise<ReportDropdownType> => {
+	listForDropdown: async (): Promise<ReportDropdownType> => {
+		const db = getContextDB();
 		const reports = await dbExecuteLogger(
 			db.select({ id: report.id, title: report.title, group: report.group }).from(report),
 			'Report - List For Dropdown'
@@ -120,13 +121,8 @@ export const reportActions = {
 				.sort((a, b) => a.title.localeCompare(b.title))
 		];
 	},
-	getSimpleReportConfig: async ({
-		db,
-		id
-	}: {
-		db: DBType;
-		id: string;
-	}): Promise<ReportTableType | undefined> => {
+	getSimpleReportConfig: async ({ id }: { id: string }): Promise<ReportTableType | undefined> => {
+		const db = getContextDB();
 		const reportConfig = await dbExecuteLogger(
 			db.query.report.findFirst({
 				where: (report, { eq }) => eq(report.id, id)
@@ -141,14 +137,13 @@ export const reportActions = {
 		return reportConfig;
 	},
 	getReportConfig: async ({
-		db,
 		id,
 		pageFilter = {}
 	}: {
-		db: DBType;
 		id: string;
 		pageFilter?: JournalFilterSchemaWithoutPaginationType;
 	}) => {
+		const db = getContextDB();
 		const reportConfig = await dbExecuteLogger(
 			db.query.report.findFirst({
 				where: (report, { eq }) => eq(report.id, id),
@@ -166,22 +161,17 @@ export const reportActions = {
 
 		const reportElementData = await Promise.all(
 			reportConfig.reportElements.map(async (item) =>
-				reportActions.reportElement.getWithData({ db, id: item.id, pageFilter })
+				reportActions.reportElement.getWithData({ id: item.id, pageFilter })
 			)
 		);
 
 		return { ...reportConfig, reportElementsWithData: reportElementData };
 	},
-	updateLayout: async ({
-		db,
-		layoutConfig
-	}: {
-		db: DBType;
-		layoutConfig: UpdateReportLayoutType;
-	}) => {
+	updateLayout: async ({ layoutConfig }: { layoutConfig: UpdateReportLayoutType }) => {
+		const db = getContextDB();
 		const { id, reportElements } = layoutConfig;
 
-		const reportConfig = await reportActions.getReportConfig({ db, id });
+		const reportConfig = await reportActions.getReportConfig({ id });
 
 		if (!reportConfig) {
 			throw new Error('Report not found');
@@ -222,7 +212,7 @@ export const reportActions = {
 			db.transaction(async (trx) => {
 				if (reportElementsToRemove.length > 0) {
 					//Remove old elements
-					await reportActions.reportElement.deleteMany({ db: trx, ids: reportElementsToRemove });
+					await reportActions.reportElement.deleteMany({ ids: reportElementsToRemove });
 				}
 
 				if (reportElementsToUpdate.length > 0) {
@@ -243,15 +233,15 @@ export const reportActions = {
 				if (reportElementsToAdd.length > 0) {
 					//Create New Elements
 					await reportActions.reportElement.createMany({
-						db: trx,
 						configurations: reportElementsToAdd
 					});
 				}
 			})
 		);
 	},
-	addFilter: async ({ db, id }: { db: DBType; id: string }) => {
-		const reportConfig = await reportActions.getSimpleReportConfig({ db, id });
+	addFilter: async ({ id }: { id: string }) => {
+		const db = getContextDB();
+		const reportConfig = await reportActions.getSimpleReportConfig({ id });
 
 		if (!reportConfig) {
 			throw new Error('Report not found');
@@ -266,7 +256,7 @@ export const reportActions = {
 		await tLogger(
 			'Add Filter',
 			db.transaction(async (trx) => {
-				await reportActions.filter.create({ db: trx, id: filterId });
+				await reportActions.filter.create({ id: filterId });
 
 				await dbExecuteLogger(
 					trx
@@ -283,15 +273,14 @@ export const reportActions = {
 		return;
 	},
 	updateFilter: async ({
-		db,
 		id,
 		filter
 	}: {
-		db: DBType;
 		id: string;
 		filter: JournalFilterSchemaWithoutPaginationType;
 	}) => {
-		const reportConfig = await reportActions.getSimpleReportConfig({ db, id });
+		const db = getContextDB();
+		const reportConfig = await reportActions.getSimpleReportConfig({ id });
 
 		if (!reportConfig) {
 			throw new Error('Report not found');
@@ -305,9 +294,8 @@ export const reportActions = {
 
 		await tLogger(
 			'Update Filter',
-			db.transaction(async (trx) => {
+			db.transaction(async () => {
 				await reportActions.filter.update({
-					db: trx,
 					filterId,
 					filterConfig: filter
 				});
@@ -317,17 +305,15 @@ export const reportActions = {
 		return;
 	},
 	upsertFilter: async ({
-		db,
 		id,
 		filter
 	}: {
-		db: DBType;
 		id: string;
 		filter: JournalFilterSchemaWithoutPaginationType;
 	}) => {
 		getLogger().debug('Upserting Filter', filter);
 
-		const reportConfig = await reportActions.getSimpleReportConfig({ db, id });
+		const reportConfig = await reportActions.getSimpleReportConfig({ id });
 
 		if (!reportConfig) {
 			throw new Error('Report not found');
@@ -336,23 +322,22 @@ export const reportActions = {
 		const filterId = reportConfig.filterId;
 
 		if (!filterId) {
-			await reportActions.addFilter({ db, id });
+			await reportActions.addFilter({ id });
 		}
 
-		await reportActions.updateFilter({ db, id, filter });
+		await reportActions.updateFilter({ id, filter });
 	},
 	reportElementConfigItem: {
 		update: async ({
-			db,
 			itemId,
 			configId,
 			data
 		}: {
-			db: DBType;
 			itemId: string;
 			configId: string;
 			data: ReportConfigPartFormSchemaType;
 		}) => {
+			const db = getContextDB();
 			const configData = reportConfigPartIndividualSchema.safeParse({
 				...data,
 				id: configId
@@ -391,7 +376,8 @@ export const reportActions = {
 		}
 	},
 	reportElementConfiguration: {
-		listReusable: async ({ db }: { db: DBType }) => {
+		listReusable: async () => {
+			const db = getContextDB();
 			const reportElementConfigs = await dbExecuteLogger(
 				db
 					.select({ id: reportElementConfig.id, title: reportElementConfig.title })
@@ -402,7 +388,8 @@ export const reportActions = {
 
 			return reportElementConfigs;
 		},
-		setReusable: async ({ db, id }: { db: DBType; id: string }) => {
+		setReusable: async ({ id }: { id: string }) => {
+			const db = getContextDB();
 			const reportElementConfigData = await dbExecuteLogger(
 				db.query.reportElementConfig.findFirst({
 					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id)
@@ -422,7 +409,8 @@ export const reportActions = {
 				'Report Element Configuration - Set Reusable - Update'
 			);
 		},
-		clearReusable: async ({ db, id }: { db: DBType; id: string }) => {
+		clearReusable: async ({ id }: { id: string }) => {
+			const db = getContextDB();
 			const reportElementConfigData = await dbExecuteLogger(
 				db.query.reportElementConfig.findFirst({
 					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, id),
@@ -450,14 +438,13 @@ export const reportActions = {
 			);
 		},
 		update: async ({
-			db,
 			reportElementId,
 			data
 		}: {
-			db: DBType;
 			reportElementId: string;
 			data: UpdateReportConfigurationType;
 		}) => {
+			const db = getContextDB();
 			const reportElementInfo = await dbExecuteLogger(
 				db.query.reportElement.findFirst({
 					where: (reportElement, { eq }) => eq(reportElement.id, reportElementId),
@@ -484,7 +471,8 @@ export const reportActions = {
 
 			return;
 		},
-		addFilter: async ({ db, configId }: { db: DBType; configId: string }) => {
+		addFilter: async ({ configId }: { configId: string }) => {
+			const db = getContextDB();
 			const reportElementConfigData = await dbExecuteLogger(
 				db.query.reportElementConfig.findFirst({
 					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
@@ -513,7 +501,7 @@ export const reportActions = {
 			await tLogger(
 				'Add Filter',
 				db.transaction(async (trx) => {
-					await reportActions.filter.create({ db: trx, id: newFilterId });
+					await reportActions.filter.create({ id: newFilterId });
 
 					await dbExecuteLogger(
 						trx.insert(filtersToReportConfigs).values({
@@ -529,16 +517,15 @@ export const reportActions = {
 			);
 		},
 		updateFilter: async ({
-			db,
 			configId,
 			filterId,
 			filter
 		}: {
-			db: DBType;
 			configId: string;
 			filterId: string;
 			filter: JournalFilterSchemaWithoutPaginationType;
 		}) => {
+			const db = getContextDB();
 			const reportElementConfigData = await dbExecuteLogger(
 				db.query.reportElementConfig.findFirst({
 					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
@@ -567,9 +554,8 @@ export const reportActions = {
 
 			await tLogger(
 				'Update Filter',
-				db.transaction(async (trx) => {
+				db.transaction(async () => {
 					await reportActions.filter.update({
-						db: trx,
 						filterId,
 						filterConfig: filter
 					});
@@ -578,15 +564,8 @@ export const reportActions = {
 
 			return;
 		},
-		removeFilter: async ({
-			db,
-			configId,
-			filterId
-		}: {
-			db: DBType;
-			configId: string;
-			filterId: string;
-		}) => {
+		removeFilter: async ({ configId, filterId }: { configId: string; filterId: string }) => {
+			const db = getContextDB();
 			const reportElementConfigData = await dbExecuteLogger(
 				db.query.reportElementConfig.findFirst({
 					where: (reportElementConfig, { eq }) => eq(reportElementConfig.id, configId),
@@ -632,7 +611,8 @@ export const reportActions = {
 		}
 	},
 	filter: {
-		create: async ({ db, id }: { db: DBType; id: string }) => {
+		create: async ({ id }: { id: string }) => {
+			const db = getContextDB();
 			const filterConfig: JournalFilterSchemaWithoutPaginationType = {};
 			const filterText = (await journalFilterToText({ db, filter: filterConfig })).join(' and ');
 
@@ -642,14 +622,13 @@ export const reportActions = {
 			);
 		},
 		update: async ({
-			db,
 			filterId,
 			filterConfig
 		}: {
-			db: DBType;
 			filterId: string;
 			filterConfig: JournalFilterSchemaWithoutPaginationType;
 		}) => {
+			const db = getContextDB();
 			const filterFromDB = await dbExecuteLogger(
 				db.query.filter.findFirst({
 					where: (filter, { eq }) => eq(filter.id, filterId)
@@ -691,14 +670,13 @@ export const reportActions = {
 	},
 	reportElement: {
 		getWithData: async ({
-			db,
 			id,
 			pageFilter = {}
 		}: {
-			db: DBType;
 			id: string;
 			pageFilter?: JournalFilterSchemaWithoutPaginationType;
 		}) => {
+			const db = getContextDB();
 			const elementConfig = await dbExecuteLogger(
 				db.query.reportElement.findFirst({
 					where: (reportElement, { eq }) => eq(reportElement.id, id),
@@ -764,7 +742,8 @@ export const reportActions = {
 
 			return { id: simpleElementConfig.id, elementConfig: simpleElementConfig, itemData: data };
 		},
-		deleteMany: async ({ db, ids }: { db: DBType; ids: string[] }) => {
+		deleteMany: async ({ ids }: { ids: string[] }) => {
+			const db = getContextDB();
 			const reportElements = await dbExecuteLogger(
 				db.query.reportElement.findMany({
 					where: (reportElement) => inArrayWrapped(reportElement.id, ids)
@@ -856,13 +835,8 @@ export const reportActions = {
 				})
 			);
 		},
-		createMany: async ({
-			db,
-			configurations
-		}: {
-			db: DBType;
-			configurations: CreateReportElementType[];
-		}) => {
+		createMany: async ({ configurations }: { configurations: CreateReportElementType[] }) => {
+			const db = getContextDB();
 			const reportElementsData = configurations.map((item) => ({
 				id: nanoid(),
 				reportElementConfigId: nanoid(),
@@ -903,7 +877,8 @@ export const reportActions = {
 				})
 			);
 		},
-		get: async ({ db, id }: { db: DBType; id: string }) => {
+		get: async ({ id }: { id: string }) => {
+			const db = getContextDB();
 			const reportElementData = await dbExecuteLogger(
 				db.query.reportElement.findFirst({
 					where: (reportElement, { eq }) => eq(reportElement.id, id),
@@ -926,7 +901,8 @@ export const reportActions = {
 
 			return reportElementData;
 		},
-		update: async ({ db, data }: { db: DBType; data: UpdateReportElementType }) => {
+		update: async ({ data }: { data: UpdateReportElementType }) => {
+			const db = getContextDB();
 			const { id, ...restData } = data;
 
 			getLogger().debug('Updating Report Element : ', data);
@@ -953,8 +929,9 @@ export const reportActions = {
 
 			return;
 		},
-		addFilter: async ({ db, id }: { db: DBType; id: string }) => {
-			const reportElementData = await reportActions.reportElement.get({ db, id });
+		addFilter: async ({ id }: { id: string }) => {
+			const db = getContextDB();
+			const reportElementData = await reportActions.reportElement.get({ id });
 
 			if (!reportElementData) {
 				throw new Error('Report Element not found');
@@ -972,7 +949,7 @@ export const reportActions = {
 			await tLogger(
 				'Report Element - Add Filter',
 				db.transaction(async (trx) => {
-					await reportActions.filter.create({ db: trx, id: filterId });
+					await reportActions.filter.create({ id: filterId });
 
 					await dbExecuteLogger(
 						trx
@@ -989,15 +966,14 @@ export const reportActions = {
 			return;
 		},
 		updateFilter: async ({
-			db,
 			id,
 			filter
 		}: {
-			db: DBType;
 			id: string;
 			filter: JournalFilterSchemaWithoutPaginationType;
 		}) => {
-			const reportElementData = await reportActions.reportElement.get({ db, id });
+			const db = getContextDB();
+			const reportElementData = await reportActions.reportElement.get({ id });
 
 			if (!reportElementData) {
 				throw new Error('Report Element not found');
@@ -1011,9 +987,8 @@ export const reportActions = {
 
 			await tLogger(
 				'Report Element - Update Filter',
-				db.transaction(async (trx) => {
+				db.transaction(async () => {
 					await reportActions.filter.update({
-						db: trx,
 						filterId,
 						filterConfig: filter
 					});
@@ -1022,8 +997,9 @@ export const reportActions = {
 
 			return;
 		},
-		removeFilter: async ({ db, id }: { db: DBType; id: string }) => {
-			const reportElementData = await reportActions.reportElement.get({ db, id });
+		removeFilter: async ({ id }: { id: string }) => {
+			const db = getContextDB();
+			const reportElementData = await reportActions.reportElement.get({ id });
 
 			if (!reportElementData) {
 				throw new Error('Report Element not found');

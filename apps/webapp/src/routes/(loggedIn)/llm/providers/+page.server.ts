@@ -18,10 +18,9 @@ const submitValidation = z.object({
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
 
   // Load all LLM providers
-  const providers = await tActions.llm.list({ db });
+  const providers = await tActions.llm.list();
 
   return {
     providers,
@@ -34,7 +33,6 @@ export const actions = {
   ...associatedInfoFormActions,
 
   update: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(submitValidation));
 
     if (!form.valid) {
@@ -43,7 +41,6 @@ export const actions = {
 
     try {
       await tActions.llm.update({
-        db: db,
         data: { enabled: form.data.status === "active" },
         id: form.data.id,
       });

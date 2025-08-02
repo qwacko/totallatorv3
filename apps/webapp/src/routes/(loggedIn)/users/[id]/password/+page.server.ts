@@ -47,7 +47,6 @@ export const actions = {
     }
 
     const targetUser = await tActions.user.get({
-      db: locals.db,
       userId: targetUserId,
     });
 
@@ -57,7 +56,6 @@ export const actions = {
 
     try {
       await userActions.updatePassword({
-        db: locals.db,
         userId: targetUserId,
         password: form.data.password,
       });

@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
-import type { DBType } from '@totallator/database';
 import { llmSettings, type LLMSettings } from '@totallator/database';
 import { nanoid } from 'nanoid';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { tLogger } from '../server/db/transactionLogger';
 import { encryptText, decryptText } from './helpers/encryption';
+import { getContextDB } from '@totallator/context';
 
 export type CreateLLMSettingsType = {
 	title: string;
@@ -24,12 +24,11 @@ export type UpdateLLMSettingsType = {
 
 export const llmActions = {
 	create: async ({
-		db,
 		data
 	}: {
-		db: DBType;
 		data: CreateLLMSettingsType;
 	}): Promise<LLMSettings> => {
+		const db = getContextDB();
 		const id = nanoid();
 		const encryptedApiKey = encryptText(data.apiKey);
 
@@ -62,7 +61,8 @@ export const llmActions = {
 		};
 	},
 
-	list: async ({ db }: { db: DBType }): Promise<Omit<LLMSettings, 'apiKey'>[]> => {
+	list: async (): Promise<Omit<LLMSettings, 'apiKey'>[]> => {
+		const db = getContextDB();
 		const results = await dbExecuteLogger(
 			db
 				.select({
@@ -82,14 +82,13 @@ export const llmActions = {
 	},
 
 	getById: async ({
-		db,
 		id,
 		includeApiKey = false
 	}: {
-		db: DBType;
 		id: string;
 		includeApiKey?: boolean;
 	}): Promise<LLMSettings | undefined> => {
+		const db = getContextDB();
 		const results = await dbExecuteLogger(
 			db.select().from(llmSettings).where(eq(llmSettings.id, id)),
 			'LLM Settings - Get By ID'
@@ -113,14 +112,13 @@ export const llmActions = {
 	},
 
 	update: async ({
-		db,
 		id,
 		data
 	}: {
-		db: DBType;
 		id: string;
 		data: UpdateLLMSettingsType;
 	}): Promise<LLMSettings | undefined> => {
+		const db = getContextDB();
 		const updateData: any = {
 			...data,
 			updatedAt: new Date()
@@ -157,7 +155,8 @@ export const llmActions = {
 		return result;
 	},
 
-	delete: async ({ db, id }: { db: DBType; id: string }): Promise<boolean> => {
+	delete: async ({ id }: { id: string }): Promise<boolean> => {
+		const db = getContextDB();
 		const result = await tLogger(
 			'Delete LLM Settings',
 			db.transaction(async (trx) => {
@@ -173,7 +172,8 @@ export const llmActions = {
 		return result;
 	},
 
-	getEnabled: async ({ db }: { db: DBType }): Promise<LLMSettings[]> => {
+	getEnabled: async (): Promise<LLMSettings[]> => {
+		const db = getContextDB();
 		const results = await dbExecuteLogger(
 			db.select().from(llmSettings).where(eq(llmSettings.enabled, true)),
 			'LLM Settings - Get Enabled'

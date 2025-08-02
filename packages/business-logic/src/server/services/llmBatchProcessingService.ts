@@ -285,7 +285,7 @@ export async function processAllAccounts(
 	}
 
 	// Get enabled LLM providers
-	const allProviders = await llmActions.list({ db });
+	const allProviders = await llmActions.list();
 	const enabledProviders = allProviders.filter((p) => p.enabled);
 	getLogger().info(
 		`LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`
@@ -586,7 +586,7 @@ async function buildContext(
  */
 async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LLMBatchResponse> {
 	// Get first enabled LLM provider
-	const allProviders = await llmActions.list({ db });
+	const allProviders = await llmActions.list();
 	const providers = allProviders.filter((p) => p.enabled);
 	if (providers.length === 0) {
 		throw new Error('No enabled LLM providers found');
@@ -594,7 +594,6 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 
 	const provider = providers[0];
 	const llmSettings = await llmActions.getById({
-		db,
 		id: provider.id,
 		includeApiKey: true
 	});

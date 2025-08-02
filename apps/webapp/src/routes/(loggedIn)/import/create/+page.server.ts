@@ -19,8 +19,6 @@ export const load = async (data) => {
 
 export const actions = {
   create: async ({ request, locals }) => {
-    const db = locals.db;
-
     const form = await superValidate(request, zod4(createImportSchema));
 
     if (!form.valid) {
@@ -32,7 +30,6 @@ export const actions = {
     try {
       if (form.data.importMappingId) {
         const result = await tActions.importMapping.getById({
-          db,
           id: form.data.importMappingId,
         });
         if (!result) {

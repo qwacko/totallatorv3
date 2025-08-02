@@ -539,7 +539,6 @@ export const fileActions: FilesActionsType & {
 		};
 	},
 	getLinkedText: async ({ items }) => {
-		const db = getContextDB();
 		const accountTitle = items.accountId
 			? await accountActions.getById(items.accountId)
 			: undefined;
@@ -551,13 +550,13 @@ export const fileActions: FilesActionsType & {
 		const tagTitle = items.tagId ? await tagActions.getById(items.tagId) : undefined;
 		const labelTitle = items.labelId ? await labelActions.getById(items.labelId) : undefined;
 		const autoImportTitle = items.autoImportId
-			? await autoImportActions.getById({ db, id: items.autoImportId })
+			? await autoImportActions.getById({ id: items.autoImportId })
 			: undefined;
 		const reportTitle = items.reportId
-			? await reportActions.getSimpleReportConfig({ db, id: items.reportId })
+			? await reportActions.getSimpleReportConfig({ id: items.reportId })
 			: undefined;
 		const reportElementTitle = items.reportElementId
-			? await reportActions.reportElement.get({ db, id: items.reportElementId })
+			? await reportActions.reportElement.get({ id: items.reportElementId })
 			: undefined;
 
 		const data = {

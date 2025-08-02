@@ -19,7 +19,7 @@ export const actions = {
       return;
     }
 
-    await userActions.deleteUser({ db: locals.db, userId: params.id });
+    await userActions.deleteUser({ userId: params.id });
 
     redirect(
       302,

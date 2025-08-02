@@ -17,7 +17,6 @@ import { bufferingHelper } from "$lib/server/bufferingHelper.js";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const { current } = serverPageInfo(data.route.id, data);
   bufferingHelper(data);
 
@@ -32,7 +31,6 @@ export const load = async (data) => {
   }
 
   const importMapping = await tActions.importMapping.getById({
-    db,
     id: current.params.id,
   });
 
@@ -55,7 +53,6 @@ export const load = async (data) => {
   );
 
   const autoImports = await tActions.autoImport.list({
-    db,
     filter: { importMappingId: importMapping.id, pageSize: 100 },
   });
 
@@ -72,7 +69,6 @@ export const load = async (data) => {
   };
 
   const imports = tActions.import.listDetails({
-    db,
     filter: importFilter,
   });
 
@@ -116,7 +112,6 @@ export const actions = {
 
     try {
       await tActions.importMapping.update({
-        db: data.locals.db,
         id,
         data: {
           configuration: configurationProcessed.data,

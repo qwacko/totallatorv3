@@ -1,29 +1,30 @@
 import { updateUserSchema, type updateUserSchemaType } from '@totallator/shared';
 import { eq } from 'drizzle-orm';
-import type { DBType, UserDBType } from '@totallator/database';
+import type { UserDBType } from '@totallator/database';
 import { key, user } from '@totallator/database';
 import { nanoid } from 'nanoid';
 import { fixedDelay } from '../helpers/fixedDelay';
 import { hashPassword, checkHashedPassword } from './helpers/hashPassword';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { tLogger } from '../server/db/transactionLogger';
+import { getContextDB } from '@totallator/context';
 
 export const userActions = {
-	listAll: async ({ db }: { db: DBType }): Promise<UserDBType[]> => {
+	listAll: async (): Promise<UserDBType[]> => {
+		const db = getContextDB();
 		const users = await dbExecuteLogger(db.select().from(user), 'User - List All');
 		return users;
 	},
 	createUser: async ({
-		db,
 		username,
 		password,
 		admin = false
 	}: {
-		db: DBType;
 		username: string;
 		password: string;
 		admin?: boolean;
 	}): Promise<UserDBType | undefined> => {
+		const db = getContextDB();
 		const foundUsers = await dbExecuteLogger(
 			db.select().from(user).where(eq(user.username, username.toLowerCase())),
 			'User - Create - Check Existing'
@@ -59,17 +60,16 @@ export const userActions = {
 			})
 		);
 
-		return userActions.get({ db, userId });
+		return userActions.get({ userId });
 	},
 	updatePassword: async ({
-		db,
 		userId,
 		password
 	}: {
-		db: DBType;
 		userId: string;
 		password: string;
 	}): Promise<void> => {
+		const db = getContextDB();
 		const hashedPassword = await hashPassword(password);
 
 		await dbExecuteLogger(
@@ -79,13 +79,12 @@ export const userActions = {
 	},
 	checkLogin: async ({
 		username,
-		password,
-		db
+		password
 	}: {
 		username: string;
 		password: string;
-		db: DBType;
 	}): Promise<UserDBType | undefined> => {
+		const db = getContextDB();
 		const foundUser = await dbExecuteLogger(
 			db.query.user.findFirst({
 				where: (user, { eq }) => eq(user.username, username.toLowerCase()),
@@ -147,12 +146,13 @@ export const userActions = {
 
 		//Updates the password to the latest format if it needs to be updated.
 		if (validPassword.needsRefresh) {
-			await userActions.updatePassword({ db, userId: foundUser.id, password });
+			await userActions.updatePassword({ userId: foundUser.id, password });
 		}
 
-		return userActions.get({ db, userId: foundUser.id });
+		return userActions.get({ userId: foundUser.id });
 	},
-	deleteUser: async ({ db, userId }: { db: DBType; userId: string }) => {
+	deleteUser: async ({ userId }: { userId: string }) => {
+		const db = getContextDB();
 		await tLogger(
 			'Delete User',
 			db.transaction(async (trx) => {
@@ -161,7 +161,8 @@ export const userActions = {
 			})
 		);
 	},
-	get: async ({ db, userId }: { db: DBType; userId: string }): Promise<UserDBType | undefined> => {
+	get: async ({ userId }: { userId: string }): Promise<UserDBType | undefined> => {
+		const db = getContextDB();
 		const foundUser = (
 			await dbExecuteLogger(db.select().from(user).where(eq(user.id, userId)), 'User - Get')
 		)[0];
@@ -190,16 +191,15 @@ export const userActions = {
 	},
 
 	updateUserInfo: async ({
-		db,
 		userId,
 		userInfo,
 		initiatingUser
 	}: {
-		db: DBType;
 		userId: string;
 		userInfo: updateUserSchemaType;
 		initiatingUser: UserDBType;
 	}) => {
+		const db = getContextDB();
 		const validatedInfo = updateUserSchema.safeParse(userInfo);
 
 		if (!validatedInfo.success) {
@@ -217,14 +217,13 @@ export const userActions = {
 		);
 	},
 	setAdmin: async ({
-		db,
 		userId,
 		initiatingUser
 	}: {
-		db: DBType;
 		userId: string;
 		initiatingUser: UserDBType;
 	}) => {
+		const db = getContextDB();
 		const canSetAdmin = userActions.canSetAdmin({ userId, initiatingUser });
 		if (!canSetAdmin) {
 			throw new Error('Unauthorized');
@@ -236,14 +235,13 @@ export const userActions = {
 		);
 	},
 	clearAdmin: async ({
-		db,
 		userId,
 		initiatingUser
 	}: {
-		db: DBType;
 		userId: string;
 		initiatingUser: UserDBType;
 	}) => {
+		const db = getContextDB();
 		if (initiatingUser.id === userId) {
 			throw new Error('Cannot remove admin from self');
 		}

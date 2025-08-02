@@ -14,7 +14,6 @@ export const GET = async (data) => {
   }
 
   const autoImportData = await tActions.autoImport.getData({
-    db: data.locals.db,
     id: params.id,
   });
 

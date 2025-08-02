@@ -25,11 +25,7 @@ export const load = async (data) => {
     account: { type: ["asset", "liability"] },
   };
 
-  const journalData = await tActions.journalView.list({
-    db,
-    filter,
-    disableRefresh: true,
-  });
+  const journalData = await tActions.journalView.list({ filter });
 
   if (journalData.page >= journalData.pageCount) {
     const targetPage = Math.max(0, journalData.pageCount - 1);
@@ -52,7 +48,7 @@ export const load = async (data) => {
     filter,
     prefix: "Journal",
   });
-  const filterDropdown = await tActions.reusableFitler.listForDropdown({ db });
+  const filterDropdown = await tActions.reusableFitler.listForDropdown();
 
   return {
     journals: journalData,

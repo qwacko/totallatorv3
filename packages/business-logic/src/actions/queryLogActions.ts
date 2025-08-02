@@ -1,4 +1,3 @@
-import type { DBType } from '@totallator/database';
 import { count as drizzleCount, and, isNull, isNotNull, lt, asc, inArray, eq } from 'drizzle-orm';
 import type {
 	GroupedQueryLogFilterType,
@@ -18,6 +17,7 @@ import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefined
 import { nanoid } from 'nanoid';
 import { getServerEnv } from '@/serverEnv';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
+import { getContextDB } from '@totallator/context';
 
 const paginationReturnBuilder = <T extends Record<string, any>>({
 	data,
@@ -38,21 +38,18 @@ const paginationReturnBuilder = <T extends Record<string, any>>({
 
 export const queryLogActions = {
 	filterToText: async ({
-		db,
 		filter
 	}: {
-		db: DBType;
 		filter: QueryLogFilterSchemaWithoutPaginationType;
 	}): Promise<string[]> => {
+		const db = getContextDB();
 		const filterText = await queryLogFilterToText({ db, filter });
 
 		return filterText;
 	},
 	listGroups: async ({
-		db,
 		filter
 	}: {
-		db: DBType;
 		filter: GroupedQueryLogFilterType;
 	}): Promise<
 		PaginatedResults<{
@@ -72,6 +69,7 @@ export const queryLogActions = {
 			timeBuckets: Record<string, number>;
 		}>
 	> => {
+		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = queryLogFilterToQuery({ filter: restFilter });
@@ -119,10 +117,8 @@ export const queryLogActions = {
 		});
 	},
 	list: async ({
-		db,
 		filter
 	}: {
-		db: DBType;
 		filter: QueryLogFilterSchemaType;
 	}): Promise<
 		PaginatedResults<{
@@ -137,6 +133,7 @@ export const queryLogActions = {
 			size: number;
 		}>
 	> => {
+		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = queryLogFilterToQuery({ filter: restFilter });
@@ -184,12 +181,11 @@ export const queryLogActions = {
 		});
 	},
 	listXY: async ({
-		db,
 		filter
 	}: {
-		db: DBType;
 		filter: QueryLogFilterSchemaType;
 	}): Promise<{ id: string; duration: number; time: Date; title: string | null }[]> => {
+		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = queryLogFilterToQuery({ filter: restFilter });
@@ -211,7 +207,8 @@ export const queryLogActions = {
 
 		return results;
 	},
-	tidy: async ({ db }: { db: DBType }): Promise<void> => {
+	tidy: async (): Promise<void> => {
+		const db = getContextDB();
 		const dbLogStorageHours = getServerEnv().DBLOG_STORAGE_HOURS;
 		const dbLogStorageCount = getServerEnv().DBLOG_STORAGE_COUNT;
 

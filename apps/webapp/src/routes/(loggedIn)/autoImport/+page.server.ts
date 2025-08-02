@@ -13,13 +13,11 @@ export const load = async (request) => {
   const filter = current.searchParams || {};
 
   const autoImportList = await tActions.autoImport.list({
-    db: request.locals.db,
     filter,
   });
 
   return {
     list: tActions.associatedInfo.addToItems({
-      db: request.locals.db,
       data: autoImportList,
       grouping: "autoImportId",
     }),
@@ -41,7 +39,6 @@ export const actions = {
 
     try {
       await tActions.autoImport.clone({
-        db: locals.db,
         id: id.toString(),
       });
     } catch (e) {

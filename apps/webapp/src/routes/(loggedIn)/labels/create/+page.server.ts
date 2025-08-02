@@ -24,7 +24,6 @@ const createLabelSchemaWithPageAndFilter = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(createLabelSchemaWithPageAndFilter),
@@ -35,7 +34,7 @@ export const actions = {
     }
 
     try {
-      await tActions.label.create(db, form.data);
+      await tActions.label.create(form.data);
     } catch (e) {
       locals.global.logger.error("Create Label Error", e);
       return message(form, "Error Creating Label, Possibly Already Exists");

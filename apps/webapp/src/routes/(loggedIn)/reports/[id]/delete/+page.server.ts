@@ -6,13 +6,11 @@ import { serverPageInfo } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   if (!pageInfo.current.params) return defaultReportRedirect();
 
   const reportInfo = await tActions.report.getSimpleReportConfig({
-    db,
     id: pageInfo.current.params.id,
   });
 
@@ -24,10 +22,9 @@ export const load = async (data) => {
 export const actions = {
   default: async (data) => {
     const id = data.params.id;
-    const db = data.locals.db;
 
     try {
-      await tActions.report.delete({ db, id });
+      await tActions.report.delete({ id });
       defaultReportRedirect();
     } catch (e) {
       data.locals.global.logger.error("Error deleting report", e);

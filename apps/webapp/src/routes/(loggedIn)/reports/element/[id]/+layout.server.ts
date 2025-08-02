@@ -14,7 +14,6 @@ import { urlGenerator } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
 
   const id = data.params.id;
 
@@ -29,7 +28,6 @@ export const load = async (data) => {
   }
 
   const elementData = await tActions.report.reportElement.get({
-    db,
     id,
   });
 
@@ -61,10 +59,7 @@ export const load = async (data) => {
   );
 
   const elementConfigWithData = await tActions.report.reportElement.getWithData(
-    {
-      db,
-      id,
-    },
+    { id },
   );
 
   return {

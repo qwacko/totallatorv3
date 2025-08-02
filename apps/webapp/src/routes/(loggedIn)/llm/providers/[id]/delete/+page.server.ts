@@ -16,13 +16,11 @@ const deleteLLMProviderSchema = z.object({
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   if (!pageInfo.current.params?.id) redirect(302, "/llm/providers");
 
   const provider = await tActions.llm.getById({
-    db,
     id: pageInfo.current.params?.id,
   });
   if (!provider) redirect(302, "/llm/providers");
@@ -40,7 +38,6 @@ export const load = async (data) => {
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(deleteLLMProviderSchema));
 
     if (!form.valid) {
@@ -49,7 +46,6 @@ export const actions = {
 
     try {
       await tActions.llm.delete({
-        db,
         id: form.data.id,
       });
     } catch (e) {

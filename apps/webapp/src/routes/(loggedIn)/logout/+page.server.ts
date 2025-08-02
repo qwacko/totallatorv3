@@ -18,7 +18,7 @@ export const actions = {
     if (!sessionId) {
       return;
     }
-    await tActions.auth.invalidateSession(data.locals.db, sessionId);
+    await tActions.auth.invalidateSession(sessionId);
     tActions.auth.deleteSessionTokenCookie(data);
 
     redirect(302, urlGenerator({ address: "/(loggedOut)/login" }).url);

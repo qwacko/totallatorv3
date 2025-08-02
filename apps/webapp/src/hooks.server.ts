@@ -18,26 +18,31 @@ const handleAuth: Handle = async ({
     throw new Error("Database is not initialized in the global context.");
   }
 
-  const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
-  if (!sessionToken) {
-    event.locals.user = undefined;
-    event.locals.session = undefined;
+  // Create request context for auth
+  const requestContext = createRequestContext(event);
+
+  // Run auth within AsyncLocalStorage context
+  return runWithContext(context, requestContext, async () => {
+    const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
+    if (!sessionToken) {
+      event.locals.user = undefined;
+      event.locals.session = undefined;
+      return resolve(event);
+    }
+
+    const { session, user } = await tActions.auth.validateSessionToken(
+      sessionToken,
+    );
+    if (session !== null) {
+      tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+    } else {
+      tActions.auth.deleteSessionTokenCookie(event);
+    }
+
+    event.locals.user = user || undefined;
+    event.locals.session = session || undefined;
     return resolve(event);
-  }
-
-  const { session, user } = await tActions.auth.validateSessionToken(
-    context.db,
-    sessionToken,
-  );
-  if (session !== null) {
-    tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
-  } else {
-    tActions.auth.deleteSessionTokenCookie(event);
-  }
-
-  event.locals.user = user || undefined;
-  event.locals.session = session || undefined;
-  return resolve(event);
+  });
 };
 
 export const init: ServerInit = async () => {

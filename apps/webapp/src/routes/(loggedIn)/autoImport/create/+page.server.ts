@@ -48,7 +48,6 @@ export const actions = {
 
     try {
       id = await tActions.autoImport.create({
-        db: locals.db,
         data: validatedData.data,
       });
     } catch (e) {

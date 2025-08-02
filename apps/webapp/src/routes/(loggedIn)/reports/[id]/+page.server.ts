@@ -10,7 +10,6 @@ import { serverPageInfo } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const pageInfo = serverPageInfo(data.route.id, data);
 
   if (!pageInfo.current.params?.id) redirect(302, "/journalEntries");
@@ -19,7 +18,6 @@ export const load = async (data) => {
   const pageFilter = dateSpan ? { dateSpan } : undefined;
 
   const report = await tActions.report.getReportConfig({
-    db,
     id: pageInfo.current.params?.id,
     pageFilter,
   });
@@ -48,7 +46,6 @@ export const actions = {
 
     try {
       await tActions.report.updateLayout({
-        db: locals.db,
         layoutConfig: data.data,
       });
     } catch (e) {
@@ -79,7 +76,6 @@ export const actions = {
 
     try {
       await tActions.report.upsertFilter({
-        db: locals.db,
         id,
         filter: data.data,
       });

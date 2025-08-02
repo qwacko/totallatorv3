@@ -7,7 +7,6 @@ import { serverPageInfo } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const { current: pageInfo, updateParams } = serverPageInfo(
     data.route.id,
     data,
@@ -20,7 +19,6 @@ export const load = async (data) => {
 
   // Get LLM logs with pagination
   const logsResult = await tActions.llmLog.list({
-    db,
     filter,
   });
 
@@ -33,7 +31,7 @@ export const load = async (data) => {
   }
 
   // Get LLM settings for filter dropdown
-  const llmSettings = await tActions.llm.list({ db });
+  const llmSettings = await tActions.llm.list();
 
   return {
     logs: logsResult.data,

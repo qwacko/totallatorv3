@@ -72,7 +72,7 @@ export class LLMJournalProcessingService {
 		}
 
 		// Get enabled LLM providers
-		const allProviders = await llmActions.list({ db: this.db });
+		const allProviders = await llmActions.list();
 		const enabledProviders = allProviders.filter((p) => p.enabled);
 
 		if (enabledProviders.length === 0) {
@@ -167,7 +167,6 @@ export class LLMJournalProcessingService {
 	): Promise<void> {
 		// Get LLM settings with API key
 		const llmSettings = await llmActions.getById({
-			db: this.db,
 			id: llmProvider.id,
 			includeApiKey: true
 		});

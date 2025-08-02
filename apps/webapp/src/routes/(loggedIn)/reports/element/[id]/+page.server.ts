@@ -17,7 +17,6 @@ export const load = async (data) => {
 
 export const actions = {
   update: async (data) => {
-    const db = data.locals.db;
     const id = data.params.id;
     const form = await superValidate(
       data.request,
@@ -30,7 +29,6 @@ export const actions = {
 
     try {
       await tActions.report.reportElement.update({
-        db,
         data: { ...form.data, id },
       });
     } catch (e) {
@@ -39,10 +37,9 @@ export const actions = {
   },
   addFilter: async (data) => {
     const id = data.params.id;
-    const db = data.locals.db;
 
     try {
-      await tActions.report.reportElement.addFilter({ db, id });
+      await tActions.report.reportElement.addFilter({ id });
     } catch (e) {
       data.locals.global.logger.error(
         "Error Adding Filter to Report Element",
@@ -54,7 +51,6 @@ export const actions = {
   },
   updateFilter: async (data) => {
     const id = data.params.id;
-    const db = data.locals.db;
 
     const form = await data.request.formData();
     const filterText = form.get("filterText");
@@ -76,7 +72,6 @@ export const actions = {
       }
 
       await tActions.report.reportElement.updateFilter({
-        db,
         id,
         filter: transformedFilterText.data,
       });
@@ -91,10 +86,9 @@ export const actions = {
   },
   removeFilter: async (data) => {
     const id = data.params.id;
-    const db = data.locals.db;
 
     try {
-      await tActions.report.reportElement.removeFilter({ db, id });
+      await tActions.report.reportElement.removeFilter({ id });
     } catch (e) {
       data.locals.global.logger.error(
         "Error Removing Filter to Report Element",
@@ -114,12 +108,10 @@ export const actions = {
       return formData;
     }
 
-    const db = data.locals.db;
     const id = data.params.id;
 
     try {
       await tActions.report.reportElementConfiguration.update({
-        db,
         reportElementId: id,
         data: formData.data,
       });
@@ -136,9 +128,8 @@ export const actions = {
   },
   addConfigFilter: async (data) => {
     const id = data.params.id;
-    const db = data.locals.db;
 
-    const reportElement = await tActions.report.reportElement.get({ db, id });
+    const reportElement = await tActions.report.reportElement.get({ id });
 
     if (!reportElement) {
       return fail(400, { message: "Report Element Not Found" });
@@ -146,7 +137,6 @@ export const actions = {
 
     try {
       await tActions.report.reportElementConfiguration.addFilter({
-        db,
         configId: reportElement.reportElementConfigId,
       });
     } catch (e) {
@@ -161,13 +151,12 @@ export const actions = {
   },
   updateConfigFilter: async (data) => {
     const id = data.params.id;
-    const db = data.locals.db;
 
     const form = await data.request.formData();
     const filterText = form.get("filterText");
     const filterId = form.get("filterId");
 
-    const reportElement = await tActions.report.reportElement.get({ db, id });
+    const reportElement = await tActions.report.reportElement.get({ id });
 
     if (!reportElement) {
       return fail(400, { message: "Report Element Not Found" });
@@ -193,7 +182,6 @@ export const actions = {
       }
 
       await tActions.report.reportElementConfiguration.updateFilter({
-        db,
         configId: reportElement.reportElementConfigId,
         filterId: filterId.toString(),
         filter: transformedFilterText.data,
@@ -210,9 +198,8 @@ export const actions = {
   },
   removeConfigFilter: async (data) => {
     const id = data.params.id;
-    const db = data.locals.db;
 
-    const reportElement = await tActions.report.reportElement.get({ db, id });
+    const reportElement = await tActions.report.reportElement.get({ id });
 
     if (!reportElement) {
       return fail(400, { message: "Report Element Not Found" });
@@ -227,7 +214,6 @@ export const actions = {
 
     try {
       await tActions.report.reportElementConfiguration.removeFilter({
-        db,
         configId: reportElement.reportElementConfigId,
         filterId: filterId.toString(),
       });

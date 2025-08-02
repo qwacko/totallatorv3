@@ -12,7 +12,6 @@ export const fileFormActions = {
     requireUser: true,
     action: async ({ db, data, userId }) => {
       await tActions.file.create({
-        db,
         data,
         creationUserId: userId,
       });
@@ -24,7 +23,6 @@ export const fileFormActions = {
     requireUser: true,
     action: async ({ db, data, userId }) => {
       await tActions.file.create({
-        db,
         data,
         creationUserId: userId,
       });
@@ -36,7 +34,6 @@ export const fileFormActions = {
     requireUser: true,
     action: async ({ db, data, userId }) => {
       await tActions.file.updateMany({
-        db,
         filter: { idArray: [data.id] },
         update: data,
       });
@@ -50,7 +47,6 @@ export const fileFormActions = {
     requireUser: true,
     action: async ({ db, data, userId }) => {
       await tActions.file.deleteMany({
-        db,
         filter: { idArray: [data.fileId] },
       });
     },

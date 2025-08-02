@@ -15,7 +15,6 @@ export const load = async (data) => {
     return defaultJournalRedirect();
   }
   const targetUser = await tActions.user.get({
-    db: data.locals.db,
     userId: data.params.id,
   });
   if (!targetUser) {
@@ -58,7 +57,6 @@ export const actions = {
 
     try {
       await tActions.user.updateUserInfo({
-        db: data.locals.db,
         userId: data.params.id,
         userInfo: form.data,
         initiatingUser: authUser,
@@ -74,7 +72,6 @@ export const actions = {
     const authUser = data.locals.user;
     if (!authUser) return;
     const targetUser = await tActions.user.get({
-      db: data.locals.db,
       userId: data.params.id,
     });
     if (!targetUser) return;
@@ -86,7 +83,6 @@ export const actions = {
     }
 
     await tActions.user.setAdmin({
-      db: data.locals.db,
       userId: data.params.id,
       initiatingUser: authUser,
     });
@@ -97,7 +93,6 @@ export const actions = {
     const authUser = data.locals.user;
     if (!authUser) return;
     const targetUser = await tActions.user.get({
-      db: data.locals.db,
       userId: data.params.id,
     });
 
@@ -109,7 +104,6 @@ export const actions = {
     }
 
     await tActions.user.clearAdmin({
-      db: data.locals.db,
       userId: data.params.id,
       initiatingUser: authUser,
     });

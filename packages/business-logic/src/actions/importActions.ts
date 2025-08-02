@@ -168,7 +168,7 @@ export const importActions = {
 			throw new Error('No Mapping Selected');
 		}
 		if (restData.importMappingId) {
-			const result = await importMappingActions.getById({ db, id: restData.importMappingId });
+			const result = await importMappingActions.getById({ id: restData.importMappingId });
 			if (!result) {
 				throw new Error(`Mapping ${importMapping} Not Found`);
 			}
@@ -201,7 +201,7 @@ export const importActions = {
 		);
 
 		try {
-			await processCreatedImport({ db, id });
+			await processCreatedImport({ id });
 		} catch (e) {
 			getLogger().error('Error Processing Import', e);
 			await dbExecuteLogger(
@@ -355,7 +355,7 @@ export const importActions = {
 		const importData = data[0];
 
 		if (importData.status === 'created') {
-			await processCreatedImport({ db, id });
+			await processCreatedImport({ id });
 		}
 
 		return getImportDetail({ db, id });

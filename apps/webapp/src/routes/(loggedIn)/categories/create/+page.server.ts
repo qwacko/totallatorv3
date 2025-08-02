@@ -24,7 +24,6 @@ const createCategorySchemaWithPageAndFilter = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(createCategorySchemaWithPageAndFilter),

@@ -1,7 +1,7 @@
 import { and, avg, count, desc, eq, gte, lte } from 'drizzle-orm';
-import type { DBType } from '@totallator/database';
 import { llmLogs, llmSettings } from '@totallator/database';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { getContextDB } from '@totallator/context';
 
 export type LLMLogFilterType = {
 	page?: number;
@@ -14,7 +14,8 @@ export type LLMLogFilterType = {
 };
 
 export const llmLogActions = {
-	list: async ({ db, filter = {} }: { db: DBType; filter?: LLMLogFilterType }) => {
+	list: async ({ filter = {} }: { filter?: LLMLogFilterType }) => {
+		const db = getContextDB();
 		const {
 			page = 0,
 			pageSize = 50,
@@ -97,7 +98,8 @@ export const llmLogActions = {
 		};
 	},
 
-	getById: async ({ db, id }: { db: DBType; id: string }) => {
+	getById: async ({ id }: { id: string }) => {
+		const db = getContextDB();
 		const results = await dbExecuteLogger(
 			db
 				.select({
@@ -122,7 +124,8 @@ export const llmLogActions = {
 		return results[0] || null;
 	},
 
-	deleteOlderThan: async ({ db, days }: { db: DBType; days: number }) => {
+	deleteOlderThan: async ({ days }: { days: number }) => {
+		const db = getContextDB();
 		const cutoffDate = new Date();
 		cutoffDate.setDate(cutoffDate.getDate() - days);
 
@@ -135,14 +138,13 @@ export const llmLogActions = {
 	},
 
 	getStats: async ({
-		db,
 		llmSettingsId,
 		days = 30
 	}: {
-		db: DBType;
 		llmSettingsId?: string;
 		days?: number;
 	}) => {
+		const db = getContextDB();
 		const cutoffDate = new Date();
 		cutoffDate.setDate(cutoffDate.getDate() - days);
 

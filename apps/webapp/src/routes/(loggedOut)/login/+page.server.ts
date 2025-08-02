@@ -19,7 +19,6 @@ export const load = async (data) => {
 
 export const actions: Actions = {
   default: async (request) => {
-    const { locals } = request;
     const form = await superValidate(request, zod4(loginSchema));
 
     if (!form.valid) {
@@ -27,7 +26,6 @@ export const actions: Actions = {
     }
     try {
       const user = await userActions.checkLogin({
-        db: locals.db,
         username: form.data.username.toLowerCase(),
         password: form.data.password,
       });
@@ -38,7 +36,6 @@ export const actions: Actions = {
 
       const token = tActions.auth.generateSessionToken();
       const session = await tActions.auth.createSession(
-        locals.db,
         token,
         user.id,
       );

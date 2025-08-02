@@ -7,9 +7,8 @@ import { serverPageInfo, urlGenerator } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const { current } = serverPageInfo(data.route.id, data);
-  const allUsers = await tActions.user.listAll({ db });
+  const allUsers = await tActions.user.listAll();
 
   const perPage = 5;
   const page = current.searchParams ? current.searchParams.page : 0;

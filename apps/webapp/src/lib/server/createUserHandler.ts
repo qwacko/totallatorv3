@@ -27,7 +27,6 @@ export const createUserHandler = async ({
 
   try {
     const user = await tActions.user.createUser({
-      db: locals.db,
       username: form.data.username.toLowerCase(),
       password: form.data.password,
       admin,
@@ -40,7 +39,6 @@ export const createUserHandler = async ({
     if (setSession) {
       const token = tActions.auth.generateSessionToken();
       const session = await tActions.auth.createSession(
-        locals.db,
         token,
         user.id,
       );

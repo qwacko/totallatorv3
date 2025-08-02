@@ -24,7 +24,6 @@ const createTagSchemaWithPageAndFilter = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(createTagSchemaWithPageAndFilter),
@@ -35,7 +34,7 @@ export const actions = {
     }
 
     try {
-      await tActions.tag.create(db, form.data);
+      await tActions.tag.create(form.data);
     } catch (e) {
       locals.global.logger.error("Create Tag Error", e);
       return message(form, "Error Creating Tag, Possibly Already Exists");

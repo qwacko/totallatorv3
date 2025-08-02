@@ -38,7 +38,6 @@ export const load = async (data) => {
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(createLLMProviderSchema));
 
     if (!form.valid) {
@@ -48,7 +47,6 @@ export const actions = {
     try {
       const { prevPage, currentPage, ...providerData } = form.data;
       await tActions.llm.create({
-        db,
         data: providerData,
       });
     } catch (e) {

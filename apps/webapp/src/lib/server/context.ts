@@ -49,9 +49,7 @@ export const initializeServer = async (): Promise<void> => {
     serverEnv: getServerEnv(),
     isBuilding: building,
     viewRefreshAction: async () => {
-      return await materializedViewActions.conditionalRefreshWithContext({
-        global: globalContext,
-      });
+      return await materializedViewActions.conditionalRefreshWithContext({});
     },
     migrationsPath,
   });

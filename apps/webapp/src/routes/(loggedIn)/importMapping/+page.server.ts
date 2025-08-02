@@ -12,7 +12,6 @@ export const load = async (data) => {
   const { current, updateParams } = serverPageInfo(data.route.id, data);
 
   const importMappings = await tActions.importMapping.list({
-    db,
     filter: current.searchParams || {},
   });
 
@@ -43,7 +42,6 @@ export const actions = {
     try {
       if (action === "clone") {
         await tActions.importMapping.clone({
-          db: data.locals.db,
           id: importMappingId,
         });
       }

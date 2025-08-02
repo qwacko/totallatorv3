@@ -6,7 +6,6 @@ import {
 	type AutoImportFrequencyType
 } from '@totallator/shared';
 import { nanoid } from 'nanoid';
-import type { DBType } from '@totallator/database';
 import {
 	autoImportTable,
 	importMapping,
@@ -24,17 +23,17 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { tLogger } from '../server/db/transactionLogger';
 import { importActions } from './importActions';
 import { importMappingActions } from './importMappingActions';
+import { getContextDB } from '@totallator/context';
 
 export const autoImportActions = {
 	list: async ({
-		db,
 		filter
 	}: {
-		db: DBType;
 		filter: AutoImportFilterSchemaType;
 	}): Promise<
 		PaginatedResults<AutoImportTableType & { importMappingTitle: string | null | undefined }>
 	> => {
+		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 
 		const where = autoImportFilterToQuery({ filter: restFilter });
@@ -67,7 +66,8 @@ export const autoImportActions = {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	getById: async ({ db, id }: { db: DBType; id: string }): Promise<AutoImportTableType | null> => {
+	getById: async ({ id }: { id: string }): Promise<AutoImportTableType | null> => {
+		const db = getContextDB();
 		const autoImport = await dbExecuteLogger(
 			db.select().from(autoImportTable).where(eq(autoImportTable.id, id)),
 			'Auto Import - Get By Id'
@@ -79,8 +79,9 @@ export const autoImportActions = {
 
 		return autoImport[0];
 	},
-	clone: async ({ db, id }: { db: DBType; id: string }): Promise<string> => {
-		const autoImport = await autoImportActions.getById({ db, id });
+	clone: async ({ id }: { id: string }): Promise<string> => {
+		const db = getContextDB();
+		const autoImport = await autoImportActions.getById({ id });
 
 		if (!autoImport) {
 			throw new Error(`AutoImport with id ${id} not found`);
@@ -101,12 +102,11 @@ export const autoImportActions = {
 		return newId;
 	},
 	create: async ({
-		db,
 		data
 	}: {
-		db: DBType;
 		data: CreateAutoImportSchemaType;
 	}): Promise<string> => {
+		const db = getContextDB();
 		const id = nanoid();
 		await dbExecuteLogger(
 			db.insert(autoImportTable).values({ id, ...data, ...updatedTime() }),
@@ -115,7 +115,8 @@ export const autoImportActions = {
 
 		return id;
 	},
-	delete: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
+	delete: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		await tLogger(
 			'Delete Auto Import',
 			db.transaction(async (trx) => {
@@ -135,12 +136,11 @@ export const autoImportActions = {
 		);
 	},
 	update: async ({
-		db,
 		data
 	}: {
-		db: DBType;
 		data: UpdateAutoImportFormSchemaType;
 	}): Promise<void> => {
+		const db = getContextDB();
 		const matchingAutoImport = await dbExecuteLogger(
 			db.query.autoImportTable.findFirst({
 				where: (autoImport, { eq }) => eq(autoImport.id, data.id)
@@ -195,8 +195,8 @@ export const autoImportActions = {
 			'Auto Import - Update'
 		);
 	},
-	getData: async ({ db, id }: { db: DBType; id: string }): Promise<Record<string, any>[]> => {
-		const autoImport = await autoImportActions.getById({ db, id });
+	getData: async ({ id }: { id: string }): Promise<Record<string, any>[]> => {
+		const autoImport = await autoImportActions.getById({ id });
 
 		if (!autoImport) {
 			throw new Error(`AutoImport with id ${id} not found`);
@@ -204,46 +204,42 @@ export const autoImportActions = {
 
 		return getData_Common({ config: autoImport.config });
 	},
-	updateSampleData: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
-		const autoImport = await autoImportActions.getById({ db, id });
+	updateSampleData: async ({ id }: { id: string }): Promise<void> => {
+		const autoImport = await autoImportActions.getById({ id });
 
 		if (!autoImport) {
 			throw new Error(`AutoImport with id ${id} not found`);
 		}
 
-		const data = await autoImportActions.getData({ db, id });
+		const data = await autoImportActions.getData({ id });
 
 		if (data.length > 0) {
 			await importMappingActions.update({
-				db,
 				id: autoImport.importMappingId,
 				data: { sampleData: JSON.stringify(data.slice(0, 5)) }
 			});
 		}
 	},
 	triggerMany: async ({
-		db,
 		frequency
 	}: {
-		db: DBType;
 		frequency: AutoImportFrequencyType;
 	}): Promise<void> => {
 		const autoImports = await autoImportActions.list({
-			db,
 			filter: { frequency: [frequency], enabled: true, pageSize: 1000 }
 		});
 		for (const currentAutoImport of autoImports.data) {
-			await autoImportActions.trigger({ db, id: currentAutoImport.id });
+			await autoImportActions.trigger({ id: currentAutoImport.id });
 		}
 	},
-	trigger: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
-		const autoImport = await autoImportActions.getById({ db, id });
+	trigger: async ({ id }: { id: string }): Promise<void> => {
+		const autoImport = await autoImportActions.getById({ id });
 
 		if (!autoImport) {
 			throw new Error(`AutoImport with id ${id} not found`);
 		}
 
-		const data = await autoImportActions.getData({ db, id });
+		const data = await autoImportActions.getData({ id });
 
 		getLogger().debug('Triggering Import', data.length, autoImport.title);
 

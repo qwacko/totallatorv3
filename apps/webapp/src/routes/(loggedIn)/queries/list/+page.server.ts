@@ -12,7 +12,6 @@ export const load = async (requestData) => {
 
   const searchParams = pageInfo.searchParams || { page: 0, pageSize: 10 };
   const data = await tActions.queryLog.list({
-    db: requestData.locals.db,
     filter: searchParams,
   });
 
@@ -20,11 +19,9 @@ export const load = async (requestData) => {
     data,
     searchParams,
     filterText: await tActions.queryLog.filterToText({
-      db: requestData.locals.db,
       filter: searchParams,
     }),
     xyData: tActions.queryLog.listXY({
-      db: requestData.locals.db,
       filter: searchParams,
     }),
   };

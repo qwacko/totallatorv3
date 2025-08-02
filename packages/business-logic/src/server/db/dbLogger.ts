@@ -167,7 +167,7 @@ export const initDBLogger = async (db: DBType) => {
 				}))
 			);
 
-			await queryLogActions.tidy({ db });
+			await queryLogActions.tidy();
 		},
 		logError: getLogger().error
 	});

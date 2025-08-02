@@ -17,7 +17,6 @@ export const load = async (data) => {
   const searchParams = pageInfo.searchParams || { page: 0, pageSize: 10 };
 
   const associatedInfo = await tActions.associatedInfo.list({
-    db,
     filter: searchParams,
   });
 

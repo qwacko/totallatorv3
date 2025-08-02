@@ -23,7 +23,6 @@ export const load = async (data) => {
   );
 
   const budgets = await tActions.budget.list({
-    db,
     filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
   });
 
@@ -46,7 +45,6 @@ export const load = async (data) => {
 
   return {
     budgets: tActions.associatedInfo.addToItems({
-      db,
       data: budgets,
       grouping: "budgetId",
     }),
@@ -66,7 +64,6 @@ export const actions = {
   ...fileFormActions,
   ...associatedInfoFormActions,
   update: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(submitValidation));
 
     if (!form.valid) {
@@ -74,7 +71,7 @@ export const actions = {
     }
 
     try {
-      await tActions.budget.update({ db, data: form.data, id: form.data.id });
+      await tActions.budget.update({ data: form.data, id: form.data.id });
       return {
         status: 200,
         body: {

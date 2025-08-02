@@ -46,7 +46,6 @@ export const load = async (data) => {
 
 export const actions = {
   update: async (data) => {
-    const db = data.locals.db;
     const id = data.params.id;
     const item = data.params.item;
 
@@ -60,14 +59,13 @@ export const actions = {
     }
 
     try {
-      const reportElement = await tActions.report.reportElement.get({ db, id });
+      const reportElement = await tActions.report.reportElement.get({ id });
 
       if (!reportElement) {
         throw new Error(`Report Element Not Found. ID = ${id}`);
       }
 
       await tActions.report.reportElementConfigItem.update({
-        db,
         itemId: item,
         configId: reportElement.reportElementConfigId,
         data: form.data,

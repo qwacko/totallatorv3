@@ -24,7 +24,6 @@ const createAccountSchemaWithPageAndFilter = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(createAccountSchemaWithPageAndFilter),
@@ -35,7 +34,7 @@ export const actions = {
     }
 
     try {
-      await tActions.account.create(db, form.data);
+      await tActions.account.create(form.data);
     } catch (e) {
       locals.global.logger.error("Create Account Error", e);
       return message(form, "Error Creating Account, Possibly Already Exists");

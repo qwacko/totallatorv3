@@ -1,8 +1,8 @@
 import { and, count, desc, eq, gte, inArray } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import type { DBType } from '@totallator/database';
 import { journalLlmSuggestions } from '@totallator/database';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { getContextDB } from '@totallator/context';
 
 export type CreateJournalLlmSuggestionType = {
 	journalId: string;
@@ -26,7 +26,8 @@ export type UpdateJournalLlmSuggestionType = {
 };
 
 export const journalLlmSuggestionActions = {
-	create: async ({ db, data }: { db: DBType; data: CreateJournalLlmSuggestionType }) => {
+	create: async ({ data }: { data: CreateJournalLlmSuggestionType }) => {
+		const db = getContextDB();
 		const id = nanoid();
 
 		// Mark any existing suggestions for this journal as superseded
@@ -62,14 +63,13 @@ export const journalLlmSuggestionActions = {
 	},
 
 	getByJournalId: async ({
-		db,
 		journalId,
 		includeSuperseded = false
 	}: {
-		db: DBType;
 		journalId: string;
 		includeSuperseded?: boolean;
 	}) => {
+		const db = getContextDB();
 		const whereConditions = [eq(journalLlmSuggestions.journalId, journalId)];
 
 		if (!includeSuperseded) {
@@ -88,7 +88,8 @@ export const journalLlmSuggestionActions = {
 		return results;
 	},
 
-	getById: async ({ db, id }: { db: DBType; id: string }) => {
+	getById: async ({ id }: { id: string }) => {
+		const db = getContextDB();
 		const results = await dbExecuteLogger(
 			db.select().from(journalLlmSuggestions).where(eq(journalLlmSuggestions.id, id)).limit(1),
 			'Journal LLM Suggestion Actions - Get By ID'
@@ -98,14 +99,13 @@ export const journalLlmSuggestionActions = {
 	},
 
 	update: async ({
-		db,
 		id,
 		data
 	}: {
-		db: DBType;
 		id: string;
 		data: UpdateJournalLlmSuggestionType;
 	}) => {
+		const db = getContextDB();
 		const result = await dbExecuteLogger(
 			db
 				.update(journalLlmSuggestions)
@@ -121,7 +121,8 @@ export const journalLlmSuggestionActions = {
 		return result[0];
 	},
 
-	delete: async ({ db, id }: { db: DBType; id: string }) => {
+	delete: async ({ id }: { id: string }) => {
+		const db = getContextDB();
 		await dbExecuteLogger(
 			db.delete(journalLlmSuggestions).where(eq(journalLlmSuggestions.id, id)),
 			'Journal LLM Suggestion Actions - Delete'
@@ -129,7 +130,8 @@ export const journalLlmSuggestionActions = {
 	},
 
 	// Get pending suggestions across multiple journals (for bulk processing)
-	getPendingByJournalIds: async ({ db, journalIds }: { db: DBType; journalIds: string[] }) => {
+	getPendingByJournalIds: async ({ journalIds }: { journalIds: string[] }) => {
+		const db = getContextDB();
 		if (journalIds.length === 0) return [];
 
 		const results = await dbExecuteLogger(
@@ -150,7 +152,8 @@ export const journalLlmSuggestionActions = {
 	},
 
 	// Statistics for monitoring
-	getStats: async ({ db, days = 30 }: { db: DBType; days?: number }) => {
+	getStats: async ({ days = 30 }: { days?: number }) => {
+		const db = getContextDB();
 		const cutoffDate = new Date();
 		cutoffDate.setDate(cutoffDate.getDate() - days);
 

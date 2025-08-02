@@ -49,14 +49,14 @@ export const journalRecommendationService = {
 
 		// Get enabled LLM provider if none specified
 		if (!llmSettingsId) {
-			const enabledProviders = await llmActions.getEnabled({ db });
+			const enabledProviders = await llmActions.getEnabled();
 			if (enabledProviders.length === 0) {
 				return [];
 			}
 			llmSettingsId = enabledProviders[0].id;
 		}
 
-		const llmProvider = await llmActions.getById({ db, id: llmSettingsId });
+		const llmProvider = await llmActions.getById({ id: llmSettingsId });
 		if (!llmProvider) {
 			return [];
 		}
@@ -97,7 +97,6 @@ export const journalRecommendationService = {
 
 			// Create LLM suggestion record
 			const llmSuggestion = await journalLlmSuggestionActions.create({
-				db,
 				data: {
 					journalId: journal.id,
 					llmSettingsId,
@@ -152,14 +151,11 @@ export const journalRecommendationService = {
 	 * Get existing LLM suggestions for a journal
 	 */
 	getExistingLLMRecommendations: async ({
-		db,
 		journalId
 	}: {
-		db: DBType;
 		journalId: string;
 	}): Promise<EnhancedRecommendationType[]> => {
 		const suggestions = await journalLlmSuggestionActions.getByJournalId({
-			db,
 			journalId
 		});
 
@@ -190,16 +186,13 @@ export const journalRecommendationService = {
 	 * Mark an LLM suggestion as accepted
 	 */
 	acceptLLMSuggestion: async ({
-		db,
 		suggestionId,
 		userId
 	}: {
-		db: DBType;
 		suggestionId: string;
 		userId: string;
 	}): Promise<void> => {
 		await journalLlmSuggestionActions.update({
-			db,
 			id: suggestionId,
 			data: {
 				status: 'accepted',
@@ -212,16 +205,13 @@ export const journalRecommendationService = {
 	 * Mark an LLM suggestion as rejected
 	 */
 	rejectLLMSuggestion: async ({
-		db,
 		suggestionId,
 		userId
 	}: {
-		db: DBType;
 		suggestionId: string;
 		userId: string;
 	}): Promise<void> => {
 		await journalLlmSuggestionActions.update({
-			db,
 			id: suggestionId,
 			data: {
 				status: 'rejected',

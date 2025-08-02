@@ -23,7 +23,6 @@ export const load = async (request) => {
   }
 
   const autoImportDetail = await tActions.autoImport.getById({
-    db: request.locals.db,
     id: current.params.id,
   });
 
@@ -66,7 +65,6 @@ export const load = async (request) => {
 export const actions = {
   enableDisable: async (request) => {
     const id = request.params.id;
-    const db = request.locals.db;
     const form = await request.request.formData();
 
     const enable = form.get("enable") !== null;
@@ -75,14 +73,12 @@ export const actions = {
       if (enable) {
         console.log("Enabling autoImport", id);
         await tActions.autoImport.update({
-          db,
           data: { id, enabled: true },
         });
       }
       if (disable) {
         console.log("Disabling autoImport", id);
         await tActions.autoImport.update({
-          db,
           data: { id, enabled: false },
         });
       }
@@ -92,12 +88,10 @@ export const actions = {
     }
   },
   update: async (request) => {
-    const db = request.locals.db;
     const form = await superValidate(request, zod4(updateAutoImportFormSchema));
 
     try {
       await tActions.autoImport.update({
-        db,
         data: form.data,
       });
     } catch (e) {
@@ -107,7 +101,6 @@ export const actions = {
   },
   getData: async (request) => {
     const transactions = await tActions.autoImport.getData({
-      db: request.locals.db,
       id: request.params.id,
     });
 
@@ -115,13 +108,11 @@ export const actions = {
   },
   updateSampleData: async (request) => {
     await tActions.autoImport.updateSampleData({
-      db: request.locals.db,
       id: request.params.id,
     });
   },
   trigger: async (request) => {
     await tActions.autoImport.trigger({
-      db: request.locals.db,
       id: request.params.id,
     });
   },

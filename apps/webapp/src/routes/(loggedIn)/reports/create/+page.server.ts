@@ -25,7 +25,6 @@ const createReportSchemaWithPageAndFilter = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(createReportSchemaWithPageAndFilter),
@@ -38,7 +37,7 @@ export const actions = {
     let newReportId = "";
 
     try {
-      newReportId = await tActions.report.create({ db, data: form.data });
+      newReportId = await tActions.report.create({ data: form.data });
     } catch (e) {
       locals.global.logger.error("Create Report Error", e);
       return message(

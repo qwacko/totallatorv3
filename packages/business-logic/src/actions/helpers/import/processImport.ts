@@ -1,5 +1,4 @@
 import { eq } from 'drizzle-orm';
-import type { DBType } from '@totallator/database';
 import {
 	account,
 	bill,
@@ -33,8 +32,10 @@ import type { ImportStatusType } from '@totallator/shared';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { importFileHandler } from '@/server/files/fileHandler';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { getContextDB } from '@totallator/context';
 
-export const processCreatedImport = async ({ db, id }: { db: DBType; id: string }) => {
+export const processCreatedImport = async ({ id }: { id: string }) => {
+	const db = getContextDB();
 	const data = await dbExecuteLogger(
 		db.select().from(importTable).where(eq(importTable.id, id)),
 		'getImportData'
@@ -46,7 +47,7 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 	const importData = data[0];
 
 	const importMappingInformation = importData.importMappingId
-		? await importMappingActions.getById({ db, id: importData.importMappingId })
+		? await importMappingActions.getById({ id: importData.importMappingId })
 		: undefined;
 
 	if (importData.status !== 'created') return;
@@ -195,7 +196,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 			} else if (importData.type === 'mappedImport') {
 				if (importData.importMappingId) {
 					const importMappingDetail = await importMappingActions.getById({
-						db,
 						id: importData.importMappingId
 					});
 
@@ -248,7 +248,6 @@ export const processCreatedImport = async ({ db, id }: { db: DBType; id: string 
 		importData.importMappingId
 	) {
 		const importMappingDetail = await importMappingActions.getById({
-			db,
 			id: importData.importMappingId
 		});
 

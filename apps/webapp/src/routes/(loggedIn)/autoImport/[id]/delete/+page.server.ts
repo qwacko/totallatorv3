@@ -19,7 +19,6 @@ export const load = async (request) => {
   }
 
   const autoImportDetail = await tActions.autoImport.getById({
-    db: request.locals.db,
     id: current.params.id,
   });
 
@@ -43,7 +42,6 @@ export const actions = {
 
     try {
       await tActions.autoImport.delete({
-        db: request.locals.db,
         id,
       });
     } catch (error) {

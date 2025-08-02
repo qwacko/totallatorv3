@@ -24,7 +24,6 @@ const createBudgetSchemaWithPageAndFilter = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(createBudgetSchemaWithPageAndFilter),
@@ -35,7 +34,7 @@ export const actions = {
     }
 
     try {
-      await tActions.budget.create(db, form.data);
+      await tActions.budget.create(form.data);
     } catch (e) {
       locals.global.logger.error("Create Budget Error", e);
       return message(form, "Error Creating Budget, Possibly Already Exists");

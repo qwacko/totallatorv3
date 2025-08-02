@@ -13,7 +13,7 @@ export const actions = {
     const id = nanoid();
 
     try {
-      await tActions.backup.importFile({ db: locals.db, backupFile, id });
+      await tActions.backup.importFile({ backupFile, id });
     } catch (e) {
       locals.global.logger.error(
         `Backup Import Failed. Incorrect Contents - ${backupFile.name}`,

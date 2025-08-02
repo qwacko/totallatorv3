@@ -175,7 +175,6 @@ export const journalCategorizationTool: Tool = {
 			if (context.journalId) {
 				try {
 					await journalLlmSuggestionActions.create({
-						db: context.db,
 						data: {
 							journalId: context.journalId,
 							llmSettingsId: 'system', // We'll need to pass this properly

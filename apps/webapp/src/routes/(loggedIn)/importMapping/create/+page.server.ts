@@ -58,7 +58,6 @@ export const actions = {
 
     try {
       await tActions.importMapping.create({
-        db: data.locals.db,
         data: {
           title: form.data.title,
           configuration: detailFormData.data,

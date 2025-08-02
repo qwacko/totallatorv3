@@ -5,7 +5,6 @@ import {
 	importMappingDetailSchema
 } from '@totallator/shared';
 import { nanoid } from 'nanoid';
-import type { DBType } from '@totallator/database';
 import { importMapping, type ImportMappingTableType } from '@totallator/database';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { asc, desc, getTableColumns, and, sql, eq, max } from 'drizzle-orm';
@@ -14,6 +13,7 @@ import { streamingDelay } from '../server/testingDelay';
 import { count as drizzleCount } from 'drizzle-orm';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
+import { getContextDB } from '@totallator/context';
 
 type ProcessedImportData = Omit<ImportMappingTableType, 'configuration'> & {
 	configuration: undefined | ImportMappingDetailSchema;
@@ -31,7 +31,8 @@ const processImportedDataResult = (data: ImportMappingTableType): ProcessedImpor
 };
 
 export const importMappingActions = {
-	latestUpdate: async ({ db }: { db: DBType }): Promise<Date> => {
+	latestUpdate: async (): Promise<Date> => {
+		const db = getContextDB();
 		const latestUpdate = await dbExecuteLogger(
 			db.select({ lastUpdated: max(importMapping.updatedAt) }).from(importMapping),
 			'Import Mapping - Latest Update'
@@ -39,12 +40,11 @@ export const importMappingActions = {
 		return latestUpdate[0].lastUpdated || new Date();
 	},
 	getById: async ({
-		db,
 		id
 	}: {
-		db: DBType;
 		id: string;
 	}): Promise<undefined | ProcessedImportData> => {
+		const db = getContextDB();
 		const data = await dbExecuteLogger(
 			db.select(getTableColumns(importMapping)).from(importMapping).where(eq(importMapping.id, id)),
 			'Import Mapping - Get By ID'
@@ -53,12 +53,11 @@ export const importMappingActions = {
 		return data.length === 1 ? processImportedDataResult(data[0]) : undefined;
 	},
 	list: async ({
-		db,
 		filter
 	}: {
-		db: DBType;
 		filter: ImportMappingFilterSchema;
 	}): Promise<PaginatedResults<ProcessedImportData>> => {
+		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...restFilter } = filter;
 		const where = importMappingFilterToQuery(restFilter);
 		const defaultOrderBy = [asc(importMapping.title), desc(importMapping.createdAt)];
@@ -106,7 +105,8 @@ export const importMappingActions = {
 			pageSize
 		};
 	},
-	listForDropdown: async ({ db }: { db: DBType }): Promise<ImportMappingDropdownType> => {
+	listForDropdown: async (): Promise<ImportMappingDropdownType> => {
+		const db = getContextDB();
 		await streamingDelay();
 		const results = await dbExecuteLogger(
 			db
@@ -119,16 +119,15 @@ export const importMappingActions = {
 		return results;
 	},
 	create: async ({
-		db,
 		data
 	}: {
-		db: DBType;
 		data: {
 			title: string;
 			configuration: ImportMappingDetailSchema;
 			sampleData?: string | undefined;
 		};
 	}): Promise<string> => {
+		const db = getContextDB();
 		const processedConfig = importMappingDetailWithRefinementSchema.safeParse(data.configuration);
 		if (!processedConfig.success) {
 			throw new Error(`Configuration Error : ${processedConfig.error.message}`);
@@ -149,7 +148,8 @@ export const importMappingActions = {
 
 		return id;
 	},
-	clone: async ({ db, id }: { db: DBType; id: string }): Promise<string | undefined> => {
+	clone: async ({ id }: { id: string }): Promise<string | undefined> => {
+		const db = getContextDB();
 		const data = await dbExecuteLogger(
 			db.select(getTableColumns(importMapping)).from(importMapping).where(eq(importMapping.id, id)),
 			'Import Mapping - Clone - Find'
@@ -177,11 +177,9 @@ export const importMappingActions = {
 		return undefined;
 	},
 	update: async ({
-		db,
 		id,
 		data
 	}: {
-		db: DBType;
 		id: string;
 		data: {
 			title?: string;
@@ -189,6 +187,7 @@ export const importMappingActions = {
 			sampleData?: string | undefined;
 		};
 	}): Promise<void> => {
+		const db = getContextDB();
 		const processedConfig = data.configuration
 			? importMappingDetailWithRefinementSchema.safeParse(data.configuration)
 			: undefined;
@@ -212,7 +211,8 @@ export const importMappingActions = {
 			'Import Mapping - Update'
 		);
 	},
-	delete: async ({ db, id }: { db: DBType; id: string }): Promise<void> => {
+	delete: async ({ id }: { id: string }): Promise<void> => {
+		const db = getContextDB();
 		await dbExecuteLogger(
 			db.delete(importMapping).where(eq(importMapping.id, id)),
 			'Import Mapping - Delete'

@@ -7,7 +7,6 @@ import { serverPageInfo, urlGenerator } from "$lib/routes";
 
 export const load = async (data) => {
   authGuard(data);
-  const db = data.locals.db;
   const { current } = serverPageInfo(data.route.id, data);
 
   if (!current.params?.id) {
@@ -19,7 +18,6 @@ export const load = async (data) => {
   }
 
   const item = await tActions.reusableFitler.getById({
-    db,
     id: current.params.id,
   });
 
@@ -42,7 +40,7 @@ export const actions = {
     const form = await request.formData();
     const prevPage = form.get("prevPage");
 
-    await tActions.reusableFitler.applyById({ db: locals.db, id });
+    await tActions.reusableFitler.applyById({ id });
 
     redirect(
       302,

@@ -24,7 +24,6 @@ const createBillSchemaWithPageAndFilter = z.object({
 
 export const actions = {
   default: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(
       request,
       zod4(createBillSchemaWithPageAndFilter),
@@ -35,7 +34,7 @@ export const actions = {
     }
 
     try {
-      await tActions.bill.create(db, form.data);
+      await tActions.bill.create(form.data);
     } catch (e) {
       locals.global.logger.error("Create Bill Error", e);
       return message(form, "Error Creating Bill, Possibly Already Exists");

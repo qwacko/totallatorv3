@@ -9,7 +9,7 @@ import {
 	type UserDBType,
 	user as userTable
 } from '@totallator/database';
-import type { DBType } from '@totallator/database';
+import { getContextDB } from '@totallator/context';
 
 function generateSessionToken(): string {
 	const bytes = new Uint8Array(20);
@@ -20,7 +20,8 @@ function generateSessionToken(): string {
 
 const SESSION_LENGTH_DAYS = 30;
 
-async function createSession(db: DBType, token: string, userId: string): Promise<SessionDBType> {
+async function createSession(token: string, userId: string): Promise<SessionDBType> {
+	const db = getContextDB();
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const session: SessionDBType = {
 		id: sessionId,
@@ -31,7 +32,8 @@ async function createSession(db: DBType, token: string, userId: string): Promise
 	return session;
 }
 
-async function validateSessionToken(db: DBType, token: string): Promise<SessionValidationResult> {
+async function validateSessionToken(token: string): Promise<SessionValidationResult> {
+	const db = getContextDB();
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const result = await db
 		.select({ userData: userTable, sessionData: sessionTable })
@@ -62,15 +64,18 @@ async function validateSessionToken(db: DBType, token: string): Promise<SessionV
 	return { session: sessionData, user: userData };
 }
 
-async function invalidateSession(db: DBType, sessionId: string): Promise<void> {
+async function invalidateSession(sessionId: string): Promise<void> {
+	const db = getContextDB();
 	await db.delete(sessionTable).where(eq(sessionTable.id, sessionId));
 }
 
-async function invalidateAllSessions(db: DBType, userId: string): Promise<void> {
+async function invalidateAllSessions(userId: string): Promise<void> {
+	const db = getContextDB();
 	await db.delete(sessionTable).where(eq(sessionTable.userId, userId));
 }
 
-async function deleteExpiredSessions(db: DBType): Promise<void> {
+async function deleteExpiredSessions(): Promise<void> {
+	const db = getContextDB();
 	const now = new Date(Date.now());
 	await db.delete(sessionTable).where(gt(sessionTable.expiresAt, now));
 }

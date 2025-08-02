@@ -82,7 +82,7 @@ export const cronJobs: CronJob[] = [
     name: "Cleanup Sessions",
     schedule: "0 0 * * *",
     job: async (context) => {
-      await tActions.auth.deleteExpiredSessions(context.db);
+      await tActions.auth.deleteExpiredSessions();
     },
   },
   {
@@ -116,7 +116,6 @@ export const cronJobs: CronJob[] = [
     schedule: "0 2 * * *",
     job: async (context) => {
       await tActions.autoImport.triggerMany({
-        db: context.db,
         frequency: "daily",
       });
     },
@@ -126,7 +125,6 @@ export const cronJobs: CronJob[] = [
     schedule: "0 3 * * 0",
     job: async (context) => {
       await tActions.autoImport.triggerMany({
-        db: context.db,
         frequency: "weekly",
       });
     },
@@ -136,7 +134,6 @@ export const cronJobs: CronJob[] = [
     schedule: "0 4 1 * *",
     job: async (context) => {
       await tActions.autoImport.triggerMany({
-        db: context.db,
         frequency: "monthly",
       });
     },

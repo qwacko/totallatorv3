@@ -23,7 +23,6 @@ export const load = async (data) => {
   );
 
   const categories = await tActions.category.list({
-    db,
     filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
   });
   const redirectRequired = categories.page >= categories.pageCount;
@@ -45,7 +44,6 @@ export const load = async (data) => {
 
   return {
     categories: tActions.associatedInfo.addToItems({
-      db,
       data: categories,
       grouping: "categoryId",
     }),
@@ -65,7 +63,6 @@ export const actions = {
   ...fileFormActions,
   ...associatedInfoFormActions,
   update: async ({ request, locals }) => {
-    const db = locals.db;
     const form = await superValidate(request, zod4(submitValidation));
 
     if (!form.valid) {
@@ -73,7 +70,7 @@ export const actions = {
     }
 
     try {
-      await tActions.category.update({ db, data: form.data, id: form.data.id });
+      await tActions.category.update({ data: form.data, id: form.data.id });
       return {
         status: 200,
         body: {
