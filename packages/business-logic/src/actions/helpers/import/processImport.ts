@@ -55,7 +55,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 		throw new Error('Import File Not Found');
 	}
 
-	const file = await importFileHandler.readToString(importData.filename);
+	const file = await importFileHandler().readToString(importData.filename);
 	const checkImportDuplicates =
 		(innerFunc: (data: string[]) => Promise<string[]>) => async (data: string[]) => {
 			if (!importData.checkImportedOnly) {

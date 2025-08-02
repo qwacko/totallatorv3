@@ -292,9 +292,9 @@ export const fileActions: FilesActionsType & {
 
 		const thumbnail = fileIsImage ? await sharp(fileContents).resize(400).toBuffer() : undefined;
 
-		await fileFileHandler.write(filename, fileContents);
+		await fileFileHandler().write(filename, fileContents);
 		if (thumbnail) {
-			await fileFileHandler.write(thumbnailFilename, thumbnail);
+			await fileFileHandler().write(thumbnailFilename, thumbnail);
 		}
 
 		const titleUse = title || originalFilename;
@@ -387,9 +387,9 @@ export const fileActions: FilesActionsType & {
 
 		// const thumbnail = fileIsImage ? await sharp(fileContents).resize(400).toBuffer() : undefined;
 
-		// await fileFileHandler.write(filename, fileContents);
+		// await fileHandler().write(filename, fileContents);
 		// if (thumbnail) {
-		// 	await fileFileHandler.write(thumbnailFilename, thumbnail);
+		// 	await fileHandler().write(thumbnailFilename, thumbnail);
 		// }
 
 		// const titleUse = title || originalFilename;
@@ -482,9 +482,9 @@ export const fileActions: FilesActionsType & {
 
 		await Promise.all(
 			files.map(async (currentFile) => {
-				currentFile.filename && (await fileFileHandler.deleteFile(currentFile.filename));
+				currentFile.filename && (await fileFileHandler().deleteFile(currentFile.filename));
 				currentFile.thumbnailFilename &&
-					(await fileFileHandler.deleteFile(currentFile.thumbnailFilename));
+					(await fileFileHandler().deleteFile(currentFile.thumbnailFilename));
 
 				await dbExecuteLogger(
 					db.delete(fileTable).where(eq(fileTable.id, currentFile.id)),
@@ -507,7 +507,7 @@ export const fileActions: FilesActionsType & {
 			throw new Error('File not found');
 		}
 
-		const fileData = fileFileHandler.readToBuffer(file[0].filename);
+		const fileData = fileFileHandler().readToBuffer(file[0].filename);
 
 		return {
 			fileData,
@@ -531,7 +531,7 @@ export const fileActions: FilesActionsType & {
 			throw new Error('No thumbnail');
 		}
 
-		const fileData = fileFileHandler.readToBuffer(targetFile.thumbnailFilename);
+		const fileData = fileFileHandler().readToBuffer(targetFile.thumbnailFilename);
 
 		return {
 			fileData,
@@ -610,7 +610,7 @@ export const fileActions: FilesActionsType & {
 		let storedFiles: string[] = [];
 
 		try {
-			const listing = fileFileHandler.list('.', { deep: false });
+			const listing = fileFileHandler().list('.', { deep: false });
 
 			for await (const entry of listing) {
 				if (entry.type === 'file' || entry.isFile) {

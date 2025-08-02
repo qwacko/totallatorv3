@@ -180,7 +180,7 @@ export const importActions = {
 
 		const saveFilename = `${dateTime}_${id}_${originalFilename}`;
 
-		await importFileHandler.write(
+		await importFileHandler().write(
 			saveFilename,
 			fileType === 'json' ? Buffer.from(await newFile.arrayBuffer()) : await newFile.text()
 		);

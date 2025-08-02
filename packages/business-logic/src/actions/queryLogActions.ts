@@ -11,7 +11,12 @@ import {
 import { groupedQueryLogSubquery } from './helpers/queryLog/groupedQueryLogSubquery';
 import { groupedQueryLogOrderByToSQL } from './helpers/queryLog/groupedQueryLogOrderByToSQL';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { queryLogTable, queryContentsTable, queryLogTitleTable } from '@totallator/database';
+import {
+	queryLogTable,
+	queryContentsTable,
+	queryLogTitleTable,
+	DBType
+} from '@totallator/database';
 import { queryLogOrderByToSQL } from './helpers/queryLog/queryLogOrderByToSQL';
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { nanoid } from 'nanoid';
@@ -207,8 +212,7 @@ export const queryLogActions = {
 
 		return results;
 	},
-	tidy: async (): Promise<void> => {
-		const db = getContextDB();
+	tidy: async (db: DBType): Promise<void> => {
 		const dbLogStorageHours = getServerEnv().DBLOG_STORAGE_HOURS;
 		const dbLogStorageCount = getServerEnv().DBLOG_STORAGE_COUNT;
 

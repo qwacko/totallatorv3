@@ -7,57 +7,61 @@ import { AwsS3StorageAdapter } from '@flystorage/aws-s3';
 import { getLogger } from '@/logger';
 
 const fileHandler = (getAddress: () => string, title: string) => {
-	const address = getAddress();
-	if (address.startsWith('s3://')) {
-		const bucketAndPrefix = address.replace('s3://', '');
-		const [bucket] = bucketAndPrefix.split('/');
-		if (!bucket) {
-			throw new Error('S3 bucket not correctly set');
-		}
+	return () => {
+		const address = getAddress();
+		if (address.startsWith('s3://')) {
+			const bucketAndPrefix = address.replace('s3://', '');
+			const [bucket] = bucketAndPrefix.split('/');
+			if (!bucket) {
+				throw new Error('S3 bucket not correctly set');
+			}
 
-		const prefix = bucketAndPrefix.replace(`${bucket}/`, '');
+			const prefix = bucketAndPrefix.replace(`${bucket}/`, '');
 
-		const s3AccessUrl = getServerEnv().S3_ACCESS_URL;
-		const s3Region = getServerEnv().S3_REGION;
-		const s3AccessKeyId = getServerEnv().S3_ACCESS_KEY_ID;
-		const s3SecretAccessKey = getServerEnv().S3_SECRET_ACCESS_KEY;
+			const s3AccessUrl = getServerEnv().S3_ACCESS_URL;
+			const s3Region = getServerEnv().S3_REGION;
+			const s3AccessKeyId = getServerEnv().S3_ACCESS_KEY_ID;
+			const s3SecretAccessKey = getServerEnv().S3_SECRET_ACCESS_KEY;
 
-		if (!s3AccessKeyId || !s3SecretAccessKey || !s3AccessUrl || !s3Region) {
-			throw new Error('S3 environment variables not correctly set');
+			if (!s3AccessKeyId || !s3SecretAccessKey || !s3AccessUrl || !s3Region) {
+				throw new Error('S3 environment variables not correctly set');
+			}
+
+			getLogger().debug(
+				`${title} FileHandler Initiation : S3 : Bucket = ${bucket}, Prefix = ${prefix}`
+			);
+
+			const client = new S3Client({
+				requestChecksumCalculation: getServerEnv().S3_DISABLE_CHECKSUM
+					? 'WHEN_REQUIRED'
+					: 'WHEN_SUPPORTED',
+				responseChecksumValidation: getServerEnv().S3_DISABLE_CHECKSUM
+					? 'WHEN_REQUIRED'
+					: 'WHEN_SUPPORTED',
+				credentials: {
+					accessKeyId: s3AccessKeyId,
+					secretAccessKey: s3SecretAccessKey
+				},
+				endpoint: s3AccessUrl,
+				region: s3Region
+			});
+
+			const adapter = new AwsS3StorageAdapter(client, {
+				bucket,
+				prefix
+			});
+			const storage = new FileStorage(adapter);
+
+			return storage;
 		}
 
 		getLogger().debug(
-			`${title} FileHandler Initiation : S3 : Bucket = ${bucket}, Prefix = ${prefix}`
+			`${title} FileHandler Initiation  : Local File Storage : Address = ${address}`
 		);
 
-		const client = new S3Client({
-			requestChecksumCalculation: getServerEnv().S3_DISABLE_CHECKSUM
-				? 'WHEN_REQUIRED'
-				: 'WHEN_SUPPORTED',
-			responseChecksumValidation: getServerEnv().S3_DISABLE_CHECKSUM
-				? 'WHEN_REQUIRED'
-				: 'WHEN_SUPPORTED',
-			credentials: {
-				accessKeyId: s3AccessKeyId,
-				secretAccessKey: s3SecretAccessKey
-			},
-			endpoint: s3AccessUrl,
-			region: s3Region
-		});
-
-		const adapter = new AwsS3StorageAdapter(client, {
-			bucket,
-			prefix
-		});
-		const storage = new FileStorage(adapter);
-
-		return storage;
-	}
-
-	getLogger().debug(`${title} FileHandler Initiation  : Local File Storage : Address = ${address}`);
-
-	const adapter = new LocalStorageAdapter(address);
-	return new FileStorage(adapter);
+		const adapter = new LocalStorageAdapter(address);
+		return new FileStorage(adapter);
+	};
 };
 
 export const backupFileHandler = fileHandler(() => getServerEnv().BACKUP_DIR, 'Backup');

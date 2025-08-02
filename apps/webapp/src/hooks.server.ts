@@ -30,11 +30,14 @@ const handleAuth: Handle = async ({
       return resolve(event);
     }
 
-    const { session, user } = await tActions.auth.validateSessionToken(
-      sessionToken,
-    );
+    const { session, user } =
+      await tActions.auth.validateSessionToken(sessionToken);
     if (session !== null) {
-      tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+      tActions.auth.setSessionTokenCookie(
+        event,
+        sessionToken,
+        session.expiresAt,
+      );
     } else {
       tActions.auth.deleteSessionTokenCookie(event);
     }
@@ -51,7 +54,7 @@ export const init: ServerInit = async () => {
   initateCronJobs(() => context);
 
   //Setup DB Logger
-  actionHelpers.initDBLogger(context.db);
+  actionHelpers.initDBLogger(context);
 };
 
 const handleRoute: Handle = async ({
@@ -65,7 +68,7 @@ const handleRoute: Handle = async ({
   }
   // Create request context
   const requestContext = createRequestContext(event);
-  
+
   // Set up contexts in locals (for backward compatibility)
   event.locals.global = context;
   event.locals.request = requestContext;

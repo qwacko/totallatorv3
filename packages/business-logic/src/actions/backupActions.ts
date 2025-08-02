@@ -55,11 +55,11 @@ import { getContextDB } from '@totallator/context';
 
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
-	await backupFileHandler.write(fileName, compressedConvertedData);
+	await backupFileHandler().write(fileName, compressedConvertedData);
 }
 
 async function readFromMsgPackFile(filename: string) {
-	const fileData = await backupFileHandler.readToBuffer(filename);
+	const fileData = await backupFileHandler().readToBuffer(filename);
 	const decompressedFileData = zlib.gunzipSync(fileData);
 	return superjson.parse(decompressedFileData.toString());
 }
@@ -228,14 +228,14 @@ export const backupActions = {
 
 		//Store backup file into target folder, making sure to rename backup file if there is an existing file with the same name
 		let backupFileName = backupFile.name;
-		const backupFileExists = await backupFileHandler.fileExists(backupFileName);
+		const backupFileExists = await backupFileHandler().fileExists(backupFileName);
 
 		if (backupFileExists) {
 			const fileInfo = getFilenameInfo(backupFileName);
 			backupFileName = `${fileInfo.withoutExtension}-ImportDuplicate-${new Date().toISOString()}.${fileInfo.extension}`;
 		}
 
-		await backupFileHandler.write(backupFileName, Buffer.from(await backupFile.arrayBuffer()));
+		await backupFileHandler().write(backupFileName, Buffer.from(await backupFile.arrayBuffer()));
 
 		try {
 			const data = await getBackupStructuredData({ filename: backupFileName });
@@ -267,7 +267,7 @@ export const backupActions = {
 		} catch (e) {
 			getLogger().error(`Backup Import Failed. Incorrect Contents - ${backupFileName}`);
 			getLogger().error('Error', e);
-			await backupFileHandler.deleteFile(backupFileName);
+			await backupFileHandler().deleteFile(backupFileName);
 			return;
 		}
 
@@ -417,7 +417,7 @@ export const backupActions = {
 		if (compress) {
 			await writeToMsgPackFile(checkedBackupData, filenameUse);
 		} else {
-			await backupFileHandler.write(filenameUse, superjson.stringify(checkedBackupData));
+			await backupFileHandler().write(filenameUse, superjson.stringify(checkedBackupData));
 		}
 
 		const information = {
@@ -456,7 +456,7 @@ export const backupActions = {
 
 		const backupFile = backupFiles[0];
 
-		const fileExists = await backupFileHandler.fileExists(backupFile.filename);
+		const fileExists = await backupFileHandler().fileExists(backupFile.filename);
 
 		if (!fileExists) {
 			await dbExecuteLogger(
@@ -473,14 +473,14 @@ export const backupActions = {
 		}
 
 		if (returnRaw) {
-			return await backupFileHandler.readToBuffer(backupFile.filename);
+			return await backupFileHandler().readToBuffer(backupFile.filename);
 		}
 
 		const isCompressed = backupFile.compressed;
 
 		const loadedBackupData = isCompressed
 			? await readFromMsgPackFile(backupFile.filename)
-			: superjson.parse((await backupFileHandler.readToString(backupFile.filename)).toString());
+			: superjson.parse((await backupFileHandler().readToString(backupFile.filename)).toString());
 
 		return loadedBackupData;
 	},
@@ -530,7 +530,7 @@ export const backupActions = {
 
 		const backupFileInDB = backupFilesInDB[0];
 
-		const backupExists = await backupFileHandler.fileExists(backupFileInDB.filename);
+		const backupExists = await backupFileHandler().fileExists(backupFileInDB.filename);
 
 		if (backupFileInDB && backupFileInDB.locked) {
 			getLogger().info(`Cannot Delete Backup as it is locked - ${backupFileInDB.filename}`);
@@ -538,7 +538,7 @@ export const backupActions = {
 		}
 
 		if (backupExists) {
-			await backupFileHandler.deleteFile(backupFileInDB.filename);
+			await backupFileHandler().deleteFile(backupFileInDB.filename);
 		}
 
 		if (backupFilesInDB.length === 1) {
@@ -848,7 +848,7 @@ export const backupActions = {
 		const db = getContextDB();
 		const [backupsInDB, backupFiles] = await Promise.all([
 			dbExecuteLogger(db.select().from(backupTable), 'Backup - Refresh List - Get Backups In DB'),
-			backupFileHandler.list('')
+			backupFileHandler().list('')
 		]);
 
 		const DBFilenames = backupsInDB.map((backup) => backup.filename);
@@ -993,7 +993,7 @@ const getBackupStructuredData = async ({
 }: {
 	filename: string;
 }): Promise<BackupStructuredData> => {
-	const backupExists = await backupFileHandler.fileExists(filename);
+	const backupExists = await backupFileHandler().fileExists(filename);
 
 	if (!backupExists) {
 		throw new Error('Backup File Not Found On Disk');
@@ -1004,7 +1004,7 @@ const getBackupStructuredData = async ({
 	const loadedBackupData = isCompressed
 		? ((await readFromMsgPackFile(filename)) as CombinedBackupSchemaType)
 		: (superjson.parse(
-				(await backupFileHandler.readToString(filename)).toString()
+				(await backupFileHandler().readToString(filename)).toString()
 			) as CombinedBackupSchemaType);
 
 	const backupDataParsed = combinedBackupSchema.parse(loadedBackupData);

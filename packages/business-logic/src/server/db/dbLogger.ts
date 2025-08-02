@@ -1,10 +1,8 @@
 import { nanoid } from 'nanoid';
-import { getLogger } from '@/logger';
 import { queryLogTable } from '@totallator/database';
 import { queryLogActions } from '@/actions/queryLogActions';
-import { getServerEnv } from '@/serverEnv';
 import { PgRaw } from 'drizzle-orm/pg-core/query-builders/raw';
-import type { DBType } from '@totallator/database';
+import { GlobalContext } from '@totallator/context';
 
 type QueryCache = {
 	title?: string;
@@ -147,15 +145,15 @@ export const dbLoggerCreate = ({
 
 let dbLoggerInstance: ReturnType<typeof dbLoggerCreate> | undefined;
 
-export const initDBLogger = async (db: DBType) => {
+export const initDBLogger = async (context: GlobalContext) => {
 	dbLoggerInstance = dbLoggerCreate({
-		localCacheSize: () => getServerEnv().DBLOG_CACHE_SIZE,
-		localCacheTimeout: () => getServerEnv().DBLOG_CACHE_TIMEOUT,
-		disable: () => !getServerEnv().DBLOG_ENABLE,
+		localCacheSize: () => context.serverEnv.DBLOG_CACHE_SIZE,
+		localCacheTimeout: () => context.serverEnv.DBLOG_CACHE_TIMEOUT,
+		disable: () => !context.serverEnv.DBLOG_ENABLE,
 		storeQueries: async (queries) => {
 			if (queries.length === 0) return;
 
-			await db.insert(queryLogTable).values(
+			await context.db.insert(queryLogTable).values(
 				queries.map((query) => ({
 					id: nanoid(),
 					title: query.title,
@@ -167,9 +165,9 @@ export const initDBLogger = async (db: DBType) => {
 				}))
 			);
 
-			await queryLogActions.tidy();
+			await queryLogActions.tidy(context.db);
 		},
-		logError: getLogger().error
+		logError: context.logger.error
 	});
 };
 
