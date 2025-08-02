@@ -2,9 +2,8 @@ import { eq } from 'drizzle-orm';
 import { llmSettings, type LLMSettings } from '@totallator/database';
 import { nanoid } from 'nanoid';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { tLogger } from '../server/db/transactionLogger';
 import { encryptText, decryptText } from './helpers/encryption';
-import { getContextDB } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export type CreateLLMSettingsType = {
 	title: string;
@@ -23,36 +22,29 @@ export type UpdateLLMSettingsType = {
 };
 
 export const llmActions = {
-	create: async ({
-		data
-	}: {
-		data: CreateLLMSettingsType;
-	}): Promise<LLMSettings> => {
-		const db = getContextDB();
+	create: async ({ data }: { data: CreateLLMSettingsType }): Promise<LLMSettings> => {
 		const id = nanoid();
 		const encryptedApiKey = encryptText(data.apiKey);
 
-		const result = await tLogger(
-			'Create LLM Settings',
-			db.transaction(async (trx) => {
-				const inserted = await dbExecuteLogger(
-					trx
-						.insert(llmSettings)
-						.values({
-							id,
-							title: data.title,
-							apiUrl: data.apiUrl,
-							apiKey: encryptedApiKey,
-							defaultModel: data.defaultModel || null,
-							enabled: data.enabled ?? true
-						})
-						.returning(),
-					'LLM Settings - Create'
-				);
+		const result = await runInTransactionWithLogging('Create LLM Settings', async () => {
+			const db = getContextDB();
+			const inserted = await dbExecuteLogger(
+				db
+					.insert(llmSettings)
+					.values({
+						id,
+						title: data.title,
+						apiUrl: data.apiUrl,
+						apiKey: encryptedApiKey,
+						defaultModel: data.defaultModel || null,
+						enabled: data.enabled ?? true
+					})
+					.returning(),
+				'LLM Settings - Create'
+			);
 
-				return inserted[0];
-			})
-		);
+			return inserted[0];
+		});
 
 		// Return with decrypted API key for immediate use
 		return {
@@ -118,7 +110,6 @@ export const llmActions = {
 		id: string;
 		data: UpdateLLMSettingsType;
 	}): Promise<LLMSettings | undefined> => {
-		const db = getContextDB();
 		const updateData: any = {
 			...data,
 			updatedAt: new Date()
@@ -129,17 +120,15 @@ export const llmActions = {
 			updateData.apiKey = encryptText(data.apiKey);
 		}
 
-		const result = await tLogger(
-			'Update LLM Settings',
-			db.transaction(async (trx) => {
-				const updated = await dbExecuteLogger(
-					trx.update(llmSettings).set(updateData).where(eq(llmSettings.id, id)).returning(),
-					'LLM Settings - Update'
-				);
+		const result = await runInTransactionWithLogging('Update LLM Settings', async () => {
+			const db = getContextDB();
+			const updated = await dbExecuteLogger(
+				db.update(llmSettings).set(updateData).where(eq(llmSettings.id, id)).returning(),
+				'LLM Settings - Update'
+			);
 
-				return updated.length > 0 ? updated[0] : undefined;
-			})
-		);
+			return updated.length > 0 ? updated[0] : undefined;
+		});
 
 		if (!result) {
 			return undefined;
@@ -156,18 +145,15 @@ export const llmActions = {
 	},
 
 	delete: async ({ id }: { id: string }): Promise<boolean> => {
-		const db = getContextDB();
-		const result = await tLogger(
-			'Delete LLM Settings',
-			db.transaction(async (trx) => {
-				const deleted = await dbExecuteLogger(
-					trx.delete(llmSettings).where(eq(llmSettings.id, id)).returning(),
-					'LLM Settings - Delete'
-				);
+		const result = await runInTransactionWithLogging('Delete LLM Settings', async () => {
+			const db = getContextDB();
+			const deleted = await dbExecuteLogger(
+				db.delete(llmSettings).where(eq(llmSettings.id, id)).returning(),
+				'LLM Settings - Delete'
+			);
 
-				return deleted.length > 0;
-			})
-		);
+			return deleted.length > 0;
+		});
 
 		return result;
 	},

@@ -6,8 +6,7 @@ import { nanoid } from 'nanoid';
 import { fixedDelay } from '../helpers/fixedDelay';
 import { hashPassword, checkHashedPassword } from './helpers/hashPassword';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { tLogger } from '../server/db/transactionLogger';
-import { getContextDB } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export const userActions = {
 	listAll: async (): Promise<UserDBType[]> => {
@@ -37,28 +36,26 @@ export const userActions = {
 		const userId = nanoid();
 		const hashedPassword = await hashPassword(password);
 
-		await tLogger(
-			'Create User',
-			db.transaction(async (trx) => {
-				await dbExecuteLogger(
-					trx.insert(user).values({
-						id: userId,
-						username: username.toLowerCase(),
-						admin
-					}),
-					'User - Create - Insert'
-				);
+		await runInTransactionWithLogging('Create User', async () => {
+			const db = getContextDB();
+			await dbExecuteLogger(
+				db.insert(user).values({
+					id: userId,
+					username: username.toLowerCase(),
+					admin
+				}),
+				'User - Create - Insert'
+			);
 
-				await dbExecuteLogger(
-					trx.insert(key).values({
-						id: nanoid(),
-						userId,
-						hashedPassword
-					}),
-					'User - Create - Insert Key'
-				);
-			})
-		);
+			await dbExecuteLogger(
+				db.insert(key).values({
+					id: nanoid(),
+					userId,
+					hashedPassword
+				}),
+				'User - Create - Insert Key'
+			);
+		});
 
 		return userActions.get({ userId });
 	},
@@ -152,14 +149,11 @@ export const userActions = {
 		return userActions.get({ userId: foundUser.id });
 	},
 	deleteUser: async ({ userId }: { userId: string }) => {
-		const db = getContextDB();
-		await tLogger(
-			'Delete User',
-			db.transaction(async (trx) => {
-				await dbExecuteLogger(trx.delete(key).where(eq(key.userId, userId)), 'User - Delete - Key');
-				await dbExecuteLogger(trx.delete(user).where(eq(user.id, userId)), 'User - Delete - User');
-			})
-		);
+		await runInTransactionWithLogging('Delete User', async () => {
+			const db = getContextDB();
+			await dbExecuteLogger(db.delete(key).where(eq(key.userId, userId)), 'User - Delete - Key');
+			await dbExecuteLogger(db.delete(user).where(eq(user.id, userId)), 'User - Delete - User');
+		});
 	},
 	get: async ({ userId }: { userId: string }): Promise<UserDBType | undefined> => {
 		const db = getContextDB();
@@ -216,13 +210,7 @@ export const userActions = {
 			'User - Update Info'
 		);
 	},
-	setAdmin: async ({
-		userId,
-		initiatingUser
-	}: {
-		userId: string;
-		initiatingUser: UserDBType;
-	}) => {
+	setAdmin: async ({ userId, initiatingUser }: { userId: string; initiatingUser: UserDBType }) => {
 		const db = getContextDB();
 		const canSetAdmin = userActions.canSetAdmin({ userId, initiatingUser });
 		if (!canSetAdmin) {

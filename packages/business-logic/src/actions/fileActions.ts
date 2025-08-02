@@ -45,7 +45,7 @@ import { tagActions } from './tagActions';
 import { labelActions } from './labelActions';
 import { autoImportActions } from './autoImportActions';
 import { reportActions } from './reportActions';
-import { getContextDB } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 type FilesActionsType = FilesAndNotesActions<
 	FileTableType,
@@ -434,7 +434,6 @@ export const fileActions: FilesActionsType & {
 		await associatedInfoActions.updateLinked();
 	},
 	updateMany: async ({ filter, update }) => {
-		const db = getContextDB();
 		const { id, title, reason, ...restUpdate } = update;
 
 		const targetItems = await fileActions.listWithoutPagination({
@@ -448,9 +447,10 @@ export const fileActions: FilesActionsType & {
 		const targetFileIds = targetItems.map((a) => a.id);
 		const targetAssociatedIds = targetItems.map((a) => a.associatedInfoId);
 
-		await db.transaction(async (tx) => {
+		await runInTransactionWithLogging('File - Update Many', async () => {
+			const db = getContextDB();
 			await dbExecuteLogger(
-				tx
+				db
 					.update(fileTable)
 					.set({
 						...restUpdate,
@@ -461,7 +461,7 @@ export const fileActions: FilesActionsType & {
 			);
 
 			await dbExecuteLogger(
-				tx
+				db
 					.update(associatedInfoTable)
 					.set({
 						...restUpdate,

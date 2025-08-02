@@ -57,9 +57,8 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { importFileHandler } from '../server/files/fileHandler';
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { tLogger } from '../server/db/transactionLogger';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
-import { getContextDB } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export const importActions = {
 	numberActive: async (): Promise<number> => {
@@ -394,23 +393,21 @@ export const importActions = {
 			);
 		}
 
-		await tLogger(
-			'Reprocess Import',
-			db.transaction(async (trx) => {
-				await dbExecuteLogger(
-					trx
-						.update(importTable)
-						.set({ status: 'created', errorInfo: null, ...updatedTime() })
-						.where(eq(importTable.id, id)),
-					'Import - Reprocess - Update Import'
-				);
+		await runInTransactionWithLogging('Reprocess Import', async () => {
+			const db = getContextDB();
+			await dbExecuteLogger(
+				db
+					.update(importTable)
+					.set({ status: 'created', errorInfo: null, ...updatedTime() })
+					.where(eq(importTable.id, id)),
+				'Import - Reprocess - Update Import'
+			);
 
-				await dbExecuteLogger(
-					trx.delete(importItemDetail).where(eq(importItemDetail.importId, id)),
-					'Import - Reprocess - Delete Details'
-				);
-			})
-		);
+			await dbExecuteLogger(
+				db.delete(importItemDetail).where(eq(importItemDetail.importId, id)),
+				'Import - Reprocess - Delete Details'
+			);
+		});
 	},
 	triggerImport: async ({ id }: { id: string }): Promise<void> => {
 		const db = getContextDB();
@@ -536,39 +533,35 @@ export const importActions = {
 			const startTime = new Date();
 			const maxTime = new Date(startTime.getTime() + getServerEnv().IMPORT_TIMEOUT_MIN * 60 * 1000);
 
-			await tLogger(
-				'Do Import',
-				db.transaction(async (trx) => {
-					await Promise.all(
-						importDetails.map(async (item, index) => {
-							if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
-								await importTransaction({ item, trx });
-							} else if (importInfo.type === 'account') {
-								await importAccount({ item, trx });
-							} else if (importInfo.type === 'bill') {
-								await importBill({ item, trx });
-							} else if (importInfo.type === 'budget') {
-								await importBudget({ item, trx });
-							} else if (importInfo.type === 'category') {
-								await importCategory({ item, trx });
-							} else if (importInfo.type === 'tag') {
-								await importTag({ item, trx });
-							} else if (importInfo.type === 'label') {
-								await importLabel({ item, trx });
-							}
+			await runInTransactionWithLogging('Do Import', async (trx) => {
+				await Promise.all(
+					importDetails.map(async (item, index) => {
+						if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
+							await importTransaction({ item, trx });
+						} else if (importInfo.type === 'account') {
+							await importAccount({ item, trx });
+						} else if (importInfo.type === 'bill') {
+							await importBill({ item, trx });
+						} else if (importInfo.type === 'budget') {
+							await importBudget({ item, trx });
+						} else if (importInfo.type === 'category') {
+							await importCategory({ item, trx });
+						} else if (importInfo.type === 'tag') {
+							await importTag({ item, trx });
+						} else if (importInfo.type === 'label') {
+							await importLabel({ item, trx });
+						}
 
-							getLogger().debug(
-								`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
-							);
+						getLogger().debug(
+							`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
+						);
 
-							if (new Date() > maxTime) {
-								trx.rollback();
-								throw new Error('Import Timed Out');
-							}
-						})
-					);
-				})
-			);
+						if (new Date() > maxTime) {
+							throw new Error('Import Timed Out');
+						}
+					})
+				);
+			});
 			await reusableFilterActions.applyFollowingImport({
 				importId: id,
 				timeout: maxTime
@@ -604,71 +597,65 @@ export const importActions = {
 		}
 	},
 	forgetImport: async ({ id }: { id: string }): Promise<void> => {
-		const db = getContextDB();
-		await tLogger(
-			'Forget Import',
-			db.transaction(async (db) => {
-				await dbExecuteLogger(
-					db.delete(importTable).where(eq(importTable.id, id)),
-					'Import - Forget Import - Delete Import Table'
-				);
-				await dbExecuteLogger(
-					db.delete(importItemDetail).where(eq(importItemDetail.importId, id)),
-					'Import - Forget Import - Delete Import Details'
-				);
-				await dbExecuteLogger(
-					db.update(journalEntry).set({ importId: null }).where(eq(journalEntry.importId, id)),
-					'Import - Forget Import - Update Journal Entry'
-				);
+		await runInTransactionWithLogging('Forget Import', async () => {
+			const db = getContextDB();
+			await dbExecuteLogger(
+				db.delete(importTable).where(eq(importTable.id, id)),
+				'Import - Forget Import - Delete Import Table'
+			);
+			await dbExecuteLogger(
+				db.delete(importItemDetail).where(eq(importItemDetail.importId, id)),
+				'Import - Forget Import - Delete Import Details'
+			);
+			await dbExecuteLogger(
+				db.update(journalEntry).set({ importId: null }).where(eq(journalEntry.importId, id)),
+				'Import - Forget Import - Update Journal Entry'
+			);
 
-				await dbExecuteLogger(
-					db
-						.update(bill)
-						.set({ importId: null, importDetailId: null })
-						.where(eq(bill.importId, id)),
-					'Import - Forget Import - Update Bill'
-				);
-				await dbExecuteLogger(
-					db
-						.update(budget)
-						.set({ importId: null, importDetailId: null })
-						.where(eq(budget.importId, id)),
-					'Import - Forget Import - Update Budget'
-				);
-				await dbExecuteLogger(
-					db
-						.update(category)
-						.set({ importId: null, importDetailId: null })
-						.where(eq(category.importId, id)),
-					'Import - Forget Import - Update Category'
-				);
-				await dbExecuteLogger(
-					db.update(tag).set({ importId: null, importDetailId: null }).where(eq(tag.importId, id)),
-					'Import - Forget Import - Update Tag'
-				);
-				await dbExecuteLogger(
-					db
-						.update(account)
-						.set({ importId: null, importDetailId: null })
-						.where(eq(account.importId, id)),
-					'Import - Forget Import - Update Account'
-				);
-				await dbExecuteLogger(
-					db
-						.update(account)
-						.set({ importId: null, importDetailId: null })
-						.where(eq(account.importId, id)),
-					'Import - Forget Import - Update Account'
-				);
-				await dbExecuteLogger(
-					db
-						.update(label)
-						.set({ importId: null, importDetailId: null })
-						.where(eq(label.importId, id)),
-					'Import - Forget Import - Update Label'
-				);
-			})
-		);
+			await dbExecuteLogger(
+				db.update(bill).set({ importId: null, importDetailId: null }).where(eq(bill.importId, id)),
+				'Import - Forget Import - Update Bill'
+			);
+			await dbExecuteLogger(
+				db
+					.update(budget)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(budget.importId, id)),
+				'Import - Forget Import - Update Budget'
+			);
+			await dbExecuteLogger(
+				db
+					.update(category)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(category.importId, id)),
+				'Import - Forget Import - Update Category'
+			);
+			await dbExecuteLogger(
+				db.update(tag).set({ importId: null, importDetailId: null }).where(eq(tag.importId, id)),
+				'Import - Forget Import - Update Tag'
+			);
+			await dbExecuteLogger(
+				db
+					.update(account)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(account.importId, id)),
+				'Import - Forget Import - Update Account'
+			);
+			await dbExecuteLogger(
+				db
+					.update(account)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(account.importId, id)),
+				'Import - Forget Import - Update Account'
+			);
+			await dbExecuteLogger(
+				db
+					.update(label)
+					.set({ importId: null, importDetailId: null })
+					.where(eq(label.importId, id)),
+				'Import - Forget Import - Update Label'
+			);
+		});
 	},
 	canDelete: async ({ id }: { id: string }): Promise<boolean> => {
 		const db = getContextDB();
@@ -752,52 +739,45 @@ export const importActions = {
 				}),
 				'Import - Delete Linked - Get Details'
 			);
-			await tLogger(
-				'Delete Import Linked Items',
-				db.transaction(async (db) => {
-					if (importDetails) {
-						const transactionIds = filterNullUndefinedAndDuplicates(
-							importDetails.journals.map((item) => item.transactionId)
-						);
-						await journalActions.hardDeleteTransactions({ transactionIds });
+			await runInTransactionWithLogging('Delete Import Linked Items', async () => {
+				if (importDetails) {
+					const transactionIds = filterNullUndefinedAndDuplicates(
+						importDetails.journals.map((item) => item.transactionId)
+					);
+					await journalActions.hardDeleteTransactions({ transactionIds });
 
-						await billActions.deleteMany(importDetails.bills.map((item) => ({ id: item.id })));
-						await budgetActions.deleteMany(importDetails.budgets.map((item) => ({ id: item.id })));
-						await categoryActions.deleteMany(
-							importDetails.categories.map((item) => ({ id: item.id }))
-						);
-						await tagActions.deleteMany(importDetails.tags.map((item) => ({ id: item.id })));
-						await labelActions.hardDeleteMany(
-							importDetails.labels.map((item) => ({ id: item.id }))
-						);
-						await dbExecuteLogger(
-							db.delete(importItemDetail).where(eq(importItemDetail.importId, id)),
-							'Import - Delete Linked - Delete Details'
-						);
-						await dbExecuteLogger(
-							db.update(importTable).set({ status: 'created' }).where(eq(importTable.id, id)),
-							'Import - Delete Linked - Update Import'
-						);
-					}
-				})
-			);
+					await billActions.deleteMany(importDetails.bills.map((item) => ({ id: item.id })));
+					await budgetActions.deleteMany(importDetails.budgets.map((item) => ({ id: item.id })));
+					await categoryActions.deleteMany(
+						importDetails.categories.map((item) => ({ id: item.id }))
+					);
+					await tagActions.deleteMany(importDetails.tags.map((item) => ({ id: item.id })));
+					await labelActions.hardDeleteMany(importDetails.labels.map((item) => ({ id: item.id })));
+					const db = getContextDB();
+					await dbExecuteLogger(
+						db.delete(importItemDetail).where(eq(importItemDetail.importId, id)),
+						'Import - Delete Linked - Delete Details'
+					);
+					await dbExecuteLogger(
+						db.update(importTable).set({ status: 'created' }).where(eq(importTable.id, id)),
+						'Import - Delete Linked - Update Import'
+					);
+				}
+			});
 		}
 	},
 	delete: async ({ id }: { id: string }): Promise<void> => {
-		const db = getContextDB();
 		const canDelete = await importActions.canDelete({ id });
 
 		if (canDelete) {
-			await tLogger(
-				'Import Delete',
-				db.transaction(async (db) => {
-					await importActions.deleteLinked({ id });
-					await dbExecuteLogger(
-						db.delete(importTable).where(eq(importTable.id, id)),
-						'Import - Delete - Delete Import'
-					);
-				})
-			);
+			await runInTransactionWithLogging('Import Delete', async () => {
+				await importActions.deleteLinked({ id });
+				const db = getContextDB();
+				await dbExecuteLogger(
+					db.delete(importTable).where(eq(importTable.id, id)),
+					'Import - Delete - Delete Import'
+				);
+			});
 		}
 	},
 	autoCleanAll: async ({ retainDays }: { retainDays: number }): Promise<void> => {

@@ -1,7 +1,7 @@
 import type { Tool, ToolExecutionContext, ToolExecutionResult } from '../types';
 import { journalEntry } from '@totallator/database';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { tLogger } from '@/server/db/transactionLogger';
+import { runInTransactionWithLogging } from '@totallator/context';
 import { eq } from 'drizzle-orm';
 
 export const updateJournalEntryTool: Tool = {
@@ -97,21 +97,18 @@ export const updateJournalEntryTool: Tool = {
 			}
 
 			// Perform the update
-			const updatedEntries = await tLogger(
-				'Update Journal Entry via LLM Tool',
-				context.db.transaction(async (trx) => {
-					const updated = await dbExecuteLogger(
-						trx
-							.update(journalEntry)
-							.set(updateData)
-							.where(eq(journalEntry.id, journal_id))
-							.returning(),
-						'Update Journal Entry - Execute Update'
-					);
+			const updatedEntries = await runInTransactionWithLogging('Update Journal Entry via LLM Tool', async () => {
+				const updated = await dbExecuteLogger(
+					context.db
+						.update(journalEntry)
+						.set(updateData)
+						.where(eq(journalEntry.id, journal_id))
+						.returning(),
+					'Update Journal Entry - Execute Update'
+				);
 
-					return updated;
-				})
-			);
+				return updated;
+			});
 
 			if (updatedEntries.length === 0) {
 				return {

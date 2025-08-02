@@ -20,10 +20,9 @@ import type { PaginatedResults } from './helpers/journal/PaginationType';
 import { getData_Common } from './helpers/autoImport/getData_Common';
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { tLogger } from '../server/db/transactionLogger';
 import { importActions } from './importActions';
 import { importMappingActions } from './importMappingActions';
-import { getContextDB } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export const autoImportActions = {
 	list: async ({
@@ -101,11 +100,7 @@ export const autoImportActions = {
 
 		return newId;
 	},
-	create: async ({
-		data
-	}: {
-		data: CreateAutoImportSchemaType;
-	}): Promise<string> => {
+	create: async ({ data }: { data: CreateAutoImportSchemaType }): Promise<string> => {
 		const db = getContextDB();
 		const id = nanoid();
 		await dbExecuteLogger(
@@ -116,30 +111,20 @@ export const autoImportActions = {
 		return id;
 	},
 	delete: async ({ id }: { id: string }): Promise<void> => {
-		const db = getContextDB();
-		await tLogger(
-			'Delete Auto Import',
-			db.transaction(async (trx) => {
-				await dbExecuteLogger(
-					trx.delete(autoImportTable).where(eq(autoImportTable.id, id)),
-					'Auto Import - Delete'
-				);
+		await runInTransactionWithLogging('Delete Auto Import', async () => {
+			const db = getContextDB();
+			await dbExecuteLogger(
+				db.delete(autoImportTable).where(eq(autoImportTable.id, id)),
+				'Auto Import - Delete'
+			);
 
-				await dbExecuteLogger(
-					trx
-						.update(importTable)
-						.set({ autoImportId: null })
-						.where(eq(importTable.autoImportId, id)),
-					'Auto Import - Delete - Update Import'
-				);
-			})
-		);
+			await dbExecuteLogger(
+				db.update(importTable).set({ autoImportId: null }).where(eq(importTable.autoImportId, id)),
+				'Auto Import - Delete - Update Import'
+			);
+		});
 	},
-	update: async ({
-		data
-	}: {
-		data: UpdateAutoImportFormSchemaType;
-	}): Promise<void> => {
+	update: async ({ data }: { data: UpdateAutoImportFormSchemaType }): Promise<void> => {
 		const db = getContextDB();
 		const matchingAutoImport = await dbExecuteLogger(
 			db.query.autoImportTable.findFirst({
@@ -220,11 +205,7 @@ export const autoImportActions = {
 			});
 		}
 	},
-	triggerMany: async ({
-		frequency
-	}: {
-		frequency: AutoImportFrequencyType;
-	}): Promise<void> => {
+	triggerMany: async ({ frequency }: { frequency: AutoImportFrequencyType }): Promise<void> => {
 		const autoImports = await autoImportActions.list({
 			filter: { frequency: [frequency], enabled: true, pageSize: 1000 }
 		});

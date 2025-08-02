@@ -26,11 +26,10 @@ import { count as drizzleCount } from 'drizzle-orm';
 import { materializedViewActions } from './materializedViewActions';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { tLogger } from '../server/db/transactionLogger';
 import { getCorrectAccountTable } from './helpers/account/getCorrectAccountTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import Papa from 'papaparse';
-import { getContextDB } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export type AccountDropdownType = {
 	id: string;
@@ -329,7 +328,6 @@ export const accountActions: AccountActionsType & {
 		}
 	},
 	updateMany: async ({ data, filter }) => {
-		const db = getContextDB();
 		const processedData = updateAccountSchema.safeParse(data);
 
 		if (!processedData.success) {
@@ -340,16 +338,13 @@ export const accountActions: AccountActionsType & {
 			filter: { ...filter, pageSize: 100000, page: 0 }
 		});
 
-		await tLogger(
-			'Update Many Accounts',
-			db.transaction(async () => {
-				await Promise.all(
-					items.data.map(async (item) => {
-						await accountActions.update({ data, id: item.id });
-					})
-				);
-			})
-		);
+		await runInTransactionWithLogging('Update Many Accounts', async () => {
+			await Promise.all(
+				items.data.map(async (item) => {
+					await accountActions.update({ data, id: item.id });
+				})
+			);
+		});
 	},
 	update: async ({ data, id }) => {
 		const db = getContextDB();
@@ -498,21 +493,14 @@ export const accountActions: AccountActionsType & {
 		return false;
 	},
 	createMany: async (data) => {
-		const db = getContextDB();
 		const dataForInsertion = data.map((currentAccount) => {
 			const id = nanoid();
 			return accountCreateInsertionData(currentAccount, id);
 		});
 
-		await tLogger(
-			'Create Many Accounts',
-			db.transaction(async (trx) => {
-				await dbExecuteLogger(
-					trx.insert(account).values(dataForInsertion),
-					'Accounts - Create Many'
-				);
-			})
-		);
+		await runInTransactionWithLogging('Create Many Accounts', async (trx) => {
+			await dbExecuteLogger(trx.insert(account).values(dataForInsertion), 'Accounts - Create Many');
+		});
 
 		await materializedViewActions.setRefreshRequired();
 		return dataForInsertion.map((item) => item.id);

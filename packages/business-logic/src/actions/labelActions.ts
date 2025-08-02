@@ -24,11 +24,10 @@ import { count as drizzleCount } from 'drizzle-orm';
 import { materializedViewActions } from './materializedViewActions';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { tLogger } from '../server/db/transactionLogger';
 import { getCorrectLabelTable } from './helpers/label/getCorrectLabelTable';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import Papa from 'papaparse';
-import { getContextDB } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export type LabelDropdownType = {
 	id: string;
@@ -298,47 +297,41 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 		return currentLabel && currentLabel.journals.length === 0;
 	},
 	softDelete: async (data: IdSchemaType) => {
-		const db = getContextDB();
-		return tLogger(
-			'Soft Delete Label',
-			db.transaction(async (transDb) => {
-				//If the Label has no journals, then mark as deleted, otherwise do nothing
-				if (await labelActions.canDelete(data)) {
-					await dbExecuteLogger(
-						transDb.delete(labelsToJournals).where(eq(labelsToJournals.labelId, data.id)),
-						'Labels - Soft Delete - Delete Links'
-					);
+		return runInTransactionWithLogging('Soft Delete Label', async () => {
+			//If the Label has no journals, then mark as deleted, otherwise do nothing
+			if (await labelActions.canDelete(data)) {
+				const db = getContextDB();
+				await dbExecuteLogger(
+					db.delete(labelsToJournals).where(eq(labelsToJournals.labelId, data.id)),
+					'Labels - Soft Delete - Delete Links'
+				);
 
-					await dbExecuteLogger(
-						transDb.delete(label).where(eq(label.id, data.id)),
-						'Labels - Soft Delete'
-					);
-					await materializedViewActions.setRefreshRequired();
-				}
+				await dbExecuteLogger(
+					db.delete(label).where(eq(label.id, data.id)),
+					'Labels - Soft Delete'
+				);
+				await materializedViewActions.setRefreshRequired();
+			}
 
-				return data.id;
-			})
-		);
+			return data.id;
+		});
 	},
 	hardDeleteMany: async (data: IdSchemaType[]) => {
-		const db = getContextDB();
 		if (data.length === 0) return;
 		const idList = data.map((currentData) => currentData.id);
 
-		return await tLogger(
-			'Hard Delete Many Labels',
-			db.transaction(async (transDb) => {
-				await dbExecuteLogger(
-					transDb.delete(labelsToJournals).where(inArrayWrapped(labelsToJournals.labelId, idList)),
-					'Labels - Hard Delete Many - Delete Links'
-				);
+		return await runInTransactionWithLogging('Hard Delete Many Labels', async () => {
+			const db = getContextDB();
+			await dbExecuteLogger(
+				db.delete(labelsToJournals).where(inArrayWrapped(labelsToJournals.labelId, idList)),
+				'Labels - Hard Delete Many - Delete Links'
+			);
 
-				await dbExecuteLogger(
-					transDb.delete(label).where(inArrayWrapped(label.id, idList)),
-					'Labels - Hard Delete Many'
-				);
-			})
-		);
+			await dbExecuteLogger(
+				db.delete(label).where(inArrayWrapped(label.id, idList)),
+				'Labels - Hard Delete Many'
+			);
+		});
 		await materializedViewActions.setRefreshRequired();
 	},
 	seed: async (count: number) => {

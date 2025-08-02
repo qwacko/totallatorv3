@@ -20,10 +20,9 @@ import { count as drizzleCount } from 'drizzle-orm';
 import { seedReusableFilterData } from './helpers/seed/seedReusableFilterData';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { tLogger } from '../server/db/transactionLogger';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { journalActions } from './journalActions';
-import { getContextDB } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export const reusableFilterActions = {
 	count: async () => {
@@ -318,36 +317,34 @@ export const reusableFilterActions = {
 			const currentImportStatus = currentItem.importStatus;
 			const currentImportId = currentItem.importStatus.ids[0];
 
-			await tLogger(
-				'Apply Following Import',
-				db.transaction(async (db) => {
-					await reusableFilterActions.applyById({
-						id: currentImportId,
-						importId
-					});
+			await runInTransactionWithLogging('Apply Following Import', async () => {
+				await reusableFilterActions.applyById({
+					id: currentImportId,
+					importId
+				});
 
-					const ids = currentImportStatus.ids.filter((item) => item !== currentImportId);
-					const completeIds = [...currentImportStatus.completeIds, currentImportId];
-					remainingNumber = ids.length;
+				const ids = currentImportStatus.ids.filter((item) => item !== currentImportId);
+				const completeIds = [...currentImportStatus.completeIds, currentImportId];
+				remainingNumber = ids.length;
 
-					await dbExecuteLogger(
-						db
-							.update(importTable)
-							.set({
-								importStatus: {
-									count: currentImportStatus.count,
-									complete: completeIds.length,
-									ids,
-									completeIds,
-									startTime: currentImportStatus.startTime
-								},
-								...updatedTime()
-							})
-							.where(eq(importTable.id, importId)),
-						'Reusable Filter - Apply Following Import - Update Import Status'
-					);
-				})
-			);
+				const db = getContextDB();
+				await dbExecuteLogger(
+					db
+						.update(importTable)
+						.set({
+							importStatus: {
+								count: currentImportStatus.count,
+								complete: completeIds.length,
+								ids,
+								completeIds,
+								startTime: currentImportStatus.startTime
+							},
+							...updatedTime()
+						})
+						.where(eq(importTable.id, importId)),
+					'Reusable Filter - Apply Following Import - Update Import Status'
+				);
+			});
 
 			if (timeout && new Date() > timeout) {
 				getLogger().error(
@@ -383,16 +380,15 @@ export const reusableFilterActions = {
 		);
 	},
 	createMany: async ({ data }: { data: CreateReusableFilterSchemaType[] }) => {
-		const db = getContextDB();
-		const newFilters = await tLogger(
+		const newFilters = await runInTransactionWithLogging(
 			'Create Many Reusable Filters',
-			db.transaction(async () => {
+			async () => {
 				return Promise.all(
 					data.map(async (currentItem) => {
 						return reusableFilterActions.create({ data: currentItem });
 					})
 				);
-			})
+			}
 		);
 
 		return newFilters;

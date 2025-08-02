@@ -47,7 +47,7 @@ import type { CreateNoteSchemaCoreType } from '@totallator/shared';
 import { noteActions } from './noteActions';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import type { IdSchemaType } from '@totallator/shared';
-import { getContextDB } from '@totallator/context';
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 type CreateAssociatedInfoFunction = (data: {
 	item: CreateAssociatedInfoSchemaType;
@@ -135,7 +135,6 @@ export const associatedInfoActions: {
 		return;
 	},
 	create: async ({ item, userId }) => {
-		const db = getContextDB();
 		const {
 			files,
 			notes,
@@ -205,9 +204,10 @@ export const associatedInfoActions: {
 		}
 
 		//Insert the file and associated info in a transaction to ensure atomicity
-		await db.transaction(async (tx) => {
+		await runInTransactionWithLogging('Create Associated Info', async () => {
+			const db = getContextDB();
 			await dbExecuteLogger(
-				tx.insert(associatedInfoTable).values(associatedInfoData),
+				db.insert(associatedInfoTable).values(associatedInfoData),
 				'File - Create Associated Info'
 			);
 
@@ -239,7 +239,7 @@ export const associatedInfoActions: {
 					...summaryData
 				};
 
-				await dbExecuteLogger(tx.insert(journalSnapshotTable).values(newItem));
+				await dbExecuteLogger(db.insert(journalSnapshotTable).values(newItem));
 			}
 		});
 		await associatedInfoActions.removeUnnecessary();

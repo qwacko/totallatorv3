@@ -2,7 +2,7 @@ import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
 import { actionHelpers, tActions } from "@totallator/business-logic";
-import { createRequestContext, runWithContext } from "@totallator/context";
+import { createRequestContext, runWithContext, runRequestInTransaction } from "@totallator/context";
 
 import { authGuard } from "./lib/authGuard/authGuardConfig.js";
 import { ensureInitialized } from "./lib/server/context.js";
@@ -109,7 +109,22 @@ const handleRoute: Handle = async ({
       authGuard(event as Parameters<typeof authGuard>[0]);
     }
 
-    const result = await resolve(event);
+    // Wrap non-GET requests in transactions
+    const isNonGetRequest = event.request.method !== 'GET';
+    let result;
+    
+    if (isNonGetRequest) {
+      context.logger.debug(`Wrapping ${event.request.method} request in transaction`, {
+        requestId: requestContext.requestId,
+        requestURL: event.request.url,
+      });
+      
+      result = await runRequestInTransaction(async () => {
+        return await resolve(event);
+      });
+    } else {
+      result = await resolve(event);
+    }
 
     clearTimeout(timeout);
 
