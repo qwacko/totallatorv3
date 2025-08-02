@@ -1,25 +1,48 @@
 import schedule from "node-schedule";
 
 import type { GlobalContext } from "@totallator/context";
+import { runWithContext } from "@totallator/context";
 
 import { cronJobs } from "./cronJobs";
 
 export type CronJob = {
   name: string;
   schedule: string;
-  job: (context: GlobalContext) => void;
+  job: (context: GlobalContext) => Promise<void>;
 };
+
+// Create a minimal request context for cron jobs
+function createCronRequestContext(jobName: string) {
+  return {
+    user: undefined,
+    session: undefined,
+    requestId: crypto.randomUUID(),
+    startTime: Date.now(),
+    event: {
+      request: new Request(`http://localhost/cron/${jobName}`),
+      locals: {},
+      getClientAddress: () => '127.0.0.1'
+    },
+    userAgent: `Cron-Job-${jobName}`,
+    ip: '127.0.0.1',
+  };
+}
 
 export const processCronJobs = (
   getContext: () => GlobalContext,
   cronJobs: CronJob[],
 ) => {
   return cronJobs.map((cronJob) => {
-    return schedule.scheduleJob(cronJob.name, cronJob.schedule, () => {
+    return schedule.scheduleJob(cronJob.name, cronJob.schedule, async () => {
+      const context = getContext();
+      const requestContext = createCronRequestContext(cronJob.name);
+      
       try {
-        cronJob.job(getContext());
+        await runWithContext(context, requestContext, async () => {
+          await cronJob.job(context);
+        });
       } catch (e) {
-        getContext().logger.error(
+        context.logger.error(
           "Error in cron job",
           cronJob.name,
           cronJob.schedule,

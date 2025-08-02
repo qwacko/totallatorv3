@@ -14,8 +14,7 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 import {
 	queryLogTable,
 	queryContentsTable,
-	queryLogTitleTable,
-	DBType
+	queryLogTitleTable
 } from '@totallator/database';
 import { queryLogOrderByToSQL } from './helpers/queryLog/queryLogOrderByToSQL';
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
@@ -212,7 +211,8 @@ export const queryLogActions = {
 
 		return results;
 	},
-	tidy: async (db: DBType): Promise<void> => {
+	tidy: async (): Promise<void> => {
+		const db = getContextDB();
 		const dbLogStorageHours = getServerEnv().DBLOG_STORAGE_HOURS;
 		const dbLogStorageCount = getServerEnv().DBLOG_STORAGE_COUNT;
 
