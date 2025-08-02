@@ -1,44 +1,75 @@
 import { type ServerEnvSchemaType } from '@totallator/shared';
 import { createLogger, type Logger } from './logger.js';
 import { createDatabase, migrateDatabase, type DBType } from '@totallator/database';
-import { createRateLimiter, type RateLimiter } from './utils/rateLimiter.js';
-import { createKeyValueStore, createBooleanKeyValueStore, createEnumKeyValueStore, type KeyValueStore, type BooleanKeyValueStore, type EnumKeyValueStore } from './utils/keyValueStore.js';
+import { createRateLimiter, type RateLimiter } from './rateLimiter.js';
 
+/**
+ * Global application context containing shared resources and configuration.
+ * 
+ * This context is initialized once during application startup and provides:
+ * - Logger instance configured with application settings
+ * - Database connection and transaction capabilities
+ * - Server environment configuration
+ * - Materialized view refresh rate limiting
+ */
 export interface GlobalContext {
+  /** Application logger configured with log levels and classes */
   logger: Logger;
+  
+  /** Database connection with transaction support */
   db: DBType;
+  
+  /** Server environment configuration and settings */
   serverEnv: ServerEnvSchemaType;
-  postgresDatabase: any; // postgres connection for cleanup
   
-  // Utilities
-  keyValueStore: KeyValueStore;
-  booleanKeyValueStore: BooleanKeyValueStore;
-  enumKeyValueStore: <T extends string>() => EnumKeyValueStore<T>;
+  /** Raw postgres connection for cleanup operations */
+  postgresDatabase: any;
   
-  // Rate limiter for materialized view refresh
+  /** Rate limiter for materialized view refresh operations */
   viewRefreshLimiter: RateLimiter;
   
-  // Generic rate limiter factory
+  /** Factory function for creating additional rate limiters */
   createRateLimiter: typeof createRateLimiter;
-
 }
 
 let globalContext: GlobalContext | null = null;
 
+/**
+ * Configuration options for initializing the global context.
+ */
 export interface GlobalContextConfig {
+  /** Server environment configuration */
   serverEnv: ServerEnvSchemaType;
+  
+  /** Whether the application is currently being built (affects migrations) */
   isBuilding?: boolean;
+  
+  /** Optional action to execute when materialized views need refreshing */
   viewRefreshAction?: () => Promise<boolean>;
+  
+  /** Path to database migration files */
   migrationsPath: string;
 }
 
+/**
+ * Initialize the global application context.
+ * 
+ * This should be called once during application startup to set up shared resources
+ * including database connections, logging, and rate limiting for materialized views.
+ * 
+ * @param config Configuration options for context initialization
+ * @returns The initialized global context
+ * @throws Will throw if database connection fails
+ */
 export function initializeGlobalContext(config: GlobalContextConfig): GlobalContext {
   if (globalContext) {
     return globalContext;
   }
 
+  // Initialize logger with configured levels and classes
   const logger = createLogger(config.serverEnv.LOGGING, config.serverEnv.LOGGING_CLASSES);
 
+  // Create database connection
   const { db, postgresDatabase } = createDatabase({
     postgresUrl: config.serverEnv.POSTGRES_URL || '',
     maxConnections: config.serverEnv.POSTGRES_MAX_CONNECTIONS,
@@ -50,7 +81,7 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     migrationsPath: config.migrationsPath,
   });
 
-  // Run migrations
+  // Run database migrations
   migrateDatabase({
     postgresUrl: config.serverEnv.POSTGRES_URL || '',
     maxConnections: config.serverEnv.POSTGRES_MAX_CONNECTIONS,
@@ -62,15 +93,7 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     migrationsPath: config.migrationsPath,
   });
 
-  // Create key-value store utilities
-  const keyValueStore = createKeyValueStore({ db, logger });
-  const booleanKeyValueStore = createBooleanKeyValueStore({ db, logger });
-  const enumKeyValueStore = <T extends string>() => createEnumKeyValueStore<T>({ db, logger });
-
   // Create materialized view refresh rate limiter
-  // This will be configured later by the application
-  let refreshAction: (() => Promise<boolean>) | undefined;
-  
   const viewRefreshLimiter = createRateLimiter({
     timeout: config.serverEnv.VIEW_REFRESH_TIMEOUT,
     performAction: async () => {
@@ -90,29 +113,11 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     db,
     serverEnv: config.serverEnv,
     postgresDatabase,
-    keyValueStore,
-    booleanKeyValueStore,
-    enumKeyValueStore,
     viewRefreshLimiter,
     createRateLimiter,
   };
 
-  logger.info('Global context initialized with utilities');
+  logger.info('Global context initialized');
   return globalContext;
 }
 
-export function getGlobalContext(): GlobalContext {
-  if (!globalContext) {
-    throw new Error('Global context not initialized. Call initializeGlobalContext first.');
-  }
-  return globalContext;
-}
-
-
-
-export function resetGlobalContext(): void {
-  if (globalContext?.postgresDatabase) {
-    globalContext.postgresDatabase.end();
-  }
-  globalContext = null;
-}

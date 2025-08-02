@@ -1,46 +1,37 @@
-// Global Context
+/**
+ * @totallator/context - Application Context Management
+ * 
+ * This package provides centralized context management for the Totallator application,
+ * including global context initialization, request-scoped context, database access,
+ * and transaction management using AsyncLocalStorage.
+ */
+
+// === CORE CONTEXT MANAGEMENT ===
+// These are the primary APIs used throughout the application
+
+/**
+ * Global application context - used once during app initialization
+ */
 export {
   type GlobalContext,
   type GlobalContextConfig,
   initializeGlobalContext,
-  getGlobalContext,
-  resetGlobalContext,
 } from './global.js';
 
-// Request Context
+/**
+ * Request-scoped context - used in SvelteKit request handling
+ */
 export {
   type RequestContext,
   createRequestContext,
-  getRequestDuration,
-  isAuthenticated,
-  requireAuth,
 } from './request.js';
 
-// Utilities
-export {
-  createRateLimiter,
-  type RateLimiter,
-  type RateLimiterOptions,
-} from './utils/rateLimiter.js';
-
-export {
-  createKeyValueStore,
-  createBooleanKeyValueStore,
-  createEnumKeyValueStore,
-  type KeyValueStore,
-  type BooleanKeyValueStore,
-  type EnumKeyValueStore,
-} from './utils/keyValueStore.js';
-
-// Logger
-export { createLogger, type Logger, type LogClass } from './logger.js';
-
-// AsyncLocalStorage Context Management
+/**
+ * AsyncLocalStorage-based context access - used throughout business logic
+ * getContextDB is the primary database access method used across the app
+ */
 export {
   type ContextStore,
-  type TransactionContextStore,
-  contextStorage,
-  transactionStorage,
   getGlobalContext as getGlobalContextFromStore,
   getRequestContext as getRequestContextFromStore,
   getContext as getContextStore,
@@ -48,13 +39,10 @@ export {
   runWithContext,
 } from './asyncStorage.js';
 
-// Transaction Context Management
+/**
+ * Transaction management - used for database operations requiring transactions
+ */
 export {
-  runInTransaction,
   runInTransactionWithLogging,
   runRequestInTransaction,
 } from './transaction.js';
-
-// Re-export commonly used types for convenience
-export type { ServerEnvSchemaType } from '@totallator/shared';
-export type { DBType, UserDBType, SessionDBType, TransactionType } from '@totallator/database';

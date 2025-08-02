@@ -1,39 +1,40 @@
-import type { Logger } from '../logger.js';
+import type { Logger } from './logger.js';
 
+/**
+ * Configuration options for creating a rate limiter.
+ */
 export interface RateLimiterOptions<T = void> {
+  /** Timeout in milliseconds before action is executed */
   timeout: number;
+  /** Action to perform after timeout period */
   performAction: () => Promise<T>;
+  /** Optional logger for debugging */
   logger?: Logger;
+  /** Optional name for logging purposes */
   name?: string;
 }
 
+/**
+ * Rate limiter interface providing control methods.
+ */
 export interface RateLimiter {
+  /** Update the last request time, resetting the timeout */
   updateLastRequest: () => void;
+  /** Clear any pending timeout */
   clearTimeout: () => void;
+  /** Check if a timeout is currently active */
   isActive: () => boolean;
 }
 
 /**
- * Generic rate limiter that delays action execution until no more requests come in
- * within the specified timeout period.
+ * Create a rate limiter that delays action execution until no more requests 
+ * come in within the specified timeout period.
  * 
- * Usage:
- * ```typescript
- * const limiter = createRateLimiter({
- *   timeout: 5000,
- *   performAction: async () => {
- *     console.log('Action executed after 5s of inactivity');
- *     return 'result';
- *   },
- *   logger: myLogger,
- *   name: 'MyAction'
- * });
+ * This is used internally for materialized view refresh rate limiting.
+ * Each call to updateLastRequest() resets the timer.
  * 
- * // Each call resets the timer
- * limiter.updateLastRequest();
- * limiter.updateLastRequest(); // Previous timeout is cleared, new one starts
- * // Action will execute 5 seconds after the last call
- * ```
+ * @param options Rate limiter configuration
+ * @returns Rate limiter instance
  */
 export function createRateLimiter<T = void>(options: RateLimiterOptions<T>): RateLimiter {
   const { timeout, performAction, logger, name = 'RateLimiter' } = options;

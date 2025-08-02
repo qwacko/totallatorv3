@@ -1,44 +1,16 @@
-import type { DBType, TransactionType } from '@totallator/database';
-import { getGlobalContext, getRequestContext, runWithContext, contextStorage, transactionStorage, type TransactionContextStore } from './asyncStorage.js';
+import type { TransactionType } from '@totallator/database';
+import { getGlobalContext, getRequestContext, contextStorage, transactionStorage, type TransactionContextStore } from './asyncStorage.js';
 
 /**
- * Get the transaction database from the current transaction context
+ * Run a function within a database transaction, preserving async context.
+ * 
+ * This is a low-level function that creates a transaction context but doesn't
+ * include logging. For most use cases, prefer runInTransactionWithLogging.
+ * 
+ * @param callback Function to execute within transaction
+ * @returns Result of callback function
  */
-export function getTransactionDB(): TransactionType {
-  const transactionStore = transactionStorage.getStore();
-  if (transactionStore) {
-    return transactionStore.transactionDb;
-  }
-  
-  // Fallback to regular context DB if not in transaction
-  const store = contextStorage.getStore();
-  if (!store) {
-    throw new Error('Neither transaction nor regular context is available. Make sure the request is running within the appropriate context.');
-  }
-  return store.global.db as TransactionType;
-}
-
-/**
- * Get the database, preferring transaction DB if available
- * @deprecated Use getContextDB from asyncStorage.js instead - they now do the same thing
- */
-export function getContextOrTransactionDB(): DBType | TransactionType {
-  const transactionStore = transactionStorage.getStore();
-  if (transactionStore) {
-    return transactionStore.transactionDb;
-  }
-  
-  const store = contextStorage.getStore();
-  if (!store) {
-    throw new Error('No context available. Make sure the request is running within the AsyncLocalStorage context.');
-  }
-  return store.global.db;
-}
-
-/**
- * Run a function within a database transaction, preserving async context
- */
-export async function runInTransaction<T>(
+async function runInTransaction<T>(
   callback: (txDb: TransactionType) => Promise<T>
 ): Promise<T> {
   const globalContext = getGlobalContext();
@@ -58,7 +30,18 @@ export async function runInTransaction<T>(
 }
 
 /**
- * Enhanced transaction wrapper that includes timing and logging
+ * Run a function within a database transaction with comprehensive logging.
+ * 
+ * This is the recommended way to run database transactions. It provides:
+ * - Automatic transaction context management
+ * - Performance timing and logging
+ * - Error logging with timing information
+ * - Configurable logging thresholds
+ * 
+ * @param title Descriptive name for the transaction (used in logs)
+ * @param callback Function to execute within transaction  
+ * @returns Result of callback function
+ * @throws Re-throws any error from the callback with additional logging
  */
 export async function runInTransactionWithLogging<T>(
   title: string,
@@ -69,6 +52,7 @@ export async function runInTransactionWithLogging<T>(
   const enableTransactionStartLogging = globalContext.serverEnv.TRANSACTIONLOG_ENABLESTART;
   const transactionLoggingThreshold = globalContext.serverEnv.TRANSACTIONLOG_TIME_MS;
   
+  // If logging is disabled, run without timing overhead
   if (!enableTransactionLogging) {
     return runInTransaction(callback);
   }
@@ -94,7 +78,14 @@ export async function runInTransactionWithLogging<T>(
 
 
 /**
- * Run the request handler within a transaction (for non-GET requests)
+ * Run an entire request handler within a database transaction.
+ * 
+ * This is used for non-GET requests where the entire request should be
+ * wrapped in a transaction. The callback runs within transaction context
+ * so all database operations will use the transaction automatically.
+ * 
+ * @param callback Request handler function to execute
+ * @returns Result of callback function
  */
 export async function runRequestInTransaction<T>(
   callback: () => Promise<T>
