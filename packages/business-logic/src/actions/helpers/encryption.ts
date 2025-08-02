@@ -10,7 +10,20 @@ const getEncryptionKey = (): Buffer => {
 	const key = getServerEnv().ENCRYPTION_KEY || undefined;
 
 	if (key) {
-		return Buffer.from(key, 'hex');
+		// Try to parse as hex first, if that fails treat as string and derive key
+		try {
+			const hexBuffer = Buffer.from(key, 'hex');
+			if (hexBuffer.length === KEY_LENGTH) {
+				return hexBuffer;
+			}
+		} catch (error) {
+			// Not a valid hex string, fall through to string handling
+		}
+		
+		// If not valid hex or wrong length, derive key from string
+		console.log(`Using encryption key: ${key}`);
+		console.log('Deriving key from string using scrypt');
+		return crypto.scryptSync(key, 'totallator-salt', KEY_LENGTH);
 	}
 	// Default key for development - this should be set in production!
 	console.warn(
