@@ -144,9 +144,9 @@ export const cronJobUrlFilterSchema = z.object({
 	pageSize: z.coerce.number().default(25).optional(),
 	orderBy: z
 		.array(
-			z.object({ field: z.enum(cronExecutionOrderByEnum), direction: z.enum(['asc', 'desc']) })
+			z.object({ field: z.enum(cronJobOrderByEnum), direction: z.enum(['asc', 'desc']) })
 		)
-		.default([{ direction: 'desc', field: 'startedAt' }])
+		.default([{ direction: 'asc', field: 'name' }])
 		.optional()
 });
 

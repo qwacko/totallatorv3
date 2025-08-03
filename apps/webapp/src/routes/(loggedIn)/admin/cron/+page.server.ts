@@ -22,10 +22,25 @@ const toggleJobSchema = z.object({
 
 export const load = async (data) => {
   authGuard(data);
-  serverPageInfo(data.route.id, data);
+  const page = serverPageInfo(data.route.id, data);
+
+  const searchParams = page.current.searchParams || {};
+
+  // Convert search params to the correct format for cron jobs, filtering out invalid orderBy fields
+  const validCronJobOrderByFields = new Set(['name', 'schedule', 'isEnabled', 'createdAt', 'updatedAt', 'lastRun', 'successRate']);
+  
+  const cronJobFilter = {
+    textFilter: searchParams.textFilter,
+    isEnabled: searchParams.isEnabled,
+    page: searchParams.page,
+    pageSize: searchParams.pageSize,
+    orderBy: searchParams.orderBy?.filter((item: any) => 
+      validCronJobOrderByFields.has(item.field)
+    ) || undefined,
+  };
 
   // Get all cron jobs with their execution history
-  const cronJobsResult = await tActions.cronJob.getAllCronJobs();
+  const cronJobsResult = await tActions.cronJob.getAllCronJobs(cronJobFilter);
 
   // Get recent execution statistics
   const statistics = await tActions.cronExecution.getCronJobStatistics({
@@ -39,9 +54,10 @@ export const load = async (data) => {
     });
 
   return {
-    cronJobs: cronJobsResult.data,
+    cronJobs: cronJobsResult,
     statistics,
     recentExecutions: recentExecutionsResult.data,
+    searchParams: cronJobFilter,
     triggerJobForm: await superValidate({ jobId: "" }, zod4(triggerJobSchema)),
     toggleJobForm: await superValidate(
       { jobId: "", isEnabled: false },

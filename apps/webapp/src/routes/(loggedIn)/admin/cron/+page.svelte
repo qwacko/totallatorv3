@@ -2,9 +2,10 @@
 	import { Button, ButtonGroup, Badge } from 'flowbite-svelte';
 	import { PlayOutline, PauseOutline, CheckCircleOutline, CloseCircleOutline, ClockOutline } from 'flowbite-svelte-icons';
 	import { onNavigate } from '$app/navigation';
+	import { page } from '$app/stores';
 	
 	import type { PageData, ActionData } from './$types';
-	import { urlGenerator } from '$lib/routes.js';
+	import { urlGenerator, pageInfo } from '$lib/routes.js';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
@@ -15,6 +16,8 @@
 	import { z } from 'zod';
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
+
+	const urlInfo = $derived(pageInfo("/(loggedIn)/admin/cron", $page));
 
 	let filterOpened = $state(false);
 	let shownColumns = $state(['actions', 'name', 'schedule', 'status', 'lastRun', 'successRate']);
@@ -173,6 +176,9 @@
 		data={data.cronJobs}
 		bind:shownColumns
 		bind:filterOpened
+		onSortURL={(newSort) =>
+			urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+		currentOrder={data.searchParams?.orderBy}
 		columns={[
 			{ id: "actions", title: "" },
 			{

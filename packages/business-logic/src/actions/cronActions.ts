@@ -1,6 +1,7 @@
-import { desc, eq, and, gte, lte, count } from 'drizzle-orm';
+import { desc, asc, eq, and, gte, lte, count } from 'drizzle-orm';
 import { cronJob, cronJobExecution } from '@totallator/database';
 import type { CronJobExecutionFilter } from '../server/cron/types';
+import type { CronJobUrlFilterSchemaType } from '@totallator/shared';
 import { getContextDB } from '@totallator/context';
 
 /**
@@ -9,10 +10,48 @@ import { getContextDB } from '@totallator/context';
  */
 
 /**
+ * Helper function to map order field names to database columns for cron jobs
+ */
+function getCronJobColumnForOrderBy(field: string) {
+	switch (field) {
+		case 'name':
+			return cronJob.name;
+		case 'schedule':
+			return cronJob.schedule;
+		case 'isEnabled':
+			return cronJob.isEnabled;
+		case 'createdAt':
+			return cronJob.createdAt;
+		case 'updatedAt':
+			return cronJob.updatedAt;
+		// For complex calculated fields like lastRun and successRate, 
+		// we'll need to handle these differently since they require joins/calculations
+		default:
+			return null;
+	}
+}
+
+/**
  * Get all cron jobs with their latest execution information
  */
-export const getAllCronJobs = async () => {
+export const getAllCronJobs = async (filter?: CronJobUrlFilterSchemaType) => {
 	const db = getContextDB();
+
+	// Build order by clause from filter
+	const orderByClause = [];
+	if (filter?.orderBy && filter.orderBy.length > 0) {
+		for (const orderItem of filter.orderBy) {
+			const column = getCronJobColumnForOrderBy(orderItem.field);
+			if (column) {
+				orderByClause.push(orderItem.direction === 'asc' ? asc(column) : desc(column));
+			}
+		}
+	}
+	
+	// Default to name asc if no order specified
+	if (orderByClause.length === 0) {
+		orderByClause.push(asc(cronJob.name));
+	}
 
 	const jobs = await db
 		.select({
@@ -29,7 +68,7 @@ export const getAllCronJobs = async () => {
 			lastModifiedBy: cronJob.lastModifiedBy
 		})
 		.from(cronJob)
-		.orderBy(cronJob.name);
+		.orderBy(...orderByClause);
 
 	// Get latest execution for each job
 	const jobsWithExecutions = await Promise.all(

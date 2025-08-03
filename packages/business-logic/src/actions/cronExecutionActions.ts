@@ -1,4 +1,4 @@
-import { desc, eq, and, gte, lte, count } from 'drizzle-orm';
+import { desc, asc, eq, and, gte, lte, count } from 'drizzle-orm';
 import { cronJob, cronJobExecution } from '@totallator/database';
 import { getContextDB } from '@totallator/context';
 import type { 
@@ -9,6 +9,30 @@ import type {
  * Actions for managing cron job executions.
  * Provides CRUD operations and statistics for execution history.
  */
+
+/**
+ * Helper function to map order field names to database columns
+ */
+function getColumnForOrderBy(field: string) {
+	switch (field) {
+		case 'startedAt':
+			return cronJobExecution.startedAt;
+		case 'completedAt':
+			return cronJobExecution.completedAt;
+		case 'durationMs':
+			return cronJobExecution.durationMs;
+		case 'status':
+			return cronJobExecution.status;
+		case 'triggeredBy':
+			return cronJobExecution.triggeredBy;
+		case 'retryCount':
+			return cronJobExecution.retryCount;
+		case 'jobName':
+			return cronJob.name;
+		default:
+			return null;
+	}
+}
 
 /**
  * Get cron job execution history with filtering and pagination
@@ -31,8 +55,21 @@ export const getCronJobExecutions = async (filter?: CronExecutionFilterSchemaTyp
 
 	const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-	// Build order by (simplified)
-	const orderByClause = [desc(cronJobExecution.startedAt)]; // Default ordering by startedAt desc
+	// Build order by clause from filter
+	const orderByClause = [];
+	if (filter?.orderBy && filter.orderBy.length > 0) {
+		for (const orderItem of filter.orderBy) {
+			const column = getColumnForOrderBy(orderItem.field);
+			if (column) {
+				orderByClause.push(orderItem.direction === 'asc' ? asc(column) : desc(column));
+			}
+		}
+	}
+	
+	// Default to startedAt desc if no order specified
+	if (orderByClause.length === 0) {
+		orderByClause.push(desc(cronJobExecution.startedAt));
+	}
 
 	// Apply pagination
 	const limit = filter?.pageSize || 50;
