@@ -26,21 +26,10 @@ export const load = async (data) => {
 
   const searchParams = page.current.searchParams || {};
 
-  // Convert search params to the correct format for cron jobs, filtering out invalid orderBy fields
-  const validCronJobOrderByFields = new Set(['name', 'schedule', 'isEnabled', 'createdAt', 'updatedAt', 'lastRun', 'successRate']);
-  
-  const cronJobFilter = {
-    textFilter: searchParams.textFilter,
-    isEnabled: searchParams.isEnabled,
-    page: searchParams.page,
-    pageSize: searchParams.pageSize,
-    orderBy: searchParams.orderBy?.filter((item: any) => 
-      validCronJobOrderByFields.has(item.field)
-    ) || undefined,
-  };
-
   // Get all cron jobs with their execution history
-  const cronJobsResult = await tActions.cronJob.getAllCronJobs(cronJobFilter);
+  const cronJobsResult = await tActions.cronJob.getAllCronJobs(searchParams);
+
+  console.log("Cron jobs loaded:", cronJobsResult);
 
   // Get recent execution statistics
   const statistics = await tActions.cronExecution.getCronJobStatistics({
@@ -57,7 +46,7 @@ export const load = async (data) => {
     cronJobs: cronJobsResult,
     statistics,
     recentExecutions: recentExecutionsResult.data,
-    searchParams: cronJobFilter,
+    searchParams,
     triggerJobForm: await superValidate({ jobId: "" }, zod4(triggerJobSchema)),
     toggleJobForm: await superValidate(
       { jobId: "", isEnabled: false },

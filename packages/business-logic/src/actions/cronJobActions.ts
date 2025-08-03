@@ -1,10 +1,7 @@
 import { desc, eq, and, count, asc } from 'drizzle-orm';
 import { cronJob, cronJobExecution } from '@totallator/database';
 import { getContextDB } from '@totallator/context';
-import type { 
-	CronJobFilterSchemaType,
-	UpdateCronJobSchemaType,
-} from '@totallator/shared';
+import type { CronJobFilterSchemaType, UpdateCronJobSchemaType } from '@totallator/shared';
 
 /**
  * Actions for managing cron jobs.
@@ -16,6 +13,8 @@ import type {
  */
 export const getAllCronJobs = async (filter?: CronJobFilterSchemaType) => {
 	const db = getContextDB();
+
+	console.log('Filter:', filter);
 
 	// Build where conditions (simplified for basic functionality)
 	const conditions = [];
@@ -32,7 +31,7 @@ export const getAllCronJobs = async (filter?: CronJobFilterSchemaType) => {
 
 	// Apply pagination
 	const limit = filter?.pageSize || 25;
-	const offset = ((filter?.page || 0) * limit);
+	const offset = (filter?.page || 0) * limit;
 
 	const jobs = await db
 		.select({
@@ -55,10 +54,7 @@ export const getAllCronJobs = async (filter?: CronJobFilterSchemaType) => {
 		.offset(offset);
 
 	// Get total count
-	const totalCountResult = await db
-		.select({ count: count() })
-		.from(cronJob)
-		.where(whereClause);
+	const totalCountResult = await db.select({ count: count() }).from(cronJob).where(whereClause);
 
 	// Get latest execution and statistics for each job
 	const jobsWithExecutions = await Promise.all(
@@ -120,7 +116,7 @@ export const getAllCronJobs = async (filter?: CronJobFilterSchemaType) => {
 		count: totalCountResult[0].count,
 		limit,
 		offset,
-		pageCount: Math.ceil(totalCountResult[0].count / limit),
+		pageCount: Math.ceil(totalCountResult[0].count / limit)
 	};
 };
 
@@ -259,7 +255,7 @@ export const upsertCronJob = async (jobData: {
 		// Update only if needed, preserve user settings
 		const updates: any = {
 			name: jobData.name,
-			updatedAt: new Date(),
+			updatedAt: new Date()
 		};
 
 		// Only update these if they've changed from defaults
@@ -294,7 +290,7 @@ export const upsertCronJob = async (jobData: {
 				createdAt: new Date(),
 				updatedAt: new Date(),
 				createdBy: jobData.createdBy,
-				lastModifiedBy: jobData.createdBy,
+				lastModifiedBy: jobData.createdBy
 			})
 			.returning();
 

@@ -140,12 +140,10 @@ export type CronExecutionFilterSchemaWithoutPaginationType = Omit<
 export const cronJobUrlFilterSchema = z.object({
 	textFilter: z.string().optional(),
 	isEnabled: z.boolean().optional(),
-	page: z.coerce.number().default(1).optional(),
+	page: z.coerce.number().default(0).optional(),
 	pageSize: z.coerce.number().default(25).optional(),
 	orderBy: z
-		.array(
-			z.object({ field: z.enum(cronJobOrderByEnum), direction: z.enum(['asc', 'desc']) })
-		)
+		.array(z.object({ field: z.enum(cronJobOrderByEnum), direction: z.enum(['asc', 'desc']) }))
 		.default([{ direction: 'asc', field: 'name' }])
 		.optional()
 });

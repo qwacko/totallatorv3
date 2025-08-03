@@ -90,6 +90,7 @@
 			formElement.requestSubmit();
 		}
 	}
+
 </script>
 
 <CustomHeader
@@ -120,7 +121,7 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm font-medium text-gray-600">Total Jobs</p>
-					<p class="text-2xl font-bold">{data.cronJobs.length}</p>
+					<p class="text-2xl font-bold">{data.cronJobs.data.length}</p>
 				</div>
 			</div>
 		</div>
@@ -130,7 +131,7 @@
 				<div>
 					<p class="text-sm font-medium text-gray-600">Active Jobs</p>
 					<p class="text-2xl font-bold text-green-600">
-						{data.cronJobs.filter(job => job.isEnabled).length}
+						{data.cronJobs.data.filter(job => job.isEnabled).length}
 					</p>
 				</div>
 			</div>
@@ -171,14 +172,15 @@
 		</div>
 	{/if}
 
+	{#if urlInfo.current.searchParams}
 	<!-- Main Table -->
 	<CustomTable
-		data={data.cronJobs}
+		data={data.cronJobs.data}
 		bind:shownColumns
 		bind:filterOpened
 		onSortURL={(newSort) =>
 			urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
-		currentOrder={data.searchParams?.orderBy}
+		currentOrder={urlInfo.current.searchParams.orderBy}
 		columns={[
 			{ id: "actions", title: "" },
 			{
@@ -328,4 +330,5 @@
 			{/if}
 		{/snippet}
 	</CustomTable>
+	{/if}
 </PageLayout>
