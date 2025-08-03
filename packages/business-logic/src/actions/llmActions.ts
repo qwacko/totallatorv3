@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { llmSettings, type LLMSettings } from '@totallator/database';
+import { llmSettings, llmLogs, type LLMSettings } from '@totallator/database';
 import { nanoid } from 'nanoid';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { encryptText, decryptText } from './helpers/encryption';
@@ -147,6 +147,14 @@ export const llmActions = {
 	delete: async ({ id }: { id: string }): Promise<boolean> => {
 		const result = await runInTransactionWithLogging('Delete LLM Settings', async () => {
 			const db = getContextDB();
+			
+			// First delete all related LLM logs
+			await dbExecuteLogger(
+				db.delete(llmLogs).where(eq(llmLogs.llmSettingsId, id)),
+				'LLM Logs - Delete Related'
+			);
+			
+			// Then delete the LLM settings
 			const deleted = await dbExecuteLogger(
 				db.delete(llmSettings).where(eq(llmSettings.id, id)).returning(),
 				'LLM Settings - Delete'
