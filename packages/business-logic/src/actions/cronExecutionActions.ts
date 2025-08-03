@@ -1,9 +1,7 @@
 import { desc, asc, eq, and, gte, lte, count } from 'drizzle-orm';
 import { cronJob, cronJobExecution } from '@totallator/database';
 import { getContextDB } from '@totallator/context';
-import type { 
-	CronExecutionFilterSchemaType,
-} from '@totallator/shared';
+import type { CronExecutionFilterSchemaType } from '@totallator/shared';
 
 /**
  * Actions for managing cron job executions.
@@ -46,11 +44,14 @@ export const getCronJobExecutions = async (filter?: CronExecutionFilterSchemaTyp
 	if (filter?.cronJobId) conditions.push(eq(cronJobExecution.cronJobId, filter.cronJobId));
 	if (filter?.status) conditions.push(eq(cronJobExecution.status, filter.status));
 	if (filter?.triggeredBy) conditions.push(eq(cronJobExecution.triggeredBy, filter.triggeredBy));
-	if (filter?.triggeredByUserId) conditions.push(eq(cronJobExecution.triggeredByUserId, filter.triggeredByUserId));
+	if (filter?.triggeredByUserId)
+		conditions.push(eq(cronJobExecution.triggeredByUserId, filter.triggeredByUserId));
 	if (filter?.startedAfter) conditions.push(gte(cronJobExecution.startedAt, filter.startedAfter));
 	if (filter?.startedBefore) conditions.push(lte(cronJobExecution.startedAt, filter.startedBefore));
-	if (filter?.minDuration !== undefined) conditions.push(gte(cronJobExecution.durationMs, filter.minDuration));
-	if (filter?.maxDuration !== undefined) conditions.push(lte(cronJobExecution.durationMs, filter.maxDuration));
+	if (filter?.minDuration !== undefined)
+		conditions.push(gte(cronJobExecution.durationMs, filter.minDuration));
+	if (filter?.maxDuration !== undefined)
+		conditions.push(lte(cronJobExecution.durationMs, filter.maxDuration));
 	// TODO: Add more complex filtering when needed
 
 	const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -65,7 +66,7 @@ export const getCronJobExecutions = async (filter?: CronExecutionFilterSchemaTyp
 			}
 		}
 	}
-	
+
 	// Default to startedAt desc if no order specified
 	if (orderByClause.length === 0) {
 		orderByClause.push(desc(cronJobExecution.startedAt));
@@ -73,7 +74,7 @@ export const getCronJobExecutions = async (filter?: CronExecutionFilterSchemaTyp
 
 	// Apply pagination
 	const limit = filter?.pageSize || 50;
-	const offset = ((filter?.page || 0) * limit);
+	const offset = (filter?.page || 0) * limit;
 
 	const [executions, totalCountResult] = await Promise.all([
 		db
@@ -107,7 +108,7 @@ export const getCronJobExecutions = async (filter?: CronExecutionFilterSchemaTyp
 		count: totalCountResult[0].count,
 		limit,
 		offset,
-		pageCount: Math.ceil(totalCountResult[0].count / limit),
+		pageCount: Math.ceil(totalCountResult[0].count / limit)
 	};
 };
 
@@ -149,7 +150,7 @@ export const getCronJobExecutionById = async ({ id }: { id: string }) => {
  * Delete old cron job executions based on retention policy
  */
 export const cleanupOldExecutions = async ({
-	retentionDays = 30,
+	retentionDays = 30
 }: {
 	retentionDays?: number;
 	maxExecutionsPerJob?: number;
@@ -178,10 +179,10 @@ export const cleanupOldExecutions = async ({
 /**
  * Get cron job execution statistics
  */
-export const getCronJobStatistics = async ({ 
+export const getCronJobStatistics = async ({
 	days = 30,
-	filter 
-}: { 
+	filter
+}: {
 	days?: number;
 	filter?: Partial<CronExecutionFilterSchemaType>;
 }) => {

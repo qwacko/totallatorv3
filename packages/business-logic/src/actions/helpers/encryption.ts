@@ -19,7 +19,7 @@ const getEncryptionKey = (): Buffer => {
 		} catch (error) {
 			// Not a valid hex string, fall through to string handling
 		}
-		
+
 		// If not valid hex or wrong length, derive key from string
 		console.log(`Using encryption key: ${key}`);
 		console.log('Deriving key from string using scrypt');

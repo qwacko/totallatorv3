@@ -18,6 +18,7 @@
   import BillIcon from "$lib/components/icons/BillIcon.svelte";
   import BudgetIcon from "$lib/components/icons/BudgetIcon.svelte";
   import CategoryIcon from "$lib/components/icons/CategoryIcon.svelte";
+  import CronIcon from "$lib/components/icons/CronIcon.svelte";
   import DBGroupedQueryIcon from "$lib/components/icons/DBGroupedQueryIcon.svelte";
   import DBQueryIcon from "$lib/components/icons/DBQueryIcon.svelte";
   import DevIcon from "$lib/components/icons/DevIcon.svelte";
@@ -32,7 +33,6 @@
   import TagIcon from "$lib/components/icons/TagIcon.svelte";
   import UserAccountIcon from "$lib/components/icons/UserAccountIcon.svelte";
   import UsersIcon from "$lib/components/icons/UsersIcon.svelte";
-  import CronIcon from "$lib/components/icons/CronIcon.svelte";
   import NotificationDisplay from "$lib/components/NotificationDisplay.svelte";
   import ReportDropdown from "$lib/components/report/ReportDropdown.svelte";
   import { urlGenerator } from "$lib/routes";
@@ -92,7 +92,9 @@
     $page.route.id?.startsWith("/(loggedIn)/settings"),
   );
   const pageIsLLM = $derived($page.route.id?.startsWith("/(loggedIn)/llm"));
-  const pageIsCron = $derived($page.route.id?.startsWith("/(loggedIn)/admin/cron"));
+  const pageIsCron = $derived(
+    $page.route.id?.startsWith("/(loggedIn)/admin/cron"),
+  );
 
   const pageMap = $derived([
     {
@@ -263,7 +265,10 @@
             label: "Cron Jobs",
             active: pageIsCron,
             icon: CronIcon,
-            href: urlGenerator({ address: "/(loggedIn)/admin/cron", searchParamsValue: {} }),
+            href: urlGenerator({
+              address: "/(loggedIn)/admin/cron",
+              searchParamsValue: {},
+            }),
           },
           {
             label: "Settings",

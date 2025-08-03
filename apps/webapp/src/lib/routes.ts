@@ -399,7 +399,11 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } =
       "/(loggedIn)/admin/cron/executions": {
         searchParamsValidation: cronExecutionFilterSchema
           .optional()
-          .catch({ page: 0, pageSize: 25, orderBy: [{ field: "startedAt", direction: "desc" }] }).parse,
+          .catch({
+            page: 0,
+            pageSize: 25,
+            orderBy: [{ field: "startedAt", direction: "desc" }],
+          }).parse,
       },
       "/(loggedIn)/admin/cron/[id]": {
         paramsValidation: z.object({ id: z.string() }).parse,

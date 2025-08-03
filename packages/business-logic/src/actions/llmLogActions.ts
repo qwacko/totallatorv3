@@ -137,13 +137,7 @@ export const llmLogActions = {
 		return result;
 	},
 
-	getStats: async ({
-		llmSettingsId,
-		days = 30
-	}: {
-		llmSettingsId?: string;
-		days?: number;
-	}) => {
+	getStats: async ({ llmSettingsId, days = 30 }: { llmSettingsId?: string; days?: number }) => {
 		const db = getContextDB();
 		const cutoffDate = new Date();
 		cutoffDate.setDate(cutoffDate.getDate() - days);

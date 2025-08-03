@@ -11,12 +11,12 @@ export const cronJob = pgTable('cronJob', {
 	isEnabled: boolean('isEnabled').notNull().default(true),
 	timeoutMs: integer('timeoutMs').notNull().default(120000), // 2 minutes default
 	maxRetries: integer('maxRetries').notNull().default(0),
-	
+
 	// Metadata
 	createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
 	createdBy: text('createdBy').notNull().default('system'),
-	lastModifiedBy: text('lastModifiedBy').notNull().default('system'),
+	lastModifiedBy: text('lastModifiedBy').notNull().default('system')
 });
 
 /**
@@ -24,28 +24,30 @@ export const cronJob = pgTable('cronJob', {
  */
 export const cronJobExecution = pgTable('cronJobExecution', {
 	id: uuid('id').primaryKey().defaultRandom(),
-	cronJobId: uuid('cronJobId').notNull().references(() => cronJob.id, { onDelete: 'cascade' }),
-	
+	cronJobId: uuid('cronJobId')
+		.notNull()
+		.references(() => cronJob.id, { onDelete: 'cascade' }),
+
 	// Execution details
 	startedAt: timestamp('startedAt', { withTimezone: true }).notNull().defaultNow(),
 	completedAt: timestamp('completedAt', { withTimezone: true }),
 	durationMs: integer('durationMs'),
-	
+
 	// Status and results
 	status: text('status').notNull().default('running'), // 'running', 'completed', 'failed', 'timeout'
 	exitCode: integer('exitCode'),
 	output: text('output'), // Success output or error message
 	errorMessage: text('errorMessage'),
 	stackTrace: text('stackTrace'),
-	
+
 	// Execution context
 	triggeredBy: text('triggeredBy').notNull().default('scheduler'), // 'scheduler', 'manual', 'api'
 	triggeredByUserId: text('triggeredByUserId'), // For manual triggers
 	retryCount: integer('retryCount').notNull().default(0),
-	
+
 	// Performance metrics
 	memoryUsageMb: integer('memoryUsageMb'),
-	cpuUsagePercent: integer('cpuUsagePercent'),
+	cpuUsagePercent: integer('cpuUsagePercent')
 });
 
 /**
@@ -56,10 +58,10 @@ export const cronJobConfig = pgTable('cronJobConfig', {
 	key: text('key').notNull().unique(),
 	value: text('value').notNull(),
 	description: text('description'),
-	
+
 	// Metadata
 	createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow()
 });
 
 export type CronJob = typeof cronJob.$inferSelect;

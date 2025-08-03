@@ -4,14 +4,13 @@ const parseEnvStringToBoolean = ({
 	defaultBoolean = true,
 	optional = true
 }: { defaultBoolean?: boolean; optional?: boolean } = {}) => {
-	const validation = z.stringbool()
+	const validation = z.stringbool();
 
 	if (optional) {
 		return validation.optional().default(defaultBoolean);
-	} 
-	
+	}
+
 	return validation.default(defaultBoolean);
-	
 };
 
 export const serverEnvSchema = z.object({

@@ -98,13 +98,7 @@ export const journalLlmSuggestionActions = {
 		return results[0] || null;
 	},
 
-	update: async ({
-		id,
-		data
-	}: {
-		id: string;
-		data: UpdateJournalLlmSuggestionType;
-	}) => {
+	update: async ({ id, data }: { id: string; data: UpdateJournalLlmSuggestionType }) => {
 		const db = getContextDB();
 		const result = await dbExecuteLogger(
 			db

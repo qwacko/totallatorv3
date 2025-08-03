@@ -11,11 +11,7 @@ import {
 import { groupedQueryLogSubquery } from './helpers/queryLog/groupedQueryLogSubquery';
 import { groupedQueryLogOrderByToSQL } from './helpers/queryLog/groupedQueryLogOrderByToSQL';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import {
-	queryLogTable,
-	queryContentsTable,
-	queryLogTitleTable
-} from '@totallator/database';
+import { queryLogTable, queryContentsTable, queryLogTitleTable } from '@totallator/database';
 import { queryLogOrderByToSQL } from './helpers/queryLog/queryLogOrderByToSQL';
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { nanoid } from 'nanoid';

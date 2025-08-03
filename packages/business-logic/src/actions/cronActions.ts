@@ -24,7 +24,7 @@ function getCronJobColumnForOrderBy(field: string) {
 			return cronJob.createdAt;
 		case 'updatedAt':
 			return cronJob.updatedAt;
-		// For complex calculated fields like lastRun and successRate, 
+		// For complex calculated fields like lastRun and successRate,
 		// we'll need to handle these differently since they require joins/calculations
 		default:
 			return null;
@@ -47,7 +47,7 @@ export const getAllCronJobs = async (filter?: CronJobUrlFilterSchemaType) => {
 			}
 		}
 	}
-	
+
 	// Default to name asc if no order specified
 	if (orderByClause.length === 0) {
 		orderByClause.push(asc(cronJob.name));

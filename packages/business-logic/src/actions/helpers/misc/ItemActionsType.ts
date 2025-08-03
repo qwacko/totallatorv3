@@ -13,12 +13,11 @@ export type ItemActionsType<
 	SeedCountType
 > = {
 	latestUpdate: () => Promise<Date>;
-	getById: ( id: string) => Promise<TableType | undefined>;
-	count: ( filter?: FilterSchema) => Promise<number>;
+	getById: (id: string) => Promise<TableType | undefined>;
+	count: (filter?: FilterSchema) => Promise<number>;
 	listWithTransactionCount: () => Promise<{ id: string; journalCount: number }[]>;
-	list: (data: {  filter: FilterSchema }) => Promise<PaginatedResults<ViewTableType>>;
+	list: (data: { filter: FilterSchema }) => Promise<PaginatedResults<ViewTableType>>;
 	generateCSVData: (data: {
-		
 		filter?: FilterSchema;
 		returnType: DownloadTypeEnumType;
 	}) => Promise<string>;

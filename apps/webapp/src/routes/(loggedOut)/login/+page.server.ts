@@ -35,10 +35,7 @@ export const actions: Actions = {
       }
 
       const token = tActions.auth.generateSessionToken();
-      const session = await tActions.auth.createSession(
-        token,
-        user.id,
-      );
+      const session = await tActions.auth.createSession(token, user.id);
       tActions.auth.setSessionTokenCookie(request, token, session.expiresAt);
     } catch (e) {
       request.locals.global.logger.error("Error Logging In", e);

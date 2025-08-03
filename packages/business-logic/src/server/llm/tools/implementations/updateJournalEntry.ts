@@ -97,18 +97,21 @@ export const updateJournalEntryTool: Tool = {
 			}
 
 			// Perform the update
-			const updatedEntries = await runInTransactionWithLogging('Update Journal Entry via LLM Tool', async () => {
-				const updated = await dbExecuteLogger(
-					context.db
-						.update(journalEntry)
-						.set(updateData)
-						.where(eq(journalEntry.id, journal_id))
-						.returning(),
-					'Update Journal Entry - Execute Update'
-				);
+			const updatedEntries = await runInTransactionWithLogging(
+				'Update Journal Entry via LLM Tool',
+				async () => {
+					const updated = await dbExecuteLogger(
+						context.db
+							.update(journalEntry)
+							.set(updateData)
+							.where(eq(journalEntry.id, journal_id))
+							.returning(),
+						'Update Journal Entry - Execute Update'
+					);
 
-				return updated;
-			});
+					return updated;
+				}
+			);
 
 			if (updatedEntries.length === 0) {
 				return {

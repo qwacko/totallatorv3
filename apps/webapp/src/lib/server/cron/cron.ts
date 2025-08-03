@@ -21,10 +21,10 @@ function createCronRequestContext(jobName: string) {
     event: {
       request: new Request(`http://localhost/cron/${jobName}`),
       locals: {},
-      getClientAddress: () => '127.0.0.1'
+      getClientAddress: () => "127.0.0.1",
     },
     userAgent: `Cron-Job-${jobName}`,
-    ip: '127.0.0.1',
+    ip: "127.0.0.1",
   };
 }
 
@@ -36,7 +36,7 @@ export const processCronJobs = (
     return schedule.scheduleJob(cronJob.name, cronJob.schedule, async () => {
       const context = getContext();
       const requestContext = createCronRequestContext(cronJob.name);
-      
+
       try {
         await runWithContext(context, requestContext, async () => {
           await cronJob.job(context);

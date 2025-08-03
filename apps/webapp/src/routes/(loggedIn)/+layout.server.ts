@@ -19,9 +19,7 @@ export const load = async ({ locals }) => {
       accounts: (await tActions.account.latestUpdate()).getTime() || 0,
       categories: (await tActions.category.latestUpdate()).getTime() || 0,
       importMappings:
-        (
-          await tActions.importMapping.latestUpdate()
-        ).getTime() || 0,
+        (await tActions.importMapping.latestUpdate()).getTime() || 0,
     },
   };
 };

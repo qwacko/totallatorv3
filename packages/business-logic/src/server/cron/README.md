@@ -7,6 +7,7 @@ This package provides a comprehensive cron job management system that allows for
 The cron system is built with the following components:
 
 ### 1. Database Schema
+
 - **cronJob**: Stores cron job definitions and configuration
 - **cronJobExecution**: Tracks individual execution history with detailed metrics
 - **cronJobConfig**: Stores global configuration settings
@@ -14,9 +15,11 @@ The cron system is built with the following components:
 ### 2. Core Components
 
 #### CronJobService
+
 The main service class that manages cron job scheduling and execution.
 
 **Key Features:**
+
 - Automatic initialization and synchronization of job definitions
 - Execution tracking with timeout handling
 - Retry logic with exponential backoff
@@ -25,9 +28,11 @@ The main service class that manages cron job scheduling and execution.
 - Concurrent execution prevention
 
 #### CronJobDefinitions
+
 Contains all predefined cron jobs with their schedules and business logic.
 
 **Current Jobs:**
+
 - Database backups
 - Journal cleanup and maintenance
 - Automatic filter processing
@@ -37,7 +42,9 @@ Contains all predefined cron jobs with their schedules and business logic.
 - File integrity checks
 
 ### 3. Business Logic Actions
+
 Database operations for cron job management:
+
 - `getAllCronJobs()` - Get all jobs with statistics
 - `getCronJobById()` - Get specific job details
 - `updateCronJobStatus()` - Enable/disable jobs
@@ -102,7 +109,7 @@ await cronService.shutdown();
 ```typescript
 const result = await cronService.triggerJob(jobId, userId);
 if (result.success) {
-  console.log(`Job triggered with execution ID: ${result.executionId}`);
+	console.log(`Job triggered with execution ID: ${result.executionId}`);
 }
 ```
 
@@ -117,9 +124,11 @@ schedule: '${BACKUP_SCHEDULE}', // Resolves to process.env.BACKUP_SCHEDULE
 ## Frontend Interface
 
 ### Admin Dashboard
+
 Access the cron management interface at `/admin/cron` (admin users only).
 
 **Features:**
+
 - View all cron jobs with their status and statistics
 - See recent execution history
 - Enable/disable jobs
@@ -127,7 +136,9 @@ Access the cron management interface at `/admin/cron` (admin users only).
 - View detailed execution logs and performance metrics
 
 ### Job Details Page
+
 Each job has a detailed view at `/admin/cron/{jobId}` showing:
+
 - Complete execution history
 - Performance statistics
 - Configuration options
@@ -136,19 +147,24 @@ Each job has a detailed view at `/admin/cron/{jobId}` showing:
 ## Configuration
 
 ### Job Configuration
+
 Each job can be configured with:
+
 - **Schedule**: Cron expression (supports env var substitution)
 - **Timeout**: Maximum execution time in milliseconds
 - **Max Retries**: Number of retry attempts on failure
 - **Enabled Status**: Whether the job should run automatically
 
 ### Global Settings
+
 The system supports global configuration through the `cronJobConfig` table for settings that affect all jobs.
 
 ## Monitoring and Logging
 
 ### Execution Tracking
+
 Every job execution is tracked with:
+
 - Start and completion timestamps
 - Duration and performance metrics
 - Success/failure status
@@ -156,13 +172,17 @@ Every job execution is tracked with:
 - Retry count and trigger source
 
 ### Logging Integration
+
 Jobs run within the application's logging context, providing:
+
 - Request ID tracking
 - Structured logging with job metadata
 - Error reporting and debugging information
 
 ### Performance Metrics
+
 The system tracks:
+
 - Execution duration
 - Memory usage (when available)
 - Success/failure rates
@@ -171,19 +191,25 @@ The system tracks:
 ## Error Handling and Reliability
 
 ### Timeout Protection
+
 Jobs that exceed their timeout limit are automatically terminated and marked as timed out.
 
 ### Retry Logic
+
 Failed jobs can be automatically retried with:
+
 - Configurable retry counts per job
 - Exponential backoff delays (1s, 2s, 4s, up to 30s max)
 - Retry execution tracking
 
 ### Concurrent Execution Prevention
+
 The system prevents multiple instances of the same job from running simultaneously.
 
 ### Graceful Shutdown
+
 The service properly handles shutdown scenarios:
+
 - Cancels all scheduled jobs
 - Waits for running jobs to complete (with timeout)
 - Cleans up resources
@@ -191,6 +217,7 @@ The service properly handles shutdown scenarios:
 ## Database Schema Details
 
 ### cronJob Table
+
 ```sql
 CREATE TABLE cronJob (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -208,6 +235,7 @@ CREATE TABLE cronJob (
 ```
 
 ### cronJobExecution Table
+
 ```sql
 CREATE TABLE cronJobExecution (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -231,11 +259,13 @@ CREATE TABLE cronJobExecution (
 ## Security Considerations
 
 ### Access Control
+
 - Only admin users can access the cron management interface
 - All cron operations require admin privileges
 - Job execution context includes proper security isolation
 
 ### Input Validation
+
 - All user inputs are validated using Zod schemas
 - SQL injection protection through parameterized queries
 - CSRF protection on all state-changing operations
@@ -254,16 +284,19 @@ The new system is designed to replace the old cron implementation:
 ### Common Issues
 
 **Jobs Not Running**
+
 - Check if the job is enabled in the database
 - Verify the cron schedule expression is valid
 - Check application logs for initialization errors
 
 **Performance Issues**
+
 - Monitor job execution times and timeout settings
 - Check for resource contention with other jobs
 - Review retry patterns for frequently failing jobs
 
 **Database Issues**
+
 - Ensure proper database connectivity
 - Check for schema migration completion
 - Verify table permissions for the application user
@@ -275,6 +308,7 @@ Enable detailed logging by checking job execution history in the admin interface
 ## Future Enhancements
 
 Planned improvements include:
+
 - Real-time job status updates via WebSockets
 - Job scheduling from the UI
 - Advanced performance analytics

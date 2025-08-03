@@ -46,12 +46,12 @@ export type { AssociatedInfoLinkType } from './actions/associatedInfoActions.js'
 export type { EnhancedRecommendationType } from './server/services/journalRecommendationService.js';
 
 // Export cron-related types
-export type { 
-	CronJobDefinition, 
-	CronJobResult, 
-	CronJobExecutionContext, 
+export type {
+	CronJobDefinition,
+	CronJobResult,
+	CronJobExecutionContext,
 	CronJobExecutionStatus,
-	CronJobExecutionFilter 
+	CronJobExecutionFilter
 } from './server/cron/types.js';
 
 // Export functions and actions that are imported by the webapp

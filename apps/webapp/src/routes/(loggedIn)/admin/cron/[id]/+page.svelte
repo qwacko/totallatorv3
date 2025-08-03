@@ -3,6 +3,7 @@
 	import { Badge, Button, Card, P, Heading, Label } from 'flowbite-svelte';
 	import { ArrowLeftOutline, PlayOutline, CheckCircleOutline, CloseCircleOutline, ClockOutline, CogOutline } from 'flowbite-svelte-icons';
 	import PageLayout from '$lib/components/PageLayout.svelte';
+	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { z } from 'zod';
@@ -73,33 +74,85 @@
 	}
 </script>
 
-<PageLayout title={data.cronJob.name}>
-	<div class="space-y-6">
-		<!-- Header with Back Button -->
-		<div class="flex items-center justify-between">
+<CustomHeader
+	pageTitle={data.cronJob.name}
+	filterText={[]}
+	pageNumber={1}
+	numPages={1}
+/>
+
+<PageLayout title={data.cronJob.name} size="xl">
+	{#snippet slotRight()}
+		<div class="flex gap-2">
+			<Button
+				color="primary"
+				onclick={() => triggerJob()}
+			>
+				<PlayOutline class="w-4 h-4 mr-2" />
+				Trigger Job
+			</Button>
+			
+			<Button
+				color="light"
+				onclick={() => showConfigForm = !showConfigForm}
+			>
+				<CogOutline class="w-4 h-4 mr-2" />
+				Configure
+			</Button>
+			
 			<Button color="light" onclick={() => goto('/admin/cron')}>
 				<ArrowLeftOutline class="w-4 h-4 mr-2" />
 				Back to Cron Jobs
 			</Button>
-			
-			<div class="flex gap-2">
-				<Button
-					color="primary"
-					onclick={() => triggerJob()}
-				>
-					<PlayOutline class="w-4 h-4 mr-2" />
-					Trigger Job
-				</Button>
-				
-				<Button
-					color="light"
-					onclick={() => showConfigForm = !showConfigForm}
-				>
-					<CogOutline class="w-4 h-4 mr-2" />
-					Configure
-				</Button>
+		</div>
+	{/snippet}
+
+	<!-- Statistics Cards -->
+	<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+		<div class="bg-white p-4 rounded-lg border">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Total Executions</p>
+					<p class="text-2xl font-bold">{data.cronJob.statistics.totalExecutions}</p>
+				</div>
 			</div>
 		</div>
+
+		<div class="bg-white p-4 rounded-lg border">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Success Rate</p>
+					<p class="text-2xl font-bold {getSuccessRateColor(data.cronJob.statistics.successRate)}">
+						{data.cronJob.statistics.successRate}%
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white p-4 rounded-lg border">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Status</p>
+					<p class="text-2xl font-bold">
+						{#if data.cronJob.isEnabled}
+							<Badge color="green">Enabled</Badge>
+						{:else}
+							<Badge color="red">Disabled</Badge>
+						{/if}
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white p-4 rounded-lg border">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Failed Executions</p>
+					<p class="text-2xl font-bold text-red-600">{data.cronJob.statistics.failedExecutions}</p>
+				</div>
+			</div>
+		</div>
+	</div>
 
 		<!-- Success/Error Messages -->
 		{#if form?.success}
@@ -379,5 +432,4 @@
 				<p class="text-gray-500 text-center py-8">No execution history available</p>
 			{/if}
 		</Card>
-	</div>
 </PageLayout>

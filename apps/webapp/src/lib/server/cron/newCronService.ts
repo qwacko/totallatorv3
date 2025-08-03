@@ -1,13 +1,15 @@
-import { CronJobService } from '@totallator/business-logic';
-import type { GlobalContext } from '@totallator/context';
-import type { CoreDBType } from '@totallator/database';
+import { CronJobService } from "@totallator/business-logic";
+import type { GlobalContext } from "@totallator/context";
+import type { CoreDBType } from "@totallator/database";
 
 let cronService: CronJobService | null = null;
 
 /**
  * Initialize the new cron service
  */
-export const initializeNewCronService = async (getContext: () => GlobalContext) => {
+export const initializeNewCronService = async (
+  getContext: () => GlobalContext,
+) => {
   if (cronService) {
     await cronService.shutdown();
   }
@@ -17,8 +19,8 @@ export const initializeNewCronService = async (getContext: () => GlobalContext) 
   const coreDb = context.db as CoreDBType;
   cronService = new CronJobService(coreDb, getContext);
   await cronService.initialize();
-  
-  console.log('New cron service initialized successfully');
+
+  console.log("New cron service initialized successfully");
   return cronService;
 };
 
@@ -36,6 +38,6 @@ export const shutdownCronService = async () => {
   if (cronService) {
     await cronService.shutdown();
     cronService = null;
-    console.log('Cron service shutdown successfully');
+    console.log("Cron service shutdown successfully");
   }
 };

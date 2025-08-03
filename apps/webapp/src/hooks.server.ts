@@ -2,7 +2,11 @@ import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
 import { actionHelpers, tActions } from "@totallator/business-logic";
-import { createRequestContext, runWithContext, runRequestInTransaction } from "@totallator/context";
+import {
+  createRequestContext,
+  runRequestInTransaction,
+  runWithContext,
+} from "@totallator/context";
 
 import { authGuard } from "./lib/authGuard/authGuardConfig.js";
 import { ensureInitialized } from "./lib/server/context.js";
@@ -53,22 +57,25 @@ export const init: ServerInit = async () => {
 
   //Setup DB Logger
   actionHelpers.initDBLogger(context);
-  
+
   // Initialize new cron service after database is ready
   // Add a small delay to ensure migrations have completed
   setTimeout(async () => {
     try {
       await initializeNewCronService(() => context);
-      console.log('Cron service initialized successfully');
+      console.log("Cron service initialized successfully");
     } catch (error) {
-      console.error('Failed to initialize cron service:', error);
+      console.error("Failed to initialize cron service:", error);
       // Retry after 5 seconds if it fails
       setTimeout(async () => {
         try {
           await initializeNewCronService(() => context);
-          console.log('Cron service initialized on retry');
+          console.log("Cron service initialized on retry");
         } catch (retryError) {
-          console.error('Failed to initialize cron service on retry:', retryError);
+          console.error(
+            "Failed to initialize cron service on retry:",
+            retryError,
+          );
         }
       }, 5000);
     }
@@ -128,15 +135,18 @@ const handleRoute: Handle = async ({
     }
 
     // Wrap non-GET requests in transactions
-    const isNonGetRequest = event.request.method !== 'GET';
+    const isNonGetRequest = event.request.method !== "GET";
     let result;
-    
+
     if (isNonGetRequest) {
-      context.logger.debug(`Wrapping ${event.request.method} request in transaction`, {
-        requestId: requestContext.requestId,
-        requestURL: event.request.url,
-      });
-      
+      context.logger.debug(
+        `Wrapping ${event.request.method} request in transaction`,
+        {
+          requestId: requestContext.requestId,
+          requestURL: event.request.url,
+        },
+      );
+
       result = await runRequestInTransaction(async () => {
         return await resolve(event);
       });

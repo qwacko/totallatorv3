@@ -39,11 +39,7 @@ export const importMappingActions = {
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async ({
-		id
-	}: {
-		id: string;
-	}): Promise<undefined | ProcessedImportData> => {
+	getById: async ({ id }: { id: string }): Promise<undefined | ProcessedImportData> => {
 		const db = getContextDB();
 		const data = await dbExecuteLogger(
 			db.select(getTableColumns(importMapping)).from(importMapping).where(eq(importMapping.id, id)),
