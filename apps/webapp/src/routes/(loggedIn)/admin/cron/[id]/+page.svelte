@@ -294,10 +294,10 @@
 					href={urlGenerator({
 						address: "/(loggedIn)/admin/cron/executions",
 						searchParamsValue: { 
-							jobId: data.cronJob.id,
-							page: 1,
+							cronJobId: data.cronJob.id,
+							page: 0,
 							pageSize: 25,
-							orderBy: 'startedAt-desc'
+							orderBy: [{ field: 'startedAt', direction: 'desc' }]
 						},
 					}).url}
 					color="blue"
@@ -311,11 +311,11 @@
 					href={urlGenerator({
 						address: "/(loggedIn)/admin/cron/executions",
 						searchParamsValue: { 
-							jobId: data.cronJob.id, 
+							cronJobId: data.cronJob.id, 
 							status: 'failed',
-							page: 1,
+							page: 0,
 							pageSize: 25,
-							orderBy: 'startedAt-desc'
+							orderBy: [{ field: 'startedAt', direction: 'desc' }]
 						},
 					}).url}
 					color="red"
@@ -362,10 +362,10 @@
 							href={urlGenerator({
 								address: "/(loggedIn)/admin/cron/executions",
 								searchParamsValue: { 
-									jobId: data.cronJob.id,
-									page: 1,
+									cronJobId: data.cronJob.id,
+									page: 0,
 									pageSize: 25,
-									orderBy: 'startedAt-desc'
+									orderBy: [{ field: 'startedAt', direction: 'desc' }]
 								},
 							}).url}
 							color="light"

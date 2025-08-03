@@ -4,16 +4,27 @@
 	import { goto, onNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	
-	import { urlGenerator, pageInfo } from '$lib/routes.js';
+	import { urlGenerator, pageInfo, pageInfoStore } from '$lib/routes.js';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import CronIcon from '$lib/components/icons/CronIcon.svelte';
+    import { browser } from '$app/environment';
 
 	const { data } = $props();
 
 	const urlInfo = $derived(pageInfo("/(loggedIn)/admin/cron/executions", $page));
 
+	const urlStore = pageInfoStore({
+    routeId: "/(loggedIn)/admin/cron/executions",
+    pageInfo: page,
+    onUpdate: (newURL) => {
+      if (browser && newURL !== urlInfo.current.url) {
+        goto(newURL, { keepFocus: true, noScroll: true });
+      }
+    },
+    updateDelay: 500,
+  });
 	// Remove unused urlStore for now
 
 	let filterOpened = $state(false);
@@ -78,7 +89,7 @@
 <PageLayout title="Cron Job Executions" size="xl">
 	{#snippet slotRight()}
 		<Button
-			href={urlGenerator({ address: "/(loggedIn)/admin/cron" }).url}
+			href={urlGenerator({ address: "/(loggedIn)/admin/cron", searchParamsValue: {} }).url}
 			color="light"
 			outline
 		>
@@ -118,13 +129,13 @@
 		</div>
 	</div>
 
+	{#if $urlStore.searchParams && data.searchParams}
+
 	<!-- Main Table -->
 	<CustomTable
-		highlightText=""
-		highlightTextColumns={[]}
 		filterText={data.filterText}
 		onSortURL={(newSort) =>
-			urlInfo.updateParams({ searchParams: { orderBy: `${newSort[0].field}-${newSort[0].direction}` } }).url}
+			urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
 		paginationInfo={{
 			page: data.executions.page,
 			count: data.executions.count,
@@ -135,11 +146,10 @@
 		}}
 		noneFoundText="No Executions Found"
 		data={data.executions.data}
-		currentOrder={data.searchParams?.orderBy ? 
-			[{ field: data.searchParams.orderBy.split('-')[0] as any, direction: data.searchParams.orderBy.split('-')[1] as any }] : 
-			undefined}
+		currentOrder={data.searchParams?.orderBy}
 		currentFilter={data.searchParams}
 		filterModalTitle="Filter Executions"
+		bind:numberRows={$urlStore.searchParams.pageSize}
 		bind:filterOpened
 		bind:shownColumns
 			columns={[
@@ -178,6 +188,7 @@
 				},
 				{ id: "actions", title: "" },
 			]}
+
 		>
 			{#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
 				{#if currentColumn.id === "status"}
@@ -226,19 +237,10 @@
 			{/snippet}
 
 			{#snippet slotFilter()}
+					{#if $urlStore.searchParams}
 				<div class="flex flex-row gap-2">
 					<Select
-						value={data.searchParams?.jobId || ''}
-						onchange={(e) => {
-							const value = (e.target as HTMLSelectElement)?.value || '';
-							goto(urlInfo.updateParams({ 
-								searchParams: { 
-									...data.searchParams, 
-									jobId: value || undefined,
-									page: 1
-								} 
-							}).url, { keepFocus: true, noScroll: true });
-						}}
+						bind:value={$urlStore.searchParams.cronJobId}						
 						placeholder="Filter by Job..."
 						class="min-w-[200px]"
 					>
@@ -249,17 +251,7 @@
 					</Select>
 
 					<Select
-						value={data.searchParams?.status || ''}
-						onchange={(e) => {
-							const value = (e.target as HTMLSelectElement)?.value || '';
-							goto(urlInfo.updateParams({ 
-								searchParams: { 
-									...data.searchParams, 
-									status: value || undefined,
-									page: 1
-								} 
-							}).url, { keepFocus: true, noScroll: true });
-						}}
+						bind:value={$urlStore.searchParams.status}
 						placeholder="Filter by Status..."
 						class="min-w-[150px]"
 					>
@@ -269,17 +261,8 @@
 					</Select>
 
 					<Select
-						value={data.searchParams?.triggeredBy || ''}
-						onchange={(e) => {
-							const value = (e.target as HTMLSelectElement)?.value || '';
-							goto(urlInfo.updateParams({ 
-								searchParams: { 
-									...data.searchParams, 
-									triggeredBy: value || undefined,
-									page: 1
-								} 
-							}).url, { keepFocus: true, noScroll: true });
-						}}
+						bind:value={$urlStore.searchParams.triggeredBy}
+						
 						placeholder="Filter by Trigger..."
 						class="min-w-[150px]"
 					>
@@ -288,6 +271,8 @@
 						{/each}
 					</Select>
 				</div>
+				{/if}
 			{/snippet}
 		</CustomTable>
+		{/if}
 </PageLayout>

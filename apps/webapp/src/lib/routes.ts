@@ -25,7 +25,7 @@ import { autoImportFilterSchema } from "@totallator/shared";
 import { createFileNoteRelationshipSchema } from "@totallator/shared";
 import { fileFilterSchema } from "@totallator/shared";
 import {
-  cronExecutionUrlFilterSchema,
+  cronExecutionFilterSchema,
   cronJobUrlFilterSchema,
 } from "@totallator/shared";
 import {
@@ -397,9 +397,9 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } =
           .parse,
       },
       "/(loggedIn)/admin/cron/executions": {
-        searchParamsValidation: cronExecutionUrlFilterSchema
+        searchParamsValidation: cronExecutionFilterSchema
           .optional()
-          .catch({ page: 1, pageSize: 25, orderBy: "startedAt-desc" }).parse,
+          .catch({ page: 0, pageSize: 25, orderBy: [{ field: "startedAt", direction: "desc" }] }).parse,
       },
       "/(loggedIn)/admin/cron/[id]": {
         paramsValidation: z.object({ id: z.string() }).parse,

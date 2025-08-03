@@ -263,7 +263,7 @@
             label: "Cron Jobs",
             active: pageIsCron,
             icon: CronIcon,
-            href: urlGenerator({ address: "/(loggedIn)/admin/cron" }),
+            href: urlGenerator({ address: "/(loggedIn)/admin/cron", searchParamsValue: {} }),
           },
           {
             label: "Settings",

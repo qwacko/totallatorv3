@@ -16,7 +16,7 @@ export const createCronJobSchema = z.object({
 	schedule: z.string(),
 	isEnabled: z.boolean().default(true),
 	timeoutMs: z.number().default(120000),
-	maxRetries: z.number().default(0),
+	maxRetries: z.number().default(0)
 });
 
 export type CreateCronJobSchemaType = z.infer<typeof createCronJobSchema>;
@@ -30,7 +30,7 @@ export const updateCronJobSchema = z.object({
 	isEnabled: z.boolean().optional(),
 	timeoutMs: z.number().optional(),
 	maxRetries: z.number().optional(),
-	modifiedBy: z.string(),
+	modifiedBy: z.string()
 });
 
 export type UpdateCronJobSchemaType = z.infer<typeof updateCronJobSchema>;
@@ -38,7 +38,7 @@ export type UpdateCronJobSchemaType = z.infer<typeof updateCronJobSchema>;
 // Cron job order by enum
 const cronJobOrderByEnum = [
 	'name',
-	'schedule', 
+	'schedule',
 	'isEnabled',
 	'createdAt',
 	'updatedAt',
@@ -61,13 +61,13 @@ export const cronJobFilterSchema = z.object({
 	schedule: z.string().optional(),
 	scheduleArray: z.array(z.string()).optional(),
 	excludeScheduleArray: z.array(z.string()).optional(),
-	
+
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
 		.array(z.object({ field: z.enum(cronJobOrderByEnum), direction: z.enum(['asc', 'desc']) }))
 		.default([{ direction: 'asc', field: 'name' }])
-		.optional(),
+		.optional()
 });
 
 export type CronJobFilterSchemaType = z.infer<typeof cronJobFilterSchema>;
@@ -118,13 +118,15 @@ export const cronExecutionFilterSchema = z.object({
 	retryCountMax: z.number().optional(),
 	hasError: z.boolean().optional(),
 	hasOutput: z.boolean().optional(),
-	
+
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
-		.array(z.object({ field: z.enum(cronExecutionOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({ field: z.enum(cronExecutionOrderByEnum), direction: z.enum(['asc', 'desc']) })
+		)
 		.default([{ direction: 'desc', field: 'startedAt' }])
-		.optional(),
+		.optional()
 });
 
 export type CronExecutionFilterSchemaType = z.infer<typeof cronExecutionFilterSchema>;
@@ -140,46 +142,12 @@ export const cronJobUrlFilterSchema = z.object({
 	isEnabled: z.boolean().optional(),
 	page: z.coerce.number().default(1).optional(),
 	pageSize: z.coerce.number().default(25).optional(),
-	orderBy: z.string().default('name-asc').optional(),
+	orderBy: z
+		.array(
+			z.object({ field: z.enum(cronExecutionOrderByEnum), direction: z.enum(['asc', 'desc']) })
+		)
+		.default([{ direction: 'desc', field: 'startedAt' }])
+		.optional()
 });
 
 export type CronJobUrlFilterSchemaType = z.infer<typeof cronJobUrlFilterSchema>;
-
-export const cronExecutionUrlFilterSchema = z.object({
-	textFilter: z.string().optional(),
-	jobId: z.string().optional(),
-	status: z.enum(cronExecutionStatusEnum).optional(),
-	triggeredBy: z.enum(cronTriggeredByEnum).optional(),
-	page: z.coerce.number().default(1).optional(),
-	pageSize: z.coerce.number().default(25).optional(),
-	orderBy: z.string().default('startedAt-desc').optional(),
-});
-
-export type CronExecutionUrlFilterSchemaType = z.infer<typeof cronExecutionUrlFilterSchema>;
-
-// Helper functions to convert URL filter to full filter
-export const urlFilterToCronJobFilter = (urlFilter: CronJobUrlFilterSchemaType): CronJobFilterSchemaType => {
-	const [field, direction] = (urlFilter.orderBy || 'name-asc').split('-') as [CronJobOrderByEnumType, 'asc' | 'desc'];
-	
-	return {
-		textFilter: urlFilter.textFilter,
-		isEnabled: urlFilter.isEnabled,
-		page: (urlFilter.page || 1) - 1, // Convert to 0-based indexing
-		pageSize: urlFilter.pageSize || 25,
-		orderBy: [{ field, direction: direction || 'asc' }],
-	};
-};
-
-export const urlFilterToCronExecutionFilter = (urlFilter: CronExecutionUrlFilterSchemaType): CronExecutionFilterSchemaType => {
-	const [field, direction] = (urlFilter.orderBy || 'startedAt-desc').split('-') as [CronExecutionOrderByEnumType, 'asc' | 'desc'];
-	
-	return {
-		textFilter: urlFilter.textFilter,
-		cronJobId: urlFilter.jobId,
-		status: urlFilter.status,
-		triggeredBy: urlFilter.triggeredBy,
-		page: (urlFilter.page || 1) - 1, // Convert to 0-based indexing
-		pageSize: urlFilter.pageSize || 25,
-		orderBy: [{ field, direction: direction || 'desc' }],
-	};
-};

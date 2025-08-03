@@ -101,7 +101,7 @@
 		<Button
 			href={urlGenerator({ 
 				address: "/(loggedIn)/admin/cron/executions",
-				searchParamsValue: { page: 1, pageSize: 25, orderBy: 'startedAt-desc' }
+				searchParamsValue: { page: 0, pageSize: 25, orderBy: [{ field: 'startedAt', direction: 'desc' }] }
 			}).url}
 			color="light"
 			outline
@@ -223,10 +223,10 @@
 				{@const executionsURL = urlGenerator({
 					address: "/(loggedIn)/admin/cron/executions",
 					searchParamsValue: { 
-						jobId: currentRow.id,
-						page: 1, 
+						cronJobId: currentRow.id,
+						page: 0, 
 						pageSize: 25, 
-						orderBy: 'startedAt-desc' 
+						orderBy: [{ field: 'startedAt', direction: 'desc' }] 
 					},
 				}).url}
 

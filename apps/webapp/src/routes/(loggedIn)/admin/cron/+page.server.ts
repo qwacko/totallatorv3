@@ -5,9 +5,11 @@ import { z } from "zod";
 
 import { tActions } from "@totallator/business-logic";
 
+import { authGuard } from "$lib/authGuard/authGuardConfig";
+import { serverPageInfo } from "$lib/routes";
 import { getCronService } from "$lib/server/cron/newCronService";
 
-import type { Actions, PageServerLoad } from "./$types";
+import type { Actions } from "./$types";
 
 const triggerJobSchema = z.object({
   jobId: z.string().min(1, "Job ID is required"),
@@ -18,69 +20,34 @@ const toggleJobSchema = z.object({
   isEnabled: z.boolean(),
 });
 
-export const load: PageServerLoad = async ({ locals }) => {
-  if (!locals.user) {
-    redirect(302, "/login");
-  }
+export const load = async (data) => {
+  authGuard(data);
+  serverPageInfo(data.route.id, data);
 
-  // Only allow admin users to access cron management
-  if (!locals.user.admin) {
-    redirect(302, "/");
-  }
+  // Get all cron jobs with their execution history
+  const cronJobsResult = await tActions.cronJob.getAllCronJobs();
 
-  try {
-    // Cast locals.db to CoreDBType since we know it's the actual database connection
-    const db = locals.db as CoreDBType;
+  // Get recent execution statistics
+  const statistics = await tActions.cronExecution.getCronJobStatistics({
+    days: 30,
+  });
 
-    // Get all cron jobs with their execution history
-    const cronJobsResult = await tActions.cronJob.getAllCronJobs();
-
-    // Get recent execution statistics
-    const statistics = await tActions.cronExecution.getCronJobStatistics({
-      days: 30,
+  // Get recent executions across all jobs (for the original table, if needed)
+  const recentExecutionsResult =
+    await tActions.cronExecution.getCronJobExecutions({
+      pageSize: 20,
     });
 
-    // Get recent executions across all jobs (for the original table, if needed)
-    const recentExecutionsResult =
-      await tActions.cronExecution.getCronJobExecutions({
-        filter: {},
-        limit: 20,
-      });
-
-    return {
-      cronJobs: cronJobsResult.data,
-      statistics,
-      recentExecutions: recentExecutionsResult.data,
-      triggerJobForm: await superValidate(
-        { jobId: "" },
-        zod4(triggerJobSchema),
-      ),
-      toggleJobForm: await superValidate(
-        { jobId: "", isEnabled: false },
-        zod4(toggleJobSchema),
-      ),
-    };
-  } catch (error) {
-    console.error("Error loading cron data:", error);
-    return {
-      cronJobs: [],
-      statistics: {
-        period: "Last 30 days",
-        totalExecutions: 0,
-        statusBreakdown: [],
-        successRate: 0,
-      },
-      recentExecutions: [],
-      triggerJobForm: await superValidate(
-        { jobId: "" },
-        zod4(triggerJobSchema),
-      ),
-      toggleJobForm: await superValidate(
-        { jobId: "", isEnabled: false },
-        zod4(toggleJobSchema),
-      ),
-    };
-  }
+  return {
+    cronJobs: cronJobsResult.data,
+    statistics,
+    recentExecutions: recentExecutionsResult.data,
+    triggerJobForm: await superValidate({ jobId: "" }, zod4(triggerJobSchema)),
+    toggleJobForm: await superValidate(
+      { jobId: "", isEnabled: false },
+      zod4(toggleJobSchema),
+    ),
+  };
 };
 
 export const actions: Actions = {
