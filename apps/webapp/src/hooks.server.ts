@@ -6,7 +6,7 @@ import { createRequestContext, runWithContext, runRequestInTransaction } from "@
 
 import { authGuard } from "./lib/authGuard/authGuardConfig.js";
 import { ensureInitialized } from "./lib/server/context.js";
-import { initateCronJobs } from "./lib/server/cron/cron.js";
+import { initializeNewCronService } from "./lib/server/cron/newCronService.js";
 
 const handleAuth: Handle = async ({
   event,
@@ -50,11 +50,29 @@ const handleAuth: Handle = async ({
 
 export const init: ServerInit = async () => {
   const context = await ensureInitialized();
-  // Initialize cron jobs
-  initateCronJobs(() => context);
 
   //Setup DB Logger
   actionHelpers.initDBLogger(context);
+  
+  // Initialize new cron service after database is ready
+  // Add a small delay to ensure migrations have completed
+  setTimeout(async () => {
+    try {
+      await initializeNewCronService(() => context);
+      console.log('Cron service initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize cron service:', error);
+      // Retry after 5 seconds if it fails
+      setTimeout(async () => {
+        try {
+          await initializeNewCronService(() => context);
+          console.log('Cron service initialized on retry');
+        } catch (retryError) {
+          console.error('Failed to initialize cron service on retry:', retryError);
+        }
+      }, 5000);
+    }
+  }, 1000);
 };
 
 const handleRoute: Handle = async ({

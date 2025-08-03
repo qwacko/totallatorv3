@@ -22,6 +22,8 @@ import { llmActions } from './llmActions';
 import { llmLogActions } from './llmLogActions';
 import { journalLlmSuggestionActions } from './journalLlmSuggestionActions';
 import { auth } from './authActions';
+import * as cronJobActions from './cronJobActions';
+import * as cronExecutionActions from './cronExecutionActions';
 
 export const tActions = {
 	tag: tagActions,
@@ -47,5 +49,7 @@ export const tActions = {
 	llm: llmActions,
 	llmLog: llmLogActions,
 	journalLlmSuggestion: journalLlmSuggestionActions,
-	auth: auth
+	auth: auth,
+	cronJob: cronJobActions,
+	cronExecution: cronExecutionActions
 };

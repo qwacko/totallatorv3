@@ -145,6 +145,26 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
       ...adminOnlyConfig,
     },
 
+    // Admin - Cron Jobs
+    // ----------------------------------------
+    "/(loggedIn)/admin/cron": {
+      ...adminOnlyConfig,
+      POSTCheck: {
+        triggerJob: POSTAllowAdminOnly,
+        toggleJob: POSTAllowAdminOnly,
+      },
+    },
+    "/(loggedIn)/admin/cron/executions": {
+      ...adminOnlyConfig,
+    },
+    "/(loggedIn)/admin/cron/[id]": {
+      ...adminOnlyConfig,
+      POSTCheck: {
+        triggerJob: POSTAllowAdminOnly,
+        updateConfig: POSTAllowAdminOnly,
+      },
+    },
+
     // Dev Actions
     // ----------------------------------------
     "/(loggedIn)/dev/bulkLoad": {

@@ -45,6 +45,15 @@ export type { ReusableFilterDropdownListType } from './actions/reusableFilterAct
 export type { AssociatedInfoLinkType } from './actions/associatedInfoActions.js';
 export type { EnhancedRecommendationType } from './server/services/journalRecommendationService.js';
 
+// Export cron-related types
+export type { 
+	CronJobDefinition, 
+	CronJobResult, 
+	CronJobExecutionContext, 
+	CronJobExecutionStatus,
+	CronJobExecutionFilter 
+} from './server/cron/types.js';
+
 // Export functions and actions that are imported by the webapp
 export {
 	dbAdminCount,
@@ -89,6 +98,10 @@ export { labelFilterArray } from './actions/helpers/label/labelTextFilter.js';
 export { associatedInfoFilterToText } from './actions/helpers/associatedInfo/associatedInfoFilterToQuery.js';
 export { categoryFilterToText } from './actions/helpers/category/categoryFilterToQuery.js';
 export { categoryFilterArray } from './actions/helpers/category/categoryTextFilter.js';
+
+// Export cron service
+export { CronJobService } from './server/cron/cronJobService';
+export { cronJobDefinitions } from './server/cron/cronJobDefinitions';
 
 export const actionHelpers = {
 	expandDate,

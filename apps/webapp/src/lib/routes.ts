@@ -25,6 +25,10 @@ import { autoImportFilterSchema } from "@totallator/shared";
 import { createFileNoteRelationshipSchema } from "@totallator/shared";
 import { fileFilterSchema } from "@totallator/shared";
 import {
+  cronExecutionUrlFilterSchema,
+  cronJobUrlFilterSchema,
+} from "@totallator/shared";
+import {
   groupedQueryLogFilter,
   queryLogFilterSchema,
 } from "@totallator/shared";
@@ -384,6 +388,21 @@ export const { serverPageInfo, pageInfo, urlGenerator, pageInfoStore } =
       },
       "/(loggedIn)/queries/list": {
         searchParamsValidation: queryLogFilterSchema.optional().catch({}).parse,
+      },
+
+      // Admin - Cron Jobs
+      // ----------------------------------------
+      "/(loggedIn)/admin/cron": {
+        searchParamsValidation: cronJobUrlFilterSchema.optional().catch({})
+          .parse,
+      },
+      "/(loggedIn)/admin/cron/executions": {
+        searchParamsValidation: cronExecutionUrlFilterSchema
+          .optional()
+          .catch({ page: 1, pageSize: 25, orderBy: "startedAt-desc" }).parse,
+      },
+      "/(loggedIn)/admin/cron/[id]": {
+        paramsValidation: z.object({ id: z.string() }).parse,
       },
 
       // Users

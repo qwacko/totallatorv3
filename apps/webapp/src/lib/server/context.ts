@@ -29,6 +29,13 @@ export const ensureInitialized = async (): Promise<GlobalContext> => {
   return globalContext;
 };
 
+export const getDb = () => {
+  if (!globalContext?.db) {
+    throw new Error('Database not initialized. Call ensureInitialized() first.');
+  }
+  return globalContext.db;
+};
+
 export const initializeServer = async (): Promise<void> => {
   if (building) {
     return;

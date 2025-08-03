@@ -32,6 +32,7 @@
   import TagIcon from "$lib/components/icons/TagIcon.svelte";
   import UserAccountIcon from "$lib/components/icons/UserAccountIcon.svelte";
   import UsersIcon from "$lib/components/icons/UsersIcon.svelte";
+  import CronIcon from "$lib/components/icons/CronIcon.svelte";
   import NotificationDisplay from "$lib/components/NotificationDisplay.svelte";
   import ReportDropdown from "$lib/components/report/ReportDropdown.svelte";
   import { urlGenerator } from "$lib/routes";
@@ -91,6 +92,7 @@
     $page.route.id?.startsWith("/(loggedIn)/settings"),
   );
   const pageIsLLM = $derived($page.route.id?.startsWith("/(loggedIn)/llm"));
+  const pageIsCron = $derived($page.route.id?.startsWith("/(loggedIn)/admin/cron"));
 
   const pageMap = $derived([
     {
@@ -256,6 +258,12 @@
             active: pageIsLLM,
             icon: IdeaIcon,
             href: urlGenerator({ address: "/(loggedIn)/llm/providers" }),
+          },
+          {
+            label: "Cron Jobs",
+            active: pageIsCron,
+            icon: CronIcon,
+            href: urlGenerator({ address: "/(loggedIn)/admin/cron" }),
           },
           {
             label: "Settings",

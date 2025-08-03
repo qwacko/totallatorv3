@@ -6,6 +6,7 @@ export * from './schemas/autoImportSchema.js';
 export * from './schemas/billSchema.js';
 export * from './schemas/budgetSchema.js';
 export * from './schemas/categorySchema.js';
+export * from './schemas/cronSchema.js';
 export * from './schemas/dateSpanSchema.js';
 export * from './schemas/dateStringSchema.js';
 export * from './schemas/downloadTypeSchema.js';
