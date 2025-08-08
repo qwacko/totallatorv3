@@ -1,4 +1,6 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
+import * as z from "zod";
 
 import { tActions } from "@totallator/business-logic";
 
@@ -98,3 +100,10 @@ export const actions = {
     return;
   },
 };
+
+export const _routeConfig = {
+  searchParamsValidation: z
+    .object({ page: z.coerce.number<number>().optional().default(0) })
+    .optional()
+    .catch({ page: 0 }),
+} satisfies SingleServerRouteConfig;

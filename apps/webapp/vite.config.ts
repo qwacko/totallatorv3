@@ -1,6 +1,7 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
+import { skRoutesPlugin } from "skroutes/plugin";
 import Icons from "unplugin-icons/vite";
 import { defineConfig, type ViteUserConfig } from "vitest/config";
 
@@ -12,6 +13,10 @@ export default defineConfig(({ mode }): ViteUserConfig => {
     plugins: [
       tailwindcss(),
       sveltekit(),
+      skRoutesPlugin({
+        imports: [],
+        errorURL: "/",
+      }),
       Icons({
         compiler: "svelte",
       }),

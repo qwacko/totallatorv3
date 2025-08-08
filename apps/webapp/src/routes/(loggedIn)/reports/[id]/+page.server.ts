@@ -1,12 +1,22 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
+import z from "zod";
 
 import { tActions } from "@totallator/business-logic";
-import { updateReportLayoutSchema } from "@totallator/shared";
+import { dateSpanEnum, updateReportLayoutSchema } from "@totallator/shared";
 import { journalFilterSchemaWithoutPagination } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { failWrapper } from "$lib/helpers/customEnhance";
 import { serverPageInfo } from "$lib/routes.server";
+
+export const _routeConfig = {
+  paramsValidation: z.object({ id: z.string() }),
+  searchParamsValidation: z
+    .object({ dateSpan: z.enum(dateSpanEnum).optional() })
+    .optional()
+    .catch({}),
+} satisfies SingleServerRouteConfig;
 
 export const load = async (data) => {
   authGuard(data);

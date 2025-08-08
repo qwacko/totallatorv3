@@ -1,4 +1,6 @@
 import { error } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
+import * as z from "zod";
 
 import { tActions } from "@totallator/business-logic";
 
@@ -19,3 +21,7 @@ export const load = async (data) => {
     log,
   };
 };
+
+export const _routeConfig = {
+  paramsValidation: z.object({ id: z.string() }),
+} satisfies SingleServerRouteConfig;

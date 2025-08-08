@@ -1,4 +1,6 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
+import * as z from "zod";
 
 import { tActions } from "@totallator/business-logic";
 import { idSchema } from "@totallator/shared";
@@ -31,3 +33,7 @@ export const actions = {
     redirect(302, "/categories");
   },
 };
+
+export const _routeConfig = {
+  paramsValidation: z.object({ id: z.string() }),
+} satisfies SingleServerRouteConfig;

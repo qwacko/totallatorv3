@@ -1,10 +1,12 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { setError, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import * as z from "zod";
 
 import { tActions } from "@totallator/business-logic";
 import {
+  idSchema,
   importMappingDetailSchema,
   importMappingDetailWithRefinementSchema,
   importMappingUpdateFormSchema,
@@ -132,3 +134,7 @@ export const actions = {
     );
   },
 };
+
+export const _routeConfig = {
+  paramsValidation: idSchema,
+} satisfies SingleServerRouteConfig;

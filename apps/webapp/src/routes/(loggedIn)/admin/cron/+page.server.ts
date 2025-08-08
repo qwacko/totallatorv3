@@ -1,15 +1,21 @@
 import { fail } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import { z } from "zod";
 
 import { tActions } from "@totallator/business-logic";
+import { cronJobUrlFilterSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes.server";
 import { getCronService } from "$lib/server/cron/newCronService";
 
 import type { Actions } from "./$types";
+
+export const _routeConfig = {
+  searchParamsValidation: cronJobUrlFilterSchema.optional().catch({}),
+} satisfies SingleServerRouteConfig;
 
 const triggerJobSchema = z.object({
   jobId: z.string().min(1, "Job ID is required"),

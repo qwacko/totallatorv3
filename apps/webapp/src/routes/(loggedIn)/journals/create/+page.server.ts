@@ -1,4 +1,5 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { message, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import * as z from "zod";
@@ -6,6 +7,7 @@ import * as z from "zod";
 import { tActions } from "@totallator/business-logic";
 import {
   createSimpleTransactionSchemaCore,
+  defaultJournalFilter,
   journalFilterSchema,
 } from "@totallator/shared";
 
@@ -82,3 +84,9 @@ export const actions = {
     redirect(302, form.data.prevPage);
   },
 };
+
+export const _routeConfig = {
+  searchParamsValidation: journalFilterSchema
+    .optional()
+    .catch(defaultJournalFilter()),
+} satisfies SingleServerRouteConfig;

@@ -1,10 +1,16 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
+import * as z from "zod";
 
 import { tActions } from "@totallator/business-logic";
 import { idSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes.server";
+
+export const _routeConfig = {
+  paramsValidation: z.object({ id: z.string() }),
+} satisfies SingleServerRouteConfig;
 
 export const load = async (data) => {
   authGuard(data);

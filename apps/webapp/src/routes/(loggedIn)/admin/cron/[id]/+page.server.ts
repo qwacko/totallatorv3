@@ -1,4 +1,5 @@
 import { error, fail } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import { z } from "zod";
@@ -10,6 +11,10 @@ import { serverPageInfo } from "$lib/routes.server";
 import { getCronService } from "$lib/server/cron/newCronService";
 
 import type { Actions, PageServerLoad } from "./$types";
+
+export const _routeConfig = {
+  paramsValidation: z.object({ id: z.string() }),
+} satisfies SingleServerRouteConfig;
 
 const triggerJobSchema = z.object({
   jobId: z.string().min(1, "Job ID is required"),
@@ -29,7 +34,6 @@ export const load: PageServerLoad = async (data) => {
   if (!pageInfo.current.params) {
     error(400, "Params Not Correctly Set");
   }
-
   // Get the specific cron job
   const cronJob = await tActions.cronJob.getCronJobById({
     id: pageInfo.current.params.id,

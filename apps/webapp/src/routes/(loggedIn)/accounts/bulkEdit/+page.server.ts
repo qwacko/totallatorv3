@@ -1,4 +1,5 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import * as z from "zod";
@@ -87,3 +88,7 @@ export const actions = {
     redirect(302, form.data.prevPage);
   },
 };
+
+export const _routeConfig = {
+  searchParamsValidation: accountFilterSchema.catch({}),
+} satisfies SingleServerRouteConfig;

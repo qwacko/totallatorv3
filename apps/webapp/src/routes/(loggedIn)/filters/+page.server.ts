@@ -1,7 +1,9 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 
 import { reusableFilterToText } from "@totallator/business-logic";
 import { tActions } from "@totallator/business-logic";
+import { reusableFilterFilterSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo } from "$lib/routes.server.js";
@@ -56,3 +58,7 @@ export const actions = {
     }
   },
 };
+
+export const _routeConfig = {
+  searchParamsValidation: reusableFilterFilterSchema.optional().catch({}),
+} satisfies SingleServerRouteConfig;

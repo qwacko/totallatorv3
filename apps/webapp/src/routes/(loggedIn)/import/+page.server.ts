@@ -1,5 +1,8 @@
+import type { SingleServerRouteConfig } from "skroutes";
+
 import { importFilterToText } from "@totallator/business-logic";
 import { tActions } from "@totallator/business-logic";
+import { importFilterSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes.server";
@@ -23,3 +26,7 @@ export const load = async (data) => {
     needsRefresh,
   };
 };
+
+export const _routeConfig = {
+  searchParamsValidation: importFilterSchema.optional().catch({}),
+} satisfies SingleServerRouteConfig;

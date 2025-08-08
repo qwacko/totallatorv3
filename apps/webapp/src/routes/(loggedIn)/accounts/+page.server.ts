@@ -1,4 +1,5 @@
 import { error, redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import * as z from "zod";
@@ -6,7 +7,7 @@ import * as z from "zod";
 import { accountFilterToText } from "@totallator/business-logic";
 import { tActions } from "@totallator/business-logic";
 import { accountFilterArray } from "@totallator/business-logic";
-import { accountTypeEnum } from "@totallator/shared";
+import { accountFilterSchema, accountTypeEnum } from "@totallator/shared";
 import {
   defaultAllJournalFilter,
   type JournalFilterSchemaInputType,
@@ -18,6 +19,10 @@ import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.
 import { fileFormActions } from "$lib/server/fileFormActions";
 import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";
 import { noteFormActions } from "$lib/server/noteFormActions";
+
+export const _routeConfig = {
+  searchParamsValidation: accountFilterSchema.optional().catch({}),
+} satisfies SingleServerRouteConfig;
 
 export const load = async (data) => {
   authGuard(data);

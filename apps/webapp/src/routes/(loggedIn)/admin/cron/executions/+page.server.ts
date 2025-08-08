@@ -1,7 +1,18 @@
+import type { SingleServerRouteConfig } from "skroutes";
+
 import { tActions } from "@totallator/business-logic";
+import { cronExecutionFilterSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo } from "$lib/routes.server.js";
+
+export const _routeConfig = {
+  searchParamsValidation: cronExecutionFilterSchema.optional().catch({
+    page: 0,
+    pageSize: 25,
+    orderBy: [{ field: "startedAt", direction: "desc" }],
+  }),
+} satisfies SingleServerRouteConfig;
 
 export const load = async (data) => {
   authGuard(data);

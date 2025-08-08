@@ -1,4 +1,5 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { setError, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import * as z from "zod";
@@ -8,6 +9,7 @@ import { journalUpdateToText } from "@totallator/business-logic";
 import { tActions } from "@totallator/business-logic";
 import { journalFilterSchema, updateJournalSchema } from "@totallator/shared";
 import {
+  reusableFilterCreationURLParams,
   updateReusableFilterFormSchema,
   updateReusableFilterSchema,
 } from "@totallator/shared";
@@ -197,3 +199,8 @@ export const actions = {
     return { form };
   },
 };
+
+export const _routeConfig = {
+  paramsValidation: z.object({ id: z.string() }),
+  searchParamsValidation: reusableFilterCreationURLParams.optional(),
+} satisfies SingleServerRouteConfig;

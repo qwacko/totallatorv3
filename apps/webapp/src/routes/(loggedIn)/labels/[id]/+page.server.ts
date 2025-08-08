@@ -1,4 +1,5 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { message, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import * as z from "zod";
@@ -54,3 +55,7 @@ export const actions = {
     redirect(302, form.data.prevPage);
   },
 };
+
+export const _routeConfig = {
+  paramsValidation: z.object({ id: z.string() }),
+} satisfies SingleServerRouteConfig;

@@ -1,4 +1,5 @@
 import { error, redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import * as z from "zod";
@@ -6,6 +7,7 @@ import * as z from "zod";
 import { categoryFilterToText } from "@totallator/business-logic";
 import { tActions } from "@totallator/business-logic";
 import { categoryFilterArray } from "@totallator/business-logic";
+import { categoryFilterSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo } from "$lib/routes.server.js";
@@ -83,3 +85,7 @@ export const actions = {
     }
   },
 };
+
+export const _routeConfig = {
+  searchParamsValidation: categoryFilterSchema.optional().catch({}),
+} satisfies SingleServerRouteConfig;

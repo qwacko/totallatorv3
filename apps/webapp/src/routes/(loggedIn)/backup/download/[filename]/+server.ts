@@ -1,7 +1,14 @@
+import type { ServerRouteConfig } from "skroutes";
+import z from "zod";
+
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes.server";
+
+export const _routeConfig = {
+  paramsValidation: z.object({ filename: z.string() }),
+} satisfies ServerRouteConfig[string];
 
 export const GET = async (data) => {
   authGuard(data);

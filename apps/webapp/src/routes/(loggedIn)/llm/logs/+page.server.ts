@@ -1,4 +1,6 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
+import * as z from "zod";
 
 import { tActions } from "@totallator/business-logic";
 
@@ -40,3 +42,19 @@ export const load = async (data) => {
     llmSettings,
   };
 };
+
+export const _routeConfig = {
+  searchParamsValidation: z
+    .object({
+      page: z.coerce.number<number>().optional().default(0),
+      pageSize: z.coerce.number<number>().optional().default(20),
+      status: z.enum(["SUCCESS", "ERROR"]).optional(),
+      llmSettingsId: z.string().optional(),
+      dateFrom: z.string().optional(),
+      dateTo: z.string().optional(),
+      relatedJournalId: z.string().optional(),
+      orderBy: z.string().optional(),
+    })
+    .optional()
+    .catch({ page: 0, pageSize: 20 }),
+} satisfies SingleServerRouteConfig;

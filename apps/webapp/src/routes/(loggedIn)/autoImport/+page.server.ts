@@ -1,4 +1,7 @@
+import type { SingleServerRouteConfig } from "skroutes";
+
 import { tActions } from "@totallator/business-logic";
+import { autoImportFilterSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes.server";
@@ -46,3 +49,7 @@ export const actions = {
     }
   },
 };
+
+export const _routeConfig = {
+  searchParamsValidation: autoImportFilterSchema.optional().catch({}),
+} satisfies SingleServerRouteConfig;

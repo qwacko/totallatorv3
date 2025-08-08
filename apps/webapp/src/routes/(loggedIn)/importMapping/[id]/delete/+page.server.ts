@@ -1,6 +1,8 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 
 import { tActions } from "@totallator/business-logic";
+import { idSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
@@ -57,3 +59,7 @@ export const actions = {
     );
   },
 };
+
+export const _routeConfig = {
+  paramsValidation: idSchema,
+} satisfies SingleServerRouteConfig;

@@ -33,7 +33,7 @@ import {
 } from "@totallator/shared";
 import { associatedInfoFilterSchemaWithPagination } from "@totallator/shared";
 
-export const skConfig = {
+export const skConfigOld = {
   "/": {},
   "/(loggedIn)/backup": {
     searchParamsValidation: z

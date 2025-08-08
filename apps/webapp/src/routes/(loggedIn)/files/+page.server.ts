@@ -1,9 +1,16 @@
+import type { SingleServerRouteConfig } from "skroutes";
+
 import { tActions } from "@totallator/business-logic";
 import { fileMainFilterArray } from "@totallator/business-logic";
+import { fileFilterSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo } from "$lib/routes.server";
 import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";
+
+export const _routeConfig = {
+  searchParamsValidation: fileFilterSchema.optional().catch({}),
+} satisfies SingleServerRouteConfig;
 
 export const load = async (data) => {
   authGuard(data);

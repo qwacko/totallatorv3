@@ -1,4 +1,5 @@
 import { error, redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import * as z from "zod";
@@ -6,6 +7,7 @@ import * as z from "zod";
 import { budgetFilterToText } from "@totallator/business-logic";
 import { tActions } from "@totallator/business-logic";
 import { budgetFilterArray } from "@totallator/business-logic";
+import { budgetFilterSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo } from "$lib/routes.server.js";
@@ -13,6 +15,10 @@ import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.
 import { fileFormActions } from "$lib/server/fileFormActions";
 import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";
 import { noteFormActions } from "$lib/server/noteFormActions.js";
+
+export const _routeConfig = {
+  searchParamsValidation: budgetFilterSchema.optional().catch({}),
+} satisfies SingleServerRouteConfig;
 
 export const load = async (data) => {
   authGuard(data);

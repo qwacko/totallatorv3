@@ -1,9 +1,18 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
+import z from "zod";
 
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
+
+export const _routeConfig = {
+  searchParamsValidation: z
+    .object({ page: z.coerce.number<number>().optional().default(0) })
+    .optional()
+    .catch({ page: 0 }),
+} satisfies SingleServerRouteConfig;
 
 export const load = async (data) => {
   authGuard(data);

@@ -1,4 +1,5 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
 import { message, setError, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import * as z from "zod";
@@ -14,6 +15,7 @@ import {
 import {
   createReusableFilterFormSchema,
   createReusableFilterSchema,
+  reusableFilterCreationURLParams,
 } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
@@ -143,3 +145,7 @@ export const actions = {
     return;
   },
 };
+
+export const _routeConfig = {
+  searchParamsValidation: reusableFilterCreationURLParams.optional(),
+} satisfies SingleServerRouteConfig;

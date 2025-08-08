@@ -1,7 +1,18 @@
+import type { ServerRouteConfig } from "skroutes";
+import z from "zod";
+
 import { tActions } from "@totallator/business-logic";
+import { downloadTypeSchema, labelFilterSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { serverPageInfo } from "$lib/routes.server.js";
+
+export const _routeConfig = {
+  searchParamsValidation: z
+    .object({ ...labelFilterSchema.shape, ...downloadTypeSchema.shape })
+    .optional()
+    .catch({}),
+} satisfies ServerRouteConfig[string];
 
 export const GET = async (data) => {
   authGuard(data);

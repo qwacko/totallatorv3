@@ -1,10 +1,17 @@
 import { redirect } from "@sveltejs/kit";
+import type { SingleServerRouteConfig } from "skroutes";
+import z from "zod";
 
 import { tActions } from "@totallator/business-logic";
+import { createFileNoteRelationshipSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
 import { fileFormActions } from "$lib/server/fileFormActions.js";
+
+export const _routeConfig = {
+  searchParamsValidation: z.object(createFileNoteRelationshipSchema),
+} satisfies SingleServerRouteConfig;
 
 export const load = async (data) => {
   authGuard(data);

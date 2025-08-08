@@ -1,8 +1,15 @@
+import type { SingleServerRouteConfig } from "skroutes";
+import z from "zod";
+
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { defaultReportRedirect } from "$lib/helpers/defaultRedirect";
 import { serverPageInfo } from "$lib/routes.server";
+
+export const _routeConfig = {
+  paramsValidation: z.object({ id: z.string() }),
+} satisfies SingleServerRouteConfig;
 
 export const load = async (data) => {
   authGuard(data);
