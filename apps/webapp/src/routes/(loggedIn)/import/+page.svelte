@@ -9,8 +9,8 @@
   import { defaultJournalFilter } from "@totallator/shared";
 
   import { browser } from "$app/environment";
-  import { goto, invalidateAll, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { invalidateAll, onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import EditIcon from "$lib/components/icons/EditIcon.svelte";
@@ -18,24 +18,15 @@
   import PageLayout from "$lib/components/PageLayout.svelte";
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
   import { importColumnsStore } from "$lib/stores/columnDisplayStores";
 
   import { importProgressToText } from "./importProgressToText.js";
 
   const { data } = $props();
-  const urlInfo = $derived(pageInfo("/(loggedIn)/import", $page));
+  const urlInfo = pageInfo("/(loggedIn)/import", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/import",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+
 
   let filterOpened = $state(false);
 
@@ -65,27 +56,27 @@
     </Button>
   {/snippet}
 
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
-      highlightText={$urlStore.searchParams?.textFilter}
+      highlightText={urlInfo.current.searchParams?.textFilter}
       highlightTextColumns={["title", "mapping"]}
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.imports.page,
         count: data.imports.count,
         perPage: data.imports.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No Matching Imports Found"
       data={data.imports.data}
       currentOrder={data.searchParams?.orderBy}
       currentFilter={data.searchParams}
       filterModalTitle="Filter Imports"
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       bind:filterOpened
       columns={[
         { id: "actions", title: "" },
@@ -235,10 +226,10 @@
       {/snippet}
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <Input
               type="text"
-              bind:value={$urlStore.searchParams.textFilter}
+              bind:value={urlInfo.current.searchParams.textFilter}
               placeholder="Filter by Title / Mapping"
               class="flex grow"
             />

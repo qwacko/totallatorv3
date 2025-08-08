@@ -6,7 +6,7 @@ import { z } from "zod";
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 import { getCronService } from "$lib/server/cron/newCronService";
 
 import type { Actions } from "./$types";

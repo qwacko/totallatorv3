@@ -8,7 +8,7 @@ import { tActions } from "@totallator/business-logic";
 import { billFilterArray } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
-import { serverPageInfo } from "$lib/routes.js";
+import { serverPageInfo } from "$lib/routes.server.js";
 import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.js";
 import { fileFormActions } from "$lib/server/fileFormActions";
 import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";

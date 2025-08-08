@@ -1,9 +1,7 @@
 <script lang="ts">
   import { Button, ButtonGroup, Input } from "flowbite-svelte";
 
-  import { browser } from "$app/environment";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import DbQueryIcon from "$lib/components/icons/DBQueryIcon.svelte";
@@ -11,24 +9,15 @@
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
   import { sizeToText } from "$lib/helpers/sizeToText";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes";
+  import { pageInfo, urlGenerator } from "$lib/routes";
   import { groupedQueryColumnsStore } from "$lib/stores/columnDisplayStores";
 
   import GroupedChartQueryPopover from "./GroupedChartQueryPopover.svelte";
 
   const { data } = $props();
-  const urlInfo = $derived(pageInfo("/(loggedIn)/queries/grouped", $page));
+  const urlInfo = pageInfo("/(loggedIn)/queries/grouped", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/queries/grouped",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+
 </script>
 
 <CustomHeader
@@ -48,25 +37,25 @@
       Create
     </Button>
   {/snippet}
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.data.page,
         count: data.data.count,
         perPage: data.data.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No Matching Grouped Queries Found"
       data={data.data.data}
       currentOrder={data.searchParams?.orderBy}
       currentFilter={data.searchParams}
       filterModalTitle="Filter Grouped Queries"
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       columns={[
         { id: "actions", title: "" },
         {
@@ -189,10 +178,10 @@
       {/snippet}
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <Input
               type="text"
-              bind:value={$urlStore.searchParams.textFilter}
+              bind:value={urlInfo.current.searchParams.textFilter}
               placeholder="Filter..."
               class="flex grow"
             />

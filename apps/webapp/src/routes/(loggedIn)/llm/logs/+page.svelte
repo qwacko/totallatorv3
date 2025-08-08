@@ -1,30 +1,18 @@
 <script lang="ts">
   import { Badge, Button, Input, Select } from "flowbite-svelte";
 
-  import { browser } from "$app/environment";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import EyeIcon from "$lib/components/icons/EyeIcon.svelte";
   import PageLayout from "$lib/components/PageLayout.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
-  import { pageInfo, pageInfoStore } from "$lib/routes";
+  import { pageInfo } from "$lib/routes";
   import { llmLogColumnsStore } from "$lib/stores/columnDisplayStores.js";
 
   const { data } = $props();
-  const urlInfo = $derived(pageInfo("/(loggedIn)/llm/logs", $page));
+  const urlInfo = pageInfo("/(loggedIn)/llm/logs", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/llm/logs",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
 
   let filterOpened = $state(false);
 
@@ -69,11 +57,11 @@
     <Button href="/settings/llm" color="light" outline>Back to Settings</Button>
   {/snippet}
 
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
       filterText={[]}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({
+        urlInfo.updateParamsURLGenerator({
           searchParams: { orderBy: JSON.stringify(newSort) },
         }).url}
       paginationInfo={{
@@ -82,7 +70,7 @@
         perPage: data.pagination.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No LLM Logs Found"
       data={data.logs}
@@ -91,7 +79,7 @@
         : undefined}
       currentFilter={data.searchParams}
       filterModalTitle="Filter LLM Logs"
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       bind:filterOpened
       bind:shownColumns={$llmLogColumnsStore}
       columns={[
@@ -148,28 +136,28 @@
 
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <Select
               items={statusOptions}
-              bind:value={$urlStore.searchParams.status}
+              bind:value={urlInfo.current.searchParams.status}
               placeholder="Filter by status"
               class="w-48"
             />
             <Select
               items={llmSettingsOptions}
-              bind:value={$urlStore.searchParams.llmSettingsId}
+              bind:value={urlInfo.current.searchParams.llmSettingsId}
               placeholder="Filter by LLM setting"
               class="w-48"
             />
             <Input
               type="date"
-              bind:value={$urlStore.searchParams.dateFrom}
+              bind:value={urlInfo.current.searchParams.dateFrom}
               placeholder="From date"
               class="w-48"
             />
             <Input
               type="date"
-              bind:value={$urlStore.searchParams.dateTo}
+              bind:value={urlInfo.current.searchParams.dateTo}
               placeholder="To date"
               class="w-48"
             />

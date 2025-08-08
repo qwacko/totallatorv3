@@ -4,7 +4,7 @@
 
   import { accountTypeEnumSelection } from "@totallator/shared";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CheckboxInput from "$lib/components/CheckboxInput.svelte";
   import CombinedAccountTitleDisplay from "$lib/components/CombinedAccountTitleDisplay.svelte";
@@ -21,7 +21,7 @@
 
   const form = superForm(data.form);
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/accounts/create", $page));
+  const urlInfo = pageInfo("/(loggedIn)/accounts/create", () => page);
   const formData = $derived(form.form);
   const formErrors = $derived(form.errors);
   const enhance = $derived(form.enhance);
@@ -34,7 +34,7 @@
 <PageLayout title="Create Account" size="lg">
   <form method="POST" use:enhance class="grid grid-cols-1 gap-2 md:grid-cols-2">
     <PreviousUrlInput name="prevPage" />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     <TextInput
       title="Title"
       errorMessage={$formErrors.title}

@@ -7,9 +7,7 @@
     Input,
   } from "flowbite-svelte";
 
-  import { browser } from "$app/environment";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import FilterIcon from "$lib/components/icons/FilterIcon.svelte";
@@ -17,25 +15,16 @@
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
   import { sizeToText } from "$lib/helpers/sizeToText";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes";
+  import { pageInfo, urlGenerator } from "$lib/routes";
   import { queryColumnsStore } from "$lib/stores/columnDisplayStores";
 
   import QueryDetailModal from "./QueryDetailModal.svelte";
   import QueryXyChart from "./QueryXYChart.svelte";
 
   const { data } = $props();
-  const urlInfo = $derived(pageInfo("/(loggedIn)/queries/list", $page));
+  const urlInfo = pageInfo("/(loggedIn)/queries/list", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/queries/list",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+
 </script>
 
 <CustomHeader
@@ -49,25 +38,25 @@
   {#await data.xyData then xyData}
     <QueryXyChart data={xyData} />
   {/await}
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.data.page,
         count: data.data.count,
         perPage: data.data.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No Matching Queries Found"
       data={data.data.data}
       currentOrder={data.searchParams?.orderBy}
       currentFilter={data.searchParams}
       filterModalTitle="Filter Queries"
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       columns={[
         { id: "actions", title: "" },
         {
@@ -128,7 +117,7 @@
                 size="xs"
                 outline
                 class="border-0"
-                href={urlInfo.updateParams({
+                href={urlInfo.updateParamsURLGenerator({
                   searchParams: {
                     titleIdArray: [currentRow.titleId],
                   },
@@ -148,7 +137,7 @@
             <Button size="xs" outline class="border-0"><FilterIcon /></Button>
             <Dropdown simple>
               <DropdownItem
-                href={urlInfo.updateParams({
+                href={urlInfo.updateParamsURLGenerator({
                   searchParams: {
                     start: currentRow.time.toISOString(),
                     end: currentRow.time.toISOString(),
@@ -165,7 +154,7 @@
                   currentRow.time.getTime() + currentOffset * 60 * 1000,
                 )}
                 <DropdownItem
-                  href={urlInfo.updateParams({
+                  href={urlInfo.updateParamsURLGenerator({
                     searchParams: {
                       start: start.toISOString(),
                       end: end.toISOString(),
@@ -185,7 +174,7 @@
             <Button size="xs" outline class="border-0"><FilterIcon /></Button>
             <Dropdown simple>
               <DropdownItem
-                href={urlInfo.updateParams({
+                href={urlInfo.updateParamsURLGenerator({
                   searchParams: {
                     minDuration: duration,
                     maxDuration: duration,
@@ -198,7 +187,7 @@
                 {@const max = duration + span}
                 {@const min = Math.max(duration - span, 0)}
                 <DropdownItem
-                  href={urlInfo.updateParams({
+                  href={urlInfo.updateParamsURLGenerator({
                     searchParams: { minDuration: min, maxDuration: max },
                   }).url}
                 >
@@ -211,10 +200,10 @@
       {/snippet}
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <Input
               type="text"
-              bind:value={$urlStore.searchParams.textFilter}
+              bind:value={urlInfo.current.searchParams.textFilter}
               placeholder="Filter..."
               class="flex grow"
             />

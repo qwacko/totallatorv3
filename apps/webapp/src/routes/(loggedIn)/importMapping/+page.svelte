@@ -1,10 +1,9 @@
 <script lang="ts">
   import { Button, ButtonGroup, DropdownItem, Input } from "flowbite-svelte";
 
-  import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
-  import { goto, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import CloneIcon from "$lib/components/icons/CloneIcon.svelte";
@@ -14,23 +13,14 @@
   import PageLayout from "$lib/components/PageLayout.svelte";
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes";
+  import { pageInfo, urlGenerator } from "$lib/routes";
   import { importMappingColumnStore } from "$lib/stores/columnDisplayStores";
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/importMapping", $page));
+  const urlInfo = pageInfo("/(loggedIn)/importMapping", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/importMapping",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+
 
   let filterOpened = $state(false);
 
@@ -57,27 +47,27 @@
     </Button>
   {/snippet}
 
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
-      highlightText={$urlStore.searchParams?.combinedText}
+      highlightText={urlInfo.current.searchParams?.combinedText}
       highlightTextColumns={["title", "configuration"]}
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.importMappings.page,
         count: data.importMappings.count,
         perPage: data.importMappings.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No Matching Filters Found"
       data={data.importMappings.data}
       currentOrder={data.searchParams?.orderBy}
       currentFilter={data.searchParams}
       filterModalTitle="Filter Reusable Filters"
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       bind:shownColumns={$importMappingColumnStore}
       bind:filterOpened
       columns={[
@@ -150,17 +140,17 @@
           {#if row.configuration}
             <ObjectTable
               data={row.configuration}
-              highlightText={$urlStore.searchParams?.combinedText}
+              highlightText={urlInfo.current.searchParams?.combinedText}
             />
           {/if}
         {/if}
       {/snippet}
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <Input
               type="text"
-              bind:value={$urlStore.searchParams.combinedText}
+              bind:value={urlInfo.current.searchParams.combinedText}
               placeholder="Filter by Title / Configuration"
               class="flex grow"
             />
@@ -168,12 +158,12 @@
         </div>
       {/snippet}
       {#snippet slotHeaderItem({ currentColumn })}
-        {#if $urlStore.searchParams}
+        {#if urlInfo.current.searchParams}
           {#if currentColumn.id === "title"}
             <DropdownItem>
               <Input
                 type="text"
-                bind:value={$urlStore.searchParams.title}
+                bind:value={urlInfo.current.searchParams.title}
                 placeholder="Title Filter"
               />
             </DropdownItem>
@@ -181,7 +171,7 @@
             <DropdownItem>
               <Input
                 type="text"
-                bind:value={$urlStore.searchParams.configuration}
+                bind:value={urlInfo.current.searchParams.configuration}
                 placeholder="Configuration Filter"
               />
             </DropdownItem>

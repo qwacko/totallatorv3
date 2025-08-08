@@ -2,7 +2,7 @@
   import { Button, Heading } from "flowbite-svelte";
   import { superForm } from "sveltekit-superforms";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import PageLayout from "$lib/components/PageLayout.svelte";
@@ -16,7 +16,7 @@
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/journals/clone", $page));
+  const urlInfo = pageInfo("/(loggedIn)/journals/clone", () => page);
 
   const form = superForm(data.form);
 
@@ -45,7 +45,7 @@
       name="filter"
       value={JSON.stringify(urlInfo.current.searchParams)}
     />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     <CloneJournalForm {form} />
     <CloneJournalLinksForm {form} />
     <UpdateJournalLabelsForm

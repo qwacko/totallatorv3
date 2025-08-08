@@ -11,7 +11,7 @@ import {
 } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
-import { serverPageInfo, urlGenerator } from "$lib/routes.js";
+import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server.js";
 import { bufferingHelper } from "$lib/server/bufferingHelper.js";
 
 export const load = async (data) => {
@@ -78,7 +78,7 @@ export const actions = {
     }
     redirect(
       302,
-      urlGenerator({
+      urlGeneratorServer({
         address: "/(loggedIn)/importMapping",
         searchParamsValue: {},
       }).url,

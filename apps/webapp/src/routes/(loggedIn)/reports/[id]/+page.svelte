@@ -13,10 +13,9 @@
     getDateSpanDropdown,
   } from "@totallator/shared";
 
-  import { browser } from "$app/environment";
   import { applyAction, enhance } from "$app/forms";
   import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import ArrowDownIcon from "$lib/components/icons/ArrowDownIcon.svelte";
@@ -28,7 +27,7 @@
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import ReportGridItem from "$lib/components/report/ReportGridItem.svelte";
   import ReportGridWrapper from "$lib/components/report/ReportGridWrapper.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
 
   import ReportElementDisplay from "./ReportElementDisplay.svelte";
   import ReportFilterModal from "./ReportFilterModal.svelte";
@@ -36,20 +35,12 @@
 
   const { data } = $props();
 
+
   let edit = $state(false);
   let saving = $state(false);
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/accounts", $page));
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/reports/[id]",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+  const urlInfo = pageInfo("/(loggedIn)/reports/[id]", () => page);
+
 
   const reportData = $derived(reportLayoutStore(data.report));
   const reportLayoutStringStore = $derived(reportData.reportLayoutStringStore);
@@ -57,10 +48,10 @@
   const updateDateSpan = (event: Event) => {
     const targetDateSpan = (event.target as HTMLSelectElement)
       .value as DateSpanEnumType;
-    if ($urlStore.searchParams) {
-      $urlStore.searchParams.dateSpan = targetDateSpan;
+    if (urlInfo.current.searchParams) {
+      urlInfo.current.searchParams.dateSpan = targetDateSpan;
     } else {
-      $urlStore.searchParams = { dateSpan: targetDateSpan };
+      urlInfo.current.searchParams = { dateSpan: targetDateSpan };
     }
   };
 </script>

@@ -5,7 +5,7 @@
   import { accountTypeEnumSelection } from "@totallator/shared";
   import { statusEnumSelection } from "@totallator/shared";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CheckboxInput from "$lib/components/CheckboxInput.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
@@ -20,7 +20,7 @@
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/accounts/bulkEdit", $page));
+  const urlInfo = pageInfo("/(loggedIn)/accounts/bulkEdit", () => page);
 
   const form = superForm(data.form, {});
 
@@ -38,7 +38,7 @@
   <FilterTextDisplay text={data.filterText} />
   <form method="post" class="grid grid-cols-1 gap-4 md:grid-cols-2" use:enhance>
     <PreviousUrlInput name="prevPage" />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     <input
       type="hidden"
       name="filter"

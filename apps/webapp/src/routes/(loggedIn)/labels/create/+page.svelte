@@ -2,7 +2,7 @@
   import { Button } from "flowbite-svelte";
   import { superForm } from "sveltekit-superforms";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import ErrorText from "$lib/components/ErrorText.svelte";
@@ -15,7 +15,7 @@
 
   const { form, errors, constraints, message, enhance } = superForm(data.form);
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/labels/create", $page));
+  const urlInfo = pageInfo("/(loggedIn)/labels/create", () => page);
 </script>
 
 <CustomHeader pageTitle="New Label" />
@@ -23,7 +23,7 @@
 <PageLayout title="Create Label" size="xs">
   <form method="POST" use:enhance class="flex flex-col gap-2">
     <PreviousUrlInput name="prevPage" />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     <TextInput
       title="Title"
       errorMessage={$errors.title}

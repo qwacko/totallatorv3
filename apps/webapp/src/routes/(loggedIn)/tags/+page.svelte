@@ -5,10 +5,9 @@
   import { defaultJournalFilter } from "@totallator/shared";
   import { summaryColumns } from "@totallator/shared";
 
-  import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
-  import { goto, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
 
   import AssociatedInfoButtonPromise from "$lib/components/AssociatedInfoButtonPromise.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
@@ -23,22 +22,13 @@
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import SearchInput from "$lib/components/SearchInput.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
   import { tagColumnsStore } from "$lib/stores/columnDisplayStores.js";
 
   const { data } = $props();
-  const urlInfo = $derived(pageInfo("/(loggedIn)/tags", $page));
+  const urlInfo = pageInfo("/(loggedIn)/tags", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/tags",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+
 
   let filterOpened = $state(false);
 
@@ -68,27 +58,27 @@
     filter={{ tag: data.searchParams }}
     latestUpdate={data.latestUpdate}
   />
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
-      highlightText={$urlStore.searchParams?.title}
+      highlightText={urlInfo.current.searchParams?.title}
       highlightTextColumns={["title", "group", "single"]}
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.tags.page,
         count: data.tags.count,
         perPage: data.tags.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No Matching Tags Found"
       data={data.tags.data}
       currentOrder={data.searchParams?.orderBy}
       currentFilter={data.searchParams}
       filterModalTitle="Filter Tags"
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       bind:filterOpened
       columns={[
         { id: "actions", title: "" },
@@ -203,16 +193,16 @@
           urlGenerator={(downloadType) =>
             urlGenerator({
               address: "/(loggedIn)/tags/download",
-              searchParamsValue: { ...$urlStore.searchParams, downloadType },
+              searchParamsValue: { ...urlInfo.current.searchParams, downloadType },
             }).url}
         />
       {/snippet}
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <SearchInput
               type="text"
-              bind:value={$urlStore.searchParams.textFilter}
+              bind:value={urlInfo.current.searchParams.textFilter}
               placeholder="Filter..."
               class="flex grow"
               keys={data.autocompleteKeys}
@@ -221,7 +211,7 @@
         </div>
       {/snippet}
       {#snippet slotFilterModal()}
-        <TagFilter bind:filter={$urlStore.searchParams} />
+        <TagFilter bind:filter={urlInfo.current.searchParams} />
       {/snippet}
     </CustomTable>{/if}
 </PageLayout>

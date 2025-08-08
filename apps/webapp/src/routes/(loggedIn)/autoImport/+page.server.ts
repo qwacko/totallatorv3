@@ -1,7 +1,7 @@
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.js";
 import { fileFormActions } from "$lib/server/fileFormActions";
 import { noteFormActions } from "$lib/server/noteFormActions";

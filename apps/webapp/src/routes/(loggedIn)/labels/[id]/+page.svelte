@@ -4,7 +4,7 @@
 
   import { statusEnumSelectionWithoutDeleted } from "@totallator/shared";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CombinedTitleDisplay from "$lib/components/CombinedTitleDisplay.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
@@ -20,7 +20,7 @@
 
   const { form, errors, constraints, message, enhance } = superForm(data.form);
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/labels/[id]", $page));
+  const urlInfo = pageInfo("/(loggedIn)/labels/[id]", () => page);
   const deleteURL = $derived(
     urlGenerator({
       address: "/(loggedIn)/labels/[id]/delete",
@@ -35,7 +35,7 @@
   <form method="POST" class="flex flex-col gap-2" use:enhance>
     <input type="hidden" name="id" value={data.label.id} />
     <PreviousUrlInput name="prevPage" />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     <TextInput
       title="Title"
       errorMessage={$errors.title}

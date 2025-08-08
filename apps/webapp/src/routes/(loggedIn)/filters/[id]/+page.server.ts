@@ -14,7 +14,7 @@ import {
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { reusableFilterPageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { serverPageInfo, urlGenerator } from "$lib/routes";
+import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
 import { bufferingHelper } from "$lib/server/bufferingHelper.js";
 
 export const load = async (data) => {
@@ -26,8 +26,10 @@ export const load = async (data) => {
   if (!current.params || !current.searchParams) {
     redirect(
       302,
-      urlGenerator({ address: "/(loggedIn)/filters", searchParamsValue: {} })
-        .url,
+      urlGeneratorServer({
+        address: "/(loggedIn)/filters",
+        searchParamsValue: {},
+      }).url,
     );
   }
 
@@ -38,8 +40,10 @@ export const load = async (data) => {
   if (!reusableFilter) {
     redirect(
       302,
-      urlGenerator({ address: "/(loggedIn)/filters", searchParamsValue: {} })
-        .url,
+      urlGeneratorServer({
+        address: "/(loggedIn)/filters",
+        searchParamsValue: {},
+      }).url,
     );
   }
 

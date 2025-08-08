@@ -3,7 +3,7 @@ import { redirect } from "@sveltejs/kit";
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
-import { serverPageInfo, urlGenerator } from "$lib/routes";
+import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
 
 export const load = async (data) => {
   authGuard(data);
@@ -12,7 +12,7 @@ export const load = async (data) => {
   if (!current.params) {
     redirect(
       302,
-      urlGenerator({
+      urlGeneratorServer({
         address: "/(loggedIn)/importMapping",
         searchParamsValue: {},
       }).url,
@@ -26,7 +26,7 @@ export const load = async (data) => {
   if (!importMappingInfo) {
     redirect(
       302,
-      urlGenerator({
+      urlGeneratorServer({
         address: "/(loggedIn)/importMapping",
         searchParamsValue: {},
       }).url,
@@ -50,7 +50,7 @@ export const actions = {
       302,
       prevPage
         ? prevPage.toString()
-        : urlGenerator({
+        : urlGeneratorServer({
             address: "/(loggedIn)/filters",
             searchParamsValue: {},
           }).url,

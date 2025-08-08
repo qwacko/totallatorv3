@@ -2,7 +2,7 @@
   import { Button } from "flowbite-svelte";
 
   import { enhance } from "$app/forms";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import PageLayout from "$lib/components/PageLayout.svelte";
@@ -13,7 +13,7 @@
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/journals/clone", $page));
+  const urlInfo = pageInfo("/(loggedIn)/journals/clone", () => page);
 </script>
 
 <CustomHeader
@@ -31,7 +31,7 @@
       name="filter"
       value={JSON.stringify(urlInfo.current.searchParams)}
     />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     <Button class="w-full" type="submit">Delete {data.count} Journals</Button>
     <PrevPageButton outline>Cancel</PrevPageButton>
   </form>

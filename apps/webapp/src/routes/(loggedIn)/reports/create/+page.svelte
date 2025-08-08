@@ -2,7 +2,7 @@
   import { Button } from "flowbite-svelte";
   import { superForm } from "sveltekit-superforms";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import ActionButton from "$lib/components/ActionButton.svelte";
   import ComboSelectForm from "$lib/components/ComboSelectForm.svelte";
@@ -35,7 +35,7 @@
   const message = $derived(formAll.message);
   const enhance = $derived(formAll.enhance);
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/reports/create", $page));
+  const urlInfo = pageInfo("/(loggedIn)/reports/create", () => page);
 
   let loading = $state(false);
 </script>
@@ -45,7 +45,7 @@
 <PageLayout title="Create Report" size="sm">
   <form method="POST" use:enhance class="flex flex-col gap-2">
     <PreviousUrlInput name="prevPage" />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     <TextInput
       title="Title"
       errorMessage={$errors.title}

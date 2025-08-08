@@ -4,7 +4,7 @@ import superjson from "superjson";
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 
 export const GET = async (data) => {
   authGuard(data);

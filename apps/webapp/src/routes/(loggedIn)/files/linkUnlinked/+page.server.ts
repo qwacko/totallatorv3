@@ -3,7 +3,7 @@ import { redirect } from "@sveltejs/kit";
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo, urlGenerator } from "$lib/routes";
+import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
 import { fileFormActions } from "$lib/server/fileFormActions.js";
 
 export const load = async (data) => {
@@ -13,7 +13,10 @@ export const load = async (data) => {
   if (!current.searchParams) {
     redirect(
       302,
-      urlGenerator({ address: "/(loggedIn)/files", searchParamsValue: {} }).url,
+      urlGeneratorServer({
+        address: "/(loggedIn)/files",
+        searchParamsValue: {},
+      }).url,
     );
   }
 

@@ -13,7 +13,7 @@ import {
 } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.js";
 import { fileFormActions } from "$lib/server/fileFormActions";
 import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";

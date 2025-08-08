@@ -12,7 +12,7 @@
   import { z } from "zod";
 
   import { onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import CronIcon from "$lib/components/icons/CronIcon.svelte";
@@ -25,7 +25,7 @@
 
   const { data, form }: { data: PageData; form: ActionData } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/admin/cron", $page));
+  const urlInfo = pageInfo("/(loggedIn)/admin/cron", () => page);
 
   let filterOpened = $state(false);
   let shownColumns = $state([
@@ -215,7 +215,7 @@
       bind:shownColumns
       bind:filterOpened
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       currentOrder={urlInfo.current.searchParams.orderBy}
       columns={[
         { id: "actions", title: "" },

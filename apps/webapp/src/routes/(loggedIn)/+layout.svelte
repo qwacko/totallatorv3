@@ -7,7 +7,7 @@
     DropdownItem,
   } from "flowbite-svelte";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import FilterDropdown from "$lib/components/FilterDropdown.svelte";
   import FilterSelectionModal from "$lib/components/FilterSelectionModal.svelte";
@@ -45,55 +45,55 @@
     $userInfoUpdateStore = data.user;
   });
 
-  const pageIsBills = $derived($page.route.id?.startsWith("/(loggedIn)/bills"));
-  const pageIsTags = $derived($page.route.id?.startsWith("/(loggedIn)/tags"));
+  const pageIsBills = $derived(page.route.id?.startsWith("/(loggedIn)/bills"));
+  const pageIsTags = $derived(page.route.id?.startsWith("/(loggedIn)/tags"));
   const pageIsLabels = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/labels"),
+    page.route.id?.startsWith("/(loggedIn)/labels"),
   );
   const pageIsBudgets = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/budgets"),
+    page.route.id?.startsWith("/(loggedIn)/budgets"),
   );
   const pageIsCategories = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/categories"),
+    page.route.id?.startsWith("/(loggedIn)/categories"),
   );
   const pageIsAccounts = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/accounts"),
+    page.route.id?.startsWith("/(loggedIn)/accounts"),
   );
-  const pageIsDev = $derived($page.route.id?.startsWith("/(loggedIn)/dev"));
+  const pageIsDev = $derived(page.route.id?.startsWith("/(loggedIn)/dev"));
   const pageIsImportMapping = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/importMapping"),
+    page.route.id?.startsWith("/(loggedIn)/importMapping"),
   );
   const pageIsAutoImport = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/autoImport"),
+    page.route.id?.startsWith("/(loggedIn)/autoImport"),
   );
   const pageIsImport = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/import") && !pageIsImportMapping,
+    page.route.id?.startsWith("/(loggedIn)/import") && !pageIsImportMapping,
   );
   const pageIsBackup = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/backup"),
+    page.route.id?.startsWith("/(loggedIn)/backup"),
   );
   const pageIsCurrentUser = $derived(
-    data.user?.id ? $page.url.toString().includes(data.user.id) : false,
+    data.user?.id ? page.url.toString().includes(data.user.id) : false,
   );
   const pageIsUsers = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/users") && !pageIsCurrentUser,
+    page.route.id?.startsWith("/(loggedIn)/users") && !pageIsCurrentUser,
   );
   const pageIsFilters = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/filters"),
+    page.route.id?.startsWith("/(loggedIn)/filters"),
   );
-  const pageIsFiles = $derived($page.route.id?.startsWith("/(loggedIn)/files"));
+  const pageIsFiles = $derived(page.route.id?.startsWith("/(loggedIn)/files"));
   const pageIsQueryLog = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/queries/list"),
+    page.route.id?.startsWith("/(loggedIn)/queries/list"),
   );
   const pageIsGroupedQueries = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/queries/grouped"),
+    page.route.id?.startsWith("/(loggedIn)/queries/grouped"),
   );
   const pageIsSettings = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/settings"),
+    page.route.id?.startsWith("/(loggedIn)/settings"),
   );
-  const pageIsLLM = $derived($page.route.id?.startsWith("/(loggedIn)/llm"));
+  const pageIsLLM = $derived(page.route.id?.startsWith("/(loggedIn)/llm"));
   const pageIsCron = $derived(
-    $page.route.id?.startsWith("/(loggedIn)/admin/cron"),
+    page.route.id?.startsWith("/(loggedIn)/admin/cron"),
   );
 
   const pageMap = $derived([

@@ -12,7 +12,7 @@ import {
 import type { ImportFilterSchemaType } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo, urlGenerator } from "$lib/routes";
+import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
 import { bufferingHelper } from "$lib/server/bufferingHelper.js";
 
 export const load = async (data) => {
@@ -23,7 +23,7 @@ export const load = async (data) => {
   if (!current.params) {
     redirect(
       302,
-      urlGenerator({
+      urlGeneratorServer({
         address: "/(loggedIn)/importMapping",
         searchParamsValue: {},
       }).url,
@@ -37,7 +37,7 @@ export const load = async (data) => {
   if (!importMapping) {
     redirect(
       302,
-      urlGenerator({
+      urlGeneratorServer({
         address: "/(loggedIn)/importMapping",
         searchParamsValue: {},
       }).url,
@@ -125,7 +125,7 @@ export const actions = {
     redirect(
       302,
       prevPage ||
-        urlGenerator({
+        urlGeneratorServer({
           address: "/(loggedIn)/importMapping",
           searchParamsValue: {},
         }).url,

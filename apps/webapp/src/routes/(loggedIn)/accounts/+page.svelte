@@ -6,10 +6,9 @@
   import { accountTypeEnum, accountTypeToDisplay } from "@totallator/shared";
   import { summaryColumns } from "@totallator/shared";
 
-  import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
-  import { goto, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import {  onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
 
   import AccountTypeFilterLinks from "$lib/components/AccountTypeFilterLinks.svelte";
   import AssociatedInfoButtonPromise from "$lib/components/AssociatedInfoButtonPromise.svelte";
@@ -25,23 +24,14 @@
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import SearchInput from "$lib/components/SearchInput.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
   import { accountColumnsStore } from "$lib/stores/columnDisplayStores.js";
   import { currencyFormat } from "$lib/stores/userInfoStore.js";
 
   const { data } = $props();
-  const urlInfo = $derived(pageInfo("/(loggedIn)/accounts", $page));
+  const urlInfo = pageInfo("/(loggedIn)/accounts", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/accounts",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 1000,
-  });
+
 
   let filterOpened = $state(false);
 
@@ -72,7 +62,7 @@
     latestUpdate={data.latestUpdate}
   />
   <CustomTable
-    highlightText={$urlStore.searchParams?.accountTitleCombined}
+    highlightText={urlInfo.current.searchParams?.accountTitleCombined}
     highlightTextColumns={[
       "title",
       "accountGroup",
@@ -81,14 +71,14 @@
     ]}
     filterText={data.filterText}
     onSortURL={(newSort) =>
-      urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+      urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
     paginationInfo={{
       page: data.accounts.page,
       count: data.accounts.count,
       perPage: data.accounts.pageSize,
       buttonCount: 5,
       urlForPage: (value) =>
-        urlInfo.updateParams({ searchParams: { page: value } }).url,
+        urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
     }}
     noneFoundText="No Matching Accounts Found"
     data={data.accounts.data}
@@ -187,7 +177,7 @@
           href={urlGenerator({
             address: "/(loggedIn)/accounts/bulkEdit",
             searchParamsValue: {
-              ...$urlStore.searchParams,
+              ...urlInfo.current.searchParams,
               page: 0,
               pageSize: 1000000,
             },
@@ -281,32 +271,32 @@
         urlGenerator={(downloadType) =>
           urlGenerator({
             address: "/(loggedIn)/accounts/download",
-            searchParamsValue: { ...$urlStore.searchParams, downloadType },
+            searchParamsValue: { ...urlInfo.current.searchParams, downloadType },
           }).url}
       />
     {/snippet}
     {#snippet slotFilter()}
       <div class="flex flex-col gap-2 md:flex-row">
-        {#if $urlStore.searchParams}
+        {#if urlInfo.current.searchParams}
           <SearchInput
             type="text"
-            bind:value={$urlStore.searchParams.textFilter}
+            bind:value={urlInfo.current.searchParams.textFilter}
             placeholder="Filter..."
             class="flex grow"
             keys={data.autocompleteKeys}
           />
           <div class="flex self-center">
             <AccountTypeFilterLinks
-              type={$urlStore.searchParams.type}
+              type={urlInfo.current.searchParams.type}
               generateURL={(newType) =>
-                urlInfo.updateParams({ searchParams: { type: newType } }).url}
+                urlInfo.updateParamsURLGenerator({ searchParams: { type: newType } }).url}
             />
           </div>
         {/if}
       </div>
     {/snippet}
     {#snippet slotFilterModal()}
-      <AccountFilter bind:filter={$urlStore.searchParams} />
+      <AccountFilter bind:filter={urlInfo.current.searchParams} />
     {/snippet}
   </CustomTable>
 </PageLayout>

@@ -11,7 +11,6 @@ export default defineConfig(({ mode }): ViteUserConfig => {
     },
     plugins: [
       tailwindcss(),
-      //@ts-expect-error NOt sure on the issue here but it does work
       sveltekit(),
       Icons({
         compiler: "svelte",

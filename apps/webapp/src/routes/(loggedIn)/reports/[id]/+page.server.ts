@@ -6,7 +6,7 @@ import { journalFilterSchemaWithoutPagination } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { failWrapper } from "$lib/helpers/customEnhance";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 
 export const load = async (data) => {
   authGuard(data);

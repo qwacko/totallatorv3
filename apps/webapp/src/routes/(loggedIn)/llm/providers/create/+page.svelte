@@ -2,7 +2,7 @@
   import { Button, Helper, Select, Toggle } from "flowbite-svelte";
   import { superForm } from "sveltekit-superforms";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import ErrorText from "$lib/components/ErrorText.svelte";
@@ -14,7 +14,7 @@
   const { data } = $props();
 
   const { form, errors, constraints, message, enhance } = superForm(data.form);
-  const urlInfo = $derived(pageInfo("/(loggedIn)/llm/providers/create", $page));
+  const urlInfo = pageInfo("/(loggedIn)/llm/providers/create", () => page);
 
   // Provider configuration
   const predefinedProviders = data.predefinedProviders;
@@ -51,7 +51,7 @@
 <PageLayout title="Create LLM Provider" size="sm">
   <form method="POST" use:enhance class="flex flex-col gap-4">
     <PreviousUrlInput name="prevPage" />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
 
     <div>
       <label

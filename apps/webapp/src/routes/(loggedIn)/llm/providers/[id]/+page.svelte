@@ -2,7 +2,7 @@
   import { Button, ButtonGroup, Helper, Select } from "flowbite-svelte";
   import { superForm } from "sveltekit-superforms";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import ErrorText from "$lib/components/ErrorText.svelte";
@@ -16,7 +16,7 @@
 
   const { form, errors, constraints, message, enhance } = superForm(data.form);
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/llm/providers/[id]", $page));
+  const urlInfo = pageInfo("/(loggedIn)/llm/providers/[id]", () => page);
 
   // Provider configuration
   const predefinedProviders = data.predefinedProviders;
@@ -84,7 +84,7 @@
   <form method="POST" class="flex flex-col gap-4" use:enhance>
     <input type="hidden" name="id" value={data.provider.id} />
     <PreviousUrlInput name="prevPage" />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
 
     <TextInput
       title="Title"

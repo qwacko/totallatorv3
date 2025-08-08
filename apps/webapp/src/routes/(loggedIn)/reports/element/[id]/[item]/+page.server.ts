@@ -7,7 +7,7 @@ import { reportConfigPartFormSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { defaultReportRedirect } from "$lib/helpers/defaultRedirect.js";
-import { serverPageInfo, urlGenerator } from "$lib/routes";
+import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
 
 export const load = async (data) => {
   authGuard(data);
@@ -27,7 +27,7 @@ export const load = async (data) => {
   if (!itemData) {
     redirect(
       302,
-      urlGenerator({
+      urlGeneratorServer({
         address: "/(loggedIn)/reports/element/[id]",
         paramsValue: {
           id: pageInfo.current.params.id,

@@ -1,7 +1,7 @@
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 
 export const GET = async (data) => {
   authGuard(data);
@@ -26,7 +26,9 @@ export const GET = async (data) => {
     returnRaw: true,
   })) as Buffer;
 
-  return new Response(fileData, {
+  const uint8Data = new Uint8Array(fileData);
+
+  return new Response(uint8Data, {
     status: 200,
     headers: {
       "Content-Type": "application/octet-stream",

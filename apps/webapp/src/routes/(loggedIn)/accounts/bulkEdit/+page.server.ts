@@ -9,7 +9,10 @@ import { accountFilterSchema, updateAccountSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { accountPageAndFilterValidation } from "$lib/pageAndFilterValidation.js";
-import { serverPageInfo, urlGenerator } from "$lib/routes";
+import {
+  serverPageInfo,
+  urlGeneratorServer as urlGenerator,
+} from "$lib/routes.server";
 
 export const load = async (data) => {
   authGuard(data);

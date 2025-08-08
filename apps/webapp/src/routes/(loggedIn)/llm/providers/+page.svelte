@@ -4,10 +4,8 @@
   // Provider display utilities
   import { clientHelpers } from "@totallator/business-logic/client";
 
-  import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
-  import { goto, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import {  onNavigate } from "$app/navigation";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import DeleteIcon from "$lib/components/icons/DeleteIcon.svelte";
@@ -19,31 +17,12 @@
   import CustomTable from "$lib/components/table/CustomTable.svelte";
   import { urlGenerator } from "$lib/routes.js";
   import { llmProviderColumnsStore } from "$lib/stores/columnDisplayStores.js";
-  import { notificationStore } from "$lib/stores/notificationStore.js";
 
   const { data } = $props();
 
   let filterOpened = $state(false);
   let processingJournals = $state(false);
 
-  // Check for success message from URL params
-  $effect(() => {
-    if ($page.url.searchParams.get("processed") === "true") {
-      notificationStore.send({
-        title: "LLM Processing Complete",
-        type: "success",
-        message: "Journals have been processed successfully",
-        duration: 2000,
-      });
-
-      // Clean up URL
-      if (browser) {
-        const url = new URL($page.url);
-        url.searchParams.delete("processed");
-        goto(url.toString(), { replaceState: true });
-      }
-    }
-  });
 
   onNavigate(() => {
     filterOpened = false;

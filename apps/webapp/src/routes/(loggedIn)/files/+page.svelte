@@ -4,10 +4,9 @@
   import { fileTypeToText } from "@totallator/shared";
   import { fileReasonToText } from "@totallator/shared";
 
-  import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
-  import { goto, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
 
   import ActionButton from "$lib/components/ActionButton.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
@@ -28,24 +27,14 @@
   import SearchInput from "$lib/components/SearchInput.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
   import { customEnhance } from "$lib/helpers/customEnhance";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes";
+  import { pageInfo, urlGenerator } from "$lib/routes";
   import { fileColumnsStore } from "$lib/stores/columnDisplayStores";
 
   import { fileSizeToText } from "./fileSizeToText";
 
   const { data } = $props();
-  const urlInfo = $derived(pageInfo("/(loggedIn)/files", $page));
+  const urlInfo = pageInfo("/(loggedIn)/files", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/files",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
 
   let filterOpened = $state(false);
 
@@ -89,25 +78,25 @@
       Create
     </Button>
   {/snippet}
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.files.page,
         count: data.files.count,
         perPage: data.files.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No Matching Files Found"
       data={data.files.data}
       currentOrder={data.searchParams?.orderBy}
       currentFilter={data.searchParams}
       filterModalTitle="Filter Files"
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       bind:filterOpened
       columns={[
         { id: "actions", title: "" },
@@ -331,10 +320,10 @@
       {/snippet}
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <SearchInput
               type="text"
-              bind:value={$urlStore.searchParams.textFilter}
+              bind:value={urlInfo.current.searchParams.textFilter}
               placeholder="Filter..."
               class="flex grow"
               keys={data.autocompleteKeys}

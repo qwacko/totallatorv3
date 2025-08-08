@@ -5,10 +5,9 @@
   import { defaultJournalFilter } from "@totallator/shared";
   import { summaryColumns } from "@totallator/shared";
 
-  import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
-  import { goto, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
 
   import AssociatedInfoButtonPromise from "$lib/components/AssociatedInfoButtonPromise.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
@@ -23,22 +22,12 @@
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import SearchInput from "$lib/components/SearchInput.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
   import { categoryColumnsStore } from "$lib/stores/columnDisplayStores.js";
 
   const { data } = $props();
-  const urlInfo = $derived(pageInfo("/(loggedIn)/categories", $page));
+  const urlInfo = pageInfo("/(loggedIn)/categories", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/categories",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
 
   let filterOpened = $state(false);
 
@@ -68,26 +57,26 @@
     filter={{ category: data.searchParams }}
     latestUpdate={data.latestUpdate}
   />
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
-      highlightText={$urlStore.searchParams?.title}
+      highlightText={urlInfo.current.searchParams?.title}
       highlightTextColumns={["title", "group", "single"]}
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.categories.page,
         count: data.categories.count,
         perPage: data.categories.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No Matching Categories Found"
       data={data.categories.data}
       currentOrder={data.searchParams?.orderBy}
       currentFilter={data.searchParams}
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       filterModalTitle="Filter Categories"
       bind:filterOpened
       columns={[
@@ -203,16 +192,16 @@
           urlGenerator={(downloadType) =>
             urlGenerator({
               address: "/(loggedIn)/categories/download",
-              searchParamsValue: { ...$urlStore.searchParams, downloadType },
+              searchParamsValue: { ...urlInfo.current.searchParams, downloadType },
             }).url}
         />
       {/snippet}
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <SearchInput
               type="text"
-              bind:value={$urlStore.searchParams.textFilter}
+              bind:value={urlInfo.current.searchParams.textFilter}
               placeholder="Filter..."
               class="flex grow"
               keys={data.autocompleteKeys}
@@ -221,7 +210,7 @@
         </div>
       {/snippet}
       {#snippet slotFilterModal()}
-        <CategoryFilter bind:filter={$urlStore.searchParams} />
+        <CategoryFilter bind:filter={urlInfo.current.searchParams} />
       {/snippet}
     </CustomTable>{/if}
 </PageLayout>

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Button, ButtonGroup, DropdownItem, Input } from "flowbite-svelte";
-  import type { Writable } from "svelte/store";
 
   import type { reusableFilterActions } from "@totallator/business-logic";
   import { defaultJournalFilter } from "@totallator/shared";
@@ -27,7 +26,7 @@
   let {
     dataForTable,
     filterText,
-    urlParams,
+    urlParams = $bindable(),
     dev,
     urlForPage,
     urlForSort,
@@ -35,10 +34,9 @@
   }: {
     dataForTable: Awaited<ReturnType<(typeof reusableFilterActions)["list"]>>;
     filterText: string[];
-    urlParams: Writable<{
-      params: undefined;
+    urlParams: {
       searchParams: ReusableFilterFilterSchemaType | undefined;
-    }>;
+    };
     dev: boolean;
     urlForPage: (value: number) => string;
     urlForSort: (value: ReusableFilterFilterSchemaType["orderBy"]) => string;
@@ -59,9 +57,9 @@
   numPages={dataForTable.pageCount}
 />
 
-{#if $urlParams.searchParams}
+{#if urlParams.searchParams}
   <CustomTable
-    highlightText={$urlParams.searchParams.multipleText}
+    highlightText={urlParams.searchParams.multipleText}
     highlightTextColumns={["title", "group", "filterText", "changeText"]}
     {filterText}
     onSortURL={urlForSort}
@@ -74,10 +72,10 @@
     }}
     noneFoundText="No Matching Filters Found"
     data={dataForTable.data}
-    currentOrder={$urlParams.searchParams?.orderBy}
-    currentFilter={$urlParams.searchParams}
+    currentOrder={urlParams.searchParams?.orderBy}
+    currentFilter={urlParams.searchParams}
     filterModalTitle="Filter Reusable Filters"
-    bind:numberRows={$urlParams.searchParams.pageSize}
+    bind:numberRows={urlParams.searchParams.pageSize}
     bind:shownColumns={$reusableFilterColumnsStore}
     bind:filterOpened
     columns={[
@@ -88,7 +86,7 @@
         rowToDisplay: (row) => (row.applyAutomatically ? "Y" : ""),
         sortKey: "applyAutomatically",
         filterActive: Boolean(
-          $urlParams.searchParams.applyAutomatically !== undefined,
+          urlParams.searchParams.applyAutomatically !== undefined,
         ),
         showTitleOnMobile: true,
       },
@@ -98,7 +96,7 @@
         rowToDisplay: (row) => (row.applyFollowingImport ? "Y" : ""),
         sortKey: "applyFollowingImport",
         filterActive: Boolean(
-          $urlParams.searchParams.applyFollowingImport !== undefined,
+          urlParams.searchParams.applyFollowingImport !== undefined,
         ),
         showTitleOnMobile: true,
       },
@@ -107,7 +105,7 @@
         title: "Dropdown",
         sortKey: "listed",
         rowToDisplay: (row) => (row.listed ? "Y" : ""),
-        filterActive: Boolean($urlParams.searchParams.listed !== undefined),
+        filterActive: Boolean(urlParams.searchParams.listed !== undefined),
         showTitleOnMobile: true,
       },
       {
@@ -115,7 +113,7 @@
         title: "Modifiation",
         sortKey: "modificationType",
         filterActive: Boolean(
-          $urlParams.searchParams.modificationType !== undefined,
+          urlParams.searchParams.modificationType !== undefined,
         ),
         showTitleOnMobile: true,
       },
@@ -125,8 +123,8 @@
         rowToDisplay: (row) => row.group || "",
         sortKey: "group",
         filterActive: Boolean(
-          $urlParams.searchParams.group !== undefined &&
-            $urlParams.searchParams.group !== "",
+          urlParams.searchParams.group !== undefined &&
+            urlParams.searchParams.group !== "",
         ),
         showTitleOnMobile: true,
       },
@@ -136,8 +134,8 @@
         rowToDisplay: (row) => row.title,
         sortKey: "title",
         filterActive: Boolean(
-          $urlParams.searchParams.title !== undefined &&
-            $urlParams.searchParams.title !== "",
+          urlParams.searchParams.title !== undefined &&
+            urlParams.searchParams.title !== "",
         ),
       },
       {
@@ -145,7 +143,7 @@
         title: "Filter",
         rowToDisplay: (row) => row.filterText,
         sortKey: "filterText",
-        filterActive: Boolean($urlParams.searchParams.filterText !== undefined),
+        filterActive: Boolean(urlParams.searchParams.filterText !== undefined),
         showTitleOnMobile: true,
       },
       {
@@ -153,7 +151,7 @@
         title: "Change",
         rowToDisplay: (row) => row.changeText || "",
         sortKey: "changeText",
-        filterActive: Boolean($urlParams.searchParams.filterText !== undefined),
+        filterActive: Boolean(urlParams.searchParams.filterText !== undefined),
         showTitleOnMobile: true,
       },
       {
@@ -257,10 +255,10 @@
     {/snippet}
     {#snippet slotFilter()}
       <div class="flex flex-row gap-2">
-        {#if $urlParams.searchParams}
+        {#if urlParams.searchParams}
           <Input
             type="text"
-            bind:value={$urlParams.searchParams.multipleText}
+            bind:value={urlParams.searchParams.multipleText}
             placeholder="Filter by Group / Title / Filter / Change"
             class="flex grow"
           />
@@ -269,12 +267,12 @@
     {/snippet}
 
     {#snippet slotHeaderItem({ currentColumn })}
-      {#if $urlParams.searchParams}
+      {#if urlParams.searchParams}
         {#if currentColumn.id === "group"}
           <DropdownItem>
             <Input
               type="text"
-              bind:value={$urlParams.searchParams.group}
+              bind:value={urlParams.searchParams.group}
               placeholder="Group Filter"
             />
           </DropdownItem>
@@ -282,7 +280,7 @@
           <DropdownItem>
             <Input
               type="text"
-              bind:value={$urlParams.searchParams.title}
+              bind:value={urlParams.searchParams.title}
               placeholder="Title Filter"
             />
           </DropdownItem>
@@ -290,7 +288,7 @@
           <DropdownItem>
             <Input
               type="text"
-              bind:value={$urlParams.searchParams.filterText}
+              bind:value={urlParams.searchParams.filterText}
               placeholder="Filter Filter"
             />
           </DropdownItem>
@@ -298,14 +296,14 @@
           <DropdownItem>
             <Input
               type="text"
-              bind:value={$urlParams.searchParams.changeText}
+              bind:value={urlParams.searchParams.changeText}
               placeholder="Change Filter"
             />
           </DropdownItem>
         {:else if currentColumn.id === "applyAutomatically"}
           <DropdownItem>
             <BooleanFilterButtons
-              bind:value={$urlParams.searchParams.applyAutomatically}
+              bind:value={urlParams.searchParams.applyAutomatically}
               onTitle="Y"
               offTitle="N"
             />
@@ -313,7 +311,7 @@
         {:else if currentColumn.id === "applyFollowingImport"}
           <DropdownItem>
             <BooleanFilterButtons
-              bind:value={$urlParams.searchParams.applyFollowingImport}
+              bind:value={urlParams.searchParams.applyFollowingImport}
               onTitle="Y"
               offTitle="N"
             />
@@ -321,7 +319,7 @@
         {:else if currentColumn.id === "listed"}
           <DropdownItem>
             <BooleanFilterButtons
-              bind:value={$urlParams.searchParams.listed}
+              bind:value={urlParams.searchParams.listed}
               onTitle="Y"
               offTitle="N"
             />
@@ -330,8 +328,8 @@
       {/if}
     {/snippet}
     {#snippet slotFilterModal()}
-      {#if $urlParams.searchParams}
-        <ReusableFilterFilter bind:filter={$urlParams.searchParams} />
+      {#if urlParams.searchParams}
+        <ReusableFilterFilter bind:filter={urlParams.searchParams} />
       {/if}
     {/snippet}
     {#snippet slotBulkActions()}

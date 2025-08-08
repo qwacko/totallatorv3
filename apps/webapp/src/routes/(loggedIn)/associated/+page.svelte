@@ -1,32 +1,22 @@
 <script lang="ts">
   import { Button } from "flowbite-svelte";
 
-  import { browser } from "$app/environment";
-  import { goto, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import {  onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import PageLayout from "$lib/components/PageLayout.svelte";
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
   import { associatedInfoColumnsStore } from "$lib/stores/columnDisplayStores.js";
 
   import DisplayAssociatedLinks from "./DisplayAssociatedLinks.svelte";
 
   const { data } = $props();
-  const urlInfo = $derived(pageInfo("/(loggedIn)/associated", $page));
+  const urlInfo = pageInfo("/(loggedIn)/associated", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/associated",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+
 
   let filterOpened = $state(false);
 
@@ -52,25 +42,25 @@
       Create
     </Button>
   {/snippet}
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.data.page,
         count: data.data.count,
         perPage: data.data.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No Matching Assocaited Info Found"
       data={data.data.data}
       currentOrder={data.searchParams?.orderBy}
       currentFilter={data.searchParams}
       filterModalTitle="Filter Associated Info"
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       bind:filterOpened
       columns={[
         { id: "actions", title: "" },

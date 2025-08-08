@@ -6,10 +6,8 @@
     autoImportTypeToDisplay,
   } from "@totallator/shared";
 
-  import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import AssociatedInfoButtonPromise from "$lib/components/AssociatedInfoButtonPromise.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
@@ -20,22 +18,13 @@
   import PageLayout from "$lib/components/PageLayout.svelte";
   import RawDataModal from "$lib/components/RawDataModal.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
   import { autoImportColumnsStore } from "$lib/stores/columnDisplayStores";
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/autoImport", $page));
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/autoImport",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+  const urlInfo = pageInfo("/(loggedIn)/autoImport", () => page);
+
 </script>
 
 <CustomHeader
@@ -54,9 +43,9 @@
       New
     </Button>
   {/snippet}
-  {#if $urlStore.searchParams && data.filter}
+  {#if urlInfo.current.searchParams && data.filter}
     <CustomTable
-      highlightText={$urlStore.searchParams?.title}
+      highlightText={urlInfo.current.searchParams?.title}
       highlightTextColumns={["title"]}
       paginationInfo={{
         page: data.list.page,
@@ -64,9 +53,9 @@
         perPage: data.list.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       bulkSelection={false}
       data={data.list.data}
       hideBottomPagination={true}
@@ -135,7 +124,7 @@
       bind:shownColumns={$autoImportColumnsStore}
       rowColour={(row) => (row.enabled ? undefined : "grey")}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       currentOrder={data.filter.orderBy}
       currentFilter={data.filter}
     >
@@ -219,10 +208,10 @@
       {/snippet}
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <Input
               type="text"
-              bind:value={$urlStore.searchParams.title}
+              bind:value={urlInfo.current.searchParams.title}
               placeholder="Filter by Title"
               class="flex grow"
             />

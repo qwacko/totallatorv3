@@ -18,7 +18,7 @@ import {
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { reusableFilterPageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { serverPageInfo, urlGenerator } from "$lib/routes";
+import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
 import { bufferingHelper } from "$lib/server/bufferingHelper";
 
 export const load = async (data) => {
@@ -134,7 +134,7 @@ export const actions = {
 
     redirect(
       302,
-      urlGenerator({
+      urlGeneratorServer({
         address: "/(loggedIn)/filters/[id]",
         paramsValue: { id: newFilterId },
         searchParamsValue: {},

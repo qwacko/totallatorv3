@@ -2,7 +2,7 @@ import { importFilterToText } from "@totallator/business-logic";
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 
 export const load = async (data) => {
   authGuard(data);

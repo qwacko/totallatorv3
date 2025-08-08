@@ -12,7 +12,7 @@ import {
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { pageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { serverPageInfo, urlGenerator } from "$lib/routes.js";
+import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server.js";
 
 export const load = async (data) => {
   authGuard(data);
@@ -142,7 +142,7 @@ export const actions = {
       redirect(
         302,
         form.data.prevPage ||
-          urlGenerator({
+          urlGeneratorServer({
             address: "/(loggedIn)/journals",
             searchParamsValue: defaultJournalFilter(),
           }).url,

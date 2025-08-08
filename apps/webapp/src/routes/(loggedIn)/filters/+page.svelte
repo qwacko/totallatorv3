@@ -3,41 +3,30 @@
 
   import type { ReusableFilterFilterSchemaType } from "@totallator/shared";
 
-  import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import ActionButton from "$lib/components/ActionButton.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import PageLayout from "$lib/components/PageLayout.svelte";
   import { customEnhance } from "$lib/helpers/customEnhance";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
 
   import FilterTable from "./FilterTable.svelte";
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/filters", $page));
+  const urlInfo = pageInfo("/(loggedIn)/filters", () => page);
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/filters",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+
 
   const tableConfig = $derived({
     dev: data.dev,
     filterText: data.filterText,
     urlForPage: (value: number) =>
-      urlInfo.updateParams({ searchParams: { page: value } }).url,
+      urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
     urlForSort: (newSort: ReusableFilterFilterSchemaType["orderBy"]) =>
-      urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url,
+      urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url,
   });
 
   let refreshingSome = $state(false);
@@ -127,19 +116,19 @@
     </form>
   {/snippet}
 
-  {#if $urlStore.searchParams}
+  {#if urlInfo.current.searchParams}
     {#await data.streamed.filters}
       <FilterTable
         dataForTable={data.filters}
         loading={true}
-        urlParams={urlStore}
+        bind:urlParams={urlInfo.current}
         {...tableConfig}
       />
     {:then dataForUse}
       <FilterTable
         dataForTable={dataForUse}
         loading={false}
-        urlParams={urlStore}
+        bind:urlParams={urlInfo.current}
         {...tableConfig}
       />
     {/await}

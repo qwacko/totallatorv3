@@ -2,7 +2,7 @@
   import { Button } from "flowbite-svelte";
   import { superForm } from "sveltekit-superforms";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import ErrorText from "$lib/components/ErrorText.svelte";
@@ -14,9 +14,8 @@
   const { data } = $props();
 
   const { message, enhance } = superForm(data.form);
-  const urlInfo = $derived(
-    pageInfo("/(loggedIn)/llm/providers/[id]/delete", $page),
-  );
+  const urlInfo = pageInfo("/(loggedIn)/llm/providers/[id]/delete", () => page)
+  
 
   const formatTimestamp = (timestamp: string | Date) => {
     return new Date(timestamp).toLocaleString();
@@ -66,7 +65,7 @@
   <form method="POST" use:enhance class="flex flex-col gap-4">
     <input type="hidden" name="id" value={data.provider.id} />
     <PreviousUrlInput name="prevPage" />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
 
     <div class="flex gap-2">
       <Button type="submit" color="red">Delete LLM Provider</Button>

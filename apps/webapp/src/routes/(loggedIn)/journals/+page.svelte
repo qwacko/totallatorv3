@@ -7,10 +7,9 @@
   } from "@totallator/shared";
   import { llmReviewStatusEnumSelection } from "@totallator/shared";
 
-  import { browser } from "$app/environment";
   import { enhance } from "$app/forms";
-  import { goto, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
 
   import AccountBadge from "$lib/components/AccountBadge.svelte";
   import AssociatedInfoButtonPromise from "$lib/components/AssociatedInfoButtonPromise.svelte";
@@ -45,14 +44,14 @@
   import CustomTable from "$lib/components/table/CustomTable.svelte";
   import DropdownFilterNestedText from "$lib/components/table/DropdownFilterNestedText.svelte";
   import TagBadge from "$lib/components/TagBadge.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
   import { journalColumnsStore } from "$lib/stores/columnDisplayStores.js";
 
   import BulkJournalActions from "./BulkJournalActions.svelte";
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/journals", $page));
+  const urlInfo = pageInfo("/(loggedIn)/journals", () => page);
 
   let filterOpened = $state(false);
 
@@ -60,16 +59,7 @@
     filterOpened = false;
   });
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/journals",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 1000,
-  });
+
 </script>
 
 <CustomHeader
@@ -86,7 +76,7 @@
       outline
       href={urlGenerator({
         address: "/(loggedIn)/journals/create",
-        searchParamsValue: $urlStore.searchParams || defaultJournalFilter(),
+        searchParamsValue: urlInfo.current.searchParams || defaultJournalFilter(),
       }).url}
     >
       <PlusIcon />
@@ -97,20 +87,20 @@
     latestUpdate={data.latestUpdate}
   />
 
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <CustomTable
-      highlightText={$urlStore.searchParams.description}
+      highlightText={urlInfo.current.searchParams.description}
       highlightTextColumns={["description"]}
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.journals.page,
         perPage: data.journals.pageSize,
         count: data.journals.count,
         buttonCount: 5,
-        urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+        urlForPage: (value) =>{
+          return urlInfo.updateParamsURLGenerator({searchParams: {page:value}}).url},
       }}
       noneFoundText="No Matching Journals Found"
       data={data.journals.data}
@@ -118,7 +108,7 @@
       currentFilter={data.searchParams}
       filterModalTitle="Filter Journals"
       bulkSelection
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       bind:filterOpened
       rowToId={(row) => row.id}
       columns={[
@@ -129,8 +119,8 @@
           rowToDisplay: (row) => row.dateText,
           sortKey: "date",
           filterActive:
-            Boolean($urlStore.searchParams.dateAfter) ||
-            Boolean($urlStore.searchParams.dateBefore),
+            Boolean(urlInfo.current.searchParams.dateAfter) ||
+            Boolean(urlInfo.current.searchParams.dateBefore),
         },
         {
           id: "account",
@@ -138,7 +128,7 @@
           enableDropdown: true,
           customCell: true,
           filterActive: Boolean(
-            $urlStore.searchParams.account?.title ? true : false,
+            urlInfo.current.searchParams.account?.title ? true : false,
           ),
         },
         { id: "direction", title: "", customCell: true },
@@ -148,7 +138,7 @@
           enableDropdown: true,
           customCell: true,
           filterActive: Boolean(
-            $urlStore.searchParams.payee?.title ? true : false,
+            urlInfo.current.searchParams.payee?.title ? true : false,
           ),
         },
         {
@@ -157,8 +147,8 @@
           sortKey: "description",
           rowToDisplay: (row) => row.description,
           filterActive: Boolean(
-            $urlStore.searchParams.description &&
-              $urlStore.searchParams.description.length > 0,
+            urlInfo.current.searchParams.description &&
+              urlInfo.current.searchParams.description.length > 0,
           ),
         },
         {
@@ -183,7 +173,7 @@
           title: "LLM Status",
           sortKey: "llmReviewStatus",
           customCell: true,
-          filterActive: Boolean($urlStore.searchParams.llmReviewStatus),
+          filterActive: Boolean(urlInfo.current.searchParams.llmReviewStatus),
         },
         { id: "relations", title: "Relations", customCell: true },
       ]}
@@ -193,11 +183,11 @@
         <BulkJournalActions
           {selectedIds}
           allCount={data.journals.count}
-          searchParams={$urlStore.searchParams}
+          searchParams={urlInfo.current.searchParams}
         />
       {/snippet}
       {#snippet slotFilterButtons()}
-        {#if $urlStore.searchParams}
+        {#if urlInfo.current.searchParams}
           <FilterDropdown
             filters={data.filterDropdown}
             newFilter={(newFilter) =>
@@ -205,21 +195,21 @@
                 address: "/(loggedIn)/journals",
                 searchParamsValue: {
                   ...newFilter,
-                  page: $urlStore.searchParams?.page || 0,
-                  pageSize: $urlStore.searchParams?.pageSize || 10,
+                  page: urlInfo.current.searchParams?.page || 0,
+                  pageSize: urlInfo.current.searchParams?.pageSize || 10,
                 },
               }).url}
             updateFilter={(newFilter) =>
-              urlInfo.updateParams({ searchParams: newFilter }).url}
-            currentFilter={$urlStore.searchParams}
+              urlInfo.updateParamsURLGenerator({ searchParams: newFilter }).url}
+            currentFilter={urlInfo.current.searchParams}
           />
           <DownloadDropdown
             urlGenerator={(downloadType) => {
-              if ($urlStore.searchParams) {
+              if (urlInfo.current.searchParams) {
                 return urlGenerator({
                   address: "/(loggedIn)/journals/download",
                   searchParamsValue: {
-                    ...$urlStore.searchParams,
+                    ...urlInfo.current.searchParams,
                     downloadType,
                   },
                 }).url;
@@ -231,10 +221,10 @@
       {/snippet}
       {#snippet slotFilter()}
         <div class="flex flex-row gap-2">
-          {#if $urlStore.searchParams}
+          {#if urlInfo.current.searchParams}
             <SearchInput
               type="text"
-              bind:value={$urlStore.searchParams.textFilter}
+              bind:value={urlInfo.current.searchParams.textFilter}
               placeholder="Filter..."
               class="flex grow"
               keys={data.autocompleteKeys}
@@ -243,11 +233,11 @@
         </div>
       {/snippet}
       {#snippet slotFilterModal()}
-        {#if $urlStore.searchParams}
+        {#if urlInfo.current.searchParams}
           <FilterModalContent
-            currentFilter={$urlStore.searchParams}
+            currentFilter={urlInfo.current.searchParams}
             urlFromFilter={(newFilter) =>
-              urlInfo.updateParams({ searchParams: newFilter }).url}
+              urlInfo.updateParamsURLGenerator({ searchParams: newFilter }).url}
           />
         {/if}
       {/snippet}
@@ -407,7 +397,7 @@
               id: currentJournal.accountId,
               accountGroupCombinedTitle: currentJournal.accountGroup,
             }}
-            currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+            currentFilter={urlInfo.current.searchParams || defaultJournalFilter()}
           />
         {:else if currentColumn.id === "direction"}
           {#if currentJournal.amount > 0}
@@ -427,7 +417,7 @@
                 id: currentOtherJournal.accountId,
                 accountGroupCombinedTitle: currentOtherJournal.accountGroup,
               }}
-              currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+              currentFilter={urlInfo.current.searchParams || defaultJournalFilter()}
               payeeFilter
             />
           {:else}
@@ -440,7 +430,7 @@
                     id: currentOtherJournal.accountId,
                     accountGroupCombinedTitle: currentOtherJournal.accountGroup,
                   }}
-                  currentFilter={$urlStore.searchParams ||
+                  currentFilter={urlInfo.current.searchParams ||
                     defaultJournalFilter()}
                   payeeFilter
                 />
@@ -451,60 +441,60 @@
           <div class="flex flex-row flex-wrap gap-1">
             <CategoryBadge
               data={currentJournal}
-              currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+              currentFilter={urlInfo.current.searchParams || defaultJournalFilter()}
             />
             <TagBadge
               data={currentJournal}
-              currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+              currentFilter={urlInfo.current.searchParams || defaultJournalFilter()}
             />
             <BillBadge
               data={currentJournal}
-              currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+              currentFilter={urlInfo.current.searchParams || defaultJournalFilter()}
             />
             <BudgetBadge
               data={currentJournal}
-              currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+              currentFilter={urlInfo.current.searchParams || defaultJournalFilter()}
             />
             {#each currentJournal.labels as currentLabel}
               <LabelBadge
                 data={currentLabel}
-                currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+                currentFilter={urlInfo.current.searchParams || defaultJournalFilter()}
               />
             {/each}
           </div>
         {:else if currentColumn.id === "llmReviewStatus"}
           <LlmReviewStatusBadge
             status={currentJournal.llmReviewStatus}
-            currentFilter={$urlStore.searchParams || defaultJournalFilter()}
+            currentFilter={urlInfo.current.searchParams || defaultJournalFilter()}
           />
         {/if}
       {/snippet}
       {#snippet slotHeaderItem({ currentColumn })}
-        {#if $urlStore.searchParams}
+        {#if urlInfo.current.searchParams}
           {#if currentColumn.id === "description"}
-            {#if $urlStore.searchParams.description !== null}
+            {#if urlInfo.current.searchParams.description !== null}
               <DropdownItem>
                 <Input
                   type="text"
-                  bind:value={$urlStore.searchParams.description}
+                  bind:value={urlInfo.current.searchParams.description}
                   placeholder="Filter By Description"
                 />
               </DropdownItem>
             {/if}
           {:else if currentColumn.id === "account"}
             <DropdownFilterNestedText
-              bind:params={$urlStore.searchParams.account}
+              bind:params={urlInfo.current.searchParams.account}
               key="title"
             />
           {:else if currentColumn.id === "payee"}
             <DropdownFilterNestedText
-              bind:params={$urlStore.searchParams.payee}
+              bind:params={urlInfo.current.searchParams.payee}
               key="title"
             />
           {:else if currentColumn.id === "llmReviewStatus"}
             <DropdownItem>
               <EnumArraySelection
-                bind:values={$urlStore.searchParams.llmReviewStatus}
+                bind:values={urlInfo.current.searchParams.llmReviewStatus}
                 enumSelection={llmReviewStatusEnumSelection}
               />
             </DropdownItem>
@@ -512,7 +502,7 @@
             <DropdownItem>
               <DateInput
                 title="Date After"
-                bind:value={$urlStore.searchParams.dateAfter}
+                bind:value={urlInfo.current.searchParams.dateAfter}
                 name=""
                 errorMessage=""
               />
@@ -520,7 +510,7 @@
             <DropdownItem>
               <DateInput
                 title="Date Before"
-                bind:value={$urlStore.searchParams.dateBefore}
+                bind:value={urlInfo.current.searchParams.dateBefore}
                 name=""
                 errorMessage=""
               />

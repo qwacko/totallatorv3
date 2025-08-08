@@ -12,7 +12,7 @@ import {
 
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { pageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { serverPageInfo } from "$lib/routes.js";
+import { serverPageInfo } from "$lib/routes.server.js";
 
 export const load = async (data) => {
   authGuard(data);

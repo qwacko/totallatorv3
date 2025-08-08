@@ -10,7 +10,7 @@
     TableHeadCell,
   } from "flowbite-svelte";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import PageLayout from "$lib/components/PageLayout.svelte";
@@ -19,7 +19,7 @@
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/users", $page));
+  const urlInfo = pageInfo("/(loggedIn)/users", () => page);
 </script>
 
 <CustomHeader
@@ -37,7 +37,7 @@
         perPage={data.perPage}
         buttonCount={5}
         urlForPage={(newPage) =>
-          urlInfo.updateParams({ searchParams: { page: newPage } }).url}
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: newPage } }).url}
       />
     </div>
     <Table>

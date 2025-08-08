@@ -6,7 +6,7 @@ import type { EnhancedRecommendationType } from "@totallator/business-logic";
 import type { JournalFilterSchemaType } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 import { bufferingHelper } from "$lib/server/bufferingHelper.js";
 
 export const load = async (data) => {

@@ -6,8 +6,8 @@ import { tActions } from "@totallator/business-logic";
 import { updateFileSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
 import { urlGenerator } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 import { fileFormActions } from "$lib/server/fileFormActions";
 
 export const load = async (data) => {

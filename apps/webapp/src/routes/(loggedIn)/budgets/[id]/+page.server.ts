@@ -8,7 +8,7 @@ import { updateBudgetSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { labelPageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 
 export const load = async (data) => {
   authGuard(data);

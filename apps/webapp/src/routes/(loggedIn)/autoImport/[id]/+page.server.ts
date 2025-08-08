@@ -7,8 +7,8 @@ import { updateAutoImportFormSchema } from "@totallator/shared";
 import type { ImportFilterSchemaType } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
 import { urlGenerator } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 
 export const load = async (request) => {
   authGuard(request);

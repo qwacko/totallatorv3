@@ -7,7 +7,7 @@
   import type { RecommendationType } from "@totallator/business-logic";
   import { updateJournalSchema } from "@totallator/shared";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import ErrorText from "$lib/components/ErrorText.svelte";
@@ -26,7 +26,7 @@
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/journals/bulkEdit", $page));
+  const urlInfo = pageInfo("/(loggedIn)/journals/bulkEdit", () => page);
 
   const form = superForm(data.form, {
     validators: zod4Client(updateJournalSchema),
@@ -80,7 +80,7 @@
   <Heading tag="h3">Set Journal State</Heading>
   <RawDataModal data={$formData} dev={data.dev} />
   <BulkEditState
-    currentPage={urlInfo.current.url}
+    currentPage={urlInfo.updateParamsURLGenerator({}).url}
     filter={urlInfo.current.searchParams}
     complete={data.selectedJournals.complete}
     reconciled={data.selectedJournals.reconciled}
@@ -114,7 +114,7 @@
       name="filter"
       value={JSON.stringify(urlInfo.current.searchParams)}
     />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     {#if data.selectedJournals.canEdit}
       <UpdateJournalForm {form} />
       <UpdateJournalLinksForm {form} />

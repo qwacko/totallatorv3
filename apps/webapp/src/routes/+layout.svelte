@@ -3,7 +3,7 @@
   import { pwaInfo } from "virtual:pwa-info";
 
   import { dev } from "$app/environment";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import { authGuardFrontend } from "$lib/authGuard/authGuardConfig";
   import { updatePageStore } from "$lib/prevPageStore";
@@ -15,7 +15,7 @@
   const { data, children } = $props();
 
   $effect(() => {
-    authGuardFrontend($page, {
+    authGuardFrontend(page, {
       admin: data.user?.admin || false,
       user: data.user ? true : false,
     });

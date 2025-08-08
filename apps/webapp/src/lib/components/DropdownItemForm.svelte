@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type DropdownItemProps, Spinner } from "flowbite-svelte";
+  import { Spinner } from "flowbite-svelte";
   import type { Snippet } from "svelte";
 
   import { enhance } from "$app/forms";
@@ -24,10 +24,20 @@
     action: string;
     children?: Snippet;
     slotLoading?: Snippet;
-  } & DropdownItemProps = $props();
+    class?: string
+  }= $props();
+
+  let formItem = $state<HTMLFormElement>();
+
+    const clickHandler: () => void = () => {
+      if(formItem){
+      formItem.requestSubmit()}
+    }
+
 </script>
 
 <form
+  bind:this={formItem}
   method="post"
   {action}
   use:enhance={customEnhance({
@@ -48,8 +58,8 @@
   <DropdownItemWithDisabling
     {...restProps}
     disabled={loading}
-    type="submit"
     class="flex flex-row gap-2"
+    onclick={clickHandler}
   >
     {#if loading}
       {#if slotLoading}

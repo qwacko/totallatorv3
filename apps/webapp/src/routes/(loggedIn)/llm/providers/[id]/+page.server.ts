@@ -7,7 +7,7 @@ import { tActions } from "@totallator/business-logic";
 import { actionHelpers } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 
 const updateLLMProviderSchema = z.object({
   id: z.string(),

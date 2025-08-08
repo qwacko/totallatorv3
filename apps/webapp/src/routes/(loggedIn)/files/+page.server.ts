@@ -2,7 +2,7 @@ import { tActions } from "@totallator/business-logic";
 import { fileMainFilterArray } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";
 
 export const load = async (data) => {

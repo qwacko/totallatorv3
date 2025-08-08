@@ -4,7 +4,7 @@ import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { filterNullUndefinedAndDuplicates } from "$lib/helpers/filterNullUndefinedAndDuplicates.js";
-import { serverPageInfo, urlGenerator } from "$lib/routes";
+import { serverPageInfo, urlGeneratorServer } from "$lib/routes.server";
 import { fileFormActions } from "$lib/server/fileFormActions";
 
 export const load = async (data) => {
@@ -14,7 +14,10 @@ export const load = async (data) => {
   if (!current.params?.id) {
     redirect(
       302,
-      urlGenerator({ address: "/(loggedIn)/files", searchParamsValue: {} }).url,
+      urlGeneratorServer({
+        address: "/(loggedIn)/files",
+        searchParamsValue: {},
+      }).url,
     );
   }
 

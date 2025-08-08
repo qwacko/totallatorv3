@@ -8,8 +8,8 @@ import { defaultJournalFilter, journalFilterSchema } from "@totallator/shared";
 import { authGuard } from "$lib/authGuard/authGuardConfig.js";
 import { filterNullUndefinedAndDuplicates } from "$lib/helpers/filterNullUndefinedAndDuplicates.js";
 import { pageAndFilterValidation } from "$lib/pageAndFilterValidation";
-import { serverPageInfo } from "$lib/routes.js";
 import { urlGenerator } from "$lib/routes.js";
+import { serverPageInfo } from "$lib/routes.server.js";
 
 export const load = async (data) => {
   authGuard(data);

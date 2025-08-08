@@ -4,7 +4,10 @@ import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { failWrapper } from "$lib/helpers/customEnhance";
-import { serverPageInfo, urlGenerator } from "$lib/routes";
+import {
+  serverPageInfo,
+  urlGeneratorServer as urlGenerator,
+} from "$lib/routes.server";
 
 export const load = async (data) => {
   authGuard(data);

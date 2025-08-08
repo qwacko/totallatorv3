@@ -8,7 +8,7 @@ import { updateTagSchema } from "@totallator/shared";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
 import { tagPageAndFilterValidation } from "$lib/pageAndFilterValidation.js";
-import { serverPageInfo } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 
 export const load = async (data) => {
   authGuard(data);

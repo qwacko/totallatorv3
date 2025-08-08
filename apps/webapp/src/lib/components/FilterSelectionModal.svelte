@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Button, Modal } from "flowbite-svelte";
-  import { onDestroy, onMount } from "svelte";
 
   import type { ReusableFilterDropdownListType } from "@totallator/business-logic";
   import {
@@ -9,11 +8,11 @@
     type JournalFilterSchemaType,
   } from "@totallator/shared";
 
-  import { page } from "$app/stores";
 
   import ArrowRightIcon from "$lib/components/icons/ArrowRightIcon.svelte";
 
   import ArrowLeftIcon from "./icons/ArrowLeftIcon.svelte";
+    import { onNavigate } from "$app/navigation";
 
   let {
     shown = $bindable(false),
@@ -53,20 +52,12 @@
     return newFilter(filter.filter);
   };
 
-  let unsubscribe: (() => void) | undefined = undefined;
 
-  onMount(() => {
-    // Subscribe to page store for navigation changes
-    unsubscribe = page.subscribe(() => {
-      // Close the modal on any navigation
-      shown = false;
-    });
-  });
+  onNavigate(() => {
+    return () => {shown = false};
+  })
 
-  // Cleanup the subscription when the component is destroyed
-  onDestroy(() => {
-    unsubscribe && unsubscribe();
-  });
+
 </script>
 
 <Modal bind:open={shown} size="lg" title="Filter Selection" outsideclose>

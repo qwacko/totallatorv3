@@ -13,7 +13,7 @@
   } from "flowbite-svelte";
 
   import { enhance } from "$app/forms";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import ActionButton from "$lib/components/ActionButton.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
@@ -28,7 +28,7 @@
 
   const { data } = $props();
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/backup", $page));
+  const urlInfo = pageInfo("/(loggedIn)/backup", () => page);
 
   let backupName = $state<string | undefined>(undefined);
 
@@ -93,7 +93,7 @@
         perPage={data.perPage}
         buttonCount={5}
         urlForPage={(newPage) =>
-          urlInfo.updateParams({ searchParams: { page: newPage } }).url}
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: newPage } }).url}
       />
     </div>
     <Table>

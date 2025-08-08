@@ -2,7 +2,7 @@
   import { Button } from "flowbite-svelte";
   import { superForm } from "sveltekit-superforms";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CurrencyInputForm from "$lib/components/CurrencyInputForm.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
@@ -21,7 +21,7 @@
 
   const form = superForm(data.form);
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/journals/create", $page));
+  const urlInfo = pageInfo("/(loggedIn)/journals/create", () => page);
   const enhance = $derived(form.enhance);
   const message = $derived(form.message);
   const formData = $derived(form.form);
@@ -48,7 +48,7 @@
       name="filter"
       value={JSON.stringify(urlInfo.current.searchParams)}
     />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     <TextInputForm title="Description" {form} field="description" />
     <DateInputForm title="Date" {form} field="date" />
     <CurrencyInputForm title="Amount" {form} field="amount" />

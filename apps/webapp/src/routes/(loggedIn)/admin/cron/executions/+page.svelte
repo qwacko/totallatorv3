@@ -6,32 +6,20 @@
     CloseCircleOutline,
   } from "flowbite-svelte-icons";
 
-  import { browser } from "$app/environment";
-  import { goto, onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
 
   import CustomHeader from "$lib/components/CustomHeader.svelte";
   import CronIcon from "$lib/components/icons/CronIcon.svelte";
   import PageLayout from "$lib/components/PageLayout.svelte";
   import CustomTable from "$lib/components/table/CustomTable.svelte";
-  import { pageInfo, pageInfoStore, urlGenerator } from "$lib/routes.js";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
 
   const { data } = $props();
 
-  const urlInfo = $derived(
-    pageInfo("/(loggedIn)/admin/cron/executions", $page),
-  );
+  const urlInfo = pageInfo("/(loggedIn)/admin/cron/executions", () => page)
 
-  const urlStore = pageInfoStore({
-    routeId: "/(loggedIn)/admin/cron/executions",
-    pageInfo: page,
-    onUpdate: (newURL) => {
-      if (browser && newURL !== urlInfo.current.url) {
-        goto(newURL, { keepFocus: true, noScroll: true });
-      }
-    },
-    updateDelay: 500,
-  });
+ 
   // Remove unused urlStore for now
 
   let filterOpened = $state(false);
@@ -148,26 +136,26 @@
     </div>
   </div>
 
-  {#if $urlStore.searchParams && data.searchParams}
+  {#if urlInfo.current.searchParams && data.searchParams}
     <!-- Main Table -->
     <CustomTable
       filterText={data.filterText}
       onSortURL={(newSort) =>
-        urlInfo.updateParams({ searchParams: { orderBy: newSort } }).url}
+        urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
       paginationInfo={{
         page: data.executions.page,
         count: data.executions.count,
         perPage: data.executions.pageSize,
         buttonCount: 5,
         urlForPage: (value) =>
-          urlInfo.updateParams({ searchParams: { page: value } }).url,
+          urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
       }}
       noneFoundText="No Executions Found"
       data={data.executions.data}
       currentOrder={data.searchParams?.orderBy}
       currentFilter={data.searchParams}
       filterModalTitle="Filter Executions"
-      bind:numberRows={$urlStore.searchParams.pageSize}
+      bind:numberRows={urlInfo.current.searchParams.pageSize}
       bind:filterOpened
       bind:shownColumns
       columns={[
@@ -257,10 +245,10 @@
       {/snippet}
 
       {#snippet slotFilter()}
-        {#if $urlStore.searchParams}
+        {#if urlInfo.current.searchParams}
           <div class="flex flex-row gap-2">
             <Select
-              bind:value={$urlStore.searchParams.cronJobId}
+              bind:value={urlInfo.current.searchParams.cronJobId}
               placeholder="Filter by Job..."
               class="min-w-[200px]"
             >
@@ -271,7 +259,7 @@
             </Select>
 
             <Select
-              bind:value={$urlStore.searchParams.status}
+              bind:value={urlInfo.current.searchParams.status}
               placeholder="Filter by Status..."
               class="min-w-[150px]"
             >
@@ -281,7 +269,7 @@
             </Select>
 
             <Select
-              bind:value={$urlStore.searchParams.triggeredBy}
+              bind:value={urlInfo.current.searchParams.triggeredBy}
               placeholder="Filter by Trigger..."
               class="min-w-[150px]"
             >

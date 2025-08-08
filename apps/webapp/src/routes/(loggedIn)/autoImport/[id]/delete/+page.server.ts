@@ -3,8 +3,8 @@ import { redirect } from "@sveltejs/kit";
 import { tActions } from "@totallator/business-logic";
 
 import { authGuard } from "$lib/authGuard/authGuardConfig";
-import { serverPageInfo } from "$lib/routes";
 import { urlGenerator } from "$lib/routes";
+import { serverPageInfo } from "$lib/routes.server";
 
 export const load = async (request) => {
   authGuard(request);

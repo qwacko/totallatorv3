@@ -4,7 +4,7 @@
 
   import { statusEnumSelectionWithoutDeleted } from "@totallator/shared";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   import CombinedTitleDisplay from "$lib/components/CombinedTitleDisplay.svelte";
   import CustomHeader from "$lib/components/CustomHeader.svelte";
@@ -19,7 +19,7 @@
 
   const { form, errors, constraints, message, enhance } = superForm(data.form);
 
-  const urlInfo = $derived(pageInfo("/(loggedIn)/tags/create", $page));
+  const urlInfo = pageInfo("/(loggedIn)/tags/create", () => page);
 </script>
 
 <CustomHeader pageTitle="New Tag" />
@@ -27,7 +27,7 @@
 <PageLayout title="Create Tag" size="xs">
   <form method="POST" use:enhance class="flex flex-col gap-2">
     <PreviousUrlInput name="prevPage" />
-    <input type="hidden" name="currentPage" value={urlInfo.current.url} />
+    <input type="hidden" name="currentPage" value={urlInfo.updateParamsURLGenerator({}).url} />
     <TextInput
       title="Title"
       errorMessage={$errors.title}
