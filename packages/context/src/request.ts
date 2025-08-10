@@ -54,6 +54,7 @@ export interface RequestContext {
  * @returns Initialized request context
  */
 export function createRequestContext(event: MinimalRequestEvent): RequestContext {
+
   return {
     user: event.locals.user,
     session: event.locals.session,
@@ -61,6 +62,6 @@ export function createRequestContext(event: MinimalRequestEvent): RequestContext
     startTime: Date.now(),
     event,
     userAgent: event.request.headers.get('user-agent') || undefined,
-    ip: event.getClientAddress(),
+    ip: "",
   };
 }

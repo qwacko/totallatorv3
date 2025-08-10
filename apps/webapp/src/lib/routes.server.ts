@@ -1,8 +1,11 @@
 import { skRoutesServer } from "skroutes";
 
-import { serverRouteConfig } from "./.generated/skroutes-server-config";
-
-export const { serverPageInfo, urlGeneratorServer } = skRoutesServer({
+export const {
+  serverPageInfo,
+  urlGeneratorServer,
+  loadConfig: loadConfigServer,
+} = skRoutesServer({
   errorURL: "/",
-  config: serverRouteConfig,
+  config: async () =>
+    (await import("./.generated/skroutes-server-config")).serverRouteConfig,
 });

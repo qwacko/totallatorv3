@@ -2,11 +2,14 @@ import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
 import { actionHelpers, tActions } from "@totallator/business-logic";
+import { noAdmins } from "@totallator/business-logic";
 import {
   createRequestContext,
   runRequestInTransaction,
   runWithContext,
 } from "@totallator/context";
+
+import { loadConfigServer } from "$lib/routes.server.js";
 
 import { authGuard } from "./lib/authGuard/authGuardConfig.js";
 import { ensureInitialized } from "./lib/server/context.js";
@@ -16,6 +19,7 @@ const handleAuth: Handle = async ({
   event,
   resolve,
 }: Parameters<Handle>[0]) => {
+  console.log("Handling Auth");
   const context = await ensureInitialized();
 
   if (!context.db) {
@@ -53,6 +57,8 @@ const handleAuth: Handle = async ({
 };
 
 export const init: ServerInit = async () => {
+  await loadConfigServer();
+
   const context = await ensureInitialized();
 
   //Setup DB Logger
@@ -110,7 +116,6 @@ const handleRoute: Handle = async ({
   // Run everything within AsyncLocalStorage context
   return runWithContext(context, requestContext, async () => {
     // Import the business logic function we need
-    const { noAdmins } = await import("@totallator/business-logic");
     const noAdmin = await noAdmins({ global: context });
 
     if (!event.route.id) {
@@ -148,9 +153,11 @@ const handleRoute: Handle = async ({
       );
 
       result = await runRequestInTransaction(async () => {
+        console.log("Resolving Requiest In Transaction");
         return await resolve(event);
       });
     } else {
+      console.log("Resolving Request Not In Transaction");
       result = await resolve(event);
     }
 

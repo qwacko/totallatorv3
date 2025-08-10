@@ -16,6 +16,12 @@ export default defineConfig(({ mode }): ViteUserConfig => {
       skRoutesPlugin({
         imports: [],
         errorURL: "/",
+        routesDirectory: "src/routes",
+        // clientFiles: ["config.ts"],
+        // serverFiles: [],
+        // targetVariable: "_routeConfig",
+        unconfiguredParams: "deriveParams",
+        unconfiguredSearchParams: "never",
       }),
       Icons({
         compiler: "svelte",
