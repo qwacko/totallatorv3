@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowJs": false,
+    "checkJs": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": false,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noEmit": true,
+    "incremental": false,
+    "isolatedModules": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "paths": {
+      "$lib": ["./src/lib"],
+      "$lib/*": ["./src/lib/*"]
+    }
+  },
+  "include": ["src/lib/**/*.ts"],
+  "exclude": [
+    "node_modules/**",
+    "src/service-worker/**",
+    "tests/**",
+    "*.config.*",
+    "src/**/*.test.ts",
+    "src/**/*.test.js",
+    "src/lib/server/services/llmBatchProcessingService_old.ts",
+    "src/lib/server/services/llmBatchProcessingService.ts",
+    "src/lib/server/llm/client.test.ts",
+    "src/lib/server/llm/tools/dispatcher.test.ts",
+    "src/lib/server/llm/mock.test.ts",
+    "src/lib/server/db/**",
+    "src/lib/server/services/**"
+  ]
+}

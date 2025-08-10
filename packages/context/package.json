@@ -1,0 +1,30 @@
+{
+  "name": "@totallator/context",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc && tsc-alias",
+    "dev": "tsc --watch & tsc-alias --watch",    
+		"check": "tsc --noEmit",
+		"circular": "madge --circular --extensions ts src/",
+		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/"
+  },
+  "dependencies": {
+    "@totallator/database": "workspace:*",
+    "@totallator/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "madge": "^8.0.0",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,57 @@
+import { redirect } from "@sveltejs/kit";
+import { message, superValidate } from "sveltekit-superforms";
+import { zod4 } from "sveltekit-superforms/adapters";
+import * as z from "zod";
+
+import { tActions } from "@totallator/business-logic";
+import { createReportSchema } from "@totallator/shared";
+
+import { authGuard } from "$lib/authGuard/authGuardConfig.js";
+import { reportPageValidation } from "$lib/pageAndFilterValidation";
+import { urlGenerator } from "$lib/routes.js";
+
+export const load = async (data) => {
+  authGuard(data);
+
+  const form = await superValidate(zod4(createReportSchema));
+
+  return { form };
+};
+
+const createReportSchemaWithPageAndFilter = z.object({
+  ...createReportSchema.shape,
+  ...reportPageValidation.shape,
+});
+
+export const actions = {
+  default: async ({ request, locals }) => {
+    const form = await superValidate(
+      request,
+      zod4(createReportSchemaWithPageAndFilter),
+    );
+
+    if (!form.valid) {
+      return { form };
+    }
+
+    let newReportId = "";
+
+    try {
+      newReportId = await tActions.report.create({ data: form.data });
+    } catch (e) {
+      locals.global.logger.error("Create Report Error", e);
+      return message(
+        form,
+        "Error Creating Report, Possibly Group / Title Already Exists",
+      );
+    }
+    redirect(
+      302,
+      urlGenerator({
+        address: "/(loggedIn)/reports/[id]",
+        paramsValue: { id: newReportId },
+        searchParamsValue: {},
+      }).url,
+    );
+  },
+};

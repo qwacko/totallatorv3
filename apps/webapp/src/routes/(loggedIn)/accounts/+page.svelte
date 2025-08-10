@@ -1,0 +1,302 @@
+<script lang="ts">
+  import { Button, ButtonGroup } from "flowbite-svelte";
+
+  import { statusToDisplay } from "@totallator/shared";
+  import { defaultJournalFilter } from "@totallator/shared";
+  import { accountTypeEnum, accountTypeToDisplay } from "@totallator/shared";
+  import { summaryColumns } from "@totallator/shared";
+
+  import { enhance } from "$app/forms";
+  import {  onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
+
+  import AccountTypeFilterLinks from "$lib/components/AccountTypeFilterLinks.svelte";
+  import AssociatedInfoButtonPromise from "$lib/components/AssociatedInfoButtonPromise.svelte";
+  import CustomHeader from "$lib/components/CustomHeader.svelte";
+  import DownloadDropdown from "$lib/components/DownloadDropdown.svelte";
+  import AccountFilter from "$lib/components/filters/AccountFilter.svelte";
+  import DeleteIcon from "$lib/components/icons/DeleteIcon.svelte";
+  import DisabledIcon from "$lib/components/icons/DisabledIcon.svelte";
+  import EditIcon from "$lib/components/icons/EditIcon.svelte";
+  import JournalEntryIcon from "$lib/components/icons/JournalEntryIcon.svelte";
+  import JournalSummaryWithFetch from "$lib/components/JournalSummaryWithFetch.svelte";
+  import PageLayout from "$lib/components/PageLayout.svelte";
+  import RawDataModal from "$lib/components/RawDataModal.svelte";
+  import SearchInput from "$lib/components/SearchInput.svelte";
+  import CustomTable from "$lib/components/table/CustomTable.svelte";
+  import { pageInfo, urlGenerator } from "$lib/routes.js";
+  import { accountColumnsStore } from "$lib/stores/columnDisplayStores.js";
+  import { currencyFormat } from "$lib/stores/userInfoStore.js";
+
+  const { data } = $props();
+  const urlInfo = pageInfo("/(loggedIn)/accounts", () => page);
+
+
+
+  let filterOpened = $state(false);
+
+  onNavigate(() => {
+    filterOpened = false;
+  });
+</script>
+
+<CustomHeader
+  pageTitle="Accounts"
+  filterText={data.filterText}
+  pageNumber={data.accounts.page}
+  numPages={data.accounts.pageCount}
+/>
+<PageLayout title="Accounts" size="xl">
+  {#snippet slotRight()}
+    <Button
+      href={urlGenerator({ address: "/(loggedIn)/accounts/create" }).url}
+      class="flex self-center"
+      color="light"
+      outline
+    >
+      Create
+    </Button>
+  {/snippet}
+  <JournalSummaryWithFetch
+    filter={{ account: data.searchParams }}
+    latestUpdate={data.latestUpdate}
+  />
+  <CustomTable
+    highlightText={urlInfo.current.searchParams?.accountTitleCombined}
+    highlightTextColumns={[
+      "title",
+      "accountGroup",
+      "accountGroup2",
+      "accountGroup3",
+    ]}
+    filterText={data.filterText}
+    onSortURL={(newSort) =>
+      urlInfo.updateParamsURLGenerator({ searchParams: { orderBy: newSort } }).url}
+    paginationInfo={{
+      page: data.accounts.page,
+      count: data.accounts.count,
+      perPage: data.accounts.pageSize,
+      buttonCount: 5,
+      urlForPage: (value) =>
+        urlInfo.updateParamsURLGenerator({ searchParams: { page: value } }).url,
+    }}
+    noneFoundText="No Matching Accounts Found"
+    data={data.accounts.data}
+    currentOrder={data.searchParams?.orderBy}
+    currentFilter={data.searchParams}
+    filterModalTitle="Filter Accounts"
+    bind:filterOpened
+    columns={[
+      { id: "actions", title: "" },
+      {
+        id: "accountGroup",
+        title: "Account Group",
+        rowToDisplay: (row) => row.accountGroup,
+        sortKey: "accountGroup",
+      },
+      {
+        id: "accountGroup2",
+        title: "Account Group 2",
+        rowToDisplay: (row) => row.accountGroup2,
+        sortKey: "accountGroup2",
+      },
+      {
+        id: "accountGroup3",
+        title: "Account Group 3",
+        rowToDisplay: (row) => row.accountGroup3,
+        sortKey: "accountGroup3",
+      },
+      {
+        id: "type",
+        title: "Type",
+        rowToDisplay: (row) => accountTypeToDisplay(row.type),
+        sortKey: "type",
+      },
+      {
+        id: "status",
+        title: "Status",
+        rowToDisplay: (row) => statusToDisplay(row.status),
+        sortKey: "status",
+      },
+      {
+        id: "title",
+        title: "Title",
+        rowToDisplay: (row) => row.title,
+        sortKey: "title",
+      },
+      {
+        id: "isCash",
+        title: "Cash",
+        rowToDisplay: (row) => (row.isCash ? "Y" : ""),
+        sortKey: "isCash",
+      },
+      {
+        id: "isNetWorth",
+        title: "Net Worth",
+        rowToDisplay: (row) => (row.isNetWorth ? "Y" : ""),
+        sortKey: "isNetWorth",
+      },
+      {
+        id: "startDate",
+        title: "Start Date",
+        rowToDisplay: (row) => row.startDate,
+        sortKey: "startDate",
+      },
+      {
+        id: "endDate",
+        title: "End Date",
+        rowToDisplay: (row) => row.endDate,
+        sortKey: "endDate",
+      },
+      ...summaryColumns({ currencyFormat: $currencyFormat }),
+    ]}
+    bind:shownColumns={$accountColumnsStore}
+    rowColour={(row) => (row.disabled ? "grey" : undefined)}
+    rowToId={(row) => row.id}
+    bulkSelection
+  >
+    {#snippet slotBulkActions({ selectedIds })}
+      <ButtonGroup>
+        <Button
+          size="xs"
+          class="p-2"
+          outline
+          disabled={selectedIds.length === 0}
+          href={urlGenerator({
+            address: "/(loggedIn)/accounts/bulkEdit",
+            searchParamsValue: { idArray: selectedIds },
+          }).url}
+        >
+          <EditIcon /> Selected
+        </Button>
+        <Button
+          size="xs"
+          class="p-2"
+          outline
+          disabled={data.accounts.count === 0}
+          href={urlGenerator({
+            address: "/(loggedIn)/accounts/bulkEdit",
+            searchParamsValue: {
+              ...urlInfo.current.searchParams,
+              page: 0,
+              pageSize: 1000000,
+            },
+          }).url}
+        >
+          <EditIcon /> All Matching
+        </Button>
+      </ButtonGroup>
+    {/snippet}
+    {#snippet slotCustomBodyCell({ row: currentRow, currentColumn })}
+      {#if currentColumn.id === "actions"}
+        {@const detailURL = urlGenerator({
+          address: "/(loggedIn)/accounts/bulkEdit",
+          searchParamsValue: { id: currentRow.id },
+        }).url}
+
+        {@const deleteURL = urlGenerator({
+          address: "/(loggedIn)/accounts/[id]/delete",
+          paramsValue: { id: currentRow.id },
+        }).url}
+        {@const journalsURL = urlGenerator({
+          address: "/(loggedIn)/journals",
+          searchParamsValue: {
+            ...defaultJournalFilter(),
+            account: {
+              id: currentRow.id,
+              type: [...accountTypeEnum],
+            },
+          },
+        }).url}
+        <div class="flex flex-row justify-center">
+          <form method="POST" action="?/update" use:enhance>
+            <input type="hidden" name="id" value={currentRow.id} />
+            <ButtonGroup>
+              <Button href={journalsURL} class="p-2" outline color="blue">
+                <JournalEntryIcon height={15} width={15} />
+              </Button>
+              <Button href={detailURL} class="p-2" outline>
+                <EditIcon height={15} width={15} />
+              </Button>
+              {#if currentRow.disabled}
+                <Button
+                  type="submit"
+                  name="status"
+                  value="active"
+                  class="p-2"
+                  color="primary"
+                >
+                  <DisabledIcon />
+                </Button>
+              {:else}
+                <Button
+                  type="submit"
+                  name="status"
+                  value="disabled"
+                  class="p-2"
+                  outline
+                >
+                  <DisabledIcon />
+                </Button>
+              {/if}
+              <Button
+                href={deleteURL}
+                class="p-2"
+                outline
+                color="red"
+                disabled={(currentRow.count || 0) > 0}
+              >
+                <DeleteIcon height={15} width={15} />
+              </Button>
+
+              <AssociatedInfoButtonPromise
+                data={currentRow.associated}
+                target={{ accountId: currentRow.id }}
+                id={currentRow.id}
+              />
+              <RawDataModal
+                data={currentRow}
+                title="Raw Account Data"
+                dev={data.dev}
+                color="primary"
+                outline
+              />
+            </ButtonGroup>
+          </form>
+        </div>
+      {/if}
+    {/snippet}
+    {#snippet slotFilterButtons()}
+      <DownloadDropdown
+        urlGenerator={(downloadType) =>
+          urlGenerator({
+            address: "/(loggedIn)/accounts/download",
+            searchParamsValue: { ...urlInfo.current.searchParams, downloadType },
+          }).url}
+      />
+    {/snippet}
+    {#snippet slotFilter()}
+      <div class="flex flex-col gap-2 md:flex-row">
+        {#if urlInfo.current.searchParams}
+          <SearchInput
+            type="text"
+            bind:value={urlInfo.current.searchParams.textFilter}
+            placeholder="Filter..."
+            class="flex grow"
+            keys={data.autocompleteKeys}
+          />
+          <div class="flex self-center">
+            <AccountTypeFilterLinks
+              type={urlInfo.current.searchParams.type}
+              generateURL={(newType) =>
+                urlInfo.updateParamsURLGenerator({ searchParams: { type: newType } }).url}
+            />
+          </div>
+        {/if}
+      </div>
+    {/snippet}
+    {#snippet slotFilterModal()}
+      <AccountFilter bind:filter={urlInfo.current.searchParams} />
+    {/snippet}
+  </CustomTable>
+</PageLayout>
