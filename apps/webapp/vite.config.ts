@@ -12,6 +12,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
     },
     plugins: [
       tailwindcss(),
+      //@ts-expect-error Not sure what is going on here.
       sveltekit(),
       skRoutesPlugin({
         imports: [],
