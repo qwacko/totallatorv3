@@ -22,7 +22,6 @@
 		"lint": "prettier --check ."
 	},
 	"dependencies": {
-		"@totallator/context": "workspace:*",
 		"arktype": "^2.1.20",
 		"lodash-es": "^4.17.21",
 		"prettier": "^3.6.2",

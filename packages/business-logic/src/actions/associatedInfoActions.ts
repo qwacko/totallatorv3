@@ -41,13 +41,13 @@ import type { PaginatedResults } from './helpers/journal/PaginationType';
 import type { GroupingIdOptions } from './helpers/file/FilesAndNotesActions';
 import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { fileActions } from './fileActions';
 import type { CreateFileSchemaCoreType } from '@totallator/shared';
 import type { CreateNoteSchemaCoreType } from '@totallator/shared';
-import { noteActions } from './noteActions';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import type { IdSchemaType } from '@totallator/shared';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { addFileToAssociatedInfo } from './helpers/file/addFileToAssociatedInfo';
+import { addNoteToAssociatedInfo } from './helpers/note/addNoteToAssociatedInfo';
 
 type CreateAssociatedInfoFunction = (data: {
 	item: CreateAssociatedInfoSchemaType;
@@ -213,7 +213,7 @@ export const associatedInfoActions: {
 
 			await Promise.all(
 				filesToCreate.map(async (file) =>
-					fileActions.addToInfo({
+					addFileToAssociatedInfo({
 						associatedId: associatedInfoId,
 						data: file
 					})
@@ -222,7 +222,7 @@ export const associatedInfoActions: {
 
 			await Promise.all(
 				notesToCreate.map(async (note) =>
-					noteActions.addToInfo({
+					addNoteToAssociatedInfo({
 						associatedId: associatedInfoId,
 						data: note
 					})

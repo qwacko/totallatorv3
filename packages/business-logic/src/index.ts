@@ -25,7 +25,7 @@ export type { BudgetDropdownType } from './actions/budgetActions.js';
 export type { LabelDropdownType } from './actions/labelActions.js';
 export type { RecommendationType } from './actions/journalMaterializedViewActions.js';
 export type { TextFilterOptionsType } from './actions/helpers/misc/processTextFilter.js';
-export type { JournalSummaryType } from './actions/journalActions.js';
+export type { JournalSummaryType } from './actions/journalMaterializedViewActions.js';
 export type { AssociatedInfoDataType } from './actions/associatedInfoActions.js';
 export type { GroupedFilesType } from './actions/fileActions.js';
 export type { ImportDetail } from './actions/importActions.js';

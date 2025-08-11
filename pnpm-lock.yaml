@@ -489,9 +489,6 @@ importers:
 
   packages/shared:
     dependencies:
-      '@totallator/context':
-        specifier: workspace:*
-        version: link:../context
       arktype:
         specifier: ^2.1.20
         version: 2.1.20

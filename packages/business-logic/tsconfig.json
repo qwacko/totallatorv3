@@ -25,5 +25,4 @@
 	},
 	"include": ["src/**/*"],
 	"exclude": ["dist", "node_modules", "**/*.test.ts"],
-	"references": [{ "path": "../shared" }, { "path": "../database" }]
 }

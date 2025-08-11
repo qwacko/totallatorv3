@@ -23,7 +23,6 @@ import {
 import { noteFilterToQuery, noteFilterToText } from './helpers/note/noteFilterToQuery';
 import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
 import { and, count as drizzleCount, eq, desc, getTableColumns } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { materializedViewActions } from './materializedViewActions';
@@ -42,6 +41,7 @@ import { autoImportActions } from './autoImportActions';
 import { reportActions } from './reportActions';
 import { billActions } from './billActions';
 import { getContextDB } from '@totallator/context';
+import { addNoteToAssociatedInfo } from './helpers/note/addNoteToAssociatedInfo';
 
 type NotesActionsType = FilesAndNotesActions<
 	NotesTableType,
@@ -231,22 +231,7 @@ export const noteActions: NotesActionsType = {
 			})
 		};
 	},
-	addToInfo: async ({ data, associatedId }) => {
-		const db = getContextDB();
-		const noteId = nanoid();
-
-		const insertNoteData: typeof notesTable.$inferInsert = {
-			id: noteId,
-			associatedInfoId: associatedId,
-			note: data.note,
-			type: data.type,
-			...updatedTime()
-		};
-
-		await dbExecuteLogger(db.insert(notesTable).values(insertNoteData), 'Note - Create - Note');
-
-		await materializedViewActions.setRefreshRequired();
-	},
+	addToInfo: addNoteToAssociatedInfo,
 	create: async ({ data, creationUserId }) => {
 		const result = createNoteSchema.safeParse(data);
 

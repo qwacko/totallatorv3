@@ -21,7 +21,6 @@ import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
 import { tagActions } from './tagActions';
 import { labelActions } from './labelActions';
-import { journalMaterializedViewActions as journalViewActions } from './journalMaterializedViewActions';
 import { seedTransactionData } from './helpers/seed/seedTransactionData';
 import { getLogger } from '@/logger';
 import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
@@ -39,6 +38,7 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { journalMaterialisedList } from './helpers/journal/journalList';
 
 export const journalActions = {
 	createFromSimpleTransaction: async ({
@@ -231,7 +231,8 @@ export const journalActions = {
 	}: {
 		journalFilter: JournalFilterSchemaInputType;
 	}): Promise<void> => {
-		const journals = await journalViewActions.list({ filter: journalFilter });
+		const db = getContextDB();
+		const journals = await journalMaterialisedList({ filter: journalFilter, db });
 
 		await runInTransactionWithLogging('Mark Many Journals Complete', async () => {
 			await Promise.all(
@@ -248,7 +249,8 @@ export const journalActions = {
 	}: {
 		journalFilter: JournalFilterSchemaInputType;
 	}): Promise<void> => {
-		const journals = await journalViewActions.list({ filter: journalFilter });
+		const db = getContextDB();
+		const journals = await journalMaterialisedList({ filter: journalFilter, db });
 
 		await runInTransactionWithLogging('Mark Many Journals Incomplete', async () => {
 			await Promise.all(
@@ -309,7 +311,7 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
-		const journals = await journalViewActions.list({ filter: processedFilter });
+		const journals = await journalMaterialisedList({ filter: processedFilter, db });
 
 		if (journals.data.length === 0) return;
 
@@ -691,7 +693,7 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.parse(filter);
-		const journals = await journalViewActions.list({ filter: processedFilter });
+		const journals = await journalMaterialisedList({ filter: processedFilter, db });
 
 		if (journals.data.length === 0) return;
 
@@ -798,5 +800,3 @@ export const journalActions = {
 		return transactionIds;
 	}
 };
-
-export type JournalSummaryType = Awaited<ReturnType<(typeof journalViewActions)['summary']>>;

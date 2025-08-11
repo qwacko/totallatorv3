@@ -12,7 +12,6 @@ import {
 } from '@totallator/database';
 import Papa from 'papaparse';
 import { updatedTime } from '../misc/updatedTime';
-import { importActions } from '../../importActions';
 import {
 	createSimpleTransactionSchema,
 	type CreateSimpleTransactionType
@@ -33,6 +32,7 @@ import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { importFileHandler } from '@/server/files/fileHandler';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getContextDB } from '@totallator/context';
+import { importProcessItems } from './importProcessItems';
 
 export const processCreatedImport = async ({ id }: { id: string }) => {
 	const db = getContextDB();
@@ -103,13 +103,13 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 			);
 		} else {
 			if (importData.type === 'transaction') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createSimpleTransactionSchema
 				});
 			} else if (importData.type === 'account') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createAccountSchema,
@@ -124,7 +124,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'bill') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createBillSchema,
@@ -138,7 +138,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'budget') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createBudgetSchema,
@@ -152,7 +152,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'category') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createCategorySchema,
@@ -166,7 +166,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'tag') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createTagSchema,
@@ -180,7 +180,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'label') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createLabelSchema,
@@ -203,7 +203,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 						if (importMappingDetail.configuration) {
 							const config = importMappingDetail.configuration;
 
-							await importActions.processItems<CreateSimpleTransactionType>({
+							await importProcessItems<CreateSimpleTransactionType>({
 								id,
 								data: processedData,
 								schema: createSimpleTransactionSchema as ZodSchema<CreateSimpleTransactionType>,
@@ -288,7 +288,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 
 		const processedData = parsedData.data;
 
-		await importActions.processItems<CreateSimpleTransactionType>({
+		await importProcessItems<CreateSimpleTransactionType>({
 			id,
 			data: { data: processedData },
 			schema: createSimpleTransactionSchema as ZodSchema<CreateSimpleTransactionType>,

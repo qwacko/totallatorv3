@@ -680,3 +680,7 @@ export type RecommendationType = {
 	checkDescription: string;
 	searchDescription: string;
 };
+
+export type JournalSummaryType = Awaited<
+	ReturnType<(typeof journalMaterializedViewActions)['summary']>
+>;
