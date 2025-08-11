@@ -7,7 +7,7 @@ import {
 	type TextFilterOptionsType
 } from '../misc/processTextFilter';
 
-const filterArray = [
+const filterArray: TextFilterOptionsType<NoteFilterSchemaWithoutPaginationType> = [
 	{
 		key: ['type:'],
 		update: (filter, currentFilter) => {
@@ -20,7 +20,7 @@ const filterArray = [
 			addEnumToArray(filter, 'excludeTypeArray', currentFilter, noteTypeEnum);
 		}
 	}
-] satisfies TextFilterOptionsType<NoteFilterSchemaWithoutPaginationType>;
+];
 
 export const processNoteTextFilter = textFilterHandler<NoteFilterSchemaWithoutPaginationType>(
 	filterArray,
@@ -34,7 +34,11 @@ export const processNoteTextFilter = textFilterHandler<NoteFilterSchemaWithoutPa
 
 export const noteTextFilterKeys = filterArray.map((f) => f.key).flat();
 
-export const noteFilterArray = [
+export const noteFilterArray: TextFilterOptionsType<{
+	textFilter?: string;
+	note?: boolean;
+	reminder?: boolean;
+}> = [
 	{
 		key: ['note:', 'notes:'],
 		update: (filter) => {
@@ -59,8 +63,4 @@ export const noteFilterArray = [
 			filter.reminder = false;
 		}
 	}
-] satisfies TextFilterOptionsType<{
-	textFilter?: string;
-	note?: boolean;
-	reminder?: boolean;
-}>;
+];

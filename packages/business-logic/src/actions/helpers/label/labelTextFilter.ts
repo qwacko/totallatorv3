@@ -14,7 +14,7 @@ import {
 import { noteFilterArray } from '../note/noteTextFilter';
 import { fileFilterArray } from '../file/fileTextFilter';
 
-export const labelFilterArray = [
+export const labelFilterArray: TextFilterOptionsType<LabelFilterSchemaWithoutPaginationType> = [
 	...importTextFilterArray,
 	...statusTextFilterArray,
 	...statisticsTextFilterArray,
@@ -22,7 +22,7 @@ export const labelFilterArray = [
 	...fileFilterArray,
 	...noteFilterArray,
 	...idTitleTextFilterArray
-] satisfies TextFilterOptionsType<LabelFilterSchemaWithoutPaginationType>;
+];
 
 export const processLabelTextFilter = textFilterHandler<LabelFilterSchemaWithoutPaginationType>(
 	labelFilterArray,

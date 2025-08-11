@@ -24,7 +24,7 @@ type TextFilterWithGroupSingleSchemaType = TextFilterOptionsType<
 	TagFilterSchemaWithoutPaginationType | CategoryFilterSchemaWithoutPaginationType
 >;
 
-export const groupSingleTextFilterArray = [
+export const groupSingleTextFilterArray: TextFilterWithGroupSingleSchemaType = [
 	{
 		key: ['group:'],
 		update: (filter, newFilter) => {
@@ -49,7 +49,7 @@ export const groupSingleTextFilterArray = [
 			addToArray(filter, 'excludeSingleArray', newFilter);
 		}
 	}
-] satisfies TextFilterWithGroupSingleSchemaType;
+];
 
 export const importTextFilterArray = [
 	{

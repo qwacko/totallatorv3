@@ -5,7 +5,7 @@ import {
 } from '../misc/processTextFilter';
 import type { AssociatedInfoFilterSchemaType } from '@totallator/shared';
 
-const filterArray = [
+const filterArray: TextFilterOptionsType<AssociatedInfoFilterSchemaType> = [
 	{
 		key: 'id:',
 		update: (filter, newFilter) => {
@@ -18,7 +18,7 @@ const filterArray = [
 			addToArray(filter, 'excludeIdArray', newFilter);
 		}
 	}
-] satisfies TextFilterOptionsType<AssociatedInfoFilterSchemaType>;
+];
 
 export const processAssociatedInfoTextFilter = textFilterHandler<AssociatedInfoFilterSchemaType>(
 	filterArray,

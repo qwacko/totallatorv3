@@ -9,7 +9,7 @@ import {
 	type TextFilterOptionsType
 } from '../misc/processTextFilter';
 
-const filterArray = [
+const filterArray: TextFilterOptionsType<FileFilterSchemaWithoutPaginationType> = [
 	{
 		key: ['type:'],
 		update: (filter, currentFilter) => {
@@ -94,7 +94,7 @@ const filterArray = [
 			filter.thumbnail = false;
 		}
 	}
-] satisfies TextFilterOptionsType<FileFilterSchemaWithoutPaginationType>;
+];
 
 export const fileMainFilterArray = filterArray;
 
@@ -110,7 +110,10 @@ export const processNoteTextFilter = textFilterHandler<FileFilterSchemaWithoutPa
 
 export const noteTextFilterKeys = filterArray.map((f) => f.key).flat();
 
-export const fileFilterArray = [
+export const fileFilterArray: TextFilterOptionsType<{
+	textFilter?: string;
+	file?: boolean;
+}> = [
 	{
 		key: ['file:', 'files:'],
 		update: (filter) => {
@@ -123,7 +126,4 @@ export const fileFilterArray = [
 			filter.file = false;
 		}
 	}
-] satisfies TextFilterOptionsType<{
-	textFilter?: string;
-	file?: boolean;
-}>;
+];

@@ -14,15 +14,16 @@ import {
 import { noteFilterArray } from '../note/noteTextFilter';
 import { fileFilterArray } from '../file/fileTextFilter';
 
-export const categoryFilterArray = [
-	...importTextFilterArray,
-	...statusTextFilterArray,
-	...statisticsTextFilterArray,
-	...groupSingleTextFilterArray,
-	...fileFilterArray,
-	...noteFilterArray,
-	...idTitleTextFilterArray
-] satisfies TextFilterOptionsType<CategoryFilterSchemaWithoutPaginationType>;
+export const categoryFilterArray: TextFilterOptionsType<CategoryFilterSchemaWithoutPaginationType> =
+	[
+		...importTextFilterArray,
+		...statusTextFilterArray,
+		...statisticsTextFilterArray,
+		...groupSingleTextFilterArray,
+		...fileFilterArray,
+		...noteFilterArray,
+		...idTitleTextFilterArray
+	];
 
 export const processCategoryTextFilter =
 	textFilterHandler<CategoryFilterSchemaWithoutPaginationType>(

@@ -33,7 +33,7 @@ const handleNested = <U extends 'payee' | 'excludePayee'>(search: string, key: U
 	}
 });
 
-const filterArray = [
+const filterArray: TextFilterOptionsType<JournalFilterSchemaWithoutPaginationType> = [
 	nestedStringFilterHandler<'excludeAccount', JournalFilterSchemaWithoutPaginationType>(
 		accountTextFilterKeys,
 		'!account',
@@ -272,7 +272,7 @@ const filterArray = [
 	},
 	...fileFilterArray,
 	...noteFilterArray
-] satisfies TextFilterOptionsType<JournalFilterSchemaWithoutPaginationType>;
+];
 
 export { filterArray as journalFilterArray };
 

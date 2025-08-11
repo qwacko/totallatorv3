@@ -8,7 +8,7 @@ import {
 	type TextFilterOptionsType
 } from '../misc/processTextFilter';
 
-const filterArray = [
+const filterArray: TextFilterOptionsType<QueryLogFilterSchemaWithoutPaginationType> = [
 	{
 		key: ['maxDuration:', '!maxDuration', 'max:', '!max:'],
 		update: (filter, currentFilter) => {
@@ -63,7 +63,7 @@ const filterArray = [
 			compareTextDate(filter, 'end', currentFilter, 'max');
 		}
 	}
-] satisfies TextFilterOptionsType<QueryLogFilterSchemaWithoutPaginationType>;
+];
 
 export const processQueryLogTextFilter =
 	textFilterHandler<QueryLogFilterSchemaWithoutPaginationType>(
