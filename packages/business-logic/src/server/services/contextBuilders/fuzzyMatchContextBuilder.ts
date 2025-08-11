@@ -1,5 +1,5 @@
 import { deduplicateJournals, type ContextBuilderParams } from './baseContextBuilder';
-import type { LLMBatchContext, BatchJournalData } from '../llmBatchProcessingService';
+import type { LLMBatchContext, BatchJournalData } from '../llmBatchProcessingServiceTypes';
 import { journalMaterializedViewActions } from '../../../actions/journalMaterializedViewActions';
 
 /**

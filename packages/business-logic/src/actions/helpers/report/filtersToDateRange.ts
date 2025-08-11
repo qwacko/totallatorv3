@@ -6,6 +6,8 @@ export type DBDateRangeType = {
 	max: Date;
 };
 
+export type DateRangeType = ReturnType<typeof filtersToDateRange>;
+
 export const filtersToDateRange = (
 	filters: JournalFilterSchemaWithoutPaginationType[],
 	startingDateRange: DBDateRangeType

@@ -22,12 +22,11 @@ import {
 } from '@totallator/database';
 import { noteFilterToQuery, noteFilterToText } from './helpers/note/noteFilterToQuery';
 import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
-import { and, count as drizzleCount, eq, desc, getTableColumns } from 'drizzle-orm';
+import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { materializedViewActions } from './materializedViewActions';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import type { NoteTypeType } from '@totallator/shared';
 import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { associatedInfoActions } from './associatedInfoActions';
@@ -42,6 +41,7 @@ import { reportActions } from './reportActions';
 import { billActions } from './billActions';
 import { getContextDB } from '@totallator/context';
 import { addNoteToAssociatedInfo } from './helpers/note/addNoteToAssociatedInfo';
+import { GroupedNotesType, listGroupedNotes } from './helpers/note/listGroupedNotes';
 
 type NotesActionsType = FilesAndNotesActions<
 	NotesTableType,
@@ -164,43 +164,7 @@ export const noteActions: NotesActionsType = {
 			})
 		).data;
 	},
-	listGrouped: async ({ ids, grouping }) => {
-		const db = getContextDB();
-		const items = await dbExecuteLogger(
-			db
-				.select({
-					id: notesTable.id,
-					note: notesTable.note,
-					type: notesTable.type,
-					createdAt: notesTable.createdAt,
-					updatedAt: notesTable.updatedAt,
-					createdById: associatedInfoTable.createdById,
-					createdBy: user.username,
-					groupingId: associatedInfoTable[`${grouping}Id`]
-				})
-				.from(notesTable)
-				.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, notesTable.associatedInfoId))
-				.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
-				.where(inArrayWrapped(associatedInfoTable[`${grouping}Id`], ids))
-				.orderBy(desc(notesTable.createdAt)),
-			'Note - List Grouped - Get Notes'
-		);
-
-		const groupedItems = items.reduce(
-			(acc, item) => {
-				if (!item.groupingId) return acc;
-				const groupingId = item.groupingId;
-				if (!acc[groupingId]) {
-					acc[groupingId] = [];
-				}
-				acc[groupingId].push(item);
-				return acc;
-			},
-			{} as Record<string, typeof items>
-		);
-
-		return groupedItems;
-	},
+	listGrouped: listGroupedNotes,
 	addToSingleItem: async ({ item, grouping }) => {
 		const ids = [item.id];
 		const groupedNotes = await noteActions.listGrouped({
@@ -342,14 +306,3 @@ export const noteActions: NotesActionsType = {
 		};
 	}
 };
-
-export type GroupedNotesType = {
-	id: string;
-	note: string;
-	type: NoteTypeType;
-	createdAt: Date;
-	updatedAt: Date;
-	createdById: string | null;
-	createdBy: string | null;
-	groupingId: string | null;
-}[];

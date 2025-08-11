@@ -12,22 +12,15 @@ import type {
 } from '@totallator/shared';
 import { mathConfigToNumber } from './mathConfigToNumber';
 import { stringConfigToString } from './stringConfigToString';
-import { getCombinedFilters, type GetDataForFilterKeyType } from './getCombinedFilters';
+import {
+	ConfigFilters,
+	getCombinedFilters,
+	type GetDataForFilterKeyType
+} from './getCombinedFilters';
 import { sparklineConfigToData } from './sparklineConfigToData';
 import type { currencyFormatType } from '@totallator/shared';
 import { timelineConfigToData } from './timelineConfigToData';
 import { groupedMathConfigToNumber } from './groupedMathConfigToNumber';
-
-export type DateRangeType = ReturnType<typeof filtersToDateRange>;
-
-export type ConfigFilters = {
-	id: string;
-	order: number;
-	filter: {
-		id: string;
-		filter: JournalFilterSchemaWithoutPaginationType;
-	};
-}[];
 
 export const getItemData = ({
 	db,

@@ -25,11 +25,13 @@ import { sqlToText } from '../sqlToText';
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getCorrectJournalTable } from '../../helpers/journalMaterializedView/getCorrectJournalTable';
-import { noteActions, type GroupedNotesType } from '../../noteActions';
-import { fileActions } from '../../fileActions';
-import type { GroupedFilesType } from '../../fileActions';
 import type { PaginationType } from './PaginationType';
-import { associatedInfoActions, type AssociatedInfoDataType } from '../../associatedInfoActions';
+import { GroupedFilesType, listGroupedFiles } from '../file/listGroupedFiles';
+import { GroupedNotesType, listGroupedNotes } from '../note/listGroupedNotes';
+import {
+	AssociatedInfoDataType,
+	listGroupedAssociatedInfo
+} from '../associatedInfo/listGroupedAssociatedInfo';
 
 type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
 type OtherJournalsColumnType = {
@@ -178,17 +180,17 @@ export const journalMaterialisedList = async ({
 		journals.map((item) => item.transactionId)
 	);
 
-	const transactionNotes = await noteActions.listGrouped({
+	const transactionNotes = await listGroupedNotes({
 		ids: transactionIds,
 		grouping: 'transaction'
 	});
 
-	const transactionFiles = await fileActions.listGrouped({
+	const transactionFiles = await listGroupedFiles({
 		ids: transactionIds,
 		grouping: 'transaction'
 	});
 
-	const associatedInfo = associatedInfoActions.listGrouped({
+	const associatedInfo = listGroupedAssociatedInfo({
 		ids: transactionIds,
 		grouping: 'transactionId'
 	});

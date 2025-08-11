@@ -4,7 +4,6 @@ import { sum, and, count, min, max, avg, SQL, asc, sql, eq } from 'drizzle-orm';
 import { filtersToSQLWithDateRange } from './filtersToSQLWithDateRange';
 import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
 import { journalExtendedView } from '@totallator/database';
-import type { DateRangeType, ConfigFilters } from './getData';
 import type { TimeGroupingType } from '@totallator/shared';
 import { generateDateItemsBetween } from '@/helpers/generateDateItemsBetween';
 import {
@@ -12,6 +11,7 @@ import {
 	type ReportConfigPartItemGroupingType
 } from '@totallator/shared';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { DateRangeType } from './filtersToDateRange';
 
 const groupingEnum = ['single', 'time', 'grouped'] as const;
 const resultEnum = ['sum', 'count', 'min', 'max', 'avg'] as const;
@@ -88,6 +88,15 @@ const getValueColumn = (resultType: ResultEnumType) => {
 						? avg(journalExtendedView.amount).mapWith(Number)
 						: sum(journalExtendedView.amount).mapWith(Number);
 };
+
+export type ConfigFilters = {
+	id: string;
+	order: number;
+	filter: {
+		id: string;
+		filter: JournalFilterSchemaWithoutPaginationType;
+	};
+}[];
 
 export const getCombinedFilters = ({
 	db,

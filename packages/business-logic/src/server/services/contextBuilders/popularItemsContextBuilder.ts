@@ -3,7 +3,7 @@ import type {
 	LLMBatchContext,
 	PopularItems,
 	CategorizationOptions
-} from '../llmBatchProcessingService';
+} from '../llmBatchProcessingServiceTypes';
 import { journalMaterialisedList } from '../../../actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '@totallator/shared';
 import type { DBType } from '@totallator/database';

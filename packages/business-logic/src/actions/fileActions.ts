@@ -13,7 +13,7 @@ import {
 	type FileTableType,
 	associatedInfoTable
 } from '@totallator/database';
-import { and, count as drizzleCount, eq, desc, getTableColumns } from 'drizzle-orm';
+import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { fileFilterToQuery, fileFilterToText } from './helpers/file/fileFilterToQuery';
 import { fileToOrderByToSQL } from './helpers/file/fileOrderByToSQL';
@@ -24,7 +24,6 @@ import {
 	type FileFilterSchemaWithoutPaginationType,
 	type UpdateFileSchemaType
 } from '@totallator/shared';
-import type { FileTypeType } from '@totallator/shared';
 import { fileFileHandler } from '../server/files/fileHandler';
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
@@ -45,6 +44,7 @@ import { autoImportActions } from './autoImportActions';
 import { reportActions } from './reportActions';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import { addFileToAssociatedInfo } from './helpers/file/addFileToAssociatedInfo';
+import { GroupedFilesType, listGroupedFiles } from './helpers/file/listGroupedFiles';
 
 type FilesActionsType = FilesAndNotesActions<
 	FileTableType,
@@ -181,43 +181,7 @@ export const fileActions: FilesActionsType & {
 			})
 		).data;
 	},
-	listGrouped: async ({ ids, grouping }) => {
-		const db = getContextDB();
-		const items = await db
-			.select({
-				id: fileTable.id,
-				title: fileTable.title,
-				type: fileTable.type,
-				filename: fileTable.filename,
-				originalFilename: fileTable.originalFilename,
-				thumbnailFilename: fileTable.thumbnailFilename,
-				createdAt: fileTable.createdAt,
-				updatedAt: fileTable.updatedAt,
-				createdById: associatedInfoTable.createdById,
-				createdBy: user.username,
-				groupingId: associatedInfoTable[`${grouping}Id`]
-			})
-			.from(fileTable)
-			.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
-			.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
-			.where(inArrayWrapped(associatedInfoTable[`${grouping}Id`], ids))
-			.orderBy(desc(fileTable.createdAt));
-
-		const groupedItems = items.reduce(
-			(acc, item) => {
-				if (!item.groupingId) return acc;
-				const groupingId = item.groupingId;
-				if (!acc[groupingId]) {
-					acc[groupingId] = [];
-				}
-				acc[groupingId].push(item);
-				return acc;
-			},
-			{} as Record<string, typeof items>
-		);
-
-		return groupedItems;
-	},
+	listGrouped: listGroupedFiles,
 	addToSingleItem: async ({ item, grouping }) => {
 		const ids = [item.id];
 		const groupedFiles = await fileActions.listGrouped({
@@ -579,17 +543,3 @@ export const fileActions: FilesActionsType & {
 		);
 	}
 };
-
-export type GroupedFilesType = {
-	id: string;
-	title: string | null;
-	type: FileTypeType;
-	filename: string;
-	originalFilename: string;
-	thumbnailFilename: string | null;
-	createdAt: Date;
-	updatedAt: Date;
-	createdById: string | null;
-	createdBy: string | null;
-	groupingId: string | null;
-}[];

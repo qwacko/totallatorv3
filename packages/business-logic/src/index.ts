@@ -27,7 +27,7 @@ export type { RecommendationType } from './actions/journalMaterializedViewAction
 export type { TextFilterOptionsType } from './actions/helpers/misc/processTextFilter.js';
 export type { JournalSummaryType } from './actions/journalMaterializedViewActions.js';
 export type { AssociatedInfoDataType } from './actions/associatedInfoActions.js';
-export type { GroupedFilesType } from './actions/fileActions.js';
+export type { GroupedFilesType } from './actions/helpers/file/listGroupedFiles.js';
 export type { ImportDetail } from './actions/importActions.js';
 export type { ImportDetailList } from './actions/importActions.js';
 export type { ReportDropdownType } from './actions/reportActions.js';
