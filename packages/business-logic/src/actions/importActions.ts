@@ -28,14 +28,13 @@ import { labelActions } from './labelActions';
 import { journalActions } from './journalActions';
 import { importMappingActions } from './importMappingActions';
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
-import { z, type ZodSchema } from 'zod';
+import { z } from 'zod';
 import {
 	type CreateImportSchemaType,
 	type ImportFilterSchemaType,
 	type UpdateImportSchemaType
 } from '@totallator/shared';
 import {
-	importTransaction,
 	importAccount,
 	importBill,
 	importBudget,
@@ -43,9 +42,10 @@ import {
 	importTag,
 	importLabel
 } from './helpers/import/importHelpers';
+import { importTransaction } from './helpers/import/importHelpers_importTransaction';
 
 import { getImportDetail, type GetImportDetailReturnType } from './helpers/import/getImportDetail';
-import { processCreatedImport } from './helpers/import/processImport';
+// import { processCreatedImport } from './helpers/import/processImport';
 import { streamingDelay } from '../server/testingDelay';
 import {
 	importListSubquery,
@@ -200,7 +200,8 @@ export const importActions = {
 		);
 
 		try {
-			await processCreatedImport({ id });
+			// await processCreatedImport({ id });
+			const test = 1;
 		} catch (e) {
 			getLogger().error('Error Processing Import', e);
 			await dbExecuteLogger(
@@ -214,7 +215,6 @@ export const importActions = {
 
 		return id;
 	},
-	processItems: importProcessItems,
 	get: async ({
 		id
 	}: {
@@ -261,7 +261,8 @@ export const importActions = {
 		const importData = data[0];
 
 		if (importData.status === 'created') {
-			await processCreatedImport({ id });
+			// wait processCreatedImport({ id });
+			const test = 1;
 		}
 
 		return getImportDetail({ db, id });

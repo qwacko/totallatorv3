@@ -15,12 +15,13 @@
 		}
 	},
 	"scripts": {
-		"build": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+		"build": "NODE_OPTIONS='--max-old-space-size=20480' tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+		"build:with-types": "pnpm build && NODE_OPTIONS='--max-old-space-size=20480' tsc --project tsconfig.declarations.json",
 		"dev": "tsc --watch --project tsconfig.build.json & tsc-alias --watch -p tsconfig.build.json",
 		"clean": "rm -rf dist",
 		"test": "vitest",
-		"check": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project tsconfig.check.json",
-		"check:full": "NODE_OPTIONS='--max-old-space-size=12288' tsc --noEmit",
+		"check": "NODE_OPTIONS='--max-old-space-size=20480' tsc --project tsconfig.json",
+		"check:full": "NODE_OPTIONS='--max-old-space-size=20480' tsc --noEmit",
 		"check:help": "echo '📋 Available check commands:\\n  • pnpm check          - Fast optimized TypeScript check (daily use)\\n  • pnpm check:full      - Full TypeScript check (periodic testing)\\n\\n💡 Use check:full periodically to test if your optimizations allow full checking!'",
 		"circular": "madge --circular --extensions ts src/",
 		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
@@ -63,6 +64,7 @@
 		"sharp": "^0.33.5",
 		"sql-formatter": "^15.6.6",
 		"superjson": "^2.2.2",
+		"undici-types": "^7.13.0",
 		"zod": "^4.0.10"
 	},
 	"devDependencies": {
@@ -70,10 +72,11 @@
 		"@types/lodash-es": "^4.17.12",
 		"@types/node": "^22.13.14",
 		"@types/node-schedule": "^2.1.7",
+		"@typescript/analyze-trace": "^0.10.1",
 		"knip": "^5.62.0",
 		"madge": "^8.0.0",
 		"tsc-alias": "^1.8.16",
-		"typescript": "^5.8.2",
+		"typescript": "^5.9.2",
 		"vitest": "^3.1.1"
 	}
 }

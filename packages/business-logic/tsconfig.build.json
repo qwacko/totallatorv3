@@ -8,7 +8,9 @@
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"moduleResolution": "bundler",
-		"allowImportingTsExtensions": false
+		"allowImportingTsExtensions": false,
+		"preserveWatchOutput": true,
+		"pretty": false
 	},
 	"exclude": ["dist", "node_modules", "**/*.test.ts"]
 }

@@ -2,28 +2,51 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getContextDB } from '@totallator/context';
 import { importItemDetail } from '@totallator/database';
 import { nanoid } from 'nanoid';
-import { ZodSchema } from 'zod';
+import type { z } from 'zod';
 import { updatedTime } from '../misc/updatedTime';
+import type Papa from 'papaparse';
+import type {
+	createAccountSchema,
+	createBillSchema,
+	createBudgetSchema,
+	createCategorySchema,
+	createLabelSchema,
+	createSimpleTransactionSchema,
+	createTagSchema
+} from '@totallator/shared';
 
-export const importProcessItems = async <S extends Record<string, unknown>>({
+type ProcessItemsType =
+	| typeof createSimpleTransactionSchema
+	| typeof createAccountSchema
+	| typeof createBillSchema
+	| typeof createBudgetSchema
+	| typeof createCategorySchema
+	| typeof createTagSchema
+	| typeof createLabelSchema
+	| typeof createSimpleTransactionSchema;
+
+interface ImportProcessItemsParams<S extends ProcessItemsType> {
+	id: string;
+	data: Papa.ParseResult<unknown> | { data: any[] };
+	schema: S;
+	importDataToSchema?: (data: any) => { data: z.infer<S> } | { errors: string[] };
+	getUniqueIdentifier?: (data: z.infer<S>) => string | null | undefined;
+	checkUniqueIdentifiers?: (data: string[]) => Promise<string[]>;
+}
+
+export const importProcessItems = async <S extends ProcessItemsType>({
 	id,
-	data,
+	data: dataExternal,
 	schema,
-	importDataToSchema = (data) => ({ data: data as S }),
+	importDataToSchema = (data) => ({ data: data as z.infer<S> }),
 	getUniqueIdentifier,
 	checkUniqueIdentifiers
-}: {
-	id: string;
-	data: Papa.ParseResult<unknown> | { data: Record<string, any>[] };
-	schema: ZodSchema<S>;
-	importDataToSchema?: (data: unknown) => { data: S } | { errors: string[] };
-	getUniqueIdentifier?: ((data: S) => string | null | undefined) | undefined;
-	checkUniqueIdentifiers?: (data: string[]) => Promise<string[]>;
-}): Promise<void> => {
+}: ImportProcessItemsParams<S>): Promise<void> => {
+	const data = dataExternal as { data: any[] };
 	const db = getContextDB();
 	await Promise.all(
-		data.data.map(async (currentRow) => {
-			const row = currentRow as Record<string, unknown>;
+		data.data.map(async (currentRow: any) => {
+			const row = currentRow;
 			const importDetailId = nanoid();
 			const preprocessedData = importDataToSchema(row);
 			if ('errors' in preprocessedData) {
@@ -43,7 +66,7 @@ export const importProcessItems = async <S extends Record<string, unknown>>({
 			const validatedData = schema.safeParse(preprocessedData.data);
 			if (validatedData.success) {
 				const unqiueIdentifier = getUniqueIdentifier
-					? getUniqueIdentifier(validatedData.data)
+					? getUniqueIdentifier(validatedData.data as z.infer<S>)
 					: undefined;
 				const foundUniqueIdentifiers =
 					checkUniqueIdentifiers && unqiueIdentifier
