@@ -1,7 +1,7 @@
 import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
-import { actionHelpers, tActions } from "@totallator/business-logic";
+import { actionHelpers, tActions, initializeEventCallbacks } from "@totallator/business-logic";
 import { noAdmins } from "@totallator/business-logic";
 import {
   createRequestContext,
@@ -62,6 +62,18 @@ export const init: ServerInit = async () => {
 
   //Setup DB Logger
   actionHelpers.initDBLogger(context);
+
+  // Initialize event callbacks
+  setTimeout(() => {
+    try {
+      // Run within the context so event callbacks can access the event emitter
+      runWithContext(context, createRequestContext({ request: { url: 'internal://init' } } as any), () => {
+        initializeEventCallbacks();
+      });
+    } catch (error) {
+      console.error('Failed to initialize event callbacks:', error);
+    }
+  }, 1500); // Delay to ensure everything is fully initialized
 
   // Initialize new cron service after database is ready
   // Add a small delay to ensure migrations have completed

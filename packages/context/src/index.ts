@@ -36,6 +36,7 @@ export {
   getRequestContext as getRequestContextFromStore,
   getContext as getContextStore,
   getContextDB,
+  getContextEventEmitter,
   runWithContext,
 } from './asyncStorage.js';
 
@@ -46,3 +47,13 @@ export {
   runInTransactionWithLogging,
   runRequestInTransaction,
 } from './transaction.js';
+
+/**
+ * Type-safe event emitter - used for asynchronous event handling throughout the app
+ */
+export {
+  type AppEvents,
+  type EventListener,
+  type TypedEventEmitter,
+  createEventEmitter,
+} from './eventEmitter.js';

@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import type { GlobalContext } from './global.js';
 import type { RequestContext } from './request.js';
 import type { TransactionType } from '@totallator/database';
+import type { TypedEventEmitter } from './eventEmitter.js';
 
 /**
  * Standard context store containing global and request-scoped context.
@@ -99,6 +100,23 @@ export function getContextDB() {
     throw new Error('No context available. Make sure the request is running within the AsyncLocalStorage context.');
   }
   return store.global.db;
+}
+
+/**
+ * Get the event emitter from AsyncLocalStorage.
+ * 
+ * This provides access to the type-safe event emitter from anywhere within
+ * the request processing chain for asynchronous event handling.
+ * 
+ * @returns Type-safe event emitter
+ * @throws Error if called outside of context scope
+ */
+export function getContextEventEmitter(): TypedEventEmitter {
+  const store = contextStorage.getStore();
+  if (!store) {
+    throw new Error('Event emitter context not available. Make sure the request is running within the AsyncLocalStorage context.');
+  }
+  return store.global.eventEmitter;
 }
 
 /**

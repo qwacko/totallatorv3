@@ -2,6 +2,7 @@ import { type ServerEnvSchemaType } from '@totallator/shared';
 import { createLogger, type Logger } from './logger.js';
 import { createDatabase, migrateDatabase, type DBType } from '@totallator/database';
 import { createRateLimiter, type RateLimiter } from './rateLimiter.js';
+import { createEventEmitter, type TypedEventEmitter } from './eventEmitter.js';
 
 /**
  * Global application context containing shared resources and configuration.
@@ -11,6 +12,7 @@ import { createRateLimiter, type RateLimiter } from './rateLimiter.js';
  * - Database connection and transaction capabilities
  * - Server environment configuration
  * - Materialized view refresh rate limiting
+ * - Type-safe event emitter for application events
  */
 export interface GlobalContext {
   /** Application logger configured with log levels and classes */
@@ -30,6 +32,9 @@ export interface GlobalContext {
   
   /** Factory function for creating additional rate limiters */
   createRateLimiter: typeof createRateLimiter;
+  
+  /** Type-safe event emitter for application events */
+  eventEmitter: TypedEventEmitter;
 }
 
 let globalContext: GlobalContext | null = null;
@@ -108,6 +113,9 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     name: 'MaterializedViewRefresh',
   });
 
+  // Create event emitter
+  const eventEmitter = createEventEmitter(logger);
+
   globalContext = {
     logger,
     db,
@@ -115,6 +123,7 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     postgresDatabase,
     viewRefreshLimiter,
     createRateLimiter,
+    eventEmitter,
   };
 
   logger.info('Global context initialized');
