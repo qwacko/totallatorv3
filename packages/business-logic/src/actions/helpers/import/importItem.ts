@@ -3,8 +3,8 @@ import { importItemDetail } from '@totallator/database';
 import { updatedTime } from '../misc/updatedTime';
 import { eq } from 'drizzle-orm';
 import type { z } from 'zod';
-import { getLogger } from 'src/logger';
-import { dbExecuteLogger } from 'src/server/db/dbLogger';
+import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
 import {
 	createAccountSchema,
 	createBillSchema,
