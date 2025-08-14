@@ -1,4 +1,5 @@
-import { getContextEventEmitter } from '@totallator/context';
+import { getContextEventEmitter, type EventListener } from '@totallator/context';
+import { backupActions } from '../actions/backupActions.js';
 
 /**
  * Set up event listeners for business logic operations
@@ -13,6 +14,35 @@ import { getContextEventEmitter } from '@totallator/context';
  */
 
 /**
+ * Handle backup restore trigger events
+ * This runs the actual backup restoration in the background
+ */
+const onBackupRestoreTriggered: EventListener<'backup.restore.triggered'> = async ({ 
+  backupId, 
+  includeUsers, 
+  userId 
+}) => {
+  try {
+    console.log('Starting background backup restore:', { backupId, includeUsers, userId });
+    
+    // Run the actual backup restore (this is the existing logic)
+    await backupActions.restoreBackup({ 
+      id: backupId, 
+      includeUsers, 
+      userId 
+    });
+    
+    console.log('Background backup restore completed successfully:', { backupId });
+  } catch (error) {
+    console.error('Background backup restore failed:', { 
+      backupId, 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+    // The restoreBackup function already emits the failure event
+  }
+};
+
+/**
  * Initialize all event listeners
  * 
  * This function should be called during application startup to register
@@ -20,13 +50,10 @@ import { getContextEventEmitter } from '@totallator/context';
  */
 export function initializeEventCallbacks(): void {
   try {
-    // Get the event emitter for when you need to register listeners
-    // const eventEmitter = getContextEventEmitter();
+    const eventEmitter = getContextEventEmitter();
     
-    // Add your event listeners here
-    // Example:
-    // eventEmitter.on('user.created', onUserCreated);
-    // eventEmitter.on('order.completed', onOrderCompleted);
+    // Register backup restore event handler
+    eventEmitter.on('backup.restore.triggered', onBackupRestoreTriggered);
     
     console.log('Event callbacks initialized successfully');
   } catch (error) {

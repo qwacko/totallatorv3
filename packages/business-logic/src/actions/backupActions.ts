@@ -51,6 +51,7 @@ import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { materializedViewActions } from './materializedViewActions';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { emitEvent } from '../events/eventHelper.js';
 
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -549,42 +550,91 @@ export const backupActions = {
 
 		return;
 	},
-	restoreBackup: async ({
+	restoreTrigger: async ({
 		id,
-		includeUsers = false
+		includeUsers = false,
+		userId
 	}: {
 		id: string;
 		includeUsers?: boolean;
+		userId?: string;
 	}): Promise<void> => {
 		const db = getContextDB();
+		
+		// Perform cursory checks to ensure backup exists and is valid
 		const backups = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.id, id)),
-			'Backup - Restore Backup - Get Backup'
+			'Backup - Restore Trigger - Get Backup'
 		);
+		
 		if (backups.length === 0) {
 			throw new Error('Backup Not Found');
 		}
+		
 		const backup = backups[0];
-
-		const checkedBackupData = await backupActions.getBackupDataStrutured({ id });
-
-		//Produce a new backup prior to any restore.
-		await backupActions.storeBackup({
-			title: `Pre-Restore - ${backup.createdAt.toISOString().substring(0, 10)} - ${backup.title}`,
-			compress: true,
-			createdBy: 'System',
-			creationReason: 'Pre-Restore'
-		});
-
-		const dataInsertionStart = Date.now();
-		await runInTransactionWithLogging('Restore Backup', async () => {
+		
+		// Check if backup file exists on disk
+		const fileExists = await backupFileHandler().fileExists(backup.filename);
+		if (!fileExists) {
+			throw new Error('Backup File Not Found On Disk');
+		}
+		
+		// Try to read backup data to ensure it's valid
+		try {
+			await getBackupStructuredData({ filename: backup.filename });
+		} catch (error) {
+			throw new Error(`Invalid backup file: ${error instanceof Error ? error.message : String(error)}`);
+		}
+		
+		// Emit the trigger event - this will start the background restoration
+		emitEvent('backup.restore.triggered', { backupId: id, includeUsers, userId });
+		
+		getLogger().info(`Backup restore triggered for backup: ${backup.filename}`);
+	},
+	restoreBackup: async ({
+		id,
+		includeUsers = false,
+		userId
+	}: {
+		id: string;
+		includeUsers?: boolean;
+		userId?: string;
+	}): Promise<void> => {
+		const startTime = Date.now();
+		
+		// Emit start event
+		emitEvent('backup.restore.started', { backupId: id, includeUsers, userId });
+		
+		try {
 			const db = getContextDB();
-			//Clear The Database
-			if (includeUsers) {
-				await dbExecuteLogger(db.delete(user), 'Backup Restore - Delete Users');
-				await dbExecuteLogger(db.delete(session), 'Backup Restore - Delete Sessions');
-				await dbExecuteLogger(db.delete(key), 'Backup Restore - Delete Keys');
+			const backups = await dbExecuteLogger(
+				db.select().from(backupTable).where(eq(backupTable.id, id)),
+				'Backup - Restore Backup - Get Backup'
+			);
+			if (backups.length === 0) {
+				throw new Error('Backup Not Found');
 			}
+			const backup = backups[0];
+
+			const checkedBackupData = await backupActions.getBackupDataStrutured({ id });
+
+			//Produce a new backup prior to any restore.
+			await backupActions.storeBackup({
+				title: `Pre-Restore - ${backup.createdAt.toISOString().substring(0, 10)} - ${backup.title}`,
+				compress: true,
+				createdBy: 'System',
+				creationReason: 'Pre-Restore'
+			});
+
+			const dataInsertionStart = Date.now();
+			await runInTransactionWithLogging('Restore Backup', async () => {
+				const db = getContextDB();
+				//Clear The Database
+				if (includeUsers) {
+					await dbExecuteLogger(db.delete(user), 'Backup Restore - Delete Users');
+					await dbExecuteLogger(db.delete(session), 'Backup Restore - Delete Sessions');
+					await dbExecuteLogger(db.delete(key), 'Backup Restore - Delete Keys');
+				}
 			await dbExecuteLogger(db.delete(account), 'Backup Restore - Delete Accounts');
 			await dbExecuteLogger(db.delete(bill), 'Backup Restore - Delete Bills');
 			await dbExecuteLogger(db.delete(budget), 'Backup Restore - Delete Budgets');
@@ -817,9 +867,22 @@ export const backupActions = {
 					.where(eq(backupTable.id, id)),
 				'Backup Restore - Update Backup Table'
 			);
-		});
-		getLogger().info(`Backup Restored - ${backup.filename} - ${backup.createdAt.toISOString()}`);
-		materializedViewActions.setRefreshRequired();
+			});
+			getLogger().info(`Backup Restored - ${backup.filename} - ${backup.createdAt.toISOString()}`);
+			materializedViewActions.setRefreshRequired();
+			
+			// Emit completion event
+			const duration = Date.now() - startTime;
+			emitEvent('backup.restore.completed', { backupId: id, includeUsers, duration, userId });
+			
+		} catch (error) {
+			// Emit failure event
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			emitEvent('backup.restore.failed', { backupId: id, includeUsers, error: errorMessage, userId });
+			
+			getLogger().error(`Backup restore failed for backup ID: ${id}`, { error: errorMessage });
+			throw error;
+		}
 	},
 	refreshList: async (): Promise<void> => {
 		const db = getContextDB();

@@ -94,13 +94,14 @@ export const actions = {
     }
 
     try {
-      await tActions.backup.restoreBackup({
+      await tActions.backup.restoreTrigger({
         id,
         includeUsers: false,
+        userId: locals.user?.id
       });
     } catch (e) {
-      locals.global.logger.error("Error Restoring Backup: " + e);
-      return failWrapper("Error Restoring Backup");
+      locals.global.logger.error("Error Triggering Backup Restore: " + e);
+      return failWrapper("Error Starting Backup Restore");
     }
     redirect(
       302,

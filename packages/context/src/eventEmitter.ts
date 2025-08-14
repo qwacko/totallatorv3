@@ -10,8 +10,11 @@ import { type Logger } from './logger.js';
  * 'order.completed': { orderId: string; amount: number; userId: string };
  */
 export interface AppEvents {
-  // Add your events here
-  // Example: 'event.name': { eventData: string; userId?: string };
+  // Backup restore events
+  'backup.restore.triggered': { backupId: string; includeUsers: boolean; userId?: string };
+  'backup.restore.started': { backupId: string; includeUsers: boolean; userId?: string };
+  'backup.restore.completed': { backupId: string; includeUsers: boolean; duration: number; userId?: string };
+  'backup.restore.failed': { backupId: string; includeUsers: boolean; error: string; userId?: string };
 }
 
 /**
