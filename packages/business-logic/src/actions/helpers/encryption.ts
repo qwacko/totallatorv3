@@ -21,8 +21,6 @@ const getEncryptionKey = (): Buffer => {
 		}
 
 		// If not valid hex or wrong length, derive key from string
-		console.log(`Using encryption key: ${key}`);
-		console.log('Deriving key from string using scrypt');
 		return crypto.scryptSync(key, 'totallator-salt', KEY_LENGTH);
 	}
 	// Default key for development - this should be set in production!

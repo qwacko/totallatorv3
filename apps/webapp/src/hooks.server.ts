@@ -19,7 +19,6 @@ const handleAuth: Handle = async ({
   event,
   resolve,
 }: Parameters<Handle>[0]) => {
-  console.log("Handling Auth");
   const context = await ensureInitialized();
 
   if (!context.db) {
@@ -69,14 +68,12 @@ export const init: ServerInit = async () => {
   setTimeout(async () => {
     try {
       await initializeNewCronService(() => context);
-      console.log("Cron service initialized successfully");
     } catch (error) {
       console.error("Failed to initialize cron service:", error);
       // Retry after 5 seconds if it fails
       setTimeout(async () => {
         try {
           await initializeNewCronService(() => context);
-          console.log("Cron service initialized on retry");
         } catch (retryError) {
           console.error(
             "Failed to initialize cron service on retry:",
@@ -153,11 +150,9 @@ const handleRoute: Handle = async ({
       );
 
       result = await runRequestInTransaction(async () => {
-        console.log("Resolving Requiest In Transaction");
         return await resolve(event);
       });
     } else {
-      console.log("Resolving Request Not In Transaction");
       result = await resolve(event);
     }
 
