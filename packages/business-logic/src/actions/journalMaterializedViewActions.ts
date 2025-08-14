@@ -666,10 +666,10 @@ export const journalMaterializedViewActions = {
 
 export type RecommendationType = {
 	journalId: string;
-	journalBillId?: string;
-	journalBudgetId?: string;
-	journalCategoryId?: string;
-	journalTagId?: string;
+	journalBillId?: string | null;
+	journalBudgetId?: string | null;
+	journalCategoryId?: string | null;
+	journalTagId?: string | null;
 	journalAccountId: string;
 	journalDescription: string;
 	journalDate: Date;

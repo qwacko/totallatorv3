@@ -21,8 +21,6 @@ import { alias } from 'drizzle-orm/pg-core';
 import type { AccountTypeEnumType } from '@totallator/shared';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
-import { sqlToText } from '../sqlToText';
-import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getCorrectJournalTable } from '../../helpers/journalMaterializedView/getCorrectJournalTable';
 import type { PaginationType } from './PaginationType';
@@ -138,10 +136,6 @@ export const journalMaterialisedList = async ({
 		.orderBy(...orderBy)
 		.offset(page * pageSize)
 		.limit(pageSize);
-
-	if (false) {
-		getLogger().debug(sqlToText(journalQueryCore.getSQL()));
-	}
 
 	const journalsPromise: Promise<JournalViewReturnType[]> = dbExecuteLogger(
 		journalQueryCore,

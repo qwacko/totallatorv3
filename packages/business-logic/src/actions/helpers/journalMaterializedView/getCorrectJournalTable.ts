@@ -7,7 +7,7 @@ import { materializedViewActions } from '../../materializedViewActions';
 
 // Simplified return type to avoid complex type inference
 export const getCorrectJournalTable = async (): Promise<{
-	table: any;
+	table: typeof journalExtendedView | typeof journalView;
 	target: 'view' | 'materialized';
 }> => {
 	const needsRefresh = await materializedViewActions.needsRefresh({

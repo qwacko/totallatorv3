@@ -59,6 +59,7 @@ import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { processCreatedImport } from './helpers/import/processImport';
 
 export const importActions = {
 	numberActive: async (): Promise<number> => {
@@ -200,8 +201,7 @@ export const importActions = {
 		);
 
 		try {
-			// await processCreatedImport({ id });
-			const test = 1;
+			await processCreatedImport({ id });
 		} catch (e) {
 			getLogger().error('Error Processing Import', e);
 			await dbExecuteLogger(
@@ -261,8 +261,7 @@ export const importActions = {
 		const importData = data[0];
 
 		if (importData.status === 'created') {
-			// wait processCreatedImport({ id });
-			const test = 1;
+			await processCreatedImport({ id });
 		}
 
 		return getImportDetail({ db, id });

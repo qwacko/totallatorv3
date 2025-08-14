@@ -15,14 +15,11 @@
 		}
 	},
 	"scripts": {
-		"build": "NODE_OPTIONS='--max-old-space-size=20480' tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-		"build:with-types": "pnpm build && NODE_OPTIONS='--max-old-space-size=20480' tsc --project tsconfig.declarations.json",
+		"build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
 		"dev": "tsc --watch --project tsconfig.build.json & tsc-alias --watch -p tsconfig.build.json",
 		"clean": "rm -rf dist",
 		"test": "vitest",
-		"check": "NODE_OPTIONS='--max-old-space-size=20480' tsc --project tsconfig.json",
-		"check:full": "NODE_OPTIONS='--max-old-space-size=20480' tsc --noEmit",
-		"check:help": "echo '📋 Available check commands:\\n  • pnpm check          - Fast optimized TypeScript check (daily use)\\n  • pnpm check:full      - Full TypeScript check (periodic testing)\\n\\n💡 Use check:full periodically to test if your optimizations allow full checking!'",
+		"check": "tsc --project tsconfig.json",
 		"circular": "madge --circular --extensions ts src/",
 		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
 		"format": "prettier --write .",
