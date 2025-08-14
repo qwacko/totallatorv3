@@ -15,6 +15,16 @@ export interface AppEvents {
   'backup.restore.started': { backupId: string; includeUsers: boolean; userId?: string };
   'backup.restore.completed': { backupId: string; includeUsers: boolean; duration: number; userId?: string };
   'backup.restore.failed': { backupId: string; includeUsers: boolean; error: string; userId?: string };
+  
+  // Backup restore progress events
+  'backup.restore.progress': { 
+    backupId: string; 
+    phase: 'deleting' | 'restoring'; 
+    current: number; 
+    total: number; 
+    message?: string;
+    userId?: string; 
+  };
 }
 
 /**

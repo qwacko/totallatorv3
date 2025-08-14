@@ -1,7 +1,7 @@
 import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
-import { actionHelpers, tActions, initializeEventCallbacks } from "@totallator/business-logic";
+import { actionHelpers, tActions, initializeEventCallbacks, clearInProgressBackupRestores } from "@totallator/business-logic";
 import { noAdmins } from "@totallator/business-logic";
 import {
   createRequestContext,
@@ -63,12 +63,15 @@ export const init: ServerInit = async () => {
   //Setup DB Logger
   actionHelpers.initDBLogger(context);
 
-  // Initialize event callbacks
+  // Initialize event callbacks and clear progress
   setTimeout(() => {
     try {
       // Run within the context so event callbacks can access the event emitter
-      runWithContext(context, createRequestContext({ request: { url: 'internal://init' } } as any), () => {
+      runWithContext(context, createRequestContext({ request: { url: 'internal://init' } } as any), async () => {
         initializeEventCallbacks();
+        
+        // Clear any in-progress backup restores from previous runs
+        await clearInProgressBackupRestores();
       });
     } catch (error) {
       console.error('Failed to initialize event callbacks:', error);
