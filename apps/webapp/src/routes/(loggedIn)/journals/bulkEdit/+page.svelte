@@ -53,10 +53,10 @@
 
     $formData = {
       ...$formData,
-      billId: rec.journalBillId,
-      tagId: rec.journalTagId,
-      budgetId: rec.journalBudgetId,
-      categoryId: rec.journalCategoryId,
+      billId: rec.journalBillId || undefined,
+      tagId: rec.journalTagId || undefined,
+      budgetId: rec.journalBudgetId || undefined,
+      categoryId: rec.journalCategoryId || undefined,
       otherAccountId: rec.payeeAccountId,
       description: rec.journalDescription,
     };

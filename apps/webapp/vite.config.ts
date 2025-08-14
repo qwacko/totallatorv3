@@ -14,6 +14,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
       tailwindcss(),
       //@ts-expect-error Not sure what is going on here.
       sveltekit(),
+      //@ts-ignore
       skRoutesPlugin({
         imports: [],
         errorURL: "/",
@@ -24,9 +25,11 @@ export default defineConfig(({ mode }): ViteUserConfig => {
         unconfiguredParams: "deriveParams",
         unconfiguredSearchParams: "never",
       }),
+      //@ts-ignore
       Icons({
         compiler: "svelte",
       }),
+      //@ts-ignore
       SvelteKitPWA({
         mode: mode === "development" ? "development" : "production",
         manifest: {

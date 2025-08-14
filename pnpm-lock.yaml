@@ -506,7 +506,7 @@ importers:
         version: 3.6.2
       zod:
         specifier: ^4.0.10
-        version: 4.0.15
+        version: 4.0.10
     devDependencies:
       '@trivago/prettier-plugin-sort-imports':
         specifier: ^5.2.2
@@ -7776,9 +7776,6 @@ packages:
 
   zod@4.0.10:
     resolution: {integrity: sha512-3vB+UU3/VmLL2lvwcY/4RV2i9z/YU0DTV/tDuYjrwmx5WeJ7hwy+rGEEx8glHp6Yxw7ibRbKSaIFBgReRPe5KA==}
-
-  zod@4.0.15:
-    resolution: {integrity: sha512-2IVHb9h4Mt6+UXkyMs0XbfICUh1eUrlJJAOupBHUhLRnKkruawyDddYRCs0Eizt900ntIMk9/4RksYl+FgSpcQ==}
 
   zrender@6.0.0:
     resolution: {integrity: sha512-41dFXEEXuJpNecuUQq6JlbybmnHaqqpGlbH1yxnA5V9MMP4SbohSVZsJIwz+zdjQXSSlR1Vc34EgH1zxyTDvhg==}
@@ -16305,8 +16302,6 @@ snapshots:
   zod@3.25.76: {}
 
   zod@4.0.10: {}
-
-  zod@4.0.15: {}
 
   zrender@6.0.0:
     dependencies:
