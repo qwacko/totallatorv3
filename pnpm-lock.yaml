@@ -125,6 +125,9 @@ importers:
       postgres:
         specifier: ^3.4.7
         version: 3.4.7
+      runed:
+        specifier: ^0.31.1
+        version: 0.31.1(svelte@5.38.0)
       sharp:
         specifier: ^0.34.3
         version: 0.34.3

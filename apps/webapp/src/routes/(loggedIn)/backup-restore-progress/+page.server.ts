@@ -4,9 +4,7 @@ import { getBackupRestoreProgress } from "@totallator/business-logic";
 
 import { urlGeneratorServer } from "$lib/routes.server";
 
-import type { PageServerLoad } from "./$types";
-
-export const load: PageServerLoad = async () => {
+export const load = async () => {
   try {
     const progress = await getBackupRestoreProgress();
 

@@ -1,36 +1,23 @@
 <script lang="ts">
-  import { page } from '$app/stores';
-  import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
-  import type { PageData } from './$types';
+  import { goto, invalidateAll } from '$app/navigation';
+	import { useInterval } from "runed";
 
-  export let data: PageData;
 
-  let progress = data.progress;
-  let refreshInterval: NodeJS.Timeout | null = null;
+  const {data} = $props();
 
-  // Auto-refresh progress every 2 seconds if not completed
-  onMount(() => {
-    if (shouldAutoRefresh(progress)) {
-      refreshInterval = setInterval(async () => {
-        try {
-          const response = await fetch($page.url.pathname);
-          if (response.ok) {
-            // For simplicity, we'll just reload the page
-            window.location.reload();
-          }
-        } catch (error) {
-          console.error('Failed to refresh progress:', error);
-        }
-      }, 2000);
-    }
+  let progress = $derived(data.progress);
 
-    return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-      }
-    };
-  });
+  let intervalDelay = $state(1000);
+ 
+	const interval = useInterval(
+		() => {
+			if (shouldAutoRefresh(progress)) {
+				invalidateAll();
+			}
+		},
+		() => intervalDelay, {immediate: false}
+	);
+
 
   function shouldAutoRefresh(progressData: any): boolean {
     return progressData?.phase && 
@@ -80,7 +67,7 @@
   }
 
   function formatTimestamp(timestamp: string): string {
-    return new Date(timestamp).toLocaleString();
+    return new Date(timestamp).toISOString();
   }
 
   function canGoBack(): boolean {
@@ -105,8 +92,19 @@
         Backup Restore Progress
       </h1>
       <p class="text-sm text-gray-600 dark:text-gray-400">
-        Backup ID: {progress.backupId}
+        Backup ID: {#if "backupId" in progress}{progress.backupId || "???"}{/if}
       </p>
+      {#if interval.isActive}
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        Auto Refreshing: {intervalDelay} ms
+        <button onclick={()=> interval.pause()}>Pause</button>
+      </p>
+      {:else}
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        Auto Refreshing: Off
+        <button onclick={()=> interval.resume()}>Resume</button>
+      </p>
+      {/if}
     </div>
 
     <!-- Current Status -->
@@ -240,7 +238,7 @@
       
       {#if canGoBack()}
         <button 
-          on:click={handleGoBack}
+          onclick={handleGoBack}
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Back to Backup Management

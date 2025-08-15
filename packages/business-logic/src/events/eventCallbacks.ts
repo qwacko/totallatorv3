@@ -1,9 +1,10 @@
-import { getContextEventEmitter, type EventListener, getGlobalContextFromStore } from '@totallator/context';
+import {
+	getContextEventEmitter,
+	type EventListener,
+	getGlobalContextFromStore
+} from '@totallator/context';
 import { backupActions } from '../actions/backupActions.js';
-import { keyValueStore } from '../actions/helpers/keyValueStore.js';
-import { keyValueTable } from '@totallator/database';
-import { eq } from 'drizzle-orm';
-import { dbExecuteLogger } from '../server/db/dbLogger.js';
+import { typedKeyValueStore } from '../actions/helpers/keyValueStore.js';
 
 /**
  * Set up event listeners for business logic operations
@@ -46,6 +47,47 @@ const onBackupRestoreTriggered: EventListener<'backup.restore.triggered'> = asyn
 	}
 };
 
+type BackupRestoreProgressActionHistoryType = {
+	timestamp: string;
+	phase: string;
+	current: number;
+	total: number;
+	percentage: number;
+	message: string;
+};
+
+type BackupRestoreProgressType = {
+	backupId: string;
+	phase:
+		| 'starting'
+		| 'in_progress'
+		| 'completed'
+		| 'failed'
+		| 'cancelled'
+		| 'retrieving'
+		| 'pre-backup'
+		| 'restoring'
+		| 'deleting';
+	current: number;
+	total: number;
+	percentage: number;
+	message: string;
+	startedAt: string;
+	updatedAt: string;
+	failedAt?: string;
+	completedAt?: string;
+	duration?: number;
+	error?: string;
+	includeUsers: boolean;
+	userId: string;
+	actionHistory: BackupRestoreProgressActionHistoryType[];
+};
+
+const backupRestoreProgressStore = typedKeyValueStore<BackupRestoreProgressType | undefined>(
+	'backup_restore_progress',
+	undefined
+);
+
 /**
  * Handle backup restore progress events
  * This updates the KV store with progress information
@@ -64,18 +106,8 @@ const onBackupRestoreProgress: EventListener<'backup.restore.progress'> = async 
 			throw new Error('Global context not available');
 		}
 		const db = globalContext.db;
-		const progressStore = keyValueStore('backup_restore_progress');
 
-		// Get existing progress data to maintain action history
-		let existingData: any = {};
-		try {
-			const existingJson = await progressStore.get(db);
-			if (existingJson) {
-				existingData = JSON.parse(existingJson);
-			}
-		} catch (parseError) {
-			console.warn('Could not get/parse existing progress data, starting fresh:', parseError);
-		}
+		let existingData = await backupRestoreProgressStore.get(db);
 
 		// Create new action entry
 		const actionEntry = {
@@ -85,10 +117,10 @@ const onBackupRestoreProgress: EventListener<'backup.restore.progress'> = async 
 			total,
 			percentage: Math.round((current / total) * 100),
 			message: message || ''
-		};
+		} satisfies BackupRestoreProgressActionHistoryType;
 
 		// Maintain action history array
-		const actionHistory = existingData.actionHistory || [];
+		const actionHistory = existingData?.actionHistory || [];
 		actionHistory.push(actionEntry);
 
 		const progressData = {
@@ -99,13 +131,14 @@ const onBackupRestoreProgress: EventListener<'backup.restore.progress'> = async 
 			percentage: Math.round((current / total) * 100),
 			message: message || '',
 			updatedAt: new Date().toISOString(),
-			userId,
+			userId: userId || '',
 			actionHistory,
-			startedAt: existingData.startedAt || new Date().toISOString()
-		};
+			includeUsers: existingData?.includeUsers || false,
+			startedAt: existingData?.startedAt || new Date().toISOString()
+		} satisfies BackupRestoreProgressType;
 
 		// Store progress in KV store
-		await progressStore.set(db, JSON.stringify(progressData));
+		await backupRestoreProgressStore.set(db, progressData);
 
 		console.log('Backup restore progress updated:', {
 			backupId: progressData.backupId,
@@ -141,7 +174,7 @@ const onBackupRestoreStarted: EventListener<'backup.restore.started'> = async ({
 			total: 100,
 			percentage: 0,
 			message: 'Backup restore started'
-		};
+		} satisfies BackupRestoreProgressActionHistoryType;
 
 		const initialProgress = {
 			backupId,
@@ -153,17 +186,16 @@ const onBackupRestoreStarted: EventListener<'backup.restore.started'> = async ({
 			startedAt: startTimestamp,
 			updatedAt: startTimestamp,
 			includeUsers,
-			userId,
+			userId: userId || '',
 			actionHistory: [initialAction]
-		};
+		} satisfies BackupRestoreProgressType;
 
 		const globalContext = getGlobalContextFromStore();
 		if (!globalContext) {
 			throw new Error('Global context not available');
 		}
 		const db = globalContext.db;
-		const progressStore = keyValueStore('backup_restore_progress');
-		await progressStore.set(db, JSON.stringify(initialProgress));
+		await backupRestoreProgressStore.set(db, initialProgress);
 
 		console.log('Backup restore progress initialized:', initialProgress);
 	} catch (error) {
@@ -187,18 +219,7 @@ const onBackupRestoreCompleted: EventListener<'backup.restore.completed'> = asyn
 			throw new Error('Global context not available');
 		}
 		const db = globalContext.db;
-		const progressStore = keyValueStore('backup_restore_progress');
-
-		// Get existing data to maintain action history
-		let existingData: any = {};
-		try {
-			const existingJson = await progressStore.get(db);
-			if (existingJson) {
-				existingData = JSON.parse(existingJson);
-			}
-		} catch (parseError) {
-			console.warn('Could not parse existing progress data for completion:', parseError);
-		}
+		const existingData = await backupRestoreProgressStore.get(db);
 
 		const completedTimestamp = new Date().toISOString();
 		const completedAction = {
@@ -208,10 +229,10 @@ const onBackupRestoreCompleted: EventListener<'backup.restore.completed'> = asyn
 			total: 100,
 			percentage: 100,
 			message: 'Backup restore completed successfully'
-		};
+		} satisfies BackupRestoreProgressActionHistoryType;
 
 		// Maintain action history
-		const actionHistory = existingData.actionHistory || [];
+		const actionHistory = existingData?.actionHistory || [];
 		actionHistory.push(completedAction);
 
 		const completedProgress = {
@@ -225,12 +246,12 @@ const onBackupRestoreCompleted: EventListener<'backup.restore.completed'> = asyn
 			updatedAt: completedTimestamp,
 			duration,
 			includeUsers,
-			userId,
+			userId: userId || '',
 			actionHistory,
-			startedAt: existingData.startedAt || completedTimestamp
-		};
+			startedAt: existingData?.startedAt || completedTimestamp
+		} satisfies BackupRestoreProgressType;
 
-		await progressStore.set(db, JSON.stringify(completedProgress));
+		await backupRestoreProgressStore.set(db, completedProgress);
 
 		console.log('Backup restore completed:', completedProgress);
 	} catch (error) {
@@ -254,50 +275,39 @@ const onBackupRestoreFailed: EventListener<'backup.restore.failed'> = async ({
 			throw new Error('Global context not available');
 		}
 		const db = globalContext.db;
-		const progressStore = keyValueStore('backup_restore_progress');
-
-		// Get existing data to maintain action history
-		let existingData: any = {};
-		try {
-			const existingJson = await progressStore.get(db);
-			if (existingJson) {
-				existingData = JSON.parse(existingJson);
-			}
-		} catch (parseError) {
-			console.warn('Could not parse existing progress data for failure:', parseError);
-		}
+		const existingData = await backupRestoreProgressStore.get(db);
 
 		const failedTimestamp = new Date().toISOString();
 		const failedAction = {
 			timestamp: failedTimestamp,
 			phase: 'failed' as const,
-			current: existingData.current || 0,
-			total: existingData.total || 100,
+			current: existingData?.current || 0,
+			total: existingData?.total || 100,
 			percentage: 0,
 			message: `Backup restore failed: ${error}`
-		};
+		} satisfies BackupRestoreProgressActionHistoryType;
 
 		// Maintain action history
-		const actionHistory = existingData.actionHistory || [];
+		const actionHistory = existingData?.actionHistory || [];
 		actionHistory.push(failedAction);
 
 		const failedProgress = {
 			backupId,
 			phase: 'failed' as const,
-			current: existingData.current || 0,
-			total: existingData.total || 100,
+			current: existingData?.current || 0,
+			total: existingData?.total || 100,
 			percentage: 0,
 			message: `Backup restore failed: ${error}`,
 			failedAt: failedTimestamp,
 			updatedAt: failedTimestamp,
 			error,
 			includeUsers,
-			userId,
+			userId: userId || '',
 			actionHistory,
-			startedAt: existingData.startedAt || failedTimestamp
-		};
+			startedAt: existingData?.startedAt || failedTimestamp
+		} satisfies BackupRestoreProgressType;
 
-		await progressStore.set(db, JSON.stringify(failedProgress));
+		await backupRestoreProgressStore.set(db, failedProgress);
 
 		console.log('Backup restore failed:', failedProgress);
 	} catch (kvError) {
@@ -349,12 +359,7 @@ export async function clearInProgressBackupRestores(): Promise<void> {
 			throw new Error('Global context not available');
 		}
 		const db = globalContext.db;
-
-		// Delete the backup restore progress entry from the database
-		await dbExecuteLogger(
-			db.delete(keyValueTable).where(eq(keyValueTable.key, 'backup_restore_progress')),
-			'Clear Backup Restore Progress'
-		);
+		await backupRestoreProgressStore.clear(db);
 
 		console.log('Backup restore progress cleared on application restart');
 	} catch (error) {
@@ -365,21 +370,16 @@ export async function clearInProgressBackupRestores(): Promise<void> {
 /**
  * Get current backup restore progress
  */
-export async function getBackupRestoreProgress(): Promise<any | null> {
+export async function getBackupRestoreProgress() {
 	try {
 		const globalContext = getGlobalContextFromStore();
 		if (!globalContext) {
 			throw new Error('Global context not available');
 		}
 		const db = globalContext.db;
-		const progressStore = keyValueStore('backup_restore_progress');
-		const progressJson = await progressStore.get(db);
+		const progress = await backupRestoreProgressStore.get(db);
 
-		if (!progressJson) {
-			return null;
-		}
-
-		return JSON.parse(progressJson);
+		return progress;
 	} catch (error) {
 		console.error('Failed to get backup restore progress:', error);
 		return null;
@@ -398,7 +398,14 @@ export async function hasActiveBackupRestore(): Promise<boolean> {
 		}
 
 		// Check if the restore is in progress (not completed, failed, or cancelled)
-		return !['completed', 'failed', 'cancelled'].includes(progress.phase);
+		return (
+			progress.phase === 'in_progress' ||
+			progress.phase === 'deleting' ||
+			progress.phase === 'pre-backup' ||
+			progress.phase === 'restoring' ||
+			progress.phase === 'retrieving' ||
+			progress.phase === 'starting'
+		);
 	} catch (error) {
 		console.error('Failed to check for active backup restore:', error);
 		return false;
