@@ -1,7 +1,7 @@
 import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
-import { actionHelpers, tActions, initializeEventCallbacks, clearInProgressBackupRestores, getActiveBackupRestores, getEventListenerCounts } from "@totallator/business-logic";
+import { actionHelpers, tActions, initializeEventCallbacks, clearInProgressBackupRestores, hasActiveBackupRestore, getEventListenerCounts } from "@totallator/business-logic";
 import { noAdmins } from "@totallator/business-logic";
 import {
   createRequestContext,
@@ -173,15 +173,19 @@ const handleRoute: Handle = async ({
         !event.route.id.includes('backup-restore-progress')) {
       
       try {
-        const activeRestores = await getActiveBackupRestores();
-        if (activeRestores.length > 0) {
-          // Get the first active restore for the redirect
-          const activeRestore = activeRestores[0];
-          redirect(302, `/backup-restore-progress/${activeRestore.backupId}`);
+        const hasActiveRestore = await hasActiveBackupRestore();
+        
+        if (hasActiveRestore) {
+          redirect(302, '/backup-restore-progress');
         }
       } catch (error) {
+        // Check if this is a redirect (which is expected behavior)
+        if (error && typeof error === 'object' && 'status' in error && error.status === 302) {
+          // This is a redirect, re-throw it
+          throw error;
+        }
         // Don't block requests if backup restore check fails
-        context.logger.warn('Failed to check for active backup restores:', error);
+        context.logger.warn('Failed to check for active backup restore:', error);
       }
     }
 

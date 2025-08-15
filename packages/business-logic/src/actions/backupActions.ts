@@ -52,6 +52,7 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { materializedViewActions } from './materializedViewActions';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import { emitEvent } from '../events/eventHelper.js';
+import { fixedDelay } from '@/helpers/fixedDelay';
 
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
@@ -579,17 +580,10 @@ export const backupActions = {
 			throw new Error('Backup File Not Found On Disk');
 		}
 
-		// Try to read backup data to ensure it's valid
-		try {
-			await getBackupStructuredData({ filename: backup.filename });
-		} catch (error) {
-			throw new Error(
-				`Invalid backup file: ${error instanceof Error ? error.message : String(error)}`
-			);
-		}
-
 		// Emit the trigger event - this will start the background restoration
 		emitEvent('backup.restore.triggered', { backupId: id, includeUsers, userId });
+
+		await fixedDelay(100);
 
 		getLogger().info(`Backup restore triggered for backup: ${backup.filename}`);
 	},
@@ -605,7 +599,12 @@ export const backupActions = {
 		const startTime = Date.now();
 
 		// Helper function to emit progress events (escapes transaction)
-		const emitProgress = (phase: 'retrieving' | 'pre-backup' | 'deleting' | 'restoring', current: number, total: number, message?: string) => {
+		const emitProgress = (
+			phase: 'retrieving' | 'pre-backup' | 'deleting' | 'restoring',
+			current: number,
+			total: number,
+			message?: string
+		) => {
 			// Use setTimeout to escape the transaction context
 			setTimeout(() => {
 				emitEvent('backup.restore.progress', {

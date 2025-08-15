@@ -314,12 +314,14 @@ export class CronJobService {
 
 		// Log execution result
 		if (result.success) {
-			context.logger.info(`Cron job ${jobDefinition.name} completed successfully`, {
-				executionId,
-				durationMs,
-				triggeredBy,
-				...result.data
-			});
+			if (false) {
+				context.logger.info(`Cron job ${jobDefinition.name} completed successfully`, {
+					executionId,
+					durationMs,
+					triggeredBy,
+					...result.data
+				});
+			}
 		} else {
 			context.logger.error(`Cron job ${jobDefinition.name} failed`, {
 				executionId,
