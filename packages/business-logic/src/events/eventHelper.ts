@@ -12,7 +12,10 @@ export function emitEvent<T extends keyof AppEvents>(
 ): void {
   try {
     const eventEmitter = getContextEventEmitter();
+    console.log('Emitting event:', eventName, 'with payload:', payload);
+    console.log('Event emitter has listeners:', eventEmitter.listenerCount(eventName));
     eventEmitter.emit(eventName, payload);
+    console.log('Event emitted successfully:', eventName);
   } catch (error) {
     // Log the error but don't throw - we don't want event emission failures
     // to break the main business logic flow

@@ -560,35 +560,37 @@ export const backupActions = {
 		userId?: string;
 	}): Promise<void> => {
 		const db = getContextDB();
-		
+
 		// Perform cursory checks to ensure backup exists and is valid
 		const backups = await dbExecuteLogger(
 			db.select().from(backupTable).where(eq(backupTable.id, id)),
 			'Backup - Restore Trigger - Get Backup'
 		);
-		
+
 		if (backups.length === 0) {
 			throw new Error('Backup Not Found');
 		}
-		
+
 		const backup = backups[0];
-		
+
 		// Check if backup file exists on disk
 		const fileExists = await backupFileHandler().fileExists(backup.filename);
 		if (!fileExists) {
 			throw new Error('Backup File Not Found On Disk');
 		}
-		
+
 		// Try to read backup data to ensure it's valid
 		try {
 			await getBackupStructuredData({ filename: backup.filename });
 		} catch (error) {
-			throw new Error(`Invalid backup file: ${error instanceof Error ? error.message : String(error)}`);
+			throw new Error(
+				`Invalid backup file: ${error instanceof Error ? error.message : String(error)}`
+			);
 		}
-		
+
 		// Emit the trigger event - this will start the background restoration
 		emitEvent('backup.restore.triggered', { backupId: id, includeUsers, userId });
-		
+
 		getLogger().info(`Backup restore triggered for backup: ${backup.filename}`);
 	},
 	restoreBackup: async ({
@@ -601,11 +603,29 @@ export const backupActions = {
 		userId?: string;
 	}): Promise<void> => {
 		const startTime = Date.now();
-		
+
+		// Helper function to emit progress events (escapes transaction)
+		const emitProgress = (phase: 'retrieving' | 'pre-backup' | 'deleting' | 'restoring', current: number, total: number, message?: string) => {
+			// Use setTimeout to escape the transaction context
+			setTimeout(() => {
+				emitEvent('backup.restore.progress', {
+					backupId: id,
+					phase,
+					current,
+					total,
+					message,
+					userId
+				});
+			}, 0);
+		};
+
+		console.log('Backup Restore Started');
 		// Emit start event
 		emitEvent('backup.restore.started', { backupId: id, includeUsers, userId });
-		
+
 		try {
+			// Step 1: Retrieve backup information
+			emitProgress('retrieving', 1, 6, 'Retrieving backup information');
 			const db = getContextDB();
 			const backups = await dbExecuteLogger(
 				db.select().from(backupTable).where(eq(backupTable.id, id)),
@@ -616,8 +636,12 @@ export const backupActions = {
 			}
 			const backup = backups[0];
 
+			// Step 2: Load and validate backup data
+			emitProgress('retrieving', 2, 6, 'Loading backup data from storage');
 			const checkedBackupData = await backupActions.getBackupDataStrutured({ id });
 
+			// Step 3: Create pre-restore backup
+			emitProgress('pre-backup', 3, 6, 'Creating pre-restore backup');
 			//Produce a new backup prior to any restore.
 			await backupActions.storeBackup({
 				title: `Pre-Restore - ${backup.createdAt.toISOString().substring(0, 10)} - ${backup.title}`,
@@ -626,33 +650,25 @@ export const backupActions = {
 				creationReason: 'Pre-Restore'
 			});
 
-			// Calculate total operations for progress tracking
+			// Step 4: Calculate operation counts for progress tracking
+			emitProgress('pre-backup', 4, 6, 'Calculating restoration plan');
 			const deleteOperations = includeUsers ? 24 : 21; // Number of delete operations
 			const insertOperations = Object.keys(checkedBackupData.data).length; // Number of data types to insert
 			let currentDeleteStep = 0;
 			let currentInsertStep = 0;
 
-			// Helper function to emit progress events (escapes transaction)
-			const emitProgress = (phase: 'deleting' | 'restoring', current: number, total: number, message?: string) => {
-				// Use setTimeout to escape the transaction context
-				setTimeout(() => {
-					emitEvent('backup.restore.progress', { 
-						backupId: id, 
-						phase, 
-						current, 
-						total, 
-						message,
-						userId 
-					});
-				}, 0);
-			};
+			// Step 5: Prepare for database operations
+			emitProgress('pre-backup', 5, 6, 'Preparing database operations');
+
+			// Step 6: Start database transaction
+			emitProgress('pre-backup', 6, 6, 'Starting database restoration transaction');
 
 			const dataInsertionStart = Date.now();
 			await runInTransactionWithLogging('Restore Backup', async () => {
 				const db = getContextDB();
 				//Clear The Database
 				emitProgress('deleting', 0, deleteOperations, 'Starting database cleanup');
-				
+
 				if (includeUsers) {
 					await dbExecuteLogger(db.delete(user), 'Backup Restore - Delete Users');
 					emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted users');
@@ -661,7 +677,7 @@ export const backupActions = {
 					await dbExecuteLogger(db.delete(key), 'Backup Restore - Delete Keys');
 					emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted keys');
 				}
-				
+
 				await dbExecuteLogger(db.delete(account), 'Backup Restore - Delete Accounts');
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted accounts');
 				await dbExecuteLogger(db.delete(bill), 'Backup Restore - Delete Bills');
@@ -682,7 +698,12 @@ export const backupActions = {
 					db.delete(labelsToJournals),
 					'Backup Restore - Delete Labels To Journals'
 				);
-				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted labels to journals');
+				emitProgress(
+					'deleting',
+					++currentDeleteStep,
+					deleteOperations,
+					'Deleted labels to journals'
+				);
 				await dbExecuteLogger(db.delete(importMapping), 'Backup Restore - Delete Import Mapping');
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted import mappings');
 				await dbExecuteLogger(db.delete(importTable), 'Backup Restore - Delete Import Table');
@@ -691,7 +712,12 @@ export const backupActions = {
 					db.delete(importItemDetail),
 					'Backup Restore - Delete Import Item Detail'
 				);
-				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted import item details');
+				emitProgress(
+					'deleting',
+					++currentDeleteStep,
+					deleteOperations,
+					'Deleted import item details'
+				);
 				await dbExecuteLogger(db.delete(reusableFilter), 'Backup Restore - Delete Reusable Filter');
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted reusable filters');
 				await dbExecuteLogger(db.delete(filter), 'Backup Restore - Delete Filter');
@@ -711,14 +737,24 @@ export const backupActions = {
 					db.delete(reportElementConfig),
 					'Backup Restore - Delete Report Element Config'
 				);
-				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted report element configs');
+				emitProgress(
+					'deleting',
+					++currentDeleteStep,
+					deleteOperations,
+					'Deleted report element configs'
+				);
 				await dbExecuteLogger(db.delete(backupTable), 'Backup Restore - Delete Backup Table');
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted backup table');
 				await dbExecuteLogger(
 					db.delete(autoImportTable),
 					'Backup Restore - Delete Auto Import Table'
 				);
-				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted auto import table');
+				emitProgress(
+					'deleting',
+					++currentDeleteStep,
+					deleteOperations,
+					'Deleted auto import table'
+				);
 				await dbExecuteLogger(db.delete(notesTable), 'Backup Restore - Delete Notes Table');
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted notes table');
 				await dbExecuteLogger(db.delete(fileTable), 'Backup Restore - Delete File Table');
@@ -727,12 +763,17 @@ export const backupActions = {
 					db.delete(associatedInfoTable),
 					'Backup Restore - Delete Associated Info Table'
 				);
-				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted associated info table');
+				emitProgress(
+					'deleting',
+					++currentDeleteStep,
+					deleteOperations,
+					'Deleted associated info table'
+				);
 				getLogger().info(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				//Update Database from Backup
 				emitProgress('restoring', 0, insertOperations, 'Starting data restoration');
-				
+
 				if (includeUsers) {
 					await chunker(checkedBackupData.data.user, 1000, async (data) =>
 						dbExecuteLogger(db.insert(user).values(data), 'Backup Restore - Insert Users')
@@ -753,119 +794,159 @@ export const backupActions = {
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored accounts');
 				getLogger().info(`Account Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.bill, 1000, async (data) =>
 					dbExecuteLogger(db.insert(bill).values(data), 'Backup Restore - Insert Bills')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored bills');
 				getLogger().info(`Bill Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.budget, 1000, async (data) =>
 					dbExecuteLogger(db.insert(budget).values(data), 'Backup Restore - Insert Budgets')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored budgets');
 				getLogger().info(`Budget Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.category, 1000, async (data) =>
 					dbExecuteLogger(db.insert(category).values(data), 'Backup Restore - Insert Categories')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored categories');
 				getLogger().info(`Category Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.tag, 1000, async (data) =>
 					dbExecuteLogger(db.insert(tag).values(data), 'Backup Restore - Insert Tags')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored tags');
 				getLogger().info(`Tag Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.label, 1000, async (data) =>
 					dbExecuteLogger(db.insert(label).values(data), 'Backup Restore - Insert Labels')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored labels');
 				getLogger().info(`Label Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.transaction, 1000, async (data) =>
-					dbExecuteLogger(db.insert(transaction).values(data), 'Backup Restore - Insert Transactions')
+					dbExecuteLogger(
+						db.insert(transaction).values(data),
+						'Backup Restore - Insert Transactions'
+					)
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored transactions');
 				getLogger().info(`Transaction Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.journalEntry, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(journalEntry).values(data),
 						'Backup Restore - Insert Journal Entries'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored journal entries');
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored journal entries'
+				);
 				getLogger().info(`Journal Entry Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.labelsToJournals, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(labelsToJournals).values(data),
 						'Backup Restore - Insert Labels To Journals'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored labels to journals');
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored labels to journals'
+				);
 				getLogger().info(
 					`Labels to Journals Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
-				
+
 				await chunker(checkedBackupData.data.importMapping, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(importMapping).values(data),
 						'Backup Restore - Insert Import Mapping'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored import mappings');
-				getLogger().info(`Import Mapping Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored import mappings'
+				);
+				getLogger().info(
+					`Import Mapping Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
+
 				await chunker(checkedBackupData.data.importTable, 1000, async (data) =>
-					dbExecuteLogger(db.insert(importTable).values(data), 'Backup Restore - Insert Import Table')
+					dbExecuteLogger(
+						db.insert(importTable).values(data),
+						'Backup Restore - Insert Import Table'
+					)
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored import table');
 				getLogger().info(`Import Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.importItemDetail, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(importItemDetail).values(data),
 						'Backup Restore - Insert Import Item Detail'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored import item details');
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored import item details'
+				);
 				getLogger().info(
 					`Import Item Detail Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
-				
+
 				await chunker(checkedBackupData.data.autoImportTable, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(autoImportTable).values(data),
 						'Backup Restore - Insert Auto Import Table'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored auto import table');
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored auto import table'
+				);
 				getLogger().info(`Auto Import Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.reusableFilter, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(reusableFilter).values(data),
 						'Backup Restore - Insert Reusable Filter'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored reusable filters');
-				getLogger().info(`Reusable Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored reusable filters'
+				);
+				getLogger().info(
+					`Reusable Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
+
 				await chunker(checkedBackupData.data.filter, 1000, async (data) =>
 					dbExecuteLogger(db.insert(filter).values(data), 'Backup Restore - Insert Filter')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored filters');
 				getLogger().info(`Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.report, 1000, async (data) =>
 					dbExecuteLogger(db.insert(report).values(data), 'Backup Restore - Insert Report')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored reports');
 				getLogger().info(`Report Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.filtersToReportConfigs, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(filtersToReportConfigs).values(data),
@@ -876,36 +957,55 @@ export const backupActions = {
 				getLogger().info(
 					`Filters To Report Configs Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
-				
+
 				await chunker(checkedBackupData.data.reportElement, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(reportElement).values(data),
 						'Backup Restore - Insert Report Element'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored report elements');
-				getLogger().info(`Report Element Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored report elements'
+				);
+				getLogger().info(
+					`Report Element Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
+
 				await chunker(checkedBackupData.data.reportElementConfig, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(reportElementConfig).values(data),
 						'Backup Restore - Insert Report Element Config'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored report element configs');
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored report element configs'
+				);
 				getLogger().info(
 					`Report Element Config Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
-				
+
 				await chunker(checkedBackupData.data.keyValueTable, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(keyValueTable).values(data),
 						'Backup Restore - Insert Key Value Table'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored key value table');
-				getLogger().info(`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored key value table'
+				);
+				getLogger().info(
+					`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
+
 				await chunker(checkedBackupData.data.backup, 1000, async (data) => {
 					dbExecuteLogger(
 						db.insert(backupTable).values(
@@ -931,48 +1031,57 @@ export const backupActions = {
 				});
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored backup table');
 				getLogger().info(`Backup Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.note, 1000, async (data) =>
 					dbExecuteLogger(db.insert(notesTable).values(data), 'Backup Restore - Insert Notes Table')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored notes');
 				getLogger().info(`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.file, 1000, async (data) =>
 					dbExecuteLogger(db.insert(fileTable).values(data), 'Backup Restore - Insert File Table')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored files');
 				getLogger().info(`Files Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
-				
+
 				await chunker(checkedBackupData.data.associatedInfo, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(associatedInfoTable).values(data),
 						'Backup Restore - Insert Associated Info Table'
 					)
 				);
-				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored associated info');
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored associated info'
+				);
 
-			//Mark the backup as having a restored date.
-			await dbExecuteLogger(
-				db
-					.update(backupTable)
-					.set({ restoreDate: new Date(), ...updatedTime() })
-					.where(eq(backupTable.id, id)),
-				'Backup Restore - Update Backup Table'
-			);
+				//Mark the backup as having a restored date.
+				await dbExecuteLogger(
+					db
+						.update(backupTable)
+						.set({ restoreDate: new Date(), ...updatedTime() })
+						.where(eq(backupTable.id, id)),
+					'Backup Restore - Update Backup Table'
+				);
 			});
 			getLogger().info(`Backup Restored - ${backup.filename} - ${backup.createdAt.toISOString()}`);
 			materializedViewActions.setRefreshRequired();
-			
+
 			// Emit completion event
 			const duration = Date.now() - startTime;
 			emitEvent('backup.restore.completed', { backupId: id, includeUsers, duration, userId });
-			
 		} catch (error) {
 			// Emit failure event
 			const errorMessage = error instanceof Error ? error.message : String(error);
-			emitEvent('backup.restore.failed', { backupId: id, includeUsers, error: errorMessage, userId });
-			
+			emitEvent('backup.restore.failed', {
+				backupId: id,
+				includeUsers,
+				error: errorMessage,
+				userId
+			});
+
 			getLogger().error(`Backup restore failed for backup ID: ${id}`, { error: errorMessage });
 			throw error;
 		}

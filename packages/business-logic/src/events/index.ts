@@ -8,5 +8,5 @@
  * - Progress tracking cleanup functions
  */
 
-export { initializeEventCallbacks, getEventListenerCounts, clearInProgressBackupRestores } from './eventCallbacks.js';
+export { initializeEventCallbacks, getEventListenerCounts, clearInProgressBackupRestores, getBackupRestoreProgress, getActiveBackupRestores } from './eventCallbacks.js';
 export { emitEvent, canEmitEvents, emitMultipleEvents } from './eventHelper.js';

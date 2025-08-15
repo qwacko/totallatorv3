@@ -19,7 +19,7 @@ export interface AppEvents {
   // Backup restore progress events
   'backup.restore.progress': { 
     backupId: string; 
-    phase: 'deleting' | 'restoring'; 
+    phase: 'retrieving' | 'pre-backup' | 'deleting' | 'restoring'; 
     current: number; 
     total: number; 
     message?: string;

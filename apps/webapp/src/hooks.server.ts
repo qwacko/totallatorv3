@@ -1,7 +1,7 @@
 import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
-import { actionHelpers, tActions, initializeEventCallbacks, clearInProgressBackupRestores } from "@totallator/business-logic";
+import { actionHelpers, tActions, initializeEventCallbacks, clearInProgressBackupRestores, getActiveBackupRestores, getEventListenerCounts } from "@totallator/business-logic";
 import { noAdmins } from "@totallator/business-logic";
 import {
   createRequestContext,
@@ -64,14 +64,32 @@ export const init: ServerInit = async () => {
   actionHelpers.initDBLogger(context);
 
   // Initialize event callbacks and clear progress
-  setTimeout(() => {
+  setTimeout(async () => {
     try {
+      // Create a proper mock request event for initialization
+      const mockEvent = {
+        request: new Request('http://localhost/internal/init'),
+        locals: {
+          user: undefined,
+          session: undefined
+        },
+        getClientAddress: () => '127.0.0.1'
+      };
+      
       // Run within the context so event callbacks can access the event emitter
-      runWithContext(context, createRequestContext({ request: { url: 'internal://init' } } as any), async () => {
+      await runWithContext(context, createRequestContext(mockEvent), async () => {
+        console.log('Initializing event callbacks...');
         initializeEventCallbacks();
+        console.log('Event callbacks initialized');
+        
+        // Check if listeners are registered
+        const listenerCounts = getEventListenerCounts();
+        console.log('Registered event listeners:', listenerCounts);
         
         // Clear any in-progress backup restores from previous runs
+        console.log('Clearing in-progress backup restores...');
         await clearInProgressBackupRestores();
+        console.log('Backup restore cleanup completed');
       });
     } catch (error) {
       console.error('Failed to initialize event callbacks:', error);
@@ -145,6 +163,26 @@ const handleRoute: Handle = async ({
 
     if (event.route.id !== "/(loggedOut)/firstUser" && noAdmin) {
       redirect(302, "/firstUser");
+    }
+
+    // Check for active backup restores and redirect to progress page
+    // Only check for logged-in users and skip the progress page itself
+    if (event.locals.user && 
+        event.route.id && 
+        !event.route.id.startsWith('/(loggedOut)') &&
+        !event.route.id.includes('backup-restore-progress')) {
+      
+      try {
+        const activeRestores = await getActiveBackupRestores();
+        if (activeRestores.length > 0) {
+          // Get the first active restore for the redirect
+          const activeRestore = activeRestores[0];
+          redirect(302, `/backup-restore-progress/${activeRestore.backupId}`);
+        }
+      } catch (error) {
+        // Don't block requests if backup restore check fails
+        context.logger.warn('Failed to check for active backup restores:', error);
+      }
     }
 
     if (event.route.id) {
