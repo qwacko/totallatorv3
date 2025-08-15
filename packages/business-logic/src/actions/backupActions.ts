@@ -279,104 +279,103 @@ export const backupActions = {
 		compress = true,
 		creationReason,
 		createdBy,
-		locked = false
+		locked = false,
+		onStatus = () => {}
 	}: {
 		title?: string;
 		compress?: boolean;
 		creationReason: string;
 		createdBy: string;
 		locked?: boolean;
+		onStatus?: (status: string) => void;
 	}): Promise<void> => {
 		const db = getContextDB();
 		const date = new Date();
 		const filenameUse = `${date.toISOString()}-${title}.${compress ? 'data' : 'json'}`;
 
-		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 11,
-			data: {
-				user: await dbExecuteLogger(db.select().from(user), 'Backup - Store Backup - User'),
-				session: await dbExecuteLogger(
-					db.select().from(session),
-					'Backup - Store Backup - Session'
-				),
-				key: await dbExecuteLogger(db.select().from(key), 'Backup - Store Backup - Key'),
-				account: await dbExecuteLogger(
-					db.select().from(account),
-					'Backup - Store Backup - Account'
-				),
-				bill: await dbExecuteLogger(db.select().from(bill), 'Backup - Store Backup - Bill'),
-				budget: await dbExecuteLogger(db.select().from(budget), 'Backup - Store Backup - Budget'),
-				category: await dbExecuteLogger(
-					db.select().from(category),
-					'Backup - Store Backup - Category'
-				),
-				tag: await dbExecuteLogger(db.select().from(tag), 'Backup - Store Backup - Tag'),
-				label: await dbExecuteLogger(db.select().from(label), 'Backup - Store Backup - Label'),
-				labelsToJournals: await dbExecuteLogger(
-					db.select().from(labelsToJournals),
-					'Backup - Store Backup - Labels To Journals'
-				),
-				transaction: await dbExecuteLogger(
-					db.select().from(transaction),
-					'Backup - Store Backup - Transaction'
-				),
-				journalEntry: await dbExecuteLogger(
-					db.select().from(journalEntry),
-					'Backup - Store Backup - Journal Entry'
-				),
-				importItemDetail: await dbExecuteLogger(
-					db.select().from(importItemDetail),
-					'Backup - Store Backup - Import Item Detail'
-				),
-				importTable: await dbExecuteLogger(
-					db.select().from(importTable),
-					'Backup - Store Backup - Import Table'
-				),
-				autoImportTable: await dbExecuteLogger(
-					db.select().from(autoImportTable),
-					'Backup - Store Backup - Auto Import Table'
-				),
-				importMapping: await dbExecuteLogger(
-					db.select().from(importMapping),
-					'Backup - Store Backup - Import Mapping'
-				),
-				reusableFilter: await dbExecuteLogger(
-					db.select().from(reusableFilter),
-					'Backup - Store Backup - Reusable Filter'
-				),
-				//@ts-expect-error Not Sure Here
-				filter: await dbExecuteLogger(db.select().from(filter), 'Backup - Store Backup - Filter'),
-				report: await dbExecuteLogger(db.select().from(report), 'Backup - Store Backup - Report'),
-				filtersToReportConfigs: await dbExecuteLogger(
-					db.select().from(filtersToReportConfigs),
-					'Backup - Store Backup - Filters To Report Configs'
-				),
-				keyValueTable: await dbExecuteLogger(
-					db.select().from(keyValueTable),
-					'Backup - Store Backup - Key Value Table'
-				),
-				reportElement: await dbExecuteLogger(
-					db.select().from(reportElement),
-					'Backup - Store Backup - Report Element'
-				),
-				reportElementConfig: await dbExecuteLogger(
-					db.select().from(reportElementConfig),
-					'Backup - Store Backup - Report Element Config'
-				),
-				backup: (
-					await dbExecuteLogger(db.select().from(backupTable), 'Backup - Store Backup - Backup')
-				).map((item) => ({
+		onStatus('Starting Storage Of Backup');
+		console.log('=== BACKUP CREATION STARTED ===');
+		getLogger().info(`Starting backup creation: ${title}`);
+
+		// Define the tables to backup and their display names
+		const tablesToBackup = [
+			{ table: user, name: 'Users', key: 'user' },
+			{ table: session, name: 'Sessions', key: 'session' },
+			{ table: key, name: 'Keys', key: 'key' },
+			{ table: account, name: 'Accounts', key: 'account' },
+			{ table: bill, name: 'Bills', key: 'bill' },
+			{ table: budget, name: 'Budgets', key: 'budget' },
+			{ table: category, name: 'Categories', key: 'category' },
+			{ table: tag, name: 'Tags', key: 'tag' },
+			{ table: label, name: 'Labels', key: 'label' },
+			{ table: labelsToJournals, name: 'Labels to Journals', key: 'labelsToJournals' },
+			{ table: transaction, name: 'Transactions', key: 'transaction' },
+			{ table: journalEntry, name: 'Journal Entries', key: 'journalEntry' },
+			{ table: importItemDetail, name: 'Import Item Details', key: 'importItemDetail' },
+			{ table: importTable, name: 'Import Table', key: 'importTable' },
+			{ table: autoImportTable, name: 'Auto Import Table', key: 'autoImportTable' },
+			{ table: importMapping, name: 'Import Mappings', key: 'importMapping' },
+			{ table: reusableFilter, name: 'Reusable Filters', key: 'reusableFilter' },
+			{ table: filter, name: 'Filters', key: 'filter' },
+			{ table: report, name: 'Reports', key: 'report' },
+			{
+				table: filtersToReportConfigs,
+				name: 'Filters to Report Configs',
+				key: 'filtersToReportConfigs'
+			},
+			{ table: keyValueTable, name: 'Key Value Table', key: 'keyValueTable' },
+			{ table: reportElement, name: 'Report Elements', key: 'reportElement' },
+			{ table: reportElementConfig, name: 'Report Element Configs', key: 'reportElementConfig' },
+			{ table: backupTable, name: 'Backup Table', key: 'backup', special: true },
+			{ table: notesTable, name: 'Notes', key: 'note' },
+			{ table: fileTable, name: 'Files', key: 'file' },
+			{ table: associatedInfoTable, name: 'Associated Info', key: 'associatedInfo' }
+		];
+
+		const totalTables = tablesToBackup.length;
+		const tableData: any = {};
+
+		// Process each table sequentially with progress reporting
+		for (let i = 0; i < tablesToBackup.length; i++) {
+			const tableInfo = tablesToBackup[i];
+			const progress = i + 1;
+
+			onStatus(`Backing up ${tableInfo.name} (${progress}/${totalTables})`);
+			console.log(`Backing up ${tableInfo.name} (${progress}/${totalTables})...`);
+
+			const startTime = Date.now();
+
+			if (tableInfo.special && tableInfo.key === 'backup') {
+				// Special handling for backup table
+				const rawData = await dbExecuteLogger(
+					db.select().from(tableInfo.table),
+					`Backup - Store Backup - ${tableInfo.name}`
+				);
+				tableData[tableInfo.key] = rawData.map((item) => ({
 					...item,
 					information: superjson.stringify(item.information)
-				})),
-				note: await dbExecuteLogger(db.select().from(notesTable), 'Backup - Store Backup - Note'),
-				file: await dbExecuteLogger(db.select().from(fileTable), 'Backup - Store Backup - File'),
-				associatedInfo: await dbExecuteLogger(
-					db.select().from(associatedInfoTable),
-					'Backup - Store Backup - Associated Info'
-				)
+				}));
+			} else {
+				// Standard table handling
+				tableData[tableInfo.key] = await dbExecuteLogger(
+					db.select().from(tableInfo.table),
+					`Backup - Store Backup - ${tableInfo.name}`
+				);
 			}
+
+			const duration = Date.now() - startTime;
+			const recordCount = tableData[tableInfo.key].length;
+			console.log(`✓ ${tableInfo.name}: ${recordCount} records (${duration}ms)`);
+			getLogger().info(`Backed up ${tableInfo.name}: ${recordCount} records in ${duration}ms`);
+		}
+
+		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
+			version: 11,
+			data: tableData
 		};
+
+		onStatus('Data For Backup Retrieved From DB');
+		console.log('All table data retrieved successfully');
 
 		const backupData: CurrentBackupSchemaType = {
 			...backupDataDB,
@@ -413,13 +412,26 @@ export const backupActions = {
 			}
 		};
 
+		onStatus('Backup Ready For Parsing');
+		console.log('Validating backup data structure...');
+
 		const checkedBackupData = currentBackupSchema.parse(backupData);
 
+		onStatus('Backup Parsed. Ready for storage.');
+		console.log('Backup data validated successfully');
+
+		const writeStart = Date.now();
 		if (compress) {
+			console.log('Writing compressed backup file...');
 			await writeToMsgPackFile(checkedBackupData, filenameUse);
 		} else {
+			console.log('Writing JSON backup file...');
 			await backupFileHandler().write(filenameUse, superjson.stringify(checkedBackupData));
 		}
+		const writeDuration = Date.now() - writeStart;
+
+		onStatus('Backup Stored');
+		console.log(`Backup file written successfully (${writeDuration}ms)`);
 
 		const information = {
 			version: checkedBackupData.version,
@@ -443,6 +455,11 @@ export const backupActions = {
 			}),
 			'Backup - Store Backup - Insert Backup Table'
 		);
+
+		console.log('=== BACKUP CREATION COMPLETED ===');
+		console.log(`Backup File: ${filenameUse}`);
+		getLogger().info(`Backup creation completed: ${filenameUse}`);
+		onStatus('Backup Creation Complete');
 	},
 	getBackupData: async ({ returnRaw, id }: { id: string; returnRaw: boolean }) => {
 		const db = getContextDB();
@@ -618,7 +635,10 @@ export const backupActions = {
 			}, 0);
 		};
 
-		console.log('Backup Restore Started');
+		console.log('=== BACKUP RESTORE STARTED ===');
+		console.log(`Backup ID: ${id}`);
+		console.log(`Include Users: ${includeUsers}`);
+		getLogger().info(`Starting backup restore process for backup: ${id}`);
 		// Emit start event
 		emitEvent('backup.restore.started', { backupId: id, includeUsers, userId });
 
@@ -641,13 +661,22 @@ export const backupActions = {
 
 			// Step 3: Create pre-restore backup
 			emitProgress('pre-backup', 3, 6, 'Creating pre-restore backup');
+			getLogger().info('Starting pre-restore backup creation...');
+			console.log('Creating pre-restore backup before restoration begins...');
+			const preBackupStart = Date.now();
 			//Produce a new backup prior to any restore.
 			await backupActions.storeBackup({
 				title: `Pre-Restore - ${backup.createdAt.toISOString().substring(0, 10)} - ${backup.title}`,
 				compress: true,
 				createdBy: 'System',
-				creationReason: 'Pre-Restore'
+				creationReason: 'Pre-Restore',
+				onStatus: (newStatus) => {
+					emitProgress('pre-backup', 3, 6, newStatus);
+				}
 			});
+			const preBackupDuration = Date.now() - preBackupStart;
+			getLogger().info(`Pre-restore backup completed in ${preBackupDuration}ms`);
+			console.log(`Pre-restore backup created successfully (${preBackupDuration}ms)`);
 
 			// Step 4: Calculate operation counts for progress tracking
 			emitProgress('pre-backup', 4, 6, 'Calculating restoration plan');
@@ -663,9 +692,12 @@ export const backupActions = {
 			emitProgress('pre-backup', 6, 6, 'Starting database restoration transaction');
 
 			const dataInsertionStart = Date.now();
+			console.log('Starting database transaction for restore...');
+			getLogger().info('Beginning database restoration transaction');
 			await runInTransactionWithLogging('Restore Backup', async () => {
 				const db = getContextDB();
 				//Clear The Database
+				console.log('Phase 1: Clearing existing database data...');
 				emitProgress('deleting', 0, deleteOperations, 'Starting database cleanup');
 
 				if (includeUsers) {
@@ -768,9 +800,12 @@ export const backupActions = {
 					deleteOperations,
 					'Deleted associated info table'
 				);
-				getLogger().info(`Deletions Complete: ${Date.now() - dataInsertionStart}ms`);
+				const deletionDuration = Date.now() - dataInsertionStart;
+				getLogger().info(`Deletions Complete: ${deletionDuration}ms`);
+				console.log(`Phase 1 Complete: Database cleanup finished (${deletionDuration}ms)`);
 
 				//Update Database from Backup
+				console.log('Phase 2: Restoring data from backup...');
 				emitProgress('restoring', 0, insertOperations, 'Starting data restoration');
 
 				if (includeUsers) {
@@ -788,11 +823,16 @@ export const backupActions = {
 					emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored keys');
 				}
 
+				console.log(`Restoring ${checkedBackupData.data.account.length} accounts...`);
 				await chunker(checkedBackupData.data.account, 1000, async (data) =>
 					dbExecuteLogger(db.insert(account).values(data), 'Backup Restore - Insert Accounts')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored accounts');
-				getLogger().info(`Account Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				const accountDuration = Date.now() - dataInsertionStart;
+				getLogger().info(`Account Insertions Complete: ${accountDuration}ms`);
+				console.log(
+					`✓ Accounts restored (${checkedBackupData.data.account.length} records, ${accountDuration}ms)`
+				);
 
 				await chunker(checkedBackupData.data.bill, 1000, async (data) =>
 					dbExecuteLogger(db.insert(bill).values(data), 'Backup Restore - Insert Bills')
@@ -824,6 +864,7 @@ export const backupActions = {
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored labels');
 				getLogger().info(`Label Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
 
+				console.log(`Restoring ${checkedBackupData.data.transaction.length} transactions...`);
 				await chunker(checkedBackupData.data.transaction, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(transaction).values(data),
@@ -831,8 +872,13 @@ export const backupActions = {
 					)
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored transactions');
-				getLogger().info(`Transaction Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				const transactionDuration = Date.now() - dataInsertionStart;
+				getLogger().info(`Transaction Insertions Complete: ${transactionDuration}ms`);
+				console.log(
+					`✓ Transactions restored (${checkedBackupData.data.transaction.length} records, ${transactionDuration}ms)`
+				);
 
+				console.log(`Restoring ${checkedBackupData.data.journalEntry.length} journal entries...`);
 				await chunker(checkedBackupData.data.journalEntry, 1000, async (data) =>
 					dbExecuteLogger(
 						db.insert(journalEntry).values(data),
@@ -845,7 +891,11 @@ export const backupActions = {
 					insertOperations,
 					'Restored journal entries'
 				);
-				getLogger().info(`Journal Entry Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				const journalDuration = Date.now() - dataInsertionStart;
+				getLogger().info(`Journal Entry Insertions Complete: ${journalDuration}ms`);
+				console.log(
+					`✓ Journal entries restored (${checkedBackupData.data.journalEntry.length} records, ${journalDuration}ms)`
+				);
 
 				await chunker(checkedBackupData.data.labelsToJournals, 1000, async (data) =>
 					dbExecuteLogger(
@@ -1064,12 +1114,20 @@ export const backupActions = {
 						.where(eq(backupTable.id, id)),
 					'Backup Restore - Update Backup Table'
 				);
+
+				const totalDuration = Date.now() - dataInsertionStart;
+				console.log(`Phase 2 Complete: All data restored successfully (${totalDuration}ms)`);
+				getLogger().info(`Database transaction completed successfully in ${totalDuration}ms`);
 			});
 			getLogger().info(`Backup Restored - ${backup.filename} - ${backup.createdAt.toISOString()}`);
 			materializedViewActions.setRefreshRequired();
 
 			// Emit completion event
 			const duration = Date.now() - startTime;
+			console.log('=== BACKUP RESTORE COMPLETED SUCCESSFULLY ===');
+			console.log(`Total Duration: ${duration}ms (${(duration / 1000).toFixed(2)}s)`);
+			console.log(`Backup: ${backup.filename}`);
+			getLogger().info(`Backup restore completed successfully in ${duration}ms`);
 			emitEvent('backup.restore.completed', { backupId: id, includeUsers, duration, userId });
 		} catch (error) {
 			// Emit failure event
@@ -1228,6 +1286,7 @@ type BackupStructuredData = {
 	original: CombinedBackupSchemaType;
 	originalVersion: number;
 };
+
 
 const getBackupStructuredData = async ({
 	filename

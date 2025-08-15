@@ -1,7 +1,7 @@
 import { eq, desc, and, gte, lte } from 'drizzle-orm';
 import schedule, { Job } from 'node-schedule';
 import type { CoreDBType } from '@totallator/database';
-import { cronJob, cronJobExecution } from '@totallator/database';
+import { cronJob, cronJobExecution, keyValueTable } from '@totallator/database';
 import type { GlobalContext } from '@totallator/context';
 import { runWithContext } from '@totallator/context';
 
@@ -211,6 +211,29 @@ export class CronJobService {
 			return executionId;
 		}
 
+		// Check if a backup restore is in progress
+		const isRestoreActive = await this.hasActiveBackupRestore();
+		if (isRestoreActive) {
+			console.log(`Skipping cron job ${jobDefinition.name} execution - backup restore in progress`);
+			
+			// Create a skipped execution record
+			await this.db.insert(cronJobExecution).values({
+				id: executionId,
+				cronJobId,
+				startedAt: startTime,
+				completedAt: new Date(),
+				durationMs: 0,
+				status: 'skipped',
+				triggeredBy,
+				triggeredByUserId,
+				retryCount,
+				output: JSON.stringify({ reason: 'Backup restore in progress' }),
+				errorMessage: 'Execution skipped due to active backup restore'
+			});
+			
+			return executionId;
+		}
+
 		// Create execution record
 		await this.db.insert(cronJobExecution).values({
 			id: executionId,
@@ -361,6 +384,38 @@ export class CronJobService {
 			userAgent: `Cron-Job-${jobName}`,
 			ip: '127.0.0.1'
 		};
+	}
+
+	/**
+	 * Check if a backup restore is currently in progress
+	 * Uses the service's database connection to avoid context issues
+	 */
+	private async hasActiveBackupRestore(): Promise<boolean> {
+		try {
+			// Query the backup_restore_progress key-value directly
+			const progressResult = await this.db
+				.select({ value: keyValueTable.value })
+				.from(keyValueTable)
+				.where(eq(keyValueTable.key, 'backup_restore_progress'))
+				.limit(1);
+
+			if (progressResult.length === 0) {
+				return false;
+			}
+
+			const progressData = JSON.parse(progressResult[0].value);
+			
+			if (!progressData || !progressData.phase) {
+				return false;
+			}
+
+			// Check if the restore is in progress (not completed, failed, or cancelled)
+			return !['completed', 'failed', 'cancelled'].includes(progressData.phase);
+		} catch (error) {
+			console.warn('Failed to check backup restore status in cron service:', error);
+			// Return false if we can't check - allow cron jobs to proceed
+			return false;
+		}
 	}
 
 	/**
