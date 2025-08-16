@@ -63,5 +63,5 @@ export const initializeServer = async (): Promise<void> => {
     migrationsPath,
   });
 
-  globalContext.logger.info("Context initialization complete");
+  globalContext.logger("database").info("Context initialization complete");
 };

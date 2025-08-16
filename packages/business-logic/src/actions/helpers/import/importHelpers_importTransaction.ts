@@ -31,10 +31,15 @@ export async function importTransaction({
 		let currentJournal: any;
 		if (processedCombinedTransaction.success) {
 			try {
+				getLogger('import', 'Other').debug('Starting import process');
 				const importedData = await journalActions.createManyTransactionJournals({
 					journalEntries: [processedCombinedTransaction.data],
 					isImport: true // This is from an import process
 				});
+
+				getLogger('import', 'Other').debug(importedData, 'Import Process Complete');
+
+				getLogger('import', 'Other').info('Backlinking Import Data To Journals');
 
 				await Promise.all(
 					importedData.map(async (transactionId) => {

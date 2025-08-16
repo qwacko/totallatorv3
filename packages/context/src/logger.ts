@@ -31,7 +31,7 @@ export const loggerDomains = [
   'queries',
   'reports',
   'tags',
-  'users'
+  'users', 'server','cron'
 ] as const;
 export type LoggerDomain = (typeof loggerDomains)[number];
 
