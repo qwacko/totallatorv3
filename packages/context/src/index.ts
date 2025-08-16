@@ -58,4 +58,13 @@ export {
   createEventEmitter,
 } from './eventEmitter.js';
 
-export {type LoggerDomain} from '@/logger' 
+/**
+ * Logger types and utilities - used for typed logging throughout the app
+ */
+export {
+  type LoggerDomain,
+  type LoggerAction,
+  type LoggerFactory,
+  type LoggerInstance,
+  createLogger,
+} from './logger.js';

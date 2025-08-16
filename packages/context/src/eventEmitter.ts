@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { type Logger } from './logger.js';
+import pino from 'pino';
 
 /**
  * Event definitions interface for type safety
@@ -40,9 +40,9 @@ export type EventListener<T extends keyof AppEvents> = (payload: AppEvents[T]) =
  */
 export class TypedEventEmitter {
   private emitter: EventEmitter;
-  private logger: Logger;
+  private logger: pino.Logger;
 
-  constructor(logger: Logger) {
+  constructor(logger: pino.Logger) {
     this.emitter = new EventEmitter();
     this.logger = logger;
     
@@ -51,7 +51,7 @@ export class TypedEventEmitter {
     
     // Handle any unhandled errors in event listeners
     this.emitter.on('error', (error) => {
-      this.logger.error('Event emitter error', { error: error.message, stack: error.stack });
+      this.logger.error({ error: error.message, stack: error.stack }, 'Event emitter error');
     });
   }
 
@@ -63,18 +63,18 @@ export class TypedEventEmitter {
    */
   emit<T extends keyof AppEvents>(eventName: T, payload: AppEvents[T]): void {
     try {
-      this.logger.debug('Event emitted', { eventName, payload });
+      this.logger.debug({ eventName, payload }, 'Event emitted');
       
       // Emit asynchronously to avoid blocking
       process.nextTick(() => {
         this.emitter.emit(eventName as string, payload);
       });
     } catch (error) {
-      this.logger.error('Failed to emit event', { 
+      this.logger.error({ 
         eventName, 
         payload, 
         error: error instanceof Error ? error.message : String(error) 
-      });
+      }, 'Failed to emit event');
     }
   }
 
@@ -87,15 +87,15 @@ export class TypedEventEmitter {
   on<T extends keyof AppEvents>(eventName: T, listener: EventListener<T>): void {
     const wrappedListener = async (payload: AppEvents[T]) => {
       try {
-        this.logger.debug('Event listener triggered', { eventName, payload });
+        this.logger.debug({ eventName, payload }, 'Event listener triggered');
         await listener(payload);
       } catch (error) {
-        this.logger.error('Event listener error', { 
+        this.logger.error({ 
           eventName, 
           payload, 
           error: error instanceof Error ? error.message : String(error),
           stack: error instanceof Error ? error.stack : undefined
-        });
+        }, 'Event listener error');
       }
     };
 
@@ -111,15 +111,15 @@ export class TypedEventEmitter {
   once<T extends keyof AppEvents>(eventName: T, listener: EventListener<T>): void {
     const wrappedListener = async (payload: AppEvents[T]) => {
       try {
-        this.logger.debug('One-time event listener triggered', { eventName, payload });
+        this.logger.debug({ eventName, payload }, 'One-time event listener triggered');
         await listener(payload);
       } catch (error) {
-        this.logger.error('One-time event listener error', { 
+        this.logger.error({ 
           eventName, 
           payload, 
           error: error instanceof Error ? error.message : String(error),
           stack: error instanceof Error ? error.stack : undefined
-        });
+        }, 'One-time event listener error');
       }
     };
 
@@ -172,9 +172,9 @@ export class TypedEventEmitter {
 /**
  * Create a new typed event emitter instance
  * 
- * @param logger - Logger instance for error handling and debugging
+ * @param logger - Pino logger instance for error handling and debugging
  * @returns New TypedEventEmitter instance
  */
-export function createEventEmitter(logger: Logger): TypedEventEmitter {
+export function createEventEmitter(logger: pino.Logger): TypedEventEmitter {
   return new TypedEventEmitter(logger);
 }

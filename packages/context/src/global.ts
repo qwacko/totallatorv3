@@ -82,7 +82,7 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     isDev: config.serverEnv.DEV,
     isBuilding: config.isBuilding || false,
     isTestEnv: config.serverEnv.TEST_ENV,
-    logger: (message: string, data?: any) => logger.debug(message, data),
+    logger: (message: string, data?: any) => logger('database').debug(message, data),
     migrationsPath: config.migrationsPath,
   });
 
@@ -94,7 +94,7 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     isDev: config.serverEnv.DEV,
     isBuilding: config.isBuilding || false,
     isTestEnv: config.serverEnv.TEST_ENV,
-    logger: (message: string) => logger.info(message),
+    logger: (message: string) => logger('database').info(message),
     migrationsPath: config.migrationsPath,
   });
 
@@ -105,16 +105,16 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
       if (config.viewRefreshAction) {
         return await config.viewRefreshAction();
       } else {
-        logger.debug('Materialized view refresh triggered - no action configured yet');
+        logger('materialized-views').debug('Materialized view refresh triggered - no action configured yet');
         return false;
       }
     },
-    logger,
+    logger: logger('materialized-views'),
     name: 'MaterializedViewRefresh',
   });
 
   // Create event emitter
-  const eventEmitter = createEventEmitter(logger);
+  const eventEmitter = createEventEmitter(logger('auth'));
 
   globalContext = {
     logger,
@@ -126,7 +126,7 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     eventEmitter,
   };
 
-  logger.info('Global context initialized');
+  logger('auth').info('Global context initialized');
   return globalContext;
 }
 

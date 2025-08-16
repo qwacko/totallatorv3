@@ -1,4 +1,4 @@
-import type { Logger } from './logger.js';
+import pino from 'pino';
 
 /**
  * Configuration options for creating a rate limiter.
@@ -8,8 +8,8 @@ export interface RateLimiterOptions<T = void> {
   timeout: number;
   /** Action to perform after timeout period */
   performAction: () => Promise<T>;
-  /** Optional logger for debugging */
-  logger?: Logger;
+  /** Optional pino logger for debugging */
+  logger?: pino.Logger;
   /** Optional name for logging purposes */
   name?: string;
 }
@@ -46,7 +46,7 @@ export function createRateLimiter<T = void>(options: RateLimiterOptions<T>): Rat
       await performAction();
       logger?.debug(`${name}: Rate-limited action completed`);
     } catch (error) {
-      logger?.error(`${name}: Rate-limited action failed`, error);
+      logger?.error({ error }, `${name}: Rate-limited action failed`);
     } finally {
       timeoutHandle = undefined;
     }

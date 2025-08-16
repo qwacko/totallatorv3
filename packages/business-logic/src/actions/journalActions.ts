@@ -225,7 +225,7 @@ export const journalActions = {
 		});
 		const endTime = Date.now();
 		const duration = endTime - startTime;
-		getLogger('journals').pino.info({ count, duration }, `Seeding ${count} transactions took ${duration}ms`);
+		getLogger('journals').info({ count, duration }, `Seeding ${count} transactions took ${duration}ms`);
 	},
 	markManyComplete: async ({
 		journalFilter
@@ -307,7 +307,7 @@ export const journalActions = {
 		const processedData = updateJournalSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			getLogger('journals').pino.error({ error: processedData.error }, 'Invalid Journal Update Data');
+			getLogger('journals').error({ error: processedData.error }, 'Invalid Journal Update Data');
 			throw new Error('Invalid Journal Update Data');
 		}
 
@@ -322,7 +322,7 @@ export const journalActions = {
 			const updatingLabelsOnly = checkUpdateLabelsOnly(processedData.data);
 
 			if (!updatingLabelsOnly) {
-				getLogger('journals').pino.error(
+				getLogger('journals').error(
 					{ filter: processedFilter, data: processedData.data },
 					'Cannot update journals that are already complete'
 				);
@@ -688,7 +688,7 @@ export const journalActions = {
 		const processedData = cloneJournalUpdateSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			getLogger('journals').pino.error({ error: processedData.error }, 'Invalid Journal Update Data');
+			getLogger('journals').error({ error: processedData.error }, 'Invalid Journal Update Data');
 			throw new Error('Inavalid Journal Update Data');
 		}
 

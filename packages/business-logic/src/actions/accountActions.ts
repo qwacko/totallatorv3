@@ -506,7 +506,7 @@ export const accountActions: AccountActionsType & {
 		return dataForInsertion.map((item) => item.id);
 	},
 	seed: async ({ countAssets, countLiabilities, countIncome, countExpenses }) => {
-		getLogger('accounts').pino.info(
+		getLogger('accounts').info(
 			{
 				countAssets,
 				countLiabilities,

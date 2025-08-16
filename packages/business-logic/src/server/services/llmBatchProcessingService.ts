@@ -59,35 +59,35 @@ export async function processAllAccounts(
 
 	// Check if LLM processing is enabled
 	if (!getServerEnv().LLM_REVIEW_ENABLED) {
-		getLogger('llm').pino.info('LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false');
+		getLogger('llm').info('LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false');
 		return emptyStats(Date.now() - startTime);
 	}
 
 	// Get enabled LLM providers
 	const allProviders = await llmActions.list();
 	const enabledProviders = allProviders.filter((p) => p.enabled);
-	getLogger('llm').pino.info(
+	getLogger('llm').info(
 		{ totalProviders: allProviders.length, enabledProviders: enabledProviders.length },
 		`LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`
 	);
 	if (enabledProviders.length === 0) {
-		getLogger('llm').pino.info('LLM Batch Processing: Skipped - No enabled providers');
+		getLogger('llm').info('LLM Batch Processing: Skipped - No enabled providers');
 		return emptyStats(Date.now() - startTime);
 	}
 
 	// Get accounts that have journals requiring processing
 	const accountsWithWork = await getAccountsWithRequiredJournals(db);
 
-	getLogger('llm').pino.info(
+	getLogger('llm').info(
 		{ accountsCount: accountsWithWork.length },
 		`LLM Batch Processing: Found ${accountsWithWork.length} accounts with journals requiring processing`
 	);
 	if (accountsWithWork.length === 0) {
-		getLogger('llm').pino.info('LLM Batch Processing: No accounts with journals requiring processing');
+		getLogger('llm').info('LLM Batch Processing: No accounts with journals requiring processing');
 		return emptyStats(Date.now() - startTime);
 	}
 
-	getLogger('llm').pino.info(
+	getLogger('llm').info(
 		{ accountsCount: accountsWithWork.length },
 		`LLM Batch Processing: Processing ${accountsWithWork.length} accounts`
 	);
@@ -115,13 +115,13 @@ export async function processAllAccounts(
 				stats.averageConfidence = (stats.averageConfidence + confidence) / 2;
 			}
 
-			getLogger('llm').pino.info(
+			getLogger('llm').info(
 				{ accountId: account.id, accountTitle: account.title, journalsProcessed: result.journalsProcessed },
 				`LLM Batch Processing: Account ${account.title} - ${result.journalsProcessed} journals processed`
 			);
 		} catch (error) {
 			stats.errors++;
-			getLogger('llm').pino.error(
+			getLogger('llm').error(
 				{ accountId: account.id, error },
 				`LLM Batch Processing: Error processing account ${account.id}`
 			);
@@ -129,7 +129,7 @@ export async function processAllAccounts(
 	}
 
 	stats.processingTime = Date.now() - startTime;
-	getLogger('llm').pino.info(
+	getLogger('llm').info(
 		{ 
 			totalBatchesProcessed: stats.totalBatchesProcessed,
 			totalJournalsProcessed: stats.totalJournalsProcessed,
@@ -178,7 +178,7 @@ export async function processAccount(
 		const processResult = await processLLMResponse(db, llmResponse, config);
 
 		// For now, just log the response - we'll implement suggestion storage later
-		getLogger('llm').pino.info(
+		getLogger('llm').info(
 			{
 				accountId,
 				journalsProcessed: uncategorizedJournals.length,
@@ -199,7 +199,7 @@ export async function processAccount(
 			llmResponse
 		};
 	} catch (error) {
-		getLogger('llm').pino.error(
+		getLogger('llm').error(
 			{ accountId, error },
 			`LLM Batch Processing: Error processing account ${accountId}`
 		);
@@ -235,7 +235,7 @@ async function getAccountsWithRequiredJournals(
 
 	const result = await journalMaterialisedList({ db, filter });
 
-	getLogger('llm').pino.info(
+	getLogger('llm').info(
 		{ 
 			totalJournals: result.count,
 			showingJournals: result.data.length
@@ -246,7 +246,7 @@ async function getAccountsWithRequiredJournals(
 	// Extract unique account IDs
 	const accountIds = new Set(result.data.map((j) => j.accountId).filter(Boolean));
 
-	getLogger('llm').pino.info(
+	getLogger('llm').info(
 		{ 
 			accountsCount: accountIds.size,
 			accountIds: Array.from(accountIds)
@@ -270,7 +270,7 @@ async function getAccountsWithRequiredJournals(
 		title: string;
 		type: string;
 	}>;
-	getLogger('llm').pino.info(
+	getLogger('llm').info(
 		{ 
 			validAccountsCount: validAccounts.length,
 			accounts: validAccounts.map((a) => ({ title: a.title, type: a.type, id: a.id }))
@@ -352,7 +352,7 @@ async function buildContext(
 		if (!builder.enabled) continue;
 
 		try {
-			getLogger('llm').pino.debug(
+			getLogger('llm').debug(
 				{ builderName: builder.name },
 				`LLM Batch Processing: Running context builder '${builder.name}'`
 			);
@@ -366,7 +366,7 @@ async function buildContext(
 			// Merge builder results into main context
 			context = { ...context, ...builderContext };
 		} catch (error) {
-			getLogger('llm').pino.error(
+			getLogger('llm').error(
 				{ builderName: builder.name, error },
 				`LLM Batch Processing: Context builder '${builder.name}' failed`
 			);
@@ -431,7 +431,7 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 	const prompt = buildBatchPrompt(context);
 
 	// Log context for debugging
-	getLogger('llm').pino.info(
+	getLogger('llm').info(
 		{
 			accountId: context.account.id,
 			uncategorizedCount: context.uncategorizedJournals.length,
@@ -456,7 +456,7 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 			max_tokens: 4000 // Enough for batch processing responses
 		};
 
-		getLogger('llm').pino.info('Making LLM API call for batch processing...');
+		getLogger('llm').info('Making LLM API call for batch processing...');
 		const llmResponse = await llmClient.call(llmRequest);
 
 		// Parse the response
@@ -473,7 +473,7 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 			const jsonText = jsonMatch ? jsonMatch[0] : responseText;
 			parsedResponse = JSON.parse(jsonText);
 		} catch (parseError) {
-			getLogger('llm').pino.error({ parseError, responseText }, 'Failed to parse LLM JSON response');
+			getLogger('llm').error({ parseError, responseText }, 'Failed to parse LLM JSON response');
 
 			// Fallback to mock response if parsing fails
 			throw new Error(`Failed to parse LLM response: ${parseError}`);
@@ -482,7 +482,7 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 		// Validate and enhance the response
 		const enhancedResponse = validateAndEnhanceLLMResponse(parsedResponse, context);
 
-		getLogger('llm').pino.info(
+		getLogger('llm').info(
 			{
 				totalSuggestions: enhancedResponse.journalSuggestions.length,
 				averageConfidence: enhancedResponse.processingMetadata.averageConfidence,
@@ -493,7 +493,7 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 
 		return enhancedResponse;
 	} catch (error) {
-		getLogger('llm').pino.error({ error }, 'LLM Batch Processing failed');
+		getLogger('llm').error({ error }, 'LLM Batch Processing failed');
 
 		// Return fallback response on error
 		const fallbackResponse: LLMBatchResponse = {

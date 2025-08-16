@@ -240,7 +240,7 @@ export const billActions: BillActionsType = {
 		);
 
 		if (!currentBill) {
-			getLogger('bills').pino.error(data, 'Update Bill: Bill not found');
+			getLogger('bills').error(data, 'Update Bill: Bill not found');
 			return id;
 		}
 

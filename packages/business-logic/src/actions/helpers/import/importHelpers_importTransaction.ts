@@ -89,7 +89,7 @@ export async function importTransaction({
 					errorObject: e
 				};
 
-				getLogger('import').pino.error({ error: e, currentJournal }, 'Import Transaction Error');
+				getLogger('import').error({ error: e, currentJournal }, 'Import Transaction Error');
 
 				await dbExecuteLogger(
 					trx

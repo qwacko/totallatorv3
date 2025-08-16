@@ -38,7 +38,7 @@ export const seedTransactionData = ({
 	);
 
 	if (fromAccountId === undefined || toAccountId === undefined) {
-		getLogger('database').pino.error({
+		getLogger('database').error({
 			fromAccountId,
 			toAccountId,
 			numberAssetLiabilities: assetLiabilityIds.length,

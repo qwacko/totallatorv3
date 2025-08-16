@@ -241,7 +241,7 @@ export const tagActions: TagActionsType = {
 		);
 
 		if (!currentTag) {
-			getLogger('tags').pino.error({ data, id }, 'Update Tag: Tag not found');
+			getLogger('tags').error({ data, id }, 'Update Tag: Tag not found');
 			return id;
 		}
 
@@ -313,7 +313,7 @@ export const tagActions: TagActionsType = {
 	},
 	seed: async (count) => {
 		const db = getContextDB();
-		getLogger('tags').pino.info({ count }, 'Seeding Tags');
+		getLogger('tags').info({ count }, 'Seeding Tags');
 
 		const existingTitles = (
 			await dbExecuteLogger(

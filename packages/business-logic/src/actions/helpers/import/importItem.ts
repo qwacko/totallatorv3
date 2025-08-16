@@ -78,7 +78,7 @@ export const importItem = async <
 				errorObject: e
 			};
 
-			getLogger('import').pino.error(errorDetails, 'Import Item Error');
+			getLogger('import').error(errorDetails, 'Import Item Error');
 
 			await dbExecuteLogger(
 				db

@@ -203,7 +203,7 @@ export const importActions = {
 		try {
 			await processCreatedImport({ id });
 		} catch (e) {
-			getLogger('import').pino.error(e, 'Error Processing Import');
+			getLogger('import').error(e, 'Error Processing Import');
 			await dbExecuteLogger(
 				db
 					.update(importTable)
@@ -459,7 +459,7 @@ export const importActions = {
 							await importLabel({ item, trx });
 						}
 
-						getLogger('import').pino.debug(
+						getLogger('import').debug(
 							`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
 						);
 

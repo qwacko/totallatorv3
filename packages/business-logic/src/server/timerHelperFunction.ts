@@ -7,7 +7,7 @@ export const timerHelperFunction = (title: string) => {
 		end: () => {
 			const endTime = Date.now();
 			const duration = endTime - startTime;
-			getLogger('queries').pino.debug({ duration, title }, `${title} took ${duration}ms`);
+			getLogger('queries').debug({ duration, title }, `${title} took ${duration}ms`);
 		}
 	};
 };

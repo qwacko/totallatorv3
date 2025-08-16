@@ -11,7 +11,7 @@ export const getCommonData = <
 	const targetSet = [...new Set(data.map((item) => item[key]))];
 
 	if (log) {
-		getLogger('queries').pino.info({ targetSet, length: targetSet.length }, 'Target Set');
+		getLogger('queries').info({ targetSet, length: targetSet.length }, 'Target Set');
 	}
 
 	if (targetSet.length === 1) {

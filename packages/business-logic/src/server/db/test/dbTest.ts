@@ -21,7 +21,7 @@ if (!getServerEnv().POSTGRES_TEST_URL) {
 }
 
 const genTestDB = async () => {
-	getLogger('database').pino.info('Generating Test DB');
+	getLogger('database').info('Generating Test DB');
 
 	const useURL = getServerEnv().POSTGRES_TEST_URL || getServerEnv().POSTGRES_URL || '';
 
@@ -30,7 +30,7 @@ const genTestDB = async () => {
 	class MyLogger implements Logger {
 		logQuery(query: string, params: unknown[]): void {
 			if (query.startsWith('update') && enableLogger && getServerEnv().DEV) {
-				getLogger('database').pino.info({ query, params });
+				getLogger('database').info({ query, params });
 			}
 		}
 	}

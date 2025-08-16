@@ -222,7 +222,7 @@ export const autoImportActions = {
 
 		const data = await autoImportActions.getData({ id });
 
-		getLogger('auto-import').pino.debug(
+		getLogger('auto-import').debug(
 			{ length: data.length, title: autoImport.title },
 			'Triggering Import'
 		);

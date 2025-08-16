@@ -59,19 +59,19 @@ export async function runInTransactionWithLogging<T>(
   
   const start = Date.now();
   if (enableTransactionStartLogging) {
-    globalContext.logger.info(`Transaction "${title}" started`);
+    globalContext.logger("database").info(`Transaction "${title}" started`);
   }
   
   try {
     const result = await runInTransaction(callback);
     const duration = Date.now() - start;
     if (duration > transactionLoggingThreshold) {
-      globalContext.logger.info(`Transaction "${title}" took ${duration}ms`);
+      globalContext.logger("database").info(`Transaction "${title}" took ${duration}ms`);
     }
     return result;
   } catch (err) {
     const duration = Date.now() - start;
-    globalContext.logger.error(`Transaction "${title}" failed after ${duration}ms`, err);
+    globalContext.logger("database").error(err, `Transaction "${title}" failed after ${duration}ms`);
     throw err;
   }
 }

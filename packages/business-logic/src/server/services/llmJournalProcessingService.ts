@@ -67,7 +67,7 @@ export class LLMJournalProcessingService {
 
 		// Check if LLM review is enabled
 		if (!getServerEnv().LLM_REVIEW_ENABLED) {
-			getLogger('llm').pino.debug('LLM Journal Processing: Skipped - LLM_REVIEW_ENABLED is false');
+			getLogger('llm').debug('LLM Journal Processing: Skipped - LLM_REVIEW_ENABLED is false');
 			return { processed: 0, errors: 0, skipped: 0, duration: Date.now() - startTime };
 		}
 
@@ -77,7 +77,7 @@ export class LLMJournalProcessingService {
 
 		if (enabledProviders.length === 0) {
 			if (skipIfNoProviders) {
-				getLogger('llm').pino.debug('LLM Journal Processing: Skipped - No enabled LLM providers found');
+				getLogger('llm').debug('LLM Journal Processing: Skipped - No enabled LLM providers found');
 				return { processed: 0, errors: 0, skipped: 0, duration: Date.now() - startTime };
 			} else {
 				throw new Error('No enabled LLM providers found');
@@ -103,11 +103,11 @@ export class LLMJournalProcessingService {
 			.limit(batchSize);
 
 		if (journalsToProcess.length === 0) {
-			getLogger('llm').pino.debug('LLM Journal Processing: No journals requiring processing found');
+			getLogger('llm').debug('LLM Journal Processing: No journals requiring processing found');
 			return { processed: 0, errors: 0, skipped: 0, duration: Date.now() - startTime };
 		}
 
-		getLogger('llm').pino.info(
+		getLogger('llm').info(
 			{ journalsCount: journalsToProcess.length },
 			`LLM Journal Processing: Starting batch processing of ${journalsToProcess.length} journals`
 		);
@@ -120,7 +120,7 @@ export class LLMJournalProcessingService {
 		for (const journal of journalsToProcess) {
 			// Check if we've exceeded max processing time
 			if (Date.now() - startTime > maxProcessingTime) {
-				getLogger('llm').pino.warn(
+				getLogger('llm').warn(
 					{ maxProcessingTime },
 					`LLM Journal Processing: Stopping due to time limit (${maxProcessingTime}ms)`
 				);
@@ -130,13 +130,13 @@ export class LLMJournalProcessingService {
 			try {
 				await this.processJournal(journal, defaultProvider);
 				processed++;
-				getLogger('llm').pino.debug(
+				getLogger('llm').debug(
 					{ journalId: journal.id },
 					`LLM Journal Processing: Successfully processed journal ${journal.id}`
 				);
 			} catch (error) {
 				errors++;
-				getLogger('llm').pino.error(
+				getLogger('llm').error(
 					{ journalId: journal.id, error },
 					`LLM Journal Processing: Error processing journal ${journal.id}`
 				);
@@ -150,7 +150,7 @@ export class LLMJournalProcessingService {
 		}
 
 		const duration = Date.now() - startTime;
-		getLogger('llm').pino.info(
+		getLogger('llm').info(
 			{ processed, errors, skipped, duration },
 			`LLM Journal Processing: Completed batch - Processed: ${processed}, Errors: ${errors}, Duration: ${duration}ms`
 		);

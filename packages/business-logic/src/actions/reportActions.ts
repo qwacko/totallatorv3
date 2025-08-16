@@ -42,7 +42,7 @@ export const reportActions = {
 
 		if (!reportInfo) throw new Error('Report not found');
 
-		getLogger('reports').pino.debug({
+		getLogger('reports').debug({
 			reportElements: reportInfo.reportElements.map((item) => item.id),
 			filterId: reportInfo.filterId
 		}, 'Deleting Reports');
@@ -292,7 +292,7 @@ export const reportActions = {
 		id: string;
 		filter: JournalFilterSchemaWithoutPaginationType;
 	}) => {
-		getLogger('reports').pino.debug({ filter }, 'Upserting Filter');
+		getLogger('reports').debug({ filter }, 'Upserting Filter');
 
 		const reportConfig = await reportActions.getSimpleReportConfig({ id });
 
@@ -869,7 +869,7 @@ export const reportActions = {
 		update: async ({ data }: { data: UpdateReportElementType }) => {
 			const { id, ...restData } = data;
 
-			getLogger('reports').pino.debug({ data }, 'Updating Report Element');
+			getLogger('reports').debug({ data }, 'Updating Report Element');
 
 			await runInTransactionWithLogging('Report Element - Update', async () => {
 				const db = getContextDB();

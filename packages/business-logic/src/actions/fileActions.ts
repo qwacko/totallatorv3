@@ -515,7 +515,7 @@ export const fileActions: FilesActionsType & {
 			}
 		} catch (err) {
 			if (err instanceof UnableToCheckDirectoryExistence) {
-				getLogger('files').pino.error('Unable to check directory existence');
+				getLogger('files').error('Unable to check directory existence');
 			}
 		}
 

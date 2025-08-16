@@ -251,7 +251,7 @@ export const categoryActions: CategoryActionsType = {
 		);
 
 		if (!currentCategory) {
-			getLogger('categories').pino.error(data, 'Update Category: Category not found');
+			getLogger('categories').error(data, 'Update Category: Category not found');
 			return id;
 		}
 
@@ -329,7 +329,7 @@ export const categoryActions: CategoryActionsType = {
 	},
 	seed: async (count) => {
 		const db = getContextDB();
-		getLogger('categories').pino.info(count, 'Seeding Categories');
+		getLogger('categories').info(count, 'Seeding Categories');
 
 		const existingTitles = (
 			await dbExecuteLogger(

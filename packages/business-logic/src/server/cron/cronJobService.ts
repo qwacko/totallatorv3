@@ -338,25 +338,25 @@ export class CronJobService {
 		// Log execution result
 		if (result.success) {
 			if (false) {
-				context.logger.info(`Cron job ${jobDefinition.name} completed successfully`, {
+				context.logger('cron').info({
 					executionId,
 					durationMs,
 					triggeredBy,
 					...result.data
-				});
+				}, `Cron job ${jobDefinition.name} completed successfully`);
 			}
 		} else {
-			context.logger.error(`Cron job ${jobDefinition.name} failed`, {
+			context.logger('cron').error({
 				executionId,
 				durationMs,
 				triggeredBy,
 				error: errorMessage,
 				retryCount
-			});
+			}, `Cron job ${jobDefinition.name} failed`);
 
 			// Handle retries
 			if (retryCount < jobDefinition.maxRetries) {
-				context.logger.info(`Retrying cron job ${jobDefinition.name} (attempt ${retryCount + 2})`);
+				context.logger('cron').info(`Retrying cron job ${jobDefinition.name} (attempt ${retryCount + 2})`);
 
 				// Schedule retry with exponential backoff
 				const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Max 30 seconds

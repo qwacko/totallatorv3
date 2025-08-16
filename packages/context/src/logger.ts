@@ -10,79 +10,99 @@ export type LogClass = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE';
  * Fixed set of child logger names for different application domains.
  * These represent the main functional areas of the application.
  */
-export type LoggerDomain = 
-  | 'accounts'
-  | 'auth'
-  | 'auto-import'
-  | 'backup'
-  | 'bills'
-  | 'budgets'
-  | 'categories'
-  | 'cron'
-  | 'database'
-  | 'export'
-  | 'files'
-  | 'import'
-  | 'journals'
-  | 'labels'
-  | 'llm'
-  | 'materialized-views'
-  | 'notes'
-  | 'queries'
-  | 'reports'
-  | 'tags'
-  | 'users';
+export const loggerDomains = [
+  'accounts',
+  'auth',
+  'auto-import',
+  'backup',
+  'bills',
+  'budgets',
+  'categories',
+  'cron',
+  'database',
+  'export',
+  'files',
+  'import',
+  'journals',
+  'labels',
+  'llm',
+  'materialized-views',
+  'notes',
+  'queries',
+  'reports',
+  'tags',
+  'users'
+] as const;
+export type LoggerDomain = (typeof loggerDomains)[number];
+
+export const loggerActions = [
+  'Read',
+  'Update',
+  'Create',
+  'Delete',
+  'Other'
+] as const;
+
+export type LoggerAction = (typeof loggerActions)[number];
+
+export const LOG_LEVEL_DEFAULT: pino.Level = "warn";
+
+// Override the default log levels for specific domain/action combinations. 
+// A missing action indicates that all actions for that domain will be impacted.
+export const LOG_LEVEL_OVERRIDE: {domain: LoggerDomain, action?: LoggerAction, level: pino.Level}[] = [
+  {domain: "import", level: "debug"}
+];
 
 /**
- * Parameters that can be passed to logging functions.
- * Supports both string messages and object-based structured logging.
+ * Logger factory that creates child loggers for specific domains and actions.
+ * Returns pino logger instances directly without wrapper interfaces.
  */
-export type LogParams = [msg: string, ...args: any[]] | [obj: object, msg?: string, ...args: any[]];
-
-/**
- * Logger instance with all logging methods and child logger creation.
- */
-export interface Logger {
-  /** Log error-level messages (highest priority) */
-  error: (...params: any[]) => void;
-  /** Log warning-level messages */
-  warn: (...params: any[]) => void;
-  /** Log informational messages */
-  info: (...params: any[]) => void;
-  /** Log debug messages (development/troubleshooting) */
-  debug: (...params: any[]) => void;
-  /** Log trace messages (lowest priority, highest verbosity) */
-  trace: (...params: any[]) => void;
-  /** Create a child logger for a specific domain */
-  child: (domain: LoggerDomain) => Logger;
-  /** Direct access to underlying Pino logger for advanced features */
-  pino: pino.Logger;
-}
-
-/**
- * Logger factory that creates child loggers for specific domains.
- * Provides a method to access domain-specific loggers with consistent naming.
- */
-export interface LoggerFactory extends Logger {
+export interface LoggerFactory {
   /** Get or create a child logger for a specific domain */
-  (domain: LoggerDomain): Logger;
+  (domain: LoggerDomain): pino.Logger;
+  /** Get or create a child logger for a specific domain and action */
+  (domain: LoggerDomain, action: LoggerAction): pino.Logger;
   /** Direct access to root Pino logger for advanced features */
   pino: pino.Logger;
 }
+
+/**
+ * Get the appropriate log level for a domain/action combination.
+ * Checks overrides first, then falls back to default.
+ */
+const getLogLevelForDomainAction = (domain: LoggerDomain, action?: LoggerAction): pino.Level => {
+  // Check for exact domain/action match first
+  if (action) {
+    const exactMatch = LOG_LEVEL_OVERRIDE.find(override => 
+      override.domain === domain && override.action === action
+    );
+    if (exactMatch) return exactMatch.level;
+  }
+  
+  // Check for domain-only match (applies to all actions in that domain)
+  const domainMatch = LOG_LEVEL_OVERRIDE.find(override => 
+    override.domain === domain && !override.action
+  );
+  if (domainMatch) return domainMatch.level;
+  
+  // Fall back to default
+  return LOG_LEVEL_DEFAULT;
+};
 
 /**
  * Create a configurable Pino logger instance.
  * 
  * The logger uses Pino for structured logging with pretty printing in development.
  * It respects both global enable/disable settings and per-level configuration.
+ * Returns pino logger instances directly without wrapper interfaces.
  * 
  * @param enable Global logging enable/disable flag
  * @param logClasses Array of log levels to enable (e.g., ['ERROR', 'WARN', 'INFO'])
- * @returns Logger factory with domain-specific child logger support
+ * @returns Logger factory with domain and action-specific child logger support
  */
 export const createLogger = (enable: boolean, logClasses: string[]): LoggerFactory => {
   // Convert log classes to Pino level
-  const getLogLevel = (): pino.LevelWithSilent => {
+  const getGlobalLogLevel = (): pino.LevelWithSilent => {
     if (!enable) return 'silent';
     
     if (logClasses.includes('TRACE')) return 'trace';
@@ -94,9 +114,9 @@ export const createLogger = (enable: boolean, logClasses: string[]): LoggerFacto
     return 'silent';
   };
 
-  // Create Pino logger with pretty printing for development
+  // Create root Pino logger with pretty printing for development
   const pinoLogger = pino({
-    level: getLogLevel(),
+    level: getGlobalLogLevel(),
     ...(process.env.NODE_ENV !== 'production' ? {
       transport: {
         target: 'pino-pretty',
@@ -110,41 +130,43 @@ export const createLogger = (enable: boolean, logClasses: string[]): LoggerFacto
   });
 
   // Cache for child loggers to avoid recreating them
-  const childLoggers = new Map<LoggerDomain, Logger>();
+  // Key format: "domain" or "domain:action"
+  const childLoggers = new Map<string, pino.Logger>();
 
-  const createLoggerInterface = (logger: pino.Logger): Logger => ({
-    error: (...params: any[]) => (logger.error as any)(...params),
-    warn: (...params: any[]) => (logger.warn as any)(...params),
-    info: (...params: any[]) => (logger.info as any)(...params),
-    debug: (...params: any[]) => (logger.debug as any)(...params),
-    trace: (...params: any[]) => (logger.trace as any)(...params),
-    child: (domain: LoggerDomain) => {
-      if (!childLoggers.has(domain)) {
-        const childLogger = logger.child({ domain });
-        childLoggers.set(domain, createLoggerInterface(childLogger));
+  // Create the factory function with proper overloads
+  function createLoggerFactory(domain: LoggerDomain): pino.Logger;
+  function createLoggerFactory(domain: LoggerDomain, action: LoggerAction): pino.Logger;
+  function createLoggerFactory(domain: LoggerDomain, action?: LoggerAction): pino.Logger {
+    const cacheKey = action ? `${domain}:${action}` : domain;
+    
+    if (!childLoggers.has(cacheKey)) {
+      const contextData: any = { domain };
+      if (action) {
+        contextData.action = action;
       }
-      return childLoggers.get(domain)!;
-    },
-    pino: logger
-  });
+      
+      // Create child logger with appropriate context and level
+      const childLogger = pinoLogger.child(contextData);
+      
+      // Set the specific log level for this domain/action combination
+      const specificLevel = getLogLevelForDomainAction(domain, action);
+      childLogger.level = specificLevel;
+      
+      childLoggers.set(cacheKey, childLogger);
+    }
+    
+    return childLoggers.get(cacheKey)!;
+  }
 
-  const rootLogger = createLoggerInterface(pinoLogger);
+  const loggerFactory = createLoggerFactory as LoggerFactory;
 
-  // Create the factory function that also serves as the root logger
-  const loggerFactory = ((domain: LoggerDomain) => {
-    return rootLogger.child(domain);
-  }) as LoggerFactory;
-
-  // Copy all logger methods to the factory function
-  Object.assign(loggerFactory, rootLogger);
-
-  // Ensure the factory function also has direct pino access
+  // Attach the root pino logger to the factory
   loggerFactory.pino = pinoLogger;
 
   return loggerFactory;
 };
 
 /**
- * @deprecated Use Logger type instead
+ * @deprecated Use pino.Logger directly instead
  */
-export type LoggerInstance = Logger;
+export type LoggerInstance = pino.Logger;
