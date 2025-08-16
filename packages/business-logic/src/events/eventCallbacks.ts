@@ -27,6 +27,11 @@ const onBackupRestoreTriggered: EventListener<'backup.restore.triggered'> = asyn
 	includeUsers,
 	userId
 }) => {
+	if (await hasActiveBackupRestore()) {
+		console.log('An active backup restore is already in progress.');
+		return;
+	}
+
 	try {
 		console.log('Starting background backup restore:', { backupId, includeUsers, userId });
 
