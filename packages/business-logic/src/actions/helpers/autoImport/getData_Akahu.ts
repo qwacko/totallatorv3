@@ -29,7 +29,7 @@ export const getData_Akahu = async ({
 		const accounts = await akahu.accounts.list(userToken);
 		account = accounts.find((item) => item.name === config.accountId);
 	} catch (e) {
-		getLogger().error('Error fetching accounts', e);
+		getLogger('auto-import').pino.error(e, 'Error fetching accounts');
 	}
 
 	try {
@@ -44,12 +44,13 @@ export const getData_Akahu = async ({
 			counter++;
 		}
 	} catch (e) {
-		getLogger().error('Error fetching transactions', e);
+		getLogger('auto-import').pino.error(e, 'Error fetching transactions');
 	}
 
 	if (counter >= 20) {
-		getLogger().error(
-			`Too many transactions to fetch ${transactions.length} transactions retrieved over ${counter} calls`
+		getLogger('auto-import').pino.error(
+			{ transactionCount: transactions.length, callCount: counter },
+			'Too many transactions to fetch'
 		);
 	}
 

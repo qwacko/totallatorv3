@@ -38,13 +38,13 @@ export const seedTransactionData = ({
 	);
 
 	if (fromAccountId === undefined || toAccountId === undefined) {
-		getLogger().error('Seed Transaction Data Pre Throw : ', {
+		getLogger('database').pino.error({
 			fromAccountId,
 			toAccountId,
 			numberAssetLiabilities: assetLiabilityIds.length,
 			numberIncomes: incomeIds.length,
 			numberExpenses: expenseIds.length
-		});
+		}, 'Seed Transaction Data Pre Throw');
 		throw new Error('fromAccountId or toAccountId is undefined');
 	}
 

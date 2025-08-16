@@ -126,7 +126,7 @@ export const timelineConfigToData = async ({
 			try {
 				calcValue = Number(evaluate(currentCalc));
 			} catch (err) {
-				getLogger().error('Error in calculation', err);
+				getLogger('reports').pino.error(err, 'Error in calculation');
 			}
 
 			return {

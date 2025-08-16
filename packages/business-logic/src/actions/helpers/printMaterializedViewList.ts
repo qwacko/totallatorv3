@@ -66,7 +66,7 @@ export const printMaterializedViewList = (
 	//Write To File
 	fs.writeFile(filename, outputText, (err) => {
 		if (err) {
-			getLogger().error(err);
+			getLogger('materialized-views').pino.error(err, 'Failed to write materialized view file');
 		}
 	});
 };

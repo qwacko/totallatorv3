@@ -203,7 +203,7 @@ export const importActions = {
 		try {
 			await processCreatedImport({ id });
 		} catch (e) {
-			getLogger().error('Error Processing Import', e);
+			getLogger('import').pino.error(e, 'Error Processing Import');
 			await dbExecuteLogger(
 				db
 					.update(importTable)
@@ -340,7 +340,7 @@ export const importActions = {
 				'Import - Trigger Import - Update'
 			);
 		} catch (e) {
-			getLogger().error('Import Trigger Error: ', JSON.stringify(e, null, 2));
+			getLogger('import').error(e, 'Import Trigger Error');
 			await db
 				.update(importTable)
 				.set({ status: 'error', errorInfo: e })
@@ -459,7 +459,7 @@ export const importActions = {
 							await importLabel({ item, trx });
 						}
 
-						getLogger().debug(
+						getLogger('import').pino.debug(
 							`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
 						);
 

@@ -159,7 +159,7 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 		const processedTextFilter = splitInput(filter.textFilter);
 
 		if (logProcessing) {
-			getLogger().info('processedTextFilter:', filter.textFilter, processedTextFilter);
+			getLogger('queries').pino.info({ textFilter: filter.textFilter, processedTextFilter }, 'processedTextFilter');
 		}
 
 		for (const text of processedTextFilter) {
@@ -173,7 +173,7 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 				}
 			}
 			if (logProcessing && useText !== text) {
-				getLogger().info(`Text "${text}" proxied to "${useText}"`);
+				getLogger('queries').pino.info({ originalText: text, proxiedText: useText }, 'Text proxied');
 			}
 			let filterHandled = false;
 			let filterKey = '';
@@ -212,7 +212,7 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 			}
 
 			if (logProcessing) {
-				getLogger().info(`Text "${text}" handled by filter "${filterKey}"`);
+				getLogger('queries').pino.info({ text, filterKey }, 'Text handled by filter');
 			}
 		}
 

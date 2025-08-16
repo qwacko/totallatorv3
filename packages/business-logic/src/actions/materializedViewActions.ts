@@ -37,7 +37,8 @@ const timePromise = async <T>(title: string, enable: boolean | undefined, fn: ()
 	const endTime = Date.now();
 
 	if (logRefreshTime) {
-		getLogger().info(`${title} took ${endTime - startTime}ms`);
+		const duration = endTime - startTime;
+		getLogger('materialized-views').pino.info({ title, duration }, `${title} took ${duration}ms`);
 	}
 
 	return result;

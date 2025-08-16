@@ -259,7 +259,7 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 		);
 
 		if (!currentLabel) {
-			getLogger().error('Update Label: Label not found', data);
+			getLogger('labels').pino.error({ data, id }, 'Update Label: Label not found');
 			return id;
 		}
 
@@ -336,7 +336,7 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 	},
 	seed: async (count: number) => {
 		const db = getContextDB();
-		getLogger().info('Seeding Labels : ', count);
+		getLogger('labels').pino.info({ count }, 'Seeding Labels');
 
 		const existingTitles = (
 			await dbExecuteLogger(

@@ -123,10 +123,10 @@ export const reusableFilterActions = {
 		}
 
 		if (numberModified > -1) {
-			getLogger().debug(
-				`Updated ${numberModified} reusable filters, took ${
-					Date.now() - startTime
-				}ms (limit = ${maximumTime}s))`
+			const duration = Date.now() - startTime;
+			getLogger('queries').pino.debug(
+				{ numberModified, duration, maximumTime },
+				`Updated ${numberModified} reusable filters, took ${duration}ms (limit = ${maximumTime}s))`
 			);
 		}
 
@@ -347,7 +347,8 @@ export const reusableFilterActions = {
 			});
 
 			if (timeout && new Date() > timeout) {
-				getLogger().error(
+				getLogger('queries').pino.error(
+					{ index, totalFilters: items.length },
 					`Filter Application Timeout. Reached ${index} of ${items.length} filters.`
 				);
 				throw new Error('Filter Application Timeout');

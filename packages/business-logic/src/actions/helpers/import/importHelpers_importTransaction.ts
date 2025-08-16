@@ -27,6 +27,8 @@ export async function importTransaction({
 		});
 		const processedCombinedTransaction =
 			createCombinedTransactionSchema.safeParse(combinedTransaction);
+
+		let currentJournal: any;
 		if (processedCombinedTransaction.success) {
 			try {
 				const importedData = await journalActions.createManyTransactionJournals({
@@ -45,6 +47,7 @@ export async function importTransaction({
 						);
 
 						if (journalData) {
+							currentJournal = journalData;
 							await dbExecuteLogger(
 								trx
 									.update(importItemDetail)
@@ -86,7 +89,7 @@ export async function importTransaction({
 					errorObject: e
 				};
 
-				getLogger().error('Import Transaction Error', errorDetails);
+				getLogger('import').pino.error({ error: e, currentJournal }, 'Import Transaction Error');
 
 				await dbExecuteLogger(
 					trx

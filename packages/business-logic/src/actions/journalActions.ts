@@ -224,7 +224,8 @@ export const journalActions = {
 			});
 		});
 		const endTime = Date.now();
-		getLogger().info(`Seeding ${count} transactions took ${endTime - startTime}ms`);
+		const duration = endTime - startTime;
+		getLogger('journals').pino.info({ count, duration }, `Seeding ${count} transactions took ${duration}ms`);
 	},
 	markManyComplete: async ({
 		journalFilter
@@ -306,7 +307,7 @@ export const journalActions = {
 		const processedData = updateJournalSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			getLogger().error('Invalid Journal Update Data', JSON.stringify(processedData.error));
+			getLogger('journals').pino.error({ error: processedData.error }, 'Invalid Journal Update Data');
 			throw new Error('Invalid Journal Update Data');
 		}
 
@@ -321,10 +322,9 @@ export const journalActions = {
 			const updatingLabelsOnly = checkUpdateLabelsOnly(processedData.data);
 
 			if (!updatingLabelsOnly) {
-				getLogger().error(
-					'Cannot update journals that are already complete',
-					processedFilter,
-					processedData.data
+				getLogger('journals').pino.error(
+					{ filter: processedFilter, data: processedData.data },
+					'Cannot update journals that are already complete'
 				);
 				return undefined;
 			}
@@ -688,7 +688,7 @@ export const journalActions = {
 		const processedData = cloneJournalUpdateSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			getLogger().error('Invalid Journal Update Data', JSON.stringify(processedData.error));
+			getLogger('journals').pino.error({ error: processedData.error }, 'Invalid Journal Update Data');
 			throw new Error('Inavalid Journal Update Data');
 		}
 

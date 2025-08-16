@@ -27,9 +27,7 @@ const fileHandler = (getAddress: () => string, title: string) => {
 				throw new Error('S3 environment variables not correctly set');
 			}
 
-			getLogger().debug(
-				`${title} FileHandler Initiation : S3 : Bucket = ${bucket}, Prefix = ${prefix}`
-			);
+			getLogger('files').pino.debug({ bucket, prefix, title }, `${title} FileHandler Initiation : S3`);
 
 			const client = new S3Client({
 				requestChecksumCalculation: getServerEnv().S3_DISABLE_CHECKSUM
@@ -55,9 +53,7 @@ const fileHandler = (getAddress: () => string, title: string) => {
 			return storage;
 		}
 
-		getLogger().debug(
-			`${title} FileHandler Initiation  : Local File Storage : Address = ${address}`
-		);
+		getLogger('files').pino.debug({ address, title }, `${title} FileHandler Initiation : Local File Storage`);
 
 		const adapter = new LocalStorageAdapter(address);
 		return new FileStorage(adapter);

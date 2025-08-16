@@ -237,7 +237,7 @@ export const budgetActions: BudgetActionsType = {
 		);
 
 		if (!currentBudget) {
-			getLogger().error('Update Budget: Budget not found', data);
+			getLogger('budgets').pino.error(data, 'Update Budget: Budget not found');
 			return id;
 		}
 
@@ -313,7 +313,7 @@ export const budgetActions: BudgetActionsType = {
 	},
 	seed: async (count) => {
 		const db = getContextDB();
-		getLogger().info('Seeding Budgets : ', count);
+		getLogger('budgets').pino.info(count, 'Seeding Budgets');
 
 		const existingTitles = (
 			await dbExecuteLogger(db.query.budget.findMany({ columns: { title: true } }), 'Budget - Seed')
