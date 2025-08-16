@@ -54,6 +54,48 @@ import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import { emitEvent } from '../events/eventHelper.js';
 import { fixedDelay } from '@/helpers/fixedDelay';
 
+type RobustQueryOptions = {
+	timeout?: number;
+	maxRetries?: number;
+	retryDelay?: number;
+};
+
+const executeQueryWithRetry = async <T>(
+	queryFn: () => Promise<T>,
+	description: string,
+	options: RobustQueryOptions = {}
+): Promise<T> => {
+	const { timeout = 1000, maxRetries = 10, retryDelay = 100 } = options;
+	
+	for (let attempt = 1; attempt <= maxRetries; attempt++) {
+		try {
+			// Create a timeout promise
+			const timeoutPromise = new Promise<never>((_, reject) => {
+				setTimeout(() => reject(new Error(`Query timeout after ${timeout}ms: ${description}`)), timeout);
+			});
+			
+			// Race between the query and timeout
+			const result = await Promise.race([queryFn(), timeoutPromise]);
+			
+			getLogger().info(`Query succeeded on attempt ${attempt}: ${description}`);
+			return result;
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			getLogger().warn(`Query attempt ${attempt} failed for ${description}: ${errorMessage}`);
+			
+			if (attempt === maxRetries) {
+				getLogger().error(`All ${maxRetries} attempts failed for ${description}. Final error: ${errorMessage}`);
+				throw new Error(`Query failed after ${maxRetries} attempts: ${description}. Last error: ${errorMessage}`);
+			}
+			
+			// Wait before retry
+			await fixedDelay(retryDelay);
+		}
+	}
+	
+	throw new Error(`Unexpected error in executeQueryWithRetry for ${description}`);
+};
+
 async function writeToMsgPackFile(data: unknown, fileName: string) {
 	const compressedConvertedData = zlib.gzipSync(superjson.stringify(data));
 	await backupFileHandler().write(fileName, compressedConvertedData);
@@ -346,27 +388,39 @@ export const backupActions = {
 			const startTime = Date.now();
 
 			if (tableInfo.special && tableInfo.key === 'backup') {
-				// Special handling for backup table
-				const rawData = await dbExecuteLogger(
-					db.select().from(tableInfo.table),
-					`Backup - Store Backup - ${tableInfo.name}`
+				// Special handling for backup table with retry mechanism
+				const rawData = await executeQueryWithRetry(
+					() => dbExecuteLogger(
+						db.select().from(tableInfo.table),
+						`Backup - Store Backup - ${tableInfo.name}`
+					),
+					`Special backup table query - ${tableInfo.name}`,
+					{ timeout: 1000, maxRetries: 10, retryDelay: 100 }
 				);
 				tableData[tableInfo.key] = rawData.map((item) => ({
 					...item,
 					information: superjson.stringify(item.information)
 				}));
 			} else {
-				// Standard table handling
-				tableData[tableInfo.key] = await dbExecuteLogger(
-					db.select().from(tableInfo.table),
-					`Backup - Store Backup - ${tableInfo.name}`
+				// Standard table handling with retry mechanism
+				tableData[tableInfo.key] = await executeQueryWithRetry(
+					() => dbExecuteLogger(
+						db.select().from(tableInfo.table),
+						`Backup - Store Backup - ${tableInfo.name}`
+					),
+					`Standard table query - ${tableInfo.name}`,
+					{ timeout: 1000, maxRetries: 10, retryDelay: 100 }
 				);
 			}
 
 			const duration = Date.now() - startTime;
 			const recordCount = tableData[tableInfo.key].length;
 			console.log(`✓ ${tableInfo.name}: ${recordCount} records (${duration}ms)`);
-			getLogger().info(`Backed up ${tableInfo.name}: ${recordCount} records in ${duration}ms`);
+			getLogger().info(
+				`Retrieved for backup ${tableInfo.name}: ${recordCount} records in ${duration}ms`
+			);
+
+			await fixedDelay(100);
 		}
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
@@ -760,8 +814,6 @@ export const backupActions = {
 					'Backup Restore - Delete Filters To Report Configs'
 				);
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted report configs');
-				await dbExecuteLogger(db.delete(keyValueTable), 'Backup Restore - Delete Key Value Table');
-				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted key value table');
 				await dbExecuteLogger(db.delete(reportElement), 'Backup Restore - Delete Report Element');
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted report elements');
 				await dbExecuteLogger(
@@ -1039,21 +1091,6 @@ export const backupActions = {
 					`Report Element Config Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
 
-				await chunker(checkedBackupData.data.keyValueTable, 1000, async (data) =>
-					dbExecuteLogger(
-						db.insert(keyValueTable).values(data),
-						'Backup Restore - Insert Key Value Table'
-					)
-				);
-				emitProgress(
-					'restoring',
-					++currentInsertStep,
-					insertOperations,
-					'Restored key value table'
-				);
-				getLogger().info(
-					`Key Value Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`
-				);
 
 				await chunker(checkedBackupData.data.backup, 1000, async (data) => {
 					dbExecuteLogger(
@@ -1286,7 +1323,6 @@ type BackupStructuredData = {
 	original: CombinedBackupSchemaType;
 	originalVersion: number;
 };
-
 
 const getBackupStructuredData = async ({
 	filename
