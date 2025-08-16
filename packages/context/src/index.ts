@@ -57,3 +57,5 @@ export {
   type TypedEventEmitter,
   createEventEmitter,
 } from './eventEmitter.js';
+
+export {type LoggerDomain} from '@/logger' 

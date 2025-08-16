@@ -66,33 +66,42 @@ const executeQueryWithRetry = async <T>(
 	options: RobustQueryOptions = {}
 ): Promise<T> => {
 	const { timeout = 1000, maxRetries = 10, retryDelay = 100 } = options;
-	
+
 	for (let attempt = 1; attempt <= maxRetries; attempt++) {
 		try {
 			// Create a timeout promise
 			const timeoutPromise = new Promise<never>((_, reject) => {
-				setTimeout(() => reject(new Error(`Query timeout after ${timeout}ms: ${description}`)), timeout);
+				setTimeout(
+					() => reject(new Error(`Query timeout after ${timeout}ms: ${description}`)),
+					timeout
+				);
 			});
-			
+
 			// Race between the query and timeout
 			const result = await Promise.race([queryFn(), timeoutPromise]);
-			
-			getLogger().info(`Query succeeded on attempt ${attempt}: ${description}`);
+
+			getLogger('backup').info(`Query succeeded on attempt ${attempt}: ${description}`);
 			return result;
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
-			getLogger().warn(`Query attempt ${attempt} failed for ${description}: ${errorMessage}`);
-			
+			getLogger('backup').pino.warn(
+				`Query attempt ${attempt} failed for ${description}: ${errorMessage}`
+			);
+
 			if (attempt === maxRetries) {
-				getLogger().error(`All ${maxRetries} attempts failed for ${description}. Final error: ${errorMessage}`);
-				throw new Error(`Query failed after ${maxRetries} attempts: ${description}. Last error: ${errorMessage}`);
+				getLogger('backup').pino.error(
+					`All ${maxRetries} attempts failed for ${description}. Final error: ${errorMessage}`
+				);
+				throw new Error(
+					`Query failed after ${maxRetries} attempts: ${description}. Last error: ${errorMessage}`
+				);
 			}
-			
+
 			// Wait before retry
 			await fixedDelay(retryDelay);
 		}
 	}
-	
+
 	throw new Error(`Unexpected error in executeQueryWithRetry for ${description}`);
 };
 
@@ -239,7 +248,7 @@ export const backupActions = {
 		const maxPercentageToDelete = 0.8;
 
 		if (percentageToDelete > maxPercentageToDelete) {
-			getLogger().info(
+			getLogger('backup').pino.info(
 				`Retention Policy Not Met. Percentage To Delete: ${percentageToDelete}. Max Percentage To Delete: ${maxPercentageToDelete}`
 			);
 		} else if (backupsToDelete.length > 0) {
@@ -249,7 +258,7 @@ export const backupActions = {
 				})
 			);
 
-			getLogger().info(`Deleted ${backupsToDelete.length} backups`);
+			getLogger('backup').pino.info(`Deleted ${backupsToDelete.length} backups`);
 		}
 	},
 	importFile: async ({
@@ -308,8 +317,10 @@ export const backupActions = {
 				'Backup - Import File - Insert Backup Table'
 			);
 		} catch (e) {
-			getLogger().error(`Backup Import Failed. Incorrect Contents - ${backupFileName}`);
-			getLogger().error('Error', e);
+			getLogger('backup').pino.error(
+				`Backup Import Failed. Incorrect Contents - ${backupFileName}`
+			);
+			getLogger('backup').pino.error(e);
 			await backupFileHandler().deleteFile(backupFileName);
 			return;
 		}
@@ -337,7 +348,7 @@ export const backupActions = {
 
 		onStatus('Starting Storage Of Backup');
 		console.log('=== BACKUP CREATION STARTED ===');
-		getLogger().info(`Starting backup creation: ${title}`);
+		getLogger('backup').pino.info(`Starting backup creation: ${title}`);
 
 		// Define the tables to backup and their display names
 		const tablesToBackup = [
@@ -390,10 +401,11 @@ export const backupActions = {
 			if (tableInfo.special && tableInfo.key === 'backup') {
 				// Special handling for backup table with retry mechanism
 				const rawData = await executeQueryWithRetry(
-					() => dbExecuteLogger(
-						db.select().from(tableInfo.table),
-						`Backup - Store Backup - ${tableInfo.name}`
-					),
+					() =>
+						dbExecuteLogger(
+							db.select().from(tableInfo.table),
+							`Backup - Store Backup - ${tableInfo.name}`
+						),
 					`Special backup table query - ${tableInfo.name}`,
 					{ timeout: 1000, maxRetries: 10, retryDelay: 100 }
 				);
@@ -404,10 +416,11 @@ export const backupActions = {
 			} else {
 				// Standard table handling with retry mechanism
 				tableData[tableInfo.key] = await executeQueryWithRetry(
-					() => dbExecuteLogger(
-						db.select().from(tableInfo.table),
-						`Backup - Store Backup - ${tableInfo.name}`
-					),
+					() =>
+						dbExecuteLogger(
+							db.select().from(tableInfo.table),
+							`Backup - Store Backup - ${tableInfo.name}`
+						),
 					`Standard table query - ${tableInfo.name}`,
 					{ timeout: 1000, maxRetries: 10, retryDelay: 100 }
 				);
@@ -416,7 +429,7 @@ export const backupActions = {
 			const duration = Date.now() - startTime;
 			const recordCount = tableData[tableInfo.key].length;
 			console.log(`✓ ${tableInfo.name}: ${recordCount} records (${duration}ms)`);
-			getLogger().info(
+			getLogger('backup').pino.info(
 				`Retrieved for backup ${tableInfo.name}: ${recordCount} records in ${duration}ms`
 			);
 
@@ -512,7 +525,7 @@ export const backupActions = {
 
 		console.log('=== BACKUP CREATION COMPLETED ===');
 		console.log(`Backup File: ${filenameUse}`);
-		getLogger().info(`Backup creation completed: ${filenameUse}`);
+		getLogger('backup').pino.info(`Backup creation completed: ${filenameUse}`);
 		onStatus('Backup Creation Complete');
 	},
 	getBackupData: async ({ returnRaw, id }: { id: string; returnRaw: boolean }) => {
@@ -605,7 +618,9 @@ export const backupActions = {
 		const backupExists = await backupFileHandler().fileExists(backupFileInDB.filename);
 
 		if (backupFileInDB && backupFileInDB.locked) {
-			getLogger().info(`Cannot Delete Backup as it is locked - ${backupFileInDB.filename}`);
+			getLogger('backup').pino.info(
+				`Cannot Delete Backup as it is locked - ${backupFileInDB.filename}`
+			);
 			return;
 		}
 
@@ -656,7 +671,7 @@ export const backupActions = {
 
 		await fixedDelay(100);
 
-		getLogger().info(`Backup restore triggered for backup: ${backup.filename}`);
+		getLogger('backup').pino.info(`Backup restore triggered for backup: ${backup.filename}`);
 	},
 	restoreBackup: async ({
 		id,
@@ -692,7 +707,7 @@ export const backupActions = {
 		console.log('=== BACKUP RESTORE STARTED ===');
 		console.log(`Backup ID: ${id}`);
 		console.log(`Include Users: ${includeUsers}`);
-		getLogger().info(`Starting backup restore process for backup: ${id}`);
+		getLogger('backup').pino.info(`Starting backup restore process for backup: ${id}`);
 		// Emit start event
 		emitEvent('backup.restore.started', { backupId: id, includeUsers, userId });
 
@@ -715,7 +730,7 @@ export const backupActions = {
 
 			// Step 3: Create pre-restore backup
 			emitProgress('pre-backup', 3, 6, 'Creating pre-restore backup');
-			getLogger().info('Starting pre-restore backup creation...');
+			getLogger('backup').pino.info('Starting pre-restore backup creation...');
 			console.log('Creating pre-restore backup before restoration begins...');
 			const preBackupStart = Date.now();
 			//Produce a new backup prior to any restore.
@@ -729,7 +744,7 @@ export const backupActions = {
 				}
 			});
 			const preBackupDuration = Date.now() - preBackupStart;
-			getLogger().info(`Pre-restore backup completed in ${preBackupDuration}ms`);
+			getLogger('backup').pino.info(`Pre-restore backup completed in ${preBackupDuration}ms`);
 			console.log(`Pre-restore backup created successfully (${preBackupDuration}ms)`);
 
 			// Step 4: Calculate operation counts for progress tracking
@@ -747,7 +762,7 @@ export const backupActions = {
 
 			const dataInsertionStart = Date.now();
 			console.log('Starting database transaction for restore...');
-			getLogger().info('Beginning database restoration transaction');
+			getLogger('backup').pino.info('Beginning database restoration transaction');
 			await runInTransactionWithLogging('Restore Backup', async () => {
 				const db = getContextDB();
 				//Clear The Database
@@ -853,7 +868,7 @@ export const backupActions = {
 					'Deleted associated info table'
 				);
 				const deletionDuration = Date.now() - dataInsertionStart;
-				getLogger().info(`Deletions Complete: ${deletionDuration}ms`);
+				getLogger('backup').pino.info(`Deletions Complete: ${deletionDuration}ms`);
 				console.log(`Phase 1 Complete: Database cleanup finished (${deletionDuration}ms)`);
 
 				//Update Database from Backup
@@ -881,7 +896,7 @@ export const backupActions = {
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored accounts');
 				const accountDuration = Date.now() - dataInsertionStart;
-				getLogger().info(`Account Insertions Complete: ${accountDuration}ms`);
+				getLogger('backup').pino.info(`Account Insertions Complete: ${accountDuration}ms`);
 				console.log(
 					`✓ Accounts restored (${checkedBackupData.data.account.length} records, ${accountDuration}ms)`
 				);
@@ -890,31 +905,41 @@ export const backupActions = {
 					dbExecuteLogger(db.insert(bill).values(data), 'Backup Restore - Insert Bills')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored bills');
-				getLogger().info(`Bill Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Bill Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.budget, 1000, async (data) =>
 					dbExecuteLogger(db.insert(budget).values(data), 'Backup Restore - Insert Budgets')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored budgets');
-				getLogger().info(`Budget Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Budget Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.category, 1000, async (data) =>
 					dbExecuteLogger(db.insert(category).values(data), 'Backup Restore - Insert Categories')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored categories');
-				getLogger().info(`Category Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Category Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.tag, 1000, async (data) =>
 					dbExecuteLogger(db.insert(tag).values(data), 'Backup Restore - Insert Tags')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored tags');
-				getLogger().info(`Tag Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Tag Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.label, 1000, async (data) =>
 					dbExecuteLogger(db.insert(label).values(data), 'Backup Restore - Insert Labels')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored labels');
-				getLogger().info(`Label Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Label Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				console.log(`Restoring ${checkedBackupData.data.transaction.length} transactions...`);
 				await chunker(checkedBackupData.data.transaction, 1000, async (data) =>
@@ -925,7 +950,7 @@ export const backupActions = {
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored transactions');
 				const transactionDuration = Date.now() - dataInsertionStart;
-				getLogger().info(`Transaction Insertions Complete: ${transactionDuration}ms`);
+				getLogger('backup').pino.info(`Transaction Insertions Complete: ${transactionDuration}ms`);
 				console.log(
 					`✓ Transactions restored (${checkedBackupData.data.transaction.length} records, ${transactionDuration}ms)`
 				);
@@ -944,7 +969,7 @@ export const backupActions = {
 					'Restored journal entries'
 				);
 				const journalDuration = Date.now() - dataInsertionStart;
-				getLogger().info(`Journal Entry Insertions Complete: ${journalDuration}ms`);
+				getLogger('backup').pino.info(`Journal Entry Insertions Complete: ${journalDuration}ms`);
 				console.log(
 					`✓ Journal entries restored (${checkedBackupData.data.journalEntry.length} records, ${journalDuration}ms)`
 				);
@@ -961,7 +986,7 @@ export const backupActions = {
 					insertOperations,
 					'Restored labels to journals'
 				);
-				getLogger().info(
+				getLogger('backup').pino.info(
 					`Labels to Journals Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
 
@@ -977,7 +1002,7 @@ export const backupActions = {
 					insertOperations,
 					'Restored import mappings'
 				);
-				getLogger().info(
+				getLogger('backup').pino.info(
 					`Import Mapping Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
 
@@ -988,7 +1013,9 @@ export const backupActions = {
 					)
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored import table');
-				getLogger().info(`Import Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Import Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.importItemDetail, 1000, async (data) =>
 					dbExecuteLogger(
@@ -1002,7 +1029,7 @@ export const backupActions = {
 					insertOperations,
 					'Restored import item details'
 				);
-				getLogger().info(
+				getLogger('backup').pino.info(
 					`Import Item Detail Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
 
@@ -1018,7 +1045,9 @@ export const backupActions = {
 					insertOperations,
 					'Restored auto import table'
 				);
-				getLogger().info(`Auto Import Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Auto Import Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.reusableFilter, 1000, async (data) =>
 					dbExecuteLogger(
@@ -1032,7 +1061,7 @@ export const backupActions = {
 					insertOperations,
 					'Restored reusable filters'
 				);
-				getLogger().info(
+				getLogger('backup').pino.info(
 					`Reusable Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
 
@@ -1040,13 +1069,17 @@ export const backupActions = {
 					dbExecuteLogger(db.insert(filter).values(data), 'Backup Restore - Insert Filter')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored filters');
-				getLogger().info(`Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Filter Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.report, 1000, async (data) =>
 					dbExecuteLogger(db.insert(report).values(data), 'Backup Restore - Insert Report')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored reports');
-				getLogger().info(`Report Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Report Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.filtersToReportConfigs, 1000, async (data) =>
 					dbExecuteLogger(
@@ -1055,7 +1088,7 @@ export const backupActions = {
 					)
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored report configs');
-				getLogger().info(
+				getLogger('backup').pino.info(
 					`Filters To Report Configs Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
 
@@ -1071,7 +1104,7 @@ export const backupActions = {
 					insertOperations,
 					'Restored report elements'
 				);
-				getLogger().info(
+				getLogger('backup').pino.info(
 					`Report Element Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
 
@@ -1087,10 +1120,9 @@ export const backupActions = {
 					insertOperations,
 					'Restored report element configs'
 				);
-				getLogger().info(
+				getLogger('backup').pino.info(
 					`Report Element Config Insertions Complete: ${Date.now() - dataInsertionStart}ms`
 				);
-
 
 				await chunker(checkedBackupData.data.backup, 1000, async (data) => {
 					dbExecuteLogger(
@@ -1116,19 +1148,25 @@ export const backupActions = {
 					);
 				});
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored backup table');
-				getLogger().info(`Backup Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Backup Table Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.note, 1000, async (data) =>
 					dbExecuteLogger(db.insert(notesTable).values(data), 'Backup Restore - Insert Notes Table')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored notes');
-				getLogger().info(`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Notes Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.file, 1000, async (data) =>
 					dbExecuteLogger(db.insert(fileTable).values(data), 'Backup Restore - Insert File Table')
 				);
 				emitProgress('restoring', ++currentInsertStep, insertOperations, 'Restored files');
-				getLogger().info(`Files Insertions Complete: ${Date.now() - dataInsertionStart}ms`);
+				getLogger('backup').pino.info(
+					`Files Insertions Complete: ${Date.now() - dataInsertionStart}ms`
+				);
 
 				await chunker(checkedBackupData.data.associatedInfo, 1000, async (data) =>
 					dbExecuteLogger(
@@ -1154,9 +1192,13 @@ export const backupActions = {
 
 				const totalDuration = Date.now() - dataInsertionStart;
 				console.log(`Phase 2 Complete: All data restored successfully (${totalDuration}ms)`);
-				getLogger().info(`Database transaction completed successfully in ${totalDuration}ms`);
+				getLogger('backup').pino.info(
+					`Database transaction completed successfully in ${totalDuration}ms`
+				);
 			});
-			getLogger().info(`Backup Restored - ${backup.filename} - ${backup.createdAt.toISOString()}`);
+			getLogger('backup').pino.info(
+				`Backup Restored - ${backup.filename} - ${backup.createdAt.toISOString()}`
+			);
 			materializedViewActions.setRefreshRequired();
 
 			// Emit completion event
@@ -1164,7 +1206,7 @@ export const backupActions = {
 			console.log('=== BACKUP RESTORE COMPLETED SUCCESSFULLY ===');
 			console.log(`Total Duration: ${duration}ms (${(duration / 1000).toFixed(2)}s)`);
 			console.log(`Backup: ${backup.filename}`);
-			getLogger().info(`Backup restore completed successfully in ${duration}ms`);
+			getLogger('backup').pino.info(`Backup restore completed successfully in ${duration}ms`);
 			emitEvent('backup.restore.completed', { backupId: id, includeUsers, duration, userId });
 		} catch (error) {
 			// Emit failure event
@@ -1176,7 +1218,12 @@ export const backupActions = {
 				userId
 			});
 
-			getLogger().error(`Backup restore failed for backup ID: ${id}`, { error: errorMessage });
+			getLogger('backup').pino.error(
+				{
+					error: errorMessage
+				},
+				`Backup restore failed for backup ID: ${id}`
+			);
 			throw error;
 		}
 	},
@@ -1266,7 +1313,7 @@ export const backupActions = {
 				'Backup - Refresh List - Insert Backup Table'
 			);
 			const end = new Date();
-			getLogger().info(
+			getLogger('backup').pino.info(
 				`File ${index + 1} of ${filesNotInDB.length} took ${end.getTime() - start.getTime()}ms`
 			);
 		}

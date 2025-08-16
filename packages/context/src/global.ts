@@ -1,5 +1,5 @@
 import { type ServerEnvSchemaType } from '@totallator/shared';
-import { createLogger, type Logger } from './logger.js';
+import { createLogger, type LoggerFactory } from './logger.js';
 import { createDatabase, migrateDatabase, type DBType } from '@totallator/database';
 import { createRateLimiter, type RateLimiter } from './rateLimiter.js';
 import { createEventEmitter, type TypedEventEmitter } from './eventEmitter.js';
@@ -15,8 +15,8 @@ import { createEventEmitter, type TypedEventEmitter } from './eventEmitter.js';
  * - Type-safe event emitter for application events
  */
 export interface GlobalContext {
-  /** Application logger configured with log levels and classes */
-  logger: Logger;
+  /** Application logger factory with domain-specific child logger support */
+  logger: LoggerFactory;
   
   /** Database connection with transaction support */
   db: DBType;

@@ -12,14 +12,16 @@
   },
   "scripts": {
     "build": "tsc && tsc-alias",
-    "dev": "tsc --watch & tsc-alias --watch",    
-		"check": "tsc --noEmit",
-		"circular": "madge --circular --extensions ts src/",
-		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/"
+    "dev": "tsc --watch & tsc-alias --watch",
+    "check": "tsc --noEmit",
+    "circular": "madge --circular --extensions ts src/",
+    "circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/"
   },
   "dependencies": {
     "@totallator/database": "workspace:*",
-    "@totallator/shared": "workspace:*"
+    "@totallator/shared": "workspace:*",
+    "pino": "^9.9.0",
+    "pino-pretty": "^13.1.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
