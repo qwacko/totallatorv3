@@ -53,7 +53,10 @@ const fileHandler = (getAddress: () => string, title: string) => {
 			return storage;
 		}
 
-		getLogger('files').debug({ address, title }, `${title} FileHandler Initiation : Local File Storage`);
+		getLogger('files').debug(
+			{ address, title },
+			`${title} FileHandler Initiation : Local File Storage`
+		);
 
 		const adapter = new LocalStorageAdapter(address);
 		return new FileStorage(adapter);

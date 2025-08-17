@@ -1,4 +1,5 @@
 import pino from 'pino';
+import pretty from "pino-pretty";
 
 /**
  * Available log levels in order of increasing verbosity.
@@ -49,7 +50,8 @@ export const LOG_LEVEL_DEFAULT: pino.Level = "warn";
 // Override the default log levels for specific domain/action combinations. 
 // A missing action indicates that all actions for that domain will be impacted.
 export const LOG_LEVEL_OVERRIDE: {domain: LoggerDomain, action?: LoggerAction, level: pino.Level}[] = [
-  {domain: "import", level: "debug"}
+  {domain: "import", level: "debug"},
+  {domain:"files", level: "debug"},
 ];
 
 /**
@@ -115,9 +117,18 @@ export const createLogger = (enable: boolean, logClasses: string[]): LoggerFacto
 
   // Create root Pino logger with basic configuration
   // Note: Pretty printing disabled to avoid transport resolution issues in monorepo
+
+  const stream = pretty()
+
   const pinoLogger = pino({
-    level: getGlobalLogLevel()
-  });
+    level: getGlobalLogLevel(),
+    transport: {
+    target: 'pino-pretty',
+    options: {
+      colorize: true
+    }}
+  
+  }, stream);
 
   // Cache for child loggers to avoid recreating them
   // Key format: "domain" or "domain:action"

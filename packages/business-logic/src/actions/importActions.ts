@@ -261,7 +261,18 @@ export const importActions = {
 		const importData = data[0];
 
 		if (importData.status === 'created') {
-			await processCreatedImport({ id });
+			try {
+				await processCreatedImport({ id });
+			} catch (e) {
+				getLogger('import').error(e, 'Error Processing Import');
+				await dbExecuteLogger(
+					db
+						.update(importTable)
+						.set({ status: 'error', errorInfo: e })
+						.where(eq(importTable.id, id)),
+					'Import - Get - Error Processing Import'
+				);
+			}
 		}
 
 		return getImportDetail({ db, id });
