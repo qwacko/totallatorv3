@@ -28,7 +28,6 @@ export async function importTransaction({
 		const processedCombinedTransaction =
 			createCombinedTransactionSchema.safeParse(combinedTransaction);
 
-		let currentJournal: any;
 		if (processedCombinedTransaction.success) {
 			try {
 				getLogger('import', 'Other').debug('Starting import process');
@@ -52,7 +51,6 @@ export async function importTransaction({
 						);
 
 						if (journalData) {
-							currentJournal = journalData;
 							await dbExecuteLogger(
 								trx
 									.update(importItemDetail)
@@ -94,7 +92,10 @@ export async function importTransaction({
 					errorObject: e
 				};
 
-				getLogger('import').error({ error: e, currentJournal }, 'Import Transaction Error');
+				getLogger('import').error(
+					{ error: e, currentJournal: processedCombinedTransaction.data },
+					'Import Transaction Error'
+				);
 
 				await dbExecuteLogger(
 					trx
@@ -111,6 +112,10 @@ export async function importTransaction({
 				);
 			}
 		} else {
+			getLogger('import').error(
+				{ errors: processedCombinedTransaction.error, processedInfo, id: item.id },
+				'Import Item Error (createCombinedTransaction Schema)'
+			);
 			await dbExecuteLogger(
 				trx
 					.update(importItemDetail)
@@ -124,6 +129,10 @@ export async function importTransaction({
 			);
 		}
 	} else {
+		getLogger('import').error(
+			{ errors: processedItem.error, processedInfo, id: item.id },
+			'Import Item Error (createSimpleTransaction Schema'
+		);
 		await dbExecuteLogger(
 			trx
 				.update(importItemDetail)

@@ -7,6 +7,7 @@ import { journalGetOrCreateLinkedItems } from './journalGetOrCreateLinkedItems';
 import type { StatusEnumType } from '@totallator/shared';
 import { getServerEnv } from '@/serverEnv';
 import type { LlmReviewStatusEnumType } from '@totallator/shared';
+import { getLogger } from '@/logger';
 
 export const generateItemsForJournalCreation = async ({
 	db,
@@ -41,8 +42,15 @@ export const generateItemsForJournalCreation = async ({
 		cachedCategories,
 		cachedLabels
 	});
-	const processedJournalData = createJournalDBCore.parse(linkedCorrections);
-	const { labels, accountId, ...restJournalData } = processedJournalData;
+	const processedJournalData = createJournalDBCore.safeParse(linkedCorrections);
+	if (processedJournalData.error) {
+		getLogger('journals').error(
+			{ error: processedJournalData.error, currentJournal: linkedCorrections },
+			'Journal Creation Error'
+		);
+		throw new Error('Journal Creation Failed');
+	}
+	const { labels, accountId, ...restJournalData } = processedJournalData.data;
 	const id = nanoid();
 
 	// Determine LLM review status based on environment variables

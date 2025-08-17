@@ -452,38 +452,45 @@ export const importActions = {
 			const maxTime = new Date(startTime.getTime() + getServerEnv().IMPORT_TIMEOUT_MIN * 60 * 1000);
 
 			await runInTransactionWithLogging('Do Import', async (trx) => {
-				await Promise.all(
-					importDetails.map(async (item, index) => {
-						if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
-							await importTransaction({ item, trx });
-						} else if (importInfo.type === 'account') {
-							await importAccount({ item, trx });
-						} else if (importInfo.type === 'bill') {
-							await importBill({ item, trx });
-						} else if (importInfo.type === 'budget') {
-							await importBudget({ item, trx });
-						} else if (importInfo.type === 'category') {
-							await importCategory({ item, trx });
-						} else if (importInfo.type === 'tag') {
-							await importTag({ item, trx });
-						} else if (importInfo.type === 'label') {
-							await importLabel({ item, trx });
-						}
+				for (let index = 0; index < importDetails.length; index++) {
+					const item = importDetails[index];
+					if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
+						await importTransaction({ item, trx });
+					} else if (importInfo.type === 'account') {
+						await importAccount({ item, trx });
+					} else if (importInfo.type === 'bill') {
+						await importBill({ item, trx });
+					} else if (importInfo.type === 'budget') {
+						await importBudget({ item, trx });
+					} else if (importInfo.type === 'category') {
+						await importCategory({ item, trx });
+					} else if (importInfo.type === 'tag') {
+						await importTag({ item, trx });
+					} else if (importInfo.type === 'label') {
+						await importLabel({ item, trx });
+					}
 
-						getLogger('import').debug(
-							`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
-						);
+					getLogger('import').debug(
+						`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
+					);
 
-						if (new Date() > maxTime) {
-							throw new Error('Import Timed Out');
-						}
-					})
-				);
+					if (new Date() > maxTime) {
+						throw new Error('Import Timed Out');
+					}
+				}
 			});
-			await reusableFilterActions.applyFollowingImport({
-				importId: id,
-				timeout: maxTime
+
+			// Logic to only run the actions following import if there was actually an item created.
+			const numberItems = await db.query.journalEntry.findFirst({
+				where: (journalEntry) => eq(journalEntry.importId, id)
 			});
+
+			if (numberItems) {
+				await reusableFilterActions.applyFollowingImport({
+					importId: id,
+					timeout: maxTime
+				});
+			}
 
 			await dbExecuteLogger(
 				db
