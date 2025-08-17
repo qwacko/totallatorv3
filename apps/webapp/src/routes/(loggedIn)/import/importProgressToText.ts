@@ -10,3 +10,14 @@ export const importProgressToText = (progress: ImportProgress) => {
 
   return ` (${progress.complete}/${progress.count} - ${Math.floor((progress.complete / progress.count) * 100)}% - ${Math.floor((currentTime.getTime() - startTime.getTime()) / 1000)}s)`;
 };
+
+export const timeSinceImportStart = (progress: ImportProgress): number => {
+  if (!progress || !progress.startTime) {
+    return 0;
+  }
+
+  const currentTime = new Date();
+  const startTime = new Date(progress.startTime);
+
+  return Math.floor((currentTime.getTime() - startTime.getTime()) / 1000);
+};

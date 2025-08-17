@@ -1,5 +1,4 @@
 import pino from 'pino';
-import pinoPretty from 'pino-pretty';
 
 /**
  * Available log levels in order of increasing verbosity.
@@ -114,19 +113,10 @@ export const createLogger = (enable: boolean, logClasses: string[]): LoggerFacto
     return 'silent';
   };
 
-  // Create root Pino logger with pretty printing for development
+  // Create root Pino logger with basic configuration
+  // Note: Pretty printing disabled to avoid transport resolution issues in monorepo
   const pinoLogger = pino({
-    level: getGlobalLogLevel(),
-    ...(process.env.NODE_ENV !== 'production' ? {
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname'
-        }
-      }
-    } : {})
+    level: getGlobalLogLevel()
   });
 
   // Cache for child loggers to avoid recreating them

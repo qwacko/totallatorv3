@@ -24,7 +24,7 @@
   import ToggleInputForm from "$lib/components/ToggleInputForm.svelte";
   import { urlGenerator } from "$lib/routes.js";
 
-  import { importProgressToText } from "../importProgressToText";
+  import { importProgressToText, timeSinceImportStart } from "../importProgressToText";
   import { linkToImportItems } from "./linkToImportItems";
 
   const { data } = $props();
@@ -176,7 +176,7 @@
           loadingMessage="Cleaning..."
         />
       {/if}
-      {#if importData.detail.status !== "awaitingImport" && importData.detail.status !== "importing"}
+      {#if (importData.detail.status !== "awaitingImport" && importData.detail.status !== "importing") || timeSinceImportStart(importData.detail.importStatus) > 60}
         <Button color="red" outline><DeleteIcon /></Button>
         <Dropdown simple>
           {#if data.canDelete}
