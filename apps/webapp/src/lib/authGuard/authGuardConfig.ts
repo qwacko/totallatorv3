@@ -69,6 +69,9 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
     "/logs": {
       ...openConfig,
     },
+    "/logConfiguration": {
+      ...openConfig,
+    },
 
     "": {
       ...openConfig,

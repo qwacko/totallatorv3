@@ -87,4 +87,5 @@ export {
   logActionEnum,
   logDestinationEnum,
   logLevelEnum,
+  logConfigFilterValidation, logFilterValidation
 } from '@totallator/log-database';

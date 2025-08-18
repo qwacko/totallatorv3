@@ -1,15 +1,12 @@
-<script>
-    import { getLogs, getLogConfigurations } from "./logsDisplay.remote";
+<script lang="ts">
+    import ShowLogs from "$lib/components/logs/ShowLogs.svelte";
 
 </script>
 
-<button onclick={() => getLogs().refresh()}>
-Refresh
-</button>
 <svelte:boundary>
-<pre>{JSON.stringify(await getLogs(),null,2)}
-</pre>
-<pre>{JSON.stringify(await getLogConfigurations(), null, 2)}</pre>
+
+    <ShowLogs />
+    
 	{#snippet pending()}
 		<p>loading...</p>
 	{/snippet}

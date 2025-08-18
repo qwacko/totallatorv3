@@ -1,7 +1,9 @@
-import { eq, and, desc, asc, count, gte, lte, isNull, inArray } from 'drizzle-orm';
+import { eq, and, desc, asc, count, gte, lte, inArray,  } from 'drizzle-orm';
 import { LogDBType } from './connection.js';
-import { logTable, configurationTable, type LogInsert, type LogSelect, type ConfigurationInsert, type ConfigurationSelect, logLevelEnum, logDomainEnum, logActionEnum, logDestinationEnum } from './schema/index.js';
+import { logTable, configurationTable, type LogInsert, type ConfigurationSelect, logLevelEnum, logDomainEnum, logActionEnum, logDestinationEnum } from './schema/index.js';
 import * as devalue from 'devalue';
+import { filterConfigurationsToSQL, LogFilterConfigValidationOutputType } from './validation/logConfigFilterValidation.js';
+import { filterLogsToSQL, LogFilterValidationOutputType } from './validation/logFilterValidation.js';
 
 export type LogLevelType  = typeof logLevelEnum[number]
 export type LogDomainType = typeof logDomainEnum[number];
@@ -30,8 +32,6 @@ export class LogDatabaseOperations {
 	async insertLog(entry: LogEntry): Promise<void> {
 		try {
 
-			console.log("Inserting Log");
-
 			await this.db.insert(logTable).values({
 				date: entry.date,
 				logLevel: entry.logLevel,
@@ -40,7 +40,8 @@ export class LogDatabaseOperations {
 				domain: entry.domain,
 				code: entry.code,
 				title: entry.title,
-				data: entry.data ? JSON.stringify(entry.data) : null
+				data: entry.data ? JSON.stringify(entry.data) : null,
+				dataString: entry.data ? devalue.stringify(entry.data) : null
 			});
 		} catch (error) {
 			console.error('Failed to insert log entry:', error);
@@ -67,43 +68,15 @@ export class LogDatabaseOperations {
 		}
 	}
 
-	async getLogs(params: {
-		domain?: LogDomainType;
-		action?: LogActionType;
-		logLevel?: LogLevelType;
-		contextId?: string;
-		code?: string;
-		startDate?: Date;
-		endDate?: Date;
-		limit?: number;
-		offset?: number;
-	} = {}) {
+	async getLogs(params: LogFilterValidationOutputType & {limit?:number, offset?:number} = {}) {
 		try {
-			const conditions = [];
+			const conditions = filterLogsToSQL(params)
+
+			const useLimit = params.limit || 100;
+			const useOffset = params.offset || 0;
 			
-			if (params.domain) conditions.push(eq(logTable.domain, params.domain));
-			if (params.action) conditions.push(eq(logTable.action, params.action));
-			if (params.logLevel) conditions.push(eq(logTable.logLevel, params.logLevel));
-			if (params.contextId) conditions.push(eq(logTable.contextId, params.contextId));
-			if (params.code) conditions.push(eq(logTable.code, params.code));
-			if (params.startDate) conditions.push(gte(logTable.date, params.startDate));
-			if (params.endDate) conditions.push(lte(logTable.date, params.endDate));
 			
-			let baseQuery = this.db.select().from(logTable);
-			
-			if (conditions.length > 0) {
-				baseQuery = baseQuery.where(and(...conditions)) as any;
-			}
-			
-			baseQuery = baseQuery.orderBy(desc(logTable.date)) as any;
-			
-			if (params.limit) {
-				baseQuery = baseQuery.limit(params.limit) as any;
-			}
-			
-			if (params.offset) {
-				baseQuery = baseQuery.offset(params.offset) as any;
-			}
+			let baseQuery = this.db.select().from(logTable).where(and(...conditions)).orderBy(desc(logTable.date)).limit(useLimit).offset(useOffset)
 			
 			return (await baseQuery).map(item => {
 				const {data, dataString, ...restData} = item
@@ -115,32 +88,11 @@ export class LogDatabaseOperations {
 		}
 	}
 
-	async getLogCount(params: {
-		domain?: LogDomainType;
-		action?: LogActionType;
-		logLevel?: LogLevelType;
-		contextId?: string;
-		code?: string;
-		startDate?: Date;
-		endDate?: Date;
-	} = {}): Promise<number> {
+	async getLogCount(params: LogFilterValidationOutputType = {}): Promise<number> {
 		try {
-			const conditions = [];
+			const conditions = filterLogsToSQL(params)		
 			
-			if (params.domain) conditions.push(eq(logTable.domain, params.domain));
-			if (params.action) conditions.push(eq(logTable.action, params.action));
-			if (params.logLevel) conditions.push(eq(logTable.logLevel, params.logLevel));
-			if (params.contextId) conditions.push(eq(logTable.contextId, params.contextId));
-			if (params.code) conditions.push(eq(logTable.code, params.code));
-			if (params.startDate) conditions.push(gte(logTable.date, params.startDate));
-			if (params.endDate) conditions.push(lte(logTable.date, params.endDate));
-			
-			let baseQuery = this.db.select({ count: count() }).from(logTable);
-			
-			if (conditions.length > 0) {
-				baseQuery = baseQuery.where(and(...conditions)) as any;
-			}
-			
+			let baseQuery = this.db.select({ count: count() }).from(logTable).where(and(...conditions)) 
 			const result = await baseQuery;
 			return result[0]?.count || 0;
 		} catch (error) {
@@ -149,48 +101,26 @@ export class LogDatabaseOperations {
 		}
 	}
 
-	async setLogConfiguration(destination: LogDestinationType, domain: LogDomainType, action: LogActionType | null, logLevel: LogLevelType): Promise<void> {
+	async setLogConfiguration({filter, logLevel}:{filter: LogFilterConfigValidationOutputType, logLevel: LogLevelType}): Promise<void> {
 		try {
-			const existing = await this.db
-				.select()
-				.from(configurationTable)
-				.where(
-					action 
-						? and(eq(configurationTable.destination, destination), eq(configurationTable.domain, domain), eq(configurationTable.action, action))
-						: and(eq(configurationTable.destination, destination), eq(configurationTable.domain, domain), isNull(configurationTable.action))
-				);
-
-			if (existing.length > 0) {
 				await this.db
 					.update(configurationTable)
 					.set({ logLevel, updatedAt: new Date() })
-					.where(
-						action 
-							? and(eq(configurationTable.destination, destination), eq(configurationTable.domain, domain), eq(configurationTable.action, action))
-							: and(eq(configurationTable.destination, destination), eq(configurationTable.domain, domain), isNull(configurationTable.action))
-					);
-			}
-			else {
-				throw new Error("Log Configuration Not Found")
-			}
+					.where(and(...filterConfigurationsToSQL(filter)))
+		
+			
 		} catch (error) {
 			console.error('Failed to set log configuration:', error);
 		}
 	}
 
-	async getLogConfiguration(destination?: LogDestinationType, domain?: LogDomainType): Promise<ConfigurationSelect[]> {
+	
+
+	async getLogConfiguration(filter:LogFilterConfigValidationOutputType ): Promise<ConfigurationSelect[]> {
 		try {
-			let baseQuery = this.db.select().from(configurationTable);
 			
-			const conditions = [];
-			if (destination) conditions.push(eq(configurationTable.destination, destination));
-			if (domain) conditions.push(eq(configurationTable.domain, domain));
-			
-			if (conditions.length > 0) {
-				baseQuery = baseQuery.where(and(...conditions)) as any;
-			}
-			
-			baseQuery = baseQuery.orderBy(asc(configurationTable.destination), asc(configurationTable.domain), asc(configurationTable.action)) as any;
+			const conditions = filterConfigurationsToSQL(filter);
+			let baseQuery = this.db.select().from(configurationTable).where(and(...conditions)).orderBy(asc(configurationTable.destination), asc(configurationTable.domain), asc(configurationTable.action)) as any;
 			
 			return await baseQuery;
 		} catch (error) {
@@ -199,36 +129,6 @@ export class LogDatabaseOperations {
 		}
 	}
 
-	async getLogLevel(destination: LogDestinationType, domain: LogDomainType, action?: LogActionType): Promise<LogLevelType | null> {
-		try {
-			if (action) {
-				const exactMatch = await this.db
-					.select()
-					.from(configurationTable)
-					.where(and(eq(configurationTable.destination, destination), eq(configurationTable.domain, domain), eq(configurationTable.action, action)))
-					.limit(1);
-				
-				if (exactMatch.length > 0) {
-					return exactMatch[0].logLevel;
-				}
-			}
-			
-			const domainMatch = await this.db
-				.select()
-				.from(configurationTable)
-				.where(and(eq(configurationTable.destination, destination), eq(configurationTable.domain, domain), isNull(configurationTable.action)))
-				.limit(1);
-			
-			if (domainMatch.length > 0) {
-				return domainMatch[0].logLevel;
-			}
-			
-			return null;
-		} catch (error) {
-			console.error('Failed to get log level for domain/action:', error);
-			return null;
-		}
-	}
 
 	async initLogConfiguration() {
 		try {
@@ -307,14 +207,6 @@ export class LogDatabaseOperations {
 			console.error('Failed to sync configuration to memory:', error);
 			return new Map();
 		}
-	}
-
-	getDefaultLogLevel(destination: LogDestinationType): LogLevelType {
-		const defaults: Record<LogDestinationType, LogLevelType> = {
-			console: 'WARN',
-			database: 'TRACE'
-		};
-		return defaults[destination];
 	}
 
 	convertToPinoLevel(logLevel: LogLevelType): string {

@@ -13,7 +13,9 @@ import {
   logLevelEnum,
   LogDBType,
   initializeLogDatabase,
-  ConfigurationSelect
+  ConfigurationSelect,
+  LogFilterConfigValidationOutputType,
+  LogFilterValidationOutputType
 } from '@totallator/log-database';
 
 /**
@@ -58,36 +60,15 @@ export interface LoggingSystem {
   syncLogLevelsFromDatabase: () => Promise<void>;
   
   /** Set log level for a specific destination/domain/action combination */
-  setLogLevel: (params: {
-    destination: LogDestinationType;
-    domain: LoggerDomain;
-    action: LoggerAction | null;
-    level: LogLevelType;
+  setLogLevel: (params: {filter: LogFilterConfigValidationOutputType, 
+    logLevel: LogLevelType;
   }) => Promise<void>;
   
   /** Query logged items from the database */
-  queryLoggedItems: (params: {
-    domain?: LogDomainType;
-    action?: LogActionType;
-    logLevel?: LogLevelType;
-    contextId?: string;
-    code?: string;
-    startDate?: Date;
-    endDate?: Date;
-    limit?: number;
-    offset?: number;
-  }) => Promise<any[]>;
+  queryLoggedItems: (params: LogFilterValidationOutputType & {limit?:number, offset?:number}) => Promise<LogEntry[]>;
   
   /** Get count of logged items matching criteria */
-  getLoggedItemsCount: (params: {
-    domain?: LogDomainType;
-    action?: LogActionType;
-    logLevel?: LogLevelType;
-    contextId?: string;
-    code?: string;
-    startDate?: Date;
-    endDate?: Date;
-  }) => Promise<number>;
+  getLoggedItemsCount: (params: LogFilterValidationOutputType) => Promise<number>;
   
   /** Delete old log entries from the database */
   deleteOldLogs: (olderThanDays?: number) => Promise<number>;
@@ -355,11 +336,8 @@ export const createLogger = async (
   };
 
 
-  const setLogLevel = async (params: {
-    destination: LogDestinationType;
-    domain: LoggerDomain;
-    action: LoggerAction | null;
-    level: LogLevelType;
+  const setLogLevel = async (params: {filter: LogFilterConfigValidationOutputType, 
+    logLevel: LogLevelType;
   }): Promise<void> => {
     if (!logDatabaseOps) {
       console.warn('Database logging not initialized');
@@ -367,29 +345,14 @@ export const createLogger = async (
     }
     
     try {
-      await logDatabaseOps.setLogConfiguration(
-        params.destination,
-        params.domain as LogDomainType,
-        params.action as LogActionType,
-        params.level
-      );
+      await logDatabaseOps.setLogConfiguration(params);
       await syncLogLevelsFromDatabase();
     } catch (error) {
       console.warn('Failed to set log level:', error);
     }
   };
 
-  const queryLoggedItems = async (params: {
-    domain?: LogDomainType;
-    action?: LogActionType;
-    logLevel?: LogLevelType;
-    contextId?: string;
-    code?: string;
-    startDate?: Date;
-    endDate?: Date;
-    limit?: number;
-    offset?: number;
-  }): Promise<any[]> => {
+  const queryLoggedItems = async (params: LogFilterValidationOutputType): Promise<any[]> => {
     if (!logDatabaseOps) {
       console.warn('Database logging not initialized');
       return [];
@@ -403,15 +366,7 @@ export const createLogger = async (
     }
   };
 
-  const getLoggedItemsCount = async (params: {
-    domain?: LogDomainType;
-    action?: LogActionType;
-    logLevel?: LogLevelType;
-    contextId?: string;
-    code?: string;
-    startDate?: Date;
-    endDate?: Date;
-  }): Promise<number> => {
+  const getLoggedItemsCount = async (params: LogFilterValidationOutputType): Promise<number> => {
     if (!logDatabaseOps) {
       console.warn('Database logging not initialized');
       return 0;
