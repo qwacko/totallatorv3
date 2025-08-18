@@ -53,6 +53,8 @@ export const serverEnvSchema = z.object({
 	DBLOG_CACHE_TIMEOUT: z.coerce.number<number>().optional().default(5000),
 	DBLOG_STORAGE_HOURS: z.coerce.number<number>().optional().default(24),
 	DBLOG_STORAGE_COUNT: z.coerce.number<number>().optional().default(100000),
+	LOG_DATABASE_ADDRESS: z.string().optional().default('./logdb.db'),
+	LOG_DATABASE_KEY: z.string().optional().default('logdb'),
 	TRANSACTIONLOG_ENABLE: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TRANSACTIONLOG_ENABLESTART: parseEnvStringToBoolean({ defaultBoolean: false, optional: true }),
 	TRANSACTIONLOG_TIME_MS: z.coerce.number<number>().optional().default(100),

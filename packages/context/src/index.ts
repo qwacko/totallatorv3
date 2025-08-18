@@ -66,5 +66,31 @@ export {
   type LoggerAction,
   type LoggerFactory,
   type LoggerInstance,
+  type StructuredLogData,
+  type StructuredLogger,
+  loggerDomains,
+  loggerActions,
   createLogger,
+  initializeDatabaseLogging,
+  syncLogLevelsFromDatabase,
+  setLogLevel,
+  queryLoggedItems,
+  getLoggedItemsCount,
+  deleteOldLogs,
+  getLogDatabaseOps,
 } from './logger.js';
+
+/**
+ * Re-exported shared enums and types from @totallator/log-database
+ * These provide consistency across packages for logging-related types
+ */
+export {
+  type LogLevelType,
+  type LogDomainType,
+  type LogActionType,
+  type LogDestinationType,
+  logDomainEnum,
+  logActionEnum,
+  logDestinationEnum,
+  logLevelEnum,
+} from '@totallator/log-database';

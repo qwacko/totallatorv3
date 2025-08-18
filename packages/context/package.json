@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@totallator/database": "workspace:*",
+    "@totallator/log-database": "workspace:*",
     "@totallator/shared": "workspace:*",
     "pino": "^9.9.0",
     "pino-pretty": "^13.1.1"

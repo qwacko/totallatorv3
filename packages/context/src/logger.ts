@@ -1,60 +1,162 @@
 import pino from 'pino';
 import pretty from "pino-pretty";
+import { 
+  LogDatabaseOperations, 
+  type LogEntry, 
+  type LogLevelType, 
+  type LogDomainType, 
+  type LogActionType, 
+  type LogDestinationType,
+  logDomainEnum,
+  logActionEnum,
+  logDestinationEnum,
+  logLevelEnum
+} from '@totallator/log-database';
 
 /**
  * Available log levels in order of increasing verbosity.
  */
-export type LogClass = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE';
+export type LogClass = LogLevelType;
 
 /**
  * Fixed set of child logger names for different application domains.
  * These represent the main functional areas of the application.
+ * Re-exported from @totallator/log-database for consistency.
  */
-export const loggerDomains = [
-  'accounts',
-  'auth',
-  'auto-import',
-  'backup',
-  'bills',
-  'budgets',
-  'categories',
-  'cron',
-  'database',
-  'export',
-  'files',
-  'import',
-  'journals',
-  'labels',
-  'llm',
-  'materialized-views',
-  'notes',
-  'queries',
-  'reports',
-  'tags',
-  'users', 'server','cron'
-] as const;
-export type LoggerDomain = (typeof loggerDomains)[number];
+export const loggerDomains = logDomainEnum;
+export type LoggerDomain = LogDomainType;
 
-export const loggerActions = [
-  'Read',
-  'Update',
-  'Create',
-  'Delete',
-  'Other'
-] as const;
-
-export type LoggerAction = (typeof loggerActions)[number];
+/**
+ * Available logger actions for tracking operation types.
+ * Re-exported from @totallator/log-database for consistency.
+ */
+export const loggerActions = logActionEnum;
+export type LoggerAction = LogActionType;
 
 
-export const LOG_LEVEL_DEFAULT: pino.Level = "warn";
 
-// Override the default log levels for specific domain/action combinations. 
-// A missing action indicates that all actions for that domain will be impacted.
-export const LOG_LEVEL_OVERRIDE: {domain: LoggerDomain, action?: LoggerAction, level: pino.Level}[] = [
-  {domain: "import", level: "debug"},
-  {domain:"files", level: "debug"},
-  {domain: "journals", level: "debug"}
-];
+// Database logging configuration
+let logDatabaseOps: LogDatabaseOperations | null = null;
+let logLevelCache = new Map<string, LogLevelType>();
+
+/**
+ * Initialize the database logging system
+ */
+export const initializeDatabaseLogging = async (config?: { url?: string; authToken?: string }) => {
+  try {
+    const { initializeLogDatabase } = await import('@totallator/log-database');
+    await initializeLogDatabase(config);
+    logDatabaseOps = new LogDatabaseOperations();
+    await logDatabaseOps.initLogConfiguration();
+    await syncLogLevelsFromDatabase();
+  } catch (error) {
+    console.warn('Failed to initialize database logging:', error);
+  }
+};
+
+/**
+ * Sync log levels from database to memory cache
+ */
+export const syncLogLevelsFromDatabase = async () => {
+  if (!logDatabaseOps) return;
+  
+  try {
+    logLevelCache = await logDatabaseOps.syncConfigurationToMemory();
+  } catch (error) {
+    console.warn('Failed to sync log levels from database:', error);
+  }
+};
+
+/**
+ * Set log level for a specific destination/domain/action combination
+ */
+export const setLogLevel = async (destination: LogDestinationType, domain: LoggerDomain, action: LoggerAction | null, level: LogLevelType) => {
+  if (!logDatabaseOps) {
+    console.warn('Database logging not initialized');
+    return;
+  }
+  
+  try {
+    await logDatabaseOps.setLogConfiguration(destination, domain as LogDomainType, action as LogActionType, level);
+    await syncLogLevelsFromDatabase();
+  } catch (error) {
+    console.warn('Failed to set log level:', error);
+  }
+};
+
+/**
+ * Get log database operations instance for advanced usage
+ */
+export const getLogDatabaseOps = () => logDatabaseOps;
+
+/**
+ * Query logged items from the database
+ */
+export const queryLoggedItems = async (params: {
+  domain?: LogDomainType;
+  action?: LogActionType;
+  logLevel?: LogLevelType;
+  contextId?: string;
+  code?: string;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
+} = {}) => {
+  if (!logDatabaseOps) {
+    console.warn('Database logging not initialized');
+    return [];
+  }
+  
+  try {
+    return await logDatabaseOps.getLogs(params);
+  } catch (error) {
+    console.warn('Failed to query logged items:', error);
+    return [];
+  }
+};
+
+/**
+ * Get count of logged items matching criteria
+ */
+export const getLoggedItemsCount = async (params: {
+  domain?: LogDomainType;
+  action?: LogActionType;
+  logLevel?: LogLevelType;
+  contextId?: string;
+  code?: string;
+  startDate?: Date;
+  endDate?: Date;
+} = {}) => {
+  if (!logDatabaseOps) {
+    console.warn('Database logging not initialized');
+    return 0;
+  }
+  
+  try {
+    return await logDatabaseOps.getLogCount(params);
+  } catch (error) {
+    console.warn('Failed to get logged items count:', error);
+    return 0;
+  }
+};
+
+/**
+ * Delete old log entries from the database
+ */
+export const deleteOldLogs = async (olderThanDays: number = 30) => {
+  if (!logDatabaseOps) {
+    console.warn('Database logging not initialized');
+    return 0;
+  }
+  
+  try {
+    return await logDatabaseOps.deleteOldLogs(olderThanDays);
+  } catch (error) {
+    console.warn('Failed to delete old logs:', error);
+    return 0;
+  }
+};
 
 /**
  * Structured log data requiring code and title with optional additional fields.
@@ -101,25 +203,35 @@ export interface LoggerFactory {
 
 /**
  * Get the appropriate log level for a domain/action combination.
- * Checks overrides first, then falls back to default.
+ * Checks database cache first, then overrides, then falls back to default.
  */
-const getLogLevelForDomainAction = (domain: LoggerDomain, action?: LoggerAction): pino.Level => {
-  // Check for exact domain/action match first
-  if (action) {
-    const exactMatch = LOG_LEVEL_OVERRIDE.find(override => 
-      override.domain === domain && override.action === action
-    );
-    if (exactMatch) return exactMatch.level;
+const getLogLevelForDomainAction = (domain: LoggerDomain, action?: LoggerAction, destination: LogDestinationType = 'console'): pino.Level => {
+  // Convert our database types to match existing logger types
+  const dbDomain = domain as LogDomainType;
+  const dbAction = action as LogActionType;
+  
+  // Check database cache first for console destination
+  if (logDatabaseOps) {
+    const exactKey = action ? `${destination}:${dbDomain}:${dbAction}` : `${destination}:${dbDomain}`;
+    const cachedLevel = logLevelCache.get(exactKey);
+    
+    if (cachedLevel) {
+      return logDatabaseOps.convertToPinoLevel(cachedLevel) as pino.Level;
+    }
+    
+    // Try domain-only match if action-specific wasn't found
+    if (action) {
+      const domainKey = `${destination}:${dbDomain}`;
+      const domainLevel = logLevelCache.get(domainKey);
+      if (domainLevel) {
+        return logDatabaseOps.convertToPinoLevel(domainLevel) as pino.Level;
+      }
+    }
   }
   
-  // Check for domain-only match (applies to all actions in that domain)
-  const domainMatch = LOG_LEVEL_OVERRIDE.find(override => 
-    override.domain === domain && !override.action
-  );
-  if (domainMatch) return domainMatch.level;
   
   // Fall back to default
-  return LOG_LEVEL_DEFAULT;
+  return "info";
 };
 
 /**
@@ -158,11 +270,7 @@ export const createLogger = (enable: boolean, logClasses: string[], contextId?: 
   const pinoLogger = pino({
     level: getGlobalLogLevel(),
     base: baseContext,
-    transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true
-    }}
+    
   
   }, stream);
 
@@ -173,27 +281,64 @@ export const createLogger = (enable: boolean, logClasses: string[], contextId?: 
   /**
    * Creates a structured logger wrapper around a pino logger instance.
    */
-  const createStructuredLogger = (pinoLogger: pino.Logger): StructuredLogger => {
+  const createStructuredLogger = (pinoLogger: pino.Logger, domain: LoggerDomain, action?: LoggerAction): StructuredLogger => {
+    const logToDatabase = async (level: LogLevelType, data: StructuredLogData) => {
+      if (!logDatabaseOps) return;
+      
+      // Check if database destination should log this level
+      const dbLevel = logLevelCache.get(action ? `database:${domain}:${action}` : `database:${domain}`);
+      if (!dbLevel) return;
+      
+      // Convert level to priority for comparison (lower number = higher priority)
+      const levelPriority: Record<LogLevelType, number> = {
+        ERROR: 1, WARN: 2, INFO: 3, DEBUG: 4, TRACE: 5
+      };
+      
+      if (levelPriority[level] <= levelPriority[dbLevel]) {
+        const logEntry: LogEntry = {
+          date: new Date(),
+          logLevel: level,
+          contextId: contextId,
+          action: action as LogActionType,
+          domain: domain as LogDomainType,
+          code: data.code,
+          title: data.title,
+          data: data
+        };
+        
+        try {
+          await logDatabaseOps.insertLog(logEntry);
+        } catch (error) {
+          // Silently fail to avoid logging loops
+        }
+      }
+    };
+
     return {
       error: (data: StructuredLogData) => {
         const { title, ...rest } = data;
         pinoLogger.error(rest, title);
+        logToDatabase('ERROR', data);
       },
       warn: (data: StructuredLogData) => {
         const { title, ...rest } = data;
         pinoLogger.warn(rest, title);
+        logToDatabase('WARN', data);
       },
       info: (data: StructuredLogData) => {
         const { title, ...rest } = data;
         pinoLogger.info(rest, title);
+        logToDatabase('INFO', data);
       },
       debug: (data: StructuredLogData) => {
         const { title, ...rest } = data;
         pinoLogger.debug(rest, title);
+        logToDatabase('DEBUG', data);
       },
       trace: (data: StructuredLogData) => {
         const { title, ...rest } = data;
         pinoLogger.trace(rest, title);
+        logToDatabase('TRACE', data);
       },
       pino: pinoLogger
     };
@@ -221,7 +366,7 @@ export const createLogger = (enable: boolean, logClasses: string[], contextId?: 
       childLoggers.set(cacheKey, childLogger);
     }
     
-    return createStructuredLogger(childLoggers.get(cacheKey)!);
+    return createStructuredLogger(childLoggers.get(cacheKey)!, domain, action);
   }
 
   const loggerFactory = createLoggerFactory as LoggerFactory;

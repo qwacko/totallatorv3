@@ -147,12 +147,14 @@ const handleRoute: Handle = async ({
   event.locals.db = context.db; // Keep for backward compatibility
 
   const timeLimit = context.serverEnv.PAGE_TIMEOUT_MS;
+
   const timeout = setTimeout(() => {
     context.logger("server").warn({
       code: "SRV_002",
       title: `Request took longer than ${timeLimit}ms to resolve`,
       requestId: requestContext.requestId,
       requestURL: event.request.url,
+      routeId: event.route.id,
     });
   }, timeLimit);
 
@@ -161,7 +163,8 @@ const handleRoute: Handle = async ({
     // Import the business logic function we need
     const noAdmin = await noAdmins({ global: context });
 
-    if (!event.route.id) {
+    if (event.route.id === null) {
+    } else if (!event.route.id) {
       redirect(302, "/login");
     }
 
