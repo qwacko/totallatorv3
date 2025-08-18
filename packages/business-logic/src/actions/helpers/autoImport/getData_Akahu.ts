@@ -29,7 +29,7 @@ export const getData_Akahu = async ({
 		const accounts = await akahu.accounts.list(userToken);
 		account = accounts.find((item) => item.name === config.accountId);
 	} catch (e) {
-		getLogger('auto-import').error(e, 'Error fetching accounts');
+		getLogger('auto-import').error({ code: 'AUTO_IMP_001', title: 'Error fetching accounts', error: e });
 	}
 
 	try {
@@ -44,14 +44,11 @@ export const getData_Akahu = async ({
 			counter++;
 		}
 	} catch (e) {
-		getLogger('auto-import').error(e, 'Error fetching transactions');
+		getLogger('auto-import').error({ code: 'AUTO_IMP_002', title: 'Error fetching transactions', error: e });
 	}
 
 	if (counter >= 20) {
-		getLogger('auto-import').error(
-			{ transactionCount: transactions.length, callCount: counter },
-			'Too many transactions to fetch'
-		);
+		getLogger('auto-import').error({ code: 'AUTO_IMP_003', title: 'Too many transactions to fetch', transactionCount: transactions.length, callCount: counter });
 	}
 
 	const modifiedTransactions = transactions

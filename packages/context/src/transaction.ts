@@ -59,19 +59,33 @@ export async function runInTransactionWithLogging<T>(
   
   const start = Date.now();
   if (enableTransactionStartLogging) {
-    globalContext.logger("database").info(`Transaction "${title}" started`);
+    globalContext.logger("database").info({
+      code: 'TXN_001',
+      title: `Transaction "${title}" started`
+    });
   }
   
   try {
     const result = await runInTransaction(callback);
     const duration = Date.now() - start;
     if (duration > transactionLoggingThreshold) {
-      globalContext.logger("database").info(`Transaction "${title}" took ${duration}ms`);
+      globalContext.logger("database").info({
+        code: 'TXN_002',
+        title: `Transaction "${title}" took ${duration}ms`,
+        duration,
+        transactionTitle: title
+      });
     }
     return result;
   } catch (err) {
     const duration = Date.now() - start;
-    globalContext.logger("database").error(err, `Transaction "${title}" failed after ${duration}ms`);
+    globalContext.logger("database").error({
+      code: 'TXN_003',
+      title: `Transaction "${title}" failed after ${duration}ms`,
+      duration,
+      transactionTitle: title,
+      error: err
+    });
     throw err;
   }
 }

@@ -225,7 +225,12 @@ export const journalActions = {
 		});
 		const endTime = Date.now();
 		const duration = endTime - startTime;
-		getLogger('journals').info({ count, duration }, `Seeding ${count} transactions took ${duration}ms`);
+		getLogger('journals').info({
+			code: 'JOURNAL_002',
+			title: `Seeding ${count} transactions took ${duration}ms`,
+			count,
+			duration
+		});
 	},
 	markManyComplete: async ({
 		journalFilter
@@ -307,7 +312,11 @@ export const journalActions = {
 		const processedData = updateJournalSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			getLogger('journals').error({ error: processedData.error }, 'Invalid Journal Update Data');
+			getLogger('journals').error({
+				code: 'JOURNAL_003',
+				title: 'Invalid Journal Update Data',
+				error: processedData.error
+			});
 			throw new Error('Invalid Journal Update Data');
 		}
 
@@ -322,10 +331,12 @@ export const journalActions = {
 			const updatingLabelsOnly = checkUpdateLabelsOnly(processedData.data);
 
 			if (!updatingLabelsOnly) {
-				getLogger('journals').error(
-					{ filter: processedFilter, data: processedData.data },
-					'Cannot update journals that are already complete'
-				);
+				getLogger('journals').error({
+					code: 'JOURNAL_004',
+					title: 'Cannot update journals that are already complete',
+					filter: processedFilter,
+					data: processedData.data
+				});
 				return undefined;
 			}
 		}
@@ -688,7 +699,11 @@ export const journalActions = {
 		const processedData = cloneJournalUpdateSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			getLogger('journals').error({ error: processedData.error }, 'Invalid Journal Update Data');
+			getLogger('journals').error({
+				code: 'JOURNAL_005',
+				title: 'Invalid Journal Update Data',
+				error: processedData.error
+			});
 			throw new Error('Inavalid Journal Update Data');
 		}
 

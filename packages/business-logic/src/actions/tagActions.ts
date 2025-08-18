@@ -241,7 +241,12 @@ export const tagActions: TagActionsType = {
 		);
 
 		if (!currentTag) {
-			getLogger('tags').error({ data, id }, 'Update Tag: Tag not found');
+			getLogger('tags').error({
+				code: 'TAG_001',
+				title: 'Update Tag: Tag not found',
+				data,
+				id
+			});
 			return id;
 		}
 
@@ -313,7 +318,11 @@ export const tagActions: TagActionsType = {
 	},
 	seed: async (count) => {
 		const db = getContextDB();
-		getLogger('tags').info({ count }, 'Seeding Tags');
+		getLogger('tags').info({
+			code: 'TAG_002',
+			title: 'Seeding Tags',
+			count
+		});
 
 		const existingTitles = (
 			await dbExecuteLogger(

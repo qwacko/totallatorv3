@@ -124,10 +124,13 @@ export const reusableFilterActions = {
 
 		if (numberModified > -1) {
 			const duration = Date.now() - startTime;
-			getLogger('queries').debug(
-				{ numberModified, duration, maximumTime },
-				`Updated ${numberModified} reusable filters, took ${duration}ms (limit = ${maximumTime}s))`
-			);
+			getLogger('queries').debug({
+				code: 'FILTER_001',
+				title: `Updated ${numberModified} reusable filters, took ${duration}ms (limit = ${maximumTime}s))`,
+				numberModified,
+				duration,
+				maximumTime
+			});
 		}
 
 		return numberModified;
@@ -347,10 +350,12 @@ export const reusableFilterActions = {
 			});
 
 			if (timeout && new Date() > timeout) {
-				getLogger('queries').error(
-					{ index, totalFilters: items.length },
-					`Filter Application Timeout. Reached ${index} of ${items.length} filters.`
-				);
+				getLogger('queries').error({
+					code: 'FILTER_002',
+					title: `Filter Application Timeout. Reached ${index} of ${items.length} filters.`,
+					index,
+					totalFilters: items.length
+				});
 				throw new Error('Filter Application Timeout');
 			}
 		}

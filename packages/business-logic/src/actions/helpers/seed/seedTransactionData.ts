@@ -39,12 +39,14 @@ export const seedTransactionData = ({
 
 	if (fromAccountId === undefined || toAccountId === undefined) {
 		getLogger('database').error({
+			code: 'SEED_001',
+			title: 'Seed Transaction Data Pre Throw',
 			fromAccountId,
 			toAccountId,
 			numberAssetLiabilities: assetLiabilityIds.length,
 			numberIncomes: incomeIds.length,
 			numberExpenses: expenseIds.length
-		}, 'Seed Transaction Data Pre Throw');
+		});
 		throw new Error('fromAccountId or toAccountId is undefined');
 	}
 

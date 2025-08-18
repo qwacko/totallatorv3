@@ -92,7 +92,7 @@ export const sparklineConfigToData = async ({
 				textValue: convertNumberToText({ value: calcValue, config: config.numberDisplay, currency })
 			};
 		} catch (err) {
-			getLogger('reports').error(err, 'Error in Sparkline Config To Data');
+			getLogger('reports').error({ code: 'REP_002', title: 'Error in Sparkline Config To Data', error: err });
 			errorMessage = `Math Request Malformed. Query = ${currentCalc}`;
 			return {
 				time: date,

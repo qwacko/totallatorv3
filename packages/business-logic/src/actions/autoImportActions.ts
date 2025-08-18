@@ -222,10 +222,12 @@ export const autoImportActions = {
 
 		const data = await autoImportActions.getData({ id });
 
-		getLogger('auto-import').debug(
-			{ length: data.length, title: autoImport.title },
-			'Triggering Import'
-		);
+		getLogger('auto-import').debug({
+			code: 'AUTO_IMP_001',
+			title: 'Triggering Import',
+			length: data.length,
+			autoImportTitle: autoImport.title
+		});
 
 		const dateString = new Date().toISOString().slice(0, 10);
 

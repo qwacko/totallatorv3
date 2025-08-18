@@ -44,10 +44,12 @@ export const generateItemsForJournalCreation = async ({
 	});
 	const processedJournalData = createJournalDBCore.safeParse(linkedCorrections);
 	if (processedJournalData.error) {
-		getLogger('journals').error(
-			{ error: processedJournalData.error, currentJournal: linkedCorrections },
-			'Journal Creation Error'
-		);
+		getLogger('journals').error({
+			code: 'JOURNAL_001',
+			title: 'Journal Creation Error',
+			error: processedJournalData.error,
+			currentJournal: linkedCorrections
+		});
 		throw new Error('Journal Creation Failed');
 	}
 	const { labels, accountId, ...restJournalData } = processedJournalData.data;

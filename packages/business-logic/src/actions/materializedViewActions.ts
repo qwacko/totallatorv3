@@ -38,7 +38,12 @@ const timePromise = async <T>(title: string, enable: boolean | undefined, fn: ()
 
 	if (logRefreshTime) {
 		const duration = endTime - startTime;
-		getLogger('materialized-views').info({ title, duration }, `${title} took ${duration}ms`);
+		getLogger('materialized-views').info({
+			code: 'MAT_VIEW_001',
+			title: `${title} took ${duration}ms`,
+			viewTitle: title,
+			duration
+		});
 	}
 
 	return result;

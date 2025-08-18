@@ -78,7 +78,7 @@ export const importItem = async <
 				errorObject: e
 			};
 
-			getLogger('import').error(errorDetails, 'Import Item Error');
+			getLogger('import').error({ code: 'IMP_ITEM_001', title: 'Import Item Error', errorDetails });
 
 			await dbExecuteLogger(
 				db

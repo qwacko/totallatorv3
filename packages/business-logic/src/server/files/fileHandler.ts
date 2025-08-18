@@ -27,7 +27,7 @@ const fileHandler = (getAddress: () => string, title: string) => {
 				throw new Error('S3 environment variables not correctly set');
 			}
 
-			getLogger('files').debug({ bucket, prefix, title }, `${title} FileHandler Initiation : S3`);
+			getLogger('files').debug({ code: 'FILE_002', title: `${title} FileHandler Initiation : S3`, bucket, prefix });
 
 			const client = new S3Client({
 				requestChecksumCalculation: getServerEnv().S3_DISABLE_CHECKSUM
@@ -53,10 +53,7 @@ const fileHandler = (getAddress: () => string, title: string) => {
 			return storage;
 		}
 
-		getLogger('files').debug(
-			{ address, title },
-			`${title} FileHandler Initiation : Local File Storage`
-		);
+		getLogger('files').debug({ code: 'FILE_003', title: `${title} FileHandler Initiation : Local File Storage`, address });
 
 		const adapter = new LocalStorageAdapter(address);
 		return new FileStorage(adapter);

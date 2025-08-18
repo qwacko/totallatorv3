@@ -215,7 +215,7 @@ export class CronJobService {
 		const isRestoreActive = await this.hasActiveBackupRestore();
 		if (isRestoreActive) {
 			console.log(`Skipping cron job ${jobDefinition.name} execution - backup restore in progress`);
-			
+
 			// Create a skipped execution record
 			await this.db.insert(cronJobExecution).values({
 				id: executionId,
@@ -230,7 +230,7 @@ export class CronJobService {
 				output: JSON.stringify({ reason: 'Backup restore in progress' }),
 				errorMessage: 'Execution skipped due to active backup restore'
 			});
-			
+
 			return executionId;
 		}
 
@@ -337,26 +337,33 @@ export class CronJobService {
 
 		// Log execution result
 		if (result.success) {
-			if (false) {
-				context.logger('cron').info({
+			if (true) {
+				context.logger('cron').debug({
+					title: `Cron job ${jobDefinition.name} completed successfully`,
+					code: 'CRON_0000',
 					executionId,
 					durationMs,
 					triggeredBy,
 					...result.data
-				}, `Cron job ${jobDefinition.name} completed successfully`);
+				});
 			}
 		} else {
 			context.logger('cron').error({
+				code: 'CRON_0002',
+				title: `Cron job ${jobDefinition.name} failed`,
 				executionId,
 				durationMs,
 				triggeredBy,
 				error: errorMessage,
 				retryCount
-			}, `Cron job ${jobDefinition.name} failed`);
+			});
 
 			// Handle retries
 			if (retryCount < jobDefinition.maxRetries) {
-				context.logger('cron').info(`Retrying cron job ${jobDefinition.name} (attempt ${retryCount + 2})`);
+				context.logger('cron').info({
+					code: 'CRON_0001',
+					title: `Retrying cron job ${jobDefinition.name} (attempt ${retryCount + 2})`
+				});
 
 				// Schedule retry with exponential backoff
 				const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Max 30 seconds
@@ -404,7 +411,7 @@ export class CronJobService {
 			}
 
 			const progressData = JSON.parse(progressResult[0].value);
-			
+
 			if (!progressData || !progressData.phase) {
 				return false;
 			}

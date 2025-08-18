@@ -259,7 +259,12 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 		);
 
 		if (!currentLabel) {
-			getLogger('labels').error({ data, id }, 'Update Label: Label not found');
+			getLogger('labels').error({
+				code: 'LABEL_001',
+				title: 'Update Label: Label not found',
+				data,
+				id
+			});
 			return id;
 		}
 
@@ -336,7 +341,11 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 	},
 	seed: async (count: number) => {
 		const db = getContextDB();
-		getLogger('labels').info({ count }, 'Seeding Labels');
+		getLogger('labels').info({
+			code: 'LABEL_002',
+			title: 'Seeding Labels',
+			count
+		});
 
 		const existingTitles = (
 			await dbExecuteLogger(

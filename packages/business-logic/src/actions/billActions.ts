@@ -240,7 +240,7 @@ export const billActions: BillActionsType = {
 		);
 
 		if (!currentBill) {
-			getLogger('bills').error(data, 'Update Bill: Bill not found');
+			getLogger('bills').error({ code: 'BILL_001', title: 'Update Bill: Bill not found', data });
 			return id;
 		}
 
@@ -311,7 +311,7 @@ export const billActions: BillActionsType = {
 	},
 	seed: async (count) => {
 		const db = getContextDB();
-		getLogger('bills').info(count, 'Seeding Bills');
+		getLogger('bills').info({ code: 'BILL_002', title: 'Seeding Bills', count });
 
 		const existingTitles = (
 			await dbExecuteLogger(

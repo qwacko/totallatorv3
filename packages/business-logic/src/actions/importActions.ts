@@ -203,7 +203,7 @@ export const importActions = {
 		try {
 			await processCreatedImport({ id });
 		} catch (e) {
-			getLogger('import').error(e, 'Error Processing Import');
+			getLogger('import').error({ code: 'IMP_001', title: 'Error Processing Import', error: e });
 			await dbExecuteLogger(
 				db
 					.update(importTable)
@@ -264,7 +264,7 @@ export const importActions = {
 			try {
 				await processCreatedImport({ id });
 			} catch (e) {
-				getLogger('import').error(e, 'Error Processing Import');
+				getLogger('import').error({ code: 'IMP_002', title: 'Error Processing Import', error: e });
 				await dbExecuteLogger(
 					db
 						.update(importTable)
@@ -351,7 +351,7 @@ export const importActions = {
 				'Import - Trigger Import - Update'
 			);
 		} catch (e) {
-			getLogger('import').error(e, 'Import Trigger Error');
+			getLogger('import').error({ code: 'IMP_003', title: 'Import Trigger Error', error: e });
 			await db
 				.update(importTable)
 				.set({ status: 'error', errorInfo: e })
@@ -470,9 +470,10 @@ export const importActions = {
 						await importLabel({ item, trx });
 					}
 
-					getLogger('import').debug(
-						`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
-					);
+					getLogger('import').debug({
+						code: 'IMP_001',
+						title: `Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
+					});
 
 					if (new Date() > maxTime) {
 						throw new Error('Import Timed Out');

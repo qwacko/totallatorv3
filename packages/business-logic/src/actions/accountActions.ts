@@ -506,15 +506,7 @@ export const accountActions: AccountActionsType & {
 		return dataForInsertion.map((item) => item.id);
 	},
 	seed: async ({ countAssets, countLiabilities, countIncome, countExpenses }) => {
-		getLogger('accounts').info(
-			{
-				countAssets,
-				countLiabilities,
-				countIncome,
-				countExpenses
-			},
-			'Seeding Accounts'
-		);
+		getLogger('accounts').info({ code: 'ACC_001', title: 'Seeding Accounts', countAssets, countLiabilities, countIncome, countExpenses });
 		const assetsToCreate = Array(countAssets)
 			.fill(1)
 			.map(() => createAsset());

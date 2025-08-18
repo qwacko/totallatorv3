@@ -251,7 +251,7 @@ export const categoryActions: CategoryActionsType = {
 		);
 
 		if (!currentCategory) {
-			getLogger('categories').error(data, 'Update Category: Category not found');
+			getLogger('categories').error({ code: 'CAT_001', title: 'Update Category: Category not found', data });
 			return id;
 		}
 
@@ -329,7 +329,7 @@ export const categoryActions: CategoryActionsType = {
 	},
 	seed: async (count) => {
 		const db = getContextDB();
-		getLogger('categories').info(count, 'Seeding Categories');
+		getLogger('categories').info({ code: 'CAT_002', title: 'Seeding Categories', count });
 
 		const existingTitles = (
 			await dbExecuteLogger(

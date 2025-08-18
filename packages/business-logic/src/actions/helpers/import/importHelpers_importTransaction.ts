@@ -30,15 +30,15 @@ export async function importTransaction({
 
 		if (processedCombinedTransaction.success) {
 			try {
-				getLogger('import', 'Other').debug('Starting import process');
+				getLogger('import', 'Other').debug({ code: 'IMP_TRANS_001', title: 'Starting import process' });
 				const importedData = await journalActions.createManyTransactionJournals({
 					journalEntries: [processedCombinedTransaction.data],
 					isImport: true // This is from an import process
 				});
 
-				getLogger('import', 'Other').debug(importedData, 'Import Process Complete');
+				getLogger('import', 'Other').debug({ code: 'IMP_TRANS_002', title: 'Import Process Complete', importedData });
 
-				getLogger('import', 'Other').info('Backlinking Import Data To Journals');
+				getLogger('import', 'Other').info({ code: 'IMP_TRANS_003', title: 'Backlinking Import Data To Journals' });
 
 				await Promise.all(
 					importedData.map(async (transactionId) => {
@@ -92,10 +92,12 @@ export async function importTransaction({
 					errorObject: e
 				};
 
-				getLogger('import').error(
-					{ error: e, currentJournal: processedCombinedTransaction.data },
-					'Import Transaction Error'
-				);
+				getLogger('import').error({
+					code: 'IMP_TRANS_001',
+					title: 'Import Transaction Error',
+					error: e,
+					currentJournal: processedCombinedTransaction.data
+				});
 
 				await dbExecuteLogger(
 					trx
@@ -112,10 +114,13 @@ export async function importTransaction({
 				);
 			}
 		} else {
-			getLogger('import').error(
-				{ errors: processedCombinedTransaction.error, processedInfo, id: item.id },
-				'Import Item Error (createCombinedTransaction Schema)'
-			);
+			getLogger('import').error({
+				code: 'IMP_TRANS_002',
+				title: 'Import Item Error (createCombinedTransaction Schema)',
+				errors: processedCombinedTransaction.error,
+				processedInfo,
+				id: item.id
+			});
 			await dbExecuteLogger(
 				trx
 					.update(importItemDetail)
@@ -129,10 +134,13 @@ export async function importTransaction({
 			);
 		}
 	} else {
-		getLogger('import').error(
-			{ errors: processedItem.error, processedInfo, id: item.id },
-			'Import Item Error (createSimpleTransaction Schema'
-		);
+		getLogger('import').error({
+			code: 'IMP_TRANS_003',
+			title: 'Import Item Error (createSimpleTransaction Schema)',
+			errors: processedItem.error,
+			processedInfo,
+			id: item.id
+		});
 		await dbExecuteLogger(
 			trx
 				.update(importItemDetail)

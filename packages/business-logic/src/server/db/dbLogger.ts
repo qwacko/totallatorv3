@@ -167,7 +167,8 @@ export const initDBLogger = async (context: GlobalContext) => {
 
 			await queryLogActions.tidy();
 		},
-		logError: (...args) => context.logger('database').error(...args)
+		logError: (...args) =>
+			context.logger('database').error({ code: 'DB_0001', title: args[0], error: args })
 	});
 };
 

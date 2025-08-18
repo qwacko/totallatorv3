@@ -43,9 +43,11 @@ export const reportActions = {
 		if (!reportInfo) throw new Error('Report not found');
 
 		getLogger('reports').debug({
+			code: 'REPORT_001',
+			title: 'Deleting Reports',
 			reportElements: reportInfo.reportElements.map((item) => item.id),
 			filterId: reportInfo.filterId
-		}, 'Deleting Reports');
+		});
 
 		await runInTransactionWithLogging('Delete Report', async () => {
 			await reportActions.reportElement.deleteMany({
@@ -292,7 +294,11 @@ export const reportActions = {
 		id: string;
 		filter: JournalFilterSchemaWithoutPaginationType;
 	}) => {
-		getLogger('reports').debug({ filter }, 'Upserting Filter');
+		getLogger('reports').debug({
+			code: 'REPORT_002',
+			title: 'Upserting Filter',
+			filter
+		});
 
 		const reportConfig = await reportActions.getSimpleReportConfig({ id });
 
@@ -869,7 +875,11 @@ export const reportActions = {
 		update: async ({ data }: { data: UpdateReportElementType }) => {
 			const { id, ...restData } = data;
 
-			getLogger('reports').debug({ data }, 'Updating Report Element');
+			getLogger('reports').debug({
+				code: 'REPORT_003',
+				title: 'Updating Report Element',
+				data
+			});
 
 			await runInTransactionWithLogging('Report Element - Update', async () => {
 				const db = getContextDB();

@@ -67,7 +67,7 @@ export class LLMJournalProcessingService {
 
 		// Check if LLM review is enabled
 		if (!getServerEnv().LLM_REVIEW_ENABLED) {
-			getLogger('llm').debug('LLM Journal Processing: Skipped - LLM_REVIEW_ENABLED is false');
+			getLogger('llm').debug({ code: 'LLM_JOURNAL_001', title: 'LLM Journal Processing: Skipped - LLM_REVIEW_ENABLED is false' });
 			return { processed: 0, errors: 0, skipped: 0, duration: Date.now() - startTime };
 		}
 
@@ -77,7 +77,7 @@ export class LLMJournalProcessingService {
 
 		if (enabledProviders.length === 0) {
 			if (skipIfNoProviders) {
-				getLogger('llm').debug('LLM Journal Processing: Skipped - No enabled LLM providers found');
+				getLogger('llm').debug({ code: 'LLM_JOURNAL_002', title: 'LLM Journal Processing: Skipped - No enabled LLM providers found' });
 				return { processed: 0, errors: 0, skipped: 0, duration: Date.now() - startTime };
 			} else {
 				throw new Error('No enabled LLM providers found');
@@ -103,14 +103,11 @@ export class LLMJournalProcessingService {
 			.limit(batchSize);
 
 		if (journalsToProcess.length === 0) {
-			getLogger('llm').debug('LLM Journal Processing: No journals requiring processing found');
+			getLogger('llm').debug({ code: 'LLM_JOURNAL_003', title: 'LLM Journal Processing: No journals requiring processing found' });
 			return { processed: 0, errors: 0, skipped: 0, duration: Date.now() - startTime };
 		}
 
-		getLogger('llm').info(
-			{ journalsCount: journalsToProcess.length },
-			`LLM Journal Processing: Starting batch processing of ${journalsToProcess.length} journals`
-		);
+		getLogger('llm').info({ code: 'LLM_JOURNAL_004', title: `LLM Journal Processing: Starting batch processing of ${journalsToProcess.length} journals`, journalsCount: journalsToProcess.length });
 
 		let processed = 0;
 		let errors = 0;
@@ -120,26 +117,17 @@ export class LLMJournalProcessingService {
 		for (const journal of journalsToProcess) {
 			// Check if we've exceeded max processing time
 			if (Date.now() - startTime > maxProcessingTime) {
-				getLogger('llm').warn(
-					{ maxProcessingTime },
-					`LLM Journal Processing: Stopping due to time limit (${maxProcessingTime}ms)`
-				);
+				getLogger('llm').warn({ code: 'LLM_JOURNAL_005', title: `LLM Journal Processing: Stopping due to time limit (${maxProcessingTime}ms)`, maxProcessingTime });
 				break;
 			}
 
 			try {
 				await this.processJournal(journal, defaultProvider);
 				processed++;
-				getLogger('llm').debug(
-					{ journalId: journal.id },
-					`LLM Journal Processing: Successfully processed journal ${journal.id}`
-				);
+				getLogger('llm').debug({ code: 'LLM_JOURNAL_006', title: `LLM Journal Processing: Successfully processed journal ${journal.id}`, journalId: journal.id });
 			} catch (error) {
 				errors++;
-				getLogger('llm').error(
-					{ journalId: journal.id, error },
-					`LLM Journal Processing: Error processing journal ${journal.id}`
-				);
+				getLogger('llm').error({ code: 'LLM_JOURNAL_007', title: `LLM Journal Processing: Error processing journal ${journal.id}`, journalId: journal.id, error });
 
 				// Mark journal as error status
 				await this.db
@@ -150,10 +138,7 @@ export class LLMJournalProcessingService {
 		}
 
 		const duration = Date.now() - startTime;
-		getLogger('llm').info(
-			{ processed, errors, skipped, duration },
-			`LLM Journal Processing: Completed batch - Processed: ${processed}, Errors: ${errors}, Duration: ${duration}ms`
-		);
+		getLogger('llm').info({ code: 'LLM_JOURNAL_008', title: `LLM Journal Processing: Completed batch - Processed: ${processed}, Errors: ${errors}, Duration: ${duration}ms`, processed, errors, skipped, duration });
 
 		return { processed, errors, skipped, duration };
 	}

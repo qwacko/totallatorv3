@@ -1,7 +1,7 @@
 import { getContextStore } from '@totallator/context';
-import type { LoggerAction, LoggerDomain, LoggerInstance } from '@totallator/context';
+import type { LoggerAction, LoggerDomain } from '@totallator/context';
 
-export const getLogger = (domain: LoggerDomain, action?: LoggerAction): LoggerInstance => {
+export const getLogger = (domain: LoggerDomain, action?: LoggerAction) => {
 	const context = getContextStore();
 
 	if (action) {
