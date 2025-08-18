@@ -148,13 +148,12 @@ const handleRoute: Handle = async ({
 
   const timeLimit = context.serverEnv.PAGE_TIMEOUT_MS;
   const timeout = setTimeout(() => {
-    context.logger("server").warn(
-      {
-        requestId: requestContext.requestId,
-        requestURL: event.request.url,
-      },
-      `Request took longer than ${timeLimit}ms to resolve`,
-    );
+    context.logger("server").warn({
+      code: "SRV_002",
+      title: `Request took longer than ${timeLimit}ms to resolve`,
+      requestId: requestContext.requestId,
+      requestURL: event.request.url,
+    });
   }, timeLimit);
 
   // Run everything within AsyncLocalStorage context
@@ -167,7 +166,9 @@ const handleRoute: Handle = async ({
     }
 
     if (event.route.id === "/(loggedOut)/firstUser" && !noAdmin) {
-      context.logger("server").info("Redirecting from firstUser");
+      context
+        .logger("server")
+        .info({ code: "SRV_001", title: "Redirecting from firstUser" });
       if (event.locals.user) {
         redirect(302, "/users");
       } else {
@@ -205,9 +206,11 @@ const handleRoute: Handle = async ({
           throw error;
         }
         // Don't block requests if backup restore check fails
-        context
-          .logger("server")
-          .warn(error, "Failed to check for active backup restore:");
+        context.logger("server").warn({
+          title: "Failed to check for active backup restore:",
+          code: "SRV_003",
+          error,
+        });
       }
     }
 
@@ -220,13 +223,12 @@ const handleRoute: Handle = async ({
     let result;
 
     if (isNonGetRequest) {
-      context.logger("database").debug(
-        {
-          requestId: requestContext.requestId,
-          requestURL: event.request.url,
-        },
-        `Wrapping ${event.request.method} request in transaction`,
-      );
+      context.logger("database").debug({
+        title: `Wrapping ${event.request.method} request in transaction`,
+        code: "DB_005",
+        requestId: requestContext.requestId,
+        requestURL: event.request.url,
+      });
 
       result = await runRequestInTransaction(async () => {
         return await resolve(event);

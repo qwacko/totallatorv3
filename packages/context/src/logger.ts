@@ -53,6 +53,7 @@ export const LOG_LEVEL_DEFAULT: pino.Level = "warn";
 export const LOG_LEVEL_OVERRIDE: {domain: LoggerDomain, action?: LoggerAction, level: pino.Level}[] = [
   {domain: "import", level: "debug"},
   {domain:"files", level: "debug"},
+  {domain: "journals", level: "debug"}
 ];
 
 /**

@@ -99,7 +99,7 @@ export const journalGetOrCreateLinkedItems = async ({
 		budgetId: targetBudget?.id,
 		categoryId: targetCategory?.id,
 		tagId: targetTag?.id,
-		labels: targetLabels
+		labels: targetLabels.filter((item) => item !== null).map((item) => item?.id || '')
 	};
 };
 function filterUndefinedFromArray<T>(arr: (T | undefined)[]): T[] {

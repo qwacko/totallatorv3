@@ -144,13 +144,35 @@ export const importActions = {
 		data: CreateImportSchemaType;
 		autoImportId?: string;
 	}): Promise<string> => {
+		const startTime = Date.now();
 		const db = getContextDB();
 		const { file: newFile, importType: type, ...restData } = data;
 
+		getLogger('import').info({
+			code: 'IMP_050',
+			title: 'Starting import file storage',
+			filename: newFile.name,
+			fileSize: newFile.size,
+			fileType: newFile.type,
+			importType: type,
+			autoImportId
+		});
+
 		if (newFile.type !== 'text/csv') {
 			if (type !== 'mappedImport') {
+				getLogger('import').error({
+					code: 'IMP_051',
+					title: 'Invalid file type for import type',
+					fileType: newFile.type,
+					importType: type
+				});
 				throw new Error('Filetype must be CSV except for mapped imports');
 			}
+
+			getLogger('import').debug({
+				code: 'IMP_052',
+				title: 'Processing JSON file for mapped import'
+			});
 
 			const fileString = await newFile.text();
 			const jsonFile = JSON.parse(fileString);
@@ -158,20 +180,53 @@ export const importActions = {
 			const parsedData = schemaValidation.safeParse(jsonFile);
 
 			if (!parsedData.success) {
+				getLogger('import').error({
+					code: 'IMP_053',
+					title: 'Invalid JSON format in file',
+					error: parsedData.error
+				});
 				throw new Error('Filetype must be CSV or JSON Array of Objects');
 			}
+
+			getLogger('import').info({
+				code: 'IMP_054',
+				title: 'JSON file validated successfully',
+				recordCount: parsedData.data.length
+			});
 		}
 
 		const fileType = newFile.type === 'text/csv' ? 'csv' : 'json';
 
 		if (type === 'mappedImport' && !importMapping) {
+			getLogger('import').error({
+				code: 'IMP_055',
+				title: 'No mapping selected for mapped import'
+			});
 			throw new Error('No Mapping Selected');
 		}
+		
 		if (restData.importMappingId) {
+			getLogger('import').debug({
+				code: 'IMP_056',
+				title: 'Validating import mapping',
+				mappingId: restData.importMappingId
+			});
+
 			const result = await importMappingActions.getById({ id: restData.importMappingId });
 			if (!result) {
+				getLogger('import').error({
+					code: 'IMP_057',
+					title: 'Import mapping not found',
+					mappingId: restData.importMappingId
+				});
 				throw new Error(`Mapping ${importMapping} Not Found`);
 			}
+
+			getLogger('import').debug({
+				code: 'IMP_058',
+				title: 'Import mapping validated successfully',
+				mappingId: restData.importMappingId
+			});
 		}
 
 		const originalFilename = newFile.name;
@@ -180,10 +235,23 @@ export const importActions = {
 
 		const saveFilename = `${dateTime}_${id}_${originalFilename}`;
 
+		getLogger('import').debug({
+			code: 'IMP_059',
+			title: 'Saving import file to storage',
+			saveFilename,
+			fileType
+		});
+
 		await importFileHandler().write(
 			saveFilename,
 			fileType === 'json' ? Buffer.from(await newFile.arrayBuffer()) : await newFile.text()
 		);
+
+		getLogger('import').debug({
+			code: 'IMP_060',
+			title: 'File saved, creating import record',
+			importId: id
+		});
 
 		await dbExecuteLogger(
 			db.insert(importTable).values({
@@ -200,10 +268,29 @@ export const importActions = {
 			'Import - Store - Insert'
 		);
 
+		getLogger('import').info({
+			code: 'IMP_061',
+			title: 'Import record created, starting processing',
+			importId: id
+		});
+
 		try {
 			await processCreatedImport({ id });
+			
+			const duration = Date.now() - startTime;
+			getLogger('import').info({
+				code: 'IMP_062',
+				title: 'Import processing completed successfully',
+				importId: id,
+				duration
+			});
 		} catch (e) {
-			getLogger('import').error({ code: 'IMP_001', title: 'Error Processing Import', error: e });
+			getLogger('import').error({ 
+				code: 'IMP_063', 
+				title: 'Error processing import', 
+				error: e,
+				importId: id
+			});
 			await dbExecuteLogger(
 				db
 					.update(importTable)
@@ -328,7 +415,15 @@ export const importActions = {
 		});
 	},
 	triggerImport: async ({ id }: { id: string }): Promise<void> => {
+		const startTime = Date.now();
 		const db = getContextDB();
+		
+		getLogger('import').info({
+			code: 'IMP_070',
+			title: 'Starting import trigger process',
+			importId: id
+		});
+
 		try {
 			const importInfoList = await dbExecuteLogger(
 				db.select().from(importTable).where(eq(importTable.id, id)),
@@ -337,9 +432,30 @@ export const importActions = {
 
 			const importInfo = importInfoList[0];
 			if (!importInfo) {
+				getLogger('import').error({
+					code: 'IMP_071',
+					title: 'Import not found for trigger',
+					importId: id
+				});
 				throw new Error('Import Not Found');
 			}
+
+			getLogger('import').debug({
+				code: 'IMP_072',
+				title: 'Import found for triggering',
+				importId: id,
+				status: importInfo.status,
+				type: importInfo.type
+			});
+
 			if (importInfo.status !== 'processed') {
+				getLogger('import').error({
+					code: 'IMP_073',
+					title: 'Import not in correct status for triggering',
+					importId: id,
+					currentStatus: importInfo.status,
+					requiredStatus: 'processed'
+				});
 				throw new Error('Import is not in state Processed. Cannot trigger import.');
 			}
 
@@ -350,8 +466,23 @@ export const importActions = {
 					.where(eq(importTable.id, id)),
 				'Import - Trigger Import - Update'
 			);
+
+			const duration = Date.now() - startTime;
+			getLogger('import').info({
+				code: 'IMP_074',
+				title: 'Import trigger completed successfully',
+				importId: id,
+				duration
+			});
 		} catch (e) {
-			getLogger('import').error({ code: 'IMP_003', title: 'Import Trigger Error', error: e });
+			const duration = Date.now() - startTime;
+			getLogger('import').error({ 
+				code: 'IMP_075', 
+				title: 'Import trigger failed', 
+				error: e,
+				importId: id,
+				duration
+			});
 			await db
 				.update(importTable)
 				.set({ status: 'error', errorInfo: e })
