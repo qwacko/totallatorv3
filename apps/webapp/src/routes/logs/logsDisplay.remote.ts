@@ -1,12 +1,20 @@
-import { queryLoggedItems } from "@totallator/context";
+import { getGlobalContextFromStore } from "@totallator/context";
 
-import { query } from "$app/server";
+import { form, query } from "$app/server";
 
 export const getLogs = query(async () => {
-  console.log("Getting Logs");
-  const logs = await queryLoggedItems({ limit: 100 });
-  console.log("Logs:", logs);
+  const globalContext = getGlobalContextFromStore();
+  const logs = await globalContext.logging.queryLoggedItems({ limit: 100 });
   return {
     logs,
+  };
+});
+
+export const getLogConfigurations = query(async () => {
+  const globalContext = getGlobalContextFromStore();
+  const configurations =
+    await globalContext.logging.logDatabaseOps.getAllLogConfigurations();
+  return {
+    configurations,
   };
 });

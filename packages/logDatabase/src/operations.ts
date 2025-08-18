@@ -1,6 +1,7 @@
 import { eq, and, desc, asc, count, gte, lte, isNull, inArray } from 'drizzle-orm';
-import { getLogDatabase, LogDBType } from './connection.js';
+import { LogDBType } from './connection.js';
 import { logTable, configurationTable, type LogInsert, type LogSelect, type ConfigurationInsert, type ConfigurationSelect, logLevelEnum, logDomainEnum, logActionEnum, logDestinationEnum } from './schema/index.js';
+import * as devalue from 'devalue';
 
 export type LogLevelType  = typeof logLevelEnum[number]
 export type LogDomainType = typeof logDomainEnum[number];
@@ -56,7 +57,8 @@ export class LogDatabaseOperations {
 				domain: entry.domain,
 				code: entry.code,
 				title: entry.title,
-				data: entry.data ? JSON.stringify(entry.data) : null
+				data: entry.data ? JSON.stringify(entry.data) : null,
+				dataString: entry.data ? devalue.stringify(entry.data) : null
 			}) satisfies LogInsert)
 			
 			await this.db.insert(logTable).values(values);
@@ -75,7 +77,7 @@ export class LogDatabaseOperations {
 		endDate?: Date;
 		limit?: number;
 		offset?: number;
-	} = {}): Promise<LogSelect[]> {
+	} = {}) {
 		try {
 			const conditions = [];
 			
@@ -103,7 +105,10 @@ export class LogDatabaseOperations {
 				baseQuery = baseQuery.offset(params.offset) as any;
 			}
 			
-			return await baseQuery;
+			return (await baseQuery).map(item => {
+				const {data, dataString, ...restData} = item
+				return {...restData, data, dataString, dataProcessed: dataString ? devalue.parse(dataString) : null};
+			});
 		} catch (error) {
 			console.error('Failed to get logs:', error);
 			return [];

@@ -11,7 +11,9 @@ import {
   logActionEnum,
   logDestinationEnum,
   logLevelEnum,
-  LogDBType
+  LogDBType,
+  initializeLogDatabase,
+  ConfigurationSelect
 } from '@totallator/log-database';
 
 /**
@@ -34,133 +36,63 @@ export type LoggerDomain = LogDomainType;
 export const loggerActions = logActionEnum;
 export type LoggerAction = LogActionType;
 
-type LogLevelCacheType =  Map<string, LogLevelType>
+type LogLevelCacheType = Map<string, LogLevelType>
 
 /**
- * Initialize the database logging system
+ * Complete logging system interface including database operations and management
  */
-export const initializeDatabaseLogging = async (config: { url?: string; authToken?: string, db: LogDBType }) => {
-  try {
-    const { initializeLogDatabase } = await import('@totallator/log-database');
-    await initializeLogDatabase(config);
-    
-    // Only create the operations instance after the database is initialized
-    const logDatabaseOps = new LogDatabaseOperations(config.db);
-
-    const logLevelCache = new Map<string, LogLevelType>();
-    
-    // Initialize configuration and sync levels
-    await logDatabaseOps.initLogConfiguration();
-    await syncLogLevelsFromDatabase(logDatabaseOps, logLevelCache);
-    
-    console.log('✅ Database logging initialized successfully');
-    return logDatabaseOps
-  } catch (error) {
-    console.warn('❌ Failed to initialize database logging:', error);
-    throw new Error('Database logging initialization failed');
-  }
-};
-
-/**
- * Sync log levels from database to memory cache
- */
-export const syncLogLevelsFromDatabase = async (logDatabaseOps: LogDatabaseOperations, logLevelCache: LogLevelCacheType) => {
-  if (!logDatabaseOps) return;
+export interface LoggingSystem {
+  /** Logger factory for creating domain/action specific loggers */
+  logger: LoggerFactory;
   
-  try {
-    logLevelCache = await logDatabaseOps.syncConfigurationToMemory();
-  } catch (error) {
-    console.warn('Failed to sync log levels from database:', error);
-  }
-};
-
-/**
- * Set log level for a specific destination/domain/action combination
- */
-export const setLogLevel = async ({destination, domain, action, level, logDatabaseOps, logLevelCache}:{destination: LogDestinationType, domain: LoggerDomain, action: LoggerAction | null, level: LogLevelType, logDatabaseOps: LogDatabaseOperations, logLevelCache: LogLevelCacheType}) => {
-  if (!logDatabaseOps) {
-    console.warn('Database logging not initialized');
-    return;
-  }
+  /** Database connection for log storage */
+  loggingDB: LogDBType;
   
-  try {
-    await logDatabaseOps.setLogConfiguration(destination, domain as LogDomainType, action as LogActionType, level);
-    await syncLogLevelsFromDatabase(logDatabaseOps, logLevelCache);
-  } catch (error) {
-    console.warn('Failed to set log level:', error);
-  }
-};
-
-/**
- * Query logged items from the database
- */
-export const queryLoggedItems = async (params: {
-  domain?: LogDomainType;
-  action?: LogActionType;
-  logLevel?: LogLevelType;
-  contextId?: string;
-  code?: string;
-  startDate?: Date;
-  endDate?: Date;
-  limit?: number;
-  offset?: number;
-  logDatabaseOps: LogDatabaseOperations
-}) => {
-  if (!params.logDatabaseOps) {
-    console.warn('Database logging not initialized');
-    return [];
-  }
+  /** Database operations instance */
+  logDatabaseOps: LogDatabaseOperations;
   
-  try {
-    return await params.logDatabaseOps.getLogs(params);
-  } catch (error) {
-    console.warn('Failed to query logged items:', error);
-    return [];
-  }
-};
-
-/**
- * Get count of logged items matching criteria
- */
-export const getLoggedItemsCount = async (params: {
-  domain?: LogDomainType;
-  action?: LogActionType;
-  logLevel?: LogLevelType;
-  contextId?: string;
-  code?: string;
-  startDate?: Date;
-  endDate?: Date;
-  logDatabaseOps: LogDatabaseOperations
-}) => {
-  if (!params.logDatabaseOps) {
-    console.warn('Database logging not initialized');
-    return 0;
-  }
+  /** Log level cache for performance */
+  logLevelCache: LogLevelCacheType;
   
-  try {
-    return await params.logDatabaseOps.getLogCount(params);
-  } catch (error) {
-    console.warn('Failed to get logged items count:', error);
-    return 0;
-  }
-};
-
-/**
- * Delete old log entries from the database
- */
-export const deleteOldLogs = async (logDatabaseOps: LogDatabaseOperations, olderThanDays: number = 30) => {
-  if (!logDatabaseOps) {
-    console.warn('Database logging not initialized');
-    return 0;
-  }
+  /** Sync log levels from database to memory cache */
+  syncLogLevelsFromDatabase: () => Promise<void>;
   
-  try {
-    return await logDatabaseOps.deleteOldLogs(olderThanDays);
-  } catch (error) {
-    console.warn('Failed to delete old logs:', error);
-    return 0;
-  }
-};
+  /** Set log level for a specific destination/domain/action combination */
+  setLogLevel: (params: {
+    destination: LogDestinationType;
+    domain: LoggerDomain;
+    action: LoggerAction | null;
+    level: LogLevelType;
+  }) => Promise<void>;
+  
+  /** Query logged items from the database */
+  queryLoggedItems: (params: {
+    domain?: LogDomainType;
+    action?: LogActionType;
+    logLevel?: LogLevelType;
+    contextId?: string;
+    code?: string;
+    startDate?: Date;
+    endDate?: Date;
+    limit?: number;
+    offset?: number;
+  }) => Promise<any[]>;
+  
+  /** Get count of logged items matching criteria */
+  getLoggedItemsCount: (params: {
+    domain?: LogDomainType;
+    action?: LogActionType;
+    logLevel?: LogLevelType;
+    contextId?: string;
+    code?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }) => Promise<number>;
+  
+  /** Delete old log entries from the database */
+  deleteOldLogs: (olderThanDays?: number) => Promise<number>;
+
+}
 
 /**
  * Structured log data requiring code and title with optional additional fields.
@@ -209,7 +141,13 @@ export interface LoggerFactory {
  * Get the appropriate log level for a domain/action combination.
  * Checks database cache first, then overrides, then falls back to default.
  */
-const getLogLevelForDomainAction = ({logDatabaseOps, domain, action, destination, logLevelCache}:{logLevelCache: LogLevelCacheType,logDatabaseOps: LogDatabaseOperations, domain: LoggerDomain, action?: LoggerAction, destination: LogDestinationType = 'console'}): pino.Level => {
+const getLogLevelForDomainAction = (
+  logDatabaseOps: LogDatabaseOperations | null,
+  logLevelCache: LogLevelCacheType,
+  domain: LoggerDomain,
+  action?: LoggerAction,
+  destination: LogDestinationType = 'console'
+): pino.Level => {
   // Convert our database types to match existing logger types
   const dbDomain = domain as LogDomainType;
   const dbAction = action as LogActionType;
@@ -233,24 +171,55 @@ const getLogLevelForDomainAction = ({logDatabaseOps, domain, action, destination
     }
   }
   
-  
   // Fall back to default
   return "info";
 };
 
 /**
- * Create a configurable Pino logger instance.
+ * Create a comprehensive logging system with database integration.
  * 
- * The logger uses Pino for structured logging with pretty printing in development.
- * It respects both global enable/disable settings and per-level configuration.
- * Returns pino logger instances directly without wrapper interfaces.
+ * This function handles both logger creation and database initialization, returning
+ * a complete logging system interface that can be placed directly in the global context.
  * 
  * @param enable Global logging enable/disable flag
  * @param logClasses Array of log levels to enable (e.g., ['ERROR', 'WARN', 'INFO'])
  * @param contextId Optional unique context identifier to include in all logs
- * @returns Logger factory with domain and action-specific child logger support
+ * @param databaseConfig Database configuration for log storage
+ * @returns Complete logging system with database operations and logger factory
  */
-export const createLogger = (enable: boolean, logClasses: string[], contextId?: string): LoggerFactory => {
+export const createLogger = async (
+  enable: boolean,
+  logClasses: string[],
+  contextId?: string,
+  databaseConfig?: { url?: string; authToken?: string }
+): Promise<LoggingSystem> => {
+  
+  // Initialize database connection if config provided
+  let loggingDB: LogDBType | null = null;
+  let logDatabaseOps: LogDatabaseOperations | null = null;
+  const logLevelCache = new Map<string, LogLevelType>();
+
+  if (databaseConfig) {
+    try {
+      loggingDB = await initializeLogDatabase(databaseConfig);
+      logDatabaseOps = new LogDatabaseOperations(loggingDB);
+      
+      // Initialize configuration and sync levels
+      await logDatabaseOps.initLogConfiguration();
+      const syncedCache = await logDatabaseOps.syncConfigurationToMemory();
+      
+      // Update our cache with synced values
+      syncedCache.forEach((value, key) => {
+        logLevelCache.set(key, value);
+      });
+      
+      console.log('✅ Database logging initialized successfully');
+    } catch (error) {
+      console.warn('❌ Failed to initialize database logging:', error);
+      // Continue without database logging
+    }
+  }
+
   // Convert log classes to Pino level
   const getGlobalLogLevel = (): pino.LevelWithSilent => {
     if (!enable) return 'silent';
@@ -265,21 +234,15 @@ export const createLogger = (enable: boolean, logClasses: string[], contextId?: 
   };
 
   // Create root Pino logger with basic configuration
-  // Note: Pretty printing disabled to avoid transport resolution issues in monorepo
-
-  const stream = pretty()
-
+  const stream = pretty();
   const baseContext = contextId ? { contextId } : {};
 
   const pinoLogger = pino({
     level: getGlobalLogLevel(),
     base: baseContext,
-    
-  
   }, stream);
 
   // Cache for child loggers to avoid recreating them
-  // Key format: "domain" or "domain:action"
   const childLoggers = new Map<string, pino.Logger>();
 
   /**
@@ -364,7 +327,7 @@ export const createLogger = (enable: boolean, logClasses: string[], contextId?: 
       const childLogger = pinoLogger.child(contextData);
       
       // Set the specific log level for this domain/action combination
-      const specificLevel = getLogLevelForDomainAction(domain, action);
+      const specificLevel = getLogLevelForDomainAction(logDatabaseOps, logLevelCache, domain, action);
       childLogger.level = specificLevel;
       
       childLoggers.set(cacheKey, childLogger);
@@ -374,11 +337,119 @@ export const createLogger = (enable: boolean, logClasses: string[], contextId?: 
   }
 
   const loggerFactory = createLoggerFactory as LoggerFactory;
-
-  // Attach the root pino logger to the factory
   loggerFactory.pino = pinoLogger;
 
-  return loggerFactory;
+  // Helper functions for database operations
+  const syncLogLevelsFromDatabase = async (): Promise<void> => {
+    if (!logDatabaseOps) return;
+    
+    try {
+      const syncedCache = await logDatabaseOps.syncConfigurationToMemory();
+      logLevelCache.clear();
+      syncedCache.forEach((value, key) => {
+        logLevelCache.set(key, value);
+      });
+    } catch (error) {
+      console.warn('Failed to sync log levels from database:', error);
+    }
+  };
+
+
+  const setLogLevel = async (params: {
+    destination: LogDestinationType;
+    domain: LoggerDomain;
+    action: LoggerAction | null;
+    level: LogLevelType;
+  }): Promise<void> => {
+    if (!logDatabaseOps) {
+      console.warn('Database logging not initialized');
+      return;
+    }
+    
+    try {
+      await logDatabaseOps.setLogConfiguration(
+        params.destination,
+        params.domain as LogDomainType,
+        params.action as LogActionType,
+        params.level
+      );
+      await syncLogLevelsFromDatabase();
+    } catch (error) {
+      console.warn('Failed to set log level:', error);
+    }
+  };
+
+  const queryLoggedItems = async (params: {
+    domain?: LogDomainType;
+    action?: LogActionType;
+    logLevel?: LogLevelType;
+    contextId?: string;
+    code?: string;
+    startDate?: Date;
+    endDate?: Date;
+    limit?: number;
+    offset?: number;
+  }): Promise<any[]> => {
+    if (!logDatabaseOps) {
+      console.warn('Database logging not initialized');
+      return [];
+    }
+    
+    try {
+      return await logDatabaseOps.getLogs(params);
+    } catch (error) {
+      console.warn('Failed to query logged items:', error);
+      return [];
+    }
+  };
+
+  const getLoggedItemsCount = async (params: {
+    domain?: LogDomainType;
+    action?: LogActionType;
+    logLevel?: LogLevelType;
+    contextId?: string;
+    code?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<number> => {
+    if (!logDatabaseOps) {
+      console.warn('Database logging not initialized');
+      return 0;
+    }
+    
+    try {
+      return await logDatabaseOps.getLogCount(params);
+    } catch (error) {
+      console.warn('Failed to get logged items count:', error);
+      return 0;
+    }
+  };
+
+  const deleteOldLogs = async (olderThanDays: number = 30): Promise<number> => {
+    if (!logDatabaseOps) {
+      console.warn('Database logging not initialized');
+      return 0;
+    }
+    
+    try {
+      return await logDatabaseOps.deleteOldLogs(olderThanDays);
+    } catch (error) {
+      console.warn('Failed to delete old logs:', error);
+      return 0;
+    }
+  };
+
+  return {
+    logger: loggerFactory,
+    loggingDB: loggingDB!,
+    logDatabaseOps: logDatabaseOps!,
+    logLevelCache,
+    syncLogLevelsFromDatabase,
+    setLogLevel,
+    queryLoggedItems,
+    getLoggedItemsCount,
+    deleteOldLogs,
+  };
 };
 
 /**

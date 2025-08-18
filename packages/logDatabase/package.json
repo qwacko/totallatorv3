@@ -26,9 +26,10 @@
 		"knip": "knip"
 	},
 	"dependencies": {
-		"@totallator/shared": "workspace:*",
-		"drizzle-orm": "^0.44.3",
 		"@libsql/client": "^0.14.0",
+		"@totallator/shared": "workspace:*",
+		"devalue": "^5.1.1",
+		"drizzle-orm": "^0.44.3",
 		"prettier": "^3.5.3",
 		"zod": "^4.0.10"
 	},

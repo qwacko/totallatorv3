@@ -15,13 +15,10 @@ const getDB = (client: Client) =>  drizzle(client, { schema });
 
 export async function initializeLogDatabase(config: LogDatabaseConfig = {}) {
 
-	const url = config.url || process.env.LOG_DATABASE_URL || 'file:./logs.db';
+	const url = config.url || process.env.LOG_DATABASE_URL || 'file:logs.db';
 	const authToken = config.authToken || process.env.LOG_DATABASE_AUTH_TOKEN;
 
-	const client = createClient({
-		url,
-		authToken
-	});
+	const client = createClient({url});
 
 	const db = getDB(client)
 	
@@ -31,13 +28,19 @@ export async function initializeLogDatabase(config: LogDatabaseConfig = {}) {
 		const migrationPaths = [
 			'./dist/migrations',    // Built package
 			'./src/migrations',     // Source during development
-			'./migrations'          // Alternative path
+			'./migrations',          // Alternative path
+			'./packages/logDatabase/src/migrations',
+			'./../../packages/logDatabase/dist/migrations',
+			'./../../packages/logDatabase/src/migrations'
 		];
 		
 		let migrationSucceeded = false;
 		let lastError: any = null;
+
+		console.log('Current working directory:', process.cwd());
 		
 		for (const path of migrationPaths) {
+
 			try {
 				console.log(`Attempting to migrate from: ${path}`);
 				await migrate(db, { migrationsFolder: path });

@@ -1,17 +1,16 @@
 import { type ServerEnvSchemaType } from '@totallator/shared';
-import { createLogger, initializeDatabaseLogging, type LoggerFactory } from './logger.js';
+import { createLogger, type LoggingSystem } from './logger.js';
 import { createDatabase, migrateDatabase, type DBType } from '@totallator/database';
 import { createRateLimiter, type RateLimiter } from './rateLimiter.js';
 import { createEventEmitter, type TypedEventEmitter } from './eventEmitter.js';
 import { randomUUID } from 'crypto';
-import { initializeLogDatabase, LogDatabaseOperations, LogDBType } from '@totallator/log-database';
 
 /**
  * Global application context containing shared resources and configuration.
  * 
  * This context is initialized once during application startup and provides:
  * - Unique context identifier for log filtering
- * - Logger instance configured with application settings
+ * - Complete logging system with database integration
  * - Database connection and transaction capabilities
  * - Server environment configuration
  * - Materialized view refresh rate limiting
@@ -21,14 +20,12 @@ export interface GlobalContext {
   /** Unique identifier for this context instance, useful for log filtering */
   contextId: string;
   
-  /** Application logger factory with domain-specific child logger support */
-  logger: LoggerFactory;
+  /** Complete logging system with database integration and management functions */
+  logging: LoggingSystem;
+  logger: LoggingSystem["logger"]
   
   /** Database connection with transaction support */
   db: DBType;
-
-  loggingDB: LogDBType;
-  logDatabaseOps: LogDatabaseOperations;
   
   /** Server environment configuration and settings */
   serverEnv: ServerEnvSchemaType;
@@ -64,9 +61,9 @@ export interface GlobalContextConfig {
   /** Path to database migration files */
   migrationsPath: string;
 
-  /** Logging Database Config */
-  loggingDB: {
-    authToken: string;
+  /** Logging Database Config (optional - if omitted, database logging will be disabled) */
+  loggingDB?: {
+    authToken?: string;
     url: string;
   }
 }
@@ -87,19 +84,18 @@ export async function initializeGlobalContext(config: GlobalContextConfig): Prom
     return globalContext;
   }
 
-
-  
-
   console.log("Initializing Global Context");
 
   // Generate unique context ID for log filtering
   const contextId = randomUUID();
 
-  const loggingDB = await initializeLogDatabase(config.loggingDB)
-  const logDatabaseOps =  await initializeDatabaseLogging({...config.loggingDB, db:loggingDB});
-
-  // Initialize logger with configured levels and classes
-  const logger = createLogger(config.serverEnv.LOGGING, config.serverEnv.LOGGING_CLASSES, contextId);
+  // Initialize comprehensive logging system with database integration
+  const logging = await createLogger(
+    config.serverEnv.LOGGING,
+    config.serverEnv.LOGGING_CLASSES,
+    contextId,
+    config.loggingDB
+  );
 
   // Create database connection
   const { db, postgresDatabase } = createDatabase({
@@ -109,19 +105,19 @@ export async function initializeGlobalContext(config: GlobalContextConfig): Prom
     isDev: config.serverEnv.DEV,
     isBuilding: config.isBuilding || false,
     isTestEnv: config.serverEnv.TEST_ENV,
-    logger: (message: string, data?: any) => logger('database').pino.debug(data || {}, message),
+    logger: (message: string, data?: any) => logging.logger('database').pino.debug(data || {}, message),
     migrationsPath: config.migrationsPath,
   });
 
   // Run database migrations
-  migrateDatabase({
+  await migrateDatabase({
     postgresUrl: config.serverEnv.POSTGRES_URL || '',
     maxConnections: config.serverEnv.POSTGRES_MAX_CONNECTIONS,
     enableQueryLog: config.serverEnv.DB_QUERY_LOG,
     isDev: config.serverEnv.DEV,
     isBuilding: config.isBuilding || false,
     isTestEnv: config.serverEnv.TEST_ENV,
-    logger: (message: string) => logger('database').pino.info(message),
+    logger: (message: string) => logging.logger('database').pino.info(message),
     migrationsPath: config.migrationsPath,
   });
 
@@ -132,23 +128,22 @@ export async function initializeGlobalContext(config: GlobalContextConfig): Prom
       if (config.viewRefreshAction) {
         return await config.viewRefreshAction();
       } else {
-        logger('materialized-views').pino.debug('Materialized view refresh triggered - no action configured yet');
+        logging.logger('materialized-views').pino.debug('Materialized view refresh triggered - no action configured yet');
         return false;
       }
     },
-    logger: logger('materialized-views').pino,
+    logger: logging.logger('materialized-views').pino,
     name: 'MaterializedViewRefresh',
   });
 
   // Create event emitter
-  const eventEmitter = createEventEmitter(logger('auth').pino);
+  const eventEmitter = createEventEmitter(logging.logger('auth').pino);
 
   globalContext = {
     contextId,
-    logger,
+    logging,
+    logger: logging.logger,
     db,
-    loggingDB,
-    logDatabaseOps,
     serverEnv: config.serverEnv,
     postgresDatabase,
     viewRefreshLimiter,
@@ -156,11 +151,12 @@ export async function initializeGlobalContext(config: GlobalContextConfig): Prom
     eventEmitter,
   };
 
-  logger('auth').info({ 
+  logging.logger('auth').info({ 
     code: 'CTX_001', 
     title: 'Global context initialized', 
     contextId 
   });
+  
   return globalContext;
 }
 

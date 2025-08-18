@@ -68,16 +68,10 @@ export {
   type LoggerInstance,
   type StructuredLogData,
   type StructuredLogger,
+  type LoggingSystem,
   loggerDomains,
   loggerActions,
   createLogger,
-  initializeDatabaseLogging,
-  syncLogLevelsFromDatabase,
-  setLogLevel,
-  queryLoggedItems,
-  getLoggedItemsCount,
-  deleteOldLogs,
-  getLogDatabaseOps,
 } from './logger.js';
 
 /**

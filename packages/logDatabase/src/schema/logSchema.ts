@@ -20,6 +20,7 @@ export const logTable = sqliteTable('log', {
 	code: text('code').notNull(),
 	title: text('title').notNull(),
 	data: text('data', { mode: 'json' }),
+	dataString: text('data_string'),
 	createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date())
 }, (table) => [index('log_date_idx').on(table.date),
 	index('log_domain_idx').on(table.domain),
