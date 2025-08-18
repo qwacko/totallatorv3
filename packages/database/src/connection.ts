@@ -52,10 +52,16 @@ export async function migrateDatabase(config: DatabaseConfig) {
 	if (!config.isTestEnv && config.postgresUrl) {
 		config.logger?.('Migrating DB!!');
 		const migrationClient = postgres(config.postgresUrl, { max: 1 });
-		const migrationDB = drizzle(migrationClient);
 
-		await migrate(migrationDB, { migrationsFolder: config.migrationsPath });
-		config.logger?.('DB Migration Complete');
+		try {
+			const migrationDB = drizzle(migrationClient);
+			await migrate(migrationDB, { migrationsFolder: config.migrationsPath });
+			config.logger?.('DB Migration Complete');
+		} finally {
+			// Always close the migration connection to prevent connection leaks
+			await migrationClient.end();
+			config.logger?.('Migration connection closed');
+		}
 	} else if (!config.postgresUrl) {
 		config.logger?.('No POSTGRES_URL found, skipping migration!');
 	} else if (config.isTestEnv) {

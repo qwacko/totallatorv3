@@ -3,6 +3,6 @@ export { createDatabase, migrateDatabase, printMaterializedViews } from './conne
 export type { DatabaseConfig, CoreDBType, TransactionType, DBType } from './connection';
 
 // Export all schema definitions
-export * from './schema';
+export * from './schema/index.js';
 
-export * from './backups/backupSchema';
+export * from './backups/backupSchema.js';

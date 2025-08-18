@@ -3,28 +3,28 @@ import { migrate } from 'drizzle-orm/libsql/migrator';
 import { createClient, type Client } from '@libsql/client';
 import * as schema from './schema/index.js';
 
-let db: ReturnType<typeof drizzle> | null = null;
-let client: Client | null = null;
+
+export type LogDBType = ReturnType<typeof getDB>;
 
 export interface LogDatabaseConfig {
 	url?: string;
 	authToken?: string;
 }
 
+const getDB = (client: Client) =>  drizzle(client, { schema });
+
 export async function initializeLogDatabase(config: LogDatabaseConfig = {}) {
-	if (db) {
-		return db;
-	}
 
 	const url = config.url || process.env.LOG_DATABASE_URL || 'file:./logs.db';
 	const authToken = config.authToken || process.env.LOG_DATABASE_AUTH_TOKEN;
 
-	client = createClient({
+	const client = createClient({
 		url,
 		authToken
 	});
+
+	const db = getDB(client)
 	
-	db = drizzle(client, { schema });
 	
 	try {
 		// Try different migration paths based on environment
@@ -59,19 +59,4 @@ export async function initializeLogDatabase(config: LogDatabaseConfig = {}) {
 	}
 	
 	return db;
-}
-
-export function getLogDatabase() {
-	if (!db) {
-		throw new Error('Log database not initialized. Call initializeLogDatabase() first.');
-	}
-	return db;
-}
-
-export function closeLogDatabase() {
-	if (client) {
-		client.close();
-		client = null;
-		db = null;
-	}
 }

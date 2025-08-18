@@ -1,9 +1,10 @@
 import { type ServerEnvSchemaType } from '@totallator/shared';
-import { createLogger, type LoggerFactory } from './logger.js';
+import { createLogger, initializeDatabaseLogging, type LoggerFactory } from './logger.js';
 import { createDatabase, migrateDatabase, type DBType } from '@totallator/database';
 import { createRateLimiter, type RateLimiter } from './rateLimiter.js';
 import { createEventEmitter, type TypedEventEmitter } from './eventEmitter.js';
 import { randomUUID } from 'crypto';
+import { initializeLogDatabase, LogDatabaseOperations, LogDBType } from '@totallator/log-database';
 
 /**
  * Global application context containing shared resources and configuration.
@@ -25,6 +26,9 @@ export interface GlobalContext {
   
   /** Database connection with transaction support */
   db: DBType;
+
+  loggingDB: LogDBType;
+  logDatabaseOps: LogDatabaseOperations;
   
   /** Server environment configuration and settings */
   serverEnv: ServerEnvSchemaType;
@@ -59,6 +63,12 @@ export interface GlobalContextConfig {
   
   /** Path to database migration files */
   migrationsPath: string;
+
+  /** Logging Database Config */
+  loggingDB: {
+    authToken: string;
+    url: string;
+  }
 }
 
 /**
@@ -71,13 +81,22 @@ export interface GlobalContextConfig {
  * @returns The initialized global context
  * @throws Will throw if database connection fails
  */
-export function initializeGlobalContext(config: GlobalContextConfig): GlobalContext {
+export async function initializeGlobalContext(config: GlobalContextConfig): Promise<GlobalContext> {
   if (globalContext) {
+    console.log("Reusing Existing Global Context");
     return globalContext;
   }
 
+
+  
+
+  console.log("Initializing Global Context");
+
   // Generate unique context ID for log filtering
   const contextId = randomUUID();
+
+  const loggingDB = await initializeLogDatabase(config.loggingDB)
+  const logDatabaseOps =  await initializeDatabaseLogging({...config.loggingDB, db:loggingDB});
 
   // Initialize logger with configured levels and classes
   const logger = createLogger(config.serverEnv.LOGGING, config.serverEnv.LOGGING_CLASSES, contextId);
@@ -128,6 +147,8 @@ export function initializeGlobalContext(config: GlobalContextConfig): GlobalCont
     contextId,
     logger,
     db,
+    loggingDB,
+    logDatabaseOps,
     serverEnv: config.serverEnv,
     postgresDatabase,
     viewRefreshLimiter,

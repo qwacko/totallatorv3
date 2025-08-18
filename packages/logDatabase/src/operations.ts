@@ -1,5 +1,5 @@
 import { eq, and, desc, asc, count, gte, lte, isNull, inArray } from 'drizzle-orm';
-import { getLogDatabase } from './connection.js';
+import { getLogDatabase, LogDBType } from './connection.js';
 import { logTable, configurationTable, type LogInsert, type LogSelect, type ConfigurationInsert, type ConfigurationSelect, logLevelEnum, logDomainEnum, logActionEnum, logDestinationEnum } from './schema/index.js';
 
 export type LogLevelType  = typeof logLevelEnum[number]
@@ -19,7 +19,12 @@ export interface LogEntry {
 }
 
 export class LogDatabaseOperations {
-	private db = getLogDatabase();
+
+	private db: LogDBType
+
+	constructor(db: LogDBType) {
+		this.db = db
+	}
 
 	async insertLog(entry: LogEntry): Promise<void> {
 		try {

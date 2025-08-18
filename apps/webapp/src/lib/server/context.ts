@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 import { materializedViewActions } from "@totallator/business-logic";
 import {
   type GlobalContext,
-  initializeDatabaseLogging,
   initializeGlobalContext,
 } from "@totallator/context";
 
@@ -30,24 +29,10 @@ export const ensureInitialized = async (): Promise<GlobalContext> => {
   return globalContext;
 };
 
-export const getDb = () => {
-  if (!globalContext?.db) {
-    throw new Error(
-      "Database not initialized. Call ensureInitialized() first.",
-    );
-  }
-  return globalContext.db;
-};
-
 export const initializeServer = async (): Promise<void> => {
   if (building) {
     return;
   }
-
-  await initializeDatabaseLogging({
-    authToken: getServerEnv().LOG_DATABASE_KEY,
-    url: getServerEnv().LOG_DATABASE_ADDRESS,
-  });
 
   console.log("Server Init Function");
   console.log("postgresUrl:", getServerEnv().POSTGRES_URL);
@@ -60,13 +45,17 @@ export const initializeServer = async (): Promise<void> => {
   );
 
   // Initialize global context
-  globalContext = initializeGlobalContext({
+  globalContext = await initializeGlobalContext({
     serverEnv: getServerEnv(),
     isBuilding: building,
     viewRefreshAction: async () => {
       return await materializedViewActions.conditionalRefreshWithContext({});
     },
     migrationsPath,
+    loggingDB: {
+      authToken: getServerEnv().LOG_DATABASE_KEY,
+      url: getServerEnv().LOG_DATABASE_ADDRESS,
+    },
   });
 
   globalContext
