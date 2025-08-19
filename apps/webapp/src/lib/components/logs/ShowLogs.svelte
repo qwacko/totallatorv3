@@ -6,14 +6,15 @@
 
 
     let filter = $state<LogFilterValidationType>({})
+    let refreshInterval = $state<number>(2000)
 
     const logs = $derived(await getLogs(filter))
     let updateTime = $state(new Date())
 
-    useInterval(async () => {
+    const interval = useInterval(async () => {
         await getLogs(filter).refresh()
         updateTime = new Date()
-    }, 1000)
+    }, () => refreshInterval)
 
 
     const toggleItem = (key: "domain"|"action"|"contextId"|"code"|"level", value: string | undefined) => {
@@ -28,9 +29,26 @@
         }
     }
 
+    const highlightText = (text: string, searchTerm: string | undefined): string => {
+        if (!searchTerm || !text) return text;
+        const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
+    }
+
 
 </script>
 {updateTime}
+<div class="flex flex-row gap-2 p-2">
+{#each [0,0.5, 1, 2, 5,10] as currentInterval}
+    <Badge class="w-10" color={currentInterval === refreshInterval / 1000 ? 'blue' : 'gray'} onclick={() => {
+        refreshInterval = currentInterval * 1000
+        interval.pause()
+        if(refreshInterval !== 0){
+        interval.resume()
+    }
+    }}>{#if currentInterval === 0}Off{:else}{currentInterval}s{/if}</Badge>
+{/each}
+</div>
 {#if filter.contextId}
 {#each filter.contextId as currentContextId}<Badge onclick={() => {toggleItem("contextId",currentContextId)}}>{currentContextId}</Badge>{/each}
 {/if}
@@ -66,7 +84,7 @@
             <tr>
                 <td class="p-2 content-center border">{log.id}</td>
                 <td class="p-2 content-center border">{log.date.toISOString()}</td>
-                <td class="p-2 content-center border">{log.title}</td>
+                <td class="p-2 content-center border">{@html highlightText(log.title, filter.text)}</td>
                 <td class="p-2 content-center border">{#if log.contextId}
                     <Badge onclick={() => {toggleItem("contextId",log.contextId)}}>{log.contextId}</Badge>{/if}</td>
                 <td class="p-2 content-center border">{#if log.domain}
@@ -77,7 +95,7 @@
                     <Badge onclick={() => {toggleItem("action", log.action)}}>{log.action}</Badge>{/if}</td>
                 <td class="p-2 content-center border">{#if log.logLevel}
                     <Badge onclick={() => {toggleItem("level", log.logLevel)}}>{log.logLevel}</Badge>{/if}</td>
-                <td class="p-2 content-center border"><pre>{JSON.stringify(log.dataProcessed, null, 2)}</pre></td>
+                <td class="p-2 content-center border"><pre>{@html highlightText(JSON.stringify(log.dataProcessed, null, 2), filter.text)}</pre></td>
             </tr>
         {/each}
     </tbody>
