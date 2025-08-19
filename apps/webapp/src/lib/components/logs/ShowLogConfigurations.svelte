@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Badge, Button, Accordion,  AccordionItem } from "flowbite-svelte";
+  import { Badge, Button, Accordion, AccordionItem, Card } from "flowbite-svelte";
 
   import {
     getLogConfigurations,
@@ -46,8 +46,9 @@
   };
 </script>
 
+<Card class="max-w-none">
   <!-- Header Section -->
-  <div class="flex items-center gap-3 mb-6">
+  <div class="flex items-center flex-row gap-3 mb-6">
     <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
       Log Configuration
     </h2>
@@ -74,7 +75,6 @@
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
               Destination: {destination || "Default"}
             </h3>
-            {#if foundLevels.size > 1}
               <div class="flex gap-1">
                 {#each foundLevels as [level, count]}
                   <Badge color={getLevelColor(level)}>
@@ -82,38 +82,35 @@
                   </Badge>
                 {/each}
               </div>
-            {/if}
-          </div>
-          
-                  <div class="flex grow"></div>
-          <!-- Global destination level controls -->
-          <div class="flex items-center gap-2 pr-2">
-            <span class="text-sm text-gray-600 dark:text-gray-400"
-              >Set all to:</span
-            >
-            
-            <div class="flex flex-row gap-1 items-center">
-              {#each levels as level}
-                {@const allAtThisLevel = destinationConfigurations.every(
-                  (item) => item.logLevel === level,
-                )}
-                <form {...setLogConfiguration}>
-                  <input type="hidden" name="destination" value={destination} />
-                  <input type="hidden" name="level" value={level} />
-                  <Button
-                    type="submit"
-                    color={allAtThisLevel
-                      ? getLevelColor(level)
-                      : "alternative"}
-                   size="xs"
-                  >
-                    {level}
-                  </Button>
-                </form>
-              {/each}
-            </div>
           </div>
         {/snippet}
+
+        <!-- Global destination level controls at the top of accordion body -->
+        <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Set all configurations for this destination to:
+          </span>
+          <div class="flex flex-row gap-1 items-center">
+            {#each levels as level}
+              {@const allAtThisLevel = destinationConfigurations.every(
+                (item) => item.logLevel === level,
+              )}
+              <form {...setLogConfiguration}>
+                <input type="hidden" name="destination" value={destination} />
+                <input type="hidden" name="level" value={level} />
+                <Button
+                  type="submit"
+                  color={allAtThisLevel
+                    ? getLevelColor(level)
+                    : "alternative"}
+                 size="xs"
+                >
+                  {level}
+                </Button>
+              </form>
+            {/each}
+          </div>
+        </div>
 
         <!-- Domains Section -->
         <Accordion>
@@ -122,6 +119,10 @@
               (item) => item.domain === domain,
             )}
             {#if domainConfigurations.length > 0}
+            {@const foundDomainLevels = domainConfigurations.reduce((acc, item) => {
+        acc.set(item.logLevel, (acc.get(item.logLevel) || 0) + 1);
+        return acc;
+      }, new Map<string, number>())}
               <AccordionItem >
                 {#snippet header()}
                   <div class="flex items-center gap-3">
@@ -131,39 +132,47 @@
                     <Badge color="indigo"
                       >{domainConfigurations.length} configs</Badge
                     >
+                    <div class="flex gap-1">
+                {#each foundDomainLevels as [level, count]}
+                  <Badge color={getLevelColor(level)}>
+                    {level}: {count}
+                  </Badge>
+                {/each}
+              </div>
                   </div>
-                  <div class="flex grow"></div>
-                  <div class="flex items-center gap-2 pr-2">
-                    <span class="text-sm text-gray-600 dark:text-gray-400"
-                      >Set domain to:</span
-                    >
-                    <div class="flex flex-row gap-1 items-center">
-                      {#each levels as level}
-                        {@const allAtThisLevel = domainConfigurations.every(
-                          (item) => item.logLevel === level,
-                        )}
-                        <form {...setLogConfiguration}>
-                          <input type="hidden" name="domain" value={domain} />
-                          <input
-                            type="hidden"
-                            name="destination"
-                            value={destination}
-                          />
-                          <input type="hidden" name="level" value={level} />
-                          <Button
-                            type="submit"
-                            color={allAtThisLevel
-                              ? getLevelColor(level)
-                              : "alternative"}
-                            size="xs"
-                          >
-                            {level}
-                          </Button>
-                        </form>
-                      {/each}
-                    </div>
+                {/snippet}
+
+                <!-- Domain level controls at the top of domain accordion body -->
+                <div class="flex items-center justify-between p-3 bg-gray-25 dark:bg-gray-750 border-b border-gray-100 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Set all configurations for this domain to:
+                  </span>
+                  <div class="flex flex-row gap-1 items-center">
+                    {#each levels as level}
+                      {@const allAtThisLevel = domainConfigurations.every(
+                        (item) => item.logLevel === level,
+                      )}
+                      <form {...setLogConfiguration}>
+                        <input type="hidden" name="domain" value={domain} />
+                        <input
+                          type="hidden"
+                          name="destination"
+                          value={destination}
+                        />
+                        <input type="hidden" name="level" value={level} />
+                        <Button
+                          type="submit"
+                          color={allAtThisLevel
+                            ? getLevelColor(level)
+                            : "alternative"}
+                          size="xs"
+                        >
+                          {level}
+                        </Button>
+                      </form>
+                    {/each}
                   </div>
-                  {/snippet}
+                </div>
 
                 <div class="space-y-3 p-4">
                   {#each actions as action}
@@ -295,3 +304,4 @@
       </div>
     </div>
   </div>
+</Card>
