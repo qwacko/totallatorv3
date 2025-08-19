@@ -119,10 +119,11 @@ export const actions = {
     });
 
     if (!processedUpdate.success) {
-      data.locals.global.logger.error(
-        "Update Filter Error",
-        JSON.stringify(processedUpdate.error, null, 2),
-      );
+      data.locals.global.logger('queries').error({
+        code: "QRY_0002",
+        title: "Update Filter Error",
+        error: JSON.stringify(processedUpdate.error, null, 2)
+      });
       return setError(form, "Form Submission Error");
     }
 
@@ -132,7 +133,7 @@ export const actions = {
         data: processedUpdate.data,
       });
     } catch (e) {
-      data.locals.global.logger.error("Reusable Filter Update Error", e);
+      data.locals.global.logger('queries').error({code: "QRY_0003", title: "Reusable Filter Update Error", error: e});
       return setError(form, "Reusable Filter Update Error");
     }
 
@@ -152,17 +153,18 @@ export const actions = {
     const { filter } = form.data;
 
     if (!filter) {
-      data.locals.global.logger.error("Filter Is Required");
+      data.locals.global.logger('queries').error({code: "QRY_0004", title: "Filter Is Required"});
       return setError(form, "Filter Is Required");
     }
 
     const filterProcessed = journalFilterSchema.safeParse(JSON.parse(filter));
 
     if (!filterProcessed.success) {
-      data.locals.global.logger.error(
-        "Filter Is Invalid",
-        JSON.stringify(filterProcessed.error, null, 2),
-      );
+      data.locals.global.logger('queries').error({
+        code: "QRY_0005",
+        title: "Filter Is Invalid",
+        error: JSON.stringify(filterProcessed.error, null, 2)
+      });
       return setError(form, "Filter Is Invalid");
     }
 
@@ -172,7 +174,7 @@ export const actions = {
         data: { filter: filterProcessed.data },
       });
     } catch (e) {
-      data.locals.global.logger.error("Reusable Filter Update Error", e);
+      data.locals.global.logger('queries').error({code: "QRY_0006", title: "Reusable Filter Update Error", error: e});
       return setError(form, "Reusable Filter Update Error");
     }
 
@@ -192,7 +194,7 @@ export const actions = {
         data: { change: form.data },
       });
     } catch (e) {
-      data.locals.global.logger.error("Reusable Filter Update Change Error", e);
+      data.locals.global.logger('queries').error({code: "QRY_0007", title: "Reusable Filter Update Change Error", error: e});
       return setError(form, "Reusable Filter Update Change Error");
     }
 

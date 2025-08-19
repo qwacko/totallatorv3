@@ -29,10 +29,11 @@ export const actions = {
       await tActions.import.delete({ id: params.id });
       deleted = true;
     } catch (e) {
-      locals.global.logger.error(
-        "Import Delete Error",
-        JSON.stringify(e, null, 2),
-      );
+      locals.global.logger('import').error({
+        code: "IMP_0002",
+        title: "Import Delete Error",
+        error: JSON.stringify(e, null, 2)
+      });
     }
 
     if (deleted) {

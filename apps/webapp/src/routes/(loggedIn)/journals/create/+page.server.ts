@@ -57,7 +57,7 @@ export const actions = {
     const form = await superValidate(request, zod4(createValidation));
 
     if (!form.valid) {
-      locals.global.logger.error("Update Form Is Not Valid", form.errors);
+      locals.global.logger('journals').error({code: "JRN_0009", title: "Update Form Is Not Valid", errors: form.errors});
       return { form };
     }
 
@@ -66,10 +66,11 @@ export const actions = {
     );
 
     if (!parsedFilter.success) {
-      locals.global.logger.error(
-        "Update Filter Is Not Valid",
-        parsedFilter.error,
-      );
+      locals.global.logger('journals').error({
+        code: "JRN_0010",
+        title: "Update Filter Is Not Valid",
+        error: parsedFilter.error
+      });
       redirect(302, form.data.currentPage);
     }
 
@@ -78,7 +79,7 @@ export const actions = {
         transaction: form.data,
       });
     } catch (e) {
-      locals.global.logger.error("Create Transaction Error", e);
+      locals.global.logger('journals').error({code: "JRN_0011", title: "Create Transaction Error", error: e});
       return message(form, "Error Creating Transaction");
     }
     redirect(302, form.data.prevPage);

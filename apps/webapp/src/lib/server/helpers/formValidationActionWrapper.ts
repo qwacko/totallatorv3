@@ -65,15 +65,16 @@ export const formValidationActionWrapper = <
     const creationPerson = data.locals.user?.id;
 
     if (!creationPerson && requireUser) {
-      data.locals.global.logger.error(`${title} : User not found`);
+      data.locals.global.logger('server').error({code: "SRV_0001", title: `${title} : User not found`});
       throw new Error(`${title} : User not found`);
     }
 
     if (!form.valid) {
-      data.locals.global.logger.error(
-        `${title} : Form Validation Error`,
-        form.errors,
-      );
+      data.locals.global.logger('server').error({
+        code: "SRV_0002",
+        title: `${title} : Form Validation Error`,
+        errors: form.errors
+      });
       sanitiseFormData(form);
       return { form };
     }
@@ -98,7 +99,7 @@ export const formValidationActionWrapper = <
         return result;
       }
     } catch (e) {
-      data.locals.global.logger.error(`${title} : Error`, e);
+      data.locals.global.logger('server').error({code: "SRV_0003", title: `${title} : Error`, error: e});
       sanitiseFormData(form);
       return message(form, `${title} : Error`);
     }

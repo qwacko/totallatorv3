@@ -65,10 +65,11 @@ export const actions = {
         },
       });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Import Mapping Create Error",
-        JSON.stringify(e, null, 2),
-      );
+      data.locals.global.logger('import').error({
+        code: "IMP_0008",
+        title: "Import Mapping Create Error",
+        error: JSON.stringify(e, null, 2)
+      });
 
       return fail(400, { message: "Unknown Error Creating Import Mapping" });
     }

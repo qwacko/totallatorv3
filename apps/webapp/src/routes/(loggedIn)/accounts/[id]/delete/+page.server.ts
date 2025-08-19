@@ -27,7 +27,7 @@ export const actions = {
     try {
       await tActions.account.delete(idSchema.parse(params));
     } catch (e) {
-      locals.global.logger.error("Delete Account Error", e);
+      locals.global.logger('accounts').error({code: "ACC_0003", title: "Delete Account Error", error: e});
       return {};
     }
     redirect(302, "/accounts");

@@ -85,7 +85,7 @@ export const actions = {
         },
       };
     } catch (e) {
-      locals.global.logger.error("Bill Update Error", e);
+      locals.global.logger('bills').error({code: "BIL_0003", title: "Bill Update Error", error: e});
       return error(500, "Error updating bll");
     }
   },

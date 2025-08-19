@@ -62,7 +62,7 @@ export const actions = {
         initiatingUser: authUser,
       });
     } catch (e) {
-      data.locals.global.logger.error("updateInfoError : ", e);
+      data.locals.global.logger('users').error({code: "USR_0001", title: "updateInfoError", error: e});
       return message(form, "Error Updating User", { status: 401 });
     }
 

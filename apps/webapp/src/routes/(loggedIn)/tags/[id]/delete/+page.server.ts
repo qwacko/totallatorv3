@@ -31,7 +31,7 @@ export const actions = {
     try {
       await tActions.tag.delete(idSchema.parse(params));
     } catch (e) {
-      locals.global.logger.error("Delete Tag Error", e);
+      locals.global.logger('tags').error({code: "TAG_0002", title: "Delete Tag Error", error: e});
       return {};
     }
     redirect(302, "/tags");

@@ -36,7 +36,7 @@ export const actions = {
     try {
       await tActions.budget.create(form.data);
     } catch (e) {
-      locals.global.logger.error("Create Budget Error", e);
+      locals.global.logger('budgets').error({code: "BUD_0004", title: "Create Budget Error", error: e});
       return message(form, "Error Creating Budget, Possibly Already Exists");
     }
     redirect(302, form.data.prevPage);

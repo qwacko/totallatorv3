@@ -57,7 +57,7 @@ export const actions = {
     const form = await superValidate(request, zod4(cloneValidation));
 
     if (!form.valid) {
-      locals.global.logger.error("Clone Form Is Not Valid");
+      locals.global.logger('journals').error({code: "JRN_0002", title: "Clone Form Is Not Valid"});
       redirect(302, form.data.currentPage);
     }
 
@@ -66,7 +66,7 @@ export const actions = {
     );
 
     if (!parsedFilter.success) {
-      locals.global.logger.error("Clone Filter Is Not Valid");
+      locals.global.logger('journals').error({code: "JRN_0003", title: "Clone Filter Is Not Valid"});
       redirect(302, form.data.currentPage);
     }
 
@@ -76,7 +76,7 @@ export const actions = {
         journalData: form.data,
       });
     } catch (e) {
-      locals.global.logger.error("Error Cloning Journals : ", e);
+      locals.global.logger('journals').error({code: "JRN_0004", title: "Error Cloning Journals", error: e});
 
       return message(form, "Error Cloning Journals");
     }

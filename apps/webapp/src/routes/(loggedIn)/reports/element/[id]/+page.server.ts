@@ -32,7 +32,7 @@ export const actions = {
         data: { ...form.data, id },
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Updating Report Element : ", e);
+      data.locals.global.logger('reports').error({code: "RPT_0006", title: "Error Updating Report Element", error: e});
     }
   },
   addFilter: async (data) => {
@@ -41,10 +41,11 @@ export const actions = {
     try {
       await tActions.report.reportElement.addFilter({ id });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Error Adding Filter to Report Element",
-        e,
-      );
+      data.locals.global.logger('reports').error({
+        code: "RPT_0007",
+        title: "Error Adding Filter to Report Element",
+        error: e
+      });
     }
 
     return;
@@ -76,10 +77,11 @@ export const actions = {
         filter: transformedFilterText.data,
       });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Error Updating Filter to Report Element",
-        e,
-      );
+      data.locals.global.logger('reports').error({
+        code: "RPT_0008",
+        title: "Error Updating Filter to Report Element",
+        error: e
+      });
     }
 
     return;
@@ -90,10 +92,11 @@ export const actions = {
     try {
       await tActions.report.reportElement.removeFilter({ id });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Error Removing Filter to Report Element",
-        e,
-      );
+      data.locals.global.logger('reports').error({
+        code: "RPT_0009",
+        title: "Error Removing Filter to Report Element",
+        error: e
+      });
     }
 
     return;
@@ -116,10 +119,11 @@ export const actions = {
         data: formData.data,
       });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Error Updating Report Element Config : ",
-        e,
-      );
+      data.locals.global.logger('reports').error({
+        code: "RPT_0010",
+        title: "Error Updating Report Element Config",
+        error: e
+      });
       return message(formData, "Error Updating Report Element Config", {
         status: 400,
       });
@@ -140,10 +144,11 @@ export const actions = {
         configId: reportElement.reportElementConfigId,
       });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Error Adding Filter to Report Element",
-        e,
-      );
+      data.locals.global.logger('reports').error({
+        code: "RPT_0011",
+        title: "Error Adding Filter to Report Element",
+        error: e
+      });
       return fail(400, { message: "Error Adding Filter to Report Element" });
     }
 
@@ -187,10 +192,11 @@ export const actions = {
         filter: transformedFilterText.data,
       });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Error Updating Filter on Report Configuration",
-        e,
-      );
+      data.locals.global.logger('reports').error({
+        code: "RPT_0012",
+        title: "Error Updating Filter on Report Configuration",
+        error: e
+      });
       return fail(400, { message: "Error Updating Filter to Report Element" });
     }
 
@@ -218,10 +224,11 @@ export const actions = {
         filterId: filterId.toString(),
       });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Error Removing Filter to Report Element",
-        e,
-      );
+      data.locals.global.logger('reports').error({
+        code: "RPT_0013",
+        title: "Error Removing Filter to Report Element",
+        error: e
+      });
       return fail(400, { message: "Error Removing Filter to Report Element" });
     }
 

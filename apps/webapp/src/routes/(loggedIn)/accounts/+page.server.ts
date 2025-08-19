@@ -107,7 +107,7 @@ export const actions = {
         },
       };
     } catch (e) {
-      locals.global.logger.error("Account Update Error", e);
+      locals.global.logger('accounts').error({code: "ACC_0004", title: "Account Update Error", error: e});
       return error(500, "Error updating account");
     }
   },

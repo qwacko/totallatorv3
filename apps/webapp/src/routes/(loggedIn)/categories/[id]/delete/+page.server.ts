@@ -27,7 +27,7 @@ export const actions = {
     try {
       await tActions.category.delete(idSchema.parse(params));
     } catch (e) {
-      locals.global.logger.error("Delete Category Error", e);
+      locals.global.logger('categories').error({code: "CAT_0002", title: "Delete Category Error", error: e});
       return {};
     }
     redirect(302, "/categories");

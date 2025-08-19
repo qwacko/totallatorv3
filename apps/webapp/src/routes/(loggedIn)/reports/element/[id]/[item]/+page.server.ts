@@ -71,10 +71,11 @@ export const actions = {
         data: form.data,
       });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Error Updating Report Element Item : ",
-        e,
-      );
+      data.locals.global.logger('reports').error({
+        code: "RPT_0014",
+        title: "Error Updating Report Element Item",
+        error: e
+      });
       return message(form, "Error Updating Report Element Item", {
         status: 400,
       });

@@ -11,10 +11,11 @@ export const actions = {
     try {
       await tActions.import.reprocess({ id: params.id });
     } catch (e) {
-      locals.global.logger.error(
-        "Reprocess Import Error",
-        JSON.stringify(e, null, 2),
-      );
+      locals.global.logger('import').error({
+        code: "IMP_0003",
+        title: "Reprocess Import Error",
+        error: JSON.stringify(e, null, 2)
+      });
     }
   },
   triggerImport: async ({ params, locals }) =>
@@ -23,10 +24,11 @@ export const actions = {
     try {
       await tActions.import.clean({ id: params.id });
     } catch (e) {
-      locals.global.logger.error(
-        "Clean Import Error",
-        JSON.stringify(e, null, 2),
-      );
+      locals.global.logger('import').error({
+        code: "IMP_0004",
+        title: "Clean Import Error",
+        error: JSON.stringify(e, null, 2)
+      });
     }
 
     const importData = await tActions.import.get({

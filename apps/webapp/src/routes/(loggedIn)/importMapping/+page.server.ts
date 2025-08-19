@@ -50,7 +50,7 @@ export const actions = {
 
       return;
     } catch (error) {
-      data.locals.global.logger.error(error);
+      data.locals.global.logger('import').error({code: "IMP_0007", title: "Import Mapping Error", error});
       return;
     }
   },

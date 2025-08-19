@@ -139,7 +139,7 @@ export const actions = {
         });
       }
     } catch (e) {
-      locals.global.logger.error("Error Updating Journal State : ", e);
+      locals.global.logger('journals').error({code: "JRN_0012", title: "Error Updating Journal State", error: e});
       redirect(
         302,
         form.data.prevPage ||
@@ -156,7 +156,7 @@ export const actions = {
     const form = await superValidate(request, zod4(updateValidation));
 
     if (!form.valid) {
-      locals.global.logger.error("Update Form Is Not Valid");
+      locals.global.logger('journals').error({code: "JRN_0013", title: "Update Form Is Not Valid"});
       redirect(302, form.data.currentPage);
     }
 
@@ -165,7 +165,7 @@ export const actions = {
     );
 
     if (!parsedFilter.success) {
-      locals.global.logger.error("Update Filter Is Not Valid");
+      locals.global.logger('journals').error({code: "JRN_0014", title: "Update Filter Is Not Valid"});
       redirect(302, form.data.currentPage);
     }
 
@@ -175,7 +175,7 @@ export const actions = {
         journalData: form.data,
       });
     } catch (e) {
-      locals.global.logger.error("Error Updating Journals : ", e);
+      locals.global.logger('journals').error({code: "JRN_0015", title: "Error Updating Journals", error: e});
 
       return message(form, "Error Updating Journals");
     }

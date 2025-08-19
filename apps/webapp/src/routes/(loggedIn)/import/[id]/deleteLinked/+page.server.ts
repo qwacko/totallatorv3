@@ -29,10 +29,11 @@ export const actions = {
       await tActions.import.deleteLinked({ id: params.id });
       deleted = true;
     } catch (e) {
-      locals.global.logger.error(
-        "Import Delete Linked Error",
-        JSON.stringify(e, null, 2),
-      );
+      locals.global.logger('import').error({
+        code: "IMP_0005",
+        title: "Import Delete Linked Error",
+        error: JSON.stringify(e, null, 2)
+      });
     }
 
     if (deleted) {

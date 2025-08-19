@@ -53,7 +53,7 @@ export const actions = {
     try {
       await tActions.budget.update({ data: form.data, id: form.data.id });
     } catch (e) {
-      locals.global.logger.error("Update Budget Error", e);
+      locals.global.logger('budgets').error({code: "BUD_0001", title: "Update Budget Error", error: e});
       return message(form, "Error Updating Budget");
     }
     redirect(302, form.data.prevPage);

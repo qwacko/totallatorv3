@@ -79,14 +79,14 @@ export const actions = {
     );
 
     if (!form.valid) {
-      data.locals.global.logger.error("Update Form Is Not Valid");
+      data.locals.global.logger('journals').error({code: "JRN_0005", title: "Update Form Is Not Valid"});
       return { form };
     }
 
     const parsedFilter = journalFilterSchema.safeParse(form.data.filter);
 
     if (!parsedFilter.success) {
-      data.locals.global.logger.error("Filter Is Not Valid");
+      data.locals.global.logger('journals').error({code: "JRN_0006", title: "Filter Is Not Valid"});
       return { form };
     }
 
@@ -98,7 +98,7 @@ export const actions = {
         journalData: form.data,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Updating Journals : ", e);
+      data.locals.global.logger('journals').error({code: "JRN_0007", title: "Error Updating Journals", error: e});
 
       return message(form, "Error Updating Journals");
     }
@@ -144,7 +144,7 @@ export const actions = {
       }
       return;
     } catch (error) {
-      data.locals.global.logger.error(error);
+      data.locals.global.logger('journals').error({code: "JRN_0008", title: "Journal Update Error", error});
       return;
     }
   },

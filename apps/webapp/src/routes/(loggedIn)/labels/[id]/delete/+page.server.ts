@@ -27,7 +27,7 @@ export const actions = {
     try {
       await tActions.label.softDelete(idSchema.parse(params));
     } catch (e) {
-      locals.global.logger.error("Delete Label Error", e);
+      locals.global.logger('labels').error({code: "LBL_0004", title: "Delete Label Error", error: e});
       return {};
     }
     redirect(302, "/labels");

@@ -50,7 +50,7 @@ export const actions = {
 
       await tActions.journal.hardDeleteTransactions({ transactionIds });
     } catch (e) {
-      locals.global.logger.error("Error Updating Journal State : ", e);
+      locals.global.logger('journals').error({code: "JRN_0001", title: "Error Updating Journal State", error: e});
       redirect(
         302,
         form.data.prevPage ||

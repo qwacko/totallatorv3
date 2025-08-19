@@ -49,7 +49,7 @@ export const actions = {
     try {
       await tActions.category.update({ data: form.data, id: form.data.id });
     } catch (e) {
-      locals.global.logger.error("Update Category Error", e);
+      locals.global.logger('categories').error({code: "CAT_0001", title: "Update Category Error", error: e});
       return message(form, "Error Updating Category");
     }
     redirect(302, form.data.prevPage);

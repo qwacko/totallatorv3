@@ -38,7 +38,7 @@ export const actions: Actions = {
       const session = await tActions.auth.createSession(token, user.id);
       tActions.auth.setSessionTokenCookie(request, token, session.expiresAt);
     } catch (e) {
-      request.locals.global.logger.error("Error Logging In", e);
+      request.locals.global.logger('auth').error({code: "AUTH_0001", title: "Error Logging In", error: e});
       return setMessage(form, "Incorrect username or password", {
         status: 400,
       });

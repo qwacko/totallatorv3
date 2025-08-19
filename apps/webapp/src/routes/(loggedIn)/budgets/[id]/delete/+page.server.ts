@@ -31,7 +31,7 @@ export const actions = {
     try {
       await tActions.budget.delete(idSchema.parse(params));
     } catch (e) {
-      locals.global.logger.error("Delete Budget Error", e);
+      locals.global.logger('budgets').error({code: "BUD_0002", title: "Delete Budget Error", error: e});
       return {};
     }
     redirect(302, "/budgets");

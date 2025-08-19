@@ -54,7 +54,7 @@ export const actions = {
     try {
       await tActions.backup.lock({ id });
     } catch (e) {
-      locals.global.logger.error("Error Locking Backup: " + e);
+      locals.global.logger('backup').error({code: "BCK_0001", title: "Error Locking Backup", error: e});
     }
     return;
   },
@@ -66,7 +66,7 @@ export const actions = {
     try {
       await tActions.backup.unlock({ id });
     } catch (e) {
-      locals.global.logger.error("Error Unlocking Backup: " + e);
+      locals.global.logger('backup').error({code: "BCK_0002", title: "Error Unlocking Backup", error: e});
     }
     return;
   },
@@ -83,7 +83,7 @@ export const actions = {
     try {
       await tActions.backup.updateTitle({ id, title });
     } catch (e) {
-      locals.global.logger.error("Error Updating Backup Title: " + e);
+      locals.global.logger('backup').error({code: "BCK_0003", title: "Error Updating Backup Title", error: e});
     }
     return;
   },
@@ -100,7 +100,7 @@ export const actions = {
         userId: locals.user?.id
       });
     } catch (e) {
-      locals.global.logger.error("Error Triggering Backup Restore: " + e);
+      locals.global.logger('backup').error({code: "BCK_0004", title: "Error Triggering Backup Restore", error: e});
       return failWrapper("Error Starting Backup Restore");
     }
     redirect(
@@ -120,7 +120,7 @@ export const actions = {
     try {
       await tActions.backup.deleteBackup({ id });
     } catch (e) {
-      locals.global.logger.error("Error Deleting Backup: " + e);
+      locals.global.logger('backup').error({code: "BCK_0005", title: "Error Deleting Backup", error: e});
       return failWrapper("Error Deleting Backup");
     }
 

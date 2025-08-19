@@ -36,7 +36,7 @@ export const actions = {
     try {
       await tActions.category.create(form.data);
     } catch (e) {
-      locals.global.logger.error("Create Category Error", e);
+      locals.global.logger('categories').error({code: "CAT_0004", title: "Create Category Error", error: e});
       return message(form, "Error Creating Category, Possibly Already Exists");
     }
     redirect(302, form.data.prevPage);

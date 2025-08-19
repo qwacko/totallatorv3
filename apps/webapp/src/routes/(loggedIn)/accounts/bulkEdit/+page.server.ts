@@ -74,7 +74,7 @@ export const actions = {
         data: restData,
       });
     } catch (e) {
-      locals.global.logger.error("Error Updating Journal State : ", e);
+      locals.global.logger('accounts').error({code: "ACC_0001", title: "Error Updating Journal State", error: e});
       redirect(
         302,
         form.data.prevPage ||

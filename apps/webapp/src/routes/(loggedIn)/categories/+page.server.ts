@@ -80,7 +80,7 @@ export const actions = {
         },
       };
     } catch (e) {
-      locals.global.logger.error("Category Update Error", e);
+      locals.global.logger('categories').error({code: "CAT_0003", title: "Category Update Error", error: e});
       return error(500, "Error updating category");
     }
   },

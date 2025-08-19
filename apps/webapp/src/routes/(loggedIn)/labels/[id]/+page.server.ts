@@ -49,7 +49,7 @@ export const actions = {
     try {
       await tActions.label.update({ data: form.data, id: form.data.id });
     } catch (e) {
-      locals.global.logger.error("Update Label Error", e);
+      locals.global.logger('labels').error({code: "LBL_0001", title: "Update Label Error", error: e});
       return message(form, "Error Updating Label");
     }
     redirect(302, form.data.prevPage);

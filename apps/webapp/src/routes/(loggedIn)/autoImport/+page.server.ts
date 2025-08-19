@@ -45,7 +45,7 @@ export const actions = {
         id: id.toString(),
       });
     } catch (e) {
-      locals.global.logger.error("Error Cloning Auto Import", e);
+      locals.global.logger('auto-import').error({code: "AI_0002", title: "Error Cloning Auto Import", error: e});
     }
   },
 };

@@ -39,7 +39,7 @@ export const actions = {
     try {
       newReportId = await tActions.report.create({ data: form.data });
     } catch (e) {
-      locals.global.logger.error("Create Report Error", e);
+      locals.global.logger('reports').error({code: "RPT_0005", title: "Create Report Error", error: e});
       return message(
         form,
         "Error Creating Report, Possibly Group / Title Already Exists",

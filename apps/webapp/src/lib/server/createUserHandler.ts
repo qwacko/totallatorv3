@@ -42,7 +42,7 @@ export const createUserHandler = async ({
       tActions.auth.setSessionTokenCookie(request, token, session.expiresAt);
     }
   } catch (e) {
-    locals.global.logger.error("Error creating user", e);
+    locals.global.logger('auth').error({code: "AUTH_0002", title: "Error creating user", error: e});
     return setError(
       form,
       "username",

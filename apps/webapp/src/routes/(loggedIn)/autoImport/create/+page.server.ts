@@ -51,7 +51,7 @@ export const actions = {
         data: validatedData.data,
       });
     } catch (e) {
-      locals.global.logger.error("Error Creating Auto Import", e);
+      locals.global.logger('auto-import').error({code: "AI_0001", title: "Error Creating Auto Import", error: e});
       return message(form, "Error Creating Auto Import");
     }
     return redirect(

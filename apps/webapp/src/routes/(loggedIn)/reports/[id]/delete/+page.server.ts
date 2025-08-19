@@ -34,7 +34,7 @@ export const actions = {
       await tActions.report.delete({ id });
       defaultReportRedirect();
     } catch (e) {
-      data.locals.global.logger.error("Error deleting report", e);
+      data.locals.global.logger('reports').error({code: "RPT_0004", title: "Error deleting report", error: e});
     }
   },
 };

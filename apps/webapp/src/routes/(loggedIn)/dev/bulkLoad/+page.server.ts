@@ -90,11 +90,12 @@ export const actions = {
       await tActions.journal.seed(count);
       const endTime = new Date();
       const timeDiff = (endTime.getTime() - startTime.getTime()) / 1000;
-      data.locals.global.logger.info(
-        `Added ${count} transactions in ${timeDiff.toString()} seconds`,
-      );
+      data.locals.global.logger('server').info({
+        code: "DEV_0001",
+        title: `Added ${count} transactions in ${timeDiff.toString()} seconds`
+      });
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Bulk Journals : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0002", title: "Error Creating Bulk Journals", error: e});
     }
   },
   bulkAddAccounts: async (data) => {
@@ -116,7 +117,7 @@ export const actions = {
         countLiabilities,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Bulk Accounts : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0003", title: "Error Creating Bulk Accounts", error: e});
     }
   },
   bulkAddTags: async (data) => {
@@ -126,7 +127,7 @@ export const actions = {
 
       await tActions.tag.seed(count);
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Bulk Tags : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0004", title: "Error Creating Bulk Tags", error: e});
     }
   },
   bulkAddBills: async (data) => {
@@ -136,7 +137,7 @@ export const actions = {
 
       await tActions.bill.seed(count);
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Bulk Bills : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0005", title: "Error Creating Bulk Bills", error: e});
     }
   },
   bulkAddBudgets: async (data) => {
@@ -146,7 +147,7 @@ export const actions = {
 
       await tActions.budget.seed(count);
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Budget Tags : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0006", title: "Error Creating Budget Tags", error: e});
     }
   },
   bulkAddCategories: async (data) => {
@@ -156,7 +157,7 @@ export const actions = {
 
       await tActions.category.seed(count);
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Bulk Categories : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0007", title: "Error Creating Bulk Categories", error: e});
     }
   },
   bulkAddLabels: async (data) => {
@@ -166,7 +167,7 @@ export const actions = {
 
       await tActions.label.seed(count);
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Bulk Labels : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0008", title: "Error Creating Bulk Labels", error: e});
     }
   },
   bulkAddReusableFilters: async (data) => {
@@ -176,10 +177,11 @@ export const actions = {
 
       await tActions.reusableFitler.seed({ count });
     } catch (e) {
-      data.locals.global.logger.error(
-        "Error Creating Bulk Reusable Filters : ",
-        e,
-      );
+      data.locals.global.logger('server').error({
+        code: "DEV_0009",
+        title: "Error Creating Bulk Reusable Filters",
+        error: e
+      });
     }
   },
   deleteUnusedJournals: async (data) => {
@@ -194,7 +196,7 @@ export const actions = {
         transactionIds,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Deleting Unused Journals : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0010", title: "Error Deleting Unused Journals", error: e});
     }
   },
   deleteUnusedAccounts: async (data) => {
@@ -206,7 +208,7 @@ export const actions = {
       );
       await tActions.account.deleteMany(items);
     } catch (e) {
-      data.locals.global.logger.error("Error Deleting Unused Accounts : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0011", title: "Error Deleting Unused Accounts", error: e});
     }
   },
   deleteUnusedTags: async (data) => {
@@ -218,7 +220,7 @@ export const actions = {
       );
       await tActions.tag.deleteMany(items);
     } catch (e) {
-      data.locals.global.logger.error("Error Deleting Unused Tags : ", e);
+      data.locals.global.logger('server').error({code: "DEV_0012", title: "Error Deleting Unused Tags", error: e});
     }
   },
   deleteUnusedCategories: async ({ locals }) => {
@@ -230,7 +232,7 @@ export const actions = {
       );
       await tActions.category.deleteMany(items);
     } catch (e) {
-      locals.global.logger.error("Error Deleting Unused Categories : ", e);
+      locals.global.logger('server').error({code: "DEV_0013", title: "Error Deleting Unused Categories", error: e});
     }
   },
   deleteUnusedBills: async ({ locals }) => {
@@ -242,7 +244,7 @@ export const actions = {
       );
       await tActions.bill.deleteMany(items);
     } catch (e) {
-      locals.global.logger.error("Error Deleting Unused Bills : ", e);
+      locals.global.logger('server').error({code: "DEV_0014", title: "Error Deleting Unused Bills", error: e});
     }
   },
   deleteUnusedBudgets: async ({ locals }) => {
@@ -254,7 +256,7 @@ export const actions = {
       );
       await tActions.budget.deleteMany(items);
     } catch (e) {
-      locals.global.logger.error("Error Deleting Unused Budgets : ", e);
+      locals.global.logger('server').error({code: "DEV_0015", title: "Error Deleting Unused Budgets", error: e});
     }
   },
   deleteUnusedLabels: async ({ locals }) => {
@@ -266,7 +268,7 @@ export const actions = {
       );
       await tActions.label.hardDeleteMany(items);
     } catch (e) {
-      locals.global.logger.error("Error Deleting Unused Labels : ", e);
+      locals.global.logger('server').error({code: "DEV_0016", title: "Error Deleting Unused Labels", error: e});
     }
   },
   deleteReusableFilters: async ({ locals }) => {
@@ -278,7 +280,7 @@ export const actions = {
         ids: items.data.map((item) => item.id),
       });
     } catch (e) {
-      locals.global.logger.error("Error Deleting Reusable Filters : ", e);
+      locals.global.logger('server').error({code: "DEV_0017", title: "Error Deleting Reusable Filters", error: e});
     }
   },
 };

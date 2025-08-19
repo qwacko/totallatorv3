@@ -59,7 +59,7 @@ export const actions = {
         layoutConfig: data.data,
       });
     } catch (e) {
-      locals.global.logger.error("Error updating report layout", e);
+      locals.global.logger('reports').error({code: "RPT_0001", title: "Error updating report layout", error: e});
       return;
     }
 
@@ -77,10 +77,11 @@ export const actions = {
     );
 
     if (!data.success) {
-      locals.global.logger.error(
-        "Update Filter Parsing Error : ",
-        data.error.message,
-      );
+      locals.global.logger('reports').error({
+        code: "RPT_0002",
+        title: "Update Filter Parsing Error",
+        error: data.error.message
+      });
       return failWrapper("Invalid Filter");
     }
 
@@ -90,7 +91,7 @@ export const actions = {
         filter: data.data,
       });
     } catch (e) {
-      locals.global.logger.error("Error updating report filter", e);
+      locals.global.logger('reports').error({code: "RPT_0003", title: "Error updating report filter", error: e});
       return failWrapper("Error updating report filter");
     }
 

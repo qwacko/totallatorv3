@@ -78,7 +78,7 @@ export const actions = {
         id: form.data.id,
       });
     } catch (e) {
-      locals.global.logger.error("Update LLM Provider Error", e);
+      locals.global.logger('llm').error({code: "LLM_0002", title: "Update LLM Provider Error", error: e});
       return message(form, "Error Updating LLM Provider");
     }
     redirect(302, form.data.prevPage || "/llm/providers");

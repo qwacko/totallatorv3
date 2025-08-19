@@ -36,7 +36,7 @@ export const actions = {
     try {
       await tActions.account.create(form.data);
     } catch (e) {
-      locals.global.logger.error("Create Account Error", e);
+      locals.global.logger('accounts').error({code: "ACC_0002", title: "Create Account Error", error: e});
       return message(form, "Error Creating Account, Possibly Already Exists");
     }
     redirect(302, form.data.prevPage);

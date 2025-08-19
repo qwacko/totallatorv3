@@ -85,7 +85,7 @@ export const actions = {
         },
       };
     } catch (e) {
-      locals.global.logger.error("Budget Update Error", e);
+      locals.global.logger('budgets').error({code: "BUD_0003", title: "Budget Update Error", error: e});
       return error(500, "Error updating budget");
     }
   },

@@ -15,10 +15,12 @@ export const actions = {
     try {
       await tActions.backup.importFile({ backupFile, id });
     } catch (e) {
-      locals.global.logger.error(
-        `Backup Import Failed. Incorrect Contents - ${backupFile.name}`,
-      );
-      locals.global.logger.error("Error", e);
+      locals.global.logger('backup').error({
+        code: "BCK_0006",
+        title: "Backup Import Failed. Incorrect Contents",
+        filename: backupFile.name
+      });
+      locals.global.logger('backup').error({code: "BCK_0007", title: "Backup Import Error", error: e});
       return;
     }
 

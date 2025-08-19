@@ -50,7 +50,7 @@ export const actions = {
         data: providerData,
       });
     } catch (e) {
-      locals.global.logger.error("Create LLM Provider Error", e);
+      locals.global.logger('llm').error({code: "LLM_0001", title: "Create LLM Provider Error", error: e});
       return message(
         form,
         "Error Creating LLM Provider, Possibly Already Exists",

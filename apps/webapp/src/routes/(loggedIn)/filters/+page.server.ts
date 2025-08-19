@@ -54,7 +54,7 @@ export const actions = {
     try {
       await tActions.reusableFitler.refreshSome({ ids: idsArray });
     } catch (e) {
-      locals.global.logger.error("Error Refreshing Some Filters", e);
+      locals.global.logger('queries').error({code: "QRY_0001", title: "Error Refreshing Some Filters", error: e});
     }
   },
 };

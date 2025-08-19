@@ -89,10 +89,11 @@ export const actions = {
         },
       };
     } catch (e) {
-      locals.global.logger.error(
-        "Tag Update Error",
-        JSON.stringify(e, null, 2),
-      );
+      locals.global.logger('tags').error({
+        code: "TAG_0004",
+        title: "Tag Update Error",
+        error: JSON.stringify(e, null, 2)
+      });
       return error(500, "Error updating tag");
     }
   },

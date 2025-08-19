@@ -89,7 +89,7 @@ export const noteFormActions = {
         creationUserId: creationPerson,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Note", e);
+      data.locals.global.logger('server').error({code: "SRV_0004", title: "Error Creating Note", error: e});
     }
 
     return { form };
@@ -114,7 +114,7 @@ export const noteFormActions = {
         creationUserId: creationPerson,
       });
     } catch (e) {
-      data.locals.global.logger.error("Error Creating Note", e);
+      data.locals.global.logger('server').error({code: "SRV_0005", title: "Error Creating Note", error: e});
     }
   },
   deleteNote: async (
@@ -129,11 +129,12 @@ export const noteFormActions = {
         filter: { idArray: [noteIdString] },
       });
     } catch (error) {
-      data.locals.global.logger.error(
-        "Error Deleting Note ",
-        noteIdString,
-        error,
-      );
+      data.locals.global.logger('server').error({
+        code: "SRV_0006",
+        title: "Error Deleting Note",
+        noteId: noteIdString,
+        error
+      });
     }
   },
 };

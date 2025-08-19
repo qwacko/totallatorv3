@@ -50,7 +50,7 @@ export const actions = {
         id: form.data.id,
       });
     } catch (e) {
-      locals.global.logger.error("Delete LLM Provider Error", e);
+      locals.global.logger('llm').error({code: "LLM_0007", title: "Delete LLM Provider Error", error: e});
       return message(form, "Error Deleting LLM Provider");
     }
     redirect(302, form.data.prevPage || "/llm/providers");

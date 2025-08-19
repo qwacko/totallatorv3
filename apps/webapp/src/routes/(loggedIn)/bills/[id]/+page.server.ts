@@ -53,7 +53,7 @@ export const actions = {
     try {
       await tActions.bill.update({ data: form.data, id: form.data.id });
     } catch (e) {
-      locals.global.logger.error("Update Bill Error", e);
+      locals.global.logger('bills').error({code: "BIL_0001", title: "Update Bill Error", error: e});
       return message(form, "Error Updating Bill");
     }
     redirect(302, form.data.prevPage);

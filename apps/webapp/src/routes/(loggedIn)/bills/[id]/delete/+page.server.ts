@@ -27,7 +27,7 @@ export const actions = {
     try {
       await tActions.bill.delete(idSchema.parse(params));
     } catch (e) {
-      locals.global.logger.error("Delete Bill Error", e);
+      locals.global.logger('bills').error({code: "BIL_0002", title: "Delete Bill Error", error: e});
       return {};
     }
     redirect(302, "/bills");

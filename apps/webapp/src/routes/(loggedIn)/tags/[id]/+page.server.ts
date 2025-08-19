@@ -53,7 +53,7 @@ export const actions = {
     try {
       await tActions.tag.update({ data: form.data, id: form.data.id });
     } catch (e) {
-      locals.global.logger.error("Update Tag Error", e);
+      locals.global.logger('tags').error({code: "TAG_0001", title: "Update Tag Error", error: e});
       return message(form, "Error Updating Tag");
     }
     redirect(302, form.data.prevPage);
