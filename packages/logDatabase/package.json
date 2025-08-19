@@ -13,7 +13,7 @@
 	"scripts": {
 		"build": "tsc && tsc-alias && cp -r src/migrations dist/",
 		"dev": "tsc --watch & tsc-alias --watch",
-		"clean": "rm -rf dist",
+		"clean": "rm -rf dist tsconfig.tsbuildinfo",
 		"check": "tsc --noEmit",
 		"circular": "madge --circular --extensions ts src/",
 		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
