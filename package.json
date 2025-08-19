@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter @totallator/shared build && pnpm --filter @totallator/webapp build",
+    "build": "pnpm -r --filter='!@totallator/webapp' build && pnpm --filter @totallator/webapp build",
     "dev": "pnpm --recursive --parallel dev",
     "clean": "pnpm --recursive clean",
     "webapp:dev": "pnpm --filter @totallator/webapp dev",

@@ -24,7 +24,8 @@
 		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
 		"format": "prettier --write .",
 		"lint": "prettier --check .",
-		"knip": "knip"
+		"knip": "knip",
+		"prepack": "pnpm run build"
 	},
 	"dependencies": {
 		"@ai-sdk/anthropic": "^1.2.12",

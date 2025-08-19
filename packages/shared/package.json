@@ -19,7 +19,8 @@
 		"circular": "madge --circular --extensions ts src/",
 		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
 		"format": "prettier --write .",
-		"lint": "prettier --check ."
+		"lint": "prettier --check .",
+		"prepack": "pnpm run build"
 	},
 	"dependencies": {
 		"arktype": "^2.1.20",
