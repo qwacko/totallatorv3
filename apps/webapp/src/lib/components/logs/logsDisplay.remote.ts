@@ -9,16 +9,22 @@ import {
 
 import { form, query } from "$app/server";
 
-export const getLogs = query(logFilterValidation, async (filter) => {
-  const globalContext = getGlobalContextFromStore();
-  const logs = await globalContext.logging.queryLoggedItems({
-    ...filter,
-    limit: 100,
-  });
-  return {
-    logs,
-  };
-});
+export const getLogs = query(
+  z.object({
+    ...logFilterValidation.shape,
+    limit: z.number().min(0).optional().default(100),
+    offset: z.number().min(0).optional().default(0),
+  }),
+  async (filter) => {
+    const globalContext = getGlobalContextFromStore();
+    const logs = await globalContext.logging.queryLoggedItems(filter);
+    const logCount = await globalContext.logging.getLoggedItemsCount(filter);
+    return {
+      logs,
+      logCount,
+    };
+  },
+);
 
 export const getLogConfigurations = query(async () => {
   const globalContext = getGlobalContextFromStore();

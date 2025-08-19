@@ -1,14 +1,21 @@
 <script lang="ts">
-    import { Badge } from "flowbite-svelte";
- import { getLogs } from "./logsDisplay.remote";
+    import { Badge, PaginationNav } from "flowbite-svelte";
+    import { getLogs } from "./logsDisplay.remote";
     import {useInterval} from 'runed'
     import type { LogFilterValidationType } from "../../../../../../packages/logDatabase/dist/validation/logFilterValidation";
 
 
-    let filter = $state<LogFilterValidationType>({})
+    let filter = $state<LogFilterValidationType & {limit: number, offset:number}>({limit:100, offset: 0})
     let refreshInterval = $state<number>(2000)
 
     const logs = $derived(await getLogs(filter))
+    const currentPage = $derived(Math.floor(filter.offset / filter.limit) + 1)
+    const totalPages = $derived(Math.ceil(logs.logCount / filter.limit))
+    $effect(() => {
+        if(currentPage > totalPages){
+            filter.offset = (totalPages - 1) * filter.limit;
+        }
+    })
     let updateTime = $state(new Date())
 
     const interval = useInterval(async () => {
@@ -38,6 +45,9 @@
 
 </script>
 {updateTime}
+<PaginationNav {currentPage} {totalPages} onPageChange={(newPage) => {
+    filter.offset = (newPage - 1) * filter.limit;
+}} />
 <div class="flex flex-row gap-2 p-2">
 {#each [0,0.5, 1, 2, 5,10] as currentInterval}
     <Badge class="w-10" color={currentInterval === refreshInterval / 1000 ? 'blue' : 'gray'} onclick={() => {
