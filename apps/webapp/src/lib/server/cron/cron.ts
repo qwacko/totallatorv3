@@ -42,12 +42,11 @@ export const processCronJobs = (
           await cronJob.job(context);
         });
       } catch (e) {
-        context.logger.error(
-          "Error in cron job",
-          cronJob.name,
-          cronJob.schedule,
-          e,
-        );
+        context.logger("cron").error({
+          data: { name: cronJob.name, schedule: cronJob.schedule, e },
+          title: "Error in cron job",
+          code: "CRON_0003",
+        });
       }
     });
   });

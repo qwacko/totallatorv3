@@ -8,7 +8,9 @@ export const cronJobs: CronJob[] = [
     name: "Backup SQLite Database",
     schedule: serverEnv.BACKUP_SCHEDULE,
     job: async (context) => {
-      context.logger.debug("CRON: Backing Up Database");
+      context
+        .logger("cron")
+        .debug({ code: "CRON_004", title: "CRON: Backing Up Database" });
       await tActions.backup.storeBackup({
         title: "Scheduled Backup",
         compress: true,
@@ -21,7 +23,10 @@ export const cronJobs: CronJob[] = [
     name: "Regular Journal Cleanup / Fix",
     schedule: "0 * * * *",
     job: async (context) => {
-      context.logger.debug("CRON: Updating Journal Transfer Settings");
+      context.logger("cron").debug({
+        title: "CRON: Updating Journal Transfer Settings",
+        code: "CRON_0005",
+      });
       actionHelpers.updateManyTransferInfo({ db: context.db });
     },
   },
@@ -31,11 +36,13 @@ export const cronJobs: CronJob[] = [
     job: async (context) => {
       const startTime = new Date().getTime();
       await tActions.reusableFitler.applyAllAutomatic();
-      context.logger.debug(
-        "CRON: Running Automatic Filters - Took " +
+      context.logger("cron").debug({
+        title:
+          "CRON: Running Automatic Filters - Took " +
           (new Date().getTime() - startTime) +
           "ms",
-      );
+        code: "CRON_0006",
+      });
     },
   },
   {
@@ -48,13 +55,15 @@ export const cronJobs: CronJob[] = [
       });
 
       if (numberModified > 0) {
-        context.logger.debug(
-          "CRON: Updating All Reusable Filters - Took " +
+        context.logger("cron").debug({
+          title:
+            "CRON: Updating All Reusable Filters - Took " +
             (new Date().getTime() - startTime) +
             "ms - Updated " +
             numberModified +
             " filters",
-        );
+          code: "CRON_0007",
+        });
       }
     },
   },
@@ -68,13 +77,15 @@ export const cronJobs: CronJob[] = [
       });
 
       if (numberModified > 0) {
-        context.logger.debug(
-          "CRON: Updating Reusable Filters Needing Update - Took " +
+        context.logger("cron").debug({
+          title:
+            "CRON: Updating Reusable Filters Needing Update - Took " +
             (new Date().getTime() - startTime) +
             "ms - Updated " +
             numberModified +
             " filters",
-        );
+          code: "CRON_0008",
+        });
       }
     },
   },
@@ -166,12 +177,19 @@ export const cronJobs: CronJob[] = [
         });
 
         if (result.processed > 0 || result.errors > 0) {
-          context.logger.info(
-            `CRON: LLM Journal Processing - Processed: ${result.processed}, Errors: ${result.errors}, Duration: ${result.duration}ms`,
-          );
+          context.logger("cron").info({
+            title: `CRON: LLM Journal Processing - Processed: ${result.processed}, Errors: ${result.errors}, Duration: ${result.duration}ms`,
+            code: "CRON_0009",
+          });
         }
       } catch (error) {
-        context.logger.error("CRON: LLM Journal Processing failed:", error);
+        context
+          .logger("cron")
+          .error({
+            title: "CRON: LLM Journal Processing failed:",
+            error,
+            code: "CRON_0010",
+          });
       }
     },
   },
