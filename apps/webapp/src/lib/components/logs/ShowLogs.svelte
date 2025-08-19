@@ -12,6 +12,7 @@
     TableBodyCell,
     Button,
     ButtonGroup,
+    Modal,
   } from "flowbite-svelte";
   import { SearchOutline, RefreshOutline } from "flowbite-svelte-icons";
   import { getLogs } from "./logsDisplay.remote";
@@ -22,6 +23,10 @@
     LogFilterValidationType & { limit: number; offset: number }
   >({ limit: 100, offset: 0 });
   let refreshInterval = $state<number>(2000);
+  
+  // Modal state for showing full log details
+  let showModal = $state(false);
+  let selectedLog = $state<any>(null);
 
   const logs = $derived(await getLogs(filter));
   const currentPage = $derived(Math.floor(filter.offset / filter.limit) + 1);
@@ -97,6 +102,11 @@
       second: "2-digit",
       hour12: false,
     }).format(date);
+  };
+
+  const openLogModal = (log: any) => {
+    selectedLog = log;
+    showModal = true;
   };
 </script>
 
@@ -367,21 +377,34 @@
               {/if}
             </TableBodyCell>
             <TableBodyCell class="max-w-md">
-              {#if (log as any).dataProcessed}
-                <details class="cursor-pointer">
-                  <summary class="text-sm text-blue-600 hover:text-blue-800"
-                    >View data</summary
-                  >
-                  <pre
-                    class="mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-auto max-h-40"
-                    >{@html highlightText(
-                      JSON.stringify((log as any).dataProcessed, null, 2),
-                      filter.text,
-                    )}</pre>
-                </details>
-              {:else}
-                <span class="text-gray-400">-</span>
-              {/if}
+              <div class="space-y-2">
+                <!-- View Full Object Button -->
+                <Button
+                  size="xs"
+                  color="blue"
+                  onclick={() => openLogModal(log)}
+                  class="mb-2"
+                >
+                  View Full Object
+                </Button>
+                
+                <!-- Existing data details -->
+                {#if (log as any).dataProcessed}
+                  <details class="cursor-pointer">
+                    <summary class="text-sm text-blue-600 hover:text-blue-800"
+                      >View data only</summary
+                    >
+                    <pre
+                      class="mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-auto max-h-40"
+                      >{@html highlightText(
+                        JSON.stringify((log as any).dataProcessed, null, 2),
+                        filter.text,
+                      )}</pre>
+                  </details>
+                {:else}
+                  <div class="text-xs text-gray-400">No data available</div>
+                {/if}
+              </div>
             </TableBodyCell>
           </TableBodyRow>
         {/each}
@@ -402,3 +425,65 @@
     </div>
   {/if}
 </Card>
+
+<!-- Full Log Object Modal -->
+<Modal bind:open={showModal} size="xl" title="Full Log Object Details">
+  {#if selectedLog}
+    <div class="space-y-4">
+      <!-- Log Summary -->
+      <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Log Summary</h3>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span class="font-medium text-gray-700 dark:text-gray-300">ID:</span>
+            <span class="font-mono">{(selectedLog as any).id || 'N/A'}</span>
+          </div>
+          <div>
+            <span class="font-medium text-gray-700 dark:text-gray-300">Date:</span>
+            <span class="font-mono">{formatDate(selectedLog.date)}</span>
+          </div>
+          <div>
+            <span class="font-medium text-gray-700 dark:text-gray-300">Level:</span>
+            {#if selectedLog.logLevel}
+              <Badge color={getLevelColor(selectedLog.logLevel)} class="font-mono">
+                {selectedLog.logLevel}
+              </Badge>
+            {:else}
+              <span class="text-gray-400">N/A</span>
+            {/if}
+          </div>
+          <div>
+            <span class="font-medium text-gray-700 dark:text-gray-300">Domain:</span>
+            <span>{selectedLog.domain || 'N/A'}</span>
+          </div>
+          <div class="col-span-2">
+            <span class="font-medium text-gray-700 dark:text-gray-300">Title:</span>
+            <span>{selectedLog.title}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full Object JSON -->
+      <div>
+        <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Complete Object Structure</h3>
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 overflow-auto max-h-96">
+          <pre class="text-xs text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{JSON.stringify(selectedLog, null, 2)}</pre>
+        </div>
+      </div>
+    </div>
+  {/if}
+  
+  {#snippet footer()}
+    <Button color="alternative" onclick={() => (showModal = false)}>Close</Button>
+    {#if selectedLog}
+      <Button 
+        color="blue" 
+        onclick={() => {
+          navigator.clipboard.writeText(JSON.stringify(selectedLog, null, 2));
+        }}
+      >
+        Copy to Clipboard
+      </Button>
+    {/if}
+  {/snippet}
+</Modal>

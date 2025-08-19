@@ -243,6 +243,9 @@ export const createLogger = async (
       };
       
       if (levelPriority[level] <= levelPriority[dbLevel]) {
+
+        const {code, title,  ...restData} = data
+
         const logEntry: LogEntry = {
           date: new Date(),
           logLevel: level,
@@ -251,7 +254,7 @@ export const createLogger = async (
           domain: domain as LogDomainType,
           code: data.code,
           title: data.title,
-          data: data
+          data: restData
         };
         
         try {
