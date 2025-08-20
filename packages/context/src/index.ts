@@ -6,14 +6,46 @@
  * and transaction management using AsyncLocalStorage.
  */
 
-// === CORE CONTEXT MANAGEMENT ===
-// These are the primary APIs used throughout the application
+// === NEW CONTEXT SYSTEM (PRIMARY API) ===
+// Modern, type-safe context management for monorepo usage
+
+/**
+ * Primary context API - use these throughout your application
+ */
+export {
+  getContext,
+  runInTransaction,
+  hookBuilder,
+  getContextDB,
+  getLogger,
+  getEventEmitter,
+  getServerEnv,
+  getUserId,
+  getRequestId,
+  getContextStore,
+  runInTransactionWithLogging,
+  type GlobalContext,
+  type EnhancedRequestContext,
+  type CombinedContext,
+} from './newContext.js';
+
+/**
+ * Low-level ContextHandler for advanced usage
+ */
+export {
+  type HookBuilderConfig,
+  type HookBuilderResult,
+  ContextHandler,
+  createContextHandler,
+} from './contextHandler.js';
+
+// === LEGACY CONTEXT MANAGEMENT ===
+// These are maintained for backward compatibility but consider migrating to ContextHandler
 
 /**
  * Global application context - used once during app initialization
  */
 export {
-  type GlobalContext,
   type GlobalContextConfig,
   initializeGlobalContext,
 } from './global.js';
@@ -34,8 +66,8 @@ export {
   type ContextStore,
   getGlobalContext as getGlobalContextFromStore,
   getRequestContext as getRequestContextFromStore,
-  getContext as getContextStore,
-  getContextDB,
+  getContext as getContextStoreLegacy,
+  getContextDB as getContextDBLegacy,
   getContextEventEmitter,
   runWithContext,
 } from './asyncStorage.js';
@@ -44,7 +76,7 @@ export {
  * Transaction management - used for database operations requiring transactions
  */
 export {
-  runInTransactionWithLogging,
+  runInTransactionWithLogging as runInTransactionWithLoggingLegacy,
   runRequestInTransaction,
 } from './transaction.js';
 

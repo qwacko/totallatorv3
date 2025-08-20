@@ -8,16 +8,21 @@ let cronService: CronJobService | null = null;
  * Initialize the new cron service
  */
 export const initializeNewCronService = async (
-  getContext: () => GlobalContext,
+  getContext: () => Promise<GlobalContext>,
 ) => {
   if (cronService) {
     await cronService.shutdown();
   }
 
-  const context = getContext();
+  const context = await getContext();
   // Cast to CoreDBType since we know the GlobalContext.db is the actual database connection
   const coreDb = context.db as CoreDBType;
-  cronService = new CronJobService(coreDb, getContext);
+  
+  // Create a wrapper to make it sync - this is safe because the context is already initialized
+  let cachedContext = context;
+  const syncGetContext = () => cachedContext;
+  
+  cronService = new CronJobService(coreDb, syncGetContext);
   await cronService.initialize();
 
   console.log("New cron service initialized successfully");

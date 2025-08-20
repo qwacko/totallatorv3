@@ -1,7 +1,7 @@
 import schedule from "node-schedule";
+import { nanoid } from "nanoid";
 
-import type { GlobalContext } from "@totallator/context";
-import { runWithContext } from "@totallator/context";
+import type { GlobalContext, CombinedContext, EnhancedRequestContext } from "@totallator/context";
 
 import { cronJobs } from "./cronJobs";
 
@@ -11,37 +11,34 @@ export type CronJob = {
   job: (context: GlobalContext) => Promise<void>;
 };
 
-// Create a minimal request context for cron jobs
-function createCronRequestContext(jobName: string) {
-  return {
-    user: undefined,
-    session: undefined,
-    requestId: crypto.randomUUID(),
-    startTime: Date.now(),
-    event: {
-      request: new Request(`http://localhost/cron/${jobName}`),
-      locals: {},
-      getClientAddress: () => "127.0.0.1",
-    },
-    userAgent: `Cron-Job-${jobName}`,
-    ip: "127.0.0.1",
-  };
-}
-
 export const processCronJobs = (
-  getContext: () => GlobalContext,
+  getContext: () => Promise<GlobalContext>,
+  standaloneContext: <T>(
+    metadata: Partial<EnhancedRequestContext>,
+    callback: (context: CombinedContext<GlobalContext, EnhancedRequestContext>) => Promise<T> | T
+  ) => Promise<T>,
   cronJobs: CronJob[],
 ) => {
   return cronJobs.map((cronJob) => {
     return schedule.scheduleJob(cronJob.name, cronJob.schedule, async () => {
-      const context = getContext();
-      const requestContext = createCronRequestContext(cronJob.name);
-
       try {
-        await runWithContext(context, requestContext, async () => {
-          await cronJob.job(context);
-        });
+        await standaloneContext(
+          {
+            requestId: nanoid(),
+            routeId: `cron/${cronJob.name}`,
+            url: `/cron/${cronJob.name}`,
+            method: 'CRON',
+            startTime: Date.now(),
+            ip: '127.0.0.1',
+            userAgent: `Cron-Job-${cronJob.name}`,
+          },
+          async (context: CombinedContext<GlobalContext, EnhancedRequestContext>) => {
+            await cronJob.job(context.global);
+          }
+        );
       } catch (e) {
+        // Get context for error logging - this should work since we're in a standalone context
+        const context = await getContext();
         context.logger("cron").error({
           data: { name: cronJob.name, schedule: cronJob.schedule, e },
           title: "Error in cron job",
@@ -54,11 +51,17 @@ export const processCronJobs = (
 
 let cronJobsRunning: unknown | undefined | schedule.Job[];
 
-export const initateCronJobs = (getContext: () => GlobalContext) => {
+export const initateCronJobs = (
+  getContext: () => Promise<GlobalContext>,
+  standaloneContext: <T>(
+    metadata: Partial<EnhancedRequestContext>,
+    callback: (context: CombinedContext<GlobalContext, EnhancedRequestContext>) => Promise<T> | T
+  ) => Promise<T>
+) => {
   if (cronJobsRunning || schedule.scheduledJobs) {
     //Cancels all the jobs before starting them again
     schedule.gracefulShutdown();
   }
 
-  cronJobsRunning = processCronJobs(getContext, cronJobs);
+  cronJobsRunning = processCronJobs(getContext, standaloneContext, cronJobs);
 };

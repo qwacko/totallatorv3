@@ -26,6 +26,7 @@
     "pino-pretty": "^13.1.1"
   },
   "devDependencies": {
+    "@sveltejs/kit": "^2.33.1",
     "@types/node": "^22.0.0",
     "madge": "^8.0.0",
     "tsc-alias": "^1.8.16",
