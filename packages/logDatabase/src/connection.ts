@@ -1,24 +1,21 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { migrate } from 'drizzle-orm/libsql/migrator';
-import { createClient, type Client } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
+import Database from 'better-sqlite3';
 import * as schema from './schema/index.js';
-
 
 export type LogDBType = ReturnType<typeof getDB>;
 
 export interface LogDatabaseConfig {
-	url?: string;
-	authToken?: string;
+	path?: string;
 }
 
-const getDB = (client: Client) =>  drizzle(client, { schema });
+const getDB = (client: Database.Database) => drizzle(client, { schema });
 
 export async function initializeLogDatabase(config: LogDatabaseConfig = {}) {
 
-	const url = config.url || process.env.LOG_DATABASE_URL || 'file:logs.db';
-	const authToken = config.authToken || process.env.LOG_DATABASE_AUTH_TOKEN;
+	const dbPath = config.path || process.env.LOG_DATABASE_PATH || 'logs.db';
 
-	const client = createClient({url});
+	const client = new Database(dbPath);
 
 	const db = getDB(client)
 	
