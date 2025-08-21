@@ -1,9 +1,12 @@
 import { eq, and, desc, asc, count, gte, lte, inArray,  } from 'drizzle-orm';
 import { LogDBType } from './connection.js';
-import { logTable, configurationTable, type LogInsert, type ConfigurationSelect, logLevelEnum, logDomainEnum, logActionEnum, logDestinationEnum } from './schema/index.js';
+import { logTable, configurationTable, type LogInsert, type ConfigurationSelect,  } from './schema/index.js';
 import * as devalue from 'devalue';
-import { filterConfigurationsToSQL, LogFilterConfigValidationOutputType } from './validation/logConfigFilterValidation.js';
-import { filterLogsToSQL, LogFilterValidationOutputType } from './validation/logFilterValidation.js';
+import { filterConfigurationsToSQL } from './validation/logConfigFilterValidation.js';
+import { filterLogsToSQL, } from './validation/logFilterValidation.js';
+import type { LogFilterValidationOutputType, LogFilterConfigValidationOutputType } from '@totallator/shared';
+import {  logLevelEnum, logDomainEnum, logActionEnum, logDestinationEnum } from '@totallator/shared';
+
 
 export type LogLevelType  = typeof logLevelEnum[number]
 export type LogDomainType = typeof logDomainEnum[number];

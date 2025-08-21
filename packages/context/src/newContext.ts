@@ -6,8 +6,9 @@
  */
 
 import { createContextHandler } from './contextHandler.js';
-import type { GlobalContext } from './global.js';
+import type { GlobalContext } from './GlobalContext.js';
 import type { UserDBType, SessionDBType } from '@totallator/database';
+import { LoggerAction, LoggerDomain } from './logger.js';
 
 /**
  * Enhanced request context that includes all the original fields plus additional metadata
@@ -51,7 +52,13 @@ export { getContext, runInTransaction, hookBuilder };
 
 // Create convenient getters that users can import - fully typed!
 export const getContextDB = () => getContext().global.db;
-export const getLogger = () => getContext().global.logger;
+export const getLogger = (domain: LoggerDomain, action?: LoggerAction) => {
+  if(action !== undefined){
+  return getContext().global.logger(domain, action)}
+  else {
+    return getContext().global.logger(domain);
+  }
+}
 export const getEventEmitter = () => getContext().global.eventEmitter;  
 export const getServerEnv = () => getContext().global.serverEnv;
 export const getUserId = () => getContext().request.user?.id;
@@ -113,4 +120,4 @@ export async function runInTransactionWithLogging<T>(
 
 // Re-export types for convenience
 export type { CombinedContext } from './contextHandler.js';
-export type { GlobalContext } from './global.js';
+export type { GlobalContext } from './GlobalContext.js';

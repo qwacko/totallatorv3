@@ -24,8 +24,8 @@ Add your event to the `AppEvents` interface in `packages/context/src/eventEmitte
 
 ```typescript
 export interface AppEvents {
-  'user.created': { userId: string; email: string };
-  'order.completed': { orderId: string; amount: number; userId: string };
+	'user.created': { userId: string; email: string };
+	'order.completed': { orderId: string; amount: number; userId: string };
 }
 ```
 
@@ -37,9 +37,9 @@ Add a handler function in `packages/business-logic/src/events/eventCallbacks.ts`
 import { type EventListener } from '@totallator/context';
 
 const onUserCreated: EventListener<'user.created'> = async ({ userId, email }) => {
-  // Your business logic here
-  console.log('User created:', { userId, email });
-  // Example: Send welcome email, create user profile, etc.
+	// Your business logic here
+	console.log('User created:', { userId, email });
+	// Example: Send welcome email, create user profile, etc.
 };
 ```
 
@@ -49,16 +49,16 @@ Add the handler to `initializeEventCallbacks()` function:
 
 ```typescript
 export function initializeEventCallbacks(): void {
-  try {
-    const eventEmitter = getContextEventEmitter();
-    
-    eventEmitter.on('user.created', onUserCreated);
-    
-    console.log('Event callbacks initialized successfully');
-  } catch (error) {
-    console.error('Failed to initialize event callbacks:', error);
-    throw error;
-  }
+	try {
+		const eventEmitter = getEventEmitter();
+
+		eventEmitter.on('user.created', onUserCreated);
+
+		console.log('Event callbacks initialized successfully');
+	} catch (error) {
+		console.error('Failed to initialize event callbacks:', error);
+		throw error;
+	}
 }
 ```
 
@@ -70,16 +70,16 @@ From any business logic function or endpoint:
 import { emitEvent } from '@totallator/business-logic';
 
 export async function createUser(userData: any) {
-  // Your business logic here
-  const user = await db.insert(userTable).values(userData);
-  
-  // Emit event (non-blocking)
-  emitEvent('user.created', { 
-    userId: user.id, 
-    email: user.email 
-  });
-  
-  return user;
+	// Your business logic here
+	const user = await db.insert(userTable).values(userData);
+
+	// Emit event (non-blocking)
+	emitEvent('user.created', {
+		userId: user.id,
+		email: user.email
+	});
+
+	return user;
 }
 ```
 

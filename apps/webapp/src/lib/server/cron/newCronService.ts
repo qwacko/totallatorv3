@@ -2,6 +2,8 @@ import { CronJobService } from "@totallator/business-logic";
 import type { GlobalContext } from "@totallator/context";
 import type { CoreDBType } from "@totallator/database";
 
+import { standaloneContext } from "../../../hooks.server";
+
 let cronService: CronJobService | null = null;
 
 /**
@@ -17,12 +19,8 @@ export const initializeNewCronService = async (
   const context = await getContext();
   // Cast to CoreDBType since we know the GlobalContext.db is the actual database connection
   const coreDb = context.db as CoreDBType;
-  
-  // Create a wrapper to make it sync - this is safe because the context is already initialized
-  let cachedContext = context;
-  const syncGetContext = () => cachedContext;
-  
-  cronService = new CronJobService(coreDb, syncGetContext);
+
+  cronService = new CronJobService(coreDb, standaloneContext);
   await cronService.initialize();
 
   console.log("New cron service initialized successfully");

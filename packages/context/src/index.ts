@@ -58,27 +58,6 @@ export {
   createRequestContext,
 } from './request.js';
 
-/**
- * AsyncLocalStorage-based context access - used throughout business logic
- * getContextDB is the primary database access method used across the app
- */
-export {
-  type ContextStore,
-  getGlobalContext as getGlobalContextFromStore,
-  getRequestContext as getRequestContextFromStore,
-  getContext as getContextStoreLegacy,
-  getContextDB as getContextDBLegacy,
-  getContextEventEmitter,
-  runWithContext,
-} from './asyncStorage.js';
-
-/**
- * Transaction management - used for database operations requiring transactions
- */
-export {
-  runInTransactionWithLogging as runInTransactionWithLoggingLegacy,
-  runRequestInTransaction,
-} from './transaction.js';
 
 /**
  * Type-safe event emitter - used for asynchronous event handling throughout the app
@@ -86,38 +65,5 @@ export {
 export {
   type AppEvents,
   type EventListener,
-  type TypedEventEmitter,
-  createEventEmitter,
 } from './eventEmitter.js';
 
-/**
- * Logger types and utilities - used for typed logging throughout the app
- */
-export {
-  type LoggerDomain,
-  type LoggerAction,
-  type LoggerFactory,
-  type LoggerInstance,
-  type StructuredLogData,
-  type StructuredLogger,
-  type LoggingSystem,
-  loggerDomains,
-  loggerActions,
-  createLogger,
-} from './logger.js';
-
-/**
- * Re-exported shared enums and types from @totallator/log-database
- * These provide consistency across packages for logging-related types
- */
-export {
-  type LogLevelType,
-  type LogDomainType,
-  type LogActionType,
-  type LogDestinationType,
-  logDomainEnum,
-  logActionEnum,
-  logDestinationEnum,
-  logLevelEnum,
-  logConfigFilterValidation, logFilterValidation, type LogFilterConfigValidationType,type LogFilterConfigValidationOutputType, type LogFilterValidationType, type LogFilterValidationOutputType 
-} from '@totallator/log-database';

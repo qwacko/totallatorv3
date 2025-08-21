@@ -7,16 +7,19 @@ import {
   type LogDomainType, 
   type LogActionType, 
   type LogDestinationType,
-  logDomainEnum,
-  logActionEnum,
-  logDestinationEnum,
-  logLevelEnum,
   LogDBType,
   initializeLogDatabase,
-  ConfigurationSelect,
+} from '@totallator/log-database';
+
+import type {
   LogFilterConfigValidationOutputType,
   LogFilterValidationOutputType
-} from '@totallator/log-database';
+} from '@totallator/shared'
+
+import {
+  logDomainEnum,
+  logActionEnum,
+}from '@totallator/shared'
 
 /**
  * Available log levels in order of increasing verbosity.

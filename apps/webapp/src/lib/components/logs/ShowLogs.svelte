@@ -17,7 +17,7 @@
   import { SearchOutline, RefreshOutline } from "flowbite-svelte-icons";
   import { getLogs } from "./logsDisplay.remote";
   import { useInterval } from "runed";
-  import type { LogFilterValidationType } from "@totallator/context";
+  import type { LogFilterValidationType } from "@totallator/shared";
 
   
   let filter = $state<

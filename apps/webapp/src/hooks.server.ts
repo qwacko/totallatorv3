@@ -15,18 +15,20 @@ import {
 } from "@totallator/business-logic";
 import { noAdmins } from "@totallator/business-logic";
 import {
+  type CombinedContext,
+  type EnhancedRequestContext,
+  type GlobalContext,
   hookBuilder,
   initializeGlobalContext,
-  type GlobalContext,
-  type EnhancedRequestContext,
-  type CombinedContext,
 } from "@totallator/context";
 
-import { loadConfigServer } from "$lib/routes.server.js";
 import { building } from "$app/environment";
-import { getServerEnv } from "./lib/server/serverEnv.js";
+
+import { loadConfigServer } from "$lib/routes.server.js";
+
 import { authGuard } from "./lib/authGuard/authGuardConfig.js";
 import { initializeNewCronService } from "./lib/server/cron/newCronService.js";
+import { getServerEnv } from "./lib/server/serverEnv.js";
 
 // Set up the paths
 const __filename = fileURLToPath(import.meta.url);
@@ -39,7 +41,9 @@ const migrationsPath = path.join(
 // Create the new context system
 const { hook, standaloneContext, globalContext } = hookBuilder({
   // Initialize global context with access to getContext for context-aware services
-  initGlobalContext: async (getContext: () => CombinedContext<GlobalContext, EnhancedRequestContext>): Promise<GlobalContext> => {
+  initGlobalContext: async (
+    getContext: () => CombinedContext<GlobalContext, EnhancedRequestContext>,
+  ): Promise<GlobalContext> => {
     if (building) {
       // Return minimal context for build
       return {} as any;
@@ -80,19 +84,22 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
     method: event.request.method,
     user: event.locals.user,
     session: event.locals.session,
-    userAgent: event.request.headers.get('user-agent') || undefined,
+    userAgent: event.request.headers.get("user-agent") || undefined,
     ip: event.getClientAddress(),
   }),
 
   // Update locals for backward compatibility
-  updateLocals: (event: any, context: CombinedContext<GlobalContext, EnhancedRequestContext>) => {
+  updateLocals: (
+    event: any,
+    context: CombinedContext<GlobalContext, EnhancedRequestContext>,
+  ) => {
     event.locals.global = context.global;
     event.locals.request = context.request;
     event.locals.db = context.global.db;
   },
 
   // Handle all the custom logic that was in the old hooks
-  customResolve: async (context: CombinedContext<GlobalContext, EnhancedRequestContext>, event: any, resolve: (event: any) => Promise<Response>): Promise<Response> => {
+  customResolve: async (context, event, resolve) => {
     // Set up timeout monitoring
     const timeLimit = context.global.serverEnv.PAGE_TIMEOUT_MS;
     const timeout = setTimeout(() => {
@@ -109,15 +116,20 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
       // Authentication logic
       const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
       if (sessionToken) {
-        const { session, user } = await tActions.auth.validateSessionToken(sessionToken);
+        const { session, user } =
+          await tActions.auth.validateSessionToken(sessionToken);
         if (session !== null) {
-          tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+          tActions.auth.setSessionTokenCookie(
+            event,
+            sessionToken,
+            session.expiresAt,
+          );
         } else {
           tActions.auth.deleteSessionTokenCookie(event);
         }
         event.locals.user = user || undefined;
         event.locals.session = session || undefined;
-        
+
         // Update context request with auth info
         context.request.user = user || undefined;
         context.request.session = session || undefined;
@@ -186,7 +198,7 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 
       // Transaction wrapping for non-GET requests
       const isNonGetRequest = event.request.method !== "GET";
-      
+
       if (isNonGetRequest) {
         context.global.logger("database").debug({
           title: `Wrapping ${event.request.method} request in transaction`,
@@ -204,7 +216,7 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
     } finally {
       clearTimeout(timeout);
     }
-  }
+  },
 });
 
 // Export for use in cron jobs and other external contexts
@@ -213,7 +225,7 @@ export { standaloneContext, globalContext };
 // Server initialization - now much simpler
 export const init: ServerInit = async () => {
   await loadConfigServer();
-  
+
   if (building) {
     return;
   }
@@ -227,11 +239,11 @@ export const init: ServerInit = async () => {
       await standaloneContext(
         {
           requestId: nanoid(),
-          routeId: 'internal/init',
-          url: '/internal/init',
-          method: 'INIT',
+          routeId: "internal/init",
+          url: "/internal/init",
+          method: "INIT",
           startTime: Date.now(),
-          ip: '127.0.0.1',
+          ip: "127.0.0.1",
         },
         async () => {
           console.log("Initializing event callbacks...");
@@ -244,7 +256,7 @@ export const init: ServerInit = async () => {
           console.log("Clearing in-progress backup restores...");
           await clearInProgressBackupRestores();
           console.log("Backup restore cleanup completed");
-        }
+        },
       );
     } catch (error) {
       console.error("Failed to initialize event callbacks:", error);
@@ -262,7 +274,10 @@ export const init: ServerInit = async () => {
         try {
           await initializeNewCronService(globalContext);
         } catch (retryError) {
-          console.error("Failed to initialize cron service on retry:", retryError);
+          console.error(
+            "Failed to initialize cron service on retry:",
+            retryError,
+          );
         }
       }, 5000);
     }

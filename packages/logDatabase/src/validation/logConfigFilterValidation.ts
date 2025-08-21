@@ -1,17 +1,8 @@
 
 import { eq, inArray, SQLWrapper } from 'drizzle-orm';
-import {  logDomainEnum, logActionEnum, logDestinationEnum, configurationTable } from './../schema/index.js';
-import z from 'zod';
+import {configurationTable } from './../schema/index.js';
+import type { LogFilterConfigValidationOutputType } from '@totallator/shared';
 
-
-export const logConfigFilterValidation = z.object({
-    domain: z.array(z.enum(logDomainEnum)).optional(),
-    action: z.array(z.enum(logActionEnum)).optional(),
-    destination: z.array(z.enum(logDestinationEnum)).optional()
-})
-
-export type LogFilterConfigValidationType = z.infer<typeof logConfigFilterValidation>
-export type LogFilterConfigValidationOutputType = z.output<typeof logConfigFilterValidation>
 
 export const filterConfigurationsToSQL = (filter: LogFilterConfigValidationOutputType): SQLWrapper[] => {
 

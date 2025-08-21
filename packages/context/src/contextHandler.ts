@@ -1,15 +1,5 @@
 import { AsyncLocalStorage } from "async_hooks";
-import type {Handle} from '@sveltejs/kit'
-
-// Define minimal types to avoid SvelteKit dependency
-interface RequestEvent {
-  route: { id: string | null };
-  url: URL;
-  request: Request;
-  locals: any;
-  cookies: any;
-  getClientAddress(): string;
-}
+import type {Handle, RequestEvent} from '@sveltejs/kit'
 
 
 /**

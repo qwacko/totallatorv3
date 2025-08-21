@@ -1,11 +1,11 @@
 import z from "zod";
 
+import { getContext } from "@totallator/context";
 import {
-  getGlobalContextFromStore,
   logConfigFilterValidation,
   logFilterValidation,
   logLevelEnum,
-} from "@totallator/context";
+} from "@totallator/shared";
 
 import { form, query } from "$app/server";
 
@@ -16,9 +16,10 @@ export const getLogs = query(
     offset: z.number().min(0).optional().default(0),
   }),
   async (filter) => {
-    const globalContext = getGlobalContextFromStore();
-    const logs = await globalContext.logging.queryLoggedItems(filter);
-    const logCount = await globalContext.logging.getLoggedItemsCount(filter);
+    const globalContext = getContext();
+    const logs = await globalContext.global.logging.queryLoggedItems(filter);
+    const logCount =
+      await globalContext.global.logging.getLoggedItemsCount(filter);
     return {
       logs,
       logCount,
@@ -27,16 +28,16 @@ export const getLogs = query(
 );
 
 export const getLogConfigurations = query(async () => {
-  const globalContext = getGlobalContextFromStore();
+  const globalContext = getContext();
   const configurations =
-    await globalContext.logging.logDatabaseOps.getAllLogConfigurations();
+    await globalContext.global.logging.getAllLogConfigurations();
   return {
     configurations,
   };
 });
 
 export const setLogConfiguration = form(async (data) => {
-  const globalContext = getGlobalContextFromStore();
+  const globalContext = getContext();
   const logLevelIn = data.get("level");
   const domain = data.get("domain");
   const action = data.get("action");
@@ -59,7 +60,7 @@ export const setLogConfiguration = form(async (data) => {
   }
 
   const { logLevel, ...filter } = validatedData.data;
-  await globalContext.logging.setLogLevel({ logLevel, filter });
+  await globalContext.global.logging.setLogLevel({ logLevel, filter });
 
   return {};
 });

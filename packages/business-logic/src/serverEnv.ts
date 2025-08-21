@@ -1,7 +1,7 @@
 import { type ServerEnvSchemaType } from '@totallator/shared';
-import { getGlobalContextFromStore } from '@totallator/context';
+import { getContext } from '@totallator/context';
 
 export const getServerEnv = (): ServerEnvSchemaType => {
-	const globalContext = getGlobalContextFromStore();
-	return globalContext.serverEnv;
+	const globalContext = getContext();
+	return globalContext.global.serverEnv;
 };

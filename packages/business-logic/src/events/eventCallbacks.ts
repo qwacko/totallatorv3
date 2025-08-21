@@ -1,8 +1,4 @@
-import {
-	getContextEventEmitter,
-	type EventListener,
-	getGlobalContextFromStore
-} from '@totallator/context';
+import { getEventEmitter, type EventListener, getContext } from '@totallator/context';
 import { backupActions } from '../actions/backupActions.js';
 import { typedKeyValueStore } from '../actions/helpers/keyValueStore.js';
 
@@ -106,7 +102,7 @@ const onBackupRestoreProgress: EventListener<'backup.restore.progress'> = async 
 	userId
 }) => {
 	try {
-		const globalContext = getGlobalContextFromStore();
+		const { global: globalContext } = getContext();
 		if (!globalContext) {
 			throw new Error('Global context not available');
 		}
@@ -195,7 +191,7 @@ const onBackupRestoreStarted: EventListener<'backup.restore.started'> = async ({
 			actionHistory: [initialAction]
 		} satisfies BackupRestoreProgressType;
 
-		const globalContext = getGlobalContextFromStore();
+		const { global: globalContext } = getContext();
 		if (!globalContext) {
 			throw new Error('Global context not available');
 		}
@@ -219,7 +215,7 @@ const onBackupRestoreCompleted: EventListener<'backup.restore.completed'> = asyn
 	userId
 }) => {
 	try {
-		const globalContext = getGlobalContextFromStore();
+		const { global: globalContext } = getContext();
 		if (!globalContext) {
 			throw new Error('Global context not available');
 		}
@@ -275,7 +271,7 @@ const onBackupRestoreFailed: EventListener<'backup.restore.failed'> = async ({
 	userId
 }) => {
 	try {
-		const globalContext = getGlobalContextFromStore();
+		const { global: globalContext } = getContext();
 		if (!globalContext) {
 			throw new Error('Global context not available');
 		}
@@ -330,7 +326,7 @@ export function initializeEventCallbacks(): void {
 	try {
 		console.log('Initializing event callbacks...');
 
-		const eventEmitter = getContextEventEmitter();
+		const eventEmitter = getEventEmitter();
 
 		// Clear any existing listeners to prevent duplicates (important for HMR in dev mode)
 		eventEmitter.removeAllListeners('backup.restore.triggered');
@@ -359,7 +355,7 @@ export function initializeEventCallbacks(): void {
  */
 export async function clearInProgressBackupRestores(): Promise<void> {
 	try {
-		const globalContext = getGlobalContextFromStore();
+		const { global: globalContext } = getContext();
 		if (!globalContext) {
 			throw new Error('Global context not available');
 		}
@@ -377,7 +373,7 @@ export async function clearInProgressBackupRestores(): Promise<void> {
  */
 export async function getBackupRestoreProgress() {
 	try {
-		const globalContext = getGlobalContextFromStore();
+		const { global: globalContext } = getContext();
 		if (!globalContext) {
 			throw new Error('Global context not available');
 		}
@@ -424,7 +420,7 @@ export async function hasActiveBackupRestore(): Promise<boolean> {
  */
 export function getEventListenerCounts(): Record<string, number> {
 	try {
-		const eventEmitter = getContextEventEmitter();
+		const eventEmitter = getEventEmitter();
 		const events = eventEmitter.eventNames();
 
 		const counts: Record<string, number> = {};
