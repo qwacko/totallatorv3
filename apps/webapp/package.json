@@ -88,6 +88,7 @@
     "@flystorage/aws-s3": "^1.1.1",
     "@flystorage/file-storage": "^1.1.0",
     "@flystorage/local-fs": "^1.1.0",
+    "@libsql/client": "^0.15.12",
     "@melt-ui/svelte": "^0.86.6",
     "@node-rs/argon2": "^2.0.2",
     "@openrouter/ai-sdk-provider": "^1.1.2",

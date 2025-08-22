@@ -175,7 +175,7 @@ export const createLogger = async (
   enable: boolean,
   logClasses: string[],
   contextId?: string,
-  databaseConfig?: { url?: string; }
+  databaseClient?: Parameters<typeof initializeLogDatabase>[0]
 ): Promise<LoggingSystem> => {
   
   // Initialize database connection if config provided
@@ -183,9 +183,9 @@ export const createLogger = async (
   let logDatabaseOps: LogDatabaseOperations | null = null;
   const logLevelCache = new Map<string, LogLevelType>();
 
-  if (databaseConfig) {
+  if (databaseClient) {
     try {
-      loggingDB = await initializeLogDatabase({path: databaseConfig.url});
+      loggingDB = await initializeLogDatabase(databaseClient);
       logDatabaseOps = new LogDatabaseOperations(loggingDB);
       
       // Initialize configuration and sync levels

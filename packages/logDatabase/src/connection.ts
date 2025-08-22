@@ -1,25 +1,18 @@
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/libsql';
+import { migrate } from 'drizzle-orm/libsql/migrator';
 import * as schema from './schema/index.js';
+import type {Client} from '@libsql/client'
 
 export type LogDBType = ReturnType<typeof getDB>;
 
-export interface LogDatabaseConfig {
-	path?: string;
-}
 
-const getDB = (client: Database.Database) => drizzle(client, { schema });
+// Accept a client from outside rather than creating one
+const getDB = (client: Client) => drizzle(client, { schema });
 
-export async function initializeLogDatabase(config: LogDatabaseConfig = {}) {
+export async function initializeLogDatabase(client: Client) {
+	const db = getDB(client);
 
-	const dbPath = config.path || process.env.LOG_DATABASE_PATH || 'logs.db';
 
-	const client = new Database(dbPath);
-
-	const db = getDB(client)
-	
-	
 	try {
 		// Try different migration paths based on environment
 		const migrationPaths = [

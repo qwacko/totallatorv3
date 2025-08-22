@@ -1,18 +1,16 @@
 import { getAdminCount, getUserCount } from "@totallator/business-logic";
+import { getContext } from "@totallator/context";
 
 import { dev } from "$app/environment";
-
-import { ensureInitialized } from "$lib/server/context";
 
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ locals }) => {
-  const globalContext = await ensureInitialized();
+  const context = getContext();
 
-  locals.global = globalContext;
   // Ensure we have a global context before proceeding
-  if (!locals.global) {
-    throw new Error("Global context not initialized in locals");
+  if (!context) {
+    throw new Error("Global context not initialized");
   }
 
   const userCountValue = await getUserCount({ global: locals.global });

@@ -5,6 +5,7 @@ import { createRateLimiter } from './rateLimiter.js';
 import { createEventEmitter } from './eventEmitter.js';
 import { randomUUID } from 'crypto';
 import { GlobalContext } from './GlobalContext.js';
+import { initializeLogDatabase } from '@totallator/log-database';
 
 let globalContext: GlobalContext | null = null;
 
@@ -24,11 +25,8 @@ export interface GlobalContextConfig {
   /** Path to database migration files */
   migrationsPath: string;
 
-  /** Logging Database Config (optional - if omitted, database logging will be disabled) */
-  loggingDB?: {
-    authToken?: string;
-    url: string;
-  }
+  /** Logging Database Client Factory (optional - if omitted, database logging will be disabled) */
+  createLoggingDBClient?: () => Parameters<typeof initializeLogDatabase>[0];
 }
 
 /**
@@ -53,11 +51,15 @@ export async function initializeGlobalContext(config: GlobalContextConfig): Prom
   const contextId = randomUUID();
 
   // Initialize comprehensive logging system with database integration
+  const loggingClient = config.createLoggingDBClient ? config.createLoggingDBClient() : null;
+  if(!loggingClient){
+    throw new Error("Logging database client is required for logging system initialization");
+  }
   const logging = await createLogger(
     config.serverEnv.LOGGING,
     config.serverEnv.LOGGING_CLASSES,
     contextId,
-    config.loggingDB
+    loggingClient
   );
 
   // Create database connection

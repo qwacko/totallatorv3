@@ -3,6 +3,7 @@ import { sequence } from "@sveltejs/kit/hooks";
 import { nanoid } from "nanoid";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createClient } from "@libsql/client";
 
 import {
   actionHelpers,
@@ -35,8 +36,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const migrationsPath = path.join(
   __dirname,
-  "../../../../packages/database/src/migrations",
+  "../../../packages/database/src/migrations",
 );
+
+console.log("Migrations Path:", migrationsPath);
 
 // Create the new context system
 const { hook, standaloneContext, globalContext } = hookBuilder({
@@ -59,9 +62,10 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
         return await materializedViewActions.conditionalRefreshWithContext({});
       },
       migrationsPath,
-      loggingDB: {
-        authToken: getServerEnv().LOG_DATABASE_KEY,
-        url: getServerEnv().LOG_DATABASE_ADDRESS,
+      createLoggingDBClient: () => {
+        const url = getServerEnv().LOG_DATABASE_ADDRESS || 'file:logs.db';
+        const authToken = getServerEnv().LOG_DATABASE_KEY;
+        return createClient({ url, authToken });
       },
     });
 
