@@ -3,6 +3,7 @@ import {
 	journalExtendedView,
 	journalView
 } from '@totallator/database';
+
 import { materializedViewActions } from '../../materializedViewActions';
 
 // Simplified return type to avoid complex type inference
@@ -36,5 +37,8 @@ export const getCorrectImportCheckTable = async (): Promise<{
 		return { table: importCheckMaterializedView, target: 'view' };
 	}
 
-	return { table: importCheckMaterializedView, target: 'materialized' as 'view' | 'materialized' };
+	return {
+		table: importCheckMaterializedView,
+		target: 'materialized' as 'view' | 'materialized'
+	};
 };

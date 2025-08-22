@@ -14,7 +14,16 @@ import { LLMJournalProcessingService } from './server/services/llmJournalProcess
 export { tActions } from './actions/tActions.js';
 
 // Export event system
-export { initializeEventCallbacks, getEventListenerCounts, clearInProgressBackupRestores, getBackupRestoreProgress, hasActiveBackupRestore, emitEvent, canEmitEvents, emitMultipleEvents } from './events/index.js';
+export {
+	initializeEventCallbacks,
+	getEventListenerCounts,
+	clearInProgressBackupRestores,
+	getBackupRestoreProgress,
+	hasActiveBackupRestore,
+	emitEvent,
+	canEmitEvents,
+	emitMultipleEvents
+} from './events/index.js';
 
 export type TestType = string;
 

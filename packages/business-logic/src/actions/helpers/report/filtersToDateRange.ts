@@ -20,7 +20,10 @@ export const filtersToDateRange = (
 					currentDate: new Date(),
 					firstMonthOfFY: 1
 				});
-				const endDate = dateInformation.getEndDate({ currentDate: new Date(), firstMonthOfFY: 1 });
+				const endDate = dateInformation.getEndDate({
+					currentDate: new Date(),
+					firstMonthOfFY: 1
+				});
 
 				if (startDate > acc.start) {
 					acc.start = startDate;

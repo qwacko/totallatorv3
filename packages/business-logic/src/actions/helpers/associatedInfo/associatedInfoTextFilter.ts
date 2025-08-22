@@ -1,9 +1,10 @@
+import type { AssociatedInfoFilterSchemaType } from '@totallator/shared';
+
 import {
 	addToArray,
 	textFilterHandler,
 	type TextFilterOptionsType
 } from '../misc/processTextFilter';
-import type { AssociatedInfoFilterSchemaType } from '@totallator/shared';
 
 const filterArray: TextFilterOptionsType<AssociatedInfoFilterSchemaType> = [
 	{

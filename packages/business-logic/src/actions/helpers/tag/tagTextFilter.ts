@@ -1,4 +1,6 @@
 import type { TagFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
+import { fileFilterArray } from '../file/fileTextFilter';
 import {
 	addToArray,
 	textFilterHandler,
@@ -12,7 +14,6 @@ import {
 	statusTextFilterArray
 } from '../misc/textFilterConfigurations';
 import { noteFilterArray } from '../note/noteTextFilter';
-import { fileFilterArray } from '../file/fileTextFilter';
 
 export const tagFilterArray: TextFilterOptionsType<TagFilterSchemaWithoutPaginationType> = [
 	...importTextFilterArray,

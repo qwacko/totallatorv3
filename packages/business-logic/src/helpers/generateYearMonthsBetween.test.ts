@@ -1,8 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import {
-	generateYearMonthsBetween,
-	generateYearMonthsBeforeToday
-} from './generateYearMonthsBetween'; // Adjust the import path
+	generateYearMonthsBeforeToday,
+	generateYearMonthsBetween
+} from './generateYearMonthsBetween';
+
+// Adjust the import path
 
 describe('generateYearMonthsBetween', () => {
 	it('should generate year-months between two dates', () => {

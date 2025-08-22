@@ -172,7 +172,11 @@ export interface LLMBatchResponse {
 	/** Processing insights and patterns found */
 	batchInsights: {
 		patternsFound: string[];
-		historicalMatches: Array<{ sourceJournalId: string; matchedJournalId: string; reason: string }>;
+		historicalMatches: Array<{
+			sourceJournalId: string;
+			matchedJournalId: string;
+			reason: string;
+		}>;
 		suggestedWorkflows: string[];
 	};
 

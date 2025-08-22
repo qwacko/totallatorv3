@@ -1,7 +1,9 @@
-import { deduplicateJournals, type ContextBuilderParams } from './baseContextBuilder';
-import type { LLMBatchContext, BatchJournalData } from '../llmBatchProcessingServiceTypes';
-import { journalMaterialisedList } from '@/actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '@totallator/shared';
+
+import { journalMaterialisedList } from '@/actions/helpers/journal/journalList';
+
+import type { BatchJournalData, LLMBatchContext } from '../llmBatchProcessingServiceTypes';
+import { type ContextBuilderParams, deduplicateJournals } from './baseContextBuilder';
 
 /**
  * Builds historical context by fetching recent, data-checked journals from the same account

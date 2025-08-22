@@ -1,4 +1,5 @@
 import type { CreateLabelSchemaType } from '@totallator/shared';
+
 import { statusUpdate } from '../misc/statusUpdate';
 import { updatedTime } from '../misc/updatedTime';
 

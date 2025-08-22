@@ -1,5 +1,5 @@
-import type { SummaryCacheSchemaDataType } from "@totallator/shared";
+import type { SummaryCacheSchemaDataType } from '@totallator/shared';
 
 export type JournalSummaryPropType =
-  | Promise<SummaryCacheSchemaDataType[]>
-  | Promise<SummaryCacheSchemaDataType>;
+	| Promise<SummaryCacheSchemaDataType[]>
+	| Promise<SummaryCacheSchemaDataType>;

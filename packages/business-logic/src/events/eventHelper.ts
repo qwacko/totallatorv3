@@ -1,4 +1,4 @@
-import { getEventEmitter, type AppEvents } from '@totallator/context';
+import { type AppEvents, getEventEmitter } from '@totallator/context';
 
 /**
  * Helper function to emit events from business logic

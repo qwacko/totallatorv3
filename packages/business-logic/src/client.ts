@@ -1,7 +1,6 @@
 // ============================================================================
 // Client-side exports only - no server-side dependencies
 // ============================================================================
-
 import {
 	getAllPredefinedProviders,
 	getProviderDisplayName,

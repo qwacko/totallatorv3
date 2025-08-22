@@ -1,16 +1,17 @@
 import type { DBType } from '@totallator/database';
-import { journalMaterialisedList } from '@/actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '@totallator/shared';
-import { getServerEnv } from '@/serverEnv';
-import { getLogger } from '@/logger';
-import { createLLMClient } from '../llm/modernClient';
 
+import { accountActions } from '@/actions/accountActions';
+import { journalMaterialisedList } from '@/actions/helpers/journal/journalList';
+import { llmActions } from '@/actions/llmActions';
+import { getLogger } from '@/logger';
+import { getServerEnv } from '@/serverEnv';
+
+import { createLLMClient } from '../llm/modernClient';
+import { buildFuzzyMatchContext } from './contextBuilders/fuzzyMatchContextBuilder';
 // Context Builders
 import { buildHistoricalContext } from './contextBuilders/historicalContextBuilder';
-import { buildFuzzyMatchContext } from './contextBuilders/fuzzyMatchContextBuilder';
 import { buildPopularItemsContext } from './contextBuilders/popularItemsContextBuilder';
-import { llmActions } from '@/actions/llmActions';
-import { accountActions } from '@/actions/accountActions';
 import {
 	BatchJournalData,
 	BatchProcessingResult,
@@ -59,29 +60,51 @@ export async function processAllAccounts(
 
 	// Check if LLM processing is enabled
 	if (!getServerEnv().LLM_REVIEW_ENABLED) {
-		getLogger('llm').info({ code: 'LLM_001', title: 'LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false' });
+		getLogger('llm').info({
+			code: 'LLM_001',
+			title: 'LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false'
+		});
 		return emptyStats(Date.now() - startTime);
 	}
 
 	// Get enabled LLM providers
 	const allProviders = await llmActions.list();
 	const enabledProviders = allProviders.filter((p) => p.enabled);
-	getLogger('llm').info({ code: 'LLM_002', title: `LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`, totalProviders: allProviders.length, enabledProviders: enabledProviders.length });
+	getLogger('llm').info({
+		code: 'LLM_002',
+		title: `LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`,
+		totalProviders: allProviders.length,
+		enabledProviders: enabledProviders.length
+	});
 	if (enabledProviders.length === 0) {
-		getLogger('llm').info({ code: 'LLM_003', title: 'LLM Batch Processing: Skipped - No enabled providers' });
+		getLogger('llm').info({
+			code: 'LLM_003',
+			title: 'LLM Batch Processing: Skipped - No enabled providers'
+		});
 		return emptyStats(Date.now() - startTime);
 	}
 
 	// Get accounts that have journals requiring processing
 	const accountsWithWork = await getAccountsWithRequiredJournals(db);
 
-	getLogger('llm').info({ code: 'LLM_004', title: `LLM Batch Processing: Found ${accountsWithWork.length} accounts with journals requiring processing`, accountsCount: accountsWithWork.length });
+	getLogger('llm').info({
+		code: 'LLM_004',
+		title: `LLM Batch Processing: Found ${accountsWithWork.length} accounts with journals requiring processing`,
+		accountsCount: accountsWithWork.length
+	});
 	if (accountsWithWork.length === 0) {
-		getLogger('llm').info({ code: 'LLM_005', title: 'LLM Batch Processing: No accounts with journals requiring processing' });
+		getLogger('llm').info({
+			code: 'LLM_005',
+			title: 'LLM Batch Processing: No accounts with journals requiring processing'
+		});
 		return emptyStats(Date.now() - startTime);
 	}
 
-	getLogger('llm').info({ code: 'LLM_006', title: `LLM Batch Processing: Processing ${accountsWithWork.length} accounts`, accountsCount: accountsWithWork.length });
+	getLogger('llm').info({
+		code: 'LLM_006',
+		title: `LLM Batch Processing: Processing ${accountsWithWork.length} accounts`,
+		accountsCount: accountsWithWork.length
+	});
 
 	const stats: BatchProcessingStats = {
 		totalBatchesProcessed: 0,
@@ -106,15 +129,35 @@ export async function processAllAccounts(
 				stats.averageConfidence = (stats.averageConfidence + confidence) / 2;
 			}
 
-			getLogger('llm').info({ code: 'LLM_007', title: `LLM Batch Processing: Account ${account.title} - ${result.journalsProcessed} journals processed`, accountId: account.id, accountTitle: account.title, journalsProcessed: result.journalsProcessed });
+			getLogger('llm').info({
+				code: 'LLM_007',
+				title: `LLM Batch Processing: Account ${account.title} - ${result.journalsProcessed} journals processed`,
+				accountId: account.id,
+				accountTitle: account.title,
+				journalsProcessed: result.journalsProcessed
+			});
 		} catch (error) {
 			stats.errors++;
-			getLogger('llm').error({ code: 'LLM_008', title: `LLM Batch Processing: Error processing account ${account.id}`, accountId: account.id, error });
+			getLogger('llm').error({
+				code: 'LLM_008',
+				title: `LLM Batch Processing: Error processing account ${account.id}`,
+				accountId: account.id,
+				error
+			});
 		}
 	}
 
 	stats.processingTime = Date.now() - startTime;
-	getLogger('llm').info({ code: 'LLM_009', title: `LLM Batch Processing: Completed - ${stats.totalBatchesProcessed} batches, ${stats.totalJournalsProcessed} journals`, totalBatchesProcessed: stats.totalBatchesProcessed, totalJournalsProcessed: stats.totalJournalsProcessed, totalSuggestionsCreated: stats.totalSuggestionsCreated, averageConfidence: stats.averageConfidence, processingTime: stats.processingTime, errors: stats.errors });
+	getLogger('llm').info({
+		code: 'LLM_009',
+		title: `LLM Batch Processing: Completed - ${stats.totalBatchesProcessed} batches, ${stats.totalJournalsProcessed} journals`,
+		totalBatchesProcessed: stats.totalBatchesProcessed,
+		totalJournalsProcessed: stats.totalJournalsProcessed,
+		totalSuggestionsCreated: stats.totalSuggestionsCreated,
+		averageConfidence: stats.averageConfidence,
+		processingTime: stats.processingTime,
+		errors: stats.errors
+	});
 
 	return stats;
 }
@@ -153,7 +196,15 @@ export async function processAccount(
 		const processResult = await processLLMResponse(db, llmResponse, config);
 
 		// For now, just log the response - we'll implement suggestion storage later
-		getLogger('llm').info({ code: 'LLM_010', title: `LLM Batch Processing Result for account ${accountId}`, accountId, journalsProcessed: uncategorizedJournals.length, suggestionsCount: llmResponse.journalSuggestions.length, averageConfidence: llmResponse.processingMetadata.averageConfidence, patternsFound: llmResponse.batchInsights.patternsFound.length });
+		getLogger('llm').info({
+			code: 'LLM_010',
+			title: `LLM Batch Processing Result for account ${accountId}`,
+			accountId,
+			journalsProcessed: uncategorizedJournals.length,
+			suggestionsCount: llmResponse.journalSuggestions.length,
+			averageConfidence: llmResponse.processingMetadata.averageConfidence,
+			patternsFound: llmResponse.batchInsights.patternsFound.length
+		});
 
 		return {
 			success: true,
@@ -165,7 +216,12 @@ export async function processAccount(
 			llmResponse
 		};
 	} catch (error) {
-		getLogger('llm').error({ code: 'LLM_011', title: `LLM Batch Processing: Error processing account ${accountId}`, accountId, error });
+		getLogger('llm').error({
+			code: 'LLM_011',
+			title: `LLM Batch Processing: Error processing account ${accountId}`,
+			accountId,
+			error
+		});
 		return {
 			success: false,
 			accountId,
@@ -198,12 +254,22 @@ async function getAccountsWithRequiredJournals(
 
 	const result = await journalMaterialisedList({ db, filter });
 
-	getLogger('llm').info({ code: 'LLM_012', title: `LLM Batch Processing: Found ${result.count} journals with status 'required' in asset/liability accounts (showing ${result.data.length})`, totalJournals: result.count, showingJournals: result.data.length });
+	getLogger('llm').info({
+		code: 'LLM_012',
+		title: `LLM Batch Processing: Found ${result.count} journals with status 'required' in asset/liability accounts (showing ${result.data.length})`,
+		totalJournals: result.count,
+		showingJournals: result.data.length
+	});
 
 	// Extract unique account IDs
 	const accountIds = new Set(result.data.map((j) => j.accountId).filter(Boolean));
 
-	getLogger('llm').info({ code: 'LLM_013', title: `LLM Batch Processing: Journals span ${accountIds.size} asset/liability accounts`, accountsCount: accountIds.size, accountIds: Array.from(accountIds) });
+	getLogger('llm').info({
+		code: 'LLM_013',
+		title: `LLM Batch Processing: Journals span ${accountIds.size} asset/liability accounts`,
+		accountsCount: accountIds.size,
+		accountIds: Array.from(accountIds)
+	});
 
 	// Get account details and verify they are asset/liability accounts
 	const accounts = await Promise.all(
@@ -221,7 +287,16 @@ async function getAccountsWithRequiredJournals(
 		title: string;
 		type: string;
 	}>;
-	getLogger('llm').info({ code: 'LLM_014', title: `LLM Batch Processing: Processing ${validAccounts.length} asset/liability accounts`, validAccountsCount: validAccounts.length, accounts: validAccounts.map((a) => ({ title: a.title, type: a.type, id: a.id })) });
+	getLogger('llm').info({
+		code: 'LLM_014',
+		title: `LLM Batch Processing: Processing ${validAccounts.length} asset/liability accounts`,
+		validAccountsCount: validAccounts.length,
+		accounts: validAccounts.map((a) => ({
+			title: a.title,
+			type: a.type,
+			id: a.id
+		}))
+	});
 
 	return validAccounts;
 }
@@ -288,16 +363,35 @@ async function buildContext(
 
 	// Run each context builder
 	const contextBuilders = [
-		{ name: 'historical', enabled: true, priority: 1, build: buildHistoricalContext },
-		{ name: 'fuzzy_match', enabled: true, priority: 2, build: buildFuzzyMatchContext },
-		{ name: 'popular_items', enabled: true, priority: 3, build: buildPopularItemsContext }
+		{
+			name: 'historical',
+			enabled: true,
+			priority: 1,
+			build: buildHistoricalContext
+		},
+		{
+			name: 'fuzzy_match',
+			enabled: true,
+			priority: 2,
+			build: buildFuzzyMatchContext
+		},
+		{
+			name: 'popular_items',
+			enabled: true,
+			priority: 3,
+			build: buildPopularItemsContext
+		}
 	].sort((a, b) => a.priority - b.priority);
 
 	for (const builder of contextBuilders) {
 		if (!builder.enabled) continue;
 
 		try {
-			getLogger('llm').debug({ code: 'LLM_015', title: `LLM Batch Processing: Running context builder '${builder.name}'`, builderName: builder.name });
+			getLogger('llm').debug({
+				code: 'LLM_015',
+				title: `LLM Batch Processing: Running context builder '${builder.name}'`,
+				builderName: builder.name
+			});
 			const builderContext = await builder.build({
 				db,
 				accountId,
@@ -308,7 +402,12 @@ async function buildContext(
 			// Merge builder results into main context
 			context = { ...context, ...builderContext };
 		} catch (error) {
-			getLogger('llm').error({ code: 'LLM_016', title: `LLM Batch Processing: Context builder '${builder.name}' failed`, builderName: builder.name, error });
+			getLogger('llm').error({
+				code: 'LLM_016',
+				title: `LLM Batch Processing: Context builder '${builder.name}' failed`,
+				builderName: builder.name,
+				error
+			});
 			// Continue with other builders
 		}
 	}
@@ -370,7 +469,15 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 	const prompt = buildBatchPrompt(context);
 
 	// Log context for debugging
-	getLogger('llm').info({ code: 'LLM_017', title: 'LLM Batch Context built', accountId: context.account.id, uncategorizedCount: context.uncategorizedJournals.length, historicalCount: context.historicalJournals.length, fuzzyMatchCount: context.fuzzyMatches.length, popularCategoriesCount: context.popularItems.categories.length });
+	getLogger('llm').info({
+		code: 'LLM_017',
+		title: 'LLM Batch Context built',
+		accountId: context.account.id,
+		uncategorizedCount: context.uncategorizedJournals.length,
+		historicalCount: context.historicalJournals.length,
+		fuzzyMatchCount: context.fuzzyMatches.length,
+		popularCategoriesCount: context.popularItems.categories.length
+	});
 
 	// Make actual LLM API call
 	try {
@@ -386,7 +493,10 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 			max_tokens: 4000 // Enough for batch processing responses
 		};
 
-		getLogger('llm').info({ code: 'LLM_018', title: 'Making LLM API call for batch processing...' });
+		getLogger('llm').info({
+			code: 'LLM_018',
+			title: 'Making LLM API call for batch processing...'
+		});
 		const llmResponse = await llmClient.call(llmRequest);
 
 		// Parse the response
@@ -403,7 +513,12 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 			const jsonText = jsonMatch ? jsonMatch[0] : responseText;
 			parsedResponse = JSON.parse(jsonText);
 		} catch (parseError) {
-			getLogger('llm').error({ code: 'LLM_019', title: 'Failed to parse LLM JSON response', parseError, responseText });
+			getLogger('llm').error({
+				code: 'LLM_019',
+				title: 'Failed to parse LLM JSON response',
+				parseError,
+				responseText
+			});
 
 			// Fallback to mock response if parsing fails
 			throw new Error(`Failed to parse LLM response: ${parseError}`);
@@ -412,11 +527,21 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 		// Validate and enhance the response
 		const enhancedResponse = validateAndEnhanceLLMResponse(parsedResponse, context);
 
-		getLogger('llm').info({ code: 'LLM_020', title: 'LLM Batch Processing completed successfully', totalSuggestions: enhancedResponse.journalSuggestions.length, averageConfidence: enhancedResponse.processingMetadata.averageConfidence, patternsFound: enhancedResponse.batchInsights.patternsFound.length });
+		getLogger('llm').info({
+			code: 'LLM_020',
+			title: 'LLM Batch Processing completed successfully',
+			totalSuggestions: enhancedResponse.journalSuggestions.length,
+			averageConfidence: enhancedResponse.processingMetadata.averageConfidence,
+			patternsFound: enhancedResponse.batchInsights.patternsFound.length
+		});
 
 		return enhancedResponse;
 	} catch (error) {
-		getLogger('llm').error({ code: 'LLM_021', title: 'LLM Batch Processing failed', error });
+		getLogger('llm').error({
+			code: 'LLM_021',
+			title: 'LLM Batch Processing failed',
+			error
+		});
 
 		// Return fallback response on error
 		const fallbackResponse: LLMBatchResponse = {

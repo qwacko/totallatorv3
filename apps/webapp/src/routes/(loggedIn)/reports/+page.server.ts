@@ -1,7 +1,7 @@
-import { authGuard } from "$lib/authGuard/authGuardConfig";
+import { authGuard } from '$lib/authGuard/authGuardConfig';
 
 export const load = async (data) => {
-  authGuard(data);
+	authGuard(data);
 
-  return {};
+	return {};
 };

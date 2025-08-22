@@ -4,6 +4,7 @@ import type { BudgetFilterSchemaWithoutPaginationType } from '@totallator/shared
 import type { CategoryFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type { LabelFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type { TagFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
 import {
 	addToArray,
 	compareTextDate,

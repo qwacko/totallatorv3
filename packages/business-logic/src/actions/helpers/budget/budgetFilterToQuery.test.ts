@@ -1,8 +1,9 @@
-import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
-import { budget } from '@totallator/database';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { and } from 'drizzle-orm';
+import { QueryBuilder } from 'drizzle-orm/pg-core';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
+import { budget } from '@totallator/database';
+
 import {
 	clearTestDB,
 	closeTestDB,
@@ -10,6 +11,8 @@ import {
 	getTestDB,
 	initialiseTestDB
 } from '@/server/db/test/dbTest';
+
+import { budgetFilterToQuery, budgetFilterToText } from './budgetFilterToQuery';
 
 describe('budgetFilterToQuery', () => {
 	const qb = new QueryBuilder();
@@ -110,7 +113,10 @@ describe('budgetFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = budgetFilterToQuery({ filter: {}, target: 'materialized' });
+		const returnValue = budgetFilterToQuery({
+			filter: {},
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()

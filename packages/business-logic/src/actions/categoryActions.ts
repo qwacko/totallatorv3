@@ -1,32 +1,35 @@
-import type {
-	CreateCategorySchemaType,
-	CategoryFilterSchemaType,
-	UpdateCategorySchemaType
-} from '@totallator/shared';
+import { and, asc, desc, eq, max } from 'drizzle-orm';
+import { count as drizzleCount } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import Papa from 'papaparse';
+
+import { getContextDB } from '@totallator/context';
 import {
 	category,
 	type CategoryTableType,
 	type CategoryViewReturnType
 } from '@totallator/database';
-import { and, asc, desc, eq, max } from 'drizzle-orm';
-import { statusUpdate } from './helpers/misc/statusUpdate';
-import { combinedTitleSplit } from '../helpers/combinedTitleSplit';
-import { updatedTime } from './helpers/misc/updatedTime';
+import type {
+	CategoryFilterSchemaType,
+	CreateCategorySchemaType,
+	UpdateCategorySchemaType
+} from '@totallator/shared';
+
 import { getLogger } from '@/logger';
-import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery';
-import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
-import { createCategory } from './helpers/seed/seedCategoryData';
-import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { streamingDelay } from '../server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm';
-import { materializedViewActions } from './materializedViewActions';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { combinedTitleSplit } from '../helpers/combinedTitleSplit';
+import { streamingDelay } from '../server/testingDelay';
+import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
+import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery';
 import { getCorrectCategoryTable } from './helpers/category/getCorrectCategoryTable';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
-import Papa from 'papaparse';
-import { getContextDB } from '@totallator/context';
+import { statusUpdate } from './helpers/misc/statusUpdate';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
+import { createCategory } from './helpers/seed/seedCategoryData';
+import { materializedViewActions } from './materializedViewActions';
 
 export type CategoryDropdownType = {
 	id: string;
@@ -251,7 +254,11 @@ export const categoryActions: CategoryActionsType = {
 		);
 
 		if (!currentCategory) {
-			getLogger('categories').error({ code: 'CAT_001', title: 'Update Category: Category not found', data });
+			getLogger('categories').error({
+				code: 'CAT_001',
+				title: 'Update Category: Category not found',
+				data
+			});
 			return id;
 		}
 
@@ -329,7 +336,11 @@ export const categoryActions: CategoryActionsType = {
 	},
 	seed: async (count) => {
 		const db = getContextDB();
-		getLogger('categories').info({ code: 'CAT_002', title: 'Seeding Categories', count });
+		getLogger('categories').info({
+			code: 'CAT_002',
+			title: 'Seeding Categories',
+			count
+		});
 
 		const existingTitles = (
 			await dbExecuteLogger(

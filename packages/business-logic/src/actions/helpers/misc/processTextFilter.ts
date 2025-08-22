@@ -159,7 +159,12 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 		const processedTextFilter = splitInput(filter.textFilter);
 
 		if (logProcessing) {
-			getLogger('queries').info({ code: 'QUERY_003', title: 'processedTextFilter', textFilter: filter.textFilter, processedTextFilter });
+			getLogger('queries').info({
+				code: 'QUERY_003',
+				title: 'processedTextFilter',
+				textFilter: filter.textFilter,
+				processedTextFilter
+			});
 		}
 
 		for (const text of processedTextFilter) {
@@ -173,7 +178,12 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 				}
 			}
 			if (logProcessing && useText !== text) {
-				getLogger('queries').info({ code: 'QUERY_004', title: 'Text proxied', originalText: text, proxiedText: useText });
+				getLogger('queries').info({
+					code: 'QUERY_004',
+					title: 'Text proxied',
+					originalText: text,
+					proxiedText: useText
+				});
 			}
 			let filterHandled = false;
 			let filterKey = '';
@@ -212,7 +222,12 @@ export const textFilterHandler = <T extends { textFilter?: string }>(
 			}
 
 			if (logProcessing) {
-				getLogger('queries').info({ code: 'QUERY_005', title: 'Text handled by filter', text, filterKey });
+				getLogger('queries').info({
+					code: 'QUERY_005',
+					title: 'Text handled by filter',
+					text,
+					filterKey
+				});
 			}
 		}
 

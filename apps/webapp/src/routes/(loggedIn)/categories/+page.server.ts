@@ -1,91 +1,87 @@
-import { error, redirect } from "@sveltejs/kit";
-import type { SingleServerRouteConfig } from "skroutes";
-import { superValidate } from "sveltekit-superforms";
-import { zod4 } from "sveltekit-superforms/adapters";
-import * as z from "zod";
+import { error, redirect } from '@sveltejs/kit';
+import type { SingleServerRouteConfig } from 'skroutes';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import * as z from 'zod';
 
-import { categoryFilterToText } from "@totallator/business-logic";
-import { tActions } from "@totallator/business-logic";
-import { categoryFilterArray } from "@totallator/business-logic";
-import { categoryFilterSchema } from "@totallator/shared";
+import { categoryFilterToText } from '@totallator/business-logic';
+import { tActions } from '@totallator/business-logic';
+import { categoryFilterArray } from '@totallator/business-logic';
+import { categoryFilterSchema } from '@totallator/shared';
 
-import { authGuard } from "$lib/authGuard/authGuardConfig.js";
-import { serverPageInfo } from "$lib/routes.server.js";
-import { associatedInfoFormActions } from "$lib/server/associatednfoFormActions.js";
-import { fileFormActions } from "$lib/server/fileFormActions";
-import { extractAutocompleteFromTextFilter } from "$lib/server/helpers/filterConfigExtractor.js";
-import { noteFormActions } from "$lib/server/noteFormActions.js";
+import { authGuard } from '$lib/authGuard/authGuardConfig.js';
+import { serverPageInfo } from '$lib/routes.server.js';
+import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions.js';
+import { fileFormActions } from '$lib/server/fileFormActions';
+import { extractAutocompleteFromTextFilter } from '$lib/server/helpers/filterConfigExtractor.js';
+import { noteFormActions } from '$lib/server/noteFormActions.js';
 
 export const load = async (data) => {
-  authGuard(data);
-  const db = data.locals.db;
-  const { current: pageInfo, updateParams } = serverPageInfo(
-    data.route.id,
-    data,
-  );
+	authGuard(data);
+	const db = data.locals.db;
+	const { current: pageInfo, updateParams } = serverPageInfo(data.route.id, data);
 
-  const categories = await tActions.category.list({
-    filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
-  });
-  const redirectRequired = categories.page >= categories.pageCount;
-  if (redirectRequired) {
-    const targetPage = Math.max(0, categories.pageCount - 1);
-    redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
-  }
+	const categories = await tActions.category.list({
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+	});
+	const redirectRequired = categories.page >= categories.pageCount;
+	if (redirectRequired) {
+		const targetPage = Math.max(0, categories.pageCount - 1);
+		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
+	}
 
-  const filterText = await categoryFilterToText({
-    db,
-    filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
-  });
+	const filterText = await categoryFilterToText({
+		db,
+		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
+	});
 
-  // Generate autocomplete configuration from server-side filter array
-  const autocompleteKeys = extractAutocompleteFromTextFilter(
-    categoryFilterArray,
-    "category",
-  );
+	// Generate autocomplete configuration from server-side filter array
+	const autocompleteKeys = extractAutocompleteFromTextFilter(categoryFilterArray, 'category');
 
-  return {
-    categories: tActions.associatedInfo.addToItems({
-      data: categories,
-      grouping: "categoryId",
-    }),
-    searchParams: pageInfo.searchParams,
-    filterText,
-    autocompleteKeys,
-  };
+	return {
+		categories: tActions.associatedInfo.addToItems({
+			data: categories,
+			grouping: 'categoryId'
+		}),
+		searchParams: pageInfo.searchParams,
+		filterText,
+		autocompleteKeys
+	};
 };
 
 const submitValidation = z.object({
-  id: z.string(),
-  status: z.enum(["active", "disabled"]),
+	id: z.string(),
+	status: z.enum(['active', 'disabled'])
 });
 
 export const actions = {
-  ...noteFormActions,
-  ...fileFormActions,
-  ...associatedInfoFormActions,
-  update: async ({ request, locals }) => {
-    const form = await superValidate(request, zod4(submitValidation));
+	...noteFormActions,
+	...fileFormActions,
+	...associatedInfoFormActions,
+	update: async ({ request, locals }) => {
+		const form = await superValidate(request, zod4(submitValidation));
 
-    if (!form.valid) {
-      return error(400, "Invalid form data");
-    }
+		if (!form.valid) {
+			return error(400, 'Invalid form data');
+		}
 
-    try {
-      await tActions.category.update({ data: form.data, id: form.data.id });
-      return {
-        status: 200,
-        body: {
-          message: "Category Updated",
-        },
-      };
-    } catch (e) {
-      locals.global.logger('categories').error({code: "CAT_0003", title: "Category Update Error", error: e});
-      return error(500, "Error updating category");
-    }
-  },
+		try {
+			await tActions.category.update({ data: form.data, id: form.data.id });
+			return {
+				status: 200,
+				body: {
+					message: 'Category Updated'
+				}
+			};
+		} catch (e) {
+			locals.global
+				.logger('categories')
+				.error({ code: 'CAT_0003', title: 'Category Update Error', error: e });
+			return error(500, 'Error updating category');
+		}
+	}
 };
 
 export const _routeConfig = {
-  searchParamsValidation: categoryFilterSchema.optional().catch({}),
+	searchParamsValidation: categoryFilterSchema.optional().catch({})
 } satisfies SingleServerRouteConfig;

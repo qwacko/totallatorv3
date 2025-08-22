@@ -1,5 +1,7 @@
 import type { AccountFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import { accountTypeEnum, type AccountTypeEnumType } from '@totallator/shared';
+
+import { fileFilterArray } from '../file/fileTextFilter';
 import {
 	addToArray,
 	compareTextDate,
@@ -13,7 +15,6 @@ import {
 	statusTextFilterArray
 } from '../misc/textFilterConfigurations';
 import { noteFilterArray } from '../note/noteTextFilter';
-import { fileFilterArray } from '../file/fileTextFilter';
 
 export const accountFilterArray: TextFilterOptionsType<AccountFilterSchemaWithoutPaginationType> = [
 	...importTextFilterArray,

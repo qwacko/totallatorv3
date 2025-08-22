@@ -1,68 +1,68 @@
-import type { ActionResult } from "@sveltejs/kit";
-import * as z from "zod";
+import type { ActionResult } from '@sveltejs/kit';
+import * as z from 'zod';
 
-import { invalidateAll } from "$app/navigation";
+import { invalidateAll } from '$app/navigation';
 
-import { notificationStore } from "./notificationStore";
+import { notificationStore } from './notificationStore';
 
 export const onSuccess = (notification: string, action?: () => void) => {
-  return () => {
-    notificationStore.send({
-      message: notification,
-      type: "success",
-      duration: 2000,
-    });
-    action && action();
-  };
+	return () => {
+		notificationStore.send({
+			message: notification,
+			type: 'success',
+			duration: 2000
+		});
+		action && action();
+	};
 };
 
 export const onError = (notification: string, action?: () => void) => {
-  return () => {
-    notificationStore.send({
-      message: notification,
-      type: "error",
-      duration: 8000,
-      dismissable: true,
-    });
-    action && action();
-  };
+	return () => {
+		notificationStore.send({
+			message: notification,
+			type: 'error',
+			duration: 8000,
+			dismissable: true
+		});
+		action && action();
+	};
 };
 
 export const superFormNotificationHelper = ({
-  setLoading,
-  errorMessage,
-  successMessage,
-  invalidate = false,
+	setLoading,
+	errorMessage,
+	successMessage,
+	invalidate = false
 }: {
-  setLoading?: (newValue: boolean) => void;
-  successMessage?: string;
-  errorMessage?: string;
-  invalidate?: boolean;
+	setLoading?: (newValue: boolean) => void;
+	successMessage?: string;
+	errorMessage?: string;
+	invalidate?: boolean;
 }) => {
-  return {
-    onSubmit: () => {
-      setLoading && setLoading(true);
-    },
-    onResult: ({ result }: { result: ActionResult }) => {
-      setLoading && setLoading(false);
-      if (result.type === "error" || result.type === "failure") {
-        let message = errorMessage;
-        const resultSchema = z.object({
-          data: z.object({ form: z.object({ message: z.string() }) }),
-        });
-        const parsedResult = resultSchema.safeParse(result);
-        if (parsedResult.success) {
-          message = parsedResult.data.data.form.message;
-        }
-        message && message.length > 0 && onError(message)();
-      }
-      if (result.type === "success") {
-        successMessage && onSuccess(successMessage)();
-      }
+	return {
+		onSubmit: () => {
+			setLoading && setLoading(true);
+		},
+		onResult: ({ result }: { result: ActionResult }) => {
+			setLoading && setLoading(false);
+			if (result.type === 'error' || result.type === 'failure') {
+				let message = errorMessage;
+				const resultSchema = z.object({
+					data: z.object({ form: z.object({ message: z.string() }) })
+				});
+				const parsedResult = resultSchema.safeParse(result);
+				if (parsedResult.success) {
+					message = parsedResult.data.data.form.message;
+				}
+				message && message.length > 0 && onError(message)();
+			}
+			if (result.type === 'success') {
+				successMessage && onSuccess(successMessage)();
+			}
 
-      if (invalidate) {
-        invalidateAll();
-      }
-    },
-  };
+			if (invalidate) {
+				invalidateAll();
+			}
+		}
+	};
 };

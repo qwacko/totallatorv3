@@ -1,13 +1,15 @@
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+// Vercel AI SDK imports
+import { type CoreMessage, type CoreTool, generateObject, generateText } from 'ai';
+import { nanoid } from 'nanoid';
+import type { z } from 'zod';
+
 import type { DBType } from '@totallator/database';
 import type { LLMSettings } from '@totallator/database';
 import { llmLogs } from '@totallator/database';
-import { nanoid } from 'nanoid';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 
-// Vercel AI SDK imports
-import { generateText, generateObject, type CoreMessage, type CoreTool } from 'ai';
-import type { z } from 'zod';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 // TODO: Re-enable when we implement proper factory patterns for these providers
 // import { openai } from '@ai-sdk/openai';
 // import { anthropic } from '@ai-sdk/anthropic';

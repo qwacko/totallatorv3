@@ -1,10 +1,13 @@
+import { eq, SQL } from 'drizzle-orm';
+
 import type { DBType } from '@totallator/database';
 import { associatedInfoTable } from '@totallator/database';
-import { SQL, eq } from 'drizzle-orm';
-import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { filterToQueryFinal } from '../misc/filterToQueryFinal';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
 import type { AssociatedInfoFilterSchemaType } from '@totallator/shared';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { processAssociatedInfoTextFilter } from './associatedInfoTextFilter';
 
 export const associatedInfoFilterToQuery = ({

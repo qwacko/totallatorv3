@@ -1,13 +1,16 @@
 import { sql } from 'drizzle-orm';
 import {
-	PgView,
 	getMaterializedViewConfig,
 	getViewConfig,
-	type PgMaterializedViewWithSelection
+	type PgMaterializedViewWithSelection,
+	PgView
 } from 'drizzle-orm/pg-core';
-import { getLogger } from '@/logger';
 import fs from 'fs';
+
 import { buildMaterializedIndexes, dropMaterializedIndexes } from '@totallator/database';
+
+import { getLogger } from '@/logger';
+
 import { sqlToText } from './sqlToText';
 
 const filename = 'materializedViewCombined.sql';
@@ -66,7 +69,11 @@ export const printMaterializedViewList = (
 	//Write To File
 	fs.writeFile(filename, outputText, (err) => {
 		if (err) {
-			getLogger('materialized-views').error({ code: 'MAT_VIEW_001', title: 'Failed to write materialized view file', error: err });
+			getLogger('materialized-views').error({
+				code: 'MAT_VIEW_001',
+				title: 'Failed to write materialized view file',
+				error: err
+			});
 		}
 	});
 };

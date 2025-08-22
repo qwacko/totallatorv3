@@ -1,4 +1,5 @@
 import type { CreateLabelSchemaType } from '@totallator/shared';
+
 import { getRandomInteger } from '../misc/getRandom';
 
 export const createLabel = (): CreateLabelSchemaType => {

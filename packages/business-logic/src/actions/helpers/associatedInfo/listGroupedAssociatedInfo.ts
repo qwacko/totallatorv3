@@ -1,6 +1,7 @@
 import { getContextDB } from '@totallator/context';
-import { GroupingIdOptions } from '../file/FilesAndNotesActions';
 import { fileTable, journalSnapshotTable, notesTable } from '@totallator/database';
+
+import { GroupingIdOptions } from '../file/FilesAndNotesActions';
 
 export const listGroupedAssociatedInfo = async ({
 	ids,

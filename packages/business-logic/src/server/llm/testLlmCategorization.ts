@@ -1,5 +1,6 @@
-import { LLMJournalProcessingService } from '../services/llmJournalProcessingService';
 import type { DBType } from '@totallator/database';
+
+import { LLMJournalProcessingService } from '../services/llmJournalProcessingService';
 
 /**
  * Test script for LLM categorization

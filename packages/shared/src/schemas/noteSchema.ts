@@ -1,6 +1,7 @@
 import * as z from 'zod';
-import { noteTypeEnum } from './enum/noteTypeEnum.js';
+
 import { noteOrderByEnum } from './enum/noteOrderByEnum.js';
+import { noteTypeEnum } from './enum/noteTypeEnum.js';
 import {
 	createFileNoteRelationshipSchema,
 	fileNoteRelationshipFilterSchema
@@ -79,7 +80,12 @@ export const noteFilterSchema = z.object({
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
-		.array(z.object({ field: z.enum(noteOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(noteOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.default([{ direction: 'desc', field: 'createdAt' }])
 		.optional()
 });

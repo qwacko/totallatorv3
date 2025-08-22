@@ -1,6 +1,8 @@
 import { eq } from 'drizzle-orm';
+
 import { type DBType } from '@totallator/database';
 import { keyValueTable } from '@totallator/database';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 export const keyValueStore = (key: string) => {

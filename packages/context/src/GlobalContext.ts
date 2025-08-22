@@ -1,9 +1,14 @@
 import type { DBType } from '@totallator/database';
-import type {  LogEntry, ConfigurationSelect,  LogLevelType } from '@totallator/log-database';
-import type { ServerEnvSchemaType,LogFilterValidationOutputType,LogFilterConfigValidationType, } from '@totallator/shared';
+import type { ConfigurationSelect, LogEntry, LogLevelType } from '@totallator/log-database';
+import type {
+	LogFilterConfigValidationType,
+	LogFilterValidationOutputType,
+	ServerEnvSchemaType
+} from '@totallator/shared';
+
 import type { TypedEventEmitter } from './eventEmitter';
 import type { LoggerFactory } from './logger';
-import type  { RateLimiter, createRateLimiter } from './rateLimiter';
+import type { createRateLimiter, RateLimiter } from './rateLimiter';
 
 /**
  * Global application context containing shared resources and configuration.
@@ -18,33 +23,41 @@ import type  { RateLimiter, createRateLimiter } from './rateLimiter';
  */
 
 export interface GlobalContext {
-  /** Unique identifier for this context instance, useful for log filtering */
-  contextId: string;
+	/** Unique identifier for this context instance, useful for log filtering */
+	contextId: string;
 
-  /** Complete logging system with database integration and management functions */
-  logging: {
-    queryLoggedItems: (params: LogFilterValidationOutputType & { limit?: number; offset?: number; }) => Promise<LogEntry[]>;
-    getLoggedItemsCount: (params: LogFilterValidationOutputType) => Promise<number>;
-    getAllLogConfigurations: () => Promise<ConfigurationSelect[]>;
-    setLogLevel: (data: {filter: LogFilterConfigValidationType, logLevel: LogLevelType}) => Promise<void>;
-  };
-  logger: LoggerFactory;
+	/** Complete logging system with database integration and management functions */
+	logging: {
+		queryLoggedItems: (
+			params: LogFilterValidationOutputType & {
+				limit?: number;
+				offset?: number;
+			}
+		) => Promise<LogEntry[]>;
+		getLoggedItemsCount: (params: LogFilterValidationOutputType) => Promise<number>;
+		getAllLogConfigurations: () => Promise<ConfigurationSelect[]>;
+		setLogLevel: (data: {
+			filter: LogFilterConfigValidationType;
+			logLevel: LogLevelType;
+		}) => Promise<void>;
+	};
+	logger: LoggerFactory;
 
-  /** Database connection with transaction support */
-  db: DBType;
+	/** Database connection with transaction support */
+	db: DBType;
 
-  /** Server environment configuration and settings */
-  serverEnv: ServerEnvSchemaType;
+	/** Server environment configuration and settings */
+	serverEnv: ServerEnvSchemaType;
 
-  /** Raw postgres connection for cleanup operations */
-  postgresDatabase: any;
+	/** Raw postgres connection for cleanup operations */
+	postgresDatabase: any;
 
-  /** Rate limiter for materialized view refresh operations */
-  viewRefreshLimiter: RateLimiter;
+	/** Rate limiter for materialized view refresh operations */
+	viewRefreshLimiter: RateLimiter;
 
-  /** Factory function for creating additional rate limiters */
-  createRateLimiter: typeof createRateLimiter;
+	/** Factory function for creating additional rate limiters */
+	createRateLimiter: typeof createRateLimiter;
 
-  /** Type-safe event emitter for application events */
-  eventEmitter: TypedEventEmitter;
+	/** Type-safe event emitter for application events */
+	eventEmitter: TypedEventEmitter;
 }

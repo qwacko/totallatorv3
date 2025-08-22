@@ -1,4 +1,5 @@
-import { getEventEmitter, type EventListener, getContext } from '@totallator/context';
+import { type EventListener, getContext, getEventEmitter } from '@totallator/context';
+
 import { backupActions } from '../actions/backupActions.js';
 import { typedKeyValueStore } from '../actions/helpers/keyValueStore.js';
 
@@ -29,7 +30,11 @@ const onBackupRestoreTriggered: EventListener<'backup.restore.triggered'> = asyn
 	}
 
 	try {
-		console.log('Starting background backup restore:', { backupId, includeUsers, userId });
+		console.log('Starting background backup restore:', {
+			backupId,
+			includeUsers,
+			userId
+		});
 
 		// Run the actual backup restore (this is the existing logic)
 		await backupActions.restoreBackup({
@@ -38,7 +43,9 @@ const onBackupRestoreTriggered: EventListener<'backup.restore.triggered'> = asyn
 			userId
 		});
 
-		console.log('Background backup restore completed successfully:', { backupId });
+		console.log('Background backup restore completed successfully:', {
+			backupId
+		});
 	} catch (error) {
 		console.error('Background backup restore failed:', {
 			backupId,

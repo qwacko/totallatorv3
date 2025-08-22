@@ -1,6 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
+
 import type { CreateBillSchemaType } from '@totallator/shared';
+
 import { billCreateInsertionData } from './billCreateInsertionData';
-import { expect, describe, it, vi } from 'vitest';
 
 describe('billCreateInsertionData', () => {
 	it('should return the correct insertion data', () => {

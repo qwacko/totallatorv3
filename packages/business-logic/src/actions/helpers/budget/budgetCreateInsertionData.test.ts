@@ -1,7 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
+
 import type { CreateBudgetSchemaType } from '@totallator/shared';
 
 import { budgetCreateInsertionData } from './budgetCreateInsertionData';
-import { expect, describe, it, vi } from 'vitest';
 
 describe('budgetCreateInsertionData', () => {
 	it('should return the correct insertion data', () => {

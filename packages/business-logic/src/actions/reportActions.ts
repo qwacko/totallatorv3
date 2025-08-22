@@ -1,3 +1,17 @@
+import { eq } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import {
+	filtersToReportConfigs,
+	type InsertReportElementConfigType,
+	report,
+	reportElement,
+	reportElementConfig,
+	type ReportTableType
+} from '@totallator/database';
+import { filter as filterTable } from '@totallator/database';
+import { dateRangeMaterializedView } from '@totallator/database';
 import type {
 	CreateReportElementType,
 	CreateReportType,
@@ -5,36 +19,25 @@ import type {
 	UpdateReportElementType,
 	UpdateReportLayoutType
 } from '@totallator/shared';
-import { nanoid } from 'nanoid';
-import {
-	report,
-	reportElement,
-	reportElementConfig,
-	type InsertReportElementConfigType,
-	filtersToReportConfigs,
-	type ReportTableType
-} from '@totallator/database';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { reportLayoutOptions } from '@totallator/shared';
-import { eq } from 'drizzle-orm';
-import { filter as filterTable } from '@totallator/database';
 import {
 	journalFilterSchemaWithoutPagination,
 	type JournalFilterSchemaWithoutPaginationType
 } from '@totallator/shared';
-import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
-import { getItemData } from './helpers/report/getData';
 import {
-	reportConfigPartIndividualSchema,
-	type ReportConfigPartFormSchemaType
+	type ReportConfigPartFormSchemaType,
+	reportConfigPartIndividualSchema
 } from '@totallator/shared';
-import { dateRangeMaterializedView } from '@totallator/database';
-import type { DBDateRangeType } from './helpers/report/filtersToDateRange';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+
+import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
+import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { updatedTime } from './helpers/misc/updatedTime';
+import type { DBDateRangeType } from './helpers/report/filtersToDateRange';
+import { getItemData } from './helpers/report/getData';
 
 export const reportActions = {
 	delete: async ({ id }: { id: string }): Promise<void> => {
@@ -71,7 +74,10 @@ export const reportActions = {
 
 		const reportElementCreationList: CreateReportElementType[] = reportLayoutOptions[
 			data.layout
-		].map((item) => ({ ...item, reportId: id }));
+		].map((item) => ({
+			...item,
+			reportId: id
+		}));
 
 		await runInTransactionWithLogging('Create Report', async () => {
 			const db = getContextDB();
@@ -202,7 +208,9 @@ export const reportActions = {
 		await runInTransactionWithLogging('Update Report Layout', async () => {
 			if (reportElementsToRemove.length > 0) {
 				//Remove old elements
-				await reportActions.reportElement.deleteMany({ ids: reportElementsToRemove });
+				await reportActions.reportElement.deleteMany({
+					ids: reportElementsToRemove
+				});
 			}
 
 			if (reportElementsToUpdate.length > 0) {
@@ -367,7 +375,10 @@ export const reportActions = {
 			const db = getContextDB();
 			const reportElementConfigs = await dbExecuteLogger(
 				db
-					.select({ id: reportElementConfig.id, title: reportElementConfig.title })
+					.select({
+						id: reportElementConfig.id,
+						title: reportElementConfig.title
+					})
 					.from(reportElementConfig)
 					.where(eq(reportElementConfig.reusable, true)),
 				'Report Element Configuration - List Reusable'
@@ -624,7 +635,10 @@ export const reportActions = {
 				throw new Error('Invalid Filter');
 			}
 
-			const filterText = await journalFilterToText({ db, filter: validatedFilter.data });
+			const filterText = await journalFilterToText({
+				db,
+				filter: validatedFilter.data
+			});
 
 			await runInTransactionWithLogging('Filter Update', async () => {
 				const db = getContextDB();
@@ -716,7 +730,11 @@ export const reportActions = {
 					)
 				: [];
 
-			return { id: simpleElementConfig.id, elementConfig: simpleElementConfig, itemData: data };
+			return {
+				id: simpleElementConfig.id,
+				elementConfig: simpleElementConfig,
+				itemData: data
+			};
 		},
 		deleteMany: async ({ ids }: { ids: string[] }) => {
 			const db = getContextDB();
@@ -855,7 +873,9 @@ export const reportActions = {
 					where: (reportElement, { eq }) => eq(reportElement.id, id),
 					with: {
 						filter: true,
-						reportElementConfig: { with: { filters: { with: { filter: true } } } },
+						reportElementConfig: {
+							with: { filters: { with: { filter: true } } }
+						},
 						report: {
 							with: {
 								filter: true

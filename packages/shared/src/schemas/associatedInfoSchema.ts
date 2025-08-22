@@ -1,10 +1,11 @@
 import * as z from 'zod';
-import { createFileSchemaCore, fileFilterCoreSchema } from './fileSchema.js';
-import { createNoteSchemaCore, noteFilterCoreSchema } from './noteSchema.js';
+
 import { associatedInfoOrderByEnum } from './enum/associatedInfoOrderByEnum.js';
-import { createFileNoteRelationshipSchema } from './helpers/fileNoteRelationship.js';
 import { fileReasonEnum } from './enum/fileReasonEnum.js';
 import { noteTypeEnum } from './enum/noteTypeEnum.js';
+import { createFileSchemaCore, fileFilterCoreSchema } from './fileSchema.js';
+import { createFileNoteRelationshipSchema } from './helpers/fileNoteRelationship.js';
+import { createNoteSchemaCore, noteFilterCoreSchema } from './noteSchema.js';
 
 export const assocatiedInfoFilterSchema = z.object({
 	textFilter: z.string().optional(),
@@ -48,7 +49,10 @@ export const associatedInfoFilterSchemaWithPagination = z.object({
 	pageSize: z.number().optional(),
 	orderBy: z
 		.array(
-			z.object({ field: z.enum(associatedInfoOrderByEnum), direction: z.enum(['asc', 'desc']) })
+			z.object({
+				field: z.enum(associatedInfoOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
 		)
 		.default([{ direction: 'desc', field: 'createdAt' }])
 		.optional()

@@ -179,7 +179,10 @@ export function getAllPredefinedProviders(): LLMProviderConfig[] {
 /**
  * Validate provider selection - all providers are now predefined
  */
-export function validateProviderSelection(providerId: string): { valid: boolean; error?: string } {
+export function validateProviderSelection(providerId: string): {
+	valid: boolean;
+	error?: string;
+} {
 	if (isPredefinedProvider(providerId)) {
 		return { valid: true };
 	}

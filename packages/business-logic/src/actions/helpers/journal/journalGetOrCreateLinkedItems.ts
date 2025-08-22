@@ -1,5 +1,6 @@
-import type { CreateJournalSchemaType } from '@totallator/shared';
 import type { DBType } from '@totallator/database';
+import type { CreateJournalSchemaType } from '@totallator/shared';
+
 import { accountActions } from '../../accountActions';
 import { billActions } from '../../billActions';
 import { budgetActions } from '../../budgetActions';

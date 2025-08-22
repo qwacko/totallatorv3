@@ -1,12 +1,15 @@
+import { eq } from 'drizzle-orm';
+
 import type { DBType } from '@totallator/database';
 import { importItemDetail, transaction } from '@totallator/database';
-import { updatedTime } from '../misc/updatedTime';
-import { eq } from 'drizzle-orm';
 import { createCombinedTransactionSchema, createSimpleTransactionSchema } from '@totallator/shared';
-import { simpleSchemaToCombinedSchema } from '../journal/simpleSchemaToCombinedSchema';
+
+import { journalActions } from '@/actions/journalActions';
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { journalActions } from '@/actions/journalActions';
+
+import { simpleSchemaToCombinedSchema } from '../journal/simpleSchemaToCombinedSchema';
+import { updatedTime } from '../misc/updatedTime';
 
 export async function importTransaction({
 	item,
@@ -30,15 +33,25 @@ export async function importTransaction({
 
 		if (processedCombinedTransaction.success) {
 			try {
-				getLogger('import', 'Other').debug({ code: 'IMP_TRANS_001', title: 'Starting import process' });
+				getLogger('import', 'Other').debug({
+					code: 'IMP_TRANS_001',
+					title: 'Starting import process'
+				});
 				const importedData = await journalActions.createManyTransactionJournals({
 					journalEntries: [processedCombinedTransaction.data],
 					isImport: true // This is from an import process
 				});
 
-				getLogger('import', 'Other').debug({ code: 'IMP_TRANS_002', title: 'Import Process Complete', importedData });
+				getLogger('import', 'Other').debug({
+					code: 'IMP_TRANS_002',
+					title: 'Import Process Complete',
+					importedData
+				});
 
-				getLogger('import', 'Other').info({ code: 'IMP_TRANS_003', title: 'Backlinking Import Data To Journals' });
+				getLogger('import', 'Other').info({
+					code: 'IMP_TRANS_003',
+					title: 'Backlinking Import Data To Journals'
+				});
 
 				await Promise.all(
 					importedData.map(async (transactionId) => {
@@ -126,7 +139,9 @@ export async function importTransaction({
 					.update(importItemDetail)
 					.set({
 						status: 'importError',
-						errorInfo: { errors: processedCombinedTransaction.error.flatten().formErrors },
+						errorInfo: {
+							errors: processedCombinedTransaction.error.flatten().formErrors
+						},
 						...updatedTime()
 					})
 					.where(eq(importItemDetail.id, item.id)),

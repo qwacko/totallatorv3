@@ -1,28 +1,31 @@
+import { and, asc, count, desc, eq, max } from 'drizzle-orm';
+import { count as drizzleCount } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+import Papa from 'papaparse';
+
+import { getContextDB } from '@totallator/context';
+import { journalEntry, tag, type TagTableType, type TagViewReturnType } from '@totallator/database';
 import type {
 	CreateTagSchemaType,
 	TagFilterSchemaType,
 	UpdateTagSchemaType
 } from '@totallator/shared';
-import { nanoid } from 'nanoid';
-import { journalEntry, tag, type TagTableType, type TagViewReturnType } from '@totallator/database';
-import { and, asc, count, desc, eq, max } from 'drizzle-orm';
-import { statusUpdate } from './helpers/misc/statusUpdate';
-import { combinedTitleSplit } from '../helpers/combinedTitleSplit';
-import { updatedTime } from './helpers/misc/updatedTime';
+
 import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { combinedTitleSplit } from '../helpers/combinedTitleSplit';
+import { streamingDelay } from '../server/testingDelay';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import type { ItemActionsType } from './helpers/misc/ItemActionsType';
+import { statusUpdate } from './helpers/misc/statusUpdate';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
+import { createTag } from './helpers/seed/seedTagData';
+import { getCorrectTagTable } from './helpers/tag/getCorrectTagTable';
 import { tagCreateInsertionData } from './helpers/tag/tagCreateInsertionData';
 import { tagFilterToQuery } from './helpers/tag/tagFilterToQuery';
-import { createTag } from './helpers/seed/seedTagData';
-import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { streamingDelay } from '../server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm';
 import { materializedViewActions } from './materializedViewActions';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getCorrectTagTable } from './helpers/tag/getCorrectTagTable';
-import type { ItemActionsType } from './helpers/misc/ItemActionsType';
-import Papa from 'papaparse';
-import { getContextDB } from '@totallator/context';
 
 export type TagDropdownType = {
 	id: string;
@@ -160,7 +163,12 @@ export const tagActions: TagActionsType = {
 		await streamingDelay();
 		const items = dbExecuteLogger(
 			db
-				.select({ id: tag.id, title: tag.title, group: tag.group, enabled: tag.allowUpdate })
+				.select({
+					id: tag.id,
+					title: tag.title,
+					group: tag.group,
+					enabled: tag.allowUpdate
+				})
 				.from(tag),
 			'Tags - List For Dropdown'
 		);
@@ -273,7 +281,10 @@ export const tagActions: TagActionsType = {
 	canDelete: async (data) => {
 		const db = getContextDB();
 		const currentTag = await dbExecuteLogger(
-			db.query.tag.findFirst({ where: eq(tag.id, data.id), with: { journals: { limit: 1 } } }),
+			db.query.tag.findFirst({
+				where: eq(tag.id, data.id),
+				with: { journals: { limit: 1 } }
+			}),
 			'Tags - Can Delete'
 		);
 		if (!currentTag) {

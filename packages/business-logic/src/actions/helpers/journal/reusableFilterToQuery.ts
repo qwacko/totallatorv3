@@ -1,6 +1,8 @@
-import type { ReusableFilterFilterSchemaType } from '@totallator/shared';
+import { eq, ilike, not, or, SQL } from 'drizzle-orm';
+
 import { reusableFilter } from '@totallator/database';
-import { SQL, eq, ilike, or, not } from 'drizzle-orm';
+import type { ReusableFilterFilterSchemaType } from '@totallator/shared';
+
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 export const reusableFilterToQuery = (filter: ReusableFilterFilterSchemaType) => {

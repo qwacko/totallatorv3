@@ -1,5 +1,6 @@
 import type { DBType } from '@totallator/database';
 import { category } from '@totallator/database';
+
 import { categoryCreateInsertionData } from '@/actions/helpers/category/categoryCreateInsertionData';
 
 export const seedTestCategories = async (db: DBType) =>

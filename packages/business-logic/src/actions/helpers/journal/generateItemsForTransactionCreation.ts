@@ -1,11 +1,14 @@
-import type { CreateCombinedTransactionType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
-import { updatedTime } from '../misc/updatedTime';
 import { nanoid } from 'nanoid';
-import { generateItemsForJournalCreation } from './generateItemsForJournalCreation';
+
+import type { DBType } from '@totallator/database';
 import { account, bill, budget, category, label, tag } from '@totallator/database';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import type { CreateCombinedTransactionType } from '@totallator/shared';
+
 import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { updatedTime } from '../misc/updatedTime';
+import { generateItemsForJournalCreation } from './generateItemsForJournalCreation';
 
 export const getCachedData = async ({ db, count }: { db: DBType; count: number }) => {
 	const useCache = count > 1;
@@ -23,7 +26,11 @@ export const getCachedData = async ({ db, count }: { db: DBType; count: number }
 		cachedAccounts: useCache
 			? await dbExecuteLogger(
 					db
-						.select({ id: account.id, title: account.accountTitleCombined, status: account.status })
+						.select({
+							id: account.id,
+							title: account.accountTitleCombined,
+							status: account.status
+						})
 						.from(account),
 					'getCachedData - Accounts'
 				)
@@ -36,7 +43,13 @@ export const getCachedData = async ({ db, count }: { db: DBType; count: number }
 			: undefined,
 		cachedBudgets: useCache
 			? await dbExecuteLogger(
-					db.select({ id: budget.id, title: budget.title, status: budget.status }).from(budget),
+					db
+						.select({
+							id: budget.id,
+							title: budget.title,
+							status: budget.status
+						})
+						.from(budget),
 					'getCachedData - Budgets'
 				)
 			: undefined,
@@ -49,7 +62,11 @@ export const getCachedData = async ({ db, count }: { db: DBType; count: number }
 		cachedCategories: useCache
 			? await dbExecuteLogger(
 					db
-						.select({ id: category.id, title: category.title, status: category.status })
+						.select({
+							id: category.id,
+							title: category.title,
+							status: category.status
+						})
 						.from(category),
 					'getCachedData - Categories'
 				)

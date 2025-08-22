@@ -1,6 +1,7 @@
 import * as z from 'zod';
-import { queryLogOrderByEnum } from './enum/queryLogOrderByEnum.js';
+
 import { groupedQueryLogOrderByEnum } from './enum/groupedQueryLogOrderByEnum.js';
+import { queryLogOrderByEnum } from './enum/queryLogOrderByEnum.js';
 
 export const queryLogFilterWithoutPaginationSchema = z.object({
 	idArray: z.array(z.string()).optional(),
@@ -33,7 +34,12 @@ export const queryLogFilterSchema = z.object({
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
-		.array(z.object({ field: z.enum(queryLogOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(queryLogOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.default([{ direction: 'desc', field: 'time' }])
 		.optional()
 });
@@ -53,7 +59,10 @@ export const groupedQueryLogFilter = z.object({
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
 		.array(
-			z.object({ field: z.enum(groupedQueryLogOrderByEnum), direction: z.enum(['asc', 'desc']) })
+			z.object({
+				field: z.enum(groupedQueryLogOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
 		)
 		.default([{ direction: 'desc', field: 'title' }])
 		.optional()

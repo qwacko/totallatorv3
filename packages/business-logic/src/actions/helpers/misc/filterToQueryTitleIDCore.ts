@@ -1,7 +1,9 @@
-import { SQL, eq, ilike, not, type ColumnBaseConfig } from 'drizzle-orm';
-import { arrayToText } from './arrayToText';
-import type { DBType } from '@totallator/database';
+import { type ColumnBaseConfig, eq, ilike, not, SQL } from 'drizzle-orm';
 import type { PgColumn } from 'drizzle-orm/pg-core';
+
+import type { DBType } from '@totallator/database';
+
+import { arrayToText } from './arrayToText';
 import { ilikeArrayWrapped, inArrayWrapped } from './inArrayWrapped';
 
 type FilterCoreType = {

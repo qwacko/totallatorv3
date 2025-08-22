@@ -1,24 +1,26 @@
-import type { LabelFilterSchemaType } from '@totallator/shared';
+import { and, eq, SQL } from 'drizzle-orm';
 
 import { journalEntry, label, labelsToJournals } from '@totallator/database';
-import { SQL, and, eq } from 'drizzle-orm';
-import {
-	summaryFilterToQueryMaterialized,
-	summaryFilterToText
-} from '../summary/summaryFilterToQuery';
-import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import type { DBType } from '@totallator/database';
+import { labelMaterializedView, labelView } from '@totallator/database';
+import type { LabelFilterSchemaType } from '@totallator/shared';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import {
 	importFilterToQueryMaterialized,
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
-import { filterToQueryFinal } from '../misc/filterToQueryFinal';
-import type { DBType } from '@totallator/database';
-import { labelMaterializedView, labelView } from '@totallator/database';
-import { processLabelTextFilter } from './labelTextFilter';
-import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
+import { processLabelTextFilter } from './labelTextFilter';
 
 export const labelFilterToQuery = ({
 	filter,
@@ -95,7 +97,10 @@ export const labelFilterToSubQuery = ({
 }) => {
 	const restFilter = processLabelTextFilter.process(filter);
 
-	const labelFilter = labelFilterToQuery({ filter: restFilter, target: 'materialized' });
+	const labelFilter = labelFilterToQuery({
+		filter: restFilter,
+		target: 'materialized'
+	});
 	const labelIdsSubquery = db
 		.select({ id: journalEntry.id })
 		.from(labelsToJournals)

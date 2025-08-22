@@ -1,57 +1,53 @@
-import { redirect } from "@sveltejs/kit";
-import { message, superValidate } from "sveltekit-superforms";
-import { zod4 } from "sveltekit-superforms/adapters";
-import * as z from "zod";
+import { redirect } from '@sveltejs/kit';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import * as z from 'zod';
 
-import { tActions } from "@totallator/business-logic";
-import { createReportSchema } from "@totallator/shared";
+import { tActions } from '@totallator/business-logic';
+import { createReportSchema } from '@totallator/shared';
 
-import { authGuard } from "$lib/authGuard/authGuardConfig.js";
-import { reportPageValidation } from "$lib/pageAndFilterValidation";
-import { urlGenerator } from "$lib/routes.js";
+import { authGuard } from '$lib/authGuard/authGuardConfig.js';
+import { reportPageValidation } from '$lib/pageAndFilterValidation';
+import { urlGenerator } from '$lib/routes.js';
 
 export const load = async (data) => {
-  authGuard(data);
+	authGuard(data);
 
-  const form = await superValidate(zod4(createReportSchema));
+	const form = await superValidate(zod4(createReportSchema));
 
-  return { form };
+	return { form };
 };
 
 const createReportSchemaWithPageAndFilter = z.object({
-  ...createReportSchema.shape,
-  ...reportPageValidation.shape,
+	...createReportSchema.shape,
+	...reportPageValidation.shape
 });
 
 export const actions = {
-  default: async ({ request, locals }) => {
-    const form = await superValidate(
-      request,
-      zod4(createReportSchemaWithPageAndFilter),
-    );
+	default: async ({ request, locals }) => {
+		const form = await superValidate(request, zod4(createReportSchemaWithPageAndFilter));
 
-    if (!form.valid) {
-      return { form };
-    }
+		if (!form.valid) {
+			return { form };
+		}
 
-    let newReportId = "";
+		let newReportId = '';
 
-    try {
-      newReportId = await tActions.report.create({ data: form.data });
-    } catch (e) {
-      locals.global.logger('reports').error({code: "RPT_0005", title: "Create Report Error", error: e});
-      return message(
-        form,
-        "Error Creating Report, Possibly Group / Title Already Exists",
-      );
-    }
-    redirect(
-      302,
-      urlGenerator({
-        address: "/(loggedIn)/reports/[id]",
-        paramsValue: { id: newReportId },
-        searchParamsValue: {},
-      }).url,
-    );
-  },
+		try {
+			newReportId = await tActions.report.create({ data: form.data });
+		} catch (e) {
+			locals.global
+				.logger('reports')
+				.error({ code: 'RPT_0005', title: 'Create Report Error', error: e });
+			return message(form, 'Error Creating Report, Possibly Group / Title Already Exists');
+		}
+		redirect(
+			302,
+			urlGenerator({
+				address: '/(loggedIn)/reports/[id]',
+				paramsValue: { id: newReportId },
+				searchParamsValue: {}
+			}).url
+		);
+	}
 };

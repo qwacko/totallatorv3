@@ -11,7 +11,12 @@ export const getCommonData = <
 	const targetSet = [...new Set(data.map((item) => item[key]))];
 
 	if (log) {
-		getLogger('queries').info({ code: 'QUERY_002', title: 'Target Set', targetSet, length: targetSet.length });
+		getLogger('queries').info({
+			code: 'QUERY_002',
+			title: 'Target Set',
+			targetSet,
+			length: targetSet.length
+		});
 	}
 
 	if (targetSet.length === 1) {

@@ -1,67 +1,62 @@
 <script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
-  import { onMount } from "svelte";
-  import type { Writable } from "svelte/store";
-  import type { FormPathLeaves } from "sveltekit-superforms";
-  import { formFieldProxy, type SuperForm } from "sveltekit-superforms";
+	import { onMount } from 'svelte';
+	import type { Writable } from 'svelte/store';
+	import type { FormPathLeaves } from 'sveltekit-superforms';
+	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
 
-  import {
-    llmReviewStatusEnumSelection,
-    type LlmReviewStatusEnumType,
-  } from "@totallator/shared";
+	import { llmReviewStatusEnumSelection, type LlmReviewStatusEnumType } from '@totallator/shared';
 
-  import EnumSingleSelection from "./EnumSingleSelection.svelte";
+	import EnumSingleSelection from './EnumSingleSelection.svelte';
 
-  const {
-    form,
-    field,
-    wrapperClass = undefined,
-    title = "LLM Review Status",
-  }: {
-    form: SuperForm<T, unknown>;
-    field: FormPathLeaves<T>;
-    wrapperClass?: string;
-    title?: string;
-  } = $props();
+	const {
+		form,
+		field,
+		wrapperClass = undefined,
+		title = 'LLM Review Status'
+	}: {
+		form: SuperForm<T, unknown>;
+		field: FormPathLeaves<T>;
+		wrapperClass?: string;
+		title?: string;
+	} = $props();
 
-  const { value } = formFieldProxy(form, field);
-  const enumValue = $derived(
-    value as Writable<LlmReviewStatusEnumType | undefined>,
-  );
+	const { value } = formFieldProxy(form, field);
+	const enumValue = $derived(value as Writable<LlmReviewStatusEnumType | undefined>);
 
-  let currentValue = $state<LlmReviewStatusEnumType | undefined>(undefined);
+	let currentValue = $state<LlmReviewStatusEnumType | undefined>(undefined);
 
-  onMount(() => {
-    if ($enumValue) {
-      currentValue = $enumValue;
-    }
-  });
+	onMount(() => {
+		if ($enumValue) {
+			currentValue = $enumValue;
+		}
+	});
 
-  $effect(() => {
-    if ($enumValue !== currentValue) {
-      currentValue = $enumValue;
-    }
-  });
+	$effect(() => {
+		if ($enumValue !== currentValue) {
+			currentValue = $enumValue;
+		}
+	});
 
-  const updateValue = (newValue: LlmReviewStatusEnumType | undefined) => {
-    $enumValue = newValue;
-    currentValue = newValue;
-  };
+	const updateValue = (newValue: LlmReviewStatusEnumType | undefined) => {
+		$enumValue = newValue;
+		currentValue = newValue;
+	};
 </script>
 
 <div class="flex flex-col gap-2 {wrapperClass}">
-  {#if title}
-    <div class="text-primary-900 flex text-sm font-semibold">
-      {title}
-    </div>
-  {/if}
-  <EnumSingleSelection
-    value={currentValue}
-    enumSelection={llmReviewStatusEnumSelection}
-    onUpdate={updateValue}
-    clearable={true}
-  />
+	{#if title}
+		<div class="text-primary-900 flex text-sm font-semibold">
+			{title}
+		</div>
+	{/if}
+	<EnumSingleSelection
+		value={currentValue}
+		enumSelection={llmReviewStatusEnumSelection}
+		onUpdate={updateValue}
+		clearable={true}
+	/>
 
-  {#if currentValue}
-    <input type="hidden" name={field} value={currentValue} />
-  {/if}
+	{#if currentValue}
+		<input type="hidden" name={field} value={currentValue} />
+	{/if}
 </div>

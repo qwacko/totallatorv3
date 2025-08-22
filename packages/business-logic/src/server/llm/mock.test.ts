@@ -1,6 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { MockLLMClient } from './mock';
+import { describe, expect, it } from 'vitest';
+
 import type { LLMSettings } from '@totallator/database';
+
+import { MockLLMClient } from './mock';
 
 describe('MockLLMClient', () => {
 	it('should return a mock response', async () => {

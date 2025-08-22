@@ -1,12 +1,15 @@
-import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
-import type { ReportConfigPartSchemaSparklineType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
 import { evaluate } from 'mathjs';
+
+import type { DBType } from '@totallator/database';
+import type { ReportConfigPartSchemaSparklineType } from '@totallator/shared';
+import { type currencyFormatType } from '@totallator/shared';
+
+import { convertNumberToText } from '@/helpers/convertNumberToText';
+import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
+import { getLogger } from '@/logger';
+
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
-import { type currencyFormatType } from '@totallator/shared';
-import { convertNumberToText } from '@/helpers/convertNumberToText';
-import { getLogger } from '@/logger';
 
 export const sparklineConfigToData = async ({
 	db,
@@ -62,16 +65,26 @@ export const sparklineConfigToData = async ({
 		const dateData = filterResults.map((filterResult) => {
 			if (filterResult.data.timeSeriesData) {
 				const timeSeriesData = filterResult.data.timeSeriesData.find((item) => item.time === date);
-				return { key: filterResult.key, value: timeSeriesData ? timeSeriesData.value : 0 };
+				return {
+					key: filterResult.key,
+					value: timeSeriesData ? timeSeriesData.value : 0
+				};
 			}
 			if (filterResult.data.singleValue) {
-				return { key: filterResult.key, value: filterResult.data.singleValue[0].value || 0 };
+				return {
+					key: filterResult.key,
+					value: filterResult.data.singleValue[0].value || 0
+				};
 			}
 
 			return {
 				key: filterResult.key,
 				value: 0,
-				textValue: convertNumberToText({ value: 0, config: config.numberDisplay, currency })
+				textValue: convertNumberToText({
+					value: 0,
+					config: config.numberDisplay,
+					currency
+				})
 			};
 		});
 
@@ -89,15 +102,27 @@ export const sparklineConfigToData = async ({
 			return {
 				time: date,
 				value: calcValue,
-				textValue: convertNumberToText({ value: calcValue, config: config.numberDisplay, currency })
+				textValue: convertNumberToText({
+					value: calcValue,
+					config: config.numberDisplay,
+					currency
+				})
 			};
 		} catch (err) {
-			getLogger('reports').error({ code: 'REP_002', title: 'Error in Sparkline Config To Data', error: err });
+			getLogger('reports').error({
+				code: 'REP_002',
+				title: 'Error in Sparkline Config To Data',
+				error: err
+			});
 			errorMessage = `Math Request Malformed. Query = ${currentCalc}`;
 			return {
 				time: date,
 				value: 0,
-				textValue: convertNumberToText({ value: 0, config: config.numberDisplay, currency })
+				textValue: convertNumberToText({
+					value: 0,
+					config: config.numberDisplay,
+					currency
+				})
 			};
 		}
 	});

@@ -1,7 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
+
 import type { CreateTagSchemaType } from '@totallator/shared';
 
 import { tagCreateInsertionData } from './tagCreateInsertionData';
-import { expect, describe, it, vi } from 'vitest';
 
 describe('tagCreateInsertionData', () => {
 	it('should return the correct insertion data', () => {

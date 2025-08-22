@@ -1,6 +1,6 @@
 /**
  * @totallator/context - Application Context Management
- * 
+ *
  * This package provides centralized context management for the Totallator application,
  * including global context initialization, request-scoped context, database access,
  * and transaction management using AsyncLocalStorage.
@@ -13,30 +13,30 @@
  * Primary context API - use these throughout your application
  */
 export {
-  getContext,
-  runInTransaction,
-  hookBuilder,
-  getContextDB,
-  getLogger,
-  getEventEmitter,
-  getServerEnv,
-  getUserId,
-  getRequestId,
-  getContextStore,
-  runInTransactionWithLogging,
-  type GlobalContext,
-  type EnhancedRequestContext,
-  type CombinedContext,
+	getContext,
+	runInTransaction,
+	hookBuilder,
+	getContextDB,
+	getLogger,
+	getEventEmitter,
+	getServerEnv,
+	getUserId,
+	getRequestId,
+	getContextStore,
+	runInTransactionWithLogging,
+	type GlobalContext,
+	type EnhancedRequestContext,
+	type CombinedContext
 } from './newContext.js';
 
 /**
  * Low-level ContextHandler for advanced usage
  */
 export {
-  type HookBuilderConfig,
-  type HookBuilderResult,
-  ContextHandler,
-  createContextHandler,
+	type HookBuilderConfig,
+	type HookBuilderResult,
+	ContextHandler,
+	createContextHandler
 } from './contextHandler.js';
 
 // === LEGACY CONTEXT MANAGEMENT ===
@@ -45,25 +45,14 @@ export {
 /**
  * Global application context - used once during app initialization
  */
-export {
-  type GlobalContextConfig,
-  initializeGlobalContext,
-} from './global.js';
+export { type GlobalContextConfig, initializeGlobalContext } from './global.js';
 
 /**
  * Request-scoped context - used in SvelteKit request handling
  */
-export {
-  type RequestContext,
-  createRequestContext,
-} from './request.js';
-
+export { type RequestContext, createRequestContext } from './request.js';
 
 /**
  * Type-safe event emitter - used for asynchronous event handling throughout the app
  */
-export {
-  type AppEvents,
-  type EventListener,
-} from './eventEmitter.js';
-
+export { type AppEvents, type EventListener } from './eventEmitter.js';

@@ -1,18 +1,20 @@
-import type { ContextBuilderParams } from './baseContextBuilder';
-import type {
-	LLMBatchContext,
-	PopularItems,
-	CategorizationOptions
-} from '../llmBatchProcessingServiceTypes';
-import { journalMaterialisedList } from '../../../actions/helpers/journal/journalList';
-import type { JournalFilterSchemaInputType } from '@totallator/shared';
 import type { DBType } from '@totallator/database';
+import type { JournalFilterSchemaInputType } from '@totallator/shared';
+
 import { accountActions } from '@/actions/accountActions';
-import { categoryActions } from '@/actions/categoryActions';
-import { tagActions } from '@/actions/tagActions';
-import { budgetActions } from '@/actions/budgetActions';
-import { labelActions } from '@/actions/labelActions';
 import { billActions } from '@/actions/billActions';
+import { budgetActions } from '@/actions/budgetActions';
+import { categoryActions } from '@/actions/categoryActions';
+import { labelActions } from '@/actions/labelActions';
+import { tagActions } from '@/actions/tagActions';
+
+import { journalMaterialisedList } from '../../../actions/helpers/journal/journalList';
+import type {
+	CategorizationOptions,
+	LLMBatchContext,
+	PopularItems
+} from '../llmBatchProcessingServiceTypes';
+import type { ContextBuilderParams } from './baseContextBuilder';
 
 /**
  * Builds context for popular items (most used categories, tags, etc.) for the account
@@ -88,7 +90,10 @@ async function getPopularItems(
 				title: journal.categoryTitle,
 				count: 0
 			};
-			categoryCounts.set(journal.categoryId, { ...existing, count: existing.count + 1 });
+			categoryCounts.set(journal.categoryId, {
+				...existing,
+				count: existing.count + 1
+			});
 		}
 
 		// Count tags
@@ -108,7 +113,10 @@ async function getPopularItems(
 				title: journal.billTitle,
 				count: 0
 			};
-			billCounts.set(journal.billId, { ...existing, count: existing.count + 1 });
+			billCounts.set(journal.billId, {
+				...existing,
+				count: existing.count + 1
+			});
 		}
 
 		// Count budgets
@@ -118,7 +126,10 @@ async function getPopularItems(
 				title: journal.budgetTitle,
 				count: 0
 			};
-			budgetCounts.set(journal.budgetId, { ...existing, count: existing.count + 1 });
+			budgetCounts.set(journal.budgetId, {
+				...existing,
+				count: existing.count + 1
+			});
 		}
 
 		// Count labels
@@ -130,7 +141,10 @@ async function getPopularItems(
 						title: labelData.title,
 						count: 0
 					};
-					labelCounts.set(labelData.id, { ...existing, count: existing.count + 1 });
+					labelCounts.set(labelData.id, {
+						...existing,
+						count: existing.count + 1
+					});
 				}
 			}
 		}
@@ -143,27 +157,47 @@ async function getPopularItems(
 		categories: Array.from(categoryCounts.values())
 			.sort(sortByUsage)
 			.slice(0, maxItems)
-			.map((item) => ({ id: item.id, title: item.title, usageCount: item.count })),
+			.map((item) => ({
+				id: item.id,
+				title: item.title,
+				usageCount: item.count
+			})),
 
 		tags: Array.from(tagCounts.values())
 			.sort(sortByUsage)
 			.slice(0, maxItems)
-			.map((item) => ({ id: item.id, title: item.title, usageCount: item.count })),
+			.map((item) => ({
+				id: item.id,
+				title: item.title,
+				usageCount: item.count
+			})),
 
 		bills: Array.from(billCounts.values())
 			.sort(sortByUsage)
 			.slice(0, maxItems)
-			.map((item) => ({ id: item.id, title: item.title, usageCount: item.count })),
+			.map((item) => ({
+				id: item.id,
+				title: item.title,
+				usageCount: item.count
+			})),
 
 		budgets: Array.from(budgetCounts.values())
 			.sort(sortByUsage)
 			.slice(0, maxItems)
-			.map((item) => ({ id: item.id, title: item.title, usageCount: item.count })),
+			.map((item) => ({
+				id: item.id,
+				title: item.title,
+				usageCount: item.count
+			})),
 
 		labels: Array.from(labelCounts.values())
 			.sort(sortByUsage)
 			.slice(0, maxItems)
-			.map((item) => ({ id: item.id, title: item.title, usageCount: item.count }))
+			.map((item) => ({
+				id: item.id,
+				title: item.title,
+				usageCount: item.count
+			}))
 	};
 }
 

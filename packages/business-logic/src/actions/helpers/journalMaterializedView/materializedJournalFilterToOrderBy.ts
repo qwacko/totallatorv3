@@ -1,6 +1,7 @@
-import type { JournalFilterSchemaType } from '@totallator/shared';
 import { asc, desc, SQL } from 'drizzle-orm';
+
 import { journalExtendedView, journalView } from '@totallator/database';
+import type { JournalFilterSchemaType } from '@totallator/shared';
 
 export const materializedJournalFilterToOrderBy = (
 	filter: JournalFilterSchemaType,

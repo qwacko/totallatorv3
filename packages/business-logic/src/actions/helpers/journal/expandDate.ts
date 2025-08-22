@@ -17,7 +17,15 @@ export const expandDate = (
 	const yearWeek = `${getWeekYear(dateObject)}-W${String(getWeek(dateObject)).padStart(2, '0')}`;
 	const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
 	const yearQuarter = `${year}-Q${String(Math.floor((month - 1) / 3) + 1).padStart(2, '0')}`;
-	return { yearMonthDay, yearWeek, yearMonth, yearQuarter, year, date: dateObject, dateText: date };
+	return {
+		yearMonthDay,
+		yearWeek,
+		yearMonth,
+		yearQuarter,
+		year,
+		date: dateObject,
+		dateText: date
+	};
 };
 
 const getWeek = function (dateIn: Date) {

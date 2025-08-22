@@ -1,65 +1,67 @@
-import { getServerEnv } from '@/serverEnv';
+import { and, count as drizzleCount, eq, lt, not } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { z } from 'zod';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
 	account,
 	autoImportTable,
+	type AutoImportTableType,
 	bill,
 	budget,
 	category,
 	importItemDetail,
 	importMapping,
+	type ImportMappingTableType,
 	importTable,
+	type ImportTableType,
 	journalEntry,
 	label,
-	tag,
-	type AutoImportTableType,
-	type ImportMappingTableType,
-	type ImportTableType
+	tag
 } from '@totallator/database';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, not, count as drizzleCount, lt } from 'drizzle-orm';
-import { accountActions } from './accountActions';
-import { reusableFilterActions } from './reusableFilterActions';
-import { billActions } from './billActions';
-import { budgetActions } from './budgetActions';
-import { categoryActions } from './categoryActions';
-import { tagActions } from './tagActions';
-import { labelActions } from './labelActions';
-import { journalActions } from './journalActions';
-import { importMappingActions } from './importMappingActions';
-import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
-import { z } from 'zod';
 import {
 	type CreateImportSchemaType,
 	type ImportFilterSchemaType,
 	type UpdateImportSchemaType
 } from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { getServerEnv } from '@/serverEnv';
+
+import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
+import { importFileHandler } from '../server/files/fileHandler';
+// import { processCreatedImport } from './helpers/import/processImport';
+import { streamingDelay } from '../server/testingDelay';
+import { accountActions } from './accountActions';
+import { billActions } from './billActions';
+import { budgetActions } from './budgetActions';
+import { categoryActions } from './categoryActions';
+import { getImportDetail, type GetImportDetailReturnType } from './helpers/import/getImportDetail';
+import { importFilterToQuery } from './helpers/import/importFilterToQuery';
 import {
 	importAccount,
 	importBill,
 	importBudget,
 	importCategory,
-	importTag,
-	importLabel
+	importLabel,
+	importTag
 } from './helpers/import/importHelpers';
 import { importTransaction } from './helpers/import/importHelpers_importTransaction';
-
-import { getImportDetail, type GetImportDetailReturnType } from './helpers/import/getImportDetail';
-// import { processCreatedImport } from './helpers/import/processImport';
-import { streamingDelay } from '../server/testingDelay';
 import {
 	importListSubquery,
 	type ImportSubqueryReturnData
 } from './helpers/import/importListSubquery';
 import { importToOrderByToSQL } from './helpers/import/importOrderByToSQL';
-import { importFilterToQuery } from './helpers/import/importFilterToQuery';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { importFileHandler } from '../server/files/fileHandler';
-import { getLogger } from '@/logger';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import type { PaginatedResults } from './helpers/journal/PaginationType';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import { processCreatedImport } from './helpers/import/processImport';
+import type { PaginatedResults } from './helpers/journal/PaginationType';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { importMappingActions } from './importMappingActions';
+import { journalActions } from './journalActions';
+import { labelActions } from './labelActions';
+import { reusableFilterActions } from './reusableFilterActions';
+import { tagActions } from './tagActions';
 
 export const importActions = {
 	numberActive: async (): Promise<number> => {
@@ -84,7 +86,10 @@ export const importActions = {
 
 		const internalQuery = importListSubquery(db);
 
-		const where = importFilterToQuery({ filter: restFilter, query: internalQuery });
+		const where = importFilterToQuery({
+			filter: restFilter,
+			query: internalQuery
+		});
 
 		const results = await dbExecuteLogger(
 			db
@@ -115,7 +120,9 @@ export const importActions = {
 	}: {
 		filter: ImportFilterSchemaType;
 	}): Promise<
-		PaginatedResults<ImportSubqueryReturnData> & { details: GetImportDetailReturnType[] }
+		PaginatedResults<ImportSubqueryReturnData> & {
+			details: GetImportDetailReturnType[];
+		}
 	> => {
 		const db = getContextDB();
 		const imports = await importActions.list({ filter });
@@ -204,7 +211,7 @@ export const importActions = {
 			});
 			throw new Error('No Mapping Selected');
 		}
-		
+
 		if (restData.importMappingId) {
 			getLogger('import').debug({
 				code: 'IMP_056',
@@ -212,7 +219,9 @@ export const importActions = {
 				mappingId: restData.importMappingId
 			});
 
-			const result = await importMappingActions.getById({ id: restData.importMappingId });
+			const result = await importMappingActions.getById({
+				id: restData.importMappingId
+			});
 			if (!result) {
 				getLogger('import').error({
 					code: 'IMP_057',
@@ -276,7 +285,7 @@ export const importActions = {
 
 		try {
 			await processCreatedImport({ id });
-			
+
 			const duration = Date.now() - startTime;
 			getLogger('import').info({
 				code: 'IMP_062',
@@ -285,9 +294,9 @@ export const importActions = {
 				duration
 			});
 		} catch (e) {
-			getLogger('import').error({ 
-				code: 'IMP_063', 
-				title: 'Error processing import', 
+			getLogger('import').error({
+				code: 'IMP_063',
+				title: 'Error processing import',
 				error: e,
 				importId: id
 			});
@@ -351,7 +360,11 @@ export const importActions = {
 			try {
 				await processCreatedImport({ id });
 			} catch (e) {
-				getLogger('import').error({ code: 'IMP_002', title: 'Error Processing Import', error: e });
+				getLogger('import').error({
+					code: 'IMP_002',
+					title: 'Error Processing Import',
+					error: e
+				});
 				await dbExecuteLogger(
 					db
 						.update(importTable)
@@ -417,7 +430,7 @@ export const importActions = {
 	triggerImport: async ({ id }: { id: string }): Promise<void> => {
 		const startTime = Date.now();
 		const db = getContextDB();
-		
+
 		getLogger('import').info({
 			code: 'IMP_070',
 			title: 'Starting import trigger process',
@@ -476,9 +489,9 @@ export const importActions = {
 			});
 		} catch (e) {
 			const duration = Date.now() - startTime;
-			getLogger('import').error({ 
-				code: 'IMP_075', 
-				title: 'Import trigger failed', 
+			getLogger('import').error({
+				code: 'IMP_075',
+				title: 'Import trigger failed',
 				error: e,
 				importId: id,
 				duration
@@ -518,7 +531,11 @@ export const importActions = {
 				await dbExecuteLogger(
 					db
 						.update(importTable)
-						.set({ status: 'error', errorInfo: 'Import Timed Out', ...updatedTime() })
+						.set({
+							status: 'error',
+							errorInfo: 'Import Timed Out',
+							...updatedTime()
+						})
 						.where(eq(importTable.id, item.id)),
 					'Import - Do Required Imports - Update Importing Too Long'
 				);

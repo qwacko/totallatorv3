@@ -1,8 +1,9 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import * as schema from './schema';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { type Logger } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+
+import * as schema from './schema';
 
 export interface DatabaseConfig {
 	postgresUrl: string;

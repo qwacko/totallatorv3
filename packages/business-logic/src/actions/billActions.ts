@@ -1,27 +1,30 @@
+import { and, asc, desc, eq, max } from 'drizzle-orm';
+import { count as drizzleCount } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+import Papa from 'papaparse';
+
+import { getContextDB } from '@totallator/context';
+import { bill, type BillTableType, type BillViewReturnType } from '@totallator/database';
 import type {
-	CreateBillSchemaType,
 	BillFilterSchemaType,
+	CreateBillSchemaType,
 	UpdateBillSchemaType
 } from '@totallator/shared';
-import { nanoid } from 'nanoid';
-import { bill, type BillTableType, type BillViewReturnType } from '@totallator/database';
-import { and, asc, desc, eq, max } from 'drizzle-orm';
-import { statusUpdate } from './helpers/misc/statusUpdate';
-import { updatedTime } from './helpers/misc/updatedTime';
+
 import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { streamingDelay, testingDelay } from '../server/testingDelay';
 import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData';
 import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
-import { createBill } from './helpers/seed/seedBillData';
-import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { streamingDelay, testingDelay } from '../server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm';
-import { materializedViewActions } from './materializedViewActions';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getCorrectBillTable } from './helpers/bill/getCorrectBillTable';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
-import Papa from 'papaparse';
-import { getContextDB } from '@totallator/context';
+import { statusUpdate } from './helpers/misc/statusUpdate';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
+import { createBill } from './helpers/seed/seedBillData';
+import { materializedViewActions } from './materializedViewActions';
 
 export type BillDropdownType = {
 	id: string;
@@ -240,7 +243,11 @@ export const billActions: BillActionsType = {
 		);
 
 		if (!currentBill) {
-			getLogger('bills').error({ code: 'BILL_001', title: 'Update Bill: Bill not found', data });
+			getLogger('bills').error({
+				code: 'BILL_001',
+				title: 'Update Bill: Bill not found',
+				data
+			});
 			return id;
 		}
 
@@ -268,7 +275,10 @@ export const billActions: BillActionsType = {
 	canDelete: async (data) => {
 		const db = getContextDB();
 		const currentBill = await dbExecuteLogger(
-			db.query.bill.findFirst({ where: eq(bill.id, data.id), with: { journals: { limit: 1 } } }),
+			db.query.bill.findFirst({
+				where: eq(bill.id, data.id),
+				with: { journals: { limit: 1 } }
+			}),
 			'Bill - Can Delete - Get Current'
 		);
 		if (!currentBill) {
@@ -311,7 +321,11 @@ export const billActions: BillActionsType = {
 	},
 	seed: async (count) => {
 		const db = getContextDB();
-		getLogger('bills').info({ code: 'BILL_002', title: 'Seeding Bills', count });
+		getLogger('bills').info({
+			code: 'BILL_002',
+			title: 'Seeding Bills',
+			count
+		});
 
 		const existingTitles = (
 			await dbExecuteLogger(

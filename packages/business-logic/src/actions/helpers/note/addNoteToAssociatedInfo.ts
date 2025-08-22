@@ -1,10 +1,13 @@
+import { nanoid } from 'nanoid';
+
 import { getContextDB } from '@totallator/context';
 import { notesTable } from '@totallator/database';
 import { CreateNoteSchemaCoreType } from '@totallator/shared';
-import { nanoid } from 'nanoid';
-import { updatedTime } from '../misc/updatedTime';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+
 import { materializedViewActions } from '@/actions/materializedViewActions';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { updatedTime } from '../misc/updatedTime';
 
 export const addNoteToAssociatedInfo = async ({
 	data,

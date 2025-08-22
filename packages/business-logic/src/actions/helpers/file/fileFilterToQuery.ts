@@ -1,15 +1,18 @@
+import { eq, gt, gte, isNotNull, isNull, lte, not, SQL } from 'drizzle-orm';
+
 import { associatedInfoTable, fileTable } from '@totallator/database';
-import { SQL, not, eq, lte, gte, isNull, isNotNull, gt } from 'drizzle-orm';
-import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import type { DBType } from '@totallator/database';
-import { processNoteTextFilter } from './fileTextFilter';
-import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
-import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
-import { arrayToText } from '../misc/arrayToText';
 import type { FileFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type { LinkedFileFilterSchemaType } from '@totallator/shared';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { arrayToText } from '../misc/arrayToText';
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
+import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
+import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
+import { processNoteTextFilter } from './fileTextFilter';
 
 export const fileFilterToQuery = (filter: FileFilterSchemaWithoutPaginationType) => {
 	const restFilter = processNoteTextFilter.process(filter);

@@ -1,4 +1,5 @@
 import { expandDate } from '@/actions/helpers/journal/expandDate';
+
 import { filterNullUndefinedAndDuplicates } from './filterNullUndefinedAndDuplicates';
 
 export const generateDateItemsBetween = ({
@@ -33,12 +34,22 @@ export const generateDateItemsBetween = ({
 							: 365;
 
 	while (startDateObject <= endDateObject) {
-		result.push(getDateInfoForDate({ date: startDateObject.toISOString().slice(0, 10), timeUnit }));
+		result.push(
+			getDateInfoForDate({
+				date: startDateObject.toISOString().slice(0, 10),
+				timeUnit
+			})
+		);
 
 		startDateObject.setDate(startDateObject.getDate() + timeStep);
 	}
 
-	result.push(getDateInfoForDate({ date: endDateObject.toISOString().slice(0, 10), timeUnit }));
+	result.push(
+		getDateInfoForDate({
+			date: endDateObject.toISOString().slice(0, 10),
+			timeUnit
+		})
+	);
 
 	return filterNullUndefinedAndDuplicates(result);
 };

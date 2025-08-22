@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { userInfoStore } from "$lib/stores/userInfoStore";
+	import { userInfoStore } from '$lib/stores/userInfoStore';
 </script>
 
 <pre>

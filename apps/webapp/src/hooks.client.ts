@@ -1,5 +1,5 @@
-import { loadConfigClient } from "$lib/routes";
+import { loadConfigClient } from '$lib/routes';
 
 export const init = async () => {
-  await loadConfigClient();
+	await loadConfigClient();
 };

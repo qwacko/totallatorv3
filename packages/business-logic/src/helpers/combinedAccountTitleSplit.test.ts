@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { combinedAccountTitleSplitRequired } from './combinedAccountTitleSplit'; // Adjust the import path
+import { describe, expect, it } from 'vitest';
+
+import { combinedAccountTitleSplitRequired } from './combinedAccountTitleSplit';
+
+// Adjust the import path
 
 describe('combinedAccountTitleSplitRequired', () => {
 	it('should handle empty accountGroupCombined', () => {

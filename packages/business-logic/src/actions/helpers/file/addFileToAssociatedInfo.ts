@@ -1,11 +1,14 @@
-import { fileFileHandler } from '@/server/files/fileHandler';
+import { nanoid } from 'nanoid';
+import sharp from 'sharp';
+
 import { getContextDB } from '@totallator/context';
 import { fileTable } from '@totallator/database';
 import { CreateFileSchemaCoreType, FileTypeType } from '@totallator/shared';
-import { nanoid } from 'nanoid';
-import { updatedTime } from '../misc/updatedTime';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import sharp from 'sharp';
+import { fileFileHandler } from '@/server/files/fileHandler';
+
+import { updatedTime } from '../misc/updatedTime';
 
 export const addFileToAssociatedInfo = async ({
 	data,

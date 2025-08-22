@@ -1,7 +1,9 @@
 import type { DBType } from '@totallator/database';
-import type { RecommendationType } from '@/actions/journalMaterializedViewActions';
+
 import { journalLlmSuggestionActions } from '@/actions/journalLlmSuggestionActions';
+import type { RecommendationType } from '@/actions/journalMaterializedViewActions';
 import { llmActions } from '@/actions/llmActions';
+
 import { ToolDispatcher } from '../llm/tools/dispatcher';
 import type { ToolExecutionContext } from '../llm/tools/types';
 

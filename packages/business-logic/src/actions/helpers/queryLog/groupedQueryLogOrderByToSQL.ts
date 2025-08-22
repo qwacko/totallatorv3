@@ -1,13 +1,18 @@
 import { asc, desc, type SQL } from 'drizzle-orm';
-import type { GroupedQueryLogOrderByEnumType } from '@totallator/shared';
-import type { GroupedQueryLogSubqueryType } from './groupedQueryLogSubquery';
+
 import { queryLogTitleTable } from '@totallator/database';
+import type { GroupedQueryLogOrderByEnumType } from '@totallator/shared';
+
+import type { GroupedQueryLogSubqueryType } from './groupedQueryLogSubquery';
 
 export const groupedQueryLogOrderByToSQL = ({
 	orderBy,
 	subquery
 }: {
-	orderBy?: { field: GroupedQueryLogOrderByEnumType; direction: 'asc' | 'desc' }[];
+	orderBy?: {
+		field: GroupedQueryLogOrderByEnumType;
+		direction: 'asc' | 'desc';
+	}[];
 	subquery: GroupedQueryLogSubqueryType;
 }): SQL<unknown>[] => {
 	const defaultOrderBy = [desc(subquery.last)];

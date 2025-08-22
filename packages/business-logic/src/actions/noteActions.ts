@@ -1,3 +1,21 @@
+import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
+
+import { getContextDB } from '@totallator/context';
+import {
+	account,
+	associatedInfoTable,
+	autoImportTable,
+	bill,
+	budget,
+	category,
+	label,
+	notesTable,
+	type NotesTableType,
+	report,
+	reportElement,
+	tag,
+	user
+} from '@totallator/database';
 import {
 	createNoteSchema,
 	type CreateNoteSchemaCoreType,
@@ -5,43 +23,28 @@ import {
 	type NoteFilterSchemaWithoutPaginationType,
 	type UpdateNoteSchemaType
 } from '@totallator/shared';
-import {
-	account,
-	bill,
-	budget,
-	category,
-	tag,
-	label,
-	autoImportTable,
-	report,
-	reportElement,
-	notesTable,
-	user,
-	type NotesTableType,
-	associatedInfoTable
-} from '@totallator/database';
-import { noteFilterToQuery, noteFilterToText } from './helpers/note/noteFilterToQuery';
-import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
-import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { materializedViewActions } from './materializedViewActions';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
+
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
-import { associatedInfoActions } from './associatedInfoActions';
-import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { accountActions } from './accountActions';
+import { associatedInfoActions } from './associatedInfoActions';
+import { autoImportActions } from './autoImportActions';
+import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
-import { tagActions } from './tagActions';
-import { labelActions } from './labelActions';
-import { autoImportActions } from './autoImportActions';
-import { reportActions } from './reportActions';
-import { billActions } from './billActions';
-import { getContextDB } from '@totallator/context';
+import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { updatedTime } from './helpers/misc/updatedTime';
 import { addNoteToAssociatedInfo } from './helpers/note/addNoteToAssociatedInfo';
 import { GroupedNotesType, listGroupedNotes } from './helpers/note/listGroupedNotes';
+import { noteFilterToQuery, noteFilterToText } from './helpers/note/noteFilterToQuery';
+import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
+import { labelActions } from './labelActions';
+import { materializedViewActions } from './materializedViewActions';
+import { reportActions } from './reportActions';
+import { tagActions } from './tagActions';
 
 type NotesActionsType = FilesAndNotesActions<
 	NotesTableType,
@@ -58,7 +61,9 @@ export const noteActions: NotesActionsType = {
 	getById: async (id) => {
 		const db = getContextDB();
 		return dbExecuteLogger(
-			db.query.notesTable.findFirst({ where: ({ id: noteId }, { eq }) => eq(noteId, id) }),
+			db.query.notesTable.findFirst({
+				where: ({ id: noteId }, { eq }) => eq(noteId, id)
+			}),
 			'Note - Get By Id'
 		);
 	},

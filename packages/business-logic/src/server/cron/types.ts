@@ -59,7 +59,13 @@ export interface CronJobExecutionContext {
 /**
  * Status of a cron job execution
  */
-export type CronJobExecutionStatus = 'running' | 'completed' | 'failed' | 'timeout' | 'cancelled' | 'skipped';
+export type CronJobExecutionStatus =
+	| 'running'
+	| 'completed'
+	| 'failed'
+	| 'timeout'
+	| 'cancelled'
+	| 'skipped';
 
 /**
  * Filter options for querying cron job executions

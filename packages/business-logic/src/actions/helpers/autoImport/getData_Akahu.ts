@@ -1,6 +1,9 @@
+import { type Account, AkahuClient, type Transaction } from 'akahu';
+
 import type { AutoImportAkahuSchemaType } from '@totallator/shared';
+
 import { getLogger } from '@/logger';
-import { AkahuClient, type Account, type Transaction } from 'akahu';
+
 import { getStartDateToUse } from './getStartDateToUse';
 
 export const getData_Akahu = async ({
@@ -29,7 +32,11 @@ export const getData_Akahu = async ({
 		const accounts = await akahu.accounts.list(userToken);
 		account = accounts.find((item) => item.name === config.accountId);
 	} catch (e) {
-		getLogger('auto-import').error({ code: 'AUTO_IMP_001', title: 'Error fetching accounts', error: e });
+		getLogger('auto-import').error({
+			code: 'AUTO_IMP_001',
+			title: 'Error fetching accounts',
+			error: e
+		});
 	}
 
 	try {
@@ -44,11 +51,20 @@ export const getData_Akahu = async ({
 			counter++;
 		}
 	} catch (e) {
-		getLogger('auto-import').error({ code: 'AUTO_IMP_002', title: 'Error fetching transactions', error: e });
+		getLogger('auto-import').error({
+			code: 'AUTO_IMP_002',
+			title: 'Error fetching transactions',
+			error: e
+		});
 	}
 
 	if (counter >= 20) {
-		getLogger('auto-import').error({ code: 'AUTO_IMP_003', title: 'Too many transactions to fetch', transactionCount: transactions.length, callCount: counter });
+		getLogger('auto-import').error({
+			code: 'AUTO_IMP_003',
+			title: 'Too many transactions to fetch',
+			transactionCount: transactions.length,
+			callCount: counter
+		});
 	}
 
 	const modifiedTransactions = transactions

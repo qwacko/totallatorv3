@@ -1,27 +1,30 @@
+import { and, asc, desc, eq, max } from 'drizzle-orm';
+import { count as drizzleCount } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+import Papa from 'papaparse';
+
+import { getContextDB } from '@totallator/context';
+import { budget, type BudgetTableType, type BudgetViewReturnType } from '@totallator/database';
 import type {
-	CreateBudgetSchemaType,
 	BudgetFilterSchemaType,
+	CreateBudgetSchemaType,
 	UpdateBudgetSchemaType
 } from '@totallator/shared';
-import { nanoid } from 'nanoid';
-import { budget, type BudgetTableType, type BudgetViewReturnType } from '@totallator/database';
-import { and, asc, desc, eq, max } from 'drizzle-orm';
-import { statusUpdate } from './helpers/misc/statusUpdate';
-import { updatedTime } from './helpers/misc/updatedTime';
+
 import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { streamingDelay } from '../server/testingDelay';
 import { budgetCreateInsertionData } from './helpers/budget/budgetCreateInsertionData';
 import { budgetFilterToQuery } from './helpers/budget/budgetFilterToQuery';
-import { createBudget } from './helpers/seed/seedBudgetData';
-import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { streamingDelay } from '../server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm';
-import { materializedViewActions } from './materializedViewActions';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { getCorrectBudgetTable } from './helpers/budget/getCorrectBudgetTable';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
-import Papa from 'papaparse';
-import { getContextDB } from '@totallator/context';
+import { statusUpdate } from './helpers/misc/statusUpdate';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
+import { createBudget } from './helpers/seed/seedBudgetData';
+import { materializedViewActions } from './materializedViewActions';
 
 export type BudgetDropdownType = {
 	id: string;
@@ -154,7 +157,13 @@ export const budgetActions: BudgetActionsType = {
 		const db = getContextDB();
 		await streamingDelay();
 		const items = dbExecuteLogger(
-			db.select({ id: budget.id, title: budget.title, enabled: budget.allowUpdate }).from(budget),
+			db
+				.select({
+					id: budget.id,
+					title: budget.title,
+					enabled: budget.allowUpdate
+				})
+				.from(budget),
 			'Budget - List For Dropdown'
 		);
 
@@ -237,7 +246,11 @@ export const budgetActions: BudgetActionsType = {
 		);
 
 		if (!currentBudget) {
-			getLogger('budgets').error({ code: 'BUD_001', title: 'Update Budget: Budget not found', data });
+			getLogger('budgets').error({
+				code: 'BUD_001',
+				title: 'Update Budget: Budget not found',
+				data
+			});
 			return id;
 		}
 
@@ -313,7 +326,11 @@ export const budgetActions: BudgetActionsType = {
 	},
 	seed: async (count) => {
 		const db = getContextDB();
-		getLogger('budgets').info({ code: 'BUD_002', title: 'Seeding Budgets', count });
+		getLogger('budgets').info({
+			code: 'BUD_002',
+			title: 'Seeding Budgets',
+			count
+		});
 
 		const existingTitles = (
 			await dbExecuteLogger(db.query.budget.findMany({ columns: { title: true } }), 'Budget - Seed')

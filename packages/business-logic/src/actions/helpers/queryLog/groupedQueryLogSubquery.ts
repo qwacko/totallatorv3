@@ -1,6 +1,7 @@
+import { and, avg, count as drizzleCount, max, min, type SQL, sql, sum } from 'drizzle-orm';
+
 import type { DBType } from '@totallator/database';
 import { queryLogTable } from '@totallator/database';
-import { and, count as drizzleCount, max, min, avg, sum, type SQL, sql } from 'drizzle-orm';
 
 const timeBucketStart = 0;
 const timeBucketEnd = 100;

@@ -3,13 +3,13 @@ import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/enco
 import type { RequestEvent } from '@sveltejs/kit';
 import { eq, gt } from 'drizzle-orm';
 
+import { getContextDB } from '@totallator/context';
 import {
 	type SessionDBType,
 	session as sessionTable,
 	type UserDBType,
 	user as userTable
 } from '@totallator/database';
-import { getContextDB } from '@totallator/context';
 
 function generateSessionToken(): string {
 	const bytes = new Uint8Array(20);

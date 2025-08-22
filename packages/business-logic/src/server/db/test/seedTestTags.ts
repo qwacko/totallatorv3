@@ -1,5 +1,6 @@
 import type { DBType } from '@totallator/database';
 import { tag } from '@totallator/database';
+
 import { tagCreateInsertionData } from '@/actions/helpers/tag/tagCreateInsertionData';
 
 export const seedTestTags = async (db: DBType) =>

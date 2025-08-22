@@ -1,5 +1,6 @@
+import { describe, expect, it } from 'vitest';
+
 import { createUniqueItemsOnly } from './createUniqueItemsOnly';
-import { describe, it, expect } from 'vitest';
 
 describe('createUniqueItemsOnly', () => {
 	it('should return an array of unique items', () => {
@@ -8,7 +9,12 @@ describe('createUniqueItemsOnly', () => {
 		const createItem = () => ({ id: Math.random().toString() });
 		const creationToString = (creation: { id: string }) => creation.id;
 
-		const result = createUniqueItemsOnly({ existing, count, createItem, creationToString });
+		const result = createUniqueItemsOnly({
+			existing,
+			count,
+			createItem,
+			creationToString
+		});
 
 		expect(result).toHaveLength(count);
 		expect(result.every((item) => existing.indexOf(creationToString(item)) === -1)).toBe(true);
@@ -20,7 +26,12 @@ describe('createUniqueItemsOnly', () => {
 		const createItem = () => ({ id: Math.random().toString() });
 		const creationToString = (creation: { id: string }) => creation.id;
 
-		const result = createUniqueItemsOnly({ existing, count, createItem, creationToString });
+		const result = createUniqueItemsOnly({
+			existing,
+			count,
+			createItem,
+			creationToString
+		});
 
 		expect(result).toHaveLength(0);
 	});

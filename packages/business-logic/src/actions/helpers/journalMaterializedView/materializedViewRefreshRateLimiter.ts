@@ -20,7 +20,10 @@ export const materializedViewRefreshRateLimiter = ({
 
 		timeoutTrigger = setTimeout(() => {
 			triggerRefresh().then(() => {
-				getLogger('materialized-views').debug({ code: 'MAT_VIEW_002', title: 'Materialized View Refreshed' });
+				getLogger('materialized-views').debug({
+					code: 'MAT_VIEW_002',
+					title: 'Materialized View Refreshed'
+				});
 			});
 		}, timeout);
 	};

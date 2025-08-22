@@ -1,13 +1,16 @@
-import { createJournalDBCore, type CreateJournalSchemaType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
-import { updatedTime } from '../misc/updatedTime';
 import { nanoid } from 'nanoid';
+
+import type { DBType } from '@totallator/database';
+import { createJournalDBCore, type CreateJournalSchemaType } from '@totallator/shared';
+import type { StatusEnumType } from '@totallator/shared';
+import type { LlmReviewStatusEnumType } from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { getServerEnv } from '@/serverEnv';
+
+import { updatedTime } from '../misc/updatedTime';
 import { expandDate } from './expandDate';
 import { journalGetOrCreateLinkedItems } from './journalGetOrCreateLinkedItems';
-import type { StatusEnumType } from '@totallator/shared';
-import { getServerEnv } from '@/serverEnv';
-import type { LlmReviewStatusEnumType } from '@totallator/shared';
-import { getLogger } from '@/logger';
 
 export const generateItemsForJournalCreation = async ({
 	db,
@@ -34,7 +37,7 @@ export const generateItemsForJournalCreation = async ({
 }) => {
 	const startTime = Date.now();
 	const journalId = nanoid();
-	
+
 	getLogger('journals').trace({
 		code: 'JOURNAL_GEN_001',
 		title: 'Starting journal item generation',

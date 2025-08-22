@@ -1,3 +1,5 @@
+import * as z from 'zod';
+
 export const pageSizeEnum = ['sm', 'lg', 'xs', 'xl'] as const;
 
 export type PageSizeIds = (typeof pageSizeEnum)[number];
@@ -8,7 +10,5 @@ export const pageSizeDropdown = [
 	{ id: 'xs', title: 'Extra Small' },
 	{ id: 'xl', title: 'Extra Large' }
 ];
-
-import * as z from 'zod';
 
 export const pageSizeSchema = z.enum(pageSizeEnum);

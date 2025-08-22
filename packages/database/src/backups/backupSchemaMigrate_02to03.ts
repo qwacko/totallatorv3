@@ -1,6 +1,6 @@
+import { getLogger } from '../logger';
 import type { BackupSchemaRev02Type } from './backupSchema.Rev02';
 import type { BackupSchemaRev03Type } from './backupSchema.Rev03';
-import { getLogger } from '../logger';
 
 export const backupSchemaMigrate_02to03Information = (
 	backup02Information: Pick<BackupSchemaRev02Type, 'information' | 'version'>

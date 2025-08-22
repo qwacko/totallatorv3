@@ -1,10 +1,11 @@
 // import fs from 'fs/promises';
-import { getServerEnv } from '@/serverEnv';
-import { FileStorage } from '@flystorage/file-storage';
-import { LocalStorageAdapter } from '@flystorage/local-fs';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AwsS3StorageAdapter } from '@flystorage/aws-s3';
+import { FileStorage } from '@flystorage/file-storage';
+import { LocalStorageAdapter } from '@flystorage/local-fs';
+
 import { getLogger } from '@/logger';
+import { getServerEnv } from '@/serverEnv';
 
 const fileHandler = (getAddress: () => string, title: string) => {
 	return () => {
@@ -27,7 +28,12 @@ const fileHandler = (getAddress: () => string, title: string) => {
 				throw new Error('S3 environment variables not correctly set');
 			}
 
-			getLogger('files').debug({ code: 'FILE_002', title: `${title} FileHandler Initiation : S3`, bucket, prefix });
+			getLogger('files').debug({
+				code: 'FILE_002',
+				title: `${title} FileHandler Initiation : S3`,
+				bucket,
+				prefix
+			});
 
 			const client = new S3Client({
 				requestChecksumCalculation: getServerEnv().S3_DISABLE_CHECKSUM
@@ -53,7 +59,11 @@ const fileHandler = (getAddress: () => string, title: string) => {
 			return storage;
 		}
 
-		getLogger('files').debug({ code: 'FILE_003', title: `${title} FileHandler Initiation : Local File Storage`, address });
+		getLogger('files').debug({
+			code: 'FILE_003',
+			title: `${title} FileHandler Initiation : Local File Storage`,
+			address
+		});
 
 		const adapter = new LocalStorageAdapter(address);
 		return new FileStorage(adapter);

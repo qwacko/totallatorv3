@@ -7,7 +7,11 @@ export const timerHelperFunction = (title: string) => {
 		end: () => {
 			const endTime = Date.now();
 			const duration = endTime - startTime;
-			getLogger('queries').debug({ code: 'QUERY_001', title: `${title} took ${duration}ms`, duration });
+			getLogger('queries').debug({
+				code: 'QUERY_001',
+				title: `${title} took ${duration}ms`,
+				duration
+			});
 		}
 	};
 };

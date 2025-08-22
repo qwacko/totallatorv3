@@ -1,6 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
+
 import type { CreateLabelSchemaType } from '@totallator/shared';
+
 import { labelCreateInsertionData } from './labelCreateInsertionData';
-import { expect, describe, it, vi } from 'vitest';
 
 describe('labelCreateInsertionData', () => {
 	it('should return the correct insertion data', () => {

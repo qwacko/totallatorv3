@@ -1,5 +1,7 @@
-import type { AutoImportSaltEdgeSchemaType } from '@totallator/shared';
 import * as z from 'zod';
+
+import type { AutoImportSaltEdgeSchemaType } from '@totallator/shared';
+
 import { getStartDateToUse } from './getStartDateToUse';
 
 const transactionSchema = z.object({

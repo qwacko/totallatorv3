@@ -1,22 +1,22 @@
+import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
+import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
-	fileTable,
 	account,
+	associatedInfoTable,
+	autoImportTable,
 	bill,
 	budget,
 	category,
-	tag,
+	fileTable,
+	type FileTableType,
 	label,
-	autoImportTable,
 	report,
 	reportElement,
-	user,
-	type FileTableType,
-	associatedInfoTable
+	tag,
+	user
 } from '@totallator/database';
-import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { fileFilterToQuery, fileFilterToText } from './helpers/file/fileFilterToQuery';
-import { fileToOrderByToSQL } from './helpers/file/fileOrderByToSQL';
 import {
 	createFileSchema,
 	type CreateFileSchemaCoreType,
@@ -24,27 +24,30 @@ import {
 	type FileFilterSchemaWithoutPaginationType,
 	type UpdateFileSchemaType
 } from '@totallator/shared';
-import { fileFileHandler } from '../server/files/fileHandler';
-import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { materializedViewActions } from './materializedViewActions';
-import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
+
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
-import { associatedInfoActions } from './associatedInfoActions';
-import { journalMaterializedViewActions } from './journalMaterializedViewActions';
+
+import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
+import { fileFileHandler } from '../server/files/fileHandler';
 import { accountActions } from './accountActions';
+import { associatedInfoActions } from './associatedInfoActions';
+import { autoImportActions } from './autoImportActions';
 import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
-import { tagActions } from './tagActions';
-import { labelActions } from './labelActions';
-import { autoImportActions } from './autoImportActions';
-import { reportActions } from './reportActions';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import { addFileToAssociatedInfo } from './helpers/file/addFileToAssociatedInfo';
+import { fileFilterToQuery, fileFilterToText } from './helpers/file/fileFilterToQuery';
+import { fileToOrderByToSQL } from './helpers/file/fileOrderByToSQL';
+import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
 import { GroupedFilesType, listGroupedFiles } from './helpers/file/listGroupedFiles';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
+import { labelActions } from './labelActions';
+import { materializedViewActions } from './materializedViewActions';
+import { reportActions } from './reportActions';
+import { tagActions } from './tagActions';
 
 type FilesActionsType = FilesAndNotesActions<
 	FileTableType,
@@ -58,9 +61,10 @@ type FilesActionsType = FilesAndNotesActions<
 	}
 >;
 
-type GetFileFunction = (data: {
-	id: string;
-}) => Promise<{ info: FileTableType; fileData: Promise<Buffer<ArrayBufferLike>> }>;
+type GetFileFunction = (data: { id: string }) => Promise<{
+	info: FileTableType;
+	fileData: Promise<Buffer<ArrayBufferLike>>;
+}>;
 
 type CheckFilesExistFunction = () => Promise<void>;
 type UpdateLinkedFunction = () => Promise<void>;
@@ -74,7 +78,9 @@ export const fileActions: FilesActionsType & {
 	getById: async (id) => {
 		const db = getContextDB();
 		return dbExecuteLogger(
-			db.query.fileTable.findFirst({ where: ({ id: fileId }, { eq }) => eq(fileId, id) }),
+			db.query.fileTable.findFirst({
+				where: ({ id: fileId }, { eq }) => eq(fileId, id)
+			}),
 			'File - Get By ID'
 		);
 	},
@@ -515,7 +521,10 @@ export const fileActions: FilesActionsType & {
 			}
 		} catch (err) {
 			if (err instanceof UnableToCheckDirectoryExistence) {
-				getLogger('files').error({ code: 'FILE_001', title: 'Unable to check directory existence' });
+				getLogger('files').error({
+					code: 'FILE_001',
+					title: 'Unable to check directory existence'
+				});
 			}
 		}
 

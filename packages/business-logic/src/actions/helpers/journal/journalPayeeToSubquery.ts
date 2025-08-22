@@ -1,7 +1,9 @@
-import { account, journalEntry, transaction } from '@totallator/database';
-import { SQL, and, eq, ilike, not } from 'drizzle-orm';
-import { type DBType } from '@totallator/database';
+import { and, eq, ilike, not, SQL } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
+
+import { account, journalEntry, transaction } from '@totallator/database';
+import { type DBType } from '@totallator/database';
+
 import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
 
 export function journalPayeeToSubquery({
@@ -9,7 +11,12 @@ export function journalPayeeToSubquery({
 	payee
 }: {
 	db: DBType;
-	payee: { id?: string; idArray?: string[]; title?: string; titleArray?: string[] };
+	payee: {
+		id?: string;
+		idArray?: string[];
+		title?: string;
+		titleArray?: string[];
+	};
 }) {
 	const otherJournal = alias(journalEntry, 'otherJournal');
 

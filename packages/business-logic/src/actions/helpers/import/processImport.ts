@@ -1,4 +1,8 @@
 import { eq } from 'drizzle-orm';
+import Papa from 'papaparse';
+import { z } from 'zod';
+
+import { getContextDB } from '@totallator/context';
 import {
 	account,
 	bill,
@@ -10,25 +14,24 @@ import {
 	label,
 	tag
 } from '@totallator/database';
-import Papa from 'papaparse';
-import { updatedTime } from '../misc/updatedTime';
 import { createSimpleTransactionSchema } from '@totallator/shared';
 import { createAccountSchema } from '@totallator/shared';
-import { processObjectReturnTransaction } from '@/helpers/importTransformation';
 import { createBillSchema } from '@totallator/shared';
 import { createBudgetSchema } from '@totallator/shared';
 import { createCategorySchema } from '@totallator/shared';
 import { createLabelSchema } from '@totallator/shared';
 import { createTagSchema } from '@totallator/shared';
-import { z } from 'zod';
-import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
-import { importMappingActions } from '../../importMappingActions';
-import { getImportDetail } from './getImportDetail';
 import type { ImportStatusType } from '@totallator/shared';
-import { inArrayWrapped } from '../misc/inArrayWrapped';
-import { importFileHandler } from '@/server/files/fileHandler';
+
+import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
+import { processObjectReturnTransaction } from '@/helpers/importTransformation';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getContextDB } from '@totallator/context';
+import { importFileHandler } from '@/server/files/fileHandler';
+
+import { importMappingActions } from '../../importMappingActions';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { updatedTime } from '../misc/updatedTime';
+import { getImportDetail } from './getImportDetail';
 import { importProcessItems } from './importProcessItems';
 
 type ImportTableType = typeof importTable.$inferSelect;
@@ -201,7 +204,9 @@ export const processCreatedImport = async ({ id }: { id: string }): Promise<void
 									const currentRow = data as Record<string, unknown>;
 									const currentProcessedRow = processObjectReturnTransaction(currentRow, config);
 									if (currentProcessedRow.errors) {
-										return { errors: currentProcessedRow.errors.map((item) => item.error) };
+										return {
+											errors: currentProcessedRow.errors.map((item) => item.error)
+										};
 									} else {
 										const validatedData = createSimpleTransactionSchema.safeParse(
 											currentProcessedRow.transaction
@@ -281,7 +286,9 @@ export const processCreatedImport = async ({ id }: { id: string }): Promise<void
 				const currentRow = data as Record<string, unknown>;
 				const currentProcessedRow = processObjectReturnTransaction(currentRow, config);
 				if (currentProcessedRow.errors) {
-					return { errors: currentProcessedRow.errors.map((item) => item.error) };
+					return {
+						errors: currentProcessedRow.errors.map((item) => item.error)
+					};
 				} else {
 					const validatedData = createSimpleTransactionSchema.safeParse(
 						currentProcessedRow.transaction

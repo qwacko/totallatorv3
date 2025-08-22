@@ -1,5 +1,7 @@
-import type { ImportOrderByEnum } from '@totallator/shared';
 import { asc, desc, type SQL } from 'drizzle-orm';
+
+import type { ImportOrderByEnum } from '@totallator/shared';
+
 import type { ImportSubqueryType } from './importListSubquery';
 
 export const importToOrderByToSQL = ({

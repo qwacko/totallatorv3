@@ -1,37 +1,44 @@
-import {
-	journalFilterSchema,
-	defaultJournalFilter,
-	type JournalFilterSchemaInputType
-} from '@totallator/shared';
-import { eq, and, sum, sql, not, or } from 'drizzle-orm';
+import { and, eq, not, or, sql, sum } from 'drizzle-orm';
+import { count as drizzleCount } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
+
 import type { DBType } from '@totallator/database';
 import {
 	account,
-	journalEntry,
-	label,
-	labelsToJournals,
 	importItemDetail,
+	type ImportItemDetailTableType,
+	journalEntry,
 	type JournalViewReturnType,
-	type ImportItemDetailTableType
+	label,
+	labelsToJournals
 } from '@totallator/database';
-import { count as drizzleCount } from 'drizzle-orm';
-import { materializedJournalFilterToQuery } from '../journalMaterializedView/materializedJournalFilterToQuery';
-import { materializedJournalFilterToOrderBy } from '../journalMaterializedView/materializedJournalFilterToOrderBy';
-import { alias } from 'drizzle-orm/pg-core';
+import {
+	defaultJournalFilter,
+	journalFilterSchema,
+	type JournalFilterSchemaInputType
+} from '@totallator/shared';
 import type { AccountTypeEnumType } from '@totallator/shared';
-import { inArrayWrapped } from '../misc/inArrayWrapped';
+
 import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+
 import { getCorrectJournalTable } from '../../helpers/journalMaterializedView/getCorrectJournalTable';
-import type { PaginationType } from './PaginationType';
-import { GroupedFilesType, listGroupedFiles } from '../file/listGroupedFiles';
-import { GroupedNotesType, listGroupedNotes } from '../note/listGroupedNotes';
 import {
 	AssociatedInfoDataType,
 	listGroupedAssociatedInfo
 } from '../associatedInfo/listGroupedAssociatedInfo';
+import { GroupedFilesType, listGroupedFiles } from '../file/listGroupedFiles';
+import { materializedJournalFilterToOrderBy } from '../journalMaterializedView/materializedJournalFilterToOrderBy';
+import { materializedJournalFilterToQuery } from '../journalMaterializedView/materializedJournalFilterToQuery';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { GroupedNotesType, listGroupedNotes } from '../note/listGroupedNotes';
+import type { PaginationType } from './PaginationType';
 
-type LabelColumnType = { labelToJournalId: string; id: string; title: string }[];
+type LabelColumnType = {
+	labelToJournalId: string;
+	id: string;
+	title: string;
+}[];
 type OtherJournalsColumnType = {
 	id: string;
 	transactionId: string;
@@ -126,7 +133,9 @@ export const journalMaterialisedList = async ({
 	const { page = 0, pageSize = 10, ...restFilter } = processedFilter;
 	const { table: targetTable, target } = await getCorrectJournalTable();
 
-	const andFilter = await materializedJournalFilterToQuery(db, restFilter, { target });
+	const andFilter = await materializedJournalFilterToQuery(db, restFilter, {
+		target
+	});
 	const orderBy = materializedJournalFilterToOrderBy(processedFilter, target);
 
 	const journalQueryCore = db

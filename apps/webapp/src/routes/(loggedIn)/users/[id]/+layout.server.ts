@@ -1,16 +1,16 @@
-import { redirect } from "@sveltejs/kit";
+import { redirect } from '@sveltejs/kit';
 
-import { tActions } from "@totallator/business-logic";
+import { tActions } from '@totallator/business-logic';
 
 export const load = async ({ params, locals }) => {
-  // Fetch users from database
-  const currentUser = await tActions.user.get({
-    userId: params.id,
-  });
+	// Fetch users from database
+	const currentUser = await tActions.user.get({
+		userId: params.id
+	});
 
-  if (!currentUser) {
-    redirect(302, "/users");
-  }
+	if (!currentUser) {
+		redirect(302, '/users');
+	}
 
-  return { currentUser };
+	return { currentUser };
 };

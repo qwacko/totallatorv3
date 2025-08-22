@@ -1,10 +1,8 @@
-import type { DBType } from '@totallator/database';
-import { importItemDetail } from '@totallator/database';
-import { updatedTime } from '../misc/updatedTime';
 import { eq } from 'drizzle-orm';
 import type { z } from 'zod';
-import { getLogger } from '@/logger';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import type { DBType } from '@totallator/database';
+import { importItemDetail } from '@totallator/database';
 import {
 	createAccountSchema,
 	createBillSchema,
@@ -13,6 +11,11 @@ import {
 	createLabelSchema,
 	createTagSchema
 } from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { updatedTime } from '../misc/updatedTime';
 
 export const importItem = async <
 	T extends
@@ -37,7 +40,10 @@ export const importItem = async <
 	const processedItem = schema.safeParse(item.processedInfo?.dataToUse);
 	if (processedItem.success) {
 		try {
-			const createdItem = await createItem({ item: processedItem.data as z.infer<T>, db });
+			const createdItem = await createItem({
+				item: processedItem.data as z.infer<T>,
+				db
+			});
 
 			if (createdItem) {
 				await dbExecuteLogger(
@@ -78,7 +84,11 @@ export const importItem = async <
 				errorObject: e
 			};
 
-			getLogger('import').error({ code: 'IMP_ITEM_001', title: 'Import Item Error', errorDetails });
+			getLogger('import').error({
+				code: 'IMP_ITEM_001',
+				title: 'Import Item Error',
+				errorDetails
+			});
 
 			await dbExecuteLogger(
 				db

@@ -1,14 +1,17 @@
-import { afterAll, beforeAll, describe, expect } from 'vitest';
-import { accountActions } from './accountActions';
-import {
-	getTestDB,
-	initialiseTestDB,
-	createTestWrapper,
-	clearTestDB,
-	closeTestDB
-} from '@/server/db/test/dbTest';
-import { account } from '@totallator/database';
 import { eq } from 'drizzle-orm';
+import { afterAll, beforeAll, describe, expect } from 'vitest';
+
+import { account } from '@totallator/database';
+
+import {
+	clearTestDB,
+	closeTestDB,
+	createTestWrapper,
+	getTestDB,
+	initialiseTestDB
+} from '@/server/db/test/dbTest';
+
+import { accountActions } from './accountActions';
 import { journalActions } from './journalActions';
 import { materializedViewActions } from './materializedViewActions';
 
@@ -578,7 +581,10 @@ describe('accountActions', async () => {
 
 	describe('List', async () => {
 		testIT('List should return the correct number of items', async (db) => {
-			const accounts = await accountActions.list({ db, filter: { page: 0, pageSize: 100000 } });
+			const accounts = await accountActions.list({
+				db,
+				filter: { page: 0, pageSize: 100000 }
+			});
 
 			expect(accounts.count).toEqual(6);
 		});

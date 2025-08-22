@@ -1,4 +1,5 @@
-import type { CategoryFilterSchemaType } from '@totallator/shared';
+import { eq, SQL } from 'drizzle-orm';
+
 import type { DBType } from '@totallator/database';
 import { category } from '@totallator/database';
 import {
@@ -7,23 +8,24 @@ import {
 	journalExtendedView,
 	journalView
 } from '@totallator/database';
-import { SQL, eq } from 'drizzle-orm';
+import type { CategoryFilterSchemaType } from '@totallator/shared';
 
-import {
-	summaryFilterToQueryMaterialized,
-	summaryFilterToText
-} from '../summary/summaryFilterToQuery';
-import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import {
 	importFilterToQueryMaterialized,
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
+import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { filterToQueryFinal } from '../misc/filterToQueryFinal';
-import { processCategoryTextFilter } from './categoryTextFilter';
-import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
+import { processCategoryTextFilter } from './categoryTextFilter';
 
 export const categoryFilterToQuery = ({
 	filter,

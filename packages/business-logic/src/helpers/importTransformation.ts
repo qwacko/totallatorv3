@@ -1,5 +1,7 @@
-import { createSimpleTransactionSchema } from '@totallator/shared';
 import Handlebars from 'handlebars';
+
+import { createSimpleTransactionSchema } from '@totallator/shared';
+
 import { filterNullUndefinedAndDuplicates } from './filterNullUndefinedAndDuplicates';
 
 // Substring Helper
@@ -45,7 +47,9 @@ export const processObject = <
 			if (typeof configValue === 'number') return acc;
 
 			try {
-				acc[key] = { text: processConfigString(configValue, input as InputObject) };
+				acc[key] = {
+					text: processConfigString(configValue, input as InputObject)
+				};
 				return acc;
 			} catch (error) {
 				const errorMessage = error as { message: string };

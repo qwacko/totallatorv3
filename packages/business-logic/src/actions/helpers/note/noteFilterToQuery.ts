@@ -1,13 +1,15 @@
+import { gt, isNull, not, SQL } from 'drizzle-orm';
+
 import { notesTable } from '@totallator/database';
-import { SQL, not, gt, isNull } from 'drizzle-orm';
-import { idTitleFilterToQueryMapped } from '../misc/filterToQueryTitleIDCore';
-import { filterToQueryFinal } from '../misc/filterToQueryFinal';
-import { processNoteTextFilter } from './noteTextFilter';
 import type { NoteFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type { LinkedNoteFilterSchemaType } from '@totallator/shared';
+
+import { arrayToText } from '../misc/arrayToText';
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { idTitleFilterToQueryMapped } from '../misc/filterToQueryTitleIDCore';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 import { noteFileRelationshipQuery } from '../misc/noteFileRelationshipQuery';
-import { arrayToText } from '../misc/arrayToText';
+import { processNoteTextFilter } from './noteTextFilter';
 
 export const noteFilterToQuery = (filter: NoteFilterSchemaWithoutPaginationType) => {
 	const restFilter = processNoteTextFilter.process(filter);

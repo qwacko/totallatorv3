@@ -1,6 +1,8 @@
-import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
 import { type SQL } from 'drizzle-orm';
+
+import type { DBType } from '@totallator/database';
+import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
 import { materializedJournalFilterToQuery } from '../journalMaterializedView/materializedJournalFilterToQuery';
 
 export const filtersToSQLWithDateRange = async ({

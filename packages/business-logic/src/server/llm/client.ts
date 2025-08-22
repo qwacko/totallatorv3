@@ -1,7 +1,9 @@
+import { nanoid } from 'nanoid';
+
 import type { DBType } from '@totallator/database';
 import type { LLMSettings } from '@totallator/database';
 import { llmLogs } from '@totallator/database';
-import { nanoid } from 'nanoid';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 export interface LLMMessage {

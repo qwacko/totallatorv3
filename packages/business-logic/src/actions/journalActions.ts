@@ -1,44 +1,47 @@
-import {
-	type CreateCombinedTransactionType,
-	journalFilterSchema,
-	defaultJournalFilter,
-	type JournalFilterSchemaInputType,
-	type UpdateJournalSchemaInputType,
-	updateJournalSchema,
-	type CreateSimpleTransactionType,
-	createSimpleTransactionSchema,
-	type CloneJournalUpdateSchemaType,
-	cloneJournalUpdateSchema
-} from '@totallator/shared';
-import { eq, and, not, or } from 'drizzle-orm';
+import { and, eq, not, or } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import type { DBType } from '@totallator/database';
-import { journalEntry, transaction, labelsToJournals } from '@totallator/database';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { expandDate } from './helpers/journal/expandDate';
+import { journalEntry, labelsToJournals, transaction } from '@totallator/database';
+import {
+	cloneJournalUpdateSchema,
+	type CloneJournalUpdateSchemaType,
+	type CreateCombinedTransactionType,
+	createSimpleTransactionSchema,
+	type CreateSimpleTransactionType,
+	defaultJournalFilter,
+	journalFilterSchema,
+	type JournalFilterSchemaInputType,
+	updateJournalSchema,
+	type UpdateJournalSchemaInputType
+} from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { accountActions } from './accountActions';
 import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
-import { tagActions } from './tagActions';
-import { labelActions } from './labelActions';
-import { seedTransactionData } from './helpers/seed/seedTransactionData';
-import { getLogger } from '@/logger';
-import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
+import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
+import { expandDate } from './helpers/journal/expandDate';
 import {
 	generateItemsForTransactionCreation,
 	getCachedData
 } from './helpers/journal/generateItemsForTransactionCreation';
-import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
-import { nanoid } from 'nanoid';
+import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
+import { journalMaterialisedList } from './helpers/journal/journalList';
 import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCombinedSchema';
 import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
-import { materializedViewActions } from './materializedViewActions';
-import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
-import { journalMaterialisedList } from './helpers/journal/journalList';
+import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { seedTransactionData } from './helpers/seed/seedTransactionData';
+import { labelActions } from './labelActions';
+import { materializedViewActions } from './materializedViewActions';
+import { tagActions } from './tagActions';
 
 export const journalActions = {
 	createFromSimpleTransaction: async ({
@@ -112,7 +115,10 @@ export const journalActions = {
 				entryCount: journalEntries.length
 			});
 
-			const cachedData = await getCachedData({ db: dbContext, count: journalEntries.length });
+			const cachedData = await getCachedData({
+				db: dbContext,
+				count: journalEntries.length
+			});
 
 			getLogger('journals').debug({
 				code: 'JOURNAL_016',
@@ -373,7 +379,11 @@ export const journalActions = {
 		});
 
 		const { data: assetLiabilityAccounts } = await accountActions.list({
-			filter: { type: ['asset', 'liability'], allowUpdate: true, pageSize: 10000 }
+			filter: {
+				type: ['asset', 'liability'],
+				allowUpdate: true,
+				pageSize: 10000
+			}
 		});
 		const { data: incomeAccounts } = await accountActions.list({
 			filter: { type: ['income'], allowUpdate: true, pageSize: 10000 }
@@ -459,7 +469,10 @@ export const journalActions = {
 			filter: journalFilter
 		});
 
-		const journals = await journalMaterialisedList({ filter: journalFilter, db });
+		const journals = await journalMaterialisedList({
+			filter: journalFilter,
+			db
+		});
 
 		getLogger('journals').info({
 			code: 'JOURNAL_041',
@@ -504,7 +517,10 @@ export const journalActions = {
 			filter: journalFilter
 		});
 
-		const journals = await journalMaterialisedList({ filter: journalFilter, db });
+		const journals = await journalMaterialisedList({
+			filter: journalFilter,
+			db
+		});
 
 		getLogger('journals').info({
 			code: 'JOURNAL_045',
@@ -539,7 +555,9 @@ export const journalActions = {
 	markComplete: async (journalId: string): Promise<void> => {
 		const db = getContextDB();
 		const journal = await dbExecuteLogger(
-			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
+			db.query.journalEntry.findFirst({
+				where: eq(journalEntry.id, journalId)
+			}),
 			'Transaction Journals - Mark Complete - Find Journal'
 		);
 		if (!journal) return;
@@ -547,7 +565,12 @@ export const journalActions = {
 		await dbExecuteLogger(
 			db
 				.update(journalEntry)
-				.set({ complete: true, dataChecked: true, reconciled: true, ...updatedTime() })
+				.set({
+					complete: true,
+					dataChecked: true,
+					reconciled: true,
+					...updatedTime()
+				})
 				.where(eq(journalEntry.transactionId, transactionId)),
 			'Transaction Journals - Mark Complete - Update Journal'
 		);
@@ -556,7 +579,9 @@ export const journalActions = {
 	markUncomplete: async (journalId: string): Promise<void> => {
 		const db = getContextDB();
 		const journal = await dbExecuteLogger(
-			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
+			db.query.journalEntry.findFirst({
+				where: eq(journalEntry.id, journalId)
+			}),
 			'Transaction Journals - Mark Uncomplete - Find Journal'
 		);
 		if (!journal) return;
@@ -590,7 +615,10 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
-		const journals = await journalMaterialisedList({ filter: processedFilter, db });
+		const journals = await journalMaterialisedList({
+			filter: processedFilter,
+			db
+		});
 
 		if (journals.data.length === 0) return;
 
@@ -843,7 +871,10 @@ export const journalActions = {
 							await dbExecuteLogger(
 								db
 									.update(journalEntry)
-									.set({ amount: journalToUpdate.amount - total, ...updatedTime() })
+									.set({
+										amount: journalToUpdate.amount - total,
+										...updatedTime()
+									})
 									.where(eq(journalEntry.id, journalToUpdate.id)),
 								'Transaction Journals - Update Journals - Update Transaction Amount'
 							);
@@ -868,13 +899,19 @@ export const journalActions = {
 
 			const labelSettingIds = await Promise.all(
 				labelSetting.map(async (currentAdd) => {
-					return labelActions.createOrGet({ ...currentAdd, requireActive: true });
+					return labelActions.createOrGet({
+						...currentAdd,
+						requireActive: true
+					});
 				})
 			);
 
 			const labelAdditionIds = await Promise.all(
 				labelAddition.map(async (currentAdd) => {
-					return labelActions.createOrGet({ ...currentAdd, requireActive: true });
+					return labelActions.createOrGet({
+						...currentAdd,
+						requireActive: true
+					});
 				})
 			);
 
@@ -977,7 +1014,10 @@ export const journalActions = {
 		}
 
 		const processedFilter = journalFilterSchema.parse(filter);
-		const journals = await journalMaterialisedList({ filter: processedFilter, db });
+		const journals = await journalMaterialisedList({
+			filter: processedFilter,
+			db
+		});
 
 		if (journals.data.length === 0) return;
 

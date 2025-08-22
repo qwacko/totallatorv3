@@ -1,35 +1,38 @@
-import {
-	type CreateAccountSchemaType,
-	type AccountFilterSchemaType,
-	type UpdateAccountSchemaType,
-	updateAccountSchema
-} from '@totallator/shared';
-import { nanoid } from 'nanoid';
-import { account, type AccountTableType, type AccountViewReturnType } from '@totallator/database';
 import { and, asc, desc, eq, max } from 'drizzle-orm';
+import { count as drizzleCount } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+import Papa from 'papaparse';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { account, type AccountTableType, type AccountViewReturnType } from '@totallator/database';
+import {
+	type AccountFilterSchemaType,
+	type CreateAccountSchemaType,
+	updateAccountSchema,
+	type UpdateAccountSchemaType
+} from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { combinedAccountTitleSplitRequired } from '../helpers/combinedAccountTitleSplit';
+import { streamingDelay } from '../server/testingDelay';
+import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
+import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
+import { accountTitleSplit } from './helpers/account/accountTitleSplit';
+import { getCorrectAccountTable } from './helpers/account/getCorrectAccountTable';
+import { getCommonData } from './helpers/misc/getCommonData';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
-import { getLogger } from '@/logger';
-import { combinedAccountTitleSplitRequired } from '../helpers/combinedAccountTitleSplit';
 import {
 	createAsset,
 	createExpense,
 	createIncome,
 	createLiability
 } from './helpers/seed/seedAccountData';
-import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
-import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
-import { accountTitleSplit } from './helpers/account/accountTitleSplit';
-import { getCommonData } from './helpers/misc/getCommonData';
-import { streamingDelay } from '../server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm';
 import { materializedViewActions } from './materializedViewActions';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getCorrectAccountTable } from './helpers/account/getCorrectAccountTable';
-import type { ItemActionsType } from './helpers/misc/ItemActionsType';
-import Papa from 'papaparse';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export type AccountDropdownType = {
 	id: string;
@@ -45,7 +48,12 @@ type AccountActionsType = ItemActionsType<
 	CreateAccountSchemaType,
 	UpdateAccountSchemaType,
 	AccountDropdownType,
-	{ countAssets: number; countLiabilities: number; countIncome: number; countExpenses: number }
+	{
+		countAssets: number;
+		countLiabilities: number;
+		countIncome: number;
+		countExpenses: number;
+	}
 >;
 
 type ListCommonPropertiesFunction = (data: {
@@ -506,7 +514,14 @@ export const accountActions: AccountActionsType & {
 		return dataForInsertion.map((item) => item.id);
 	},
 	seed: async ({ countAssets, countLiabilities, countIncome, countExpenses }) => {
-		getLogger('accounts').info({ code: 'ACC_001', title: 'Seeding Accounts', countAssets, countLiabilities, countIncome, countExpenses });
+		getLogger('accounts').info({
+			code: 'ACC_001',
+			title: 'Seeding Accounts',
+			countAssets,
+			countLiabilities,
+			countIncome,
+			countExpenses
+		});
 		const assetsToCreate = Array(countAssets)
 			.fill(1)
 			.map(() => createAsset());

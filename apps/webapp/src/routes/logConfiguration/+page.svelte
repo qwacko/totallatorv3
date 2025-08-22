@@ -1,10 +1,9 @@
 <script>
-    import ShowLogConfigurations from "$lib/components/logs/ShowLogConfigurations.svelte";
-
+	import ShowLogConfigurations from '$lib/components/logs/ShowLogConfigurations.svelte';
 </script>
 
 <svelte:boundary>
-<ShowLogConfigurations />
+	<ShowLogConfigurations />
 
 	{#snippet pending()}
 		<p>loading...</p>

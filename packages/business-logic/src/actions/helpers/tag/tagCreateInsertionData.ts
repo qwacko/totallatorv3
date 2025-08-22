@@ -1,6 +1,8 @@
 import type { CreateTagSchemaType } from '@totallator/shared';
-import { statusUpdate } from '../misc/statusUpdate';
+
 import { combinedTitleSplitRequired } from '@/helpers/combinedTitleSplit';
+
+import { statusUpdate } from '../misc/statusUpdate';
 import { updatedTime } from '../misc/updatedTime';
 
 export const tagCreateInsertionData = (data: CreateTagSchemaType, id: string) => {

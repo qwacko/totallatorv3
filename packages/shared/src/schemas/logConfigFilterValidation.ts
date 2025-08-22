@@ -1,5 +1,6 @@
-import { logDomainEnum, logActionEnum, logDestinationEnum } from './enum/logEnum';
 import z from 'zod';
+
+import { logActionEnum, logDestinationEnum, logDomainEnum } from './enum/logEnum';
 
 export const logConfigFilterValidation = z.object({
 	domain: z.array(z.enum(logDomainEnum)).optional(),

@@ -1,8 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getTestDB, closeTestDB } from '@/server/db/test/dbTest';
-import { LLMClient, type LLMRequest, type LLMResponse } from './client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { LLMSettings } from '@totallator/database';
 import type { DBType } from '@totallator/database';
+
+import { closeTestDB, getTestDB } from '@/server/db/test/dbTest';
+
+import { LLMClient, type LLMRequest, type LLMResponse } from './client';
 
 // Mock fetch
 global.fetch = vi.fn();

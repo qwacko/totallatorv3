@@ -1,33 +1,36 @@
-import type {
-	CreateLabelSchemaType,
-	LabelFilterSchemaType,
-	UpdateLabelSchemaType
-} from '@totallator/shared';
+import { and, asc, desc, eq, max } from 'drizzle-orm';
+import { count as drizzleCount } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import Papa from 'papaparse';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
 	label,
 	labelsToJournals,
 	type LabelTableType,
 	type LabelViewReturnType
 } from '@totallator/database';
-import { and, asc, desc, eq, max } from 'drizzle-orm';
+import type {
+	CreateLabelSchemaType,
+	LabelFilterSchemaType,
+	UpdateLabelSchemaType
+} from '@totallator/shared';
+import type { IdSchemaType } from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { streamingDelay } from '../server/testingDelay';
+import { getCorrectLabelTable } from './helpers/label/getCorrectLabelTable';
+import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionData';
+import { labelFilterToQuery } from './helpers/label/labelFilterToQuery';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import { statusUpdate } from './helpers/misc/statusUpdate';
 import { updatedTime } from './helpers/misc/updatedTime';
-import type { IdSchemaType } from '@totallator/shared';
-import { getLogger } from '@/logger';
-import { createLabel } from './helpers/seed/seedLabelData';
 import { createUniqueItemsOnly } from './helpers/seed/createUniqueItemsOnly';
-import { labelFilterToQuery } from './helpers/label/labelFilterToQuery';
-import { labelCreateInsertionData } from './helpers/label/labelCreateInsertionData';
-import { streamingDelay } from '../server/testingDelay';
-import { count as drizzleCount } from 'drizzle-orm';
+import { createLabel } from './helpers/seed/seedLabelData';
 import { materializedViewActions } from './materializedViewActions';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getCorrectLabelTable } from './helpers/label/getCorrectLabelTable';
-import type { ItemActionsType } from './helpers/misc/ItemActionsType';
-import Papa from 'papaparse';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export type LabelDropdownType = {
 	id: string;
@@ -166,7 +169,13 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 		const db = getContextDB();
 		await streamingDelay();
 		const items = dbExecuteLogger(
-			db.select({ id: label.id, title: label.title, enabled: label.allowUpdate }).from(label),
+			db
+				.select({
+					id: label.id,
+					title: label.title,
+					enabled: label.allowUpdate
+				})
+				.from(label),
 			'Labels - List For Dropdown'
 		);
 
@@ -291,7 +300,10 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 	canDelete: async (data: IdSchemaType) => {
 		const db = getContextDB();
 		const currentLabel = await dbExecuteLogger(
-			db.query.label.findFirst({ where: eq(label.id, data.id), with: { journals: { limit: 1 } } }),
+			db.query.label.findFirst({
+				where: eq(label.id, data.id),
+				with: { journals: { limit: 1 } }
+			}),
 			'Labels - Can Delete - Get By ID'
 		);
 		if (!currentLabel) {

@@ -1,4 +1,5 @@
 import type { CreateReusableFilterSchemaType } from '@totallator/shared';
+
 import { getRandomBoolean } from '../misc/getRandom';
 
 export const seedReusableFilterData = ({ id }: { id: number }) => {

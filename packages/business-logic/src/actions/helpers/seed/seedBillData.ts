@@ -1,4 +1,5 @@
 import type { CreateBillSchemaType } from '@totallator/shared';
+
 import { getRandomInteger } from '../misc/getRandom';
 
 export const createBill = (): CreateBillSchemaType => {

@@ -1,17 +1,20 @@
-import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
+import { and, asc, avg, count, eq, max, min, SQL, sql, sum } from 'drizzle-orm';
+
 import type { DBType } from '@totallator/database';
-import { sum, and, count, min, max, avg, SQL, asc, sql, eq } from 'drizzle-orm';
-import { filtersToSQLWithDateRange } from './filtersToSQLWithDateRange';
-import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
 import { journalExtendedView } from '@totallator/database';
+import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type { TimeGroupingType } from '@totallator/shared';
-import { generateDateItemsBetween } from '@/helpers/generateDateItemsBetween';
 import {
 	reportConfigPartItemGroupingInfo,
 	type ReportConfigPartItemGroupingType
 } from '@totallator/shared';
+
+import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
+import { generateDateItemsBetween } from '@/helpers/generateDateItemsBetween';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+
 import { DateRangeType } from './filtersToDateRange';
+import { filtersToSQLWithDateRange } from './filtersToSQLWithDateRange';
 
 const groupingEnum = ['single', 'time', 'grouped'] as const;
 const resultEnum = ['sum', 'count', 'min', 'max', 'avg'] as const;
@@ -286,13 +289,13 @@ export const getCombinedFilters = ({
 
 		const groupingColumn = getGroupingColumn(grouping);
 
-		const dateSeries = db
-			.$with('date_series')
-			.as((qb) =>
-				qb
-					.select({ dateSeries: sql<string>`date_series.date_text`.as('date_text_series') })
-					.from(sql.raw(`(VALUES ('${dateOptions.join("'), ('")}')) AS date_series(date_text)`))
-			);
+		const dateSeries = db.$with('date_series').as((qb) =>
+			qb
+				.select({
+					dateSeries: sql<string>`date_series.date_text`.as('date_text_series')
+				})
+				.from(sql.raw(`(VALUES ('${dateOptions.join("'), ('")}')) AS date_series(date_text)`))
+		);
 
 		const dbData = await dbExecuteLogger(
 			db

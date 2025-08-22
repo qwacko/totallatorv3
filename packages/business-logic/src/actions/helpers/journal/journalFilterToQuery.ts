@@ -1,18 +1,19 @@
+import { type DBType } from '@totallator/database';
 import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
+import { dateSpanInfo } from '@totallator/shared';
+import { llmReviewStatusEnumTitles } from '@totallator/shared';
+
 import { accountFilterToText, accountIdsToTitles } from '../account/accountFilterToQuery';
 import { billFilterToText } from '../bill/billFilterToQuery';
 import { budgetFilterToText } from '../budget/budgetFilterToQuery';
-import { tagFilterToText } from '../tag/tagFilterToQuery';
 import { categoryFilterToText } from '../category/categoryFilterToQuery';
-import { labelFilterToText } from '../label/labelFilterToQuery';
-import { type DBType } from '@totallator/database';
-import { arrayToText } from '../misc/arrayToText';
-import { importIdsToTitles } from '../import/importIdsToTitles';
-import { dateSpanInfo } from '@totallator/shared';
-import { processJournalTextFilter } from './processJournalTextFilter';
 import { linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { importIdsToTitles } from '../import/importIdsToTitles';
+import { labelFilterToText } from '../label/labelFilterToQuery';
+import { arrayToText } from '../misc/arrayToText';
 import { linkedNoteFilterToText } from '../note/noteFilterToQuery';
-import { llmReviewStatusEnumTitles } from '@totallator/shared';
+import { tagFilterToText } from '../tag/tagFilterToQuery';
+import { processJournalTextFilter } from './processJournalTextFilter';
 
 export const journalFilterToText = async ({
 	filter,
@@ -35,7 +36,10 @@ export const journalFilterToText = async ({
 	}
 	if (filterInternal.excludeIdArray && filterInternal.excludeIdArray.length > 0) {
 		stringArray.push(
-			await arrayToText({ data: filterInternal.excludeIdArray, singularName: 'Exclude ID' })
+			await arrayToText({
+				data: filterInternal.excludeIdArray,
+				singularName: 'Exclude ID'
+			})
 		);
 	}
 	if (filterInternal.maxAmount !== undefined)
@@ -45,7 +49,10 @@ export const journalFilterToText = async ({
 
 	if (filterInternal.yearMonth && filterInternal.yearMonth.length > 0) {
 		stringArray.push(
-			await arrayToText({ data: filterInternal.yearMonth, singularName: 'Year-Month' })
+			await arrayToText({
+				data: filterInternal.yearMonth,
+				singularName: 'Year-Month'
+			})
 		);
 	}
 	if (filterInternal.excludeYearMonth && filterInternal.excludeYearMonth.length > 0) {
@@ -55,7 +62,10 @@ export const journalFilterToText = async ({
 	}
 	if (filterInternal.transactionIdArray && filterInternal.transactionIdArray.length > 0) {
 		stringArray.push(
-			await arrayToText({ data: filterInternal.transactionIdArray, singularName: 'Transaction ID' })
+			await arrayToText({
+				data: filterInternal.transactionIdArray,
+				singularName: 'Transaction ID'
+			})
 		);
 	}
 	if (
@@ -238,7 +248,12 @@ export const journalFilterToText = async ({
 
 	if (filterInternal.tag) {
 		linkedArray.push(
-			...(await tagFilterToText({ db, filter: filterInternal.tag, prefix: 'Tag', allText: false }))
+			...(await tagFilterToText({
+				db,
+				filter: filterInternal.tag,
+				prefix: 'Tag',
+				allText: false
+			}))
 		);
 	}
 	if (filterInternal.excludeTag) {

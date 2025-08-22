@@ -1,22 +1,24 @@
 import { eq, sql } from 'drizzle-orm';
+
+import { getContextStore } from '@totallator/context';
 import { reusableFilter } from '@totallator/database';
 import {
-	journalExtendedView,
 	accountMaterializedView,
-	tagMaterializedView,
 	billMaterializedView,
 	budgetMaterializedView,
 	categoryMaterializedView,
-	labelMaterializedView,
 	dateRangeMaterializedView,
-	importCheckMaterializedView
+	importCheckMaterializedView,
+	journalExtendedView,
+	labelMaterializedView,
+	tagMaterializedView
 } from '@totallator/database';
 
-import { booleanKeyValueStore } from './helpers/keyValueStore';
 import { getLogger } from '@/logger';
-import { dbExecuteRawLogger, dbExecuteLogger } from '@/server/db/dbLogger';
+import { dbExecuteLogger, dbExecuteRawLogger } from '@/server/db/dbLogger';
 import { getServerEnv } from '@/serverEnv';
-import { getContextStore } from '@totallator/context';
+
+import { booleanKeyValueStore } from './helpers/keyValueStore';
 
 const refreshRequiredStore = booleanKeyValueStore('journalExtendedViewRefresh', true);
 const accountRefreshRequiredStore = booleanKeyValueStore('accountViewRefresh', true);

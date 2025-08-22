@@ -1,7 +1,9 @@
-import { eq, count, isNotNull, and } from 'drizzle-orm';
+import { and, count, eq, isNotNull } from 'drizzle-orm';
 import { QueryBuilder } from 'drizzle-orm/pg-core';
-import { associatedInfoTable, fileTable, notesTable } from './transactionSchema';
+
 import type { KeysOfCreateFileNoteRelationshipSchemaType } from '@totallator/shared';
+
+import { associatedInfoTable, fileTable, notesTable } from './transactionSchema';
 
 export const filesNotesSubquery = (
 	qb: QueryBuilder,

@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
 import { processJournalTextFilter } from './processJournalTextFilter';
 
 describe('processJournalTextFilter', () => {
@@ -953,7 +955,9 @@ describe('processJournalTextFilter', () => {
 				excludeTag: { textFilter: ` "tag Filter" "tag Filter 2"` },
 				excludeBill: { textFilter: ` "bill Filter" "bill Filter 2"` },
 				excludeBudget: { textFilter: ` "budget Filter" "budget Filter 2"` },
-				excludeCategory: { textFilter: ` "category Filter" "category Filter 2"` },
+				excludeCategory: {
+					textFilter: ` "category Filter" "category Filter 2"`
+				},
 				excludeAccount: { textFilter: ` "account Filter" "account Filter 2"` },
 				excludeLabel: { textFilter: ` "label Filter" "label Filter 2"` },
 				excludePayee: { titleArray: ['payee Filter', 'payee Filter 2'] },

@@ -1,11 +1,12 @@
+import type { DBType } from '@totallator/database';
 import type { UpdateJournalSchemaType } from '@totallator/shared';
+
 import { accountIdToTitle } from '../account/accountFilterToQuery';
-import { labelIdsToTitle } from '../label/labelFilterToQuery';
 import { billIdToTitle } from '../bill/billFilterToQuery';
 import { budgetIdToTitle } from '../budget/budgetFilterToQuery';
 import { categoryIdToTitle } from '../category/categoryFilterToQuery';
+import { labelIdsToTitle } from '../label/labelFilterToQuery';
 import { tagIdToTitle } from '../tag/tagFilterToQuery';
-import type { DBType } from '@totallator/database';
 
 export const journalUpdateToText = async ({
 	db,

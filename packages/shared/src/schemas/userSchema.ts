@@ -43,10 +43,16 @@ const formatLookup: Record<
 	}
 > = {
 	AUD: {
-		formatter: new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' })
+		formatter: new Intl.NumberFormat('en-AU', {
+			style: 'currency',
+			currency: 'AUD'
+		})
 	},
 	USD: {
-		formatter: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+		formatter: new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD'
+		})
 	},
 
 	GBP: {

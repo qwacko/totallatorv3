@@ -1,8 +1,10 @@
 import { and, count, desc, eq, gte, inArray } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { journalLlmSuggestions } from '@totallator/database';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+
 import { getContextDB } from '@totallator/context';
+import { journalLlmSuggestions } from '@totallator/database';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 export type CreateJournalLlmSuggestionType = {
 	journalId: string;

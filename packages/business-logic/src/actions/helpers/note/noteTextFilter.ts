@@ -1,5 +1,6 @@
 import { noteTypeEnum } from '@totallator/shared';
 import type { NoteFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
 import {
 	addEnumToArray,
 	addToArray,
