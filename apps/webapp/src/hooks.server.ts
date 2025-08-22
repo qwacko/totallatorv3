@@ -1,9 +1,9 @@
+import { createClient } from "@libsql/client";
 import { redirect, type ServerInit } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 import { nanoid } from "nanoid";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createClient } from "@libsql/client";
 
 import {
   actionHelpers,
@@ -63,7 +63,7 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
       },
       migrationsPath,
       createLoggingDBClient: () => {
-        const url = getServerEnv().LOG_DATABASE_ADDRESS || 'file:logs.db';
+        const url = getServerEnv().LOG_DATABASE_ADDRESS || "file:logs.db";
         const authToken = getServerEnv().LOG_DATABASE_KEY;
         return createClient({ url, authToken });
       },
