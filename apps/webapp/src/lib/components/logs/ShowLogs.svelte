@@ -37,7 +37,7 @@
 	const totalPages = $derived(Math.ceil(logs.logCount / filter.limit));
 	$effect(() => {
 		if (currentPage > totalPages) {
-			filter.offset = (totalPages - 1) * filter.limit;
+			filter.offset = Math.max(0, (totalPages - 1) * filter.limit);
 		}
 	});
 	let updateTime = $state(new Date());
@@ -56,7 +56,16 @@
 	};
 
 	const toggleItem = (
-		key: 'domain' | 'action' | 'contextId' | 'code' | 'level' | 'requestId' | 'routeId' | 'userId' | 'url',
+		key:
+			| 'domain'
+			| 'action'
+			| 'contextId'
+			| 'code'
+			| 'level'
+			| 'requestId'
+			| 'routeId'
+			| 'userId'
+			| 'url',
 		value: string | undefined
 	) => {
 		if (!value) {
@@ -413,8 +422,8 @@
 									{log.routeId}
 								</Badge>
 								{#if log.method && log.url}
-									<div 
-										class="mt-1 text-xs text-gray-500 cursor-pointer hover:text-gray-700" 
+									<div
+										class="mt-1 cursor-pointer text-xs text-gray-500 hover:text-gray-700"
 										title="{log.method} {log.url} - Click to filter by URL"
 										onclick={() => {
 											log.url && toggleItem('url', log.url);
@@ -491,9 +500,7 @@
 						<TableBodyCell class="max-w-md">
 							{#if log.dataProcessed}
 								<details class="cursor-pointer">
-									<summary class="text-sm text-blue-600 hover:text-blue-800">
-										View data
-									</summary>
+									<summary class="text-sm text-blue-600 hover:text-blue-800">View data</summary>
 									<pre
 										class="mt-2 max-h-40 overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">{@html highlightText(
 											JSON.stringify(log.dataProcessed, null, 2),
