@@ -12,6 +12,12 @@ import { accountPageAndFilterValidation } from '$lib/pageAndFilterValidation';
 export const load = async (data) => {
 	authGuard(data);
 
+	data.locals.global.logger('accounts').trace({
+		code: 'WEB_ACC_020',
+		title: 'Account creation page loaded',
+		userId: data.locals.user?.id
+	});
+
 	const form = await superValidate(zod4(createAccountSchema));
 
 	return { form };
@@ -24,20 +30,60 @@ const createAccountSchemaWithPageAndFilter = z.object({
 
 export const actions = {
 	default: async ({ request, locals }) => {
+		const startTime = Date.now();
 		const form = await superValidate(request, zod4(createAccountSchemaWithPageAndFilter));
 
 		if (!form.valid) {
+			locals.global.logger('accounts').warn({
+				code: 'WEB_ACC_021',
+				title: 'Account creation form validation failed',
+				userId: locals.user?.id,
+				validationErrors: form.errors,
+				formData: form.data
+			});
 			return { form };
 		}
 
+		const { prevPage, ...accountData } = form.data;
+		locals.global.logger('accounts').info({
+			code: 'WEB_ACC_022',
+			title: 'Account creation initiated via web',
+			userId: locals.user?.id,
+			accountData: {
+				...accountData,
+				// Don't log sensitive data, just the structure
+				title: accountData.title,
+				type: accountData.type,
+				status: accountData.status
+			}
+		});
+
 		try {
-			await tActions.account.create(form.data);
+			const accountId = await tActions.account.create(accountData);
+
+			const duration = Date.now() - startTime;
+			locals.global.logger('accounts').info({
+				code: 'WEB_ACC_023',
+				title: 'Account created successfully via web',
+				userId: locals.user?.id,
+				accountId,
+				accountTitle: accountData.title,
+				accountType: accountData.type,
+				duration
+			});
 		} catch (e) {
-			locals.global
-				.logger('accounts')
-				.error({ code: 'ACC_0002', title: 'Create Account Error', error: e });
+			const duration = Date.now() - startTime;
+			locals.global.logger('accounts').error({
+				code: 'WEB_ACC_024',
+				title: 'Account creation failed via web',
+				userId: locals.user?.id,
+				accountTitle: accountData.title,
+				accountType: accountData.type,
+				duration,
+				error: e
+			});
 			return message(form, 'Error Creating Account, Possibly Already Exists');
 		}
-		redirect(302, form.data.prevPage);
+		redirect(302, prevPage);
 	}
 };

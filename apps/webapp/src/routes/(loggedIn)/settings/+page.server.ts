@@ -6,6 +6,13 @@ import { serverEnv } from '$lib/server/serverEnv';
 export const load = async (data) => {
 	authGuard(data);
 
+	data.locals.global.logger('settings').debug({
+		code: 'WEB_SET_001',
+		title: 'Settings page loaded',
+		userId: data.locals.user?.id,
+		userRole: data.locals.user?.admin ? 'admin' : 'user'
+	});
+
 	const settingsToSend = {
 		dev: {
 			dev: serverEnv.DEV,

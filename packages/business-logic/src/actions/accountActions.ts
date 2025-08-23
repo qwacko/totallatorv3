@@ -257,17 +257,45 @@ export const accountActions: AccountActionsType & {
 		};
 	},
 	create: async (data) => {
+		const startTime = Date.now();
 		const db = getContextDB();
 		const id = nanoid();
 
-		await dbExecuteLogger(
-			db.insert(account).values(accountCreateInsertionData(data, id)),
-			'Accounts - Create'
-		);
+		getLogger('accounts').info({
+			code: 'ACC_010',
+			title: 'Creating new account',
+			accountId: id,
+			accountType: data.type,
+			accountTitle: data.title,
+			status: data.status
+		});
 
-		await materializedViewActions.setRefreshRequired();
+		try {
+			await dbExecuteLogger(
+				db.insert(account).values(accountCreateInsertionData(data, id)),
+				'Accounts - Create'
+			);
 
-		return id;
+			await materializedViewActions.setRefreshRequired();
+
+			const duration = Date.now() - startTime;
+			getLogger('accounts').info({
+				code: 'ACC_011',
+				title: 'Account created successfully',
+				accountId: id,
+				duration
+			});
+
+			return id;
+		} catch (e) {
+			getLogger('accounts').error({
+				code: 'ACC_012',
+				title: 'Failed to create account',
+				accountId: id,
+				error: e
+			});
+			throw e;
+		}
 	},
 	createAndGet: async (data) => {
 		const db = getContextDB();
@@ -279,6 +307,16 @@ export const accountActions: AccountActionsType & {
 	},
 	createOrGet: async ({ title, id, requireActive = true, cachedData }) => {
 		const db = getContextDB();
+
+		getLogger('accounts').debug({
+			code: 'ACC_040',
+			title: 'Creating or getting account',
+			accountId: id,
+			accountTitle: title,
+			requireActive,
+			usingCache: !!cachedData
+		});
+
 		if (id) {
 			const currentAccount = cachedData
 				? cachedData.find((item) => item.id === id)
@@ -291,10 +329,26 @@ export const accountActions: AccountActionsType & {
 
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
+					getLogger('accounts').warn({
+						code: 'ACC_041',
+						title: 'Account found but not active',
+						accountId: id,
+						accountStatus: currentAccount.status
+					});
 					throw new Error(`Account ${currentAccount.title} is not active`);
 				}
+				getLogger('accounts').debug({
+					code: 'ACC_042',
+					title: 'Found existing account by ID',
+					accountId: id
+				});
 				return currentAccount;
 			}
+			getLogger('accounts').error({
+				code: 'ACC_043',
+				title: 'Account not found by ID',
+				accountId: id
+			});
 			throw new Error(`Account ${id} not found`);
 		} else if (title) {
 			const accountTitleInfo = accountTitleSplit(title);
@@ -313,10 +367,28 @@ export const accountActions: AccountActionsType & {
 
 			if (currentAccount) {
 				if (requireActive && currentAccount.status !== 'active') {
+					getLogger('accounts').warn({
+						code: 'ACC_044',
+						title: 'Account found by title but not active',
+						accountTitle: title,
+						accountStatus: currentAccount.status
+					});
 					throw new Error(`Account ${currentAccount.title} is not active`);
 				}
+				getLogger('accounts').debug({
+					code: 'ACC_045',
+					title: 'Found existing account by title',
+					accountTitle: title
+				});
 				return currentAccount;
 			}
+
+			getLogger('accounts').info({
+				code: 'ACC_046',
+				title: 'Creating new account from title',
+				accountTitle: title,
+				isExpense
+			});
 
 			const newAccountId = await accountActions.create({
 				...accountTitleInfo,
@@ -328,8 +400,19 @@ export const accountActions: AccountActionsType & {
 				'Accounts - Create Or Get - Check Created'
 			);
 			if (!newAccount) {
+				getLogger('accounts').error({
+					code: 'ACC_047',
+					title: 'Failed to create account from title',
+					accountTitle: title
+				});
 				throw new Error(`Account Creation Error`);
 			}
+			getLogger('accounts').info({
+				code: 'ACC_048',
+				title: 'Successfully created account from title',
+				accountId: newAccountId,
+				accountTitle: title
+			});
 			return newAccount;
 		} else {
 			return undefined;
@@ -355,6 +438,7 @@ export const accountActions: AccountActionsType & {
 		});
 	},
 	update: async ({ data, id }) => {
+		const startTime = Date.now();
 		const db = getContextDB();
 		const {
 			accountGroup2,
@@ -370,12 +454,25 @@ export const accountActions: AccountActionsType & {
 			type,
 			...restData
 		} = data;
+
+		getLogger('accounts').debug({
+			code: 'ACC_020',
+			title: 'Starting account update',
+			accountId: id,
+			updateFields: Object.keys(data)
+		});
+
 		const currentAccount = await dbExecuteLogger(
 			db.query.account.findFirst({ where: eq(account.id, id) }),
 			'Accounts - Update - Get'
 		);
 
 		if (!currentAccount) {
+			getLogger('accounts').error({
+				code: 'ACC_021',
+				title: 'Account not found for update',
+				accountId: id
+			});
 			throw new Error(`Account ${id} not found`);
 		}
 
@@ -445,6 +542,16 @@ export const accountActions: AccountActionsType & {
 				'Accounts - Update - Asset Or Liability'
 			);
 		}
+
+		const duration = Date.now() - startTime;
+		getLogger('accounts').info({
+			code: 'ACC_022',
+			title: 'Account updated successfully',
+			accountId: id,
+			accountType: type || currentAccount.type,
+			duration
+		});
+
 		return id;
 	},
 	canDeleteMany: async (ids) => {
@@ -470,9 +577,27 @@ export const accountActions: AccountActionsType & {
 	},
 	delete: async (data) => {
 		const db = getContextDB();
+
+		getLogger('accounts').info({
+			code: 'ACC_030',
+			title: 'Attempting to delete account',
+			accountId: data.id
+		});
+
 		// If the account has no journals, then mark as deleted, otherwise do nothing
 		if (await accountActions.canDelete(data)) {
 			await dbExecuteLogger(db.delete(account).where(eq(account.id, data.id)), 'Accounts - Delete');
+			getLogger('accounts').info({
+				code: 'ACC_031',
+				title: 'Account deleted successfully',
+				accountId: data.id
+			});
+		} else {
+			getLogger('accounts').warn({
+				code: 'ACC_032',
+				title: 'Account cannot be deleted - has journal entries',
+				accountId: data.id
+			});
 		}
 
 		await materializedViewActions.setRefreshRequired();
@@ -501,17 +626,47 @@ export const accountActions: AccountActionsType & {
 		return false;
 	},
 	createMany: async (data) => {
-		const dataForInsertion = data.map((currentAccount) => {
-			const id = nanoid();
-			return accountCreateInsertionData(currentAccount, id);
+		const startTime = Date.now();
+
+		getLogger('accounts').info({
+			code: 'ACC_050',
+			title: 'Creating multiple accounts',
+			count: data.length
 		});
 
-		await runInTransactionWithLogging('Create Many Accounts', async (trx) => {
-			await dbExecuteLogger(trx.insert(account).values(dataForInsertion), 'Accounts - Create Many');
-		});
+		try {
+			const dataForInsertion = data.map((currentAccount) => {
+				const id = nanoid();
+				return accountCreateInsertionData(currentAccount, id);
+			});
 
-		await materializedViewActions.setRefreshRequired();
-		return dataForInsertion.map((item) => item.id);
+			await runInTransactionWithLogging('Create Many Accounts', async (trx) => {
+				await dbExecuteLogger(
+					trx.insert(account).values(dataForInsertion),
+					'Accounts - Create Many'
+				);
+			});
+
+			await materializedViewActions.setRefreshRequired();
+
+			const duration = Date.now() - startTime;
+			getLogger('accounts').info({
+				code: 'ACC_051',
+				title: 'Successfully created multiple accounts',
+				count: data.length,
+				duration
+			});
+
+			return dataForInsertion.map((item) => item.id);
+		} catch (e) {
+			getLogger('accounts').error({
+				code: 'ACC_052',
+				title: 'Failed to create multiple accounts',
+				count: data.length,
+				error: e
+			});
+			throw e;
+		}
 	},
 	seed: async ({ countAssets, countLiabilities, countIncome, countExpenses }) => {
 		getLogger('accounts').info({

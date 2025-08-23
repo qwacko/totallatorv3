@@ -187,10 +187,27 @@ export const tagActions: TagActionsType = {
 
 			if (currentTag) {
 				if (requireActive && currentTag.status !== 'active') {
+					getLogger('tags').warn({
+						code: 'TAG_081',
+						title: 'Tag found but not active',
+						tagId: id,
+						tagTitle: currentTag.title,
+						status: currentTag.status
+					});
 					throw new Error(`Tag ${currentTag.title} is not active`);
 				}
+				getLogger('tags').debug({
+					code: 'TAG_082',
+					title: 'Found existing tag by ID',
+					tagId: id
+				});
 				return currentTag;
 			}
+			getLogger('tags').error({
+				code: 'TAG_083',
+				title: 'Tag not found by ID',
+				tagId: id
+			});
 			throw new Error(`Tag ${id} not found`);
 		} else if (title) {
 			const currentTag = cachedData
@@ -201,8 +218,19 @@ export const tagActions: TagActionsType = {
 					);
 			if (currentTag) {
 				if (requireActive && currentTag.status !== 'active') {
+					getLogger('tags').warn({
+						code: 'TAG_084',
+						title: 'Tag found by title but not active',
+						tagTitle: title,
+						status: currentTag.status
+					});
 					throw new Error(`Tag ${currentTag.title} is not active`);
 				}
+				getLogger('tags').debug({
+					code: 'TAG_085',
+					title: 'Found existing tag by title',
+					tagTitle: title
+				});
 				return currentTag;
 			}
 			const newTagId = await tagActions.create({
