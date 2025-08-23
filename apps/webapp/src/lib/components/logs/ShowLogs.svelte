@@ -14,7 +14,7 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
-	import { RefreshOutline, SearchOutline } from 'flowbite-svelte-icons';
+	import { EyeOutline, RefreshOutline, SearchOutline } from 'flowbite-svelte-icons';
 	import { useInterval } from 'runed';
 
 	import type { LogFilterValidationType } from '@totallator/shared';
@@ -56,7 +56,7 @@
 	};
 
 	const toggleItem = (
-		key: 'domain' | 'action' | 'contextId' | 'code' | 'level',
+		key: 'domain' | 'action' | 'contextId' | 'code' | 'level' | 'requestId' | 'routeId' | 'userId' | 'url',
 		value: string | undefined
 	) => {
 		if (!value) {
@@ -168,7 +168,7 @@
 		</div>
 
 		<!-- Active Filters -->
-		{#if filter.contextId?.length || filter.domain?.length || filter.code?.length || filter.level?.length || filter.action?.length}
+		{#if filter.contextId?.length || filter.domain?.length || filter.code?.length || filter.level?.length || filter.action?.length || filter.requestId?.length || filter.routeId?.length || filter.userId?.length || filter.url?.length}
 			<div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
 				<h4 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Active Filters:</h4>
 				<div class="flex flex-wrap gap-2">
@@ -237,6 +237,58 @@
 							</Badge>
 						{/each}
 					{/if}
+					{#if filter.requestId}
+						{#each filter.requestId as currentRequestId}
+							<Badge
+								color="cyan"
+								onclick={() => {
+									toggleItem('requestId', currentRequestId);
+								}}
+								class="cursor-pointer hover:bg-cyan-200"
+							>
+								Request: {currentRequestId?.substring(0, 8)}... ×
+							</Badge>
+						{/each}
+					{/if}
+					{#if filter.routeId}
+						{#each filter.routeId as currentRouteId}
+							<Badge
+								color="pink"
+								onclick={() => {
+									toggleItem('routeId', currentRouteId);
+								}}
+								class="cursor-pointer hover:bg-pink-200"
+							>
+								Route: {currentRouteId} ×
+							</Badge>
+						{/each}
+					{/if}
+					{#if filter.userId}
+						{#each filter.userId as currentUserId}
+							<Badge
+								color="orange"
+								onclick={() => {
+									toggleItem('userId', currentUserId);
+								}}
+								class="cursor-pointer hover:bg-orange-200"
+							>
+								User: {currentUserId} ×
+							</Badge>
+						{/each}
+					{/if}
+					{#if filter.url}
+						{#each filter.url as currentUrl}
+							<Badge
+								color="yellow"
+								onclick={() => {
+									toggleItem('url', currentUrl);
+								}}
+								class="cursor-pointer hover:bg-yellow-200"
+							>
+								URL: {currentUrl.length > 20 ? currentUrl.substring(0, 20) + '...' : currentUrl} ×
+							</Badge>
+						{/each}
+					{/if}
 				</div>
 			</div>
 		{/if}
@@ -263,6 +315,7 @@
 	<div class="overflow-x-auto">
 		<Table hoverable={true} striped={true}>
 			<TableHead>
+				<TableHeadCell class="w-12"></TableHeadCell>
 				<TableHeadCell>ID</TableHeadCell>
 				<TableHeadCell>Timestamp</TableHeadCell>
 				<TableHeadCell>Title</TableHeadCell>
@@ -277,8 +330,19 @@
 				<TableHeadCell>Data</TableHeadCell>
 			</TableHead>
 			<TableBody>
-				{#each logs.logs as log}
+				{#each logs.logs as log (log.id)}
 					<TableBodyRow>
+						<TableBodyCell class="text-center">
+							<Button
+								size="xs"
+								color="light"
+								onclick={() => openLogModal(log)}
+								class="p-1"
+								title="View full log details"
+							>
+								<EyeOutline class="h-3 w-3" />
+							</Button>
+						</TableBodyCell>
 						<TableBodyCell class="font-mono text-sm">{log.id}</TableBodyCell>
 						<TableBodyCell class="whitespace-nowrap font-mono text-sm">
 							{formatDate(log.date)}
@@ -310,6 +374,9 @@
 									color="cyan"
 									class="cursor-pointer text-xs hover:bg-cyan-200"
 									title="Request ID: {log.requestId}"
+									onclick={() => {
+										toggleItem('requestId', log.requestId);
+									}}
 								>
 									{log.requestId?.substring(0, 8)}...
 								</Badge>
@@ -323,6 +390,9 @@
 									color="orange"
 									class="cursor-pointer text-xs hover:bg-orange-200"
 									title="User ID: {log.userId}"
+									onclick={() => {
+										toggleItem('userId', log.userId);
+									}}
 								>
 									{log.userId}
 								</Badge>
@@ -336,11 +406,20 @@
 									color="pink"
 									class="cursor-pointer text-xs hover:bg-pink-200"
 									title="Route: {log.routeId}"
+									onclick={() => {
+										toggleItem('routeId', log.routeId);
+									}}
 								>
 									{log.routeId}
 								</Badge>
 								{#if log.method && log.url}
-									<div class="mt-1 text-xs text-gray-500" title="{log.method} {log.url}">
+									<div 
+										class="mt-1 text-xs text-gray-500 cursor-pointer hover:text-gray-700" 
+										title="{log.method} {log.url} - Click to filter by URL"
+										onclick={() => {
+											log.url && toggleItem('url', log.url);
+										}}
+									>
 										{log.method}
 										{log.url?.length > 20 ? log.url.substring(0, 20) + '...' : log.url}
 									</div>
@@ -410,28 +489,20 @@
 							{/if}
 						</TableBodyCell>
 						<TableBodyCell class="max-w-md">
-							<div class="space-y-2">
-								<!-- View Full Object Button -->
-								<Button size="xs" color="blue" onclick={() => openLogModal(log)} class="mb-2">
-									View Full Object
-								</Button>
-
-								<!-- Existing data details -->
-								{#if log.dataProcessed}
-									<details class="cursor-pointer">
-										<summary class="text-sm text-blue-600 hover:text-blue-800">
-											View data only
-										</summary>
-										<pre
-											class="mt-2 max-h-40 overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">{@html highlightText(
-												JSON.stringify(log.dataProcessed, null, 2),
-												filter.text
-											)}</pre>
-									</details>
-								{:else}
-									<div class="text-xs text-gray-400">No data available</div>
-								{/if}
-							</div>
+							{#if log.dataProcessed}
+								<details class="cursor-pointer">
+									<summary class="text-sm text-blue-600 hover:text-blue-800">
+										View data
+									</summary>
+									<pre
+										class="mt-2 max-h-40 overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">{@html highlightText(
+											JSON.stringify(log.dataProcessed, null, 2),
+											filter.text
+										)}</pre>
+								</details>
+							{:else}
+								<div class="text-xs text-gray-400">No data available</div>
+							{/if}
 						</TableBodyCell>
 					</TableBodyRow>
 				{/each}

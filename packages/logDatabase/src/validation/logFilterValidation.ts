@@ -32,6 +32,19 @@ export const filterLogsToSQL = (filter: LogFilterValidationOutputType): SQLWrapp
 	if (filter.contextId && filter.contextId.length > 0) {
 		conditions.push(inArray(logTable.contextId, filter.contextId));
 	}
+	if (filter.requestId && filter.requestId.length > 0) {
+		conditions.push(inArray(logTable.requestId, filter.requestId));
+	}
+	if (filter.routeId && filter.routeId.length > 0) {
+		conditions.push(inArray(logTable.routeId, filter.routeId));
+	}
+	if (filter.userId && filter.userId.length > 0) {
+		conditions.push(inArray(logTable.userId, filter.userId));
+	}
+	if (filter.url && filter.url.length > 0) {
+		conditions.push(inArray(logTable.url, filter.url));
+	}
+
 	if (filter.code && filter.code.length > 0) {
 		conditions.push(inArray(logTable.code, filter.code));
 	}

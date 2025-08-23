@@ -10,6 +10,10 @@ export const logFilterValidation = z.object({
 	startDate: z.coerce.date().optional(),
 	endDate: z.coerce.date().optional(),
 	contextId: z.array(z.string()).optional(),
+	requestId: z.array(z.string()).optional(),
+	routeId: z.array(z.string()).optional(),
+	userId: z.array(z.string()).optional(),
+	url: z.array(z.string()).optional(),
 	code: z.array(z.string()).optional()
 });
 
