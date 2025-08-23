@@ -64,7 +64,7 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 				const authToken = getServerEnv().LOG_DATABASE_KEY;
 				return createClient({ url, authToken });
 			}
-		});
+		}, getContext);
 
 		// Setup DB Logger
 		actionHelpers.initDBLogger(context);

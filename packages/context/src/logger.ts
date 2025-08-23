@@ -9,6 +9,7 @@ import {
 	type LogDestinationType,
 	type LogDomainType,
 	type LogEntry,
+	LogEntryInsert,
 	type LogLevelType
 } from '@totallator/log-database';
 import type {
@@ -169,13 +170,15 @@ const getLogLevelForDomainAction = (
  * @param logClasses Array of log levels to enable (e.g., ['ERROR', 'WARN', 'INFO'])
  * @param contextId Optional unique context identifier to include in all logs
  * @param databaseConfig Database configuration for log storage
+ * @param getRequestContext Optional function to get current request context for enhanced logging
  * @returns Complete logging system with database operations and logger factory
  */
 export const createLogger = async (
 	enable: boolean,
 	logClasses: string[],
 	contextId?: string,
-	databaseClient?: Parameters<typeof initializeLogDatabase>[0]
+	databaseClient?: Parameters<typeof initializeLogDatabase>[0],
+	getRequestContext?: () => any
 ): Promise<LoggingSystem> => {
 	// Initialize database connection if config provided
 	let loggingDB: LogDBType | null = null;
@@ -260,10 +263,27 @@ export const createLogger = async (
 			if (levelPriority[level] <= levelPriority[dbLevel]) {
 				const { code, title, ...restData } = data;
 
-				const logEntry: LogEntry = {
+				// Try to get enhanced context if available
+				let enhancedContext: any = null;
+				if (getRequestContext) {
+					try {
+						enhancedContext = getRequestContext();
+					} catch (error) {
+						// Context not available (e.g., during startup, standalone operations)
+					}
+				}
+
+				const logEntry: LogEntryInsert = {
 					date: new Date(),
 					logLevel: level,
 					contextId: contextId,
+					requestId: enhancedContext?.request?.requestId,
+					userId: enhancedContext?.request?.user?.id,
+					routeId: enhancedContext?.request?.routeId,
+					url: enhancedContext?.request?.url,
+					method: enhancedContext?.request?.method,
+					userAgent: enhancedContext?.request?.userAgent,
+					ip: enhancedContext?.request?.ip,
 					action: action as LogActionType,
 					domain: domain as LogDomainType,
 					code: data.code,

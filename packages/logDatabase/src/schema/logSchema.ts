@@ -9,6 +9,13 @@ export const logTable = sqliteTable(
 		date: integer('date', { mode: 'timestamp' }).notNull(),
 		logLevel: text('log_level', { enum: logLevelEnum }).notNull(),
 		contextId: text('context_id'),
+		requestId: text('request_id'),
+		userId: text('user_id'),
+		routeId: text('route_id'),
+		url: text('url'),
+		method: text('method'),
+		userAgent: text('user_agent'),
+		ip: text('ip'),
 		action: text('action', { enum: logActionEnum }).notNull(),
 		domain: text('domain', { enum: logDomainEnum }).notNull(),
 		code: text('code').notNull(),
@@ -24,6 +31,9 @@ export const logTable = sqliteTable(
 		index('log_domain_idx').on(table.domain),
 		index('log_level_idx').on(table.logLevel),
 		index('log_context_idx').on(table.contextId),
+		index('log_request_idx').on(table.requestId),
+		index('log_user_idx').on(table.userId),
+		index('log_route_idx').on(table.routeId),
 		index('log_code_idx').on(table.code)
 	]
 );

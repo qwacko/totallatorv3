@@ -41,7 +41,7 @@ export interface GlobalContextConfig {
  * @returns The initialized global context
  * @throws Will throw if database connection fails
  */
-export async function initializeGlobalContext(config: GlobalContextConfig): Promise<GlobalContext> {
+export async function initializeGlobalContext(config: GlobalContextConfig, getRequestContext?: () => any): Promise<GlobalContext> {
 	if (globalContext) {
 		console.log('Reusing Existing Global Context');
 		return globalContext;
@@ -61,7 +61,8 @@ export async function initializeGlobalContext(config: GlobalContextConfig): Prom
 		config.serverEnv.LOGGING,
 		config.serverEnv.LOGGING_CLASSES,
 		contextId,
-		loggingClient
+		loggingClient,
+		getRequestContext
 	);
 
 	// Create database connection

@@ -1,220 +1,108 @@
 <script lang="ts">
-import { Badge, Button, ButtonGroup, Card, Input, Modal, PaginationNav, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from "flowbite-svelte";
-import { RefreshOutline, SearchOutline } from "flowbite-svelte-icons";
-import { useInterval } from "runed";
+	import {
+		Badge,
+		Button,
+		ButtonGroup,
+		Card,
+		Input,
+		Modal,
+		PaginationNav,
+		Table,
+		TableBody,
+		TableBodyCell,
+		TableBodyRow,
+		TableHead,
+		TableHeadCell
+	} from 'flowbite-svelte';
+	import { RefreshOutline, SearchOutline } from 'flowbite-svelte-icons';
+	import { useInterval } from 'runed';
 
+	import type { LogFilterValidationType } from '@totallator/shared';
 
+	import { highlightText } from './highlightText';
+	import { getLogs } from './logsDisplay.remote';
 
-import type { LogFilterValidationType } from "@totallator/shared";
+	let filter = $state<LogFilterValidationType & { limit: number; offset: number }>({
+		limit: 100,
+		offset: 0
+	});
+	let refreshInterval = $state<number>(2000);
 
+	// Modal state for showing full log details
+	let showModal = $state(false);
+	let selectedLog = $state<any>(null);
 
+	const logs = $derived(await getLogs(filter));
+	const currentPage = $derived(Math.floor(filter.offset / filter.limit) + 1);
+	const totalPages = $derived(Math.ceil(logs.logCount / filter.limit));
+	$effect(() => {
+		if (currentPage > totalPages) {
+			filter.offset = (totalPages - 1) * filter.limit;
+		}
+	});
+	let updateTime = $state(new Date());
 
-import { getLogs } from "./logsDisplay.remote";
+	const interval = useInterval(
+		async () => {
+			await getLogs(filter).refresh();
+			updateTime = new Date();
+		},
+		() => refreshInterval
+	);
 
+	const refreshNow = async () => {
+		await getLogs(filter).refresh();
+		updateTime = new Date();
+	};
 
+	const toggleItem = (
+		key: 'domain' | 'action' | 'contextId' | 'code' | 'level',
+		value: string | undefined
+	) => {
+		if (!value) {
+			return;
+		}
+		const currentValue = filter[key] || [];
+		if (currentValue.includes(value as any)) {
+			filter[key] = currentValue.filter((item) => item !== value) as any;
+		} else {
+			filter[key] = [...currentValue, value as any];
+		}
+	};
 
+	const getLevelColor = (level: string) => {
+		switch (level?.toUpperCase()) {
+			case 'ERROR':
+				return 'red';
+			case 'WARN':
+				return 'yellow';
+			case 'INFO':
+				return 'blue';
+			case 'DEBUG':
+				return 'gray';
+			case 'TRACE':
+				return 'gray';
+			default:
+				return 'gray';
+		}
+	};
 
+	const formatDate = (date: Date) => {
+		return new Intl.DateTimeFormat('en-US', {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hour12: false
+		}).format(date);
+	};
 
-let filter = $state<
-    LogFilterValidationType & { limit: number; offset: number }
-  >({ limit: 100, offset: 0 });
-  let refreshInterval = $state<number>(2000);
-  
-  // Modal state for showing full log details
-  let showModal = $state(false);
-  let selectedLog = $state<any>(null);
-
-  const logs = $derived(await getLogs(filter));
-  const currentPage = $derived(Math.floor(filter.offset / filter.limit) + 1);
-  const totalPages = $derived(Math.ceil(logs.logCount / filter.limit));
-  $effect(() => {
-    if (currentPage > totalPages) {
-      filter.offset = (totalPages - 1) * filter.limit;
-    }
-  });
-  let updateTime = $state(new Date());
-
-  const interval = useInterval(async () => {
-    await getLogs(filter).refresh();
-    updateTime = new Date();
-  }, () => refreshInterval);
-
-  const refreshNow = async () => {
-    await getLogs(filter).refresh();
-    updateTime = new Date();
-  };
-
-  const toggleItem = (
-    key: "domain" | "action" | "contextId" | "code" | "level",
-    value: string | undefined,
-  ) => {
-    if (!value) {
-      return;
-    }
-    const currentValue = filter[key] || [];
-    if (currentValue.includes(value as any)) {
-      filter[key] = currentValue.filter((item) => item !== value) as any;
-    } else {
-      filter[key] = [...currentValue, value as any];
-    }
-  };
-
-  const highlightText = (
-    text: string,
-    searchTerm: string | undefined,
-  ): string => {
-    if (!searchTerm || !text) return text;
-    const regex = new RegExp(
-      "(" + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\
-  import {
-    Badge,
-    PaginationNav,
-    Input,
-    Card,
-    Table,
-    TableHead,
-    TableHeadCell,
-    TableBody,
-    TableBodyRow,
-    TableBodyCell,
-    Button,
-    ButtonGroup,
-    Modal,
-  } from "flowbite-svelte";
-  import { SearchOutline, RefreshOutline } from "flowbite-svelte-icons";
-  import { getLogs } from "./logsDisplay.remote";
-  import { useInterval } from "runed";
-  import type { LogFilterValidationType } from "@totallator/shared";
-
-  
-  let filter = $state<
-    LogFilterValidationType & { limit: number; offset: number }
-  >({ limit: 100, offset: 0 });
-  let refreshInterval = $state<number>(2000);
-  
-  // Modal state for showing full log details
-  let showModal = $state(false);
-  let selectedLog = $state<any>(null);
-
-  const logs = $derived(await getLogs(filter));
-  const currentPage = $derived(Math.floor(filter.offset / filter.limit) + 1);
-  const totalPages = $derived(Math.ceil(logs.logCount / filter.limit));
-  $effect(() => {
-    if (currentPage > totalPages) {
-      filter.offset = (totalPages - 1) * filter.limit;
-    }
-  });
-  let updateTime = $state(new Date());
-
-  const interval = useInterval(async () => {
-    await getLogs(filter).refresh();
-    updateTime = new Date();
-  }, () => refreshInterval);
-
-  const refreshNow = async () => {
-    await getLogs(filter).refresh();
-    updateTime = new Date();
-  };
-
-  const toggleItem = (
-    key: "domain" | "action" | "contextId" | "code" | "level",
-    value: string | undefined,
-  ) => {
-    if (!value) {
-      return;
-    }
-    const currentValue = filter[key] || [];
-    if (currentValue.includes(value as any)) {
-      filter[key] = currentValue.filter((item) => item !== value) as any;
-    } else {
-      filter[key] = [...currentValue, value as any];
-    }
-  };
-
-  const highlightText = (
-    text: string,
-    searchTerm: string | undefined,
-  ): string => {
-    if (!searchTerm || !text) return text;
-    const regex = new RegExp(
-      "(" + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")",
-      "gi",
-    );
-    return text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
-  };
-
-  const getLevelColor = (level: string) => {
-    switch (level?.toUpperCase()) {
-      case "ERROR":
-        return "red";
-      case "WARN":
-        return "yellow";
-      case "INFO":
-        return "blue";
-      case "DEBUG":
-        return "gray";
-      case "TRACE":
-        return "gray";
-      default:
-        return "gray";
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }).format(date);
-  };
-
-  const openLogModal = (log: any) => {
-    selectedLog = log;
-    showModal = true;
-  };
-") + ")",
-      "gi",
-    );
-    return text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
-  };
-
-  const getLevelColor = (level: string) => {
-    switch (level?.toUpperCase()) {
-      case "ERROR":
-        return "red";
-      case "WARN":
-        return "yellow";
-      case "INFO":
-        return "blue";
-      case "DEBUG":
-        return "gray";
-      case "TRACE":
-        return "gray";
-      default:
-        return "gray";
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }).format(date);
-  };
-
-  const openLogModal = (log: any) => {
-    selectedLog = log;
-    showModal = true;
-  };
+	const openLogModal = (log: any) => {
+		selectedLog = log;
+		showModal = true;
+	};
 </script>
 
 <Card class="max-w-none">
@@ -242,7 +130,7 @@ let filter = $state<
 				</label>
 				<div class="relative">
 					<SearchOutline
-						class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+						class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
 					/>
 					<Input
 						id="search"
@@ -379,6 +267,9 @@ let filter = $state<
 				<TableHeadCell>Timestamp</TableHeadCell>
 				<TableHeadCell>Title</TableHeadCell>
 				<TableHeadCell>Context</TableHeadCell>
+				<TableHeadCell>Request</TableHeadCell>
+				<TableHeadCell>User</TableHeadCell>
+				<TableHeadCell>Route</TableHeadCell>
 				<TableHeadCell>Domain</TableHeadCell>
 				<TableHeadCell>Code</TableHeadCell>
 				<TableHeadCell>Action</TableHeadCell>
@@ -388,8 +279,8 @@ let filter = $state<
 			<TableBody>
 				{#each logs.logs as log}
 					<TableBodyRow>
-						<TableBodyCell class="font-mono text-sm">{(log as any).id}</TableBodyCell>
-						<TableBodyCell class="font-mono text-sm whitespace-nowrap">
+						<TableBodyCell class="font-mono text-sm">{log.id}</TableBodyCell>
+						<TableBodyCell class="whitespace-nowrap font-mono text-sm">
 							{formatDate(log.date)}
 						</TableBodyCell>
 						<TableBodyCell class="max-w-xs">
@@ -402,12 +293,58 @@ let filter = $state<
 								<Badge
 									color="purple"
 									onclick={() => {
-										toggleItem('contextId', log.contextId);
+										log.contextId && toggleItem('contextId', log.contextId);
 									}}
 									class="cursor-pointer hover:bg-purple-200"
+									title="Global Context ID"
 								>
-									{log.contextId}
+									{log.contextId?.substring(0, 8)}...
 								</Badge>
+							{:else}
+								<span class="text-gray-400">-</span>
+							{/if}
+						</TableBodyCell>
+						<TableBodyCell>
+							{#if log.requestId}
+								<Badge
+									color="cyan"
+									class="cursor-pointer text-xs hover:bg-cyan-200"
+									title="Request ID: {log.requestId}"
+								>
+									{log.requestId?.substring(0, 8)}...
+								</Badge>
+							{:else}
+								<span class="text-gray-400">-</span>
+							{/if}
+						</TableBodyCell>
+						<TableBodyCell>
+							{#if log.userId}
+								<Badge
+									color="orange"
+									class="cursor-pointer text-xs hover:bg-orange-200"
+									title="User ID: {log.userId}"
+								>
+									{log.userId}
+								</Badge>
+							{:else}
+								<span class="text-gray-400">-</span>
+							{/if}
+						</TableBodyCell>
+						<TableBodyCell>
+							{#if log.routeId}
+								<Badge
+									color="pink"
+									class="cursor-pointer text-xs hover:bg-pink-200"
+									title="Route: {log.routeId}"
+								>
+									{log.routeId}
+								</Badge>
+								{#if log.method && log.url}
+									<div class="mt-1 text-xs text-gray-500" title="{log.method} {log.url}">
+										{log.method}
+										{log.url?.length > 20 ? log.url.substring(0, 20) + '...' : log.url}
+									</div>
+								{/if}
 							{:else}
 								<span class="text-gray-400">-</span>
 							{/if}
@@ -480,14 +417,14 @@ let filter = $state<
 								</Button>
 
 								<!-- Existing data details -->
-								{#if (log as any).dataProcessed}
+								{#if log.dataProcessed}
 									<details class="cursor-pointer">
 										<summary class="text-sm text-blue-600 hover:text-blue-800">
 											View data only
 										</summary>
 										<pre
 											class="mt-2 max-h-40 overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">{@html highlightText(
-												JSON.stringify((log as any).dataProcessed, null, 2),
+												JSON.stringify(log.dataProcessed, null, 2),
 												filter.text
 											)}</pre>
 									</details>
@@ -546,6 +483,43 @@ let filter = $state<
 						<span class="font-medium text-gray-700 dark:text-gray-300">Domain:</span>
 						<span>{selectedLog.domain || 'N/A'}</span>
 					</div>
+					<div>
+						<span class="font-medium text-gray-700 dark:text-gray-300">Context ID:</span>
+						<span class="font-mono text-xs">{(selectedLog as any).contextId || 'N/A'}</span>
+					</div>
+					<div>
+						<span class="font-medium text-gray-700 dark:text-gray-300">Request ID:</span>
+						<span class="font-mono text-xs">{(selectedLog as any).requestId || 'N/A'}</span>
+					</div>
+					<div>
+						<span class="font-medium text-gray-700 dark:text-gray-300">User ID:</span>
+						<span class="font-mono text-xs">{(selectedLog as any).userId || 'N/A'}</span>
+					</div>
+					<div>
+						<span class="font-medium text-gray-700 dark:text-gray-300">Route:</span>
+						<span class="font-mono text-xs">{(selectedLog as any).routeId || 'N/A'}</span>
+					</div>
+					{#if (selectedLog as any).method || (selectedLog as any).url}
+						<div class="col-span-2">
+							<span class="font-medium text-gray-700 dark:text-gray-300">Request:</span>
+							<span class="font-mono text-xs">
+								{(selectedLog as any).method || ''}
+								{(selectedLog as any).url || ''}
+							</span>
+						</div>
+					{/if}
+					{#if (selectedLog as any).userAgent}
+						<div class="col-span-2">
+							<span class="font-medium text-gray-700 dark:text-gray-300">User Agent:</span>
+							<span class="break-all text-xs">{(selectedLog as any).userAgent}</span>
+						</div>
+					{/if}
+					{#if (selectedLog as any).ip}
+						<div>
+							<span class="font-medium text-gray-700 dark:text-gray-300">IP:</span>
+							<span class="font-mono text-xs">{(selectedLog as any).ip}</span>
+						</div>
+					{/if}
 					<div class="col-span-2">
 						<span class="font-medium text-gray-700 dark:text-gray-300">Title:</span>
 						<span>{selectedLog.title}</span>
@@ -559,7 +533,7 @@ let filter = $state<
 					Complete Object Structure
 				</h3>
 				<div class="max-h-96 overflow-auto rounded-lg bg-gray-100 p-4 dark:bg-gray-800">
-					<pre class="text-xs whitespace-pre-wrap text-gray-900 dark:text-gray-100">{JSON.stringify(
+					<pre class="whitespace-pre-wrap text-xs text-gray-900 dark:text-gray-100">{JSON.stringify(
 							selectedLog,
 							null,
 							2

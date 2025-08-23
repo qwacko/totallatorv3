@@ -12,6 +12,7 @@ import {
 	type ConfigurationSelect,
 	configurationTable,
 	type LogInsert,
+	type LogSelect,
 	logTable
 } from './schema/index.js';
 import { filterConfigurationsToSQL } from './validation/logConfigFilterValidation.js';
@@ -22,15 +23,27 @@ export type LogDomainType = (typeof logDomainEnum)[number];
 export type LogActionType = (typeof logActionEnum)[number];
 export type LogDestinationType = (typeof logDestinationEnum)[number];
 
-export interface LogEntry {
+export interface LogEntryInsert {
 	date: Date;
 	logLevel: LogLevelType;
 	contextId?: string;
+	requestId?: string;
+	userId?: string;
+	routeId?: string;
+	url?: string;
+	method?: string;
+	userAgent?: string;
+	ip?: string;
 	action?: LogActionType;
 	domain: LogDomainType;
 	code: string;
 	title: string;
 	data?: any;
+}
+
+export interface LogEntry extends LogSelect {
+	id: number;
+	dataProcessed?: any;
 }
 
 export class LogDatabaseOperations {
@@ -40,12 +53,19 @@ export class LogDatabaseOperations {
 		this.db = db;
 	}
 
-	async insertLog(entry: LogEntry): Promise<void> {
+	async insertLog(entry: LogEntryInsert): Promise<void> {
 		try {
 			await this.db.insert(logTable).values({
 				date: entry.date,
 				logLevel: entry.logLevel,
 				contextId: entry.contextId,
+				requestId: entry.requestId,
+				userId: entry.userId,
+				routeId: entry.routeId,
+				url: entry.url,
+				method: entry.method,
+				userAgent: entry.userAgent,
+				ip: entry.ip,
 				action: entry.action || '',
 				domain: entry.domain,
 				code: entry.code,
@@ -58,7 +78,7 @@ export class LogDatabaseOperations {
 		}
 	}
 
-	async batchInsertLogs(entries: LogEntry[]): Promise<void> {
+	async batchInsertLogs(entries: LogEntryInsert[]): Promise<void> {
 		try {
 			const values = entries.map(
 				(entry) =>
@@ -66,6 +86,13 @@ export class LogDatabaseOperations {
 						date: entry.date,
 						logLevel: entry.logLevel,
 						contextId: entry.contextId,
+						requestId: entry.requestId,
+						userId: entry.userId,
+						routeId: entry.routeId,
+						url: entry.url,
+						method: entry.method,
+						userAgent: entry.userAgent,
+						ip: entry.ip,
 						action: entry.action || '',
 						domain: entry.domain,
 						code: entry.code,
@@ -86,7 +113,7 @@ export class LogDatabaseOperations {
 			limit?: number;
 			offset?: number;
 		} = {}
-	) {
+	): Promise<LogEntry[]> {
 		try {
 			const conditions = filterLogsToSQL(params);
 
