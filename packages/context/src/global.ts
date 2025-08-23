@@ -41,7 +41,10 @@ export interface GlobalContextConfig {
  * @returns The initialized global context
  * @throws Will throw if database connection fails
  */
-export async function initializeGlobalContext(config: GlobalContextConfig, getRequestContext?: () => any): Promise<GlobalContext> {
+export async function initializeGlobalContext(
+	config: GlobalContextConfig,
+	getRequestContext?: () => any
+): Promise<GlobalContext> {
 	if (globalContext) {
 		console.log('Reusing Existing Global Context');
 		return globalContext;
@@ -116,7 +119,8 @@ export async function initializeGlobalContext(config: GlobalContextConfig, getRe
 			getAllLogConfigurations: logging.logDatabaseOps.getAllLogConfigurations,
 			getLoggedItemsCount: logging.getLoggedItemsCount,
 			queryLoggedItems: logging.queryLoggedItems,
-			setLogLevel: logging.setLogLevel
+			setLogLevel: logging.setLogLevel,
+			deleteOldLogs: logging.deleteOldLogs
 		},
 		logger: logging.logger,
 		db,

@@ -298,14 +298,46 @@ export class LogDatabaseOperations {
 		return levelMap[logLevel];
 	}
 
-	async deleteOldLogs(olderThanDays: number = 30): Promise<number> {
+	async deleteOldLogs({
+		olderThanDays,
+		maxCount
+	}: {
+		olderThanDays?: number;
+		maxCount?: number;
+	}): Promise<number> {
 		try {
-			const cutoffDate = new Date();
-			cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
+			if (!olderThanDays && !maxCount) {
+				console.warn('No Limit Of Days or Count included in deleteOldLogs');
+				return 0;
+			}
 
-			const result = await this.db.delete(logTable).where(lte(logTable.date, cutoffDate));
+			let removedFromDays = 0;
+			let removeFromCount = 0;
 
-			return (result as any).changes || 0;
+			if (olderThanDays) {
+				const cutoffDate = new Date();
+				cutoffDate.setDate(cutoffDate.getDate() - (olderThanDays || 30));
+				const removed = await this.db.delete(logTable).where(lte(logTable.date, cutoffDate));
+				removedFromDays = removed.rowsAffected;
+			}
+
+			if (maxCount) {
+				const counts = await this.db.select({ count: count() }).from(logTable);
+				if (counts[0].count > maxCount) {
+					const rowId = await this.db
+						.select({ id: logTable.id })
+						.from(logTable)
+						.orderBy(desc(logTable.createdAt))
+						.limit(1)
+						.offset(maxCount);
+					if (rowId.length > 0) {
+						const deleted = await this.db.delete(logTable).where(lte(logTable.id, rowId[0].id));
+						removeFromCount = deleted.rowsAffected;
+					}
+				}
+			}
+
+			return removedFromDays + removeFromCount;
 		} catch (error) {
 			console.error('Failed to delete old logs:', error);
 			return 0;

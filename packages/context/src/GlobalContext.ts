@@ -40,6 +40,7 @@ export interface GlobalContext {
 			filter: LogFilterConfigValidationType;
 			logLevel: LogLevelType;
 		}) => Promise<void>;
+		deleteOldLogs: (data: { olderThanDays?: number; maxCount?: number }) => Promise<number>;
 	};
 	logger: LoggerFactory;
 

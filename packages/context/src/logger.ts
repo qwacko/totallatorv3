@@ -74,7 +74,7 @@ export interface LoggingSystem {
 	getLoggedItemsCount: (params: LogFilterValidationOutputType) => Promise<number>;
 
 	/** Delete old log entries from the database */
-	deleteOldLogs: (olderThanDays?: number) => Promise<number>;
+	deleteOldLogs: (data: { olderThanDays?: number; maxCount?: number }) => Promise<number>;
 }
 
 /**
@@ -422,14 +422,17 @@ export const createLogger = async (
 		}
 	};
 
-	const deleteOldLogs = async (olderThanDays: number = 30): Promise<number> => {
+	const deleteOldLogs = async (data: {
+		olderThanDays?: number;
+		maxCount?: number;
+	}): Promise<number> => {
 		if (!logDatabaseOps) {
 			console.warn('Database logging not initialized');
 			return 0;
 		}
 
 		try {
-			return await logDatabaseOps.deleteOldLogs(olderThanDays);
+			return await logDatabaseOps.deleteOldLogs(data);
 		} catch (error) {
 			console.warn('Failed to delete old logs:', error);
 			return 0;

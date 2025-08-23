@@ -184,5 +184,22 @@ export const cronJobs: CronJob[] = [
 				});
 			}
 		}
+	},
+	{
+		name: 'Clear Logs',
+		schedule: '0 5 * * *',
+		job: async (context) => {
+			const numberDeleted = await context.logging.deleteOldLogs({
+				maxCount: 100000,
+				olderThanDays: 5
+			});
+
+			if (numberDeleted > 0) {
+				context.logger('cron').info({
+					title: `Cleaned up ${numberDeleted} log entries`,
+					code: 'CRON_0011'
+				});
+			}
+		}
 	}
 ];
