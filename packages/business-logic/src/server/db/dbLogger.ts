@@ -1,7 +1,7 @@
 import { PgRaw } from 'drizzle-orm/pg-core/query-builders/raw';
 import { nanoid } from 'nanoid';
 
-import { GlobalContext } from '@totallator/context';
+import { getContext, GlobalContext } from '@totallator/context';
 import { queryLogTable } from '@totallator/database';
 
 import { queryLogActions } from '@/actions/queryLogActions';
@@ -181,15 +181,29 @@ export const dbExecuteLogger: ExecuteFunction = async <T>(
 	if (dbLoggerInstance) {
 		return dbLoggerInstance.execute(query, title);
 	} else {
+		const context = getContext();
+		await initDBLogger(context.global);
+	}
+	if (dbLoggerInstance) {
+		//@ts-expect-error Since this is an external variable, it can be updated.
+		return dbLoggerInstance.execute(query, title);
+	} else {
 		throw new Error('No DB Logger Instance');
 	}
 };
 
-export const dbExecuteRawLogger: ExecuteRawFunction = <T>(
+export const dbExecuteRawLogger: ExecuteRawFunction = async <T>(
 	query: PgRaw<T>,
 	title?: string
 ): Promise<T> => {
 	if (dbLoggerInstance) {
+		return dbLoggerInstance.executeRaw(query, title);
+	} else {
+		const context = getContext();
+		await initDBLogger(context.global);
+	}
+	if (dbLoggerInstance) {
+		//@ts-expect-error Since this is an external variable, it can be updated.
 		return dbLoggerInstance.executeRaw(query, title);
 	} else {
 		throw new Error('No DB Logger Instance');
