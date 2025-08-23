@@ -190,8 +190,8 @@ export const cronJobs: CronJob[] = [
 		schedule: '0 5 * * *',
 		job: async (context) => {
 			const numberDeleted = await context.logging.deleteOldLogs({
-				maxCount: 100000,
-				olderThanDays: 5
+				maxCount: context.serverEnv.LOG_DATABASE_MAX_ENTRIES,
+				olderThanDays: context.serverEnv.LOG_DATABASE_MAX_AGE_DAYS
 			});
 
 			if (numberDeleted > 0) {

@@ -73,6 +73,8 @@ export const serverEnvSchema = z.object({
 	DBLOG_STORAGE_COUNT: z.coerce.number<number>().optional().default(100000),
 	LOG_DATABASE_ADDRESS: z.string().optional().default('file:logdb.db'),
 	LOG_DATABASE_KEY: z.string().optional().default('logdb'),
+	LOG_DATABASE_MAX_ENTRIES: z.coerce.number<number>().optional().default(100000),
+	LOG_DATABASE_MAX_AGE_DAYS: z.coerce.number<number>().optional().default(30),
 	TRANSACTIONLOG_ENABLE: parseEnvStringToBoolean({
 		defaultBoolean: false,
 		optional: true
