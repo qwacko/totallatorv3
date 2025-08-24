@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import { llmLogs, llmSettings, type LLMSettings } from '@totallator/database';
 
+import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 import { decryptText, encryptText } from './helpers/encryption';
@@ -26,6 +27,12 @@ export type UpdateLLMSettingsType = {
 
 export const llmActions = {
 	create: async ({ data }: { data: CreateLLMSettingsType }): Promise<LLMSettings> => {
+		getLogger('llm').info({
+			code: 'LLM_SETTINGS_001',
+			title: `Creating LLM settings: ${data.title}`,
+			settingTitle: data.title,
+			apiUrl: data.apiUrl
+		});
 		const id = nanoid();
 		const encryptedApiKey = encryptText(data.apiKey);
 
@@ -46,6 +53,12 @@ export const llmActions = {
 				'LLM Settings - Create'
 			);
 
+			getLogger('llm').info({
+				code: 'LLM_SETTINGS_002',
+				title: `LLM settings created successfully: ${data.title}`,
+				id,
+				settingTitle: data.title
+			});
 			return inserted[0];
 		});
 
@@ -57,6 +70,10 @@ export const llmActions = {
 	},
 
 	list: async (): Promise<Omit<LLMSettings, 'apiKey'>[]> => {
+		getLogger('llm').debug({
+			code: 'LLM_SETTINGS_003',
+			title: 'Retrieving LLM settings list'
+		});
 		const db = getContextDB();
 		const results = await dbExecuteLogger(
 			db
@@ -72,6 +89,11 @@ export const llmActions = {
 				.from(llmSettings),
 			'LLM Settings - List'
 		);
+		getLogger('llm').debug({
+			code: 'LLM_SETTINGS_004',
+			title: `Retrieved ${results.length} LLM settings`,
+			count: results.length
+		});
 
 		return results;
 	},
@@ -83,6 +105,12 @@ export const llmActions = {
 		id: string;
 		includeApiKey?: boolean;
 	}): Promise<LLMSettings | undefined> => {
+		getLogger('llm').debug({
+			code: 'LLM_SETTINGS_005',
+			title: `Retrieving LLM settings by ID: ${id}`,
+			id,
+			includeApiKey
+		});
 		const db = getContextDB();
 		const results = await dbExecuteLogger(
 			db.select().from(llmSettings).where(eq(llmSettings.id, id)),
@@ -90,6 +118,11 @@ export const llmActions = {
 		);
 
 		if (results.length === 0) {
+			getLogger('llm').warn({
+				code: 'LLM_SETTINGS_006',
+				title: `LLM settings not found: ${id}`,
+				id
+			});
 			return undefined;
 		}
 
@@ -102,6 +135,12 @@ export const llmActions = {
 			// Remove API key from response
 			delete (result as any).apiKey;
 		}
+		getLogger('llm').debug({
+			code: 'LLM_SETTINGS_007',
+			title: `Retrieved LLM settings: ${result.title}`,
+			id,
+			settingTitle: result.title
+		});
 
 		return result;
 	},
@@ -113,6 +152,12 @@ export const llmActions = {
 		id: string;
 		data: UpdateLLMSettingsType;
 	}): Promise<LLMSettings | undefined> => {
+		getLogger('llm').info({
+			code: 'LLM_SETTINGS_008',
+			title: `Updating LLM settings: ${id}`,
+			id,
+			updateFields: Object.keys(data)
+		});
 		const updateData: any = {
 			...data,
 			updatedAt: new Date()
@@ -134,8 +179,19 @@ export const llmActions = {
 		});
 
 		if (!result) {
+			getLogger('llm').warn({
+				code: 'LLM_SETTINGS_009',
+				title: `LLM settings update failed - not found: ${id}`,
+				id
+			});
 			return undefined;
 		}
+		getLogger('llm').info({
+			code: 'LLM_SETTINGS_010',
+			title: `LLM settings updated successfully: ${result.title}`,
+			id,
+			settingTitle: result.title
+		});
 
 		// Return with decrypted API key if it was updated
 		if (data.apiKey) {
@@ -148,6 +204,11 @@ export const llmActions = {
 	},
 
 	delete: async ({ id }: { id: string }): Promise<boolean> => {
+		getLogger('llm').info({
+			code: 'LLM_SETTINGS_011',
+			title: `Deleting LLM settings: ${id}`,
+			id
+		});
 		const result = await runInTransactionWithLogging('Delete LLM Settings', async () => {
 			const db = getContextDB();
 
@@ -163,13 +224,24 @@ export const llmActions = {
 				'LLM Settings - Delete'
 			);
 
-			return deleted.length > 0;
+			const success = deleted.length > 0;
+			getLogger('llm').info({
+				code: 'LLM_SETTINGS_012',
+				title: success ? `LLM settings deleted successfully: ${id}` : `LLM settings deletion failed - not found: ${id}`,
+				id,
+				success
+			});
+			return success;
 		});
 
 		return result;
 	},
 
 	getEnabled: async (): Promise<LLMSettings[]> => {
+		getLogger('llm').debug({
+			code: 'LLM_SETTINGS_013',
+			title: 'Retrieving enabled LLM settings'
+		});
 		const db = getContextDB();
 		const results = await dbExecuteLogger(
 			db.select().from(llmSettings).where(eq(llmSettings.enabled, true)),
@@ -177,6 +249,12 @@ export const llmActions = {
 		);
 
 		// Decrypt API keys for enabled settings
+		getLogger('llm').debug({
+			code: 'LLM_SETTINGS_014',
+			title: `Retrieved ${results.length} enabled LLM settings`,
+			count: results.length,
+			settings: results.map(r => ({ id: r.id, title: r.title }))
+		});
 		return results.map((result) => ({
 			...result,
 			apiKey: decryptText(result.apiKey)

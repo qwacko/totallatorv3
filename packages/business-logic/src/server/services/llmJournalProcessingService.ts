@@ -53,6 +53,10 @@ export class LLMJournalProcessingService {
 	constructor(db: DBType) {
 		this.db = db;
 		this.llmContextService = new LLMContextService(db);
+		getLogger('llm').debug({
+			code: 'LLM_JOURNAL_015',
+			title: 'LLM Journal Processing Service initialized'
+		});
 	}
 
 	/**
@@ -146,6 +150,13 @@ export class LLMJournalProcessingService {
 
 		// Process journals one by one (to avoid overwhelming LLM providers)
 		for (const journal of journalsToProcess) {
+			getLogger('llm').debug({
+				code: 'LLM_JOURNAL_016',
+				title: `Processing journal: ${journal.id}`,
+				journalId: journal.id,
+				description: journal.description,
+				amount: journal.amount
+			});
 			// Check if we've exceeded max processing time
 			if (Date.now() - startTime > maxProcessingTime) {
 				getLogger('llm').warn({
@@ -215,6 +226,13 @@ export class LLMJournalProcessingService {
 			defaultModel: string | null;
 		}
 	): Promise<void> {
+		getLogger('llm').debug({
+			code: 'LLM_JOURNAL_017',
+			title: `Processing single journal with LLM: ${journal.id}`,
+			journalId: journal.id,
+			provider: llmProvider.title,
+			providerId: llmProvider.id
+		});
 		// Get LLM settings with API key
 		const llmSettings = await llmActions.getById({
 			id: llmProvider.id,
@@ -222,10 +240,22 @@ export class LLMJournalProcessingService {
 		});
 
 		if (!llmSettings || !llmSettings.defaultModel) {
+			getLogger('llm').error({
+				code: 'LLM_JOURNAL_018',
+				title: `LLM provider not found or missing default model: ${llmProvider.id}`,
+				providerId: llmProvider.id,
+				providerTitle: llmProvider.title
+			});
 			throw new Error(`LLM provider ${llmProvider.id} not found or missing default model`);
 		}
 
 		// Create LLM client instance
+		getLogger('llm').debug({
+			code: 'LLM_JOURNAL_019',
+			title: `Creating LLM client for journal processing: ${journal.id}`,
+			journalId: journal.id,
+			model: llmSettings.defaultModel
+		});
 		const llmClient = createLLMClient(llmSettings, this.db);
 
 		// Fetch additional context
@@ -276,6 +306,12 @@ export class LLMJournalProcessingService {
 
 		// Process the structured response
 		if (response.object_data && response.object_data.recommendations.length > 0) {
+			getLogger('llm').info({
+				code: 'LLM_JOURNAL_020',
+				title: `LLM provided ${response.object_data.recommendations.length} recommendations for journal: ${journal.id}`,
+				journalId: journal.id,
+				recommendationCount: response.object_data.recommendations.length
+			});
 			// Here you would typically save the recommendations to the database
 			// For now, we'll just mark as complete if we got a structured response
 			await this.db
@@ -283,6 +319,11 @@ export class LLMJournalProcessingService {
 				.set({ llmReviewStatus: 'complete' })
 				.where(eq(journalEntry.id, journal.id));
 		} else {
+			getLogger('llm').warn({
+				code: 'LLM_JOURNAL_021',
+				title: `LLM provided no recommendations for journal: ${journal.id}`,
+				journalId: journal.id
+			});
 			// If no structured recommendations, mark as error or complete based on desired behavior
 			await this.db
 				.update(journalEntry)

@@ -4,6 +4,7 @@ import type { DBType } from '@totallator/database';
 import { bill, budget, category, journalEntry, tag } from '@totallator/database';
 import type { JournalTableType } from '@totallator/database';
 
+import { getLogger } from '@/logger';
 import { journalMaterializedViewActions } from '../../actions/journalMaterializedViewActions';
 
 export type MostUsedItemsType = {
@@ -18,6 +19,10 @@ export class LLMContextService {
 
 	constructor(db: DBType) {
 		this.db = db;
+		getLogger('llm').debug({
+			code: 'LLM_CONTEXT_001',
+			title: 'LLM Context Service initialized'
+		});
 	}
 
 	/**
@@ -30,6 +35,12 @@ export class LLMContextService {
 		accountId: string,
 		limit: number = 10
 	): Promise<JournalTableType[]> {
+		getLogger('llm').debug({
+			code: 'LLM_CONTEXT_002',
+			title: `Fetching latest ${limit} journals for account: ${accountId}`,
+			accountId,
+			limit
+		});
 		const journals = await this.db.query.journalEntry.findMany({
 			where: eq(journalEntry.accountId, accountId),
 			orderBy: desc(journalEntry.date),
@@ -53,6 +64,13 @@ export class LLMContextService {
 				deduplicatedJournals.push(journal);
 			}
 		}
+		getLogger('llm').debug({
+			code: 'LLM_CONTEXT_003',
+			title: `Retrieved ${deduplicatedJournals.length} deduplicated journals for account: ${accountId}`,
+			accountId,
+			originalCount: journals.length,
+			deduplicatedCount: deduplicatedJournals.length
+		});
 		return deduplicatedJournals;
 	}
 
@@ -62,6 +80,11 @@ export class LLMContextService {
 	 * @returns An object containing arrays of most used items.
 	 */
 	async getMostUsedItems(limit: number = 10) {
+		getLogger('llm').debug({
+			code: 'LLM_CONTEXT_004',
+			title: `Fetching most used items (limit: ${limit})`,
+			limit
+		});
 		const [mostUsedTags, mostUsedCategories, mostUsedBills, mostUsedBudgets] = await Promise.all([
 			this.db
 				.select({
@@ -112,6 +135,14 @@ export class LLMContextService {
 				.limit(limit)
 		]);
 
+		getLogger('llm').debug({
+			code: 'LLM_CONTEXT_005',
+			title: 'Retrieved most used items',
+			tagsCount: mostUsedTags.length,
+			categoriesCount: mostUsedCategories.length,
+			billsCount: mostUsedBills.length,
+			budgetsCount: mostUsedBudgets.length
+		});
 		return {
 			mostUsedTags,
 			mostUsedCategories,

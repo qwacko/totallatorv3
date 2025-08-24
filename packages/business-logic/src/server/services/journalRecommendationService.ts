@@ -3,6 +3,7 @@ import type { DBType } from '@totallator/database';
 import { journalLlmSuggestionActions } from '@/actions/journalLlmSuggestionActions';
 import type { RecommendationType } from '@/actions/journalMaterializedViewActions';
 import { llmActions } from '@/actions/llmActions';
+import { getLogger } from '@/logger';
 
 import { ToolDispatcher } from '../llm/tools/dispatcher';
 import type { ToolExecutionContext } from '../llm/tools/types';
@@ -89,7 +90,12 @@ export const journalRecommendationService = {
 			);
 
 			if (!toolResponse.result.success) {
-				console.error('LLM journal categorization failed:', toolResponse.result.error);
+				getLogger('llm', 'Create').error({
+					code: 'JREC_0001',
+					title: 'LLM journal categorization failed',
+					result: toolResponse.result,
+					name: toolResponse.name
+				});
 				return [];
 			}
 
@@ -139,11 +145,20 @@ export const journalRecommendationService = {
 
 			return [recommendation];
 		} catch (error) {
-			console.error('Error generating LLM recommendations:', error);
+			getLogger('llm', 'Create').error({
+				code: 'JREC_0002',
+				title: 'Error generating LLM recommendations',
+				error
+			});
 
 			// Note: llmLogActions doesn't have a create method
 			// Logging will be handled by the tool dispatcher or LLM layer
-			console.error('LLM service error for journal:', journal.id, error);
+			getLogger('llm', 'Create').error({
+				code: 'JREC_0003',
+				title: 'LLM service error for journal',
+				journalId: journal.id,
+				error
+			});
 
 			return [];
 		}

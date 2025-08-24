@@ -57,6 +57,11 @@ export async function processAllAccounts(
 		allowAutoCreation: getServerEnv().LLM_AUTO_CREATE_ITEMS // Override with env setting
 	};
 	const startTime = Date.now();
+	getLogger('llm').info({
+		code: 'LLM_BATCH_001',
+		title: 'Starting LLM batch processing for all accounts',
+		config: finalConfig
+	});
 
 	// Check if LLM processing is enabled
 	if (!getServerEnv().LLM_REVIEW_ENABLED) {
@@ -117,6 +122,12 @@ export async function processAllAccounts(
 
 	// Process each account
 	for (const account of accountsWithWork) {
+		getLogger('llm').info({
+			code: 'LLM_BATCH_015',
+			title: `Processing account: ${account.title}`,
+			accountId: account.id,
+			accountTitle: account.title
+		});
 		try {
 			const result = await processAccount(db, account.id, finalConfig);
 
@@ -139,9 +150,10 @@ export async function processAllAccounts(
 		} catch (error) {
 			stats.errors++;
 			getLogger('llm').error({
-				code: 'LLM_008',
-				title: `LLM Batch Processing: Error processing account ${account.id}`,
+				code: 'LLM_BATCH_016',
+				title: `LLM Batch Processing: Error processing account ${account.title}`,
 				accountId: account.id,
+				accountTitle: account.title,
 				error
 			});
 		}
@@ -149,7 +161,7 @@ export async function processAllAccounts(
 
 	stats.processingTime = Date.now() - startTime;
 	getLogger('llm').info({
-		code: 'LLM_009',
+		code: 'LLM_BATCH_017',
 		title: `LLM Batch Processing: Completed - ${stats.totalBatchesProcessed} batches, ${stats.totalJournalsProcessed} journals`,
 		totalBatchesProcessed: stats.totalBatchesProcessed,
 		totalJournalsProcessed: stats.totalJournalsProcessed,
@@ -171,12 +183,23 @@ export async function processAccount(
 	config: LLMBatchProcessingConfig
 ): Promise<BatchProcessingResult> {
 	const startTime = Date.now();
+	getLogger('llm').debug({
+		code: 'LLM_BATCH_018',
+		title: `Starting account processing: ${accountId}`,
+		accountId,
+		config
+	});
 
 	try {
 		// Get uncategorized journals for this account
 		const uncategorizedJournals = await getUncategorizedJournals(db, accountId, config);
 
 		if (uncategorizedJournals.length === 0) {
+			getLogger('llm').debug({
+				code: 'LLM_BATCH_019',
+				title: `No uncategorized journals found for account: ${accountId}`,
+				accountId
+			});
 			return {
 				success: true,
 				accountId,
@@ -197,7 +220,7 @@ export async function processAccount(
 
 		// For now, just log the response - we'll implement suggestion storage later
 		getLogger('llm').info({
-			code: 'LLM_010',
+			code: 'LLM_BATCH_020',
 			title: `LLM Batch Processing Result for account ${accountId}`,
 			accountId,
 			journalsProcessed: uncategorizedJournals.length,

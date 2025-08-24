@@ -8,6 +8,7 @@ import type { DBType } from '@totallator/database';
 import type { LLMSettings } from '@totallator/database';
 import { llmLogs } from '@totallator/database';
 
+import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 // TODO: Re-enable when we implement proper factory patterns for these providers
@@ -113,11 +114,27 @@ export class ModernLLMClient {
 	constructor(settings: LLMSettings, db: DBType) {
 		this.settings = settings;
 		this.db = db;
+		getLogger('llm').debug({
+			code: 'LLM_CLIENT_001',
+			title: `Created LLM client for provider: ${settings.title}`,
+			providerId: settings.id,
+			providerTitle: settings.title,
+			apiUrl: settings.apiUrl
+		});
 	}
 
 	async call(request: LLMRequest, relatedJournalId?: string): Promise<LLMResponse> {
 		const startTime = Date.now();
 		const logId = nanoid();
+		getLogger('llm').info({
+			code: 'LLM_CLIENT_002',
+			title: 'Starting LLM API call',
+			logId,
+			model: request.model,
+			messageCount: request.messages.length,
+			relatedJournalId,
+			providerId: this.settings.id
+		});
 
 		try {
 			const response = await this.makeRequest(request);
@@ -125,6 +142,15 @@ export class ModernLLMClient {
 
 			// Log successful request
 			await this.logRequest(logId, request, response, duration, 'SUCCESS', relatedJournalId);
+			getLogger('llm').info({
+				code: 'LLM_CLIENT_003',
+				title: 'LLM API call completed successfully',
+				logId,
+				duration,
+				model: request.model,
+				tokenUsage: response.usage,
+				providerId: this.settings.id
+			});
 
 			return response;
 		} catch (error) {
@@ -136,6 +162,15 @@ export class ModernLLMClient {
 
 			// Log failed request
 			await this.logRequest(logId, request, errorResponse, duration, 'ERROR', relatedJournalId);
+			getLogger('llm').error({
+				code: 'LLM_CLIENT_004',
+				title: 'LLM API call failed',
+				logId,
+				duration,
+				model: request.model,
+				error: error instanceof Error ? error.message : 'Unknown error',
+				providerId: this.settings.id
+			});
 
 			throw error;
 		}
@@ -148,6 +183,15 @@ export class ModernLLMClient {
 		const startTime = Date.now();
 		const logId = nanoid();
 		const { schema, ...loggableRequest } = request; // Exclude non-serializable schema
+		getLogger('llm').info({
+			code: 'LLM_CLIENT_005',
+			title: 'Starting structured LLM API call',
+			logId,
+			model: request.model,
+			messageCount: request.messages.length,
+			relatedJournalId,
+			providerId: this.settings.id
+		});
 
 		try {
 			const response = await this.makeStructuredRequest(request);
@@ -162,6 +206,15 @@ export class ModernLLMClient {
 				'SUCCESS',
 				relatedJournalId
 			);
+			getLogger('llm').info({
+				code: 'LLM_CLIENT_006',
+				title: 'Structured LLM API call completed successfully',
+				logId,
+				duration,
+				model: request.model,
+				tokenUsage: response.usage,
+				providerId: this.settings.id
+			});
 
 			return response;
 		} catch (error) {
@@ -180,6 +233,15 @@ export class ModernLLMClient {
 				'ERROR',
 				relatedJournalId
 			);
+			getLogger('llm').error({
+				code: 'LLM_CLIENT_007',
+				title: 'Structured LLM API call failed',
+				logId,
+				duration,
+				model: request.model,
+				error: error instanceof Error ? error.message : 'Unknown error',
+				providerId: this.settings.id
+			});
 
 			throw error;
 		}
@@ -265,8 +327,21 @@ export class ModernLLMClient {
 	private getModelFromProvider() {
 		const modelName = this.settings.defaultModel;
 		const providerType = getProviderType(this.settings.apiUrl);
+		getLogger('llm').debug({
+			code: 'LLM_CLIENT_008',
+			title: `Creating model provider: ${providerType}`,
+			providerType,
+			modelName,
+			apiUrl: this.settings.apiUrl,
+			providerId: this.settings.id
+		});
 
 		if (!modelName) {
+			getLogger('llm').error({
+				code: 'LLM_CLIENT_009',
+				title: 'No default model specified in LLM settings',
+				providerId: this.settings.id
+			});
 			throw new Error('No default model specified in LLM settings');
 		}
 
@@ -274,6 +349,12 @@ export class ModernLLMClient {
 		// For now, focus on getting OpenRouter working as it has the correct factory pattern
 		switch (providerType) {
 			case 'openrouter': {
+				getLogger('llm').debug({
+					code: 'LLM_CLIENT_010',
+					title: `Creating OpenRouter provider with model: ${modelName}`,
+					modelName,
+					providerId: this.settings.id
+				});
 				const provider = createOpenRouter({
 					apiKey: this.settings.apiKey
 				});
@@ -289,6 +370,12 @@ export class ModernLLMClient {
 					`Provider ${providerType} not yet implemented with AI SDK. Please use OpenRouter for now.`
 				);
 			default:
+				getLogger('llm').error({
+					code: 'LLM_CLIENT_011',
+					title: `Unsupported provider type: ${providerType}`,
+					providerType,
+					providerId: this.settings.id
+				});
 				throw new Error(`Unsupported provider type: ${providerType}`);
 		}
 	}
