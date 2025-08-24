@@ -3,7 +3,6 @@
 		Badge,
 		Button,
 		ButtonGroup,
-		Card,
 		Input,
 		Modal,
 		PaginationNav,
@@ -66,7 +65,7 @@
 			| 'routeId'
 			| 'userId'
 			| 'url',
-		value: string | undefined
+		value: string | undefined | null
 	) => {
 		if (!value) {
 			return;
@@ -114,203 +113,411 @@
 	};
 </script>
 
-<Card class="max-w-none">
-	<!-- Header Section -->
-	<div class="mb-6 flex items-center justify-between">
-		<div class="flex items-center gap-4">
-			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Log Viewer</h2>
-			<Badge color="gray" class="text-xs">Last updated: {formatDate(updateTime)}</Badge>
+<!-- Header Section -->
+<div class="mb-6 flex items-center justify-between">
+	<div class="flex items-center gap-4">
+		<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Log Viewer</h2>
+		<Badge color="gray" class="text-xs">Last updated: {formatDate(updateTime)}</Badge>
+	</div>
+	<div class="flex items-center gap-2">
+		<Button size="sm" color="alternative" onclick={refreshNow}>
+			<RefreshOutline class="mr-2 h-4 w-4" />
+			Refresh
+		</Button>
+	</div>
+</div>
+
+<!-- Controls Section -->
+<div class="mb-6 space-y-4">
+	<!-- Search and Auto-refresh -->
+	<div class="flex items-end gap-4">
+		<div class="flex-1">
+			<label for="search" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+				Search in logs
+			</label>
+			<div class="relative">
+				<SearchOutline
+					class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+				/>
+				<Input
+					id="search"
+					placeholder="Search log titles and data..."
+					bind:value={filter.text}
+					class="pl-10"
+				/>
+			</div>
 		</div>
-		<div class="flex items-center gap-2">
-			<Button size="sm" color="alternative" onclick={refreshNow}>
-				<RefreshOutline class="mr-2 h-4 w-4" />
-				Refresh
-			</Button>
+		<div>
+			<label
+				for="auto-refresh"
+				class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+			>
+				Auto-refresh
+			</label>
+			<ButtonGroup id="auto-refresh">
+				{#each [0, 0.5, 1, 2, 5, 10] as currentInterval}
+					<Button
+						size="sm"
+						color={currentInterval === refreshInterval / 1000 ? 'blue' : 'alternative'}
+						onclick={() => {
+							refreshInterval = currentInterval * 1000;
+							interval.pause();
+							if (refreshInterval !== 0) {
+								interval.resume();
+							}
+						}}
+					>
+						{#if currentInterval === 0}Off{:else}{currentInterval}s{/if}
+					</Button>
+				{/each}
+			</ButtonGroup>
 		</div>
 	</div>
 
-	<!-- Controls Section -->
-	<div class="mb-6 space-y-4">
-		<!-- Search and Auto-refresh -->
-		<div class="flex items-end gap-4">
-			<div class="flex-1">
-				<label for="search" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-					Search in logs
-				</label>
-				<div class="relative">
-					<SearchOutline
-						class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
-					/>
-					<Input
-						id="search"
-						placeholder="Search log titles and data..."
-						bind:value={filter.text}
-						class="pl-10"
-					/>
-				</div>
-			</div>
-			<div>
-				<label
-					for="auto-refresh"
-					class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-				>
-					Auto-refresh
-				</label>
-				<ButtonGroup id="auto-refresh">
-					{#each [0, 0.5, 1, 2, 5, 10] as currentInterval}
-						<Button
-							size="sm"
-							color={currentInterval === refreshInterval / 1000 ? 'blue' : 'alternative'}
+	<!-- Active Filters -->
+	{#if filter.contextId?.length || filter.domain?.length || filter.code?.length || filter.level?.length || filter.action?.length || filter.requestId?.length || filter.routeId?.length || filter.userId?.length || filter.url?.length}
+		<div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+			<h4 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Active Filters:</h4>
+			<div class="flex flex-wrap gap-2">
+				{#if filter.contextId}
+					{#each filter.contextId as currentContextId}
+						<Badge
+							color="purple"
 							onclick={() => {
-								refreshInterval = currentInterval * 1000;
-								interval.pause();
-								if (refreshInterval !== 0) {
-									interval.resume();
-								}
+								toggleItem('contextId', currentContextId);
 							}}
+							class="cursor-pointer hover:bg-purple-200"
 						>
-							{#if currentInterval === 0}Off{:else}{currentInterval}s{/if}
-						</Button>
+							Context: {currentContextId} ×
+						</Badge>
 					{/each}
-				</ButtonGroup>
+				{/if}
+				{#if filter.domain}
+					{#each filter.domain as currentDomain}
+						<Badge
+							color="green"
+							onclick={() => {
+								toggleItem('domain', currentDomain);
+							}}
+							class="cursor-pointer hover:bg-green-200"
+						>
+							Domain: {currentDomain} ×
+						</Badge>
+					{/each}
+				{/if}
+				{#if filter.code}
+					{#each filter.code as currentCode}
+						<Badge
+							color="indigo"
+							onclick={() => {
+								toggleItem('code', currentCode);
+							}}
+							class="cursor-pointer hover:bg-indigo-200"
+						>
+							Code: {currentCode} ×
+						</Badge>
+					{/each}
+				{/if}
+				{#if filter.level}
+					{#each filter.level as currentLevel}
+						<Badge
+							color={getLevelColor(currentLevel)}
+							onclick={() => {
+								toggleItem('level', currentLevel);
+							}}
+							class="cursor-pointer"
+						>
+							Level: {currentLevel} ×
+						</Badge>
+					{/each}
+				{/if}
+				{#if filter.action}
+					{#each filter.action as currentAction}
+						<Badge
+							color="blue"
+							onclick={() => {
+								toggleItem('action', currentAction);
+							}}
+							class="cursor-pointer hover:bg-blue-200"
+						>
+							Action: {currentAction} ×
+						</Badge>
+					{/each}
+				{/if}
+				{#if filter.requestId}
+					{#each filter.requestId as currentRequestId}
+						<Badge
+							color="cyan"
+							onclick={() => {
+								toggleItem('requestId', currentRequestId);
+							}}
+							class="cursor-pointer hover:bg-cyan-200"
+						>
+							Request: {currentRequestId?.substring(0, 8)}... ×
+						</Badge>
+					{/each}
+				{/if}
+				{#if filter.routeId}
+					{#each filter.routeId as currentRouteId}
+						<Badge
+							color="pink"
+							onclick={() => {
+								toggleItem('routeId', currentRouteId);
+							}}
+							class="cursor-pointer hover:bg-pink-200"
+						>
+							Route: {currentRouteId} ×
+						</Badge>
+					{/each}
+				{/if}
+				{#if filter.userId}
+					{#each filter.userId as currentUserId}
+						<Badge
+							color="orange"
+							onclick={() => {
+								toggleItem('userId', currentUserId);
+							}}
+							class="cursor-pointer hover:bg-orange-200"
+						>
+							User: {currentUserId} ×
+						</Badge>
+					{/each}
+				{/if}
+				{#if filter.url}
+					{#each filter.url as currentUrl}
+						<Badge
+							color="yellow"
+							onclick={() => {
+								toggleItem('url', currentUrl);
+							}}
+							class="cursor-pointer hover:bg-yellow-200"
+						>
+							URL: {currentUrl.length > 20 ? currentUrl.substring(0, 20) + '...' : currentUrl} ×
+						</Badge>
+					{/each}
+				{/if}
 			</div>
 		</div>
+	{/if}
+</div>
 
-		<!-- Active Filters -->
-		{#if filter.contextId?.length || filter.domain?.length || filter.code?.length || filter.level?.length || filter.action?.length || filter.requestId?.length || filter.routeId?.length || filter.userId?.length || filter.url?.length}
-			<div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-				<h4 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Active Filters:</h4>
-				<div class="flex flex-wrap gap-2">
-					{#if filter.contextId}
-						{#each filter.contextId as currentContextId}
+<!-- Results Info and Pagination -->
+<div class="mb-4 flex items-center justify-between">
+	<p class="text-sm text-gray-600 dark:text-gray-400">
+		Showing {Math.min(filter.offset + 1, logs.logCount)}-{Math.min(
+			filter.offset + filter.limit,
+			logs.logCount
+		)} of {logs.logCount} logs
+	</p>
+	<PaginationNav
+		{currentPage}
+		{totalPages}
+		onPageChange={(newPage) => {
+			filter.offset = (newPage - 1) * filter.limit;
+		}}
+	/>
+</div>
+
+<!-- Logs Table -->
+<div class="overflow-x-auto">
+	<Table hoverable={true} striped={true}>
+		<TableHead>
+			<TableHeadCell class="w-12"></TableHeadCell>
+			<TableHeadCell>ID</TableHeadCell>
+			<TableHeadCell>Timestamp</TableHeadCell>
+			<TableHeadCell>Title</TableHeadCell>
+			<TableHeadCell>Context</TableHeadCell>
+			<TableHeadCell>Request</TableHeadCell>
+			<TableHeadCell>User</TableHeadCell>
+			<TableHeadCell>Route</TableHeadCell>
+			<TableHeadCell>Domain</TableHeadCell>
+			<TableHeadCell>Code</TableHeadCell>
+			<TableHeadCell>Action</TableHeadCell>
+			<TableHeadCell>Level</TableHeadCell>
+			<TableHeadCell>Data</TableHeadCell>
+		</TableHead>
+		<TableBody>
+			{#each logs.logs as log (log.id)}
+				<TableBodyRow>
+					<TableBodyCell class="text-center">
+						<Button
+							size="xs"
+							color="light"
+							onclick={() => openLogModal(log)}
+							class="p-1"
+							title="View full log details"
+						>
+							<EyeOutline class="h-3 w-3" />
+						</Button>
+					</TableBodyCell>
+					<TableBodyCell class="font-mono text-sm">{log.id}</TableBodyCell>
+					<TableBodyCell class="whitespace-nowrap font-mono text-sm">
+						{formatDate(log.date)}
+					</TableBodyCell>
+					<TableBodyCell class="max-w-xs">
+						<div class="truncate" title={log.title}>
+							{@html highlightText(log.title, filter.text)}
+						</div>
+					</TableBodyCell>
+					<TableBodyCell>
+						{#if log.contextId}
 							<Badge
 								color="purple"
 								onclick={() => {
-									toggleItem('contextId', currentContextId);
+									log.contextId && toggleItem('contextId', log.contextId);
 								}}
 								class="cursor-pointer hover:bg-purple-200"
+								title="Global Context ID"
 							>
-								Context: {currentContextId} ×
+								{log.contextId?.substring(0, 8)}...
 							</Badge>
-						{/each}
-					{/if}
-					{#if filter.domain}
-						{#each filter.domain as currentDomain}
+						{:else}
+							<span class="text-gray-400">-</span>
+						{/if}
+					</TableBodyCell>
+					<TableBodyCell>
+						{#if log.requestId}
+							<Badge
+								color="cyan"
+								class="cursor-pointer text-xs hover:bg-cyan-200"
+								title="Request ID: {log.requestId}"
+								onclick={() => {
+									toggleItem('requestId', log.requestId);
+								}}
+							>
+								{log.requestId?.substring(0, 8)}...
+							</Badge>
+						{:else}
+							<span class="text-gray-400">-</span>
+						{/if}
+					</TableBodyCell>
+					<TableBodyCell>
+						{#if log.userId}
+							<Badge
+								color="orange"
+								class="cursor-pointer text-xs hover:bg-orange-200"
+								title="User ID: {log.userId}"
+								onclick={() => {
+									toggleItem('userId', log.userId);
+								}}
+							>
+								{log.userId}
+							</Badge>
+						{:else}
+							<span class="text-gray-400">-</span>
+						{/if}
+					</TableBodyCell>
+					<TableBodyCell>
+						{#if log.routeId}
+							<Badge
+								color="pink"
+								class="cursor-pointer text-xs hover:bg-pink-200"
+								title="Route: {log.routeId}"
+								onclick={() => {
+									toggleItem('routeId', log.routeId);
+								}}
+							>
+								{log.routeId}
+							</Badge>
+							{#if log.method && log.url}
+								<div
+									class="mt-1 cursor-pointer text-xs text-gray-500 hover:text-gray-700"
+									title="{log.method} {log.url} - Click to filter by URL"
+									onclick={() => {
+										log.url && toggleItem('url', log.url);
+									}}
+								>
+									{log.method}
+									{log.url?.length > 20 ? log.url.substring(0, 20) + '...' : log.url}
+								</div>
+							{/if}
+						{:else}
+							<span class="text-gray-400">-</span>
+						{/if}
+					</TableBodyCell>
+					<TableBodyCell>
+						{#if log.domain}
 							<Badge
 								color="green"
 								onclick={() => {
-									toggleItem('domain', currentDomain);
+									toggleItem('domain', log.domain);
 								}}
 								class="cursor-pointer hover:bg-green-200"
 							>
-								Domain: {currentDomain} ×
+								{log.domain}
 							</Badge>
-						{/each}
-					{/if}
-					{#if filter.code}
-						{#each filter.code as currentCode}
+						{:else}
+							<span class="text-gray-400">-</span>
+						{/if}
+					</TableBodyCell>
+					<TableBodyCell>
+						{#if log.code}
 							<Badge
 								color="indigo"
 								onclick={() => {
-									toggleItem('code', currentCode);
+									toggleItem('code', log.code);
 								}}
 								class="cursor-pointer hover:bg-indigo-200"
 							>
-								Code: {currentCode} ×
+								{log.code}
 							</Badge>
-						{/each}
-					{/if}
-					{#if filter.level}
-						{#each filter.level as currentLevel}
-							<Badge
-								color={getLevelColor(currentLevel)}
-								onclick={() => {
-									toggleItem('level', currentLevel);
-								}}
-								class="cursor-pointer"
-							>
-								Level: {currentLevel} ×
-							</Badge>
-						{/each}
-					{/if}
-					{#if filter.action}
-						{#each filter.action as currentAction}
+						{:else}
+							<span class="text-gray-400">-</span>
+						{/if}
+					</TableBodyCell>
+					<TableBodyCell>
+						{#if log.action}
 							<Badge
 								color="blue"
 								onclick={() => {
-									toggleItem('action', currentAction);
+									toggleItem('action', log.action);
 								}}
 								class="cursor-pointer hover:bg-blue-200"
 							>
-								Action: {currentAction} ×
+								{log.action}
 							</Badge>
-						{/each}
-					{/if}
-					{#if filter.requestId}
-						{#each filter.requestId as currentRequestId}
+						{:else}
+							<span class="text-gray-400">-</span>
+						{/if}
+					</TableBodyCell>
+					<TableBodyCell>
+						{#if log.logLevel}
 							<Badge
-								color="cyan"
+								color={getLevelColor(log.logLevel)}
 								onclick={() => {
-									toggleItem('requestId', currentRequestId);
+									toggleItem('level', log.logLevel);
 								}}
-								class="cursor-pointer hover:bg-cyan-200"
+								class="cursor-pointer font-mono"
 							>
-								Request: {currentRequestId?.substring(0, 8)}... ×
+								{log.logLevel}
 							</Badge>
-						{/each}
-					{/if}
-					{#if filter.routeId}
-						{#each filter.routeId as currentRouteId}
-							<Badge
-								color="pink"
-								onclick={() => {
-									toggleItem('routeId', currentRouteId);
-								}}
-								class="cursor-pointer hover:bg-pink-200"
-							>
-								Route: {currentRouteId} ×
-							</Badge>
-						{/each}
-					{/if}
-					{#if filter.userId}
-						{#each filter.userId as currentUserId}
-							<Badge
-								color="orange"
-								onclick={() => {
-									toggleItem('userId', currentUserId);
-								}}
-								class="cursor-pointer hover:bg-orange-200"
-							>
-								User: {currentUserId} ×
-							</Badge>
-						{/each}
-					{/if}
-					{#if filter.url}
-						{#each filter.url as currentUrl}
-							<Badge
-								color="yellow"
-								onclick={() => {
-									toggleItem('url', currentUrl);
-								}}
-								class="cursor-pointer hover:bg-yellow-200"
-							>
-								URL: {currentUrl.length > 20 ? currentUrl.substring(0, 20) + '...' : currentUrl} ×
-							</Badge>
-						{/each}
-					{/if}
-				</div>
-			</div>
-		{/if}
-	</div>
+						{:else}
+							<span class="text-gray-400">-</span>
+						{/if}
+					</TableBodyCell>
+					<TableBodyCell class="max-w-md">
+						{#if log.dataProcessed}
+							<details class="cursor-pointer">
+								<summary class="text-sm text-blue-600 hover:text-blue-800">View data</summary>
+								<pre
+									class="mt-2 max-h-40 overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">{@html highlightText(
+										JSON.stringify(log.dataProcessed, null, 2),
+										filter.text
+									)}</pre>
+							</details>
+						{:else}
+							<div class="text-xs text-gray-400">No data available</div>
+						{/if}
+					</TableBodyCell>
+				</TableBodyRow>
+			{/each}
+		</TableBody>
+	</Table>
+</div>
 
-	<!-- Results Info and Pagination -->
-	<div class="mb-4 flex items-center justify-between">
-		<p class="text-sm text-gray-600 dark:text-gray-400">
-			Showing {Math.min(filter.offset + 1, logs.logCount)}-{Math.min(
-				filter.offset + filter.limit,
-				logs.logCount
-			)} of {logs.logCount} logs
-		</p>
+<!-- Bottom Pagination -->
+{#if totalPages > 1}
+	<div class="mt-6 flex justify-center">
 		<PaginationNav
 			{currentPage}
 			{totalPages}
@@ -319,217 +526,7 @@
 			}}
 		/>
 	</div>
-
-	<!-- Logs Table -->
-	<div class="overflow-x-auto">
-		<Table hoverable={true} striped={true}>
-			<TableHead>
-				<TableHeadCell class="w-12"></TableHeadCell>
-				<TableHeadCell>ID</TableHeadCell>
-				<TableHeadCell>Timestamp</TableHeadCell>
-				<TableHeadCell>Title</TableHeadCell>
-				<TableHeadCell>Context</TableHeadCell>
-				<TableHeadCell>Request</TableHeadCell>
-				<TableHeadCell>User</TableHeadCell>
-				<TableHeadCell>Route</TableHeadCell>
-				<TableHeadCell>Domain</TableHeadCell>
-				<TableHeadCell>Code</TableHeadCell>
-				<TableHeadCell>Action</TableHeadCell>
-				<TableHeadCell>Level</TableHeadCell>
-				<TableHeadCell>Data</TableHeadCell>
-			</TableHead>
-			<TableBody>
-				{#each logs.logs as log (log.id)}
-					<TableBodyRow>
-						<TableBodyCell class="text-center">
-							<Button
-								size="xs"
-								color="light"
-								onclick={() => openLogModal(log)}
-								class="p-1"
-								title="View full log details"
-							>
-								<EyeOutline class="h-3 w-3" />
-							</Button>
-						</TableBodyCell>
-						<TableBodyCell class="font-mono text-sm">{log.id}</TableBodyCell>
-						<TableBodyCell class="whitespace-nowrap font-mono text-sm">
-							{formatDate(log.date)}
-						</TableBodyCell>
-						<TableBodyCell class="max-w-xs">
-							<div class="truncate" title={log.title}>
-								{@html highlightText(log.title, filter.text)}
-							</div>
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if log.contextId}
-								<Badge
-									color="purple"
-									onclick={() => {
-										log.contextId && toggleItem('contextId', log.contextId);
-									}}
-									class="cursor-pointer hover:bg-purple-200"
-									title="Global Context ID"
-								>
-									{log.contextId?.substring(0, 8)}...
-								</Badge>
-							{:else}
-								<span class="text-gray-400">-</span>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if log.requestId}
-								<Badge
-									color="cyan"
-									class="cursor-pointer text-xs hover:bg-cyan-200"
-									title="Request ID: {log.requestId}"
-									onclick={() => {
-										toggleItem('requestId', log.requestId);
-									}}
-								>
-									{log.requestId?.substring(0, 8)}...
-								</Badge>
-							{:else}
-								<span class="text-gray-400">-</span>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if log.userId}
-								<Badge
-									color="orange"
-									class="cursor-pointer text-xs hover:bg-orange-200"
-									title="User ID: {log.userId}"
-									onclick={() => {
-										toggleItem('userId', log.userId);
-									}}
-								>
-									{log.userId}
-								</Badge>
-							{:else}
-								<span class="text-gray-400">-</span>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if log.routeId}
-								<Badge
-									color="pink"
-									class="cursor-pointer text-xs hover:bg-pink-200"
-									title="Route: {log.routeId}"
-									onclick={() => {
-										toggleItem('routeId', log.routeId);
-									}}
-								>
-									{log.routeId}
-								</Badge>
-								{#if log.method && log.url}
-									<div
-										class="mt-1 cursor-pointer text-xs text-gray-500 hover:text-gray-700"
-										title="{log.method} {log.url} - Click to filter by URL"
-										onclick={() => {
-											log.url && toggleItem('url', log.url);
-										}}
-									>
-										{log.method}
-										{log.url?.length > 20 ? log.url.substring(0, 20) + '...' : log.url}
-									</div>
-								{/if}
-							{:else}
-								<span class="text-gray-400">-</span>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if log.domain}
-								<Badge
-									color="green"
-									onclick={() => {
-										toggleItem('domain', log.domain);
-									}}
-									class="cursor-pointer hover:bg-green-200"
-								>
-									{log.domain}
-								</Badge>
-							{:else}
-								<span class="text-gray-400">-</span>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if log.code}
-								<Badge
-									color="indigo"
-									onclick={() => {
-										toggleItem('code', log.code);
-									}}
-									class="cursor-pointer hover:bg-indigo-200"
-								>
-									{log.code}
-								</Badge>
-							{:else}
-								<span class="text-gray-400">-</span>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if log.action}
-								<Badge
-									color="blue"
-									onclick={() => {
-										toggleItem('action', log.action);
-									}}
-									class="cursor-pointer hover:bg-blue-200"
-								>
-									{log.action}
-								</Badge>
-							{:else}
-								<span class="text-gray-400">-</span>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell>
-							{#if log.logLevel}
-								<Badge
-									color={getLevelColor(log.logLevel)}
-									onclick={() => {
-										toggleItem('level', log.logLevel);
-									}}
-									class="cursor-pointer font-mono"
-								>
-									{log.logLevel}
-								</Badge>
-							{:else}
-								<span class="text-gray-400">-</span>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell class="max-w-md">
-							{#if log.dataProcessed}
-								<details class="cursor-pointer">
-									<summary class="text-sm text-blue-600 hover:text-blue-800">View data</summary>
-									<pre
-										class="mt-2 max-h-40 overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">{@html highlightText(
-											JSON.stringify(log.dataProcessed, null, 2),
-											filter.text
-										)}</pre>
-								</details>
-							{:else}
-								<div class="text-xs text-gray-400">No data available</div>
-							{/if}
-						</TableBodyCell>
-					</TableBodyRow>
-				{/each}
-			</TableBody>
-		</Table>
-	</div>
-
-	<!-- Bottom Pagination -->
-	{#if totalPages > 1}
-		<div class="mt-6 flex justify-center">
-			<PaginationNav
-				{currentPage}
-				{totalPages}
-				onPageChange={(newPage) => {
-					filter.offset = (newPage - 1) * filter.limit;
-				}}
-			/>
-		</div>
-	{/if}
-</Card>
+{/if}
 
 <!-- Full Log Object Modal -->
 <Modal bind:open={showModal} size="xl" title="Full Log Object Details">

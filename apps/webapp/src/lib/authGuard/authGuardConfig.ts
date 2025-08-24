@@ -61,11 +61,11 @@ const associatedInfoActions = {
 export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 	routeConfig: {
 		'/': homepageRedirect,
-		'/logs': {
-			...openConfig
+		'/(loggedIn)/logs': {
+			...adminOnlyConfig
 		},
-		'/logConfiguration': {
-			...openConfig
+		'/(loggedIn)/logConfiguration': {
+			...adminOnlyConfig
 		},
 
 		'': {

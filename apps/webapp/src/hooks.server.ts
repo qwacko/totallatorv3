@@ -52,19 +52,22 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 		console.log('Server Init Function');
 		console.log('postgresUrl:', getServerEnv().POSTGRES_URL);
 
-		const context = await initializeGlobalContext({
-			serverEnv: getServerEnv(),
-			isBuilding: building,
-			viewRefreshAction: async () => {
-				return await materializedViewActions.conditionalRefreshWithContext({});
+		const context = await initializeGlobalContext(
+			{
+				serverEnv: getServerEnv(),
+				isBuilding: building,
+				viewRefreshAction: async () => {
+					return await materializedViewActions.conditionalRefreshWithContext({});
+				},
+				migrationsPath,
+				createLoggingDBClient: () => {
+					const url = getServerEnv().LOG_DATABASE_ADDRESS || 'file:logs.db';
+					const authToken = getServerEnv().LOG_DATABASE_KEY;
+					return createClient({ url, authToken });
+				}
 			},
-			migrationsPath,
-			createLoggingDBClient: () => {
-				const url = getServerEnv().LOG_DATABASE_ADDRESS || 'file:logs.db';
-				const authToken = getServerEnv().LOG_DATABASE_KEY;
-				return createClient({ url, authToken });
-			}
-		}, getContext);
+			getContext
+		);
 
 		// Setup DB Logger
 		actionHelpers.initDBLogger(context);
