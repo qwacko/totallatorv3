@@ -50,7 +50,7 @@ export const setLogConfiguration = form(async (data) => {
 		.safeParse(adjustedForm);
 	if (validatedData.error) {
 		console.error('Failed to set log configuration:', validatedData.error);
-		throw new Error('Invalid log configuration', validatedData.error);
+		throw new Error(`Invalid log configuration: ${JSON.stringify(validatedData.error)}`);
 	}
 
 	const { logLevel, ...filter } = validatedData.data;

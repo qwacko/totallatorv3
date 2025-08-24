@@ -208,13 +208,17 @@
 				label: 'Logs',
 				active: pageIsLogs,
 				icon: EyeIcon,
-				href: { url: '/(loggedIn)/logs' }
+				href: urlGenerator({
+					address: '/(loggedIn)/logs'
+				})
 			},
 			{
 				label: 'Log Configuration',
 				active: pageIsLogConfiguration,
 				icon: SettingsIcon,
-				href: { url: '/(loggedIn)/logConfiguration' }
+				href: urlGenerator({
+					address: '/(loggedIn)/logConfiguration'
+				})
 			}
 		],
 		systemAdmin: data.user?.admin

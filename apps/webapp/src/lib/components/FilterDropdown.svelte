@@ -72,16 +72,12 @@
 				filter: defaultAllJournalFilter(),
 				modificationType: 'replace'
 			})}
-			class="flex
-			flex-row
-			gap-2"
+			class="flex flex-row gap-2"
 		>
 			All
 		</DropdownItem>
 		<DropdownItem
-			class="flex
-			flex-row
-			gap-2"
+			class="flex flex-row gap-2"
 			href={filterToURL({
 				filter: defaultJournalFilter(),
 				modificationType: 'replace'
