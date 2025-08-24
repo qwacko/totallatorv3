@@ -38,11 +38,4 @@ export function generateYearMonthsBeforeToday(numberMonths: number): string[] {
 	}
 
 	return stringResult;
-
-	console.log('Date Range:', startDate, endDate);
-
-	return generateYearMonthsBetween(
-		startDate.toISOString().slice(0, 7),
-		endDate.toISOString().slice(0, 7)
-	);
 }
