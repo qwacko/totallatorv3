@@ -420,7 +420,7 @@
 								{log.routeId}
 							</Badge>
 							{#if log.method && log.url}
-								<div
+								<button
 									class="mt-1 cursor-pointer text-xs text-gray-500 hover:text-gray-700"
 									title="{log.method} {log.url} - Click to filter by URL"
 									onclick={() => {
@@ -429,7 +429,7 @@
 								>
 									{log.method}
 									{log.url?.length > 20 ? log.url.substring(0, 20) + '...' : log.url}
-								</div>
+								</button>
 							{/if}
 						{:else}
 							<span class="text-gray-400">-</span>

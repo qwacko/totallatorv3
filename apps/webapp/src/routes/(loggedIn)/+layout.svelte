@@ -68,7 +68,9 @@
 	const pageIsLLM = $derived(page.route.id?.startsWith('/(loggedIn)/llm'));
 	const pageIsCron = $derived(page.route.id?.startsWith('/(loggedIn)/admin/cron'));
 	const pageIsLogs = $derived(page.route.id?.startsWith('/(loggedIn)/logs'));
-	const pageIsLogConfiguration = $derived(page.route.id?.startsWith('/(loggedIn)/logConfiguration'));
+	const pageIsLogConfiguration = $derived(
+		page.route.id?.startsWith('/(loggedIn)/logConfiguration')
+	);
 
 	const pageGroups = $derived({
 		linkedItems: [
@@ -156,47 +158,51 @@
 				})
 			}
 		],
-		llm: data.user?.admin ? [
-			{
-				label: 'Providers',
-				active: pageIsLLM,
-				icon: IdeaIcon,
-				href: urlGenerator({ address: '/(loggedIn)/llm/providers' })
-			},
-			{
-				label: 'Logs',
-				active: pageIsLLM,
-				icon: EyeIcon,
-				href: urlGenerator({
-					address: '/(loggedIn)/llm/logs',
-					searchParamsValue: { page: 0, pageSize: 20 }
-				})
-			}
-		] : [],
-		database: data.enableDBLog ? [
-			{
-				label: 'Query Groups',
-				active: pageIsGroupedQueries,
-				icon: DBGroupedQueryIcon,
-				href: urlGenerator({
-					address: '/(loggedIn)/queries/grouped',
-					searchParamsValue: { page: 0, pageSize: 10 }
-				})
-			},
-			{
-				label: 'Queries',
-				active: pageIsQueryLog,
-				icon: DBQueryIcon,
-				href: urlGenerator({
-					address: '/(loggedIn)/queries/list',
-					searchParamsValue: {
-						page: 0,
-						pageSize: 10,
-						textFilter: 'last:60'
+		llm: data.user?.admin
+			? [
+					{
+						label: 'Providers',
+						active: pageIsLLM,
+						icon: IdeaIcon,
+						href: urlGenerator({ address: '/(loggedIn)/llm/providers' })
+					},
+					{
+						label: 'Logs',
+						active: pageIsLLM,
+						icon: EyeIcon,
+						href: urlGenerator({
+							address: '/(loggedIn)/llm/logs',
+							searchParamsValue: { page: 0, pageSize: 20 }
+						})
 					}
-				})
-			}
-		] : [],
+				]
+			: [],
+		database: data.enableDBLog
+			? [
+					{
+						label: 'Query Groups',
+						active: pageIsGroupedQueries,
+						icon: DBGroupedQueryIcon,
+						href: urlGenerator({
+							address: '/(loggedIn)/queries/grouped',
+							searchParamsValue: { page: 0, pageSize: 10 }
+						})
+					},
+					{
+						label: 'Queries',
+						active: pageIsQueryLog,
+						icon: DBQueryIcon,
+						href: urlGenerator({
+							address: '/(loggedIn)/queries/list',
+							searchParamsValue: {
+								page: 0,
+								pageSize: 10,
+								textFilter: 'last:60'
+							}
+						})
+					}
+				]
+			: [],
 		logging: [
 			{
 				label: 'Logs',
@@ -211,47 +217,53 @@
 				href: { url: '/(loggedIn)/logConfiguration' }
 			}
 		],
-		systemAdmin: data.user?.admin ? [
-			{
-				label: 'Users',
-				active: pageIsUsers,
-				icon: UsersIcon,
-				href: urlGenerator({
-					address: '/(loggedIn)/users',
-					searchParamsValue: { page: 0 }
-				})
-			},
-			{
-				label: 'Backups',
-				active: pageIsBackup,
-				icon: BackupIcon,
-				href: urlGenerator({
-					address: '/(loggedIn)/backup',
-					searchParamsValue: { page: 0 }
-				})
-			},
-			{
-				label: 'Cron Jobs',
-				active: pageIsCron,
-				icon: CronIcon,
-				href: urlGenerator({
-					address: '/(loggedIn)/admin/cron',
-					searchParamsValue: {}
-				})
-			},
-			{
-				label: 'Settings',
-				active: pageIsSettings,
-				icon: SettingsIcon,
-				href: urlGenerator({ address: '/(loggedIn)/settings' })
-			},
-			...(data.dev ? [{
-				label: 'Dev',
-				active: pageIsDev,
-				icon: DevIcon,
-				href: urlGenerator({ address: '/(loggedIn)/dev/bulkLoad' })
-			}] : [])
-		] : [],
+		systemAdmin: data.user?.admin
+			? [
+					{
+						label: 'Users',
+						active: pageIsUsers,
+						icon: UsersIcon,
+						href: urlGenerator({
+							address: '/(loggedIn)/users',
+							searchParamsValue: { page: 0 }
+						})
+					},
+					{
+						label: 'Backups',
+						active: pageIsBackup,
+						icon: BackupIcon,
+						href: urlGenerator({
+							address: '/(loggedIn)/backup',
+							searchParamsValue: { page: 0 }
+						})
+					},
+					{
+						label: 'Cron Jobs',
+						active: pageIsCron,
+						icon: CronIcon,
+						href: urlGenerator({
+							address: '/(loggedIn)/admin/cron',
+							searchParamsValue: {}
+						})
+					},
+					{
+						label: 'Settings',
+						active: pageIsSettings,
+						icon: SettingsIcon,
+						href: urlGenerator({ address: '/(loggedIn)/settings' })
+					},
+					...(data.dev
+						? [
+								{
+									label: 'Dev',
+									active: pageIsDev,
+									icon: DevIcon,
+									href: urlGenerator({ address: '/(loggedIn)/dev/bulkLoad' })
+								}
+							]
+						: [])
+				]
+			: [],
 		other: [
 			{
 				label: 'Files',
@@ -271,15 +283,19 @@
 					searchParamsValue: {}
 				})
 			},
-			...(data.user ? [{
-				label: 'User',
-				active: pageIsCurrentUser,
-				icon: UserAccountIcon,
-				href: urlGenerator({
-					address: '/(loggedIn)/users/[id]',
-					paramsValue: { id: data.user?.id }
-				})
-			}] : [])
+			...(data.user
+				? [
+						{
+							label: 'User',
+							active: pageIsCurrentUser,
+							icon: UserAccountIcon,
+							href: urlGenerator({
+								address: '/(loggedIn)/users/[id]',
+								paramsValue: { id: data.user?.id }
+							})
+						}
+					]
+				: [])
 		]
 	});
 
@@ -372,7 +388,9 @@
 				<!-- Database Queries -->
 				{#if pageGroups.database.length > 0}
 					<DropdownItem class="flex items-center justify-between">
-						Database Queries<ChevronRightOutline class="text-primary-700 ms-2 h-6 w-6 dark:text-white" />
+						Database Queries<ChevronRightOutline
+							class="text-primary-700 ms-2 h-6 w-6 dark:text-white"
+						/>
 					</DropdownItem>
 					<Dropdown placement="left-start" simple>
 						{#each pageGroups.database as item}
@@ -402,7 +420,9 @@
 				<!-- System Administration -->
 				{#if pageGroups.systemAdmin.length > 0}
 					<DropdownItem class="flex items-center justify-between">
-						System Administration<ChevronRightOutline class="text-primary-700 ms-2 h-6 w-6 dark:text-white" />
+						System Administration<ChevronRightOutline
+							class="text-primary-700 ms-2 h-6 w-6 dark:text-white"
+						/>
 					</DropdownItem>
 					<Dropdown placement="left-start" simple>
 						{#each pageGroups.systemAdmin as item}
@@ -470,7 +490,7 @@
 					{@const DisplayIcon = item.icon}
 					<DropdownItem
 						href={item.href.url}
-						class="{item.active ? 'bg-primary-600 text-primary-200' : ''}"
+						class={item.active ? 'bg-primary-600 text-primary-200' : ''}
 					>
 						<div class="flex flex-row items-center gap-2">
 							<DisplayIcon />{item.label}
@@ -488,7 +508,7 @@
 					{@const DisplayIcon = item.icon}
 					<DropdownItem
 						href={item.href.url}
-						class="{item.active ? 'bg-primary-600 text-primary-200' : ''}"
+						class={item.active ? 'bg-primary-600 text-primary-200' : ''}
 					>
 						<div class="flex flex-row items-center gap-2">
 							<DisplayIcon />{item.label}
@@ -507,7 +527,7 @@
 						{@const DisplayIcon = item.icon}
 						<DropdownItem
 							href={item.href.url}
-							class="{item.active ? 'bg-primary-600 text-primary-200' : ''}"
+							class={item.active ? 'bg-primary-600 text-primary-200' : ''}
 						>
 							<div class="flex flex-row items-center gap-2">
 								<DisplayIcon />{item.label}
@@ -520,14 +540,16 @@
 			<!-- Database Queries -->
 			{#if pageGroups.database.length > 0}
 				<DropdownItem class="flex items-center justify-between">
-					Database Queries<ChevronRightOutline class="text-primary-700 ms-2 h-6 w-6 dark:text-white" />
+					Database Queries<ChevronRightOutline
+						class="text-primary-700 ms-2 h-6 w-6 dark:text-white"
+					/>
 				</DropdownItem>
 				<Dropdown placement="right-start" simple>
 					{#each pageGroups.database as item}
 						{@const DisplayIcon = item.icon}
 						<DropdownItem
 							href={item.href.url}
-							class="{item.active ? 'bg-primary-600 text-primary-200' : ''}"
+							class={item.active ? 'bg-primary-600 text-primary-200' : ''}
 						>
 							<div class="flex flex-row items-center gap-2">
 								<DisplayIcon />{item.label}
@@ -546,7 +568,7 @@
 					{@const DisplayIcon = item.icon}
 					<DropdownItem
 						href={item.href.url}
-						class="{item.active ? 'bg-primary-600 text-primary-200' : ''}"
+						class={item.active ? 'bg-primary-600 text-primary-200' : ''}
 					>
 						<div class="flex flex-row items-center gap-2">
 							<DisplayIcon />{item.label}
@@ -558,14 +580,16 @@
 			<!-- System Administration -->
 			{#if pageGroups.systemAdmin.length > 0}
 				<DropdownItem class="flex items-center justify-between">
-					System Administration<ChevronRightOutline class="text-primary-700 ms-2 h-6 w-6 dark:text-white" />
+					System Administration<ChevronRightOutline
+						class="text-primary-700 ms-2 h-6 w-6 dark:text-white"
+					/>
 				</DropdownItem>
 				<Dropdown placement="right-start" simple>
 					{#each pageGroups.systemAdmin as item}
 						{@const DisplayIcon = item.icon}
 						<DropdownItem
 							href={item.href.url}
-							class="{item.active ? 'bg-primary-600 text-primary-200' : ''}"
+							class={item.active ? 'bg-primary-600 text-primary-200' : ''}
 						>
 							<div class="flex flex-row items-center gap-2">
 								<DisplayIcon />{item.label}
@@ -580,7 +604,7 @@
 				{@const DisplayIcon = item.icon}
 				<DropdownItem
 					href={item.href.url}
-					class="{item.active ? 'bg-primary-600 text-primary-200' : ''}"
+					class={item.active ? 'bg-primary-600 text-primary-200' : ''}
 				>
 					<div class="flex flex-row items-center gap-2">
 						<DisplayIcon />{item.label}
