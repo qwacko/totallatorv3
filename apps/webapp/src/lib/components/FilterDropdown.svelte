@@ -72,16 +72,19 @@
 				filter: defaultAllJournalFilter(),
 				modificationType: 'replace'
 			})}
-			aClass="flex flex-row gap-2"
-		>
-			All
-		</DropdownItem>
+			class="> All </DropdownItem>
 		<DropdownItem
+			flex
+		flex-row
+		gap-2
 			href={filterToURL({
 				filter: defaultJournalFilter(),
 				modificationType: 'replace'
 			})}
-			aClass="flex flex-row gap-2"
+			class="
+			flex
+			flex-row
+			gap-2
 		>
 			Assets / Liabilities
 		</DropdownItem>
@@ -90,7 +93,7 @@
 		{@const currentFilter = filters[filterKey].sort((a, b) => a.title.localeCompare(b.title))}
 		{#if currentFilter.length === 1}
 			{@const filter = currentFilter[0]}
-			<DropdownItem href={filterToURL(filter)} aClass="flex flex-row gap-2">
+			<DropdownItem href={filterToURL(filter)} class="flex flex-row gap-2">
 				{#if !hideIcon}
 					{#if filter.modificationType === 'modify'}
 						<FilterModifyIcon />
@@ -101,12 +104,12 @@
 				{filter.group ? `${filter.group} : ` : ''}{filter.title}
 			</DropdownItem>
 		{:else}
-			<DropdownItem aClass="flex items-center justify-between gap-2">
+			<DropdownItem class="flex items-center justify-between gap-2">
 				{filterKey}<ArrowRightIcon />
 			</DropdownItem>
 			<Dropdown simple>
 				{#each currentFilter as filter}
-					<DropdownItem href={filterToURL(filter)} aClass="flex flex-row gap-2">
+					<DropdownItem href={filterToURL(filter)} class="flex flex-row gap-2">
 						{#if !hideIcon}
 							{#if filter.modificationType === 'modify'}
 								<FilterModifyIcon />
