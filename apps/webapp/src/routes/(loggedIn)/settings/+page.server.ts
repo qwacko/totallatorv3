@@ -25,10 +25,13 @@ export const load = async (data) => {
 			automaticFilterScheduleText: cronstrue.toString(serverEnv.AUTOMATIC_FILTER_SCHEDULE)
 		},
 		logging: {
-			logging: serverEnv.LOGGING,
-			debugClasses: serverEnv.LOGGING_CLASSES,
 			pageTimeoutMs: serverEnv.PAGE_TIMEOUT_MS,
 			queryLogging: serverEnv.DB_QUERY_LOG
+		},
+		logDatabase: {
+			logDatabaseAddress: serverEnv.LOG_DATABASE_ADDRESS,
+			logDatabaseMaxEntries: serverEnv.LOG_DATABASE_MAX_ENTRIES,
+			logDatabaseMaxAgeDays: serverEnv.LOG_DATABASE_MAX_AGE_DAYS
 		},
 		dbLogging: {
 			dbLogEnable: serverEnv.DBLOG_ENABLE,

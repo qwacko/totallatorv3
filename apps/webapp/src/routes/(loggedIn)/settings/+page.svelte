@@ -13,6 +13,7 @@
 	let openImport = $state(true);
 	let openDev = $state(true);
 	let openLogging = $state(true);
+	let openLogDatabase = $state(true);
 	let opendbLogging = $state(true);
 	let openDB = $state(true);
 	let openStorage = $state(true);
@@ -166,41 +167,32 @@
 				rawData={data.settingsToSend.logging}
 				data={[
 					{
-						title: 'Logging',
-						options: trueFalseToButtons(data.settingsToSend.logging.logging)
-					},
-					{
-						title: 'Debug Classes',
-						options: [
-							{
-								title: 'Error',
-								selected: data.settingsToSend.logging.debugClasses.includes('ERROR')
-							},
-							{
-								title: 'Warnings',
-								selected: data.settingsToSend.logging.debugClasses.includes('WARN')
-							},
-							{
-								title: 'Info',
-								selected: data.settingsToSend.logging.debugClasses.includes('INFO')
-							},
-							{
-								title: 'Debug',
-								selected: data.settingsToSend.logging.debugClasses.includes('DEBUG')
-							},
-							{
-								title: 'Trace',
-								selected: data.settingsToSend.logging.debugClasses.includes('TRACE')
-							}
-						]
-					},
-					{
 						title: 'Page Timeout',
 						textValue: `${data.settingsToSend.logging.pageTimeoutMs / 1000} seconds`
 					},
 					{
 						title: 'Query Logging',
 						options: trueFalseToButtons(data.settingsToSend.logging.queryLogging)
+					}
+				]}
+			/>
+		</AccordionItem>
+		<AccordionItem bind:open={openLogDatabase}>
+			{#snippet header()}Log Database{/snippet}
+			<DisplaySettingGroup
+				rawData={data.settingsToSend.logDatabase}
+				data={[
+					{
+						title: 'Database Address',
+						textValue: data.settingsToSend.logDatabase.logDatabaseAddress
+					},
+					{
+						title: 'Max Entries',
+						textValue: `${data.settingsToSend.logDatabase.logDatabaseMaxEntries.toLocaleString()} entries`
+					},
+					{
+						title: 'Max Age',
+						textValue: `${data.settingsToSend.logDatabase.logDatabaseMaxAgeDays} days`
 					}
 				]}
 			/>
