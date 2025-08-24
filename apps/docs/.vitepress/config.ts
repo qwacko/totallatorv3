@@ -9,7 +9,7 @@ export default withMermaid({
 	title: 'Totallator',
 	description: 'Totallator',
 	themeConfig: {
-		editLink: { pattern: 'https://github.com/qwacko/totallatorv3/edit/master/docs/:path' },
+		editLink: { pattern: 'https://github.com/qwacko/totallatorv3/edit/master/apps/docs/:path' },
 		search: {
 			provider: 'local'
 		},
