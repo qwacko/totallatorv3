@@ -18,7 +18,7 @@ jobs:
       POSTGRES_TEST_URL: postgres://postgres:postgres@localhost:5432/postgres
 
     steps:
-      # Setsup Postgres
+      # Setup Postgres
       - uses: ikalnytskyi/action-setup-postgres@v4
       - uses: actions/checkout@v3
       - name: Install Node.js
@@ -44,6 +44,11 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+
       - run: pnpm install
+      
+      # Build all packages so their TypeScript declarations are available
+      - run: pnpm build
+      
       - run: pnpm check
       - run: pnpm test:unit
