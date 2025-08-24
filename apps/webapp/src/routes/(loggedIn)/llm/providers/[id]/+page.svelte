@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button, ButtonGroup, Helper, Select } from 'flowbite-svelte';
+	import { untrack } from 'svelte';
 	import { superForm } from 'sveltekit-superforms';
 
 	import { page } from '$app/state';
@@ -26,14 +27,17 @@
 
 	// When provider changes, update form values
 	$effect(() => {
-		const provider = predefinedProviders.find((p) => p.id === selectedProvider);
-		if (provider) {
-			$form.apiUrl = provider.id; // Store the provider ID, not the full URL
-			// Only update default model if it's empty to preserve user's selection
-			if (!$form.defaultModel) {
-				$form.defaultModel = provider.defaultModels[0] || '';
+		selectedProvider;
+		untrack(() => {
+			const provider = predefinedProviders.find((p) => p.id === selectedProvider);
+			if (provider) {
+				$form.apiUrl = provider.id; // Store the provider ID, not the full URL
+				// Only update default model if it's empty to preserve user's selection
+				if (!$form.defaultModel) {
+					$form.defaultModel = provider.defaultModels[0] || '';
+				}
 			}
-		}
+		});
 	});
 
 	// Provider options for dropdown
