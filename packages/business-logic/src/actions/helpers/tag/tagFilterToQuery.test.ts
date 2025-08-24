@@ -1,15 +1,18 @@
-import { tagFilterToQuery, tagFilterToText } from './tagFilterToQuery';
-import { tag } from '@totallator/database';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { and } from 'drizzle-orm';
+import { QueryBuilder } from 'drizzle-orm/pg-core';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
+import { tag } from '@totallator/database';
+
 import {
 	clearTestDB,
+	closeTestDB,
 	createTestWrapper,
 	getTestDB,
-	initialiseTestDB,
-	closeTestDB
+	initialiseTestDB
 } from '@/server/db/test/dbTest';
+
+import { tagFilterToQuery, tagFilterToText } from './tagFilterToQuery';
 
 describe('tagFilterToQuery', () => {
 	const qb = new QueryBuilder();
@@ -120,7 +123,10 @@ describe('tagFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = tagFilterToQuery({ filter: {}, target: 'materialized' });
+		const returnValue = tagFilterToQuery({
+			filter: {},
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()

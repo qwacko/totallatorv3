@@ -1,26 +1,24 @@
 <script lang="ts">
-  import type { ReportLayoutIds } from "@totallator/shared";
+	import type { ReportLayoutIds } from '@totallator/shared';
 
-  import ReportGridItem from "$lib/components/report/ReportGridItem.svelte";
-  import ReportGridWrapper from "$lib/components/report/ReportGridWrapper.svelte";
+	import ReportGridItem from '$lib/components/report/ReportGridItem.svelte';
+	import ReportGridWrapper from '$lib/components/report/ReportGridWrapper.svelte';
 
-  import { reportLayoutOptions } from "./reportLayoutOptions";
+	import { reportLayoutOptions } from './reportLayoutOptions';
 
-  const { format }: { format: ReportLayoutIds } = $props();
+	const { format }: { format: ReportLayoutIds } = $props();
 
-  const currentConfiguration = $derived(
-    (reportLayoutOptions[format] || reportLayoutOptions.default).sort(
-      (a, b) => a.order - b.order,
-    ),
-  );
+	const currentConfiguration = $derived(
+		(reportLayoutOptions[format] || reportLayoutOptions.default).sort((a, b) => a.order - b.order)
+	);
 </script>
 
 <ReportGridWrapper size="xs">
-  {#each currentConfiguration as { cols, rows, title }}
-    <ReportGridItem {cols} {rows} highlightOnHover>
-      {#if title}{title}{/if}
-    </ReportGridItem>
-    <!-- <div
+	{#each currentConfiguration as { cols, rows, title }}
+		<ReportGridItem {cols} {rows} highlightOnHover>
+			{#if title}{title}{/if}
+		</ReportGridItem>
+		<!-- <div
 			class="col-span-2 flex h-full w-full items-center justify-center rounded-lg border border-gray-300 text-center text-gray-400 shadow-md hover:border-gray-500 hover:shadow-lg"
 			class:col-span-1={cols === 1}
 			class:col-span-2={cols === 2}
@@ -37,5 +35,5 @@
 		>
 			{#if title}{title}{/if}
 		</div> -->
-  {/each}
+	{/each}
 </ReportGridWrapper>

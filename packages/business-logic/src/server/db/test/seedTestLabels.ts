@@ -1,5 +1,6 @@
 import type { DBType } from '@totallator/database';
 import { label } from '@totallator/database';
+
 import { labelCreateInsertionData } from '@/actions/helpers/label/labelCreateInsertionData';
 
 export const seedTestLabels = async (db: DBType) =>

@@ -1,4 +1,5 @@
 import { categoryMaterializedView, categoryView } from '@totallator/database';
+
 import { materializedViewActions } from '../../materializedViewActions';
 
 export const getCorrectCategoryTable = async () => {
@@ -10,5 +11,8 @@ export const getCorrectCategoryTable = async () => {
 		return { table: categoryView, target: 'view' as 'view' | 'materialized' };
 	}
 
-	return { table: categoryMaterializedView, target: 'materialized' as 'view' | 'materialized' };
+	return {
+		table: categoryMaterializedView,
+		target: 'materialized' as 'view' | 'materialized'
+	};
 };

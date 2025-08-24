@@ -1,4 +1,5 @@
 import { labelMaterializedView, labelView } from '@totallator/database';
+
 import { materializedViewActions } from '../../materializedViewActions';
 
 export const getCorrectLabelTable = async () => {
@@ -10,5 +11,8 @@ export const getCorrectLabelTable = async () => {
 		return { table: labelView, target: 'view' as 'view' | 'materialized' };
 	}
 
-	return { table: labelMaterializedView, target: 'materialized' as 'view' | 'materialized' };
+	return {
+		table: labelMaterializedView,
+		target: 'materialized' as 'view' | 'materialized'
+	};
 };

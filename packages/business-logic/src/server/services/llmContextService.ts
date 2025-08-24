@@ -1,8 +1,10 @@
+import { desc, eq, sql } from 'drizzle-orm';
+
 import type { DBType } from '@totallator/database';
-import { journalEntry, tag, category, bill, budget } from '@totallator/database';
-import { eq, desc, sql } from 'drizzle-orm';
-import { journalMaterializedViewActions } from '../../actions/journalMaterializedViewActions';
+import { bill, budget, category, journalEntry, tag } from '@totallator/database';
 import type { JournalTableType } from '@totallator/database';
+
+import { journalMaterializedViewActions } from '../../actions/journalMaterializedViewActions';
 
 export type MostUsedItemsType = {
 	mostUsedTags: { id: string; title: string; count: number }[];

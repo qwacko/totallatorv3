@@ -1,6 +1,7 @@
 import { asc, desc, type SQL } from 'drizzle-orm';
-import type { NoteOrderByEnumType } from '@totallator/shared';
+
 import { notesTable } from '@totallator/database';
+import type { NoteOrderByEnumType } from '@totallator/shared';
 
 export const noteToOrderByToSQL = ({
 	orderBy

@@ -112,7 +112,12 @@ export const importMappingFilterSchema = z.object({
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
-		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(orderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.default([{ direction: 'asc', field: 'title' }])
 		.optional()
 });

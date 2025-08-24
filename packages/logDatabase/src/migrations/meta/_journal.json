@@ -1,0 +1,27 @@
+{
+	"version": "7",
+	"dialect": "sqlite",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "6",
+			"when": 1755491229751,
+			"tag": "0000_fancy_cloak",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1755510421206,
+			"tag": "0001_green_cyclops",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "6",
+			"when": 1755972354536,
+			"tag": "0002_previous_the_spike",
+			"breakpoints": true
+		}
+	]
+}

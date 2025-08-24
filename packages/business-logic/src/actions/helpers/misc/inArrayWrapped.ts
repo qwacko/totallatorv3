@@ -1,4 +1,4 @@
-import { SQL, ilike, inArray, notInArray, or, sql } from 'drizzle-orm';
+import { ilike, inArray, notInArray, or, SQL, sql } from 'drizzle-orm';
 
 type columnType = Parameters<typeof inArray>[0];
 

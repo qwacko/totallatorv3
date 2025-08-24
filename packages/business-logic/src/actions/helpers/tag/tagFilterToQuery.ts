@@ -1,28 +1,31 @@
-import type { TagFilterSchemaWithoutPaginationType } from '@totallator/shared';
+import { eq, SQL } from 'drizzle-orm';
+
 import type { DBType } from '@totallator/database';
 import { tag } from '@totallator/database';
 import {
 	journalExtendedView,
-	tagMaterializedView,
 	journalView,
+	tagMaterializedView,
 	tagView
 } from '@totallator/database';
-import { SQL, eq } from 'drizzle-orm';
-import {
-	summaryFilterToQueryMaterialized,
-	summaryFilterToText
-} from '../summary/summaryFilterToQuery';
-import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import type { TagFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import {
 	importFilterToQueryMaterialized,
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
-import { filterToQueryFinal } from '../misc/filterToQueryFinal';
-import { processTagTextFilter } from './tagTextFilter';
-import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
+import { processTagTextFilter } from './tagTextFilter';
 
 export const tagFilterToQuery = ({
 	filter,

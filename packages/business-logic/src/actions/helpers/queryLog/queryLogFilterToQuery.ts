@@ -1,12 +1,15 @@
-import { queryLogTable, queryLogTitleTable, queryContentsTable } from '@totallator/database';
-import { SQL, not, lte, gte, inArray } from 'drizzle-orm';
-import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { gte, inArray, lte, not, SQL } from 'drizzle-orm';
+
+import { queryContentsTable, queryLogTable, queryLogTitleTable } from '@totallator/database';
 import type { DBType } from '@totallator/database';
-import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
-import { arrayToText } from '../misc/arrayToText';
 import type { QueryLogFilterSchemaWithoutPaginationType } from '@totallator/shared';
-import { processQueryLogTextFilter } from './queryLogTextFilter';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { arrayToText } from '../misc/arrayToText';
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
+import { processQueryLogTextFilter } from './queryLogTextFilter';
 
 export const queryLogFilterToQuery = ({
 	filter

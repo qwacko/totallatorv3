@@ -1,4 +1,7 @@
-export type OrderByType<Options extends string> = { field: Options; direction: 'asc' | 'desc' }[];
+export type OrderByType<Options extends string> = {
+	field: Options;
+	direction: 'asc' | 'desc';
+}[];
 
 export const modifyOrderBy = <Options extends string>(
 	currentOrder: OrderByType<Options> | undefined,
@@ -30,7 +33,10 @@ export const modifyOrderBy = <Options extends string>(
 		}
 		return currentOrder.map((order) => {
 			if (order.field === key) {
-				return { field: key, direction: order.direction === 'asc' ? 'desc' : 'asc' };
+				return {
+					field: key,
+					direction: order.direction === 'asc' ? 'desc' : 'asc'
+				};
 			} else {
 				return order;
 			}

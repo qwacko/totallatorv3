@@ -1,4 +1,6 @@
 import type { CategoryFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
+import { fileFilterArray } from '../file/fileTextFilter';
 import {
 	addToArray,
 	textFilterHandler,
@@ -12,17 +14,17 @@ import {
 	statusTextFilterArray
 } from '../misc/textFilterConfigurations';
 import { noteFilterArray } from '../note/noteTextFilter';
-import { fileFilterArray } from '../file/fileTextFilter';
 
-export const categoryFilterArray = [
-	...importTextFilterArray,
-	...statusTextFilterArray,
-	...statisticsTextFilterArray,
-	...groupSingleTextFilterArray,
-	...fileFilterArray,
-	...noteFilterArray,
-	...idTitleTextFilterArray
-] satisfies TextFilterOptionsType<CategoryFilterSchemaWithoutPaginationType>;
+export const categoryFilterArray: TextFilterOptionsType<CategoryFilterSchemaWithoutPaginationType> =
+	[
+		...importTextFilterArray,
+		...statusTextFilterArray,
+		...statisticsTextFilterArray,
+		...groupSingleTextFilterArray,
+		...fileFilterArray,
+		...noteFilterArray,
+		...idTitleTextFilterArray
+	];
 
 export const processCategoryTextFilter =
 	textFilterHandler<CategoryFilterSchemaWithoutPaginationType>(

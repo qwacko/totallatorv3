@@ -1,16 +1,17 @@
+import { cloneDeep } from 'lodash-es';
 import * as z from 'zod';
-import { dateStringSchema } from './dateStringSchema.js';
+
 import { accountFilterSchema } from './accountSchema.js';
-import { tagFilterSchema } from './tagSchema.js';
 import { billFilterSchema } from './billSchema.js';
 import { budgetFilterSchema } from './budgetSchema.js';
 import { categoryFilterSchema } from './categorySchema.js';
-import { labelFilterSchema } from './labelSchema.js';
-import { cloneDeep } from 'lodash-es';
 import { dateSpanEnum } from './dateSpanSchema.js';
+import { dateStringSchema } from './dateStringSchema.js';
+import { llmReviewStatusEnum } from './enum/llmReviewStatusEnum.js';
+import { labelFilterSchema } from './labelSchema.js';
 import { linkedFileFilterSchema } from './linkedFileFilterSchema.js';
 import { linkedNoteFilterSchema } from './linkedNoteFilterSchema.js';
-import { llmReviewStatusEnum } from './enum/llmReviewStatusEnum.js';
+import { tagFilterSchema } from './tagSchema.js';
 
 const zodStringBlanking = z
 	.string()
@@ -291,7 +292,12 @@ export const journalFilterSchema = z.object({
 	page: z.coerce.number<number>().optional().default(0),
 	pageSize: z.coerce.number<number>().optional().default(10),
 	orderBy: z
-		.array(z.object({ field: z.enum(journalOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(journalOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.optional()
 		.default([
 			{ direction: 'desc', field: 'date' },

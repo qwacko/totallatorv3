@@ -1,8 +1,9 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import * as schema from './schema';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { type Logger } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+
+import * as schema from './schema';
 
 export interface DatabaseConfig {
 	postgresUrl: string;
@@ -52,10 +53,16 @@ export async function migrateDatabase(config: DatabaseConfig) {
 	if (!config.isTestEnv && config.postgresUrl) {
 		config.logger?.('Migrating DB!!');
 		const migrationClient = postgres(config.postgresUrl, { max: 1 });
-		const migrationDB = drizzle(migrationClient);
 
-		await migrate(migrationDB, { migrationsFolder: config.migrationsPath });
-		config.logger?.('DB Migration Complete');
+		try {
+			const migrationDB = drizzle(migrationClient);
+			await migrate(migrationDB, { migrationsFolder: config.migrationsPath });
+			config.logger?.('DB Migration Complete');
+		} finally {
+			// Always close the migration connection to prevent connection leaks
+			await migrationClient.end();
+			config.logger?.('Migration connection closed');
+		}
 	} else if (!config.postgresUrl) {
 		config.logger?.('No POSTGRES_URL found, skipping migration!');
 	} else if (config.isTestEnv) {

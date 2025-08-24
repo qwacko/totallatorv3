@@ -1,0 +1,1 @@
+ALTER TABLE `log` ADD `data_string` text;

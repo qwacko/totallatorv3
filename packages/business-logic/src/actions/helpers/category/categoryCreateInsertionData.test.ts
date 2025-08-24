@@ -1,7 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
+
 import type { CreateCategorySchemaType } from '@totallator/shared';
 
 import { categoryCreateInsertionData } from './categoryCreateInsertionData';
-import { expect, describe, it, vi } from 'vitest';
 
 describe('categoryCreateInsertionData', () => {
 	it('should return the correct insertion data', () => {

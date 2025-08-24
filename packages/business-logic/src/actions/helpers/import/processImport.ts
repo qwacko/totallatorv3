@@ -1,4 +1,8 @@
 import { eq } from 'drizzle-orm';
+import Papa from 'papaparse';
+import { z } from 'zod';
+
+import { getContextDB } from '@totallator/context';
 import {
 	account,
 	bill,
@@ -10,31 +14,29 @@ import {
 	label,
 	tag
 } from '@totallator/database';
-import Papa from 'papaparse';
-import { updatedTime } from '../misc/updatedTime';
-import { importActions } from '../../importActions';
-import {
-	createSimpleTransactionSchema,
-	type CreateSimpleTransactionType
-} from '@totallator/shared';
+import { createSimpleTransactionSchema } from '@totallator/shared';
 import { createAccountSchema } from '@totallator/shared';
-import { processObjectReturnTransaction } from '@/helpers/importTransformation';
 import { createBillSchema } from '@totallator/shared';
 import { createBudgetSchema } from '@totallator/shared';
 import { createCategorySchema } from '@totallator/shared';
 import { createLabelSchema } from '@totallator/shared';
 import { createTagSchema } from '@totallator/shared';
-import { z, type ZodSchema } from 'zod';
-import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
-import { importMappingActions } from '../../importMappingActions';
-import { getImportDetail } from './getImportDetail';
 import type { ImportStatusType } from '@totallator/shared';
-import { inArrayWrapped } from '../misc/inArrayWrapped';
-import { importFileHandler } from '@/server/files/fileHandler';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getContextDB } from '@totallator/context';
 
-export const processCreatedImport = async ({ id }: { id: string }) => {
+import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
+import { processObjectReturnTransaction } from '@/helpers/importTransformation';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { importFileHandler } from '@/server/files/fileHandler';
+
+import { importMappingActions } from '../../importMappingActions';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
+import { updatedTime } from '../misc/updatedTime';
+import { getImportDetail } from './getImportDetail';
+import { importProcessItems } from './importProcessItems';
+
+type ImportTableType = typeof importTable.$inferSelect;
+
+export const processCreatedImport = async ({ id }: { id: string }): Promise<void> => {
 	const db = getContextDB();
 	const data = await dbExecuteLogger(
 		db.select().from(importTable).where(eq(importTable.id, id)),
@@ -43,13 +45,10 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 	if (data.length === 0) {
 		throw new Error('Import Not Found');
 	}
-
-	const importData = data[0];
-
+	const importData: ImportTableType = data[0];
 	const importMappingInformation = importData.importMappingId
 		? await importMappingActions.getById({ id: importData.importMappingId })
 		: undefined;
-
 	if (importData.status !== 'created') return;
 	if (!importData.filename) {
 		throw new Error('Import File Not Found');
@@ -63,15 +62,12 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					db.select().from(importItemDetail).where(inArrayWrapped(importItemDetail.uniqueId, data)),
 					'checkImportDuplicates'
 				);
-
 				if (existingImports.length > 0) {
 					return filterNullUndefinedAndDuplicates(existingImports.map((item) => item.uniqueId));
 				}
 			}
-
 			return await innerFunc(data);
 		};
-
 	if (importData.source === 'csv') {
 		const rowsToSkip = importMappingInformation?.configuration
 			? importMappingInformation.configuration.rowsToSkip
@@ -88,7 +84,6 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 				return lines.join('\n');
 			}
 		});
-
 		if (processedData.errors && processedData.errors.length > 0) {
 			await dbExecuteLogger(
 				db
@@ -103,13 +98,13 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 			);
 		} else {
 			if (importData.type === 'transaction') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createSimpleTransactionSchema
 				});
 			} else if (importData.type === 'account') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createAccountSchema,
@@ -124,7 +119,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'bill') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createBillSchema,
@@ -138,7 +133,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'budget') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createBudgetSchema,
@@ -152,7 +147,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'category') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createCategorySchema,
@@ -166,7 +161,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'tag') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createTagSchema,
@@ -180,7 +175,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					})
 				});
 			} else if (importData.type === 'label') {
-				await importActions.processItems({
+				await importProcessItems({
 					id,
 					data: processedData,
 					schema: createLabelSchema,
@@ -198,20 +193,20 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 					const importMappingDetail = await importMappingActions.getById({
 						id: importData.importMappingId
 					});
-
 					if (importMappingDetail) {
 						if (importMappingDetail.configuration) {
 							const config = importMappingDetail.configuration;
-
-							await importActions.processItems<CreateSimpleTransactionType>({
+							await importProcessItems({
 								id,
 								data: processedData,
-								schema: createSimpleTransactionSchema as ZodSchema<CreateSimpleTransactionType>,
+								schema: createSimpleTransactionSchema,
 								importDataToSchema: (data) => {
 									const currentRow = data as Record<string, unknown>;
 									const currentProcessedRow = processObjectReturnTransaction(currentRow, config);
 									if (currentProcessedRow.errors) {
-										return { errors: currentProcessedRow.errors.map((item) => item.error) };
+										return {
+											errors: currentProcessedRow.errors.map((item) => item.error)
+										};
 									} else {
 										const validatedData = createSimpleTransactionSchema.safeParse(
 											currentProcessedRow.transaction
@@ -250,7 +245,6 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 		const importMappingDetail = await importMappingActions.getById({
 			id: importData.importMappingId
 		});
-
 		const config = importMappingDetail?.configuration;
 		if (!importMappingDetail || !config) {
 			await dbExecuteLogger(
@@ -266,11 +260,9 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 			);
 			return;
 		}
-
 		const jsonData = JSON.parse(file);
 		const schema = z.array(z.record(z.string(), z.any()));
 		const parsedData = schema.safeParse(jsonData);
-
 		if (!parsedData.success) {
 			await dbExecuteLogger(
 				db
@@ -285,18 +277,18 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 			);
 			return;
 		}
-
 		const processedData = parsedData.data;
-
-		await importActions.processItems<CreateSimpleTransactionType>({
+		await importProcessItems({
 			id,
 			data: { data: processedData },
-			schema: createSimpleTransactionSchema as ZodSchema<CreateSimpleTransactionType>,
+			schema: createSimpleTransactionSchema,
 			importDataToSchema: (data) => {
 				const currentRow = data as Record<string, unknown>;
 				const currentProcessedRow = processObjectReturnTransaction(currentRow, config);
 				if (currentProcessedRow.errors) {
-					return { errors: currentProcessedRow.errors.map((item) => item.error) };
+					return {
+						errors: currentProcessedRow.errors.map((item) => item.error)
+					};
 				} else {
 					const validatedData = createSimpleTransactionSchema.safeParse(
 						currentProcessedRow.transaction
@@ -318,9 +310,7 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 			})
 		});
 	}
-
 	const importFinalDetail = await getImportDetail({ db, id });
-
 	const onlyDuplicatesExist =
 		importFinalDetail.linkedItemStatus.duplicate > 0 &&
 		importFinalDetail.linkedItemStatus.processed === 0;
@@ -328,7 +318,6 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 		importFinalDetail.linkedItemStatus.error > 0 &&
 		importFinalDetail.linkedItemStatus.processed === 0;
 	const noItemsExist = importFinalDetail.linkedItemStatus.all === 0;
-
 	const targetStatus: ImportStatusType = noItemsExist
 		? 'complete'
 		: onlyErrorsExist
@@ -336,7 +325,6 @@ export const processCreatedImport = async ({ id }: { id: string }) => {
 			: onlyDuplicatesExist
 				? 'complete'
 				: 'processed';
-
 	await dbExecuteLogger(
 		db
 			.update(importTable)

@@ -1,246 +1,26 @@
 import type { DBType } from '@totallator/database';
-import { journalMaterialisedList } from '@/actions/helpers/journal/journalList';
 import type { JournalFilterSchemaInputType } from '@totallator/shared';
-import { getServerEnv } from '@/serverEnv';
-import { getLogger } from '@/logger';
-import { createLLMClient } from '../llm/modernClient';
 
+import { accountActions } from '@/actions/accountActions';
+import { journalMaterialisedList } from '@/actions/helpers/journal/journalList';
+import { llmActions } from '@/actions/llmActions';
+import { getLogger } from '@/logger';
+import { getServerEnv } from '@/serverEnv';
+
+import { createLLMClient } from '../llm/modernClient';
+import { buildFuzzyMatchContext } from './contextBuilders/fuzzyMatchContextBuilder';
 // Context Builders
 import { buildHistoricalContext } from './contextBuilders/historicalContextBuilder';
-import { buildFuzzyMatchContext } from './contextBuilders/fuzzyMatchContextBuilder';
 import { buildPopularItemsContext } from './contextBuilders/popularItemsContextBuilder';
-import { llmActions } from '@/actions/llmActions';
-import { accountActions } from '@/actions/accountActions';
-
-// ============================================================================
-// Core Types for Batch LLM Processing
-// ============================================================================
-
-/**
- * Configuration for the batch processing service
- */
-export interface LLMBatchProcessingConfig {
-	/** Maximum number of uncategorized journals to include in one batch */
-	maxUncategorizedJournals: number;
-	/** Maximum number of historical journals to include for context */
-	maxHistoricalJournals: number;
-	/** Maximum number of popular items (categories, tags, etc.) to include */
-	maxPopularItems: number;
-	/** Similarity threshold for fuzzy matching (0.0-1.0) */
-	similarityThreshold: number;
-	/** Whether to allow LLM to create new categories/tags/bills/budgets */
-	allowAutoCreation: boolean;
-	/** Minimum confidence score to include in suggestions (0.0-1.0) */
-	minConfidenceThreshold: number;
-}
-
-/**
- * Default configuration values
- */
-export const DEFAULT_BATCH_CONFIG: LLMBatchProcessingConfig = {
-	maxUncategorizedJournals: 10,
-	maxHistoricalJournals: 100,
-	maxPopularItems: 20,
-	similarityThreshold: 0.3,
-	allowAutoCreation: true, // Will be overridden by getServerEnv().LLM_AUTO_CREATE_ITEMS
-	minConfidenceThreshold: 0.1 // Include even low-confidence suggestions for user review
-};
-
-// ============================================================================
-// Journal Data Types
-// ============================================================================
-
-/**
- * Essential journal data for LLM processing
- */
-export interface BatchJournalData {
-	id: string;
-	date: Date;
-	description: string;
-	amount: number;
-	accountId: string;
-	accountTitle: string;
-	payee?: string | null;
-	categoryId?: string | null;
-	categoryTitle?: string | null;
-	tagId?: string | null;
-	tagTitle?: string | null;
-	billId?: string | null;
-	billTitle?: string | null;
-	budgetId?: string | null;
-	budgetTitle?: string | null;
-	labels?: string[];
-	labelTitles?: string[];
-	importDetail?: any; // JSON import data
-	llmReviewStatus: 'not_required' | 'required' | 'complete' | 'error';
-}
-
-/**
- * Available categorization options
- */
-export interface CategorizationOptions {
-	categories: Array<{ id: string; title: string; active: boolean }>;
-	tags: Array<{ id: string; title: string; active: boolean }>;
-	bills: Array<{ id: string; title: string; active: boolean }>;
-	budgets: Array<{ id: string; title: string; active: boolean }>;
-	labels: Array<{ id: string; title: string; active: boolean }>;
-}
-
-/**
- * Popular items for an account (most frequently used)
- */
-export interface PopularItems {
-	categories: Array<{ id: string; title: string; usageCount: number }>;
-	tags: Array<{ id: string; title: string; usageCount: number }>;
-	bills: Array<{ id: string; title: string; usageCount: number }>;
-	budgets: Array<{ id: string; title: string; usageCount: number }>;
-	labels: Array<{ id: string; title: string; usageCount: number }>;
-}
-
-// ============================================================================
-// Context Building Types
-// ============================================================================
-
-/**
- * Complete context data sent to LLM for batch processing
- */
-export interface LLMBatchContext {
-	/** Configuration used for this batch */
-	config: LLMBatchProcessingConfig;
-
-	/** Account being processed */
-	account: {
-		id: string;
-		title: string;
-		type: string;
-	};
-
-	/** Journals that need categorization */
-	uncategorizedJournals: BatchJournalData[];
-
-	/** Historical journals for pattern recognition (deduplicated) */
-	historicalJournals: BatchJournalData[];
-
-	/** Fuzzy-matched similar journals from existing algorithm */
-	fuzzyMatches: BatchJournalData[];
-
-	/** Most popular categorization options for this account */
-	popularItems: PopularItems;
-
-	/** All available categorization options */
-	allOptions: CategorizationOptions;
-
-	/** Processing metadata */
-	metadata: {
-		generatedAt: Date;
-		totalHistoricalJournals: number;
-		deduplicationApplied: boolean;
-		fuzzyMatchesFound: number;
-	};
-}
-
-// ============================================================================
-// Response Types
-// ============================================================================
-
-/**
- * Individual journal suggestion from LLM
- */
-export interface JournalSuggestion {
-	journalId: string;
-	confidence: number; // 0.0-1.0
-
-	// Suggested updates
-	suggestedPayee?: string;
-	suggestedDescription?: string;
-
-	// Categorization suggestions (can be ID or name for creation)
-	suggestedCategory?: string | { id: string } | { name: string };
-	suggestedTag?: string | { id: string } | { name: string };
-	suggestedBill?: string | { id: string } | { name: string };
-	suggestedBudget?: string | { id: string } | { name: string };
-	suggestedLabels?: Array<string | { id: string } | { name: string }>;
-
-	// Analysis metadata
-	reasoning: string;
-	matchType: 'exact_historical' | 'fuzzy_import' | 'pattern_based' | 'educated_guess';
-	confidenceFactors: string[];
-	historicalMatchIds?: string[]; // IDs of historical journals used for this suggestion
-}
-
-/**
- * Items to create (when auto-creation is enabled)
- */
-export interface ItemsToCreate {
-	categories?: string[];
-	tags?: string[];
-	bills?: string[];
-	budgets?: string[];
-	labels?: string[];
-}
-
-/**
- * Complete LLM batch response
- */
-export interface LLMBatchResponse {
-	/** Processing insights and patterns found */
-	batchInsights: {
-		patternsFound: string[];
-		historicalMatches: Array<{ sourceJournalId: string; matchedJournalId: string; reason: string }>;
-		suggestedWorkflows: string[];
-	};
-
-	/** New items to create (if enabled) */
-	itemsToCreate?: ItemsToCreate;
-
-	/** Individual journal suggestions */
-	journalSuggestions: JournalSuggestion[];
-
-	/** Processing metadata */
-	processingMetadata: {
-		totalJournalsProcessed: number;
-		highConfidenceSuggestions: number;
-		mediumConfidenceSuggestions: number;
-		lowConfidenceSuggestions: number;
-		averageConfidence: number;
-	};
-}
-
-// ============================================================================
-// Service Results
-// ============================================================================
-
-/**
- * Result of processing a batch
- */
-export interface BatchProcessingResult {
-	success: boolean;
-	accountId: string;
-	journalsProcessed: number;
-	suggestionsCreated: number;
-	itemsCreated?: {
-		categories: number;
-		tags: number;
-		bills: number;
-		budgets: number;
-		labels: number;
-	};
-	processingTime: number;
-	error?: string;
-	llmResponse?: LLMBatchResponse;
-}
-
-/**
- * Statistics for batch processing
- */
-export interface BatchProcessingStats {
-	totalBatchesProcessed: number;
-	totalJournalsProcessed: number;
-	totalSuggestionsCreated: number;
-	averageConfidence: number;
-	processingTime: number;
-	errors: number;
-}
+import {
+	BatchJournalData,
+	BatchProcessingResult,
+	BatchProcessingStats,
+	DEFAULT_BATCH_CONFIG,
+	LLMBatchContext,
+	LLMBatchProcessingConfig,
+	LLMBatchResponse
+} from './llmBatchProcessingServiceTypes';
 
 // ============================================================================
 // Main Service Implementation
@@ -280,33 +60,51 @@ export async function processAllAccounts(
 
 	// Check if LLM processing is enabled
 	if (!getServerEnv().LLM_REVIEW_ENABLED) {
-		getLogger().info('LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false');
+		getLogger('llm').info({
+			code: 'LLM_001',
+			title: 'LLM Batch Processing: Skipped - LLM_REVIEW_ENABLED is false'
+		});
 		return emptyStats(Date.now() - startTime);
 	}
 
 	// Get enabled LLM providers
 	const allProviders = await llmActions.list();
 	const enabledProviders = allProviders.filter((p) => p.enabled);
-	getLogger().info(
-		`LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`
-	);
+	getLogger('llm').info({
+		code: 'LLM_002',
+		title: `LLM Batch Processing: Found ${allProviders.length} total providers, ${enabledProviders.length} enabled`,
+		totalProviders: allProviders.length,
+		enabledProviders: enabledProviders.length
+	});
 	if (enabledProviders.length === 0) {
-		getLogger().info('LLM Batch Processing: Skipped - No enabled providers');
+		getLogger('llm').info({
+			code: 'LLM_003',
+			title: 'LLM Batch Processing: Skipped - No enabled providers'
+		});
 		return emptyStats(Date.now() - startTime);
 	}
 
 	// Get accounts that have journals requiring processing
 	const accountsWithWork = await getAccountsWithRequiredJournals(db);
 
-	getLogger().info(
-		`LLM Batch Processing: Found ${accountsWithWork.length} accounts with journals requiring processing`
-	);
+	getLogger('llm').info({
+		code: 'LLM_004',
+		title: `LLM Batch Processing: Found ${accountsWithWork.length} accounts with journals requiring processing`,
+		accountsCount: accountsWithWork.length
+	});
 	if (accountsWithWork.length === 0) {
-		getLogger().info('LLM Batch Processing: No accounts with journals requiring processing');
+		getLogger('llm').info({
+			code: 'LLM_005',
+			title: 'LLM Batch Processing: No accounts with journals requiring processing'
+		});
 		return emptyStats(Date.now() - startTime);
 	}
 
-	getLogger().info(`LLM Batch Processing: Processing ${accountsWithWork.length} accounts`);
+	getLogger('llm').info({
+		code: 'LLM_006',
+		title: `LLM Batch Processing: Processing ${accountsWithWork.length} accounts`,
+		accountsCount: accountsWithWork.length
+	});
 
 	const stats: BatchProcessingStats = {
 		totalBatchesProcessed: 0,
@@ -331,19 +129,35 @@ export async function processAllAccounts(
 				stats.averageConfidence = (stats.averageConfidence + confidence) / 2;
 			}
 
-			getLogger().info(
-				`LLM Batch Processing: Account ${account.title} - ${result.journalsProcessed} journals processed`
-			);
+			getLogger('llm').info({
+				code: 'LLM_007',
+				title: `LLM Batch Processing: Account ${account.title} - ${result.journalsProcessed} journals processed`,
+				accountId: account.id,
+				accountTitle: account.title,
+				journalsProcessed: result.journalsProcessed
+			});
 		} catch (error) {
 			stats.errors++;
-			getLogger().error(`LLM Batch Processing: Error processing account ${account.id}:`, error);
+			getLogger('llm').error({
+				code: 'LLM_008',
+				title: `LLM Batch Processing: Error processing account ${account.id}`,
+				accountId: account.id,
+				error
+			});
 		}
 	}
 
 	stats.processingTime = Date.now() - startTime;
-	getLogger().info(
-		`LLM Batch Processing: Completed - ${stats.totalBatchesProcessed} batches, ${stats.totalJournalsProcessed} journals`
-	);
+	getLogger('llm').info({
+		code: 'LLM_009',
+		title: `LLM Batch Processing: Completed - ${stats.totalBatchesProcessed} batches, ${stats.totalJournalsProcessed} journals`,
+		totalBatchesProcessed: stats.totalBatchesProcessed,
+		totalJournalsProcessed: stats.totalJournalsProcessed,
+		totalSuggestionsCreated: stats.totalSuggestionsCreated,
+		averageConfidence: stats.averageConfidence,
+		processingTime: stats.processingTime,
+		errors: stats.errors
+	});
 
 	return stats;
 }
@@ -382,7 +196,10 @@ export async function processAccount(
 		const processResult = await processLLMResponse(db, llmResponse, config);
 
 		// For now, just log the response - we'll implement suggestion storage later
-		getLogger().info(`LLM Batch Processing Result for account ${accountId}:`, {
+		getLogger('llm').info({
+			code: 'LLM_010',
+			title: `LLM Batch Processing Result for account ${accountId}`,
+			accountId,
 			journalsProcessed: uncategorizedJournals.length,
 			suggestionsCount: llmResponse.journalSuggestions.length,
 			averageConfidence: llmResponse.processingMetadata.averageConfidence,
@@ -399,7 +216,12 @@ export async function processAccount(
 			llmResponse
 		};
 	} catch (error) {
-		getLogger().error(`LLM Batch Processing: Error processing account ${accountId}:`, error);
+		getLogger('llm').error({
+			code: 'LLM_011',
+			title: `LLM Batch Processing: Error processing account ${accountId}`,
+			accountId,
+			error
+		});
 		return {
 			success: false,
 			accountId,
@@ -432,16 +254,22 @@ async function getAccountsWithRequiredJournals(
 
 	const result = await journalMaterialisedList({ db, filter });
 
-	getLogger().info(
-		`LLM Batch Processing: Found ${result.count} journals with status 'required' in asset/liability accounts (showing ${result.data.length})`
-	);
+	getLogger('llm').info({
+		code: 'LLM_012',
+		title: `LLM Batch Processing: Found ${result.count} journals with status 'required' in asset/liability accounts (showing ${result.data.length})`,
+		totalJournals: result.count,
+		showingJournals: result.data.length
+	});
 
 	// Extract unique account IDs
 	const accountIds = new Set(result.data.map((j) => j.accountId).filter(Boolean));
 
-	getLogger().info(
-		`LLM Batch Processing: Journals span ${accountIds.size} asset/liability accounts: ${Array.from(accountIds).join(', ')}`
-	);
+	getLogger('llm').info({
+		code: 'LLM_013',
+		title: `LLM Batch Processing: Journals span ${accountIds.size} asset/liability accounts`,
+		accountsCount: accountIds.size,
+		accountIds: Array.from(accountIds)
+	});
 
 	// Get account details and verify they are asset/liability accounts
 	const accounts = await Promise.all(
@@ -459,9 +287,16 @@ async function getAccountsWithRequiredJournals(
 		title: string;
 		type: string;
 	}>;
-	getLogger().info(
-		`LLM Batch Processing: Processing ${validAccounts.length} asset/liability accounts: ${validAccounts.map((a) => `${a.title} (${a.type})`).join(', ')}`
-	);
+	getLogger('llm').info({
+		code: 'LLM_014',
+		title: `LLM Batch Processing: Processing ${validAccounts.length} asset/liability accounts`,
+		validAccountsCount: validAccounts.length,
+		accounts: validAccounts.map((a) => ({
+			title: a.title,
+			type: a.type,
+			id: a.id
+		}))
+	});
 
 	return validAccounts;
 }
@@ -528,16 +363,35 @@ async function buildContext(
 
 	// Run each context builder
 	const contextBuilders = [
-		{ name: 'historical', enabled: true, priority: 1, build: buildHistoricalContext },
-		{ name: 'fuzzy_match', enabled: true, priority: 2, build: buildFuzzyMatchContext },
-		{ name: 'popular_items', enabled: true, priority: 3, build: buildPopularItemsContext }
+		{
+			name: 'historical',
+			enabled: true,
+			priority: 1,
+			build: buildHistoricalContext
+		},
+		{
+			name: 'fuzzy_match',
+			enabled: true,
+			priority: 2,
+			build: buildFuzzyMatchContext
+		},
+		{
+			name: 'popular_items',
+			enabled: true,
+			priority: 3,
+			build: buildPopularItemsContext
+		}
 	].sort((a, b) => a.priority - b.priority);
 
 	for (const builder of contextBuilders) {
 		if (!builder.enabled) continue;
 
 		try {
-			getLogger().debug(`LLM Batch Processing: Running context builder '${builder.name}'`);
+			getLogger('llm').debug({
+				code: 'LLM_015',
+				title: `LLM Batch Processing: Running context builder '${builder.name}'`,
+				builderName: builder.name
+			});
 			const builderContext = await builder.build({
 				db,
 				accountId,
@@ -548,7 +402,12 @@ async function buildContext(
 			// Merge builder results into main context
 			context = { ...context, ...builderContext };
 		} catch (error) {
-			getLogger().error(`LLM Batch Processing: Context builder '${builder.name}' failed:`, error);
+			getLogger('llm').error({
+				code: 'LLM_016',
+				title: `LLM Batch Processing: Context builder '${builder.name}' failed`,
+				builderName: builder.name,
+				error
+			});
 			// Continue with other builders
 		}
 	}
@@ -610,7 +469,9 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 	const prompt = buildBatchPrompt(context);
 
 	// Log context for debugging
-	getLogger().info('LLM Batch Context built:', {
+	getLogger('llm').info({
+		code: 'LLM_017',
+		title: 'LLM Batch Context built',
 		accountId: context.account.id,
 		uncategorizedCount: context.uncategorizedJournals.length,
 		historicalCount: context.historicalJournals.length,
@@ -632,7 +493,10 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 			max_tokens: 4000 // Enough for batch processing responses
 		};
 
-		getLogger().info('Making LLM API call for batch processing...');
+		getLogger('llm').info({
+			code: 'LLM_018',
+			title: 'Making LLM API call for batch processing...'
+		});
 		const llmResponse = await llmClient.call(llmRequest);
 
 		// Parse the response
@@ -649,8 +513,12 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 			const jsonText = jsonMatch ? jsonMatch[0] : responseText;
 			parsedResponse = JSON.parse(jsonText);
 		} catch (parseError) {
-			getLogger().error('Failed to parse LLM JSON response:', parseError);
-			getLogger().error('Raw response:', responseText);
+			getLogger('llm').error({
+				code: 'LLM_019',
+				title: 'Failed to parse LLM JSON response',
+				parseError,
+				responseText
+			});
 
 			// Fallback to mock response if parsing fails
 			throw new Error(`Failed to parse LLM response: ${parseError}`);
@@ -659,7 +527,9 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 		// Validate and enhance the response
 		const enhancedResponse = validateAndEnhanceLLMResponse(parsedResponse, context);
 
-		getLogger().info('LLM Batch Processing completed successfully:', {
+		getLogger('llm').info({
+			code: 'LLM_020',
+			title: 'LLM Batch Processing completed successfully',
 			totalSuggestions: enhancedResponse.journalSuggestions.length,
 			averageConfidence: enhancedResponse.processingMetadata.averageConfidence,
 			patternsFound: enhancedResponse.batchInsights.patternsFound.length
@@ -667,7 +537,11 @@ async function callLLMForBatch(db: DBType, context: LLMBatchContext): Promise<LL
 
 		return enhancedResponse;
 	} catch (error) {
-		getLogger().error('LLM Batch Processing failed:', error);
+		getLogger('llm').error({
+			code: 'LLM_021',
+			title: 'LLM Batch Processing failed',
+			error
+		});
 
 		// Return fallback response on error
 		const fallbackResponse: LLMBatchResponse = {

@@ -1,5 +1,6 @@
 import type { DBType } from '@totallator/database';
 import { account } from '@totallator/database';
+
 import { accountCreateInsertionData } from '@/actions/helpers/account/accountCreateInsertionData';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 

@@ -11,7 +11,12 @@ export const getCommonData = <
 	const targetSet = [...new Set(data.map((item) => item[key]))];
 
 	if (log) {
-		getLogger().info('Target Set : ', targetSet, ' - Length - ', targetSet.length);
+		getLogger('queries').info({
+			code: 'QUERY_002',
+			title: 'Target Set',
+			targetSet,
+			length: targetSet.length
+		});
 	}
 
 	if (targetSet.length === 1) {
@@ -44,7 +49,7 @@ export type GetToFromAccountAmountDataReturn = {
  *
  * @param {T} key - The key to retrieve common data for.
  * @param {U[]} data - The array of objects to retrieve data from.
- * @param {boolean} [log=false] - Optional parameter to enable getLogger().
+ * @param {boolean} [log=false] - Optional parameter to enable logging.
  *
  * @returns {U[T] | undefined} - The common data for the specified key, or undefined if there is no common data.
  */

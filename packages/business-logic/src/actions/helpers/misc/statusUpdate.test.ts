@@ -1,5 +1,6 @@
-import { statusUpdate } from './statusUpdate';
 import { describe, expect, it } from 'vitest';
+
+import { statusUpdate } from './statusUpdate';
 
 describe('statusUpdate', () => {
 	it('should return an empty object when status is undefined', () => {

@@ -1,4 +1,5 @@
 import type { AutoImportCombinedSchemaType } from '@totallator/shared';
+
 import { getData_Akahu } from './getData_Akahu';
 import { getData_SaltEdge } from './getData_SaltEdge';
 

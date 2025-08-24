@@ -1,19 +1,21 @@
 import { eq } from 'drizzle-orm';
+
 import {
-	importTable,
+	type AccountTableType,
 	type BillTableType,
-	type ImportTableType,
-	type JournalTableType,
 	type BudgetTableType,
 	type CategoryTableType,
-	type TagTableType,
+	type ImportItemDetailTableType,
+	importTable,
+	type ImportTableType,
+	type JournalTableType,
 	type LabelTableType,
-	type AccountTableType,
-	type ImportItemDetailTableType
+	type TagTableType
 } from '@totallator/database';
 import type { DBType } from '@totallator/database';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
 import type { importTypeType } from '@totallator/shared';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 export const getImportDetail = async ({
 	db,
@@ -56,7 +58,14 @@ export const getImportDetail = async ({
 				all: prev.all + 1
 			};
 		},
-		{ error: 0, importError: 0, duplicate: 0, processed: 0, imported: 0, all: 0 }
+		{
+			error: 0,
+			importError: 0,
+			duplicate: 0,
+			processed: 0,
+			imported: 0,
+			all: 0
+		}
 	);
 
 	const linkedItemCount = returnData.importDetails.reduce(

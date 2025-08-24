@@ -14,15 +14,15 @@
 	"scripts": {
 		"build": "tsc && tsc-alias",
 		"dev": "tsc --watch & tsc-alias --watch",
-		"clean": "rm -rf dist",
+		"clean": "rm -rf dist tsconfig.tsbuildinfo",
 		"check": "tsc --noEmit",
 		"circular": "madge --circular --extensions ts src/",
 		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
 		"format": "prettier --write .",
-		"lint": "prettier --check ."
+		"lint": "prettier --check .",
+		"prepack": "pnpm run build"
 	},
 	"dependencies": {
-		"@totallator/context": "workspace:*",
 		"arktype": "^2.1.20",
 		"lodash-es": "^4.17.21",
 		"prettier": "^3.6.2",

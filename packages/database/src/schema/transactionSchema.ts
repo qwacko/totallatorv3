@@ -1,20 +1,21 @@
-import { accountTypeEnum } from '@totallator/shared';
-import { statusEnum } from '@totallator/shared';
 import { relations } from 'drizzle-orm';
 import {
+	boolean,
+	customType,
+	index,
+	integer,
+	json,
+	jsonb,
+	pgEnum,
 	pgTable,
 	text,
-	integer,
-	unique,
-	index,
-	boolean,
 	timestamp,
-	json,
-	varchar,
-	customType,
-	jsonb,
-	pgEnum
+	unique,
+	varchar
 } from 'drizzle-orm/pg-core';
+
+import { accountTypeEnum } from '@totallator/shared';
+import { statusEnum } from '@totallator/shared';
 import {
 	importDetailStatusEnum,
 	importSourceEnum,
@@ -24,18 +25,19 @@ import {
 import { reusableFilterModifcationType } from '@totallator/shared';
 import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import {
-	autoImportFrequencyEnum,
 	type AutoImportCombinedSchemaType,
+	autoImportFrequencyEnum,
 	autoImportTypes
 } from '@totallator/shared';
 import { pageSizeEnum } from '@totallator/shared';
 import { type ReportElementLayoutType } from '@totallator/shared';
 import type { ReportConfigPartSchemaType } from '@totallator/shared';
-import type { CombinedBackupSchemaInfoType } from '../backups/backupSchema';
 import { noteTypeEnum } from '@totallator/shared';
 import { fileReasonEnum } from '@totallator/shared';
 import { fileTypeEnum } from '@totallator/shared';
 import { llmReviewStatusEnum } from '@totallator/shared';
+
+import type { CombinedBackupSchemaInfoType } from '../backups/backupSchema';
 import { user } from './userSchema';
 
 const moneyType = customType<{ data: number }>({
@@ -52,7 +54,11 @@ const moneyType = customType<{ data: number }>({
 
 const timestampColumns = {
 	createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-	updatedAt: timestamp('updated_at', { precision: 6, withTimezone: true, mode: 'date' }).notNull()
+	updatedAt: timestamp('updated_at', {
+		precision: 6,
+		withTimezone: true,
+		mode: 'date'
+	}).notNull()
 };
 
 const importColumns = (identifier?: string) => ({
@@ -292,7 +298,10 @@ export const labelToJournalsRelations = relations(labelsToJournals, ({ one }) =>
 		fields: [labelsToJournals.journalId],
 		references: [journalEntry.id]
 	}),
-	label: one(label, { fields: [labelsToJournals.labelId], references: [label.id] })
+	label: one(label, {
+		fields: [labelsToJournals.labelId],
+		references: [label.id]
+	})
 }));
 
 const journalSharedColumns = {
@@ -914,9 +923,9 @@ export const reusableFilter = pgTable(
 		applyAutomatically: boolean('apply_automatically').notNull().default(false),
 		applyFollowingImport: boolean('apply_following_import').notNull().default(false),
 		listed: boolean('listed').notNull().default(true),
-		modificationType: text('modification_type', { enum: reusableFilterModifcationType }).default(
-			'replace'
-		),
+		modificationType: text('modification_type', {
+			enum: reusableFilterModifcationType
+		}).default('replace'),
 		filter: text('filter').notNull(),
 		filterText: text('filter_text').notNull(),
 		change: text('change'),

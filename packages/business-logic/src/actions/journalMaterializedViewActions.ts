@@ -1,17 +1,37 @@
-import { SQL, and, avg, count, sql, sum, max, not, eq, desc } from 'drizzle-orm';
-import type { DBType } from '@totallator/database';
+import { and, avg, count, desc, eq, max, not, SQL, sql, sum } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
+import Papa from 'papaparse';
+import * as z from 'zod';
+
+import { getContextDB } from '@totallator/context';
+import type { DBType } from '@totallator/database';
+import { journalEntry } from '@totallator/database';
 import type {
 	CreateSimpleTransactionType,
 	JournalFilterSchemaInputType,
 	JournalFilterSchemaType,
 	JournalFilterSchemaWithoutPaginationType
 } from '@totallator/shared';
+import { summaryCacheDataSchema, type SummaryCacheSchemaDataType } from '@totallator/shared';
+import type { DownloadTypeEnumType } from '@totallator/shared';
+import type { LlmReviewStatusEnumType } from '@totallator/shared';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+import {
+	type EnhancedRecommendationType,
+	journalRecommendationService
+} from '@/server/services/journalRecommendationService';
+
+import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import {
 	journalMaterialisedList,
 	type JournalMLExpandedWithPagination
 } from './helpers/journal/journalList';
+import {
+	getCorrectImportCheckTable,
+	getCorrectJournalTable
+} from './helpers/journalMaterializedView/getCorrectJournalTable';
+import { materializedJournalFilterToQuery } from './helpers/journalMaterializedView/materializedJournalFilterToQuery';
 import {
 	getCommonData,
 	getCommonLabelData,
@@ -20,24 +40,6 @@ import {
 	type GetToFromAccountAmountDataReturn
 } from './helpers/misc/getCommonData';
 import { getMonthlySummary } from './helpers/summary/getMonthlySummary';
-import { summaryCacheDataSchema, type SummaryCacheSchemaDataType } from '@totallator/shared';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { journalEntry } from '@totallator/database';
-import {
-	getCorrectImportCheckTable,
-	getCorrectJournalTable
-} from './helpers/journalMaterializedView/getCorrectJournalTable';
-
-import * as z from 'zod';
-import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
-import type { DownloadTypeEnumType } from '@totallator/shared';
-import Papa from 'papaparse';
-import {
-	journalRecommendationService,
-	type EnhancedRecommendationType
-} from '@/server/services/journalRecommendationService';
-import type { LlmReviewStatusEnumType } from '@totallator/shared';
-import { getContextDB } from '@totallator/context';
 
 export const journalMaterializedViewActions = {
 	getLatestUpdateDate: async (): Promise<Date> => {
@@ -666,10 +668,10 @@ export const journalMaterializedViewActions = {
 
 export type RecommendationType = {
 	journalId: string;
-	journalBillId?: string;
-	journalBudgetId?: string;
-	journalCategoryId?: string;
-	journalTagId?: string;
+	journalBillId?: string | null;
+	journalBudgetId?: string | null;
+	journalCategoryId?: string | null;
+	journalTagId?: string | null;
 	journalAccountId: string;
 	journalDescription: string;
 	journalDate: Date;
@@ -680,3 +682,7 @@ export type RecommendationType = {
 	checkDescription: string;
 	searchDescription: string;
 };
+
+export type JournalSummaryType = Awaited<
+	ReturnType<(typeof journalMaterializedViewActions)['summary']>
+>;

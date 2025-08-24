@@ -1,5 +1,6 @@
-import type { CreateFileNoteRelationshipSchemaType } from '@totallator/shared';
 import type { JournalViewReturnType } from '@totallator/database';
+import type { CreateFileNoteRelationshipSchemaType } from '@totallator/shared';
+
 import type { PaginatedResults } from '../journal/PaginationType';
 
 export type GroupingOptions =

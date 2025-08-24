@@ -1,27 +1,33 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import * as schema from '@totallator/database';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import { getServerEnv } from '@/serverEnv';
 import { type Logger } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { nanoid } from 'nanoid';
+import postgres from 'postgres';
+import { it } from 'vitest';
+
+import * as schema from '@totallator/database';
 import type { DBType } from '@totallator/database';
+
+import { materializedViewActions } from '@/actions/materializedViewActions';
+import { getLogger } from '@/logger';
+import { getServerEnv } from '@/serverEnv';
+
 import { seedTestAccounts } from './seedTestAccounts';
 import { seedTestBills } from './seedTestBills';
 import { seedTestBudgets } from './seedTestBudgets';
 import { seedTestCategories } from './seedTestCategories';
 import { seedTestLabels } from './seedTestLabels';
 import { seedTestTags } from './seedTestTags';
-import postgres from 'postgres';
-import { it } from 'vitest';
-import { nanoid } from 'nanoid';
-import { materializedViewActions } from '@/actions/materializedViewActions';
-import { getLogger } from '@/logger';
 
 if (!getServerEnv().POSTGRES_TEST_URL) {
 	throw new Error('POSTGRES_TEST_URL is not defined');
 }
 
 const genTestDB = async () => {
-	getLogger().info('Generating Test DB');
+	getLogger('database').info({
+		code: 'DB_TEST_001',
+		title: 'Generating Test DB'
+	});
 
 	const useURL = getServerEnv().POSTGRES_TEST_URL || getServerEnv().POSTGRES_URL || '';
 
@@ -30,7 +36,12 @@ const genTestDB = async () => {
 	class MyLogger implements Logger {
 		logQuery(query: string, params: unknown[]): void {
 			if (query.startsWith('update') && enableLogger && getServerEnv().DEV) {
-				getLogger().info({ query, params });
+				getLogger('database').info({
+					code: 'DB_TEST_002',
+					title: 'Database query logged',
+					query,
+					params
+				});
 			}
 		}
 	}
@@ -39,7 +50,9 @@ const genTestDB = async () => {
 
 	const testDB = drizzle(postgresDatabase, { schema, logger: new MyLogger() });
 
-	await migrate(testDB, { migrationsFolder: './src/lib/server/db/postgres/migrations' });
+	await migrate(testDB, {
+		migrationsFolder: './src/lib/server/db/postgres/migrations'
+	});
 
 	return { testDB, postgresDatabase };
 };

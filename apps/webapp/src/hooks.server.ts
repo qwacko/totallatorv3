@@ -1,170 +1,274 @@
-import { type Handle, redirect, type ServerInit } from "@sveltejs/kit";
-import { sequence } from "@sveltejs/kit/hooks";
+import { createClient } from '@libsql/client';
+import { redirect, type ServerInit } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
+import { nanoid } from 'nanoid';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import { actionHelpers, tActions } from "@totallator/business-logic";
-import { noAdmins } from "@totallator/business-logic";
 import {
-  createRequestContext,
-  runRequestInTransaction,
-  runWithContext,
-} from "@totallator/context";
+	actionHelpers,
+	clearInProgressBackupRestores,
+	getEventListenerCounts,
+	hasActiveBackupRestore,
+	initializeEventCallbacks,
+	materializedViewActions,
+	tActions
+} from '@totallator/business-logic';
+import { noAdmins } from '@totallator/business-logic';
+import {
+	type CombinedContext,
+	type EnhancedRequestContext,
+	type GlobalContext,
+	hookBuilder,
+	initializeGlobalContext
+} from '@totallator/context';
 
-import { loadConfigServer } from "$lib/routes.server.js";
+import { building } from '$app/environment';
 
-import { authGuard } from "./lib/authGuard/authGuardConfig.js";
-import { ensureInitialized } from "./lib/server/context.js";
-import { initializeNewCronService } from "./lib/server/cron/newCronService.js";
+import { loadConfigServer } from '$lib/routes.server.js';
 
-const handleAuth: Handle = async ({
-  event,
-  resolve,
-}: Parameters<Handle>[0]) => {
-  console.log("Handling Auth");
-  const context = await ensureInitialized();
+import { authGuard } from './lib/authGuard/authGuardConfig.js';
+import { initializeNewCronService } from './lib/server/cron/newCronService.js';
+import { getServerEnv } from './lib/server/serverEnv.js';
 
-  if (!context.db) {
-    throw new Error("Database is not initialized in the global context.");
-  }
+// Set up the paths
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const migrationsPath = path.join(__dirname, '../../../packages/database/src/migrations');
 
-  // Create request context for auth
-  const requestContext = createRequestContext(event);
+console.log('Migrations Path:', migrationsPath);
 
-  // Run auth within AsyncLocalStorage context
-  return runWithContext(context, requestContext, async () => {
-    const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
-    if (!sessionToken) {
-      event.locals.user = undefined;
-      event.locals.session = undefined;
-      return resolve(event);
-    }
+// Create the new context system
+const { hook, standaloneContext, globalContext } = hookBuilder({
+	// Initialize global context with access to getContext for context-aware services
+	initGlobalContext: async (
+		getContext: () => CombinedContext<GlobalContext, EnhancedRequestContext>
+	): Promise<GlobalContext> => {
+		if (building) {
+			// Return minimal context for build
+			return {} as any;
+		}
 
-    const { session, user } =
-      await tActions.auth.validateSessionToken(sessionToken);
-    if (session !== null) {
-      tActions.auth.setSessionTokenCookie(
-        event,
-        sessionToken,
-        session.expiresAt,
-      );
-    } else {
-      tActions.auth.deleteSessionTokenCookie(event);
-    }
+		console.log('Server Init Function');
+		console.log('postgresUrl:', getServerEnv().POSTGRES_URL);
 
-    event.locals.user = user || undefined;
-    event.locals.session = session || undefined;
-    return resolve(event);
-  });
-};
+		const context = await initializeGlobalContext(
+			{
+				serverEnv: getServerEnv(),
+				isBuilding: building,
+				viewRefreshAction: async () => {
+					return await materializedViewActions.conditionalRefreshWithContext({});
+				},
+				migrationsPath,
+				createLoggingDBClient: () => {
+					const url = getServerEnv().LOG_DATABASE_ADDRESS || 'file:logs.db';
+					const authToken = getServerEnv().LOG_DATABASE_KEY;
+					return createClient({ url, authToken });
+				}
+			},
+			getContext
+		);
 
+		// Setup DB Logger
+		actionHelpers.initDBLogger(context);
+
+		context.logger('database').info({ title: 'New context system initialized', code: 'DB_006' });
+
+		return context;
+	},
+
+	// Create request context with all the fields we need
+	createRequestContext: (event: any): EnhancedRequestContext => ({
+		requestId: nanoid(),
+		startTime: Date.now(),
+		routeId: event.route.id || event.url.pathname,
+		url: event.url.pathname,
+		method: event.request.method,
+		user: event.locals.user,
+		session: event.locals.session,
+		userAgent: event.request.headers.get('user-agent') || undefined,
+		ip: event.getClientAddress()
+	}),
+
+	// Update locals for backward compatibility
+	updateLocals: (event: any, context: CombinedContext<GlobalContext, EnhancedRequestContext>) => {
+		event.locals.global = context.global;
+		event.locals.request = context.request;
+		event.locals.db = context.global.db;
+	},
+
+	// Handle all the custom logic that was in the old hooks
+	customResolve: async (context, event, resolve) => {
+		// Set up timeout monitoring
+		const timeLimit = context.global.serverEnv.PAGE_TIMEOUT_MS;
+		const timeout = setTimeout(() => {
+			context.global.logger('server').warn({
+				code: 'SRV_002',
+				title: `Request took longer than ${timeLimit}ms to resolve`,
+				requestId: context.request.requestId,
+				requestURL: event.request.url,
+				routeId: event.route.id
+			});
+		}, timeLimit);
+
+		try {
+			// Authentication logic
+			const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
+			if (sessionToken) {
+				const { session, user } = await tActions.auth.validateSessionToken(sessionToken);
+				if (session !== null) {
+					tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+				} else {
+					tActions.auth.deleteSessionTokenCookie(event);
+				}
+				event.locals.user = user || undefined;
+				event.locals.session = session || undefined;
+
+				// Update context request with auth info
+				context.request.user = user || undefined;
+				context.request.session = session || undefined;
+			} else {
+				event.locals.user = undefined;
+				event.locals.session = undefined;
+			}
+
+			// Route logic
+			const noAdmin = await noAdmins({ global: context.global });
+
+			if (event.route.id === null) {
+				// Allow null route
+			} else if (!event.route.id) {
+				redirect(302, '/login');
+			}
+
+			if (event.route.id === '/(loggedOut)/firstUser' && !noAdmin) {
+				context.global
+					.logger('server')
+					.info({ code: 'SRV_001', title: 'Redirecting from firstUser' });
+				if (event.locals.user) {
+					redirect(302, '/users');
+				} else {
+					redirect(302, '/login');
+				}
+			}
+
+			if (event.route.id !== '/(loggedOut)/firstUser' && noAdmin) {
+				redirect(302, '/firstUser');
+			}
+
+			// Check for active backup restores
+			if (
+				event.locals.user &&
+				event.route.id &&
+				!event.route.id.startsWith('/(loggedOut)') &&
+				!event.route.id.includes('backup-restore-progress')
+			) {
+				try {
+					const hasActiveRestore = await hasActiveBackupRestore();
+					if (hasActiveRestore) {
+						redirect(302, '/backup-restore-progress');
+					}
+				} catch (error) {
+					if (error && typeof error === 'object' && 'status' in error && error.status === 302) {
+						throw error;
+					}
+					context.global.logger('server').warn({
+						title: 'Failed to check for active backup restore:',
+						code: 'SRV_003',
+						error
+					});
+				}
+			}
+
+			// Auth guard
+			if (event.route.id) {
+				authGuard(event as Parameters<typeof authGuard>[0]);
+			}
+
+			// Transaction wrapping for non-GET requests
+			const isNonGetRequest = event.request.method !== 'GET';
+
+			if (isNonGetRequest) {
+				context.global.logger('database').debug({
+					title: `Wrapping ${event.request.method} request in transaction`,
+					code: 'DB_005',
+					requestId: context.request.requestId,
+					requestURL: event.request.url
+				});
+
+				return context.global.db.transaction(async () => {
+					return await resolve(event);
+				});
+			} else {
+				return resolve(event);
+			}
+		} finally {
+			clearTimeout(timeout);
+		}
+	}
+});
+
+// Export for use in cron jobs and other external contexts
+export { standaloneContext, globalContext };
+
+// Server initialization - now much simpler
 export const init: ServerInit = async () => {
-  await loadConfigServer();
+	await loadConfigServer();
 
-  const context = await ensureInitialized();
+	if (building) {
+		return;
+	}
 
-  //Setup DB Logger
-  actionHelpers.initDBLogger(context);
+	// Trigger global context initialization
+	await globalContext();
 
-  // Initialize new cron service after database is ready
-  // Add a small delay to ensure migrations have completed
-  setTimeout(async () => {
-    try {
-      await initializeNewCronService(() => context);
-      console.log("Cron service initialized successfully");
-    } catch (error) {
-      console.error("Failed to initialize cron service:", error);
-      // Retry after 5 seconds if it fails
-      setTimeout(async () => {
-        try {
-          await initializeNewCronService(() => context);
-          console.log("Cron service initialized on retry");
-        } catch (retryError) {
-          console.error(
-            "Failed to initialize cron service on retry:",
-            retryError,
-          );
-        }
-      }, 5000);
-    }
-  }, 1000);
+	// Initialize event callbacks and clear progress with a delay to ensure everything is ready
+	setTimeout(async () => {
+		try {
+			await standaloneContext(
+				{
+					requestId: nanoid(),
+					routeId: 'internal/init',
+					url: '/internal/init',
+					method: 'INIT',
+					startTime: Date.now(),
+					ip: '127.0.0.1'
+				},
+				async () => {
+					console.log('Initializing event callbacks...');
+					initializeEventCallbacks();
+					console.log('Event callbacks initialized');
+
+					const listenerCounts = getEventListenerCounts();
+					console.log('Registered event listeners:', listenerCounts);
+
+					console.log('Clearing in-progress backup restores...');
+					await clearInProgressBackupRestores();
+					console.log('Backup restore cleanup completed');
+				}
+			);
+		} catch (error) {
+			console.error('Failed to initialize event callbacks:', error);
+		}
+	}, 1500);
+
+	// Initialize cron service
+	setTimeout(async () => {
+		try {
+			await initializeNewCronService(globalContext);
+		} catch (error) {
+			console.error('Failed to initialize cron service:', error);
+			// Retry after 5 seconds if it fails
+			setTimeout(async () => {
+				try {
+					await initializeNewCronService(globalContext);
+				} catch (retryError) {
+					console.error('Failed to initialize cron service on retry:', retryError);
+				}
+			}, 5000);
+		}
+	}, 1000);
 };
 
-const handleRoute: Handle = async ({
-  event,
-  resolve,
-}: Parameters<Handle>[0]) => {
-  const context = await ensureInitialized();
-
-  if (!context.db) {
-    throw new Error("Database is not initialized in the global context.");
-  }
-  // Create request context
-  const requestContext = createRequestContext(event);
-
-  // Set up contexts in locals (for backward compatibility)
-  event.locals.global = context;
-  event.locals.request = requestContext;
-  event.locals.db = context.db; // Keep for backward compatibility
-
-  const timeLimit = context.serverEnv.PAGE_TIMEOUT_MS;
-  const timeout = setTimeout(() => {
-    context.logger.warn(`Request took longer than ${timeLimit}ms to resolve`, {
-      requestId: requestContext.requestId,
-      requestURL: event.request.url,
-    });
-  }, timeLimit);
-
-  // Run everything within AsyncLocalStorage context
-  return runWithContext(context, requestContext, async () => {
-    // Import the business logic function we need
-    const noAdmin = await noAdmins({ global: context });
-
-    if (!event.route.id) {
-      redirect(302, "/login");
-    }
-
-    if (event.route.id === "/(loggedOut)/firstUser" && !noAdmin) {
-      context.logger.info("Redirecting from firstUser");
-      if (event.locals.user) {
-        redirect(302, "/users");
-      } else {
-        redirect(302, "/login");
-      }
-    }
-
-    if (event.route.id !== "/(loggedOut)/firstUser" && noAdmin) {
-      redirect(302, "/firstUser");
-    }
-
-    if (event.route.id) {
-      authGuard(event as Parameters<typeof authGuard>[0]);
-    }
-
-    // Wrap non-GET requests in transactions
-    const isNonGetRequest = event.request.method !== "GET";
-    let result;
-
-    if (isNonGetRequest) {
-      context.logger.debug(
-        `Wrapping ${event.request.method} request in transaction`,
-        {
-          requestId: requestContext.requestId,
-          requestURL: event.request.url,
-        },
-      );
-
-      result = await runRequestInTransaction(async () => {
-        console.log("Resolving Requiest In Transaction");
-        return await resolve(event);
-      });
-    } else {
-      console.log("Resolving Request Not In Transaction");
-      result = await resolve(event);
-    }
-
-    clearTimeout(timeout);
-
-    return result;
-  });
-};
-
-export const handle = sequence(handleAuth, handleRoute);
+// Simple, clean hook sequence
+export const handle = sequence(hook);

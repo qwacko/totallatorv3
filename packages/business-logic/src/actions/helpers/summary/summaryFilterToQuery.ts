@@ -1,5 +1,6 @@
+import { gte, lte, SQL } from 'drizzle-orm';
+
 import type { SummaryFilterSchemaType } from '@totallator/shared';
-import { SQL, gte, lte } from 'drizzle-orm';
 
 export const summaryFilterToQueryMaterialized = ({
 	where,

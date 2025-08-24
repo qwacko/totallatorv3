@@ -1,6 +1,7 @@
 import { asc, desc, type SQL } from 'drizzle-orm';
-import type { QueryLogOrderByEnumType } from '@totallator/shared';
+
 import { queryLogTable } from '@totallator/database';
+import type { QueryLogOrderByEnumType } from '@totallator/shared';
 
 export const queryLogOrderByToSQL = ({
 	orderBy

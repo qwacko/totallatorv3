@@ -1,7 +1,9 @@
 import type { CreateAccountSchemaType } from '@totallator/shared';
+
+import { combinedAccountTitleSplitRequired } from '@/helpers/combinedAccountTitleSplit';
+
 import { statusUpdate } from '../misc/statusUpdate';
 import { updatedTime } from '../misc/updatedTime';
-import { combinedAccountTitleSplitRequired } from '@/helpers/combinedAccountTitleSplit';
 
 export const accountCreateInsertionData = (data: CreateAccountSchemaType, id: string) => {
 	if (data.startDate) {
@@ -40,7 +42,10 @@ export const accountCreateInsertionData = (data: CreateAccountSchemaType, id: st
 			...data,
 			...statusUpdate(data.status),
 			...updatedTime(),
-			...combinedAccountTitleSplitRequired({ title: data.title, accountGroupCombined: '' }),
+			...combinedAccountTitleSplitRequired({
+				title: data.title,
+				accountGroupCombined: ''
+			}),
 			startDate: null,
 			endDate: null,
 			isCash: false,

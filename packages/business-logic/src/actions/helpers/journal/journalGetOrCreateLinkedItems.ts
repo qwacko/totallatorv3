@@ -1,5 +1,6 @@
-import type { CreateJournalSchemaType } from '@totallator/shared';
 import type { DBType } from '@totallator/database';
+import type { CreateJournalSchemaType } from '@totallator/shared';
+
 import { accountActions } from '../../accountActions';
 import { billActions } from '../../billActions';
 import { budgetActions } from '../../budgetActions';
@@ -99,7 +100,7 @@ export const journalGetOrCreateLinkedItems = async ({
 		budgetId: targetBudget?.id,
 		categoryId: targetCategory?.id,
 		tagId: targetTag?.id,
-		labels: targetLabels
+		labels: targetLabels.filter((item) => item !== null).map((item) => item?.id || '')
 	};
 };
 function filterUndefinedFromArray<T>(arr: (T | undefined)[]): T[] {

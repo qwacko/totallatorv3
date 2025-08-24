@@ -1,5 +1,6 @@
 import type { DownloadTypeEnumType } from '@totallator/shared';
 import type { IdSchemaType } from '@totallator/shared';
+
 import type { PaginatedResults } from '../journal/PaginationType';
 import type { CreateOrGetType } from './createOrGetType';
 

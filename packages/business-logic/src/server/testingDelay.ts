@@ -1,5 +1,6 @@
-import { fixedDelay } from '../helpers/fixedDelay';
 import { getServerEnv } from '@/serverEnv';
+
+import { fixedDelay } from '../helpers/fixedDelay';
 
 export const testingDelay = async () => {
 	if (getServerEnv().TESTING_DELAY > 0) {

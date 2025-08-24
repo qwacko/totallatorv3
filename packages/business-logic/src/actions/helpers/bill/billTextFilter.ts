@@ -1,4 +1,6 @@
 import type { BillFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
+import { fileFilterArray } from '../file/fileTextFilter';
 import {
 	addToArray,
 	textFilterHandler,
@@ -12,9 +14,8 @@ import {
 	statusTextFilterArray
 } from '../misc/textFilterConfigurations';
 import { noteFilterArray } from '../note/noteTextFilter';
-import { fileFilterArray } from '../file/fileTextFilter';
 
-export const billFilterArray = [
+export const billFilterArray: TextFilterOptionsType<BillFilterSchemaWithoutPaginationType> = [
 	...importTextFilterArray,
 	...statusTextFilterArray,
 	...statisticsTextFilterArray,
@@ -22,7 +23,7 @@ export const billFilterArray = [
 	...fileFilterArray,
 	...noteFilterArray,
 	...idTitleTextFilterArray
-] satisfies TextFilterOptionsType<BillFilterSchemaWithoutPaginationType>;
+];
 
 export const processBillTextFilter = textFilterHandler<BillFilterSchemaWithoutPaginationType>(
 	billFilterArray,

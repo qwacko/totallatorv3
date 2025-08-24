@@ -1,7 +1,3 @@
-import { getContextStore } from '@totallator/context';
+import { getLogger as getLogger2 } from '@totallator/context';
 
-export const getLogger = () => {
-	const context = getContextStore();
-
-	return context.global.logger;
-};
+export const getLogger = getLogger2;

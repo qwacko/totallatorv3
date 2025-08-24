@@ -1,4 +1,5 @@
 import type { CreateTagSchemaType } from '@totallator/shared';
+
 import { getRandomInteger } from '../misc/getRandom';
 
 export const createTag = (): CreateTagSchemaType => {

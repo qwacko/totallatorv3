@@ -1,17 +1,17 @@
-import { eq, desc, and, gte, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import schedule, { Job } from 'node-schedule';
-import type { CoreDBType } from '@totallator/database';
-import { cronJob, cronJobExecution } from '@totallator/database';
-import type { GlobalContext } from '@totallator/context';
-import { runWithContext } from '@totallator/context';
 
+import type { CombinedContext, EnhancedRequestContext, GlobalContext } from '@totallator/context';
+import type { CoreDBType } from '@totallator/database';
+import { cronJob, cronJobExecution, keyValueTable } from '@totallator/database';
+
+import { cronJobDefinitions } from './cronJobDefinitions';
 import type {
 	CronJobDefinition,
 	CronJobExecutionFilter,
 	CronJobExecutionStatus,
 	CronJobResult
 } from './types';
-import { cronJobDefinitions } from './cronJobDefinitions';
 
 /**
  * Service for managing cron jobs and their executions.
@@ -23,7 +23,10 @@ export class CronJobService {
 
 	constructor(
 		private db: CoreDBType,
-		private getGlobalContext: () => GlobalContext
+		private standaloneContext: <T>(
+			metadata: Partial<EnhancedRequestContext>,
+			callback: (context: CombinedContext<GlobalContext, EnhancedRequestContext>) => T | Promise<T>
+		) => Promise<T>
 	) {}
 
 	/**
@@ -211,6 +214,29 @@ export class CronJobService {
 			return executionId;
 		}
 
+		// Check if a backup restore is in progress
+		const isRestoreActive = await this.hasActiveBackupRestore();
+		if (isRestoreActive) {
+			console.log(`Skipping cron job ${jobDefinition.name} execution - backup restore in progress`);
+
+			// Create a skipped execution record
+			await this.db.insert(cronJobExecution).values({
+				id: executionId,
+				cronJobId,
+				startedAt: startTime,
+				completedAt: new Date(),
+				durationMs: 0,
+				status: 'skipped',
+				triggeredBy,
+				triggeredByUserId,
+				retryCount,
+				output: JSON.stringify({ reason: 'Backup restore in progress' }),
+				errorMessage: 'Execution skipped due to active backup restore'
+			});
+
+			return executionId;
+		}
+
 		// Create execution record
 		await this.db.insert(cronJobExecution).values({
 			id: executionId,
@@ -255,110 +281,147 @@ export class CronJobService {
 		triggeredByUserId?: string,
 		retryCount: number = 0
 	): Promise<void> {
-		const context = this.getGlobalContext();
-		const requestContext = this.createCronRequestContext(jobDefinition.name);
+		this.standaloneContext(
+			{
+				routeId: `cron/${jobDefinition.name}`,
+				requestId: executionId,
+				url: `/cron/${jobDefinition.name}`,
+				method: 'CRON',
+				startTime: startTime.getTime(),
+				ip: '127.0.0.1'
+			},
+			async (context) => {
+				let result: CronJobResult;
+				let status: CronJobExecutionStatus = 'running';
+				let errorMessage: string | undefined;
+				let stackTrace: string | undefined;
 
-		let result: CronJobResult;
-		let status: CronJobExecutionStatus = 'running';
-		let errorMessage: string | undefined;
-		let stackTrace: string | undefined;
+				try {
+					// Set up timeout
+					const timeoutPromise = new Promise<CronJobResult>((_, reject) => {
+						setTimeout(() => reject(new Error('Job execution timeout')), jobDefinition.timeoutMs);
+					});
 
-		try {
-			// Set up timeout
-			const timeoutPromise = new Promise<CronJobResult>((_, reject) => {
-				setTimeout(() => reject(new Error('Job execution timeout')), jobDefinition.timeoutMs);
-			});
+					// Execute the job with timeout
+					const jobPromise = jobDefinition.job(context.global);
 
-			// Execute the job with timeout
-			const jobPromise = runWithContext(context, requestContext, async () => {
-				return await jobDefinition.job(context);
-			});
+					result = await Promise.race([jobPromise, timeoutPromise]);
+					status = result.success ? 'completed' : 'failed';
 
-			result = await Promise.race([jobPromise, timeoutPromise]);
-			status = result.success ? 'completed' : 'failed';
+					if (!result.success && result.message) {
+						errorMessage = result.message;
+					}
+				} catch (error) {
+					status =
+						error instanceof Error && error.message === 'Job execution timeout'
+							? 'timeout'
+							: 'failed';
+					errorMessage = error instanceof Error ? error.message : 'Unknown error';
+					stackTrace = error instanceof Error ? error.stack : undefined;
 
-			if (!result.success && result.message) {
-				errorMessage = result.message;
-			}
-		} catch (error) {
-			status =
-				error instanceof Error && error.message === 'Job execution timeout' ? 'timeout' : 'failed';
-			errorMessage = error instanceof Error ? error.message : 'Unknown error';
-			stackTrace = error instanceof Error ? error.stack : undefined;
-
-			result = {
-				success: false,
-				message: errorMessage,
-				metrics: {
-					executionTimeMs: Date.now() - startTime.getTime()
+					result = {
+						success: false,
+						message: errorMessage,
+						metrics: {
+							executionTimeMs: Date.now() - startTime.getTime()
+						}
+					};
 				}
-			};
-		}
 
-		const completedAt = new Date();
-		const durationMs = completedAt.getTime() - startTime.getTime();
+				const completedAt = new Date();
+				const durationMs = completedAt.getTime() - startTime.getTime();
 
-		// Update execution record
-		await this.db
-			.update(cronJobExecution)
-			.set({
-				completedAt,
-				durationMs,
-				status,
-				output: result.success ? JSON.stringify(result.data || {}) : undefined,
-				errorMessage,
-				stackTrace,
-				memoryUsageMb: result.metrics?.memoryUsageMb
-			})
-			.where(eq(cronJobExecution.id, executionId));
+				// Update execution record
+				await this.db
+					.update(cronJobExecution)
+					.set({
+						completedAt,
+						durationMs,
+						status,
+						output: result.success ? JSON.stringify(result.data || {}) : undefined,
+						errorMessage,
+						stackTrace,
+						memoryUsageMb: result.metrics?.memoryUsageMb
+					})
+					.where(eq(cronJobExecution.id, executionId));
 
-		// Log execution result
-		if (result.success) {
-			context.logger.info(`Cron job ${jobDefinition.name} completed successfully`, {
-				executionId,
-				durationMs,
-				triggeredBy,
-				...result.data
-			});
-		} else {
-			context.logger.error(`Cron job ${jobDefinition.name} failed`, {
-				executionId,
-				durationMs,
-				triggeredBy,
-				error: errorMessage,
-				retryCount
-			});
+				// Log execution result
+				if (result.success) {
+					if (true) {
+						context.global.logger('cron').debug({
+							title: `Cron job ${jobDefinition.name} completed successfully`,
+							code: 'CRON_0000',
+							executionId,
+							durationMs,
+							triggeredBy,
+							...result.data
+						});
+					}
+				} else {
+					context.global.logger('cron').error({
+						code: 'CRON_0002',
+						title: `Cron job ${jobDefinition.name} failed`,
+						executionId,
+						durationMs,
+						triggeredBy,
+						error: errorMessage,
+						retryCount
+					});
 
-			// Handle retries
-			if (retryCount < jobDefinition.maxRetries) {
-				context.logger.info(`Retrying cron job ${jobDefinition.name} (attempt ${retryCount + 2})`);
+					// Handle retries
+					if (retryCount < jobDefinition.maxRetries) {
+						context.global.logger('cron').info({
+							code: 'CRON_0001',
+							title: `Retrying cron job ${jobDefinition.name} (attempt ${retryCount + 2})`
+						});
 
-				// Schedule retry with exponential backoff
-				const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Max 30 seconds
-				setTimeout(() => {
-					this.executeJob(jobDefinition, cronJobId, triggeredBy, triggeredByUserId, retryCount + 1);
-				}, retryDelay);
+						// Schedule retry with exponential backoff
+						const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Max 30 seconds
+						setTimeout(() => {
+							this.executeJob(
+								jobDefinition,
+								cronJobId,
+								triggeredBy,
+								triggeredByUserId,
+								retryCount + 1
+							);
+						}, retryDelay);
+					}
+				}
 			}
-		}
+		);
 	}
 
 	/**
-	 * Create a minimal request context for cron jobs
+	 * Check if a backup restore is currently in progress
+	 * Uses the service's database connection to avoid context issues
 	 */
-	private createCronRequestContext(jobName: string) {
-		return {
-			user: undefined,
-			session: undefined,
-			requestId: crypto.randomUUID(),
-			startTime: Date.now(),
-			event: {
-				request: new Request(`http://localhost/cron/${jobName}`),
-				locals: {},
-				getClientAddress: () => '127.0.0.1'
-			},
-			userAgent: `Cron-Job-${jobName}`,
-			ip: '127.0.0.1'
-		};
+	private async hasActiveBackupRestore(): Promise<boolean> {
+		try {
+			// Query the backup_restore_progress key-value directly
+			const progressResult = await this.db
+				.select({ value: keyValueTable.value })
+				.from(keyValueTable)
+				.where(eq(keyValueTable.key, 'backup_restore_progress'))
+				.limit(1);
+
+			if (progressResult.length === 0) {
+				return false;
+			}
+
+			const progressData = JSON.parse(progressResult[0].value);
+
+			if (!progressData || !progressData.phase) {
+				return false;
+			}
+
+			// Check if the restore is in progress (not completed, failed, or cancelled)
+			return !['completed', 'failed', 'cancelled'].includes(progressData.phase);
+		} catch (error) {
+			console.warn('Failed to check backup restore status in cron service:', error);
+			// Return false if we can't check - allow cron jobs to proceed
+			return false;
+		}
 	}
 
 	/**

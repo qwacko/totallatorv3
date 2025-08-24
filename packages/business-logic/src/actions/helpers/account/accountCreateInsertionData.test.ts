@@ -1,4 +1,5 @@
-import { describe, vi, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { accountCreateInsertionData } from './accountCreateInsertionData';
 
 describe('accountCreateInsertionData', () => {

@@ -1,5 +1,6 @@
 import type { DBType } from '@totallator/database';
-import type { BatchJournalData, LLMBatchProcessingConfig } from '../llmBatchProcessingService';
+
+import type { BatchJournalData, LLMBatchProcessingConfig } from '../llmBatchProcessingServiceTypes';
 
 /**
  * Interface for context building functions

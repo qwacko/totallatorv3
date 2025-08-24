@@ -9,7 +9,7 @@ import {
 	type TextFilterOptionsType
 } from '../misc/processTextFilter';
 
-const filterArray = [
+const filterArray: TextFilterOptionsType<GroupedQueryLogFilterWithoutPaginationType> = [
 	{
 		key: ['title:'],
 		update: (filter, currentFilter) => {
@@ -34,7 +34,7 @@ const filterArray = [
 			compareTextDate(filter, 'end', currentFilter, 'max');
 		}
 	}
-] satisfies TextFilterOptionsType<GroupedQueryLogFilterWithoutPaginationType>;
+];
 
 export const processGroupedQueryLogTextFilter =
 	textFilterHandler<GroupedQueryLogFilterWithoutPaginationType>(

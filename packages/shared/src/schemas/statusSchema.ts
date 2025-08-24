@@ -1,3 +1,5 @@
+import * as z from 'zod';
+
 export const statusEnum = ['active', 'disabled'] as const;
 export const statusEnumWithoutDeleted = ['active', 'disabled'] as const;
 export type StatusEnumType = (typeof statusEnum)[number];
@@ -18,7 +20,5 @@ export const statusToDisplay = (status: StatusEnumType) => {
 		statusEnumSelection.find((currentStatus) => currentStatus.value === status)?.name ?? status
 	);
 };
-
-import * as z from 'zod';
 
 export const statusSchema = z.enum(statusEnum);

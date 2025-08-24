@@ -1,9 +1,10 @@
-import { categoryActions } from '@/actions/categoryActions';
-import type { Tool, ToolExecutionContext, ToolExecutionResult } from '../types';
-import { tagActions } from '@/actions/tagActions';
 import { billActions } from '@/actions/billActions';
 import { budgetActions } from '@/actions/budgetActions';
+import { categoryActions } from '@/actions/categoryActions';
 import { journalLlmSuggestionActions } from '@/actions/journalLlmSuggestionActions';
+import { tagActions } from '@/actions/tagActions';
+
+import type { Tool, ToolExecutionContext, ToolExecutionResult } from '../types';
 
 export const journalCategorizationTool: Tool = {
 	definition: {

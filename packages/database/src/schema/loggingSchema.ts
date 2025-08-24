@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, text, varchar, timestamp, integer } from 'drizzle-orm/pg-core';
+import { integer, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export const queryLogTitleTable = pgTable('query_log_title', {
 	id: varchar('id', { length: 60 }).notNull().primaryKey(),

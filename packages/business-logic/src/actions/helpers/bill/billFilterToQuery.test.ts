@@ -1,15 +1,18 @@
-import { billFilterToQuery, billFilterToText } from './billFilterToQuery';
-import { bill } from '@totallator/database';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { and } from 'drizzle-orm';
+import { QueryBuilder } from 'drizzle-orm/pg-core';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
+import { bill } from '@totallator/database';
+
 import {
 	clearTestDB,
+	closeTestDB,
 	createTestWrapper,
 	getTestDB,
-	initialiseTestDB,
-	closeTestDB
+	initialiseTestDB
 } from '@/server/db/test/dbTest';
+
+import { billFilterToQuery, billFilterToText } from './billFilterToQuery';
 
 describe('billFilterToQuery', () => {
 	const qb = new QueryBuilder();
@@ -110,7 +113,10 @@ describe('billFilterToQuery', () => {
 	});
 
 	it('Blank Filter Returns A Blank Value', () => {
-		const returnValue = billFilterToQuery({ filter: {}, target: 'materialized' });
+		const returnValue = billFilterToQuery({
+			filter: {},
+			target: 'materialized'
+		});
 
 		const query = qb
 			.select()

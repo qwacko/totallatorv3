@@ -1,44 +1,47 @@
-import {
-	type CreateCombinedTransactionType,
-	journalFilterSchema,
-	defaultJournalFilter,
-	type JournalFilterSchemaInputType,
-	type UpdateJournalSchemaInputType,
-	updateJournalSchema,
-	type CreateSimpleTransactionType,
-	createSimpleTransactionSchema,
-	type CloneJournalUpdateSchemaType,
-	cloneJournalUpdateSchema
-} from '@totallator/shared';
-import { eq, and, not, or } from 'drizzle-orm';
+import { and, eq, not, or } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import type { DBType } from '@totallator/database';
-import { journalEntry, transaction, labelsToJournals } from '@totallator/database';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { expandDate } from './helpers/journal/expandDate';
+import { journalEntry, labelsToJournals, transaction } from '@totallator/database';
+import {
+	cloneJournalUpdateSchema,
+	type CloneJournalUpdateSchemaType,
+	type CreateCombinedTransactionType,
+	createSimpleTransactionSchema,
+	type CreateSimpleTransactionType,
+	defaultJournalFilter,
+	journalFilterSchema,
+	type JournalFilterSchemaInputType,
+	updateJournalSchema,
+	type UpdateJournalSchemaInputType
+} from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { accountActions } from './accountActions';
 import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
-import { tagActions } from './tagActions';
-import { labelActions } from './labelActions';
-import { journalMaterializedViewActions as journalViewActions } from './journalMaterializedViewActions';
-import { seedTransactionData } from './helpers/seed/seedTransactionData';
-import { getLogger } from '@/logger';
-import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
+import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
+import { expandDate } from './helpers/journal/expandDate';
 import {
 	generateItemsForTransactionCreation,
 	getCachedData
 } from './helpers/journal/generateItemsForTransactionCreation';
-import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
-import { nanoid } from 'nanoid';
+import { handleLinkedItem } from './helpers/journal/handleLinkedItem';
+import { journalMaterialisedList } from './helpers/journal/journalList';
 import { simpleSchemaToCombinedSchema } from './helpers/journal/simpleSchemaToCombinedSchema';
 import { updateManyTransferInfo } from './helpers/journal/updateTransactionTransfer';
-import { materializedViewActions } from './materializedViewActions';
-import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { splitArrayIntoChunks } from './helpers/misc/splitArrayIntoChunks';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { seedTransactionData } from './helpers/seed/seedTransactionData';
+import { labelActions } from './labelActions';
+import { materializedViewActions } from './materializedViewActions';
+import { tagActions } from './tagActions';
 
 export const journalActions = {
 	createFromSimpleTransaction: async ({
@@ -46,17 +49,44 @@ export const journalActions = {
 	}: {
 		transaction: CreateSimpleTransactionType;
 	}): Promise<string[]> => {
+		const startTime = Date.now();
+		getLogger('journals').info({
+			code: 'JOURNAL_010',
+			title: 'Starting simple transaction creation',
+			transaction: transaction,
+			amount: transaction.amount
+		});
+
 		const processedTransaction = createSimpleTransactionSchema.safeParse(transaction);
 
 		if (!processedTransaction.success) {
+			getLogger('journals').error({
+				code: 'JOURNAL_011',
+				title: 'Invalid transaction data provided',
+				error: processedTransaction.error,
+				transaction
+			});
 			throw new Error('Invalid Transaction Data');
 		}
+
+		getLogger('journals').debug({
+			code: 'JOURNAL_012',
+			title: 'Transaction validation successful, converting to combined schema'
+		});
 
 		const combinedTransaction = simpleSchemaToCombinedSchema(processedTransaction.data);
 
 		const createdTransaction = await journalActions.createManyTransactionJournals({
 			journalEntries: [combinedTransaction],
 			isImport: false // This is manual creation
+		});
+
+		const duration = Date.now() - startTime;
+		getLogger('journals').info({
+			code: 'JOURNAL_013',
+			title: 'Simple transaction creation completed',
+			duration,
+			transactionIds: createdTransaction
 		});
 
 		return createdTransaction;
@@ -68,18 +98,53 @@ export const journalActions = {
 		journalEntries: CreateCombinedTransactionType[];
 		isImport?: boolean;
 	}): Promise<string[]> => {
+		const startTime = Date.now();
 		let transactionIds: string[] = [];
 
+		getLogger('journals').info({
+			code: 'JOURNAL_014',
+			title: 'Starting batch transaction journal creation',
+			entryCount: journalEntries.length,
+			isImport
+		});
+
 		const executeTransactionWork = async (dbContext: DBType) => {
-			const cachedData = await getCachedData({ db: dbContext, count: journalEntries.length });
+			getLogger('journals').debug({
+				code: 'JOURNAL_015',
+				title: 'Fetching cached data for transaction creation',
+				entryCount: journalEntries.length
+			});
+
+			const cachedData = await getCachedData({
+				db: dbContext,
+				count: journalEntries.length
+			});
+
+			getLogger('journals').debug({
+				code: 'JOURNAL_016',
+				title: 'Generating items for transaction creation',
+				entryCount: journalEntries.length
+			});
+
 			const itemsForCreation = await Promise.all(
-				journalEntries.map(async (journalEntry) => {
-					return generateItemsForTransactionCreation({
+				journalEntries.map(async (journalEntry, index) => {
+					const result = await generateItemsForTransactionCreation({
 						db: dbContext,
 						data: journalEntry,
 						cachedData,
 						isImport
 					});
+
+					if (index % 100 === 0 && index > 0) {
+						getLogger('journals').debug({
+							code: 'JOURNAL_017',
+							title: 'Transaction generation progress',
+							processed: index + 1,
+							total: journalEntries.length
+						});
+					}
+
+					return result;
 				})
 			);
 
@@ -96,29 +161,87 @@ export const journalActions = {
 				.map(({ labels }) => labels)
 				.reduce((a, b) => [...a, ...b], []);
 
+			getLogger('journals').info({
+				code: 'JOURNAL_018',
+				title: 'Items prepared for database insertion',
+				transactionCount: transactions.length,
+				journalCount: journals.length,
+				labelCount: labels.length
+			});
+
 			const transactionChunks = splitArrayIntoChunks(transactions, 2000);
-			for (const chunk of transactionChunks) {
+			getLogger('journals').debug({
+				code: 'JOURNAL_019',
+				title: 'Inserting transactions in chunks',
+				chunkCount: transactionChunks.length,
+				totalTransactions: transactions.length
+			});
+
+			for (const [index, chunk] of transactionChunks.entries()) {
 				await dbExecuteLogger(
 					dbContext.insert(transaction).values(chunk),
 					'Transaction Journals - Create Many - Transaction'
 				);
+				getLogger('journals').debug({
+					code: 'JOURNAL_020',
+					title: 'Transaction chunk inserted',
+					chunkIndex: index + 1,
+					chunkSize: chunk.length,
+					totalChunks: transactionChunks.length
+				});
 			}
 
 			const journalChunks = splitArrayIntoChunks(journals, 2000);
-			for (const chunk of journalChunks) {
+			getLogger('journals').debug({
+				code: 'JOURNAL_021',
+				title: 'Inserting journals in chunks',
+				chunkCount: journalChunks.length,
+				totalJournals: journals.length
+			});
+
+			for (const [index, chunk] of journalChunks.entries()) {
 				await dbExecuteLogger(
 					dbContext.insert(journalEntry).values(chunk),
 					'Transaction Journals - Create Many - Journal'
 				);
+				getLogger('journals').debug({
+					code: 'JOURNAL_022',
+					title: 'Journal chunk inserted',
+					chunkIndex: index + 1,
+					chunkSize: chunk.length,
+					totalChunks: journalChunks.length
+				});
 			}
 
 			const labelChunks = splitArrayIntoChunks(labels, 2000);
-			for (const chunk of labelChunks) {
-				await dbExecuteLogger(
-					dbContext.insert(labelsToJournals).values(chunk),
-					'Transaction Journals - Create Many - Labels'
-				);
+			if (labels.length > 0) {
+				getLogger('journals').debug({
+					code: 'JOURNAL_023',
+					title: 'Inserting labels in chunks',
+					chunkCount: labelChunks.length,
+					totalLabels: labels.length
+				});
+
+				for (const [index, chunk] of labelChunks.entries()) {
+					await dbExecuteLogger(
+						dbContext.insert(labelsToJournals).values(chunk),
+						'Transaction Journals - Create Many - Labels'
+					);
+					getLogger('journals').debug({
+						code: 'JOURNAL_024',
+						title: 'Label chunk inserted',
+						chunkIndex: index + 1,
+						chunkSize: chunk.length,
+						totalChunks: labelChunks.length
+					});
+				}
 			}
+
+			getLogger('journals').debug({
+				code: 'JOURNAL_025',
+				title: 'Updating transfer information',
+				transactionCount: transactionIds.length
+			});
 
 			await updateManyTransferInfo({ db: dbContext, transactionIds });
 		};
@@ -128,7 +251,22 @@ export const journalActions = {
 			await executeTransactionWork(trx);
 		});
 
+		getLogger('journals').debug({
+			code: 'JOURNAL_026',
+			title: 'Setting materialized view refresh required'
+		});
+
 		await materializedViewActions.setRefreshRequired();
+
+		const duration = Date.now() - startTime;
+		getLogger('journals').info({
+			code: 'JOURNAL_027',
+			title: 'Batch transaction journal creation completed',
+			duration,
+			entryCount: journalEntries.length,
+			transactionIds: transactionIds.length,
+			isImport
+		});
 
 		return transactionIds;
 	},
@@ -137,13 +275,41 @@ export const journalActions = {
 	}: {
 		transactionIds: string[];
 	}): Promise<void> => {
-		if (transactionIds.length === 0) return;
+		if (transactionIds.length === 0) {
+			getLogger('journals').warn({
+				code: 'JOURNAL_028',
+				title: 'Hard delete called with empty transaction list'
+			});
+			return;
+		}
+
+		getLogger('journals').info({
+			code: 'JOURNAL_029',
+			title: 'Starting hard delete of transactions',
+			transactionCount: transactionIds.length
+		});
+
 		await runInTransactionWithLogging('Hard Delete Transactions', async () => {
 			const db = getContextDB();
 			const splitTransactionList = splitArrayIntoChunks(transactionIds, 500);
 
+			getLogger('journals').debug({
+				code: 'JOURNAL_030',
+				title: 'Processing deletions in chunks',
+				chunkCount: splitTransactionList.length,
+				chunkSize: 500
+			});
+
 			await Promise.all(
-				splitTransactionList.map(async (currentTransactionIds) => {
+				splitTransactionList.map(async (currentTransactionIds, chunkIndex) => {
+					getLogger('journals').debug({
+						code: 'JOURNAL_031',
+						title: 'Processing deletion chunk',
+						chunkIndex: chunkIndex + 1,
+						chunkSize: currentTransactionIds.length,
+						totalChunks: splitTransactionList.length
+					});
+
 					const journalsForDeletion = await dbExecuteLogger(
 						db
 							.select()
@@ -151,6 +317,14 @@ export const journalActions = {
 							.where(inArrayWrapped(journalEntry.transactionId, currentTransactionIds)),
 						'Transaction Journals - Hard Delete Transactions - Select Journals'
 					);
+
+					getLogger('journals').debug({
+						code: 'JOURNAL_032',
+						title: 'Found journals for deletion',
+						journalCount: journalsForDeletion.length,
+						chunkIndex: chunkIndex + 1
+					});
+
 					await dbExecuteLogger(
 						db
 							.delete(journalEntry)
@@ -170,16 +344,46 @@ export const journalActions = {
 						),
 						'Transaction Journals - Hard Delete Transactions - Delete Labels'
 					);
+
+					getLogger('journals').debug({
+						code: 'JOURNAL_033',
+						title: 'Deletion chunk completed',
+						chunkIndex: chunkIndex + 1,
+						deletedTransactions: currentTransactionIds.length,
+						deletedJournals: journalsForDeletion.length
+					});
 				})
 			);
+		});
+
+		getLogger('journals').info({
+			code: 'JOURNAL_034',
+			title: 'Hard delete transactions completed',
+			transactionCount: transactionIds.length
 		});
 
 		await materializedViewActions.setRefreshRequired();
 	},
 	seed: async (count: number): Promise<void> => {
 		const startTime = Date.now();
+
+		getLogger('journals').info({
+			code: 'JOURNAL_035',
+			title: 'Starting transaction seeding process',
+			count
+		});
+
+		getLogger('journals').debug({
+			code: 'JOURNAL_036',
+			title: 'Fetching reference data for seeding'
+		});
+
 		const { data: assetLiabilityAccounts } = await accountActions.list({
-			filter: { type: ['asset', 'liability'], allowUpdate: true, pageSize: 10000 }
+			filter: {
+				type: ['asset', 'liability'],
+				allowUpdate: true,
+				pageSize: 10000
+			}
 		});
 		const { data: incomeAccounts } = await accountActions.list({
 			filter: { type: ['income'], allowUpdate: true, pageSize: 10000 }
@@ -202,6 +406,26 @@ export const journalActions = {
 		const { data: labels } = await labelActions.list({
 			filter: { allowUpdate: true, pageSize: 10000 }
 		});
+
+		getLogger('journals').info({
+			code: 'JOURNAL_037',
+			title: 'Reference data fetched for seeding',
+			assetLiabilityCount: assetLiabilityAccounts.length,
+			incomeCount: incomeAccounts.length,
+			expenseCount: expenseAccounts.length,
+			billCount: bills.length,
+			budgetCount: budgets.length,
+			categoryCount: categories.length,
+			tagCount: tags.length,
+			labelCount: labels.length
+		});
+
+		getLogger('journals').debug({
+			code: 'JOURNAL_038',
+			title: 'Generating seed transaction data',
+			count
+		});
+
 		const transactionsForCreation = Array(count)
 			.fill(0)
 			.map(() =>
@@ -224,21 +448,58 @@ export const journalActions = {
 			});
 		});
 		const endTime = Date.now();
-		getLogger().info(`Seeding ${count} transactions took ${endTime - startTime}ms`);
+		const duration = endTime - startTime;
+		getLogger('journals').info({
+			code: 'JOURNAL_002',
+			title: `Seeding ${count} transactions took ${duration}ms`,
+			count,
+			duration
+		});
 	},
 	markManyComplete: async ({
 		journalFilter
 	}: {
 		journalFilter: JournalFilterSchemaInputType;
 	}): Promise<void> => {
-		const journals = await journalViewActions.list({ filter: journalFilter });
+		const db = getContextDB();
+
+		getLogger('journals').info({
+			code: 'JOURNAL_040',
+			title: 'Starting mark many journals complete',
+			filter: journalFilter
+		});
+
+		const journals = await journalMaterialisedList({
+			filter: journalFilter,
+			db
+		});
+
+		getLogger('journals').info({
+			code: 'JOURNAL_041',
+			title: 'Found journals to mark complete',
+			journalCount: journals.data.length
+		});
 
 		await runInTransactionWithLogging('Mark Many Journals Complete', async () => {
 			await Promise.all(
-				journals.data.map((journal) => {
+				journals.data.map((journal, index) => {
+					if (index % 50 === 0 && index > 0) {
+						getLogger('journals').debug({
+							code: 'JOURNAL_042',
+							title: 'Mark complete progress',
+							processed: index,
+							total: journals.data.length
+						});
+					}
 					return journalActions.markComplete(journal.id);
 				})
 			);
+		});
+
+		getLogger('journals').info({
+			code: 'JOURNAL_043',
+			title: 'Mark many journals complete finished',
+			journalCount: journals.data.length
 		});
 
 		await materializedViewActions.setRefreshRequired();
@@ -248,21 +509,55 @@ export const journalActions = {
 	}: {
 		journalFilter: JournalFilterSchemaInputType;
 	}): Promise<void> => {
-		const journals = await journalViewActions.list({ filter: journalFilter });
+		const db = getContextDB();
+
+		getLogger('journals').info({
+			code: 'JOURNAL_044',
+			title: 'Starting mark many journals uncomplete',
+			filter: journalFilter
+		});
+
+		const journals = await journalMaterialisedList({
+			filter: journalFilter,
+			db
+		});
+
+		getLogger('journals').info({
+			code: 'JOURNAL_045',
+			title: 'Found journals to mark uncomplete',
+			journalCount: journals.data.length
+		});
 
 		await runInTransactionWithLogging('Mark Many Journals Incomplete', async () => {
 			await Promise.all(
-				journals.data.map((journal) => {
+				journals.data.map((journal, index) => {
+					if (index % 50 === 0 && index > 0) {
+						getLogger('journals').debug({
+							code: 'JOURNAL_046',
+							title: 'Mark uncomplete progress',
+							processed: index,
+							total: journals.data.length
+						});
+					}
 					return journalActions.markUncomplete(journal.id);
 				})
 			);
 		});
+
+		getLogger('journals').info({
+			code: 'JOURNAL_047',
+			title: 'Mark many journals uncomplete finished',
+			journalCount: journals.data.length
+		});
+
 		await materializedViewActions.setRefreshRequired();
 	},
 	markComplete: async (journalId: string): Promise<void> => {
 		const db = getContextDB();
 		const journal = await dbExecuteLogger(
-			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
+			db.query.journalEntry.findFirst({
+				where: eq(journalEntry.id, journalId)
+			}),
 			'Transaction Journals - Mark Complete - Find Journal'
 		);
 		if (!journal) return;
@@ -270,7 +565,12 @@ export const journalActions = {
 		await dbExecuteLogger(
 			db
 				.update(journalEntry)
-				.set({ complete: true, dataChecked: true, reconciled: true, ...updatedTime() })
+				.set({
+					complete: true,
+					dataChecked: true,
+					reconciled: true,
+					...updatedTime()
+				})
 				.where(eq(journalEntry.transactionId, transactionId)),
 			'Transaction Journals - Mark Complete - Update Journal'
 		);
@@ -279,7 +579,9 @@ export const journalActions = {
 	markUncomplete: async (journalId: string): Promise<void> => {
 		const db = getContextDB();
 		const journal = await dbExecuteLogger(
-			db.query.journalEntry.findFirst({ where: eq(journalEntry.id, journalId) }),
+			db.query.journalEntry.findFirst({
+				where: eq(journalEntry.id, journalId)
+			}),
 			'Transaction Journals - Mark Uncomplete - Find Journal'
 		);
 		if (!journal) return;
@@ -304,12 +606,19 @@ export const journalActions = {
 		const processedData = updateJournalSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			getLogger().error('Invalid Journal Update Data', JSON.stringify(processedData.error));
+			getLogger('journals').error({
+				code: 'JOURNAL_003',
+				title: 'Invalid Journal Update Data',
+				error: processedData.error
+			});
 			throw new Error('Invalid Journal Update Data');
 		}
 
 		const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
-		const journals = await journalViewActions.list({ filter: processedFilter });
+		const journals = await journalMaterialisedList({
+			filter: processedFilter,
+			db
+		});
 
 		if (journals.data.length === 0) return;
 
@@ -319,11 +628,12 @@ export const journalActions = {
 			const updatingLabelsOnly = checkUpdateLabelsOnly(processedData.data);
 
 			if (!updatingLabelsOnly) {
-				getLogger().error(
-					'Cannot update journals that are already complete',
-					processedFilter,
-					processedData.data
-				);
+				getLogger('journals').error({
+					code: 'JOURNAL_004',
+					title: 'Cannot update journals that are already complete',
+					filter: processedFilter,
+					data: processedData.data
+				});
 				return undefined;
 			}
 		}
@@ -561,7 +871,10 @@ export const journalActions = {
 							await dbExecuteLogger(
 								db
 									.update(journalEntry)
-									.set({ amount: journalToUpdate.amount - total, ...updatedTime() })
+									.set({
+										amount: journalToUpdate.amount - total,
+										...updatedTime()
+									})
 									.where(eq(journalEntry.id, journalToUpdate.id)),
 								'Transaction Journals - Update Journals - Update Transaction Amount'
 							);
@@ -586,13 +899,19 @@ export const journalActions = {
 
 			const labelSettingIds = await Promise.all(
 				labelSetting.map(async (currentAdd) => {
-					return labelActions.createOrGet({ ...currentAdd, requireActive: true });
+					return labelActions.createOrGet({
+						...currentAdd,
+						requireActive: true
+					});
 				})
 			);
 
 			const labelAdditionIds = await Promise.all(
 				labelAddition.map(async (currentAdd) => {
-					return labelActions.createOrGet({ ...currentAdd, requireActive: true });
+					return labelActions.createOrGet({
+						...currentAdd,
+						requireActive: true
+					});
 				})
 			);
 
@@ -686,12 +1005,19 @@ export const journalActions = {
 		const processedData = cloneJournalUpdateSchema.safeParse(journalData);
 
 		if (!processedData.success) {
-			getLogger().error('Invalid Journal Update Data', JSON.stringify(processedData.error));
+			getLogger('journals').error({
+				code: 'JOURNAL_005',
+				title: 'Invalid Journal Update Data',
+				error: processedData.error
+			});
 			throw new Error('Inavalid Journal Update Data');
 		}
 
 		const processedFilter = journalFilterSchema.parse(filter);
-		const journals = await journalViewActions.list({ filter: processedFilter });
+		const journals = await journalMaterialisedList({
+			filter: processedFilter,
+			db
+		});
 
 		if (journals.data.length === 0) return;
 
@@ -798,5 +1124,3 @@ export const journalActions = {
 		return transactionIds;
 	}
 };
-
-export type JournalSummaryType = Awaited<ReturnType<(typeof journalViewActions)['summary']>>;

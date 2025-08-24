@@ -1,10 +1,11 @@
 import * as z from 'zod';
-import { reportConfigPartTypeEnum } from './reportConfigPartTypeEnum.js';
-import { reportConfigPartTimeGroupingEnum } from './reportConfigPartTimeGroupingEnum.js';
+
 import { reportConfigPartItemGroupingEnum } from './reportConfigPartItemGroupingEnum.js';
-import { reportConfigPartNumberDisplayEnum } from './reportConfigPartNumberDisplayEnum.js';
-import { reportConfigPartTrendDisplayEnum } from './reportConfigPartTrendDisplayOptions.js';
 import { reportConfigPartNegativeDisplayEnum } from './reportConfigPartNegativeDisplayEnum.js';
+import { reportConfigPartNumberDisplayEnum } from './reportConfigPartNumberDisplayEnum.js';
+import { reportConfigPartTimeGroupingEnum } from './reportConfigPartTimeGroupingEnum.js';
+import { reportConfigPartTrendDisplayEnum } from './reportConfigPartTrendDisplayOptions.js';
+import { reportConfigPartTypeEnum } from './reportConfigPartTypeEnum.js';
 
 const reportConfigPartSchema_None = z.object({
 	id: z.string(),

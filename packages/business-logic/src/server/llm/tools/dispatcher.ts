@@ -1,3 +1,7 @@
+import { findSimilarJournalEntriesTool } from './implementations/findSimilarJournalEntries';
+import { getInvoiceTextTool } from './implementations/getInvoiceText';
+import { journalCategorizationTool } from './implementations/journalCategorization';
+import { updateJournalEntryTool } from './implementations/updateJournalEntry';
 import type {
 	Tool,
 	ToolCallRequest,
@@ -5,10 +9,6 @@ import type {
 	ToolExecutionContext,
 	ToolExecutionResult
 } from './types';
-import { findSimilarJournalEntriesTool } from './implementations/findSimilarJournalEntries';
-import { getInvoiceTextTool } from './implementations/getInvoiceText';
-import { updateJournalEntryTool } from './implementations/updateJournalEntry';
-import { journalCategorizationTool } from './implementations/journalCategorization';
 
 export class ToolDispatcher {
 	private tools: Map<string, Tool> = new Map();

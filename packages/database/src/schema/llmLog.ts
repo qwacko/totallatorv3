@@ -1,4 +1,5 @@
-import { pgTable, text, timestamp, jsonb, integer } from 'drizzle-orm/pg-core';
+import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+
 import { llmSettings } from './llm';
 
 export const llmLogs = pgTable('llm_logs', {

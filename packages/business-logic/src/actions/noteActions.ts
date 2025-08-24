@@ -1,3 +1,21 @@
+import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
+
+import { getContextDB } from '@totallator/context';
+import {
+	account,
+	associatedInfoTable,
+	autoImportTable,
+	bill,
+	budget,
+	category,
+	label,
+	notesTable,
+	type NotesTableType,
+	report,
+	reportElement,
+	tag,
+	user
+} from '@totallator/database';
 import {
 	createNoteSchema,
 	type CreateNoteSchemaCoreType,
@@ -5,43 +23,28 @@ import {
 	type NoteFilterSchemaWithoutPaginationType,
 	type UpdateNoteSchemaType
 } from '@totallator/shared';
-import {
-	account,
-	bill,
-	budget,
-	category,
-	tag,
-	label,
-	autoImportTable,
-	report,
-	reportElement,
-	notesTable,
-	user,
-	type NotesTableType,
-	associatedInfoTable
-} from '@totallator/database';
-import { noteFilterToQuery, noteFilterToText } from './helpers/note/noteFilterToQuery';
-import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
-import { and, count as drizzleCount, eq, desc, getTableColumns } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { materializedViewActions } from './materializedViewActions';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import type { NoteTypeType } from '@totallator/shared';
-import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
+
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
-import { associatedInfoActions } from './associatedInfoActions';
-import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { accountActions } from './accountActions';
+import { associatedInfoActions } from './associatedInfoActions';
+import { autoImportActions } from './autoImportActions';
+import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
-import { tagActions } from './tagActions';
+import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { addNoteToAssociatedInfo } from './helpers/note/addNoteToAssociatedInfo';
+import { GroupedNotesType, listGroupedNotes } from './helpers/note/listGroupedNotes';
+import { noteFilterToQuery, noteFilterToText } from './helpers/note/noteFilterToQuery';
+import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { labelActions } from './labelActions';
-import { autoImportActions } from './autoImportActions';
+import { materializedViewActions } from './materializedViewActions';
 import { reportActions } from './reportActions';
-import { billActions } from './billActions';
-import { getContextDB } from '@totallator/context';
+import { tagActions } from './tagActions';
 
 type NotesActionsType = FilesAndNotesActions<
 	NotesTableType,
@@ -58,7 +61,9 @@ export const noteActions: NotesActionsType = {
 	getById: async (id) => {
 		const db = getContextDB();
 		return dbExecuteLogger(
-			db.query.notesTable.findFirst({ where: ({ id: noteId }, { eq }) => eq(noteId, id) }),
+			db.query.notesTable.findFirst({
+				where: ({ id: noteId }, { eq }) => eq(noteId, id)
+			}),
 			'Note - Get By Id'
 		);
 	},
@@ -164,43 +169,7 @@ export const noteActions: NotesActionsType = {
 			})
 		).data;
 	},
-	listGrouped: async ({ ids, grouping }) => {
-		const db = getContextDB();
-		const items = await dbExecuteLogger(
-			db
-				.select({
-					id: notesTable.id,
-					note: notesTable.note,
-					type: notesTable.type,
-					createdAt: notesTable.createdAt,
-					updatedAt: notesTable.updatedAt,
-					createdById: associatedInfoTable.createdById,
-					createdBy: user.username,
-					groupingId: associatedInfoTable[`${grouping}Id`]
-				})
-				.from(notesTable)
-				.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, notesTable.associatedInfoId))
-				.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
-				.where(inArrayWrapped(associatedInfoTable[`${grouping}Id`], ids))
-				.orderBy(desc(notesTable.createdAt)),
-			'Note - List Grouped - Get Notes'
-		);
-
-		const groupedItems = items.reduce(
-			(acc, item) => {
-				if (!item.groupingId) return acc;
-				const groupingId = item.groupingId;
-				if (!acc[groupingId]) {
-					acc[groupingId] = [];
-				}
-				acc[groupingId].push(item);
-				return acc;
-			},
-			{} as Record<string, typeof items>
-		);
-
-		return groupedItems;
-	},
+	listGrouped: listGroupedNotes,
 	addToSingleItem: async ({ item, grouping }) => {
 		const ids = [item.id];
 		const groupedNotes = await noteActions.listGrouped({
@@ -231,22 +200,7 @@ export const noteActions: NotesActionsType = {
 			})
 		};
 	},
-	addToInfo: async ({ data, associatedId }) => {
-		const db = getContextDB();
-		const noteId = nanoid();
-
-		const insertNoteData: typeof notesTable.$inferInsert = {
-			id: noteId,
-			associatedInfoId: associatedId,
-			note: data.note,
-			type: data.type,
-			...updatedTime()
-		};
-
-		await dbExecuteLogger(db.insert(notesTable).values(insertNoteData), 'Note - Create - Note');
-
-		await materializedViewActions.setRefreshRequired();
-	},
+	addToInfo: addNoteToAssociatedInfo,
 	create: async ({ data, creationUserId }) => {
 		const result = createNoteSchema.safeParse(data);
 
@@ -357,14 +311,3 @@ export const noteActions: NotesActionsType = {
 		};
 	}
 };
-
-export type GroupedNotesType = {
-	id: string;
-	note: string;
-	type: NoteTypeType;
-	createdAt: Date;
-	updatedAt: Date;
-	createdById: string | null;
-	createdBy: string | null;
-	groupingId: string | null;
-}[];

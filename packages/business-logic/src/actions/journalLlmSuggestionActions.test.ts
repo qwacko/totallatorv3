@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { getTestDB, clearTestDB, closeTestDB, initialiseTestDB } from '@/server/db/test/dbTest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+
+import { clearTestDB, closeTestDB, getTestDB, initialiseTestDB } from '@/server/db/test/dbTest';
+
+import { journalActions } from './journalActions';
 import { journalLlmSuggestionActions } from './journalLlmSuggestionActions';
 import { llmActions } from './llmActions';
-import { journalActions } from './journalActions';
 import { materializedViewActions } from './materializedViewActions';
 
 describe('journalLlmSuggestionActions', () => {

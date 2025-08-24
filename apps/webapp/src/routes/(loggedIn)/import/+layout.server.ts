@@ -1,8 +1,8 @@
-import { tActions } from "@totallator/business-logic";
+import { tActions } from '@totallator/business-logic';
 
 export const load = async ({ locals }) => {
-  const importMappingDropdown = await tActions.importMapping.listForDropdown();
-  return {
-    importMappingDropdown,
-  };
+	const importMappingDropdown = await tActions.importMapping.listForDropdown();
+	return {
+		importMappingDropdown
+	};
 };

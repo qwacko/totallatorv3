@@ -1,7 +1,13 @@
-import { authGuard } from "$lib/authGuard/authGuardConfig";
+import { authGuard } from '$lib/authGuard/authGuardConfig';
 
 export const load = async (data) => {
-  authGuard(data);
+	authGuard(data);
 
-  return {};
+	data.locals.global.logger('reports').trace({
+		code: 'WEB_RPT_001',
+		title: 'Reports page loaded',
+		userId: data.locals.user?.id
+	});
+
+	return {};
 };

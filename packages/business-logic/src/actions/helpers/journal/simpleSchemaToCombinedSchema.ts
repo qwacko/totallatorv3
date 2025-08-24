@@ -22,6 +22,11 @@ export const simpleSchemaToCombinedSchema = (
 			accountTitle: fromAccountTitle,
 			amount: -amount
 		},
-		{ ...sharedProperties, accountId: toAccountId, accountTitle: toAccountTitle, amount: amount }
+		{
+			...sharedProperties,
+			accountId: toAccountId,
+			accountTitle: toAccountTitle,
+			amount: amount
+		}
 	];
 };

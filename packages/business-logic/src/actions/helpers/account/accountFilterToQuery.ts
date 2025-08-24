@@ -1,30 +1,33 @@
-import type { AccountFilterSchemaWithoutPaginationType } from '@totallator/shared';
+import { eq, gt, ilike, lt, not, SQL } from 'drizzle-orm';
+
 import type { DBType } from '@totallator/database';
 import { account } from '@totallator/database';
 import {
 	accountMaterializedView,
+	accountView,
 	journalExtendedView,
-	journalView,
-	accountView
+	journalView
 } from '@totallator/database';
-import { SQL, eq, gt, ilike, lt, not } from 'drizzle-orm';
-import {
-	summaryFilterToQueryMaterialized,
-	summaryFilterToText
-} from '../summary/summaryFilterToQuery';
-import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
-import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import type { AccountFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
+import { arrayToText } from '../misc/arrayToText';
+import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import {
 	importFilterToQueryMaterialized,
 	importFilterToText
 } from '../misc/filterToQueryImportCore';
-import { filterToQueryFinal } from '../misc/filterToQueryFinal';
+import { statusFilterToQueryMapped, statusFilterToText } from '../misc/filterToQueryStatusCore';
+import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
 import { ilikeArrayWrapped, inArrayWrapped } from '../misc/inArrayWrapped';
-import { arrayToText } from '../misc/arrayToText';
-import { processAccountTextFilter } from './accountTextFilter';
-import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { linkedNoteFilterQuery, linkedNoteFilterToText } from '../note/noteFilterToQuery';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import {
+	summaryFilterToQueryMaterialized,
+	summaryFilterToText
+} from '../summary/summaryFilterToQuery';
+import { processAccountTextFilter } from './accountTextFilter';
 
 export const accountFilterToQuery = ({
 	filter,

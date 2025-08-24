@@ -1,53 +1,56 @@
 import {
 	and,
-	eq,
-	isNotNull,
-	isNull,
-	or,
 	asc,
 	desc,
+	count as drizzleCount,
+	eq,
 	getTableColumns,
-	count as drizzleCount
+	isNotNull,
+	isNull,
+	or
 } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import type { DBType } from '@totallator/database';
 import {
 	account,
-	category,
-	budget,
-	tag,
-	label,
 	associatedInfoTable,
 	bill,
+	budget,
+	category,
 	fileTable,
 	journalSnapshotTable,
+	label,
 	notesTable,
+	tag,
 	user
 } from '@totallator/database';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import {
 	fileRelationshipKeys,
+	type KeysOfCreateFileNoteRelationshipSchemaType,
 	linksCanAddSummary,
-	linksToFilter,
-	type KeysOfCreateFileNoteRelationshipSchemaType
+	linksToFilter
 } from '@totallator/shared';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { materializedViewActions } from './materializedViewActions';
 import type {
 	AssociatedInfoFilterSchemaWithPaginationType,
 	CreateAssociatedInfoSchemaType
 } from '@totallator/shared';
-import { associatedInfoFilterToQuery } from './helpers/associatedInfo/associatedInfoFilterToQuery';
-import type { PaginatedResults } from './helpers/journal/PaginationType';
-import type { GroupingIdOptions } from './helpers/file/FilesAndNotesActions';
-import { nanoid } from 'nanoid';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { fileActions } from './fileActions';
 import type { CreateFileSchemaCoreType } from '@totallator/shared';
 import type { CreateNoteSchemaCoreType } from '@totallator/shared';
-import { noteActions } from './noteActions';
-import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import type { IdSchemaType } from '@totallator/shared';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { associatedInfoFilterToQuery } from './helpers/associatedInfo/associatedInfoFilterToQuery';
+import { addFileToAssociatedInfo } from './helpers/file/addFileToAssociatedInfo';
+import type { GroupingIdOptions } from './helpers/file/FilesAndNotesActions';
+import type { PaginatedResults } from './helpers/journal/PaginationType';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { addNoteToAssociatedInfo } from './helpers/note/addNoteToAssociatedInfo';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
+import { materializedViewActions } from './materializedViewActions';
 
 type CreateAssociatedInfoFunction = (data: {
 	item: CreateAssociatedInfoSchemaType;
@@ -213,7 +216,7 @@ export const associatedInfoActions: {
 
 			await Promise.all(
 				filesToCreate.map(async (file) =>
-					fileActions.addToInfo({
+					addFileToAssociatedInfo({
 						associatedId: associatedInfoId,
 						data: file
 					})
@@ -222,7 +225,7 @@ export const associatedInfoActions: {
 
 			await Promise.all(
 				notesToCreate.map(async (note) =>
-					noteActions.addToInfo({
+					addNoteToAssociatedInfo({
 						associatedId: associatedInfoId,
 						data: note
 					})
@@ -230,7 +233,9 @@ export const associatedInfoActions: {
 			);
 
 			if (createSummary && canAddSummary) {
-				const summaryData = await journalMaterializedViewActions.simpleSummary({ filter });
+				const summaryData = await journalMaterializedViewActions.simpleSummary({
+					filter
+				});
 
 				const newItem: typeof journalSnapshotTable.$inferInsert = {
 					id: nanoid(),
@@ -248,7 +253,11 @@ export const associatedInfoActions: {
 	removeUnnecessary: async () => {
 		const db = getContextDB();
 		const itemsToDelete = await db
-			.select({ id: associatedInfoTable.id, fileId: fileTable.id, noteId: notesTable.id })
+			.select({
+				id: associatedInfoTable.id,
+				fileId: fileTable.id,
+				noteId: notesTable.id
+			})
 			.from(associatedInfoTable)
 			.leftJoin(fileTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
 			.leftJoin(notesTable, eq(associatedInfoTable.id, notesTable.associatedInfoId))
@@ -319,7 +328,9 @@ export const associatedInfoActions: {
 		const db = getContextDB();
 		const { page = 0, pageSize = 10, orderBy, ...filterWithoutPagination } = filter;
 
-		const where = associatedInfoFilterToQuery({ filter: filterWithoutPagination });
+		const where = associatedInfoFilterToQuery({
+			filter: filterWithoutPagination
+		});
 		const defaultOrderBy = [desc(associatedInfoTable.createdAt)];
 
 		const orderByResult = orderBy
@@ -390,7 +401,13 @@ export const associatedInfoActions: {
 					transaction: {
 						with: {
 							journals: {
-								columns: { id: true, date: true, amount: true, dateText: true, description: true },
+								columns: {
+									id: true,
+									date: true,
+									amount: true,
+									dateText: true,
+									description: true
+								},
 								with: { account: { columns: { title: true } } }
 							}
 						}
@@ -431,7 +448,13 @@ export const associatedInfoActions: {
 		const count = resultCount[0].count;
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
-		return { count, data: resultsWithAdditionalInfo, pageCount, page, pageSize };
+		return {
+			count,
+			data: resultsWithAdditionalInfo,
+			pageCount,
+			page,
+			pageSize
+		};
 	},
 	listGrouped: async ({ ids, grouping }) => {
 		const db = getContextDB();

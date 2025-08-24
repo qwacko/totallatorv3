@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm';
+import { boolean, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+
 import { currencyFormatEnum, dateFormatEnum } from '@totallator/shared';
-import { pgTable, text, boolean, varchar, timestamp } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
 	id: varchar('id', { length: 60 }).notNull().primaryKey(),

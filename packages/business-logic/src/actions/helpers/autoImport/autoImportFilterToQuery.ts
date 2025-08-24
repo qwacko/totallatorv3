@@ -1,15 +1,18 @@
-import { SQL, eq, ilike } from 'drizzle-orm';
-import { idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
+import { eq, ilike, SQL } from 'drizzle-orm';
+
 import { autoImportTable } from '@totallator/database';
 import type { DBType } from '@totallator/database';
-import { inArrayWrapped } from '../misc/inArrayWrapped';
 import {
 	type AutoImportFilterSchemaType,
-	autoImportTypeToDisplay,
-	autoImportFrequencyToDisplay
+	autoImportFrequencyToDisplay,
+	autoImportTypeToDisplay
 } from '@totallator/shared';
-import { importMappingIdToTitle } from '../import/importMappingFilterToQuery';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { importMappingIdToTitle } from '../import/importMappingFilterToQuery';
+import { idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';
+import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 export const autoImportFilterToQuery = ({
 	filter

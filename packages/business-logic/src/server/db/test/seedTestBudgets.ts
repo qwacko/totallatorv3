@@ -1,5 +1,6 @@
 import type { DBType } from '@totallator/database';
 import { budget } from '@totallator/database';
+
 import { budgetCreateInsertionData } from '@/actions/helpers/budget/budgetCreateInsertionData';
 
 export const seedTestBudgets = async (db: DBType) =>

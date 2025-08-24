@@ -1,4 +1,5 @@
-import { pgTable, text, timestamp, real } from 'drizzle-orm/pg-core';
+import { pgTable, real, text, timestamp } from 'drizzle-orm/pg-core';
+
 import { llmSettings } from './llm';
 import { journalEntry } from './transactionSchema';
 

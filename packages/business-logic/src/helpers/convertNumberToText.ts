@@ -1,5 +1,5 @@
 import type { ReportConfigPartNumberDisplayType } from '@totallator/shared';
-import { getCurrencyFormatter, type currencyFormatType } from '@totallator/shared';
+import { type currencyFormatType, getCurrencyFormatter } from '@totallator/shared';
 
 export const convertNumberToText = ({
 	value,

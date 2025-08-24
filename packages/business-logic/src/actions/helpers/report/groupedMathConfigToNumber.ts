@@ -1,9 +1,11 @@
-import type { DBType } from '@totallator/database';
 import { evaluate } from 'mathjs';
-import type { GetDataForFilterKeyType } from './getCombinedFilters';
-import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
+
+import type { DBType } from '@totallator/database';
 import type { ReportConfigPartSchemaNonTimeGraphType } from '@totallator/shared';
 import { reportConfigPartItemGroupingInfo } from '@totallator/shared';
+
+import type { GetDataForFilterKeyType } from './getCombinedFilters';
+import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
 
 export const groupedMathConfigToNumber = async ({
 	db,
@@ -54,11 +56,17 @@ export const groupedMathConfigToNumber = async ({
 			}
 
 			if ('timeSeriesData' in replacementNumber) {
-				return { error: true, errorMessage: `Time Series Data not allowed in Grouped Data Query` };
+				return {
+					error: true,
+					errorMessage: `Time Series Data not allowed in Grouped Data Query`
+				};
 			}
 
 			if ('singleValue' in replacementNumber) {
-				return { error: true, errorMessage: `Single Value Data not allowed in Grouped Data Query` };
+				return {
+					error: true,
+					errorMessage: `Single Value Data not allowed in Grouped Data Query`
+				};
 			}
 
 			//Update Data Information with data from the filter:
@@ -111,6 +119,9 @@ export const groupedMathConfigToNumber = async ({
 		return { data: groupResults };
 	} catch (err) {
 		// logging.error('Error Processing Math Request : ', { query: mathConfigInt, err });
-		return { error: true, errorMessage: `Math Request Malformed. Query = ${mathConfigInt}` };
+		return {
+			error: true,
+			errorMessage: `Math Request Malformed. Query = ${mathConfigInt}`
+		};
 	}
 };

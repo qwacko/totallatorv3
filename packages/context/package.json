@@ -1,30 +1,39 @@
 {
-  "name": "@totallator/context",
-  "version": "0.0.1",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "scripts": {
-    "build": "tsc && tsc-alias",
-    "dev": "tsc --watch & tsc-alias --watch",    
+	"name": "@totallator/context",
+	"version": "0.0.1",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc && tsc-alias",
+		"dev": "tsc --watch & tsc-alias --watch",
 		"check": "tsc --noEmit",
+		"clean": "rm -rf dist tsconfig.tsbuildinfo",
 		"circular": "madge --circular --extensions ts src/",
-		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/"
-  },
-  "dependencies": {
-    "@totallator/database": "workspace:*",
-    "@totallator/shared": "workspace:*"
-  },
-  "devDependencies": {
-    "@types/node": "^22.0.0",
-    "madge": "^8.0.0",
-    "tsc-alias": "^1.8.16",
-    "typescript": "^5.0.0"
-  }
+		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
+		"format": "prettier --write .",
+		"lint": "prettier --check ."
+	},
+	"dependencies": {
+		"@totallator/database": "workspace:*",
+		"@totallator/log-database": "workspace:*",
+		"@totallator/shared": "workspace:*",
+		"pino": "^9.9.0",
+		"pino-pretty": "^13.1.1"
+	},
+	"devDependencies": {
+		"@sveltejs/kit": "^2.33.1",
+		"@trivago/prettier-plugin-sort-imports": "^5.2.2",
+		"@types/node": "^22.0.0",
+		"madge": "^8.0.0",
+		"prettier": "^3.6.2",
+		"tsc-alias": "^1.8.16",
+		"typescript": "^5.0.0"
+	}
 }

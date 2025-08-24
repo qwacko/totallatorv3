@@ -1,11 +1,15 @@
 import { asc, desc, type SQL } from 'drizzle-orm';
-import type { AutoImportOrderByOptionsType } from '@totallator/shared';
+
 import { autoImportTable, importMapping } from '@totallator/database';
+import type { AutoImportOrderByOptionsType } from '@totallator/shared';
 
 export const autoImportToOrderByToSQL = ({
 	orderBy
 }: {
-	orderBy?: { field: AutoImportOrderByOptionsType; direction: 'asc' | 'desc' }[];
+	orderBy?: {
+		field: AutoImportOrderByOptionsType;
+		direction: 'asc' | 'desc';
+	}[];
 }): SQL<unknown>[] => {
 	const defaultOrderBy = [asc(autoImportTable.title), desc(autoImportTable.createdAt)];
 

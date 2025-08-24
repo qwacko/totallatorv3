@@ -1,7 +1,7 @@
-import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
 import { type SQL } from 'drizzle-orm';
-import { filtersToDateRange, type DBDateRangeType } from './filtersToDateRange';
+
+import type { DBType } from '@totallator/database';
+import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type {
 	ReportConfigPartIndividualSchemaType,
 	ReportConfigPartSchemaNonTimeGraphType,
@@ -10,24 +10,19 @@ import type {
 	ReportConfigPartSchemaStringType,
 	ReportConfigPartSchemaTimeGraphType
 } from '@totallator/shared';
-import { mathConfigToNumber } from './mathConfigToNumber';
-import { stringConfigToString } from './stringConfigToString';
-import { getCombinedFilters, type GetDataForFilterKeyType } from './getCombinedFilters';
-import { sparklineConfigToData } from './sparklineConfigToData';
 import type { currencyFormatType } from '@totallator/shared';
-import { timelineConfigToData } from './timelineConfigToData';
+
+import { type DBDateRangeType, filtersToDateRange } from './filtersToDateRange';
+import {
+	ConfigFilters,
+	getCombinedFilters,
+	type GetDataForFilterKeyType
+} from './getCombinedFilters';
 import { groupedMathConfigToNumber } from './groupedMathConfigToNumber';
-
-export type DateRangeType = ReturnType<typeof filtersToDateRange>;
-
-export type ConfigFilters = {
-	id: string;
-	order: number;
-	filter: {
-		id: string;
-		filter: JournalFilterSchemaWithoutPaginationType;
-	};
-}[];
+import { mathConfigToNumber } from './mathConfigToNumber';
+import { sparklineConfigToData } from './sparklineConfigToData';
+import { stringConfigToString } from './stringConfigToString';
+import { timelineConfigToData } from './timelineConfigToData';
 
 export const getItemData = ({
 	db,
@@ -76,7 +71,11 @@ export const getItemData = ({
 	}
 
 	if (config.type === 'string') {
-		return getDataDetail.string({ config, ...commonParametersReduced, currency });
+		return getDataDetail.string({
+			config,
+			...commonParametersReduced,
+			currency
+		});
 	}
 
 	if (config.type === 'sparkline') {

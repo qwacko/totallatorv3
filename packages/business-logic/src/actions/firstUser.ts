@@ -1,7 +1,9 @@
 import { count, eq } from 'drizzle-orm';
+
+import type { GlobalContext } from '@totallator/context';
 import type { DBType } from '@totallator/database';
 import { user } from '@totallator/database';
-import type { GlobalContext } from '@totallator/context';
+
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 // Legacy function - kept for backward compatibility

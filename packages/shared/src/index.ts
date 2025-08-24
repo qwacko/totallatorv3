@@ -33,6 +33,8 @@ export * from './schemas/tagSchema.js';
 export * from './schemas/textFilterSchema.js';
 export * from './schemas/updatePasswordSchema.js';
 export * from './schemas/userSchema.js';
+export * from './schemas/logConfigFilterValidation.js';
+export * from './schemas/logFilterValidation.js';
 
 // Export helper schemas
 export * from './schemas/helpers/fileNoteRelationship.js';
@@ -47,6 +49,7 @@ export * from './schemas/enum/llmReviewStatusEnum.js';
 export * from './schemas/enum/noteOrderByEnum.js';
 export * from './schemas/enum/noteTypeEnum.js';
 export * from './schemas/enum/queryLogOrderByEnum.js';
+export * from './schemas/enum/logEnum.js';
 
 // Export report helper schemas
 export * from './schemas/reportHelpers/reportConfigPartSchema.js';

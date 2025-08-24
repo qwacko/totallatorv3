@@ -4,6 +4,7 @@ import type { BudgetFilterSchemaWithoutPaginationType } from '@totallator/shared
 import type { CategoryFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type { LabelFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type { TagFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
 import {
 	addToArray,
 	compareTextDate,
@@ -24,7 +25,7 @@ type TextFilterWithGroupSingleSchemaType = TextFilterOptionsType<
 	TagFilterSchemaWithoutPaginationType | CategoryFilterSchemaWithoutPaginationType
 >;
 
-export const groupSingleTextFilterArray = [
+export const groupSingleTextFilterArray: TextFilterWithGroupSingleSchemaType = [
 	{
 		key: ['group:'],
 		update: (filter, newFilter) => {
@@ -49,7 +50,7 @@ export const groupSingleTextFilterArray = [
 			addToArray(filter, 'excludeSingleArray', newFilter);
 		}
 	}
-] satisfies TextFilterWithGroupSingleSchemaType;
+];
 
 export const importTextFilterArray = [
 	{

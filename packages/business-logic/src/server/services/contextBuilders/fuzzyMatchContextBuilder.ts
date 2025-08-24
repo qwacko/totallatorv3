@@ -1,6 +1,6 @@
-import { deduplicateJournals, type ContextBuilderParams } from './baseContextBuilder';
-import type { LLMBatchContext, BatchJournalData } from '../llmBatchProcessingService';
 import { journalMaterializedViewActions } from '../../../actions/journalMaterializedViewActions';
+import type { BatchJournalData, LLMBatchContext } from '../llmBatchProcessingServiceTypes';
+import { type ContextBuilderParams, deduplicateJournals } from './baseContextBuilder';
 
 /**
  * Builds fuzzy match context using the existing similarity algorithm

@@ -1,5 +1,6 @@
+import { eq, getTableColumns, sql } from 'drizzle-orm';
+
 import type { DBType } from '@totallator/database';
-import { getTableColumns, sql, eq } from 'drizzle-orm';
 import {
 	importItemDetail,
 	importMapping,

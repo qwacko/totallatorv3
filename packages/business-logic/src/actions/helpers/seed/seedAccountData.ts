@@ -1,4 +1,5 @@
 import type { CreateAccountSchemaType } from '@totallator/shared';
+
 import { getRandomArrayElement, getRandomBoolean, getRandomInteger } from '../misc/getRandom';
 
 const assetTitleParts = ['Bank', 'Home', 'Cash', 'Savings', 'Investment', 'Art', 'Retirement'];

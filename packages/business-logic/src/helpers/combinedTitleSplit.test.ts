@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { combinedTitleSplitRequired, combinedTitleSplit } from './combinedTitleSplit'; // Adjust the import path
+import { describe, expect, it } from 'vitest';
+
+import { combinedTitleSplit, combinedTitleSplitRequired } from './combinedTitleSplit';
+
+// Adjust the import path
 
 describe('combinedTitleSplitRequired', () => {
 	it('should split title into group and single', () => {

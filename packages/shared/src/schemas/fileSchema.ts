@@ -1,11 +1,12 @@
 import * as z from 'zod';
+
+import { fileOrderByEnum } from './enum/fileOrderByEnum.js';
+import { fileReasonEnum } from './enum/fileReasonEnum.js';
+import { fileTypeEnum } from './enum/fileTypeEnum.js';
 import {
 	createFileNoteRelationshipSchema,
 	fileNoteRelationshipFilterSchema
 } from './helpers/fileNoteRelationship.js';
-import { fileReasonEnum } from './enum/fileReasonEnum.js';
-import { fileTypeEnum } from './enum/fileTypeEnum.js';
-import { fileOrderByEnum } from './enum/fileOrderByEnum.js';
 
 export const createFileSchemaCore = z.object({
 	title: z.string().optional(),
@@ -68,7 +69,12 @@ export const fileFilterSchema = z.object({
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
-		.array(z.object({ field: z.enum(fileOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(fileOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.default([{ direction: 'desc', field: 'createdAt' }])
 		.optional()
 });

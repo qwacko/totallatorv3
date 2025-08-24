@@ -1,23 +1,22 @@
+import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
+import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
-	fileTable,
 	account,
+	associatedInfoTable,
+	autoImportTable,
 	bill,
 	budget,
 	category,
-	tag,
+	fileTable,
+	type FileTableType,
 	label,
-	autoImportTable,
 	report,
 	reportElement,
-	user,
-	type FileTableType,
-	associatedInfoTable
+	tag,
+	user
 } from '@totallator/database';
-import { and, count as drizzleCount, eq, desc, getTableColumns } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { fileFilterToQuery, fileFilterToText } from './helpers/file/fileFilterToQuery';
-import { fileToOrderByToSQL } from './helpers/file/fileOrderByToSQL';
 import {
 	createFileSchema,
 	type CreateFileSchemaCoreType,
@@ -25,27 +24,30 @@ import {
 	type FileFilterSchemaWithoutPaginationType,
 	type UpdateFileSchemaType
 } from '@totallator/shared';
-import type { FileTypeType } from '@totallator/shared';
-import { fileFileHandler } from '../server/files/fileHandler';
-import sharp from 'sharp';
-import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { materializedViewActions } from './materializedViewActions';
-import { UnableToCheckDirectoryExistence } from '@flystorage/file-storage';
+
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
-import { associatedInfoActions } from './associatedInfoActions';
-import { journalMaterializedViewActions } from './journalMaterializedViewActions';
+
+import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
+import { fileFileHandler } from '../server/files/fileHandler';
 import { accountActions } from './accountActions';
+import { associatedInfoActions } from './associatedInfoActions';
+import { autoImportActions } from './autoImportActions';
 import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
-import { tagActions } from './tagActions';
+import { addFileToAssociatedInfo } from './helpers/file/addFileToAssociatedInfo';
+import { fileFilterToQuery, fileFilterToText } from './helpers/file/fileFilterToQuery';
+import { fileToOrderByToSQL } from './helpers/file/fileOrderByToSQL';
+import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
+import { GroupedFilesType, listGroupedFiles } from './helpers/file/listGroupedFiles';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { labelActions } from './labelActions';
-import { autoImportActions } from './autoImportActions';
+import { materializedViewActions } from './materializedViewActions';
 import { reportActions } from './reportActions';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { tagActions } from './tagActions';
 
 type FilesActionsType = FilesAndNotesActions<
 	FileTableType,
@@ -59,9 +61,10 @@ type FilesActionsType = FilesAndNotesActions<
 	}
 >;
 
-type GetFileFunction = (data: {
-	id: string;
-}) => Promise<{ info: FileTableType; fileData: Promise<Buffer<ArrayBufferLike>> }>;
+type GetFileFunction = (data: { id: string }) => Promise<{
+	info: FileTableType;
+	fileData: Promise<Buffer<ArrayBufferLike>>;
+}>;
 
 type CheckFilesExistFunction = () => Promise<void>;
 type UpdateLinkedFunction = () => Promise<void>;
@@ -75,7 +78,9 @@ export const fileActions: FilesActionsType & {
 	getById: async (id) => {
 		const db = getContextDB();
 		return dbExecuteLogger(
-			db.query.fileTable.findFirst({ where: ({ id: fileId }, { eq }) => eq(fileId, id) }),
+			db.query.fileTable.findFirst({
+				where: ({ id: fileId }, { eq }) => eq(fileId, id)
+			}),
 			'File - Get By ID'
 		);
 	},
@@ -182,43 +187,7 @@ export const fileActions: FilesActionsType & {
 			})
 		).data;
 	},
-	listGrouped: async ({ ids, grouping }) => {
-		const db = getContextDB();
-		const items = await db
-			.select({
-				id: fileTable.id,
-				title: fileTable.title,
-				type: fileTable.type,
-				filename: fileTable.filename,
-				originalFilename: fileTable.originalFilename,
-				thumbnailFilename: fileTable.thumbnailFilename,
-				createdAt: fileTable.createdAt,
-				updatedAt: fileTable.updatedAt,
-				createdById: associatedInfoTable.createdById,
-				createdBy: user.username,
-				groupingId: associatedInfoTable[`${grouping}Id`]
-			})
-			.from(fileTable)
-			.leftJoin(associatedInfoTable, eq(associatedInfoTable.id, fileTable.associatedInfoId))
-			.leftJoin(user, eq(user.id, associatedInfoTable.createdById))
-			.where(inArrayWrapped(associatedInfoTable[`${grouping}Id`], ids))
-			.orderBy(desc(fileTable.createdAt));
-
-		const groupedItems = items.reduce(
-			(acc, item) => {
-				if (!item.groupingId) return acc;
-				const groupingId = item.groupingId;
-				if (!acc[groupingId]) {
-					acc[groupingId] = [];
-				}
-				acc[groupingId].push(item);
-				return acc;
-			},
-			{} as Record<string, typeof items>
-		);
-
-		return groupedItems;
-	},
+	listGrouped: listGroupedFiles,
 	addToSingleItem: async ({ item, grouping }) => {
 		const ids = [item.id];
 		const groupedFiles = await fileActions.listGrouped({
@@ -249,74 +218,7 @@ export const fileActions: FilesActionsType & {
 			})
 		};
 	},
-	addToInfo: async ({ data, associatedId }) => {
-		const db = getContextDB();
-		const fileId = nanoid();
-
-		const { file: fileData, reason, title, ...restData } = data;
-
-		const originalFilename = fileData.name;
-		const filename = `${fileId}-${originalFilename}`;
-		const thumbnailFilename = `${fileId}-thumbnail-${originalFilename}`;
-		const size = fileData.size;
-
-		const fileIsPDF = fileData.type === 'application/pdf';
-		const fileIsJPG = fileData.type === 'image/jpeg';
-		const fileIsPNG = fileData.type === 'image/png';
-		const fileIsWEBP = fileData.type === 'image/webp';
-		const fileIsGIF = fileData.type === 'image/gif';
-		const fileIsTIFF = fileData.type === 'image/tiff';
-		const fileIsAVIF = fileData.type === 'image/avif';
-		const fileIsSVG = fileData.type === 'image/svg+xml';
-		const fileIsImage =
-			fileIsJPG || fileIsPNG || fileIsWEBP || fileIsGIF || fileIsTIFF || fileIsAVIF || fileIsSVG;
-		const type: FileTypeType = fileIsPDF
-			? 'pdf'
-			: fileIsJPG
-				? 'jpg'
-				: fileIsPNG
-					? 'png'
-					: fileIsWEBP
-						? 'webp'
-						: fileIsGIF
-							? 'gif'
-							: fileIsTIFF
-								? 'tiff'
-								: fileIsAVIF
-									? 'avif'
-									: fileIsSVG
-										? 'svg'
-										: 'other';
-
-		const fileContents = Buffer.from(await fileData.arrayBuffer());
-
-		const thumbnail = fileIsImage ? await sharp(fileContents).resize(400).toBuffer() : undefined;
-
-		await fileFileHandler().write(filename, fileContents);
-		if (thumbnail) {
-			await fileFileHandler().write(thumbnailFilename, thumbnail);
-		}
-
-		const titleUse = title || originalFilename;
-
-		type InsertFile = typeof fileTable.$inferInsert;
-		const createData: InsertFile = {
-			...restData,
-			id: fileId,
-			associatedInfoId: associatedId,
-			originalFilename,
-			filename,
-			thumbnailFilename: fileIsImage ? thumbnailFilename : null,
-			title: titleUse,
-			size,
-			type,
-			fileExists: true,
-			reason,
-			...updatedTime()
-		};
-
-		await dbExecuteLogger(db.insert(fileTable).values(createData), 'File - Create');
-	},
+	addToInfo: addFileToAssociatedInfo,
 	create: async ({ data, creationUserId }) => {
 		const result = createFileSchema.safeParse(data);
 
@@ -619,7 +521,10 @@ export const fileActions: FilesActionsType & {
 			}
 		} catch (err) {
 			if (err instanceof UnableToCheckDirectoryExistence) {
-				getLogger().error('Unable to check directory existence');
+				getLogger('files').error({
+					code: 'FILE_001',
+					title: 'Unable to check directory existence'
+				});
 			}
 		}
 
@@ -647,17 +552,3 @@ export const fileActions: FilesActionsType & {
 		);
 	}
 };
-
-export type GroupedFilesType = {
-	id: string;
-	title: string | null;
-	type: FileTypeType;
-	filename: string;
-	originalFilename: string;
-	thumbnailFilename: string | null;
-	createdAt: Date;
-	updatedAt: Date;
-	createdById: string | null;
-	createdBy: string | null;
-	groupingId: string | null;
-}[];

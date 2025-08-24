@@ -1,19 +1,22 @@
-import {
-	importMappingDetailWithRefinementSchema,
-	type ImportMappingDetailSchema,
-	type ImportMappingFilterSchema,
-	importMappingDetailSchema
-} from '@totallator/shared';
-import { nanoid } from 'nanoid';
-import { importMapping, type ImportMappingTableType } from '@totallator/database';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { asc, desc, getTableColumns, and, sql, eq, max } from 'drizzle-orm';
-import { importMappingFilterToQuery } from './helpers/import/importMappingFilterToQuery';
-import { streamingDelay } from '../server/testingDelay';
+import { and, asc, desc, eq, getTableColumns, max, sql } from 'drizzle-orm';
 import { count as drizzleCount } from 'drizzle-orm';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import type { PaginatedResults } from './helpers/journal/PaginationType';
+import { nanoid } from 'nanoid';
+
 import { getContextDB } from '@totallator/context';
+import { importMapping, type ImportMappingTableType } from '@totallator/database';
+import {
+	type ImportMappingDetailSchema,
+	importMappingDetailSchema,
+	importMappingDetailWithRefinementSchema,
+	type ImportMappingFilterSchema
+} from '@totallator/shared';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { streamingDelay } from '../server/testingDelay';
+import { importMappingFilterToQuery } from './helpers/import/importMappingFilterToQuery';
+import type { PaginatedResults } from './helpers/journal/PaginationType';
+import { updatedTime } from './helpers/misc/updatedTime';
 
 type ProcessedImportData = Omit<ImportMappingTableType, 'configuration'> & {
 	configuration: undefined | ImportMappingDetailSchema;
@@ -106,7 +109,11 @@ export const importMappingActions = {
 		await streamingDelay();
 		const results = await dbExecuteLogger(
 			db
-				.select({ id: importMapping.id, title: importMapping.title, enabled: sql<boolean>`true` })
+				.select({
+					id: importMapping.id,
+					title: importMapping.title,
+					enabled: sql<boolean>`true`
+				})
 				.from(importMapping)
 				.orderBy(asc(importMapping.title)),
 			'Import Mapping - List For Dropdown'
@@ -216,4 +223,8 @@ export const importMappingActions = {
 	}
 };
 
-export type ImportMappingDropdownType = { id: string; title: string; enabled: boolean }[];
+export type ImportMappingDropdownType = {
+	id: string;
+	title: string;
+	enabled: boolean;
+}[];

@@ -1,4 +1,6 @@
 import type { BudgetFilterSchemaWithoutPaginationType } from '@totallator/shared';
+
+import { fileFilterArray } from '../file/fileTextFilter';
 import {
 	addToArray,
 	textFilterHandler,
@@ -12,9 +14,8 @@ import {
 	statusTextFilterArray
 } from '../misc/textFilterConfigurations';
 import { noteFilterArray } from '../note/noteTextFilter';
-import { fileFilterArray } from '../file/fileTextFilter';
 
-export const budgetFilterArray = [
+export const budgetFilterArray: TextFilterOptionsType<BudgetFilterSchemaWithoutPaginationType> = [
 	...importTextFilterArray,
 	...statusTextFilterArray,
 	...statisticsTextFilterArray,
@@ -22,7 +23,7 @@ export const budgetFilterArray = [
 	...fileFilterArray,
 	...noteFilterArray,
 	...idTitleTextFilterArray
-] satisfies TextFilterOptionsType<BudgetFilterSchemaWithoutPaginationType>;
+];
 
 export const processBudgetTextFilter = textFilterHandler<BudgetFilterSchemaWithoutPaginationType>(
 	budgetFilterArray,

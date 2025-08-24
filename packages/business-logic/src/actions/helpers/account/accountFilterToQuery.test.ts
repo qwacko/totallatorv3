@@ -1,16 +1,19 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { accountFilterToQuery, accountFilterToText } from './accountFilterToQuery';
 import { and } from 'drizzle-orm';
-import { account } from '@totallator/database';
 import { QueryBuilder } from 'drizzle-orm/pg-core';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
+import { account } from '@totallator/database';
+import { accountMaterializedView } from '@totallator/database';
+
 import {
 	clearTestDB,
+	closeTestDB,
 	createTestWrapper,
 	getTestDB,
-	initialiseTestDB,
-	closeTestDB
+	initialiseTestDB
 } from '@/server/db/test/dbTest';
-import { accountMaterializedView } from '@totallator/database';
+
+import { accountFilterToQuery, accountFilterToText } from './accountFilterToQuery';
 
 describe('Account Filter To Query', () => {
 	const qb = new QueryBuilder();

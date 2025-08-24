@@ -65,7 +65,12 @@ export const cronJobFilterSchema = z.object({
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
-		.array(z.object({ field: z.enum(cronJobOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(cronJobOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.default([{ direction: 'asc', field: 'name' }])
 		.optional()
 });
@@ -123,7 +128,10 @@ export const cronExecutionFilterSchema = z.object({
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
 		.array(
-			z.object({ field: z.enum(cronExecutionOrderByEnum), direction: z.enum(['asc', 'desc']) })
+			z.object({
+				field: z.enum(cronExecutionOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
 		)
 		.default([{ direction: 'desc', field: 'startedAt' }])
 		.optional()
@@ -143,7 +151,12 @@ export const cronJobUrlFilterSchema = z.object({
 	page: z.coerce.number().default(0).optional(),
 	pageSize: z.coerce.number().default(25).optional(),
 	orderBy: z
-		.array(z.object({ field: z.enum(cronJobOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(cronJobOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.default([{ direction: 'asc', field: 'name' }])
 		.optional()
 });

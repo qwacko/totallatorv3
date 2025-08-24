@@ -1,4 +1,5 @@
 import { billMaterializedView, billView } from '@totallator/database';
+
 import { materializedViewActions } from '../../materializedViewActions';
 
 export const getCorrectBillTable = async () => {
@@ -10,5 +11,8 @@ export const getCorrectBillTable = async () => {
 		return { table: billView, target: 'view' as 'view' | 'materialized' };
 	}
 
-	return { table: billMaterializedView, target: 'materialized' as 'view' | 'materialized' };
+	return {
+		table: billMaterializedView,
+		target: 'materialized' as 'view' | 'materialized'
+	};
 };

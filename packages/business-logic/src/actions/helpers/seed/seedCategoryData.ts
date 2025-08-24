@@ -1,4 +1,5 @@
 import type { CreateCategorySchemaType } from '@totallator/shared';
+
 import { getRandomInteger } from '../misc/getRandom';
 
 export const createCategory = (): CreateCategorySchemaType => {

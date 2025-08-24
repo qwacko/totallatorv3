@@ -1,7 +1,10 @@
-import type { Tool, ToolExecutionContext, ToolExecutionResult } from '../types';
-import { fileTable, associatedInfoTable } from '@totallator/database';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { eq } from 'drizzle-orm';
+
+import { associatedInfoTable, fileTable } from '@totallator/database';
+
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import type { Tool, ToolExecutionContext, ToolExecutionResult } from '../types';
 
 export const getInvoiceTextTool: Tool = {
 	definition: {

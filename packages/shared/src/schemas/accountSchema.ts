@@ -1,10 +1,11 @@
 import * as z from 'zod';
-import { statusEnum } from './statusSchema.js';
+
 import { accountTypeEnum } from './accountTypeSchema.js';
 import { dateStringSchema } from './dateStringSchema.js';
-import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema.js';
 import { linkedFileFilterSchema } from './linkedFileFilterSchema.js';
 import { linkedNoteFilterSchema } from './linkedNoteFilterSchema.js';
+import { statusEnum } from './statusSchema.js';
+import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema.js';
 
 export const createAccountSchema = z.object({
 	title: z.string(),
@@ -39,7 +40,10 @@ export const updateAccountSchema = z.object({
 	status: z.enum(statusEnum).optional()
 });
 
-export const updateAccountSchemaWithId = z.object({ ...updateAccountSchema.shape, id: z.string() });
+export const updateAccountSchemaWithId = z.object({
+	...updateAccountSchema.shape,
+	id: z.string()
+});
 
 const refineAccountUpdate = (data: {
 	accountGroupCombined?: string;
@@ -177,7 +181,12 @@ export const accountFilterSchema = z.object({
 	pageSize: z.coerce.number<number>().default(10).optional(),
 
 	orderBy: z
-		.array(z.object({ field: z.enum(accountOrderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(accountOrderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.default([{ direction: 'asc', field: 'title' }])
 		.optional(),
 	...linkedFileFilterSchema.shape,

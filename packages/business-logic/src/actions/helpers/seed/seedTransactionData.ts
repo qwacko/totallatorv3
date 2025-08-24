@@ -1,4 +1,5 @@
 import type { CreateCombinedTransactionType } from '@totallator/shared';
+
 import { getLogger } from '@/logger';
 
 import {
@@ -38,7 +39,9 @@ export const seedTransactionData = ({
 	);
 
 	if (fromAccountId === undefined || toAccountId === undefined) {
-		getLogger().error('Seed Transaction Data Pre Throw : ', {
+		getLogger('database').error({
+			code: 'SEED_001',
+			title: 'Seed Transaction Data Pre Throw',
 			fromAccountId,
 			toAccountId,
 			numberAssetLiabilities: assetLiabilityIds.length,

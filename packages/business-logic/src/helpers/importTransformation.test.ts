@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { processConfigString } from './importTransformation'; // Adjust the import path
+import { describe, expect, it } from 'vitest';
+
+import { processConfigString } from './importTransformation';
+
+// Adjust the import path
 
 describe('processConfigString', () => {
 	it('should correctly replace substring operations for keys with spaces', () => {

@@ -1,12 +1,16 @@
-import { createJournalDBCore, type CreateJournalSchemaType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
-import { updatedTime } from '../misc/updatedTime';
 import { nanoid } from 'nanoid';
+
+import type { DBType } from '@totallator/database';
+import { createJournalDBCore, type CreateJournalSchemaType } from '@totallator/shared';
+import type { StatusEnumType } from '@totallator/shared';
+import type { LlmReviewStatusEnumType } from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { getServerEnv } from '@/serverEnv';
+
+import { updatedTime } from '../misc/updatedTime';
 import { expandDate } from './expandDate';
 import { journalGetOrCreateLinkedItems } from './journalGetOrCreateLinkedItems';
-import type { StatusEnumType } from '@totallator/shared';
-import { getServerEnv } from '@/serverEnv';
-import type { LlmReviewStatusEnumType } from '@totallator/shared';
 
 export const generateItemsForJournalCreation = async ({
 	db,
@@ -31,6 +35,32 @@ export const generateItemsForJournalCreation = async ({
 	cachedLabels?: { id: string; title: string; status: StatusEnumType }[];
 	isImport?: boolean;
 }) => {
+	const startTime = Date.now();
+	const journalId = nanoid();
+
+	getLogger('journals').trace({
+		code: 'JOURNAL_GEN_001',
+		title: 'Starting journal item generation',
+		transactionId,
+		journalId,
+		accountId: journalData.accountId,
+		amount: journalData.amount,
+		isImport
+	});
+
+	getLogger('journals').trace({
+		code: 'JOURNAL_GEN_002',
+		title: 'Processing linked items for journal',
+		transactionId,
+		journalId,
+		hasCachedAccounts: !!cachedAccounts,
+		hasCachedBills: !!cachedBills,
+		hasCachedBudgets: !!cachedBudgets,
+		hasCachedTags: !!cachedTags,
+		hasCachedCategories: !!cachedCategories,
+		hasCachedLabels: !!cachedLabels
+	});
+
 	const linkedCorrections = await journalGetOrCreateLinkedItems({
 		db,
 		journalEntry: journalData,
@@ -41,9 +71,36 @@ export const generateItemsForJournalCreation = async ({
 		cachedCategories,
 		cachedLabels
 	});
-	const processedJournalData = createJournalDBCore.parse(linkedCorrections);
-	const { labels, accountId, ...restJournalData } = processedJournalData;
-	const id = nanoid();
+
+	getLogger('journals').trace({
+		code: 'JOURNAL_GEN_003',
+		title: 'Linked items processed, validating journal data',
+		transactionId,
+		journalId,
+		linkedItemsProcessed: true
+	});
+
+	const processedJournalData = createJournalDBCore.safeParse(linkedCorrections);
+	if (processedJournalData.error) {
+		getLogger('journals').error({
+			code: 'JOURNAL_GEN_004',
+			title: 'Journal validation failed',
+			transactionId,
+			journalId,
+			error: processedJournalData.error,
+			currentJournal: linkedCorrections
+		});
+		throw new Error('Journal Creation Failed');
+	}
+
+	getLogger('journals').trace({
+		code: 'JOURNAL_GEN_005',
+		title: 'Journal data validated successfully',
+		transactionId,
+		journalId
+	});
+	const { labels, accountId, ...restJournalData } = processedJournalData.data;
+	const id = journalId; // Use the previously generated ID
 
 	// Determine LLM review status based on environment variables
 	const determineReviewStatus = (): LlmReviewStatusEnumType => {
@@ -68,6 +125,18 @@ export const generateItemsForJournalCreation = async ({
 
 	const llmReviewStatus = determineReviewStatus();
 
+	getLogger('journals').trace({
+		code: 'JOURNAL_GEN_006',
+		title: 'LLM review status determined',
+		transactionId,
+		journalId: id,
+		llmReviewStatus,
+		isImport,
+		llmEnabled: getServerEnv().LLM_REVIEW_ENABLED,
+		autoImportReview: getServerEnv().LLM_REVIEW_AUTO_IMPORT,
+		manualCreateReview: getServerEnv().LLM_REVIEW_MANUAL_CREATE
+	});
+
 	const journalForCreation = {
 		id,
 		transactionId,
@@ -84,6 +153,19 @@ export const generateItemsForJournalCreation = async ({
 				return { id: relId, journalId: id, labelId: label, ...updatedTime() };
 			})
 		: [];
+
+	const duration = Date.now() - startTime;
+	getLogger('journals').trace({
+		code: 'JOURNAL_GEN_007',
+		title: 'Journal item generation completed',
+		transactionId,
+		journalId: id,
+		duration,
+		labelCount: labelsForCreation.length,
+		llmReviewStatus,
+		accountId: accountId || '',
+		amount: restJournalData.amount
+	});
 
 	return { journal: journalForCreation, labels: labelsForCreation };
 };

@@ -1,8 +1,9 @@
 import * as z from 'zod';
-import { statusEnum } from './statusSchema.js';
-import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema.js';
+
 import { linkedFileFilterSchema } from './linkedFileFilterSchema.js';
 import { linkedNoteFilterSchema } from './linkedNoteFilterSchema.js';
+import { statusEnum } from './statusSchema.js';
+import { summaryEnumTitles, summaryFilterProperties, summaryOrderByEnum } from './summarySchema.js';
 
 export const createBudgetSchema = z.object({
 	title: z.string(),
@@ -76,7 +77,12 @@ export const budgetFilterSchema = z.object({
 	pageSize: z.coerce.number<number>().default(10).optional(),
 
 	orderBy: z
-		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(orderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.default([{ direction: 'asc', field: 'title' }])
 		.optional(),
 	...linkedFileFilterSchema.shape,

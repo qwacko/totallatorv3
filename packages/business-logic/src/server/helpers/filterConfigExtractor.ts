@@ -1,7 +1,8 @@
-import type { TextFilterOptionsType } from '@/actions/helpers/misc/processTextFilter';
 import type { AutocompleteKey } from '@totallator/shared';
 import { statusEnum } from '@totallator/shared';
 import { accountTypeEnum } from '@totallator/shared';
+
+import type { TextFilterOptionsType } from '@/actions/helpers/misc/processTextFilter';
 
 interface FilterMetadata {
 	keys: string[];

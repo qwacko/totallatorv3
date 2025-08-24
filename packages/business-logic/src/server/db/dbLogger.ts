@@ -1,8 +1,10 @@
-import { nanoid } from 'nanoid';
-import { queryLogTable } from '@totallator/database';
-import { queryLogActions } from '@/actions/queryLogActions';
 import { PgRaw } from 'drizzle-orm/pg-core/query-builders/raw';
-import { GlobalContext } from '@totallator/context';
+import { nanoid } from 'nanoid';
+
+import { getContext, GlobalContext } from '@totallator/context';
+import { queryLogTable } from '@totallator/database';
+
+import { queryLogActions } from '@/actions/queryLogActions';
 
 type QueryCache = {
 	title?: string;
@@ -167,7 +169,8 @@ export const initDBLogger = async (context: GlobalContext) => {
 
 			await queryLogActions.tidy();
 		},
-		logError: context.logger.error
+		logError: (...args) =>
+			context.logger('database').error({ code: 'DB_004', title: args[0], error: args })
 	});
 };
 
@@ -178,15 +181,29 @@ export const dbExecuteLogger: ExecuteFunction = async <T>(
 	if (dbLoggerInstance) {
 		return dbLoggerInstance.execute(query, title);
 	} else {
+		const context = getContext();
+		await initDBLogger(context.global);
+	}
+	if (dbLoggerInstance) {
+		//@ts-expect-error Since this is an external variable, it can be updated.
+		return dbLoggerInstance.execute(query, title);
+	} else {
 		throw new Error('No DB Logger Instance');
 	}
 };
 
-export const dbExecuteRawLogger: ExecuteRawFunction = <T>(
+export const dbExecuteRawLogger: ExecuteRawFunction = async <T>(
 	query: PgRaw<T>,
 	title?: string
 ): Promise<T> => {
 	if (dbLoggerInstance) {
+		return dbLoggerInstance.executeRaw(query, title);
+	} else {
+		const context = getContext();
+		await initDBLogger(context.global);
+	}
+	if (dbLoggerInstance) {
+		//@ts-expect-error Since this is an external variable, it can be updated.
 		return dbLoggerInstance.executeRaw(query, title);
 	} else {
 		throw new Error('No DB Logger Instance');

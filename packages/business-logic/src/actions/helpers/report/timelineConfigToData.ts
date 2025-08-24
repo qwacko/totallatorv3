@@ -1,12 +1,15 @@
-import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
-import type { ReportConfigPartSchemaTimeGraphType } from '@totallator/shared';
-import type { DBType } from '@totallator/database';
 import { evaluate } from 'mathjs';
-import type { GetDataForFilterKeyType } from './getCombinedFilters';
-import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
+
+import type { DBType } from '@totallator/database';
+import type { ReportConfigPartSchemaTimeGraphType } from '@totallator/shared';
 import { reportConfigPartTrendDisplayInfo } from '@totallator/shared';
 import { reportConfigPartItemGroupingInfo } from '@totallator/shared';
+
+import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
 import { getLogger } from '@/logger';
+
+import type { GetDataForFilterKeyType } from './getCombinedFilters';
+import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';
 
 export const timelineConfigToData = async ({
 	db,
@@ -88,7 +91,10 @@ export const timelineConfigToData = async ({
 				if (!filterResultsByGroupAndDate[key]) {
 					filterResultsByGroupAndDate[key] = [];
 				}
-				filterResultsByGroupAndDate[key].push({ key: filterResult.key, value: item.value });
+				filterResultsByGroupAndDate[key].push({
+					key: filterResult.key,
+					value: item.value
+				});
 			});
 		}
 		if (filterResult.data.singleValue) {
@@ -98,7 +104,10 @@ export const timelineConfigToData = async ({
 					if (!filterResultsByGroupAndDate[key]) {
 						filterResultsByGroupAndDate[key] = [];
 					}
-					filterResultsByGroupAndDate[key].push({ key: filterResult.key, value: item.value });
+					filterResultsByGroupAndDate[key].push({
+						key: filterResult.key,
+						value: item.value
+					});
 				});
 			});
 		}
@@ -126,7 +135,11 @@ export const timelineConfigToData = async ({
 			try {
 				calcValue = Number(evaluate(currentCalc));
 			} catch (err) {
-				getLogger().error('Error in calculation', err);
+				getLogger('reports').error({
+					code: 'REP_001',
+					title: 'Error in calculation',
+					error: err
+				});
 			}
 
 			return {

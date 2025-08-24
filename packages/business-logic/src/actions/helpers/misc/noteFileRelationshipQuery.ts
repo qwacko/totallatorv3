@@ -1,9 +1,10 @@
-import { fileNoteRelationshipFilterSchema } from '@totallator/shared';
 import { not, type SQL } from 'drizzle-orm';
-
 import * as z from 'zod';
-import { inArrayWrapped } from './inArrayWrapped';
+
 import { associatedInfoTable } from '@totallator/database';
+import { fileNoteRelationshipFilterSchema } from '@totallator/shared';
+
+import { inArrayWrapped } from './inArrayWrapped';
 
 const filterCore = z.object(fileNoteRelationshipFilterSchema);
 type FilterCoreType = z.infer<typeof filterCore>;

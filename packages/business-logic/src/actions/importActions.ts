@@ -1,64 +1,67 @@
-import { getServerEnv } from '@/serverEnv';
+import { and, count as drizzleCount, eq, lt, not } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { z } from 'zod';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
 	account,
 	autoImportTable,
+	type AutoImportTableType,
 	bill,
 	budget,
 	category,
 	importItemDetail,
 	importMapping,
+	type ImportMappingTableType,
 	importTable,
+	type ImportTableType,
 	journalEntry,
 	label,
-	tag,
-	type AutoImportTableType,
-	type ImportMappingTableType,
-	type ImportTableType
+	tag
 } from '@totallator/database';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, not, count as drizzleCount, lt } from 'drizzle-orm';
-import { accountActions } from './accountActions';
-import { reusableFilterActions } from './reusableFilterActions';
-import { billActions } from './billActions';
-import { budgetActions } from './budgetActions';
-import { categoryActions } from './categoryActions';
-import { tagActions } from './tagActions';
-import { labelActions } from './labelActions';
-import { journalActions } from './journalActions';
-import { importMappingActions } from './importMappingActions';
-import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
-import { z, type ZodSchema } from 'zod';
 import {
 	type CreateImportSchemaType,
 	type ImportFilterSchemaType,
 	type UpdateImportSchemaType
 } from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { getServerEnv } from '@/serverEnv';
+
+import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
+import { importFileHandler } from '../server/files/fileHandler';
+// import { processCreatedImport } from './helpers/import/processImport';
+import { streamingDelay } from '../server/testingDelay';
+import { accountActions } from './accountActions';
+import { billActions } from './billActions';
+import { budgetActions } from './budgetActions';
+import { categoryActions } from './categoryActions';
+import { getImportDetail, type GetImportDetailReturnType } from './helpers/import/getImportDetail';
+import { importFilterToQuery } from './helpers/import/importFilterToQuery';
 import {
-	importTransaction,
 	importAccount,
 	importBill,
 	importBudget,
 	importCategory,
-	importTag,
-	importLabel
+	importLabel,
+	importTag
 } from './helpers/import/importHelpers';
-
-import { getImportDetail, type GetImportDetailReturnType } from './helpers/import/getImportDetail';
-import { processCreatedImport } from './helpers/import/processImport';
-import { streamingDelay } from '../server/testingDelay';
+import { importTransaction } from './helpers/import/importHelpers_importTransaction';
 import {
 	importListSubquery,
 	type ImportSubqueryReturnData
 } from './helpers/import/importListSubquery';
 import { importToOrderByToSQL } from './helpers/import/importOrderByToSQL';
-import { importFilterToQuery } from './helpers/import/importFilterToQuery';
-import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { importFileHandler } from '../server/files/fileHandler';
-import { getLogger } from '@/logger';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { processCreatedImport } from './helpers/import/processImport';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { importMappingActions } from './importMappingActions';
+import { journalActions } from './journalActions';
+import { labelActions } from './labelActions';
+import { reusableFilterActions } from './reusableFilterActions';
+import { tagActions } from './tagActions';
 
 export const importActions = {
 	numberActive: async (): Promise<number> => {
@@ -83,7 +86,10 @@ export const importActions = {
 
 		const internalQuery = importListSubquery(db);
 
-		const where = importFilterToQuery({ filter: restFilter, query: internalQuery });
+		const where = importFilterToQuery({
+			filter: restFilter,
+			query: internalQuery
+		});
 
 		const results = await dbExecuteLogger(
 			db
@@ -114,7 +120,9 @@ export const importActions = {
 	}: {
 		filter: ImportFilterSchemaType;
 	}): Promise<
-		PaginatedResults<ImportSubqueryReturnData> & { details: GetImportDetailReturnType[] }
+		PaginatedResults<ImportSubqueryReturnData> & {
+			details: GetImportDetailReturnType[];
+		}
 	> => {
 		const db = getContextDB();
 		const imports = await importActions.list({ filter });
@@ -143,13 +151,35 @@ export const importActions = {
 		data: CreateImportSchemaType;
 		autoImportId?: string;
 	}): Promise<string> => {
+		const startTime = Date.now();
 		const db = getContextDB();
 		const { file: newFile, importType: type, ...restData } = data;
 
+		getLogger('import').info({
+			code: 'IMP_050',
+			title: 'Starting import file storage',
+			filename: newFile.name,
+			fileSize: newFile.size,
+			fileType: newFile.type,
+			importType: type,
+			autoImportId
+		});
+
 		if (newFile.type !== 'text/csv') {
 			if (type !== 'mappedImport') {
+				getLogger('import').error({
+					code: 'IMP_051',
+					title: 'Invalid file type for import type',
+					fileType: newFile.type,
+					importType: type
+				});
 				throw new Error('Filetype must be CSV except for mapped imports');
 			}
+
+			getLogger('import').debug({
+				code: 'IMP_052',
+				title: 'Processing JSON file for mapped import'
+			});
 
 			const fileString = await newFile.text();
 			const jsonFile = JSON.parse(fileString);
@@ -157,20 +187,55 @@ export const importActions = {
 			const parsedData = schemaValidation.safeParse(jsonFile);
 
 			if (!parsedData.success) {
+				getLogger('import').error({
+					code: 'IMP_053',
+					title: 'Invalid JSON format in file',
+					error: parsedData.error
+				});
 				throw new Error('Filetype must be CSV or JSON Array of Objects');
 			}
+
+			getLogger('import').info({
+				code: 'IMP_054',
+				title: 'JSON file validated successfully',
+				recordCount: parsedData.data.length
+			});
 		}
 
 		const fileType = newFile.type === 'text/csv' ? 'csv' : 'json';
 
 		if (type === 'mappedImport' && !importMapping) {
+			getLogger('import').error({
+				code: 'IMP_055',
+				title: 'No mapping selected for mapped import'
+			});
 			throw new Error('No Mapping Selected');
 		}
+
 		if (restData.importMappingId) {
-			const result = await importMappingActions.getById({ id: restData.importMappingId });
+			getLogger('import').debug({
+				code: 'IMP_056',
+				title: 'Validating import mapping',
+				mappingId: restData.importMappingId
+			});
+
+			const result = await importMappingActions.getById({
+				id: restData.importMappingId
+			});
 			if (!result) {
+				getLogger('import').error({
+					code: 'IMP_057',
+					title: 'Import mapping not found',
+					mappingId: restData.importMappingId
+				});
 				throw new Error(`Mapping ${importMapping} Not Found`);
 			}
+
+			getLogger('import').debug({
+				code: 'IMP_058',
+				title: 'Import mapping validated successfully',
+				mappingId: restData.importMappingId
+			});
 		}
 
 		const originalFilename = newFile.name;
@@ -179,10 +244,23 @@ export const importActions = {
 
 		const saveFilename = `${dateTime}_${id}_${originalFilename}`;
 
+		getLogger('import').debug({
+			code: 'IMP_059',
+			title: 'Saving import file to storage',
+			saveFilename,
+			fileType
+		});
+
 		await importFileHandler().write(
 			saveFilename,
 			fileType === 'json' ? Buffer.from(await newFile.arrayBuffer()) : await newFile.text()
 		);
+
+		getLogger('import').debug({
+			code: 'IMP_060',
+			title: 'File saved, creating import record',
+			importId: id
+		});
 
 		await dbExecuteLogger(
 			db.insert(importTable).values({
@@ -199,10 +277,29 @@ export const importActions = {
 			'Import - Store - Insert'
 		);
 
+		getLogger('import').info({
+			code: 'IMP_061',
+			title: 'Import record created, starting processing',
+			importId: id
+		});
+
 		try {
 			await processCreatedImport({ id });
+
+			const duration = Date.now() - startTime;
+			getLogger('import').info({
+				code: 'IMP_062',
+				title: 'Import processing completed successfully',
+				importId: id,
+				duration
+			});
 		} catch (e) {
-			getLogger().error('Error Processing Import', e);
+			getLogger('import').error({
+				code: 'IMP_063',
+				title: 'Error processing import',
+				error: e,
+				importId: id
+			});
 			await dbExecuteLogger(
 				db
 					.update(importTable)
@@ -213,100 +310,6 @@ export const importActions = {
 		}
 
 		return id;
-	},
-	processItems: async <S extends Record<string, unknown>>({
-		id,
-		data,
-		schema,
-		importDataToSchema = (data) => ({ data: data as S }),
-		getUniqueIdentifier,
-		checkUniqueIdentifiers
-	}: {
-		id: string;
-		data: Papa.ParseResult<unknown> | { data: Record<string, any>[] };
-		schema: ZodSchema<S>;
-		importDataToSchema?: (data: unknown) => { data: S } | { errors: string[] };
-		getUniqueIdentifier?: ((data: S) => string | null | undefined) | undefined;
-		checkUniqueIdentifiers?: (data: string[]) => Promise<string[]>;
-	}): Promise<void> => {
-		const db = getContextDB();
-		await Promise.all(
-			data.data.map(async (currentRow) => {
-				const row = currentRow as Record<string, unknown>;
-				const importDetailId = nanoid();
-				const preprocessedData = importDataToSchema(row);
-				if ('errors' in preprocessedData) {
-					await dbExecuteLogger(
-						db.insert(importItemDetail).values({
-							id: importDetailId,
-							...updatedTime(),
-							status: 'error',
-							processedInfo: { source: row },
-							errorInfo: { errors: preprocessedData.errors },
-							importId: id
-						}),
-						'Import - Process Items - Error'
-					);
-					return;
-				}
-				const validatedData = schema.safeParse(preprocessedData.data);
-				if (validatedData.success) {
-					const unqiueIdentifier = getUniqueIdentifier
-						? getUniqueIdentifier(validatedData.data)
-						: undefined;
-					const foundUniqueIdentifiers =
-						checkUniqueIdentifiers && unqiueIdentifier
-							? await checkUniqueIdentifiers([unqiueIdentifier])
-							: undefined;
-
-					if (foundUniqueIdentifiers && foundUniqueIdentifiers.length > 0) {
-						await dbExecuteLogger(
-							db.insert(importItemDetail).values({
-								id: importDetailId,
-								...updatedTime(),
-								status: 'duplicate',
-								processedInfo: {
-									dataToUse: validatedData.data,
-									source: row,
-									processed: preprocessedData
-								},
-								importId: id,
-								uniqueId: unqiueIdentifier
-							}),
-							'Import - Process Items - Duplicate'
-						);
-					} else {
-						await dbExecuteLogger(
-							db.insert(importItemDetail).values({
-								id: importDetailId,
-								...updatedTime(),
-								status: 'processed',
-								processedInfo: {
-									dataToUse: validatedData.data,
-									source: row,
-									processed: preprocessedData
-								},
-								importId: id,
-								uniqueId: unqiueIdentifier
-							}),
-							'Import - Process Items - Processed'
-						);
-					}
-				} else {
-					await dbExecuteLogger(
-						db.insert(importItemDetail).values({
-							id: importDetailId,
-							...updatedTime(),
-							status: 'error',
-							processedInfo: { source: row, processed: preprocessedData },
-							errorInfo: { errors: validatedData.error.flatten().formErrors },
-							importId: id
-						}),
-						'Import - Process Items - Error 2'
-					);
-				}
-			})
-		);
 	},
 	get: async ({
 		id
@@ -354,7 +357,22 @@ export const importActions = {
 		const importData = data[0];
 
 		if (importData.status === 'created') {
-			await processCreatedImport({ id });
+			try {
+				await processCreatedImport({ id });
+			} catch (e) {
+				getLogger('import').error({
+					code: 'IMP_002',
+					title: 'Error Processing Import',
+					error: e
+				});
+				await dbExecuteLogger(
+					db
+						.update(importTable)
+						.set({ status: 'error', errorInfo: e })
+						.where(eq(importTable.id, id)),
+					'Import - Get - Error Processing Import'
+				);
+			}
 		}
 
 		return getImportDetail({ db, id });
@@ -410,7 +428,15 @@ export const importActions = {
 		});
 	},
 	triggerImport: async ({ id }: { id: string }): Promise<void> => {
+		const startTime = Date.now();
 		const db = getContextDB();
+
+		getLogger('import').info({
+			code: 'IMP_070',
+			title: 'Starting import trigger process',
+			importId: id
+		});
+
 		try {
 			const importInfoList = await dbExecuteLogger(
 				db.select().from(importTable).where(eq(importTable.id, id)),
@@ -419,9 +445,30 @@ export const importActions = {
 
 			const importInfo = importInfoList[0];
 			if (!importInfo) {
+				getLogger('import').error({
+					code: 'IMP_071',
+					title: 'Import not found for trigger',
+					importId: id
+				});
 				throw new Error('Import Not Found');
 			}
+
+			getLogger('import').debug({
+				code: 'IMP_072',
+				title: 'Import found for triggering',
+				importId: id,
+				status: importInfo.status,
+				type: importInfo.type
+			});
+
 			if (importInfo.status !== 'processed') {
+				getLogger('import').error({
+					code: 'IMP_073',
+					title: 'Import not in correct status for triggering',
+					importId: id,
+					currentStatus: importInfo.status,
+					requiredStatus: 'processed'
+				});
 				throw new Error('Import is not in state Processed. Cannot trigger import.');
 			}
 
@@ -432,8 +479,23 @@ export const importActions = {
 					.where(eq(importTable.id, id)),
 				'Import - Trigger Import - Update'
 			);
+
+			const duration = Date.now() - startTime;
+			getLogger('import').info({
+				code: 'IMP_074',
+				title: 'Import trigger completed successfully',
+				importId: id,
+				duration
+			});
 		} catch (e) {
-			getLogger().error('Import Trigger Error: ', JSON.stringify(e, null, 2));
+			const duration = Date.now() - startTime;
+			getLogger('import').error({
+				code: 'IMP_075',
+				title: 'Import trigger failed',
+				error: e,
+				importId: id,
+				duration
+			});
 			await db
 				.update(importTable)
 				.set({ status: 'error', errorInfo: e })
@@ -469,7 +531,11 @@ export const importActions = {
 				await dbExecuteLogger(
 					db
 						.update(importTable)
-						.set({ status: 'error', errorInfo: 'Import Timed Out', ...updatedTime() })
+						.set({
+							status: 'error',
+							errorInfo: 'Import Timed Out',
+							...updatedTime()
+						})
 						.where(eq(importTable.id, item.id)),
 					'Import - Do Required Imports - Update Importing Too Long'
 				);
@@ -534,38 +600,46 @@ export const importActions = {
 			const maxTime = new Date(startTime.getTime() + getServerEnv().IMPORT_TIMEOUT_MIN * 60 * 1000);
 
 			await runInTransactionWithLogging('Do Import', async (trx) => {
-				await Promise.all(
-					importDetails.map(async (item, index) => {
-						if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
-							await importTransaction({ item, trx });
-						} else if (importInfo.type === 'account') {
-							await importAccount({ item, trx });
-						} else if (importInfo.type === 'bill') {
-							await importBill({ item, trx });
-						} else if (importInfo.type === 'budget') {
-							await importBudget({ item, trx });
-						} else if (importInfo.type === 'category') {
-							await importCategory({ item, trx });
-						} else if (importInfo.type === 'tag') {
-							await importTag({ item, trx });
-						} else if (importInfo.type === 'label') {
-							await importLabel({ item, trx });
-						}
+				for (let index = 0; index < importDetails.length; index++) {
+					const item = importDetails[index];
+					if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
+						await importTransaction({ item, trx });
+					} else if (importInfo.type === 'account') {
+						await importAccount({ item, trx });
+					} else if (importInfo.type === 'bill') {
+						await importBill({ item, trx });
+					} else if (importInfo.type === 'budget') {
+						await importBudget({ item, trx });
+					} else if (importInfo.type === 'category') {
+						await importCategory({ item, trx });
+					} else if (importInfo.type === 'tag') {
+						await importTag({ item, trx });
+					} else if (importInfo.type === 'label') {
+						await importLabel({ item, trx });
+					}
 
-						getLogger().debug(
-							`Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
-						);
+					getLogger('import').debug({
+						code: 'IMP_001',
+						title: `Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
+					});
 
-						if (new Date() > maxTime) {
-							throw new Error('Import Timed Out');
-						}
-					})
-				);
+					if (new Date() > maxTime) {
+						throw new Error('Import Timed Out');
+					}
+				}
 			});
-			await reusableFilterActions.applyFollowingImport({
-				importId: id,
-				timeout: maxTime
+
+			// Logic to only run the actions following import if there was actually an item created.
+			const numberItems = await db.query.journalEntry.findFirst({
+				where: (journalEntry) => eq(journalEntry.importId, id)
 			});
+
+			if (numberItems) {
+				await reusableFilterActions.applyFollowingImport({
+					importId: id,
+					timeout: maxTime
+				});
+			}
 
 			await dbExecuteLogger(
 				db

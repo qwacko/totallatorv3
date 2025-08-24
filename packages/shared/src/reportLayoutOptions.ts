@@ -3,7 +3,10 @@ import type { ReportLayoutIds } from './schemas/reportSchema';
 type ReportLayoutDropdownObject = {
 	[K in ReportLayoutIds]: string;
 };
-type ReportLayoutDropdownOptionsType = Array<{ id: ReportLayoutIds; title: string }>;
+type ReportLayoutDropdownOptionsType = Array<{
+	id: ReportLayoutIds;
+	title: string;
+}>;
 
 const reportLayoutDropdownObject = {
 	default: 'Default',
@@ -21,7 +24,12 @@ export const reportLayoutDropdownOptions = (
 	.sort((a, b) => a.title.localeCompare(b.title)) satisfies ReportLayoutDropdownOptionsType;
 
 type ReportLayoutOptionsType = {
-	[K in ReportLayoutIds]: Array<{ order: number; cols: number; rows: number; title?: string }>;
+	[K in ReportLayoutIds]: Array<{
+		order: number;
+		cols: number;
+		rows: number;
+		title?: string;
+	}>;
 };
 export const reportLayoutOptions: ReportLayoutOptionsType = {
 	default: [

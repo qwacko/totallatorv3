@@ -1,9 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getTestDB, closeTestDB } from '@/server/db/test/dbTest';
-import { llmActions, type CreateLLMSettingsType, type UpdateLLMSettingsType } from './llmActions';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
 import type { DBType } from '@totallator/database';
 import { llmSettings } from '@totallator/database';
 import { llmLogs } from '@totallator/database';
+
+import { closeTestDB, getTestDB } from '@/server/db/test/dbTest';
+
+import { type CreateLLMSettingsType, llmActions, type UpdateLLMSettingsType } from './llmActions';
 
 describe('llmActions', () => {
 	let dbConnection: Awaited<ReturnType<typeof getTestDB>>;
@@ -115,7 +118,11 @@ describe('llmActions', () => {
 			};
 
 			const created = await llmActions.create({ db, data });
-			const result = await llmActions.getById({ db, id: created.id, includeApiKey: true });
+			const result = await llmActions.getById({
+				db,
+				id: created.id,
+				includeApiKey: true
+			});
 
 			expect(result).toBeDefined();
 			expect(result!.apiKey).toBe(data.apiKey);
@@ -142,7 +149,11 @@ describe('llmActions', () => {
 				enabled: false
 			};
 
-			const result = await llmActions.update({ db, id: created.id, data: updateData });
+			const result = await llmActions.update({
+				db,
+				id: created.id,
+				data: updateData
+			});
 
 			expect(result).toBeDefined();
 			expect(result!.title).toBe('Updated');
@@ -164,13 +175,21 @@ describe('llmActions', () => {
 				apiKey: 'new-secret-key'
 			};
 
-			const result = await llmActions.update({ db, id: created.id, data: updateData });
+			const result = await llmActions.update({
+				db,
+				id: created.id,
+				data: updateData
+			});
 
 			expect(result).toBeDefined();
 			expect(result!.apiKey).toBe('new-secret-key');
 
 			// Verify it's properly encrypted in database by getting with includeApiKey
-			const retrieved = await llmActions.getById({ db, id: created.id, includeApiKey: true });
+			const retrieved = await llmActions.getById({
+				db,
+				id: created.id,
+				includeApiKey: true
+			});
 			expect(retrieved!.apiKey).toBe('new-secret-key');
 		});
 

@@ -173,7 +173,10 @@ export const createImportSchema = z
 			}
 			return true;
 		},
-		{ message: 'A mapping is reqruired for a mapped import', path: ['importMappingId'] }
+		{
+			message: 'A mapping is reqruired for a mapped import',
+			path: ['importMappingId']
+		}
 	);
 
 export type CreateImportSchemaType = z.infer<typeof createImportSchema>;
@@ -205,7 +208,12 @@ export const importFilterSchema = z.object({
 	page: z.number().default(0).optional(),
 	pageSize: z.number().default(10).optional(),
 	orderBy: z
-		.array(z.object({ field: z.enum(orderByEnum), direction: z.enum(['asc', 'desc']) }))
+		.array(
+			z.object({
+				field: z.enum(orderByEnum),
+				direction: z.enum(['asc', 'desc'])
+			})
+		)
 		.default([{ direction: 'desc', field: 'createdAt' }])
 		.optional()
 });

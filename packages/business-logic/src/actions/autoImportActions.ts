@@ -1,28 +1,31 @@
-import {
-	updateAutoImportSchema,
-	type AutoImportFilterSchemaType,
-	type CreateAutoImportSchemaType,
-	type UpdateAutoImportFormSchemaType,
-	type AutoImportFrequencyType
-} from '@totallator/shared';
+import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
 	autoImportTable,
+	type AutoImportTableType,
 	importMapping,
-	importTable,
-	type AutoImportTableType
+	importTable
 } from '@totallator/database';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { eq, and, getTableColumns, count as drizzleCount } from 'drizzle-orm';
-import { autoImportFilterToQuery } from './helpers/autoImport/autoImportFilterToQuery';
-import { autoImportToOrderByToSQL } from './helpers/autoImport/autoImportOrderByToSQL';
-import type { PaginatedResults } from './helpers/journal/PaginationType';
-import { getData_Common } from './helpers/autoImport/getData_Common';
+import {
+	type AutoImportFilterSchemaType,
+	type AutoImportFrequencyType,
+	type CreateAutoImportSchemaType,
+	type UpdateAutoImportFormSchemaType,
+	updateAutoImportSchema
+} from '@totallator/shared';
+
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
+
+import { autoImportFilterToQuery } from './helpers/autoImport/autoImportFilterToQuery';
+import { autoImportToOrderByToSQL } from './helpers/autoImport/autoImportOrderByToSQL';
+import { getData_Common } from './helpers/autoImport/getData_Common';
+import type { PaginatedResults } from './helpers/journal/PaginationType';
+import { updatedTime } from './helpers/misc/updatedTime';
 import { importActions } from './importActions';
 import { importMappingActions } from './importMappingActions';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 
 export const autoImportActions = {
 	list: async ({
@@ -222,7 +225,12 @@ export const autoImportActions = {
 
 		const data = await autoImportActions.getData({ id });
 
-		getLogger().debug('Triggering Import', data.length, autoImport.title);
+		getLogger('auto-import').debug({
+			code: 'AUTO_IMP_001',
+			title: 'Triggering Import',
+			length: data.length,
+			autoImportTitle: autoImport.title
+		});
 
 		const dateString = new Date().toISOString().slice(0, 10);
 

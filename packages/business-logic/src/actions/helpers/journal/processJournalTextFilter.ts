@@ -1,5 +1,6 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import { llmReviewStatusEnum, type LlmReviewStatusEnumType } from '@totallator/shared';
+
 import { accountTextFilterKeys } from '../account/accountTextFilter';
 import { billTextFilterKeys } from '../bill/billTextFilter';
 import { budgetTextFilterKeys } from '../budget/budgetTextFilter';
@@ -33,7 +34,7 @@ const handleNested = <U extends 'payee' | 'excludePayee'>(search: string, key: U
 	}
 });
 
-const filterArray = [
+const filterArray: TextFilterOptionsType<JournalFilterSchemaWithoutPaginationType> = [
 	nestedStringFilterHandler<'excludeAccount', JournalFilterSchemaWithoutPaginationType>(
 		accountTextFilterKeys,
 		'!account',
@@ -272,7 +273,7 @@ const filterArray = [
 	},
 	...fileFilterArray,
 	...noteFilterArray
-] satisfies TextFilterOptionsType<JournalFilterSchemaWithoutPaginationType>;
+];
 
 export { filterArray as journalFilterArray };
 

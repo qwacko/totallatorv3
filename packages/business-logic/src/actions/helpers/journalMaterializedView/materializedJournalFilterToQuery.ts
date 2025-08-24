@@ -1,19 +1,21 @@
-import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
+import { eq, gte, ilike, inArray, lte, not, notInArray, SQL } from 'drizzle-orm';
+
 import { journalExtendedView, journalView } from '@totallator/database';
-import { SQL, eq, gte, lte, ilike, not, inArray, notInArray } from 'drizzle-orm';
+import { type DBType } from '@totallator/database';
+import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
+import { dateSpanInfo } from '@totallator/shared';
+
 import { accountFilterToQuery } from '../account/accountFilterToQuery';
 import { billFilterToQuery } from '../bill/billFilterToQuery';
 import { budgetFilterToQuery } from '../budget/budgetFilterToQuery';
-import { tagFilterToQuery } from '../tag/tagFilterToQuery';
 import { categoryFilterToQuery } from '../category/categoryFilterToQuery';
-import { labelFilterToSubQuery } from '../label/labelFilterToQuery';
-import { type DBType } from '@totallator/database';
-import { journalPayeeToSubquery } from '../journal/journalPayeeToSubquery';
-import { dateSpanInfo } from '@totallator/shared';
-import { ilikeArrayWrapped, inArrayWrapped, notInArrayWrapped } from '../misc/inArrayWrapped';
-import { processJournalTextFilter } from '../journal/processJournalTextFilter';
 import { linkedFileFilterQuery } from '../file/fileFilterToQuery';
+import { journalPayeeToSubquery } from '../journal/journalPayeeToSubquery';
+import { processJournalTextFilter } from '../journal/processJournalTextFilter';
+import { labelFilterToSubQuery } from '../label/labelFilterToQuery';
+import { ilikeArrayWrapped, inArrayWrapped, notInArrayWrapped } from '../misc/inArrayWrapped';
 import { linkedNoteFilterQuery } from '../note/noteFilterToQuery';
+import { tagFilterToQuery } from '../tag/tagFilterToQuery';
 
 export const materializedJournalFilterToQuery = async (
 	db: DBType,
@@ -67,8 +69,14 @@ export const materializedJournalFilterToQuery = async (
 	if (!excludeEnd && filter.dateBefore) where.push(lte(targetTable.dateText, filter.dateBefore));
 	if (!excludeSpan && filter.dateSpan) {
 		const dateSpan = dateSpanInfo[filter.dateSpan];
-		const startDate = dateSpan.getStartDate({ currentDate: new Date(), firstMonthOfFY });
-		const endDate = dateSpan.getEndDate({ currentDate: new Date(), firstMonthOfFY });
+		const startDate = dateSpan.getStartDate({
+			currentDate: new Date(),
+			firstMonthOfFY
+		});
+		const endDate = dateSpan.getEndDate({
+			currentDate: new Date(),
+			firstMonthOfFY
+		});
 
 		where.push(gte(targetTable.date, startDate));
 		where.push(lte(targetTable.date, endDate));

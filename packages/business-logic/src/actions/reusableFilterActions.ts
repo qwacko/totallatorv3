@@ -1,28 +1,31 @@
+import { and, asc, desc, eq, type InferSelectModel } from 'drizzle-orm';
+import { count as drizzleCount } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+
+import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { importTable, reusableFilter } from '@totallator/database';
 import {
 	createReusableFilterSchema,
-	updateReusableFilterSchema,
 	type CreateReusableFilterSchemaType,
 	type ReusableFilterFilterSchemaType,
+	updateReusableFilterSchema,
 	type updateReusableFilterSchemaType
 } from '@totallator/shared';
-import { and, asc, desc, eq, type InferSelectModel } from 'drizzle-orm';
-import { importTable, reusableFilter } from '@totallator/database';
-import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
-import { nanoid } from 'nanoid';
-import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
-import { updatedTime } from './helpers/misc/updatedTime';
-import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
 import { journalFilterSchema, updateJournalSchema } from '@totallator/shared';
+
+import { getLogger } from '@/logger';
+import { dbExecuteLogger } from '@/server/db/dbLogger';
+
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { streamingDelay, testingDelay } from '../server/testingDelay';
-import { getLogger } from '@/logger';
-import { count as drizzleCount } from 'drizzle-orm';
-import { seedReusableFilterData } from './helpers/seed/seedReusableFilterData';
+import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
+import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
+import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { journalMaterializedViewActions } from './journalMaterializedViewActions';
+import { updatedTime } from './helpers/misc/updatedTime';
+import { seedReusableFilterData } from './helpers/seed/seedReusableFilterData';
 import { journalActions } from './journalActions';
-import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
+import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 
 export const reusableFilterActions = {
 	count: async () => {
@@ -123,11 +126,14 @@ export const reusableFilterActions = {
 		}
 
 		if (numberModified > -1) {
-			getLogger().debug(
-				`Updated ${numberModified} reusable filters, took ${
-					Date.now() - startTime
-				}ms (limit = ${maximumTime}s))`
-			);
+			const duration = Date.now() - startTime;
+			getLogger('queries').debug({
+				code: 'FILTER_001',
+				title: `Updated ${numberModified} reusable filters, took ${duration}ms (limit = ${maximumTime}s))`,
+				numberModified,
+				duration,
+				maximumTime
+			});
 		}
 
 		return numberModified;
@@ -347,9 +353,12 @@ export const reusableFilterActions = {
 			});
 
 			if (timeout && new Date() > timeout) {
-				getLogger().error(
-					`Filter Application Timeout. Reached ${index} of ${items.length} filters.`
-				);
+				getLogger('queries').error({
+					code: 'FILTER_002',
+					title: `Filter Application Timeout. Reached ${index} of ${items.length} filters.`,
+					index,
+					totalFilters: items.length
+				});
 				throw new Error('Filter Application Timeout');
 			}
 		}

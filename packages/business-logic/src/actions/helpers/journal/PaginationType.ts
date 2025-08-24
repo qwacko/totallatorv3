@@ -5,4 +5,6 @@ export type PaginationType = {
 	pageCount: number;
 };
 
-export type PaginatedResults<T extends Record<any, any>> = PaginationType & { data: T[] };
+export type PaginatedResults<T extends Record<any, any>> = PaginationType & {
+	data: T[];
+};
