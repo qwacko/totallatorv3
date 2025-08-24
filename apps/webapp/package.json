@@ -19,10 +19,7 @@
 		"db:custom": "pnpm drizzle-kit generate --custom --config=\"drizzlePostgres.config.ts\"",
 		"db:studio": "pnpm drizzle-kit studio --config=\"drizzlePostgres.config.ts\"",
 		"db:undo": "pnpm drizzle-kit drop --config=\"drizzlePostgres.config.ts\"",
-		"generate-pwa-assets": "pwa-assets-generator",
-		"docs:dev": "vitepress dev docs",
-		"docs:build": "vitepress build docs",
-		"docs:preview": "vitepress preview docs"
+		"generate-pwa-assets": "pwa-assets-generator"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.33.0",
@@ -70,8 +67,6 @@
 		"unplugin-icons": "^22.2.0",
 		"vite": "^7.1.2",
 		"vite-plugin-pwa": "^1.0.2",
-		"vitepress": "^1.6.4",
-		"vitepress-plugin-mermaid": "^2.0.17",
 		"vitest": "^3.2.4",
 		"workbox-window": "^7.3.0",
 		"zod": "^4.0.10"
