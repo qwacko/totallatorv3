@@ -7,8 +7,6 @@ import { env } from '$env/dynamic/private';
 export const getServerEnv = () =>
 	serverEnvSchema.parse({
 		DEV: dev,
-		LOGGING: env.LOGGING,
-		LOGGING_CLASSES: env.LOGGING_CLASSES,
 		PAGE_TIMEOUT_MS: env.PAGE_TIMEOUT_MS,
 		BACKUP_DIR: env.BACKUP_DIR,
 		FILE_DIR: env.FILE_DIR,

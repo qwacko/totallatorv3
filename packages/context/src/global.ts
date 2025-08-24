@@ -61,8 +61,6 @@ export async function initializeGlobalContext(
 		throw new Error('Logging database client is required for logging system initialization');
 	}
 	const logging = await createLogger(
-		config.serverEnv.LOGGING,
-		config.serverEnv.LOGGING_CLASSES,
 		contextId,
 		loggingClient,
 		getRequestContext

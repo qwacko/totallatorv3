@@ -166,16 +166,12 @@ const getLogLevelForDomainAction = (
  * This function handles both logger creation and database initialization, returning
  * a complete logging system interface that can be placed directly in the global context.
  *
- * @param enable Global logging enable/disable flag
- * @param logClasses Array of log levels to enable (e.g., ['ERROR', 'WARN', 'INFO'])
  * @param contextId Optional unique context identifier to include in all logs
- * @param databaseConfig Database configuration for log storage
+ * @param databaseClient Database configuration for log storage
  * @param getRequestContext Optional function to get current request context for enhanced logging
  * @returns Complete logging system with database operations and logger factory
  */
 export const createLogger = async (
-	enable: boolean,
-	logClasses: string[],
 	contextId?: string,
 	databaseClient?: Parameters<typeof initializeLogDatabase>[0],
 	getRequestContext?: () => any
@@ -206,26 +202,13 @@ export const createLogger = async (
 		}
 	}
 
-	// Convert log classes to Pino level
-	const getGlobalLogLevel = (): pino.LevelWithSilent => {
-		if (!enable) return 'silent';
-
-		if (logClasses.includes('TRACE')) return 'trace';
-		if (logClasses.includes('DEBUG')) return 'debug';
-		if (logClasses.includes('INFO')) return 'info';
-		if (logClasses.includes('WARN')) return 'warn';
-		if (logClasses.includes('ERROR')) return 'error';
-
-		return 'silent';
-	};
-
 	// Create root Pino logger with basic configuration
 	const stream = pretty();
 	const baseContext = contextId ? { contextId } : {};
 
 	const pinoLogger = pino(
 		{
-			level: getGlobalLogLevel(),
+			level: 'trace', // Set to most permissive level, actual filtering done per domain/action
 			base: baseContext
 		},
 		stream

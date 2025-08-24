@@ -15,12 +15,6 @@ const parseEnvStringToBoolean = ({
 
 export const serverEnvSchema = z.object({
 	DEV: z.boolean().optional().default(false),
-	LOGGING: parseEnvStringToBoolean({ defaultBoolean: true, optional: true }),
-	LOGGING_CLASSES: z
-		.string()
-		.optional()
-		.default('ERROR,WARN,INFO')
-		.transform((data) => data.split(',').map((d) => d.trim().toUpperCase())),
 	PAGE_TIMEOUT_MS: z.coerce
 		.string()
 		.optional()
