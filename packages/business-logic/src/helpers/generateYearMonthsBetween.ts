@@ -22,7 +22,6 @@ export function generateYearMonthsBetween(start: string, end: string): string[] 
 }
 
 export function generateYearMonthsBeforeToday(numberMonths: number): string[] {
-	const endDate = new Date();
 	const startDate = new Date();
 
 	let i = 0;
