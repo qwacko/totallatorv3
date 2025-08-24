@@ -1,0 +1,45 @@
+{
+	"name": "@totallator/database",
+	"version": "0.0.1",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc && tsc-alias && cp -r src/migrations dist/",
+		"dev": "tsc --watch & tsc-alias --watch",
+		"clean": "rm -rf dist tsconfig.tsbuildinfo",
+		"check": "tsc --noEmit",
+		"circular": "madge --circular --extensions ts src/",
+		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
+		"format": "prettier --write .",
+		"lint": "prettier --check .",
+		"db:generate": "drizzle-kit generate --config=\"drizzle.config.ts\"",
+		"db:studio": "drizzle-kit studio --config=\"drizzle.config.ts\"",
+		"db:custom": "drizzle-kit  generate --custom  --config=\"drizzle.config.ts\"",
+		"db:undo": "drizzle-kit drop --config=\"drizzle.config.ts\"",
+		"knip": "knip"
+	},
+	"dependencies": {
+		"@totallator/shared": "workspace:*",
+		"drizzle-orm": "^0.44.3",
+		"postgres": "^3.4.7",
+		"prettier": "^3.5.3",
+		"sql-formatter": "^15.6.6",
+		"zod": "^4.0.10"
+	},
+	"devDependencies": {
+		"@trivago/prettier-plugin-sort-imports": "^5.2.2",
+		"@types/node": "^24.1.0",
+		"drizzle-kit": "^0.31.4",
+		"knip": "^5.62.0",
+		"madge": "^8.0.0",
+		"tsc-alias": "^1.8.16",
+		"typescript": "^5.8.3"
+	}
+}

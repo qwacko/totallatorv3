@@ -1,0 +1,19 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"incremental": true,
+		"tsBuildInfoFile": "./tsconfig.build.tsbuildinfo",
+		"skipLibCheck": true,
+		"lib": ["ES2022", "DOM"],
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": false,
+		"preserveWatchOutput": true,
+		"pretty": false,
+		"noEmit": false,
+		"outDir": "./dist",
+		"rootDir": "./src"
+	},
+	"exclude": ["dist", "node_modules", "**/*.test.ts"]
+}
