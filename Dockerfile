@@ -40,16 +40,12 @@ ENV NODE_ENV=production
 
 # Copy built packages and webapp
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/*/dist ./packages/*/dist/
+COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/webapp/build ./build
 
 # Copy configuration files and scripts
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 COPY dockerEntrypoint.sh ./dockerEntrypoint.sh
-
-# Copy database migrations from both packages
-COPY --from=builder /app/packages/database/src/migrations ./packages/database/src/migrations
-COPY --from=builder /app/packages/logDatabase/src/migrations ./packages/logDatabase/src/migrations
 
 # Copy webapp package.json for runtime dependencies
 COPY --from=builder /app/apps/webapp/package.json ./apps/webapp/package.json
