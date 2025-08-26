@@ -18,10 +18,6 @@
 		"circular:graph": "madge --circular --extensions ts,svelte --image circular-deps.svg src/",
 		"test:integration": "playwright test",
 		"test:unit": "TEST_ENV=true vitest",
-		"db:generate": "pnpm drizzle-kit generate --config=\"drizzlePostgres.config.ts\"",
-		"db:custom": "pnpm drizzle-kit generate --custom --config=\"drizzlePostgres.config.ts\"",
-		"db:studio": "pnpm drizzle-kit studio --config=\"drizzlePostgres.config.ts\"",
-		"db:undo": "pnpm drizzle-kit drop --config=\"drizzlePostgres.config.ts\"",
 		"generate-pwa-assets": "pwa-assets-generator"
 	},
 	"devDependencies": {
@@ -40,7 +36,6 @@
 		"@vite-pwa/assets-generator": "^1.0.0",
 		"@vite-pwa/sveltekit": "^1.0.0",
 		"autoprefixer": "^10.4.21",
-		"drizzle-kit": "^0.31.4",
 		"echarts": "^6.0.0",
 		"eslint": "^9.33.0",
 		"eslint-config-prettier": "^10.1.8",
