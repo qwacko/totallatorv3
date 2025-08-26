@@ -216,9 +216,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.21
         version: 10.4.21(postcss@8.5.6)
-      drizzle-kit:
-        specifier: ^0.31.4
-        version: 0.31.4
       echarts:
         specifier: ^6.0.0
         version: 6.0.0
