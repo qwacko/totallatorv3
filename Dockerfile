@@ -31,6 +31,12 @@ ENV PORT=3000
 COPY --from=builder /app/out/ .
 COPY dockerEntrypoint.sh ./dockerEntrypoint.sh
 
+# Copy migration files that are needed at runtime
+COPY --from=builder /app/packages/database/dist/migrations ./packages/database/dist/migrations
+COPY --from=builder /app/packages/database/src/migrations ./packages/database/src/migrations
+COPY --from=builder /app/packages/logDatabase/dist/migrations ./packages/logDatabase/dist/migrations  
+COPY --from=builder /app/packages/logDatabase/src/migrations ./packages/logDatabase/src/migrations
+
 RUN chmod +x /app/dockerEntrypoint.sh
 
 EXPOSE 3000
