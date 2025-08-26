@@ -16,7 +16,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 RUN pnpm run build
 
 # Deploy just the webapp with production dependencies
-RUN pnpm deploy --filter=@totallator/webapp --prod out
+RUN pnpm deploy --filter=@totallator/webapp --prod --legacy out
 
 
 ##### RUNNER
