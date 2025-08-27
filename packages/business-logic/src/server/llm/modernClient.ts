@@ -1,8 +1,8 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 // Vercel AI SDK imports
-import { type CoreMessage, type CoreTool, generateObject, generateText } from 'ai';
+import { generateObject, generateText, type ModelMessage, type Tool } from 'ai';
 import { nanoid } from 'nanoid';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 import type { DBType } from '@totallator/database';
 import type { LLMSettings } from '@totallator/database';
@@ -252,22 +252,22 @@ export class ModernLLMClient {
 		const model = this.getModelFromProvider();
 
 		// Convert our messages to Vercel AI SDK format
-		const messages: CoreMessage[] = request.messages.map((msg) => ({
+		const messages: ModelMessage[] = request.messages.map((msg) => ({
 			role: msg.role,
 			content: msg.content
 		}));
 
 		// Convert tools if provided
-		const tools: Record<string, CoreTool> | undefined = request.tools
+		const tools: Record<string, Tool> | undefined = request.tools
 			? request.tools.reduce(
 					(acc, tool) => {
 						acc[tool.function.name] = {
 							description: tool.function.description,
-							parameters: tool.function.parameters
+							inputSchema: z.record(z.string(), z.any())
 						};
 						return acc;
 					},
-					{} as Record<string, CoreTool>
+					{} as Record<string, Tool>
 				)
 			: undefined;
 
@@ -276,8 +276,7 @@ export class ModernLLMClient {
 			model,
 			messages,
 			tools,
-			temperature: request.temperature,
-			maxTokens: request.max_tokens
+			temperature: request.temperature
 		});
 
 		// Convert response back to our expected format
@@ -291,7 +290,7 @@ export class ModernLLMClient {
 		const model = this.getModelFromProvider();
 
 		// Convert our messages to Vercel AI SDK format
-		const messages: CoreMessage[] = request.messages.map((msg) => ({
+		const messages: ModelMessage[] = request.messages.map((msg) => ({
 			role: msg.role,
 			content: msg.content
 		}));
