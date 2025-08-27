@@ -98,18 +98,6 @@
 		}
 	};
 
-	const formatDate = (date: Date) => {
-		return new Intl.DateTimeFormat('en-US', {
-			year: 'numeric',
-			month: '2-digit',
-			day: '2-digit',
-			hour: '2-digit',
-			minute: '2-digit',
-			second: '2-digit',
-			hour12: false
-		}).format(date);
-	};
-
 	const openLogModal = (log: any) => {
 		selectedLog = log;
 		showModal = true;
@@ -120,7 +108,7 @@
 <div class="mb-6 flex items-center justify-between">
 	<div class="flex items-center gap-4">
 		<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Log Viewer</h2>
-		<Badge color="gray" class="text-xs">Last updated: {formatDate(updateTime)}</Badge>
+		<Badge color="gray" class="text-xs">Last updated: {updateTime.toISOString()}</Badge>
 	</div>
 	<div class="flex items-center gap-2">
 		<Button size="sm" color="alternative" onclick={refreshNow}>
@@ -355,7 +343,7 @@
 					</TableBodyCell>
 					<TableBodyCell class="font-mono text-sm">{log.id}</TableBodyCell>
 					<TableBodyCell class="whitespace-nowrap font-mono text-sm">
-						{formatDate(log.date)}
+						{log.date.toISOString()}
 					</TableBodyCell>
 					<TableBodyCell class="max-w-xs">
 						<div class="truncate" title={log.title}>
@@ -545,7 +533,7 @@
 					</div>
 					<div>
 						<span class="font-medium text-gray-700 dark:text-gray-300">Date:</span>
-						<span class="font-mono">{formatDate(selectedLog.date)}</span>
+						<span class="font-mono">{selectedLog.date.toISOString()}</span>
 					</div>
 					<div>
 						<span class="font-medium text-gray-700 dark:text-gray-300">Level:</span>
