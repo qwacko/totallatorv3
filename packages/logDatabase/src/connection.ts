@@ -10,7 +10,18 @@ export type LogDBType = ReturnType<typeof getDB>;
 const getDB = (client: Client) => drizzle(client, { schema });
 
 export async function initializeLogDatabase(client: Client) {
+	console.log('[initializeLogDatabase] Starting with client:', {
+		clientProvided: !!client,
+		clientType: typeof client
+	});
+	
 	const db = getDB(client);
+	console.log('[initializeLogDatabase] Created db object:', {
+		dbExists: !!db,
+		dbType: typeof db,
+		hasSelect: db && typeof db.select === 'function',
+		dbKeys: db ? Object.keys(db).slice(0, 10) : 'no db'
+	});
 
 	try {
 		// Try different migration paths based on environment
@@ -49,5 +60,11 @@ export async function initializeLogDatabase(client: Client) {
 		console.warn('Log database migration failed:', error);
 	}
 
+	console.log('[initializeLogDatabase] Returning db object:', {
+		dbExists: !!db,
+		dbType: typeof db,
+		hasSelect: db && typeof db.select === 'function'
+	});
+	
 	return db;
 }

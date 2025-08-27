@@ -63,7 +63,20 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 				createLoggingDBClient: () => {
 					const url = getServerEnv().LOG_DATABASE_ADDRESS || 'file:logs.db';
 					const authToken = getServerEnv().LOG_DATABASE_KEY;
-					return createClient({ url, authToken });
+					console.log('[hooks.server] Creating logging DB client with:', {
+						url,
+						hasAuthToken: !!authToken,
+						authTokenLength: authToken?.length || 0
+					});
+					
+					const client = createClient({ url, authToken });
+					console.log('[hooks.server] Created client:', {
+						clientExists: !!client,
+						clientType: typeof client,
+						clientKeys: client ? Object.keys(client).slice(0, 10) : 'no client'
+					});
+					
+					return client;
 				}
 			},
 			getContext
@@ -78,17 +91,27 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 	},
 
 	// Create request context with all the fields we need
-	createRequestContext: (event: any): EnhancedRequestContext => ({
-		requestId: nanoid(),
-		startTime: Date.now(),
-		routeId: event.route.id || event.url.pathname,
-		url: event.url.pathname,
-		method: event.request.method,
-		user: event.locals.user,
-		session: event.locals.session,
-		userAgent: event.request.headers.get('user-agent') || undefined,
-		ip: event.getClientAddress()
-	}),
+	createRequestContext: (event: any): EnhancedRequestContext => {
+		let clientAddress: string;
+		try {
+			clientAddress = event.getClientAddress();
+		} catch (error) {
+			// Fallback for development mode or when client address can't be determined
+			clientAddress = '127.0.0.1';
+		}
+		
+		return {
+			requestId: nanoid(),
+			startTime: Date.now(),
+			routeId: event.route.id || event.url.pathname,
+			url: event.url.pathname,
+			method: event.request.method,
+			user: event.locals.user,
+			session: event.locals.session,
+			userAgent: event.request.headers.get('user-agent') || undefined,
+			ip: clientAddress
+		};
+	},
 
 	// Update locals for backward compatibility
 	updateLocals: (event: any, context: CombinedContext<GlobalContext, EnhancedRequestContext>) => {
