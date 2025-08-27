@@ -1,4 +1,5 @@
 <script lang="ts">
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import ShowLogs from '$lib/components/logs/ShowLogs.svelte';
 </script>
 
@@ -6,6 +7,6 @@
 	<ShowLogs />
 
 	{#snippet pending()}
-		<p>loading...</p>
+		<LoadingSpinner />
 	{/snippet}
 </svelte:boundary>

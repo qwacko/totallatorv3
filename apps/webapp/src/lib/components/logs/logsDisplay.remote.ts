@@ -12,9 +12,11 @@ export const getLogs = query(
 		offset: z.number().min(0).optional().default(0)
 	}),
 	async (filter) => {
+		console.log('getLogs: Remote Function Called');
 		const globalContext = getContext();
 		const logs = await globalContext.global.logging.queryLoggedItems(filter);
 		const logCount = await globalContext.global.logging.getLoggedItemsCount(filter);
+		console.log(`getLogs: Returning ${logs.length}/${logCount} logs`);
 		return {
 			logs,
 			logCount
