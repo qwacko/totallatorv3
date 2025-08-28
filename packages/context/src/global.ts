@@ -111,10 +111,20 @@ export async function initializeGlobalContext(
 	// Create event emitter
 	const eventEmitter = createEventEmitter(logging.logger('auth').pino);
 
+	console.log('[initializeGlobalContext] Creating global context with logging:', {
+		logDatabaseOpsExists: !!logging.logDatabaseOps,
+		hasGetAllLogConfigurations: logging.logDatabaseOps && typeof logging.logDatabaseOps.getAllLogConfigurations === 'function'
+	});
+
 	globalContext = {
 		contextId,
 		logging: {
-			getAllLogConfigurations: logging.logDatabaseOps.getAllLogConfigurations,
+			getAllLogConfigurations: logging.logDatabaseOps 
+				? logging.logDatabaseOps.getAllLogConfigurations.bind(logging.logDatabaseOps)
+				: async () => {
+					console.warn('[GlobalContext] getAllLogConfigurations called but logDatabaseOps is null');
+					return [];
+				},
 			getLoggedItemsCount: logging.getLoggedItemsCount,
 			queryLoggedItems: logging.queryLoggedItems,
 			setLogLevel: logging.setLogLevel,

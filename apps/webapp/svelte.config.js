@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const checkOrigin = process.env.NODE_ENV === 'development' ? false : true;
+const trustedOrigins = process.env.NODE_ENV === 'development' ? ['*'] : [];
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -17,7 +17,7 @@ const config = {
 		// If your environment is not supported or you settled on a specific environment, switch out the adapter.
 		// See https://kit.svelte.dev/docs/adapters for more information about adapters.
 		adapter: adapter(),
-		csrf: { checkOrigin },
+		csrf: { trustedOrigins },
 		experimental: {
 			remoteFunctions: true
 		}

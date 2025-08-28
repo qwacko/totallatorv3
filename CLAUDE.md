@@ -25,10 +25,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Database Management
 
-- `pnpm db:generate` - Generate Drizzle migrations
-- `pnpm db:custom` - Generate custom Drizzle migrations
-- `pnpm db:studio` - Open Drizzle Studio
-- `pnpm db:undo` - Drop database changes
+Database commands are located in the `packages/database` package:
+
+- `cd packages/database && pnpm db:generate` - Generate Drizzle migrations
+- `cd packages/database && pnpm db:custom` - Generate custom Drizzle migrations  
+- `cd packages/database && pnpm db:studio` - Open Drizzle Studio
+- `cd packages/database && pnpm db:undo` - Drop database changes
 
 ### Documentation
 

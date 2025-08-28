@@ -50,6 +50,12 @@ export class LogDatabaseOperations {
 	private db: LogDBType;
 
 	constructor(db: LogDBType) {
+		console.log('[LogDatabaseOperations] Constructor called with db:', {
+			dbProvided: !!db,
+			dbType: typeof db,
+			dbKeys: db ? Object.keys(db).slice(0, 5) : 'no db',
+			hasSelect: db && typeof db.select === 'function'
+		});
 		this.db = db;
 	}
 
@@ -252,7 +258,21 @@ export class LogDatabaseOperations {
 	}
 
 	async getAllLogConfigurations(): Promise<ConfigurationSelect[]> {
+		console.log('[LogDatabaseOperations] getAllLogConfigurations called. this.db:', {
+			dbExists: !!this.db,
+			dbType: typeof this.db,
+			hasSelect: this.db && typeof this.db.select === 'function',
+			thisContext: this.constructor.name
+		});
+		
 		try {
+			if (!this.db) {
+				throw new Error('Database connection is null/undefined');
+			}
+			if (typeof this.db.select !== 'function') {
+				throw new Error(`Database select method not available. DB type: ${typeof this.db}`);
+			}
+			
 			return await this.db
 				.select()
 				.from(configurationTable)

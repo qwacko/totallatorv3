@@ -183,12 +183,28 @@ export const createLogger = async (
 
 	if (databaseClient) {
 		try {
+			console.log('[createLogger] Initializing log database with client:', {
+				clientExists: !!databaseClient,
+				clientType: typeof databaseClient
+			});
+			
 			loggingDB = await initializeLogDatabase(databaseClient);
+			console.log('[createLogger] initializeLogDatabase returned:', {
+				loggingDBExists: !!loggingDB,
+				loggingDBType: typeof loggingDB,
+				hasSelect: loggingDB && typeof loggingDB.select === 'function'
+			});
+			
 			logDatabaseOps = new LogDatabaseOperations(loggingDB);
+			console.log('[createLogger] Created LogDatabaseOperations:', {
+				logDatabaseOpsExists: !!logDatabaseOps
+			});
 
 			// Initialize configuration and sync levels
+			console.log('[createLogger] Calling initLogConfiguration...');
 			await logDatabaseOps.initLogConfiguration();
 			const syncedCache = await logDatabaseOps.syncConfigurationToMemory();
+			console.log('[createLogger] Successfully initialized LogDatabaseOperations');
 
 			// Update our cache with synced values
 			syncedCache.forEach((value, key) => {
