@@ -34,7 +34,8 @@ export const accountCreateInsertionData = (data: CreateAccountSchemaType, id: st
 			...data,
 			...statusUpdate(data.status),
 			...updatedTime(),
-			...combinedAccountTitleSplitRequired(data)
+			...combinedAccountTitleSplitRequired(data),
+			isCatchAll: false
 		};
 	} else {
 		return {
@@ -49,6 +50,7 @@ export const accountCreateInsertionData = (data: CreateAccountSchemaType, id: st
 			startDate: null,
 			endDate: null,
 			isCash: false,
+			isCatchAll: data.isCatchall || false,
 			isNetWorth: false
 		};
 	}

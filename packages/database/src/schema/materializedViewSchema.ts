@@ -57,6 +57,7 @@ export const journalView = pgView('journal_view').as((qb) => {
 			accountType: account.type,
 			accountIsCash: account.isCash,
 			accountIsNetWorth: account.isNetWorth,
+			accountIsCatchall: account.isCatchall,
 			accountGroup: account.accountGroup,
 			accountGroup2: account.accountGroup2,
 			accountGroup3: account.accountGroup3,

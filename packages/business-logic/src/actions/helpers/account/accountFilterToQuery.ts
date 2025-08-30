@@ -58,6 +58,7 @@ export const accountFilterToQuery = ({
 				type: journalView.accountType,
 				isCash: journalView.accountIsCash,
 				isNetWorth: journalView.accountIsNetWorth,
+				isCatchall: journalView.accountIsCatchall,
 				status: journalView.accountStatus,
 				disabled: journalView.accountDisabled,
 				allowUpdate: journalView.accountAllowUpdate,
@@ -77,6 +78,7 @@ export const accountFilterToQuery = ({
 					type: journalExtendedView.accountType,
 					isCash: journalExtendedView.accountIsCash,
 					isNetWorth: journalExtendedView.accountIsNetWorth,
+					isCatchall: journalExtendedView.accountIsCatchall,
 					status: journalExtendedView.accountStatus,
 					disabled: journalExtendedView.accountDisabled,
 					allowUpdate: journalExtendedView.accountAllowUpdate,
@@ -184,6 +186,8 @@ export const accountFilterToQuery = ({
 	if (intFilter.isCash !== undefined) where.push(eq(selectedTable.isCash, intFilter.isCash));
 	if (intFilter.isNetWorth !== undefined)
 		where.push(eq(selectedTable.isNetWorth, intFilter.isNetWorth));
+	if (intFilter.isCatchall !== undefined)
+		where.push(eq(selectedTable.isCatchall, intFilter.isCatchall));
 	if (intFilter.startDateAfter !== undefined)
 		where.push(gt(selectedTable.startDate, intFilter.startDateAfter));
 	if (intFilter.startDateBefore !== undefined)
@@ -391,6 +395,8 @@ export const accountFilterToText = async ({
 		stringArray.push(`Is ${restFilter.isCash ? '' : 'Not '}Cash`);
 	if (restFilter.isNetWorth !== undefined)
 		stringArray.push(`Is ${restFilter.isNetWorth ? '' : 'Not '}Net Worth`);
+	if (restFilter.isCatchall !== undefined)
+		stringArray.push(`Is ${restFilter.isCatchall ? '' : 'Not '}Catchall`);
 
 	// Date Filters
 	if (restFilter.startDateAfter !== undefined)

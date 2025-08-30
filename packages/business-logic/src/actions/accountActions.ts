@@ -177,6 +177,7 @@ export const accountActions: AccountActionsType & {
 					endDate: item.endDate || undefined,
 					isCash: item.isCash,
 					isNetWorth: item.isNetWorth,
+					isCatchall: item.isCatchall,
 					status: item.status
 				} satisfies CreateAccountSchemaType;
 			}
@@ -193,6 +194,7 @@ export const accountActions: AccountActionsType & {
 				accountTitleCombined: item.accountTitleCombined,
 				isCash: item.isCash,
 				isNetWorth: item.isNetWorth,
+				isCatchall: item.isCatchall,
 				startDate: item.startDate,
 				endDate: item.endDate,
 				sum: item.sum,
@@ -234,6 +236,7 @@ export const accountActions: AccountActionsType & {
 		const type = getCommonData('type', accounts);
 		const isNetWorth = getCommonData('isNetWorth', accounts);
 		const isCash = getCommonData('isCash', accounts);
+		const isCatchall = getCommonData('isCatchall', accounts);
 		const startDate = getCommonData('startDate', accounts);
 		const endDate = getCommonData('endDate', accounts);
 		const status = getCommonData('status', accounts);
@@ -252,6 +255,7 @@ export const accountActions: AccountActionsType & {
 			type,
 			isNetWorth,
 			isCash,
+			isCatchall,
 			startDate,
 			endDate
 		};
@@ -502,6 +506,10 @@ export const accountActions: AccountActionsType & {
 							title: title || currentAccount.title,
 							accountGroupCombined: ''
 						}),
+						isCatchall:
+							restData.isCatchall === null || restData.isCatchall === undefined
+								? currentAccount.isCatchall
+								: restData.isCatchall,
 						...updatedTime()
 					})
 					.where(eq(account.id, id)),
@@ -530,6 +538,7 @@ export const accountActions: AccountActionsType & {
 						endDate,
 						isCash,
 						isNetWorth,
+						isCatchall: false,
 						type: type || currentAccount.type,
 						...statusUpdate(status),
 						...combinedAccountTitleSplitRequired({

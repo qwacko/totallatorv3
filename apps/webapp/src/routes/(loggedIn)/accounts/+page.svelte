@@ -129,6 +129,12 @@
 				sortKey: 'isNetWorth'
 			},
 			{
+				id: 'isCatchall',
+				title: 'Catch-All',
+				rowToDisplay: (row) => (row.isCatchall ? 'Y' : ''),
+				sortKey: 'isCatchall'
+			},
+			{
 				id: 'startDate',
 				title: 'Start Date',
 				rowToDisplay: (row) => row.startDate,
