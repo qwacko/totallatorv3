@@ -15,7 +15,10 @@
 		if (!search) return fullText;
 
 		const regex = createSearchRegex(search);
-		return fullText.replace(regex, '<span class="bg-yellow-300">$1</span>');
+		return fullText.replace(
+			regex,
+			'<span class="bg-yellow-300 rounded-sm dark:bg-yellow-700">$1</span>'
+		);
 	}
 </script>
 

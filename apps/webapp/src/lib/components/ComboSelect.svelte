@@ -247,7 +247,7 @@
 	>
 		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 		<div
-			class="flex max-h-full flex-col gap-0 overflow-y-auto px-2 py-2 text-black dark:text-gray-700"
+			class="flex max-h-full flex-col gap-0 overflow-y-auto px-2 py-2 text-black dark:text-white"
 			tabindex="0"
 		>
 			{#each filteredItems as currentItem (currentItem.id)}
@@ -261,7 +261,7 @@
 					use:option
 					class="data-[highlighted]:bg-magnum-200 data-[highlighted]:text-magnum-900 relative cursor-pointer scroll-my-2 rounded-md py-2
         pl-4 pr-4
-          data-[disabled]:opacity-50 {currentHighlighted ? 'bg-gray-200' : ''}"
+          data-[disabled]:opacity-50 {currentHighlighted ? 'bg-gray-200 dark:bg-gray-500' : ''}"
 				>
 					{#if currentSelected}
 						<div class="check text-magnum-900 absolute left-2 top-1/2 z-10">
