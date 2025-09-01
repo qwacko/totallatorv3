@@ -19,6 +19,7 @@ import { combinedAccountTitleSplitRequired } from '../helpers/combinedAccountTit
 import { streamingDelay } from '../server/testingDelay';
 import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
 import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
+import { accountGetById } from './helpers/account/accountGetById';
 import { accountTitleSplit } from './helpers/account/accountTitleSplit';
 import { getCorrectAccountTable } from './helpers/account/getCorrectAccountTable';
 import { getCommonData } from './helpers/misc/getCommonData';
@@ -82,13 +83,7 @@ export const accountActions: AccountActionsType & {
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (id) => {
-		const db = getContextDB();
-		return dbExecuteLogger(
-			db.query.account.findFirst({ where: eq(account.id, id) }),
-			'Accounts - Get By ID'
-		);
-	},
+	getById: accountGetById,
 	count: async (filter) => {
 		const db = getContextDB();
 		const { table, target } = await getCorrectAccountTable();
@@ -162,6 +157,7 @@ export const accountActions: AccountActionsType & {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
+	listRecommendationsFromPayee: async () => [],
 	generateCSVData: async ({ filter, returnType }) => {
 		const data = await accountActions.list({
 			filter: { ...filter, page: 0, pageSize: 100000 }

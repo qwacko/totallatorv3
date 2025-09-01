@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, max } from 'drizzle-orm';
+import { and, asc, count, desc, eq, isNotNull, max } from 'drizzle-orm';
 import { count as drizzleCount } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import Papa from 'papaparse';
@@ -7,7 +7,8 @@ import { getContextDB } from '@totallator/context';
 import {
 	category,
 	type CategoryTableType,
-	type CategoryViewReturnType
+	type CategoryViewReturnType,
+	journalEntry
 } from '@totallator/database';
 import type {
 	CategoryFilterSchemaType,
@@ -20,6 +21,7 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 import { combinedTitleSplit } from '../helpers/combinedTitleSplit';
 import { streamingDelay } from '../server/testingDelay';
+import { accountGetById } from './helpers/account/accountGetById';
 import { categoryCreateInsertionData } from './helpers/category/categoryCreateInsertionData';
 import { categoryFilterToQuery } from './helpers/category/categoryFilterToQuery';
 import { getCorrectCategoryTable } from './helpers/category/getCorrectCategoryTable';
@@ -177,6 +179,45 @@ export const categoryActions: CategoryActionsType = {
 		});
 
 		return { count, data: results, pageCount, page, pageSize };
+	},
+	listRecommendationsFromPayee: async ({ payeeId }) => {
+		const account = await accountGetById(payeeId);
+		if (!account || account.isCatchall) {
+			return [];
+		}
+
+		const db = getContextDB();
+
+		const innerSelect = db
+			.select({ id: journalEntry.categoryId })
+			.from(journalEntry)
+			.where(and(eq(journalEntry.accountId, payeeId), isNotNull(journalEntry.categoryId)))
+			.limit(100)
+			.as('inner_table');
+		const recommendations = await dbExecuteLogger(
+			db
+				.select({ id: innerSelect.id, title: category.title, count: count(innerSelect.id) })
+				.from(innerSelect)
+				.leftJoin(category, eq(category.id, innerSelect.id))
+				.groupBy(innerSelect.id, category.title)
+				.orderBy((self) => desc(self.count))
+				.limit(4),
+			'Categories - List Recommendations From Payee'
+		);
+		const filteredRecommendation = recommendations
+			.filter((item) => item.id)
+			.map((item) => ({ ...item, id: item.id || '' }));
+		const sortedRecommendations = filteredRecommendation.sort((a, b) => b.count - a.count);
+		const totalFound = sortedRecommendations.reduce((acc, item) => acc + item.count, 0);
+
+		return sortedRecommendations.map((item) => {
+			return {
+				id: item.id,
+				title: item.title || '',
+				fraction: totalFound > 0 ? item.count / totalFound : 0,
+				count: item.count
+			};
+		});
 	},
 	generateCSVData: async ({ filter, returnType }) => {
 		getLogger('categories').info({

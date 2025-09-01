@@ -1,13 +1,29 @@
 import z from 'zod';
 
-import { getContext } from '@totallator/context';
+import { tActions } from '@totallator/business-logic';
 
 import { query } from '$app/server';
 
 export const recommendTagRemote = query(z.object({ payee: z.string() }), async ({ payee }) => {
-	const context = getContext();
+	const recommendations = await tActions.tag.listRecommendationsFromPayee({ payeeId: payee });
 
-	return { context: context.request.requestId };
+	return { recommendations };
+});
 
-	// Your implementation here
+export const recommendBillRemote = query(z.object({ payee: z.string() }), async ({ payee }) => {
+	const recommendations = await tActions.bill.listRecommendationsFromPayee({ payeeId: payee });
+
+	return { recommendations };
+});
+
+export const recommendBudgetRemote = query(z.object({ payee: z.string() }), async ({ payee }) => {
+	const recommendations = await tActions.budget.listRecommendationsFromPayee({ payeeId: payee });
+
+	return { recommendations };
+});
+
+export const recommendCategoryRemote = query(z.object({ payee: z.string() }), async ({ payee }) => {
+	const recommendations = await tActions.category.listRecommendationsFromPayee({ payeeId: payee });
+
+	return { recommendations };
 });

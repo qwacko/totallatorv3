@@ -1,10 +1,15 @@
-import { and, asc, desc, eq, max } from 'drizzle-orm';
+import { and, asc, count, desc, eq, isNotNull, max } from 'drizzle-orm';
 import { count as drizzleCount } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import Papa from 'papaparse';
 
 import { getContextDB } from '@totallator/context';
-import { budget, type BudgetTableType, type BudgetViewReturnType } from '@totallator/database';
+import {
+	budget,
+	type BudgetTableType,
+	type BudgetViewReturnType,
+	journalEntry
+} from '@totallator/database';
 import type {
 	BudgetFilterSchemaType,
 	CreateBudgetSchemaType,
@@ -15,6 +20,7 @@ import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 import { streamingDelay } from '../server/testingDelay';
+import { accountGetById } from './helpers/account/accountGetById';
 import { budgetCreateInsertionData } from './helpers/budget/budgetCreateInsertionData';
 import { budgetFilterToQuery } from './helpers/budget/budgetFilterToQuery';
 import { getCorrectBudgetTable } from './helpers/budget/getCorrectBudgetTable';
@@ -126,6 +132,45 @@ export const budgetActions: BudgetActionsType = {
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: results, pageCount, page, pageSize };
+	},
+	listRecommendationsFromPayee: async ({ payeeId }) => {
+		const account = await accountGetById(payeeId);
+		if (!account || account.isCatchall) {
+			return [];
+		}
+
+		const db = getContextDB();
+
+		const innerSelect = db
+			.select({ id: journalEntry.budgetId })
+			.from(journalEntry)
+			.where(and(eq(journalEntry.accountId, payeeId), isNotNull(journalEntry.budgetId)))
+			.limit(100)
+			.as('inner_table');
+		const recommendations = await dbExecuteLogger(
+			db
+				.select({ id: innerSelect.id, title: budget.title, count: count(innerSelect.id) })
+				.from(innerSelect)
+				.leftJoin(budget, eq(budget.id, innerSelect.id))
+				.groupBy(innerSelect.id, budget.title)
+				.orderBy((self) => desc(self.count))
+				.limit(4),
+			'Budgets - List Recommendations From Payee'
+		);
+		const filteredRecommendation = recommendations
+			.filter((item) => item.id)
+			.map((item) => ({ ...item, id: item.id || '' }));
+		const sortedRecommendations = filteredRecommendation.sort((a, b) => b.count - a.count);
+		const totalFound = sortedRecommendations.reduce((acc, item) => acc + item.count, 0);
+
+		return sortedRecommendations.map((item) => {
+			return {
+				id: item.id,
+				title: item.title || '',
+				fraction: totalFound > 0 ? item.count / totalFound : 0,
+				count: item.count
+			};
+		});
 	},
 	generateCSVData: async ({ filter, returnType }) => {
 		const data = await budgetActions.list({
