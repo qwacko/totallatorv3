@@ -5,6 +5,7 @@
 
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
+	import RemoteCacheGroup from '$lib/components/testCache/RemoteCacheGroup.svelte';
 
 	import BulkCreateDisplay from './BulkCreateDisplay.svelte';
 
@@ -14,6 +15,8 @@
 <CustomHeader pageTitle="Bulk Load Actions" />
 
 <PageLayout title="Bulk Actions">
+	<Heading tag="h3">Remote Functions</Heading>
+	<RemoteCacheGroup />
 	<BulkCreateDisplay
 		title="Journals"
 		createAction="?/bulkAddJournals"

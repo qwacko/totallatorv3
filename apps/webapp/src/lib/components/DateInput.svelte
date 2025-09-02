@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { Button, Input, type InputProps, Label } from 'flowbite-svelte';
+	import { Datepicker, type InputProps, Label } from 'flowbite-svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
 
+	import { userInfoStore } from '$lib/stores/userInfoStore';
+
 	import ErrorText from './ErrorText.svelte';
-	import CancelIcon from './icons/CancelIcon.svelte';
 
 	let {
 		errorMessage,
@@ -16,6 +17,8 @@
 		highlightTainted,
 		flexGrow = false,
 		class: className = '',
+		placeholder = 'Select date...',
+		disabled,
 		...restProps
 	}: Omit<InputProps<string>, 'name' | 'required' | 'value' | 'children'> & {
 		errorMessage: string | string[] | null | undefined;
@@ -39,6 +42,41 @@
 		const newValue = target2?.value ? target2.value : null;
 		value = newValue;
 	};
+
+	const dateFormat = $derived.by<{ format: Intl.DateTimeFormatOptions; locale: string }>(() => {
+		const userDateFormat = $userInfoStore.dateFormat;
+
+		switch (userDateFormat) {
+			case 'DD/MM/YY':
+				return {
+					format: { day: '2-digit', month: '2-digit', year: '2-digit' },
+					locale: 'en-GB'
+				};
+			case 'DD/MM/YYYY':
+				return {
+					format: { day: '2-digit', month: '2-digit', year: 'numeric' },
+					locale: 'en-GB'
+				};
+			case 'MM/DD/YY':
+				return {
+					format: { day: '2-digit', month: '2-digit', year: '2-digit' },
+					locale: 'en-US'
+				};
+			case 'MM/DD/YYYY':
+				return {
+					format: { day: '2-digit', month: '2-digit', year: 'numeric' },
+					locale: 'en-US'
+				};
+			case 'YYYY-MM-DD':
+				return {
+					format: { year: 'numeric', month: '2-digit', day: '2-digit' },
+					locale: 'en-CA'
+				};
+			default:
+				userDateFormat satisfies never;
+				throw new Error(`Unhandled date format: ${userDateFormat}`);
+		}
+	});
 </script>
 
 <Label class="space-y-2 {flexGrow && 'flex grow basis-0 flex-col gap-0.5'}">
@@ -54,7 +92,16 @@
 			</div>
 		</span>
 	{/if}
-	<Input
+	<Datepicker
+		{...restProps}
+		required={required || false}
+		placeholder={placeholder || undefined}
+		disabled={disabled || false}
+		class="{className} {highlightTainted && tainted ? 'ring-2' : ''} "
+		dateFormat={dateFormat.format}
+		locale={dateFormat.locale}
+	/>
+	<!-- <Input
 		{...restProps}
 		{name}
 		{required}
@@ -71,6 +118,6 @@
 			</Button>
 		{/snippet}
 		<input type="date" value={usedValue} onchange={handleUpdate} />
-	</Input>
+	</Input> -->
 	<ErrorText message={errorMessage} />
 </Label>
