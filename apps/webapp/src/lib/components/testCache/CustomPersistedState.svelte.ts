@@ -4,6 +4,7 @@ const instanceRegistry = new Map<string, Set<CustomPersistedState<any>>>();
 export class CustomPersistedState<DataType extends any> {
 	current = $state<DataType>();
 	private isUpdating = false;
+	private storageEventHandler?: (e: StorageEvent) => void;
 
 	constructor(
 		private key: string,
@@ -101,7 +102,7 @@ export class CustomPersistedState<DataType extends any> {
 
 		// Set up cross-tab synchronization if enabled
 		if (this.options.syncTabs && this.options.storage === 'local') {
-			window.addEventListener('storage', (e) => {
+			this.storageEventHandler = (e: StorageEvent) => {
 				const compositeKey = this.getCompositeKey();
 				if (e.key === compositeKey && e.newValue && !this.isUpdating) {
 					try {
@@ -115,7 +116,8 @@ export class CustomPersistedState<DataType extends any> {
 						console.warn(`Failed to sync state from storage for key "${compositeKey}":`, error);
 					}
 				}
-			});
+			};
+			window.addEventListener('storage', this.storageEventHandler);
 		}
 	}
 
@@ -148,5 +150,10 @@ export class CustomPersistedState<DataType extends any> {
 
 	destroy(): void {
 		this.unregisterInstance();
+		// Clean up storage event listener
+		if (this.storageEventHandler) {
+			window.removeEventListener('storage', this.storageEventHandler);
+			this.storageEventHandler = undefined;
+		}
 	}
 }

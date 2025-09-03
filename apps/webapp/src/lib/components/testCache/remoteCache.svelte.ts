@@ -15,8 +15,8 @@ export function remoteCachePersisted<TArg, TReturn>(
 	{
 		initialValue,
 		key,
-		storage = 'session',
-		syncTabs = false
+		storage = 'local',
+		syncTabs = true
 	}: {
 		initialValue?: TReturn | undefined;
 		key?: string;
@@ -26,13 +26,16 @@ export function remoteCachePersisted<TArg, TReturn>(
 ) {
 	const functionKey = key || fn.name || 'anonymous';
 
+	// Force localStorage when syncTabs is enabled since sessionStorage doesn't support cross-tab sync
+	const effectiveStorage = syncTabs ? 'local' : storage;
+	
 	let state = new CustomPersistedState<TReturn | undefined>(
 		`${functionKey}-${argToKey(arg())}`,
 		initialValue,
 		{
 			deserialize: (val) => devalue.parse(val) as TReturn,
 			serialize: (val) => devalue.stringify(val),
-			storage,
+			storage: effectiveStorage,
 			syncTabs
 		}
 	);
