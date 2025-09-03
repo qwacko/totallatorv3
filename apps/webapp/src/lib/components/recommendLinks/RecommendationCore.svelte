@@ -38,7 +38,7 @@
 
 			timeout = setTimeout(() => {
 				delayedParams = params;
-			}, 300);
+			}, 5);
 		});
 	});
 

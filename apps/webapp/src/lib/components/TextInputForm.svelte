@@ -1,6 +1,6 @@
 <script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
 	import { Button } from 'flowbite-svelte';
-	import { type ComponentProps, untrack } from 'svelte';
+	import { type ComponentProps, type Snippet, untrack } from 'svelte';
 	import type { Writable } from 'svelte/store';
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
@@ -20,6 +20,7 @@
 		clearable = false,
 		clearField = field,
 		class: className = '',
+		children,
 		...restProps
 	}: {
 		form: SuperForm<T, unknown>;
@@ -31,6 +32,7 @@
 		clearable?: boolean;
 		clearField?: FormPathLeaves<T>;
 		class?: string;
+		children?: Snippet;
 	} & Omit<
 		TextInputProps,
 		| 'title'
@@ -67,26 +69,31 @@
 	});
 </script>
 
-<div class="flex w-full flex-row gap-2 {outerWrapperClass ? outerWrapperClass : ''}">
-	<TextInput
-		{title}
-		name={field}
-		bind:value={$stringValue}
-		errorMessage={$errors}
-		tainted={$tainted}
-		{highlightTainted}
-		aria-invalid={$errors ? 'true' : undefined}
-		class={className}
-		wrapperClass="grow {wrapperClass}"
-		{...$constraints}
-		{...restProps}
-	/>
-	{#if clearable}
-		<Button class="flex self-end py-3" outline={$clearValue === false} onclick={updateClearValue}>
-			<CancelIcon />
-		</Button>
-		{#if $clearValue}
-			<input type="hidden" name={clearField} value="true" />
+<div class="flex w-full flex-col gap-2 {outerWrapperClass ? outerWrapperClass : ''}">
+	<div class="flex w-full flex-row gap-2">
+		<TextInput
+			{title}
+			name={field}
+			bind:value={$stringValue}
+			errorMessage={$errors}
+			tainted={$tainted}
+			{highlightTainted}
+			aria-invalid={$errors ? 'true' : undefined}
+			class={className}
+			wrapperClass="grow {wrapperClass}"
+			{...$constraints}
+			{...restProps}
+		/>
+		{#if clearable}
+			<Button class="flex self-end py-3" outline={$clearValue === false} onclick={updateClearValue}>
+				<CancelIcon />
+			</Button>
+			{#if $clearValue}
+				<input type="hidden" name={clearField} value="true" />
+			{/if}
 		{/if}
+	</div>
+	{#if children}
+		{@render children()}
 	{/if}
 </div>

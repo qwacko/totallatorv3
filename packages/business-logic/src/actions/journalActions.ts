@@ -1,4 +1,4 @@
-import { and, eq, not, or } from 'drizzle-orm';
+import { and, count, desc, eq, not, or } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
@@ -25,6 +25,7 @@ import { accountActions } from './accountActions';
 import { billActions } from './billActions';
 import { budgetActions } from './budgetActions';
 import { categoryActions } from './categoryActions';
+import { accountGetById } from './helpers/account/accountGetById';
 import { checkUpdateLabelsOnly } from './helpers/journal/checkUpdateLabelsOnly';
 import { expandDate } from './helpers/journal/expandDate';
 import {
@@ -1122,5 +1123,41 @@ export const journalActions = {
 		});
 
 		return transactionIds;
+	},
+	getTextRecommendationsFromAccountId: async ({ payeeId }: { payeeId: string }) => {
+		const account = await accountGetById(payeeId);
+		if (!account || account.isCatchall) {
+			return [];
+		}
+
+		const db = getContextDB();
+
+		const innerSelect = db
+			.select({ description: journalEntry.description })
+			.from(journalEntry)
+			.where(and(eq(journalEntry.accountId, payeeId)))
+			.limit(100)
+			.as('inner_table');
+		const recommendations = await dbExecuteLogger(
+			db
+				.select({ description: innerSelect.description, count: count() })
+				.from(innerSelect)
+				.groupBy(innerSelect.description)
+				.orderBy((self) => desc(self.count))
+				.limit(4),
+			'Journals - List Description Recommendations From Payee'
+		);
+		const filteredRecommendation = recommendations;
+		const sortedRecommendations = filteredRecommendation.sort((a, b) => b.count - a.count);
+		const totalFound = sortedRecommendations.reduce((acc, item) => acc + item.count, 0);
+
+		return sortedRecommendations.map((item) => {
+			return {
+				id: item.description,
+				title: item.description,
+				fraction: totalFound > 0 ? item.count / totalFound : 0,
+				count: item.count
+			};
+		});
 	}
 };
