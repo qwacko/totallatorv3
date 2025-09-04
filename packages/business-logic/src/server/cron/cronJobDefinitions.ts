@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { updateManyTransferInfo } from '../../actions/helpers/journal/updateTransactionTransfer';
 import { tActions } from '../../actions/tActions';
-import { LLMJournalProcessingService } from '../services/llmJournalProcessingService';
 import type { CronJobDefinition } from './types';
 
 /**
@@ -470,8 +469,6 @@ export const cronJobDefinitions: CronJobDefinition[] = [
 						}
 					};
 				}
-
-				const llmProcessor = new LLMJournalProcessingService(context.db);
 
 				const result = await llmProcessor.processRequiredJournals({
 					batchSize: 20,

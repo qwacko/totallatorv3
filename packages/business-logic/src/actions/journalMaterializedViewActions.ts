@@ -16,11 +16,9 @@ import { summaryCacheDataSchema, type SummaryCacheSchemaDataType } from '@totall
 import type { DownloadTypeEnumType } from '@totallator/shared';
 import type { LlmReviewStatusEnumType } from '@totallator/shared';
 
+import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import {
-	type EnhancedRecommendationType,
-	journalRecommendationService
-} from '@/server/services/journalRecommendationService';
+import { type EnhancedRecommendationType } from '@/server/services/journalRecommendationService';
 
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import {
@@ -595,11 +593,9 @@ export const journalMaterializedViewActions = {
 	 * Get combined recommendations (similarity + LLM) for a journal entry
 	 */
 	listCombinedRecommendations: async ({
-		db,
 		journals,
 		similarityThreshold = 0.3,
-		includeLlmSuggestions = true,
-		llmSettingsId
+		includeLlmSuggestions = true
 	}: {
 		db: DBType;
 		similarityThreshold?: number;
@@ -619,7 +615,6 @@ export const journalMaterializedViewActions = {
 			return;
 		}
 
-		const journal = journals[0];
 		const recommendations: EnhancedRecommendationType[] = [];
 
 		// Get similarity-based recommendations first
@@ -641,18 +636,10 @@ export const journalMaterializedViewActions = {
 
 		// Get LLM recommendations if enabled
 		if (includeLlmSuggestions) {
-			try {
-				const llmRecommendations = await journalRecommendationService.generateLLMRecommendations({
-					db,
-					journal,
-					llmSettingsId
-				});
-
-				recommendations.push(...llmRecommendations);
-			} catch (error) {
-				console.error('Failed to get LLM recommendations:', error);
-				// Continue with just similarity recommendations
-			}
+			getLogger('llm').warn({
+				code: 'LLM_0010',
+				title: 'LLM Recommendations are currently disabled'
+			});
 		}
 
 		// Sort recommendations by confidence/similarity score (descending)
