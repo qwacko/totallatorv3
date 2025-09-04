@@ -15,6 +15,7 @@ export const accountColumnsStore = writable([
 	'status',
 	'isCash',
 	'isNetWorth',
+	'isCatchall',
 	'startDate',
 	'endDate',
 	'total',

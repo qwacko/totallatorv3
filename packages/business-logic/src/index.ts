@@ -8,8 +8,6 @@ import {
 	isPredefinedProvider,
 	resolveApiUrl
 } from './server/llm/providerConfig.js';
-import { processAllAccounts } from './server/services/llmBatchProcessingService.js';
-import { LLMJournalProcessingService } from './server/services/llmJournalProcessingService.js';
 
 export { tActions } from './actions/tActions.js';
 
@@ -123,8 +121,6 @@ export const actionHelpers = {
 	isPredefinedProvider,
 	getProviderDisplayName,
 	resolveApiUrl,
-	LLMJournalProcessingService,
-	processAllAccounts,
 	initDBLogger: initDBLogger
 };
 

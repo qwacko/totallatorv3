@@ -117,6 +117,12 @@
 			onTitle="Cash"
 			offTitle="Not Cash"
 		/>
+		<BooleanFilterButtons
+			bind:value={filter.isCatchall}
+			title="Catch-All"
+			onTitle="Catch-All"
+			offTitle="Not Catch-All"
+		/>
 		<div class="text-primary-900 flex text-sm font-semibold">Account Start Date</div>
 		<div class="flex flex-row gap-1">
 			<DateInput

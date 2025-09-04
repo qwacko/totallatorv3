@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, max } from 'drizzle-orm';
+import { and, asc, count, desc, eq, isNotNull, max } from 'drizzle-orm';
 import { count as drizzleCount } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import Papa from 'papaparse';
@@ -16,6 +16,7 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 import { combinedTitleSplit } from '../helpers/combinedTitleSplit';
 import { streamingDelay } from '../server/testingDelay';
+import { accountGetById } from './helpers/account/accountGetById';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import type { ItemActionsType } from './helpers/misc/ItemActionsType';
 import { statusUpdate } from './helpers/misc/statusUpdate';
@@ -129,6 +130,45 @@ export const tagActions: TagActionsType = {
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: results, pageCount, page, pageSize };
+	},
+	listRecommendationsFromPayee: async ({ payeeId }) => {
+		const account = await accountGetById(payeeId);
+		if (!account || account.isCatchall) {
+			return [];
+		}
+
+		const db = getContextDB();
+
+		const innerSelect = db
+			.select({ id: journalEntry.tagId })
+			.from(journalEntry)
+			.where(and(eq(journalEntry.accountId, payeeId), isNotNull(journalEntry.tagId)))
+			.limit(100)
+			.as('inner_table');
+		const recommendations = await dbExecuteLogger(
+			db
+				.select({ id: innerSelect.id, title: tag.title, count: count(innerSelect.id) })
+				.from(innerSelect)
+				.leftJoin(tag, eq(tag.id, innerSelect.id))
+				.groupBy(innerSelect.id, tag.title)
+				.orderBy((self) => desc(self.count))
+				.limit(4),
+			'Tags - List Recommendations From Payee'
+		);
+		const filteredRecommendation = recommendations
+			.filter((item) => item.id)
+			.map((item) => ({ ...item, id: item.id || '' }));
+		const sortedRecommendations = filteredRecommendation.sort((a, b) => b.count - a.count);
+		const totalFound = sortedRecommendations.reduce((acc, item) => acc + item.count, 0);
+
+		return sortedRecommendations.map((item) => {
+			return {
+				id: item.id,
+				title: item.title || '',
+				fraction: totalFound > 0 ? item.count / totalFound : 0,
+				count: item.count
+			};
+		});
 	},
 	generateCSVData: async ({ filter, returnType }) => {
 		const data = await tagActions.list({

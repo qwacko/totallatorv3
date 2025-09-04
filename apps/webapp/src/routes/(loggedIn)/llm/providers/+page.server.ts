@@ -4,7 +4,6 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
 import { tActions } from '@totallator/business-logic';
-import { actionHelpers } from '@totallator/business-logic';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { associatedInfoFormActions } from '$lib/server/associatednfoFormActions';
@@ -61,20 +60,10 @@ export const actions = {
 	},
 
 	processJournals: async ({ locals }) => {
-		const db = locals.db;
-
 		try {
 			locals.global.logger('llm').info({
 				code: 'LLM_0004',
 				title: 'Manual LLM batch processing triggered'
-			});
-
-			const stats = await actionHelpers.processAllAccounts(db);
-
-			locals.global.logger('llm').info({
-				code: 'LLM_0005',
-				title: 'Manual LLM batch processing completed',
-				stats
 			});
 		} catch (e) {
 			locals.global.logger('llm').error({

@@ -505,6 +505,20 @@
       "when": 1756249472688,
       "tag": "0071_safe_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1756577273364,
+      "tag": "0072_quiet_hex",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1756578531768,
+      "tag": "0073_wild_robin_chapel",
+      "breakpoints": true
     }
   ]
 }

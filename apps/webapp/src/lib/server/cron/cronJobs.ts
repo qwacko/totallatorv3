@@ -153,38 +153,7 @@ export const cronJobs: CronJob[] = [
 			await tActions.file.updateLinked();
 		}
 	},
-	{
-		name: 'Process LLM Journal Reviews',
-		schedule: serverEnv.LLM_REVIEW_SCHEDULE,
-		job: async (context) => {
-			if (!serverEnv.LLM_REVIEW_ENABLED) {
-				return;
-			}
 
-			const llmProcessor = new actionHelpers.LLMJournalProcessingService(context.db);
-
-			try {
-				const result = await llmProcessor.processRequiredJournals({
-					batchSize: 20, // Process smaller batches more frequently
-					maxProcessingTime: 45000, // 45 seconds max
-					skipIfNoProviders: true
-				});
-
-				if (result.processed > 0 || result.errors > 0) {
-					context.logger('cron').info({
-						title: `CRON: LLM Journal Processing - Processed: ${result.processed}, Errors: ${result.errors}, Duration: ${result.duration}ms`,
-						code: 'CRON_0009'
-					});
-				}
-			} catch (error) {
-				context.logger('cron').error({
-					title: 'CRON: LLM Journal Processing failed:',
-					error,
-					code: 'CRON_0010'
-				});
-			}
-		}
-	},
 	{
 		name: 'Clear Logs',
 		schedule: '0 5 * * *',

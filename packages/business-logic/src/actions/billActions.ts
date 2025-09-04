@@ -1,10 +1,15 @@
-import { and, asc, desc, eq, max } from 'drizzle-orm';
+import { and, asc, count, desc, eq, isNotNull, max } from 'drizzle-orm';
 import { count as drizzleCount } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import Papa from 'papaparse';
 
 import { getContextDB } from '@totallator/context';
-import { bill, type BillTableType, type BillViewReturnType } from '@totallator/database';
+import {
+	bill,
+	type BillTableType,
+	type BillViewReturnType,
+	journalEntry
+} from '@totallator/database';
 import type {
 	BillFilterSchemaType,
 	CreateBillSchemaType,
@@ -15,6 +20,7 @@ import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 import { streamingDelay, testingDelay } from '../server/testingDelay';
+import { accountGetById } from './helpers/account/accountGetById';
 import { billCreateInsertionData } from './helpers/bill/billCreateInsertionData';
 import { billFilterToQuery } from './helpers/bill/billFilterToQuery';
 import { getCorrectBillTable } from './helpers/bill/getCorrectBillTable';
@@ -121,6 +127,45 @@ export const billActions: BillActionsType = {
 		const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
 		return { count, data: results, pageCount, page, pageSize };
+	},
+	listRecommendationsFromPayee: async ({ payeeId }) => {
+		const account = await accountGetById(payeeId);
+		if (!account || account.isCatchall) {
+			return [];
+		}
+
+		const db = getContextDB();
+
+		const innerSelect = db
+			.select({ id: journalEntry.billId })
+			.from(journalEntry)
+			.where(and(eq(journalEntry.accountId, payeeId), isNotNull(journalEntry.billId)))
+			.limit(100)
+			.as('inner_table');
+		const recommendations = await dbExecuteLogger(
+			db
+				.select({ id: innerSelect.id, title: bill.title, count: count(innerSelect.id) })
+				.from(innerSelect)
+				.leftJoin(bill, eq(bill.id, innerSelect.id))
+				.groupBy(innerSelect.id, bill.title)
+				.orderBy((self) => desc(self.count))
+				.limit(4),
+			'Bills - List Recommendations From Payee'
+		);
+		const filteredRecommendation = recommendations
+			.filter((item) => item.id)
+			.map((item) => ({ ...item, id: item.id || '' }));
+		const sortedRecommendations = filteredRecommendation.sort((a, b) => b.count - a.count);
+		const totalFound = sortedRecommendations.reduce((acc, item) => acc + item.count, 0);
+
+		return sortedRecommendations.map((item) => {
+			return {
+				id: item.id,
+				title: item.title || '',
+				fraction: totalFound > 0 ? item.count / totalFound : 0,
+				count: item.count
+			};
+		});
 	},
 	generateCSVData: async ({ filter, returnType }) => {
 		const data = await billActions.list({

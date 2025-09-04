@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "pnpm -r --filter='!@totallator/webapp' --filter='!@totallator/docs' build && pnpm --filter @totallator/webapp build",
-		"dev": "pnpm --recursive --parallel dev",
+		"dev": "pnpm --recursive --parallel  --filter='!@totallator/docs' dev",
 		"clean": "pnpm --recursive clean",
 		"webapp:dev": "pnpm --filter @totallator/webapp dev",
 		"webapp:build": "pnpm --filter @totallator/webapp build",

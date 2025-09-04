@@ -45,6 +45,18 @@ export const accountFilterArray: TextFilterOptionsType<AccountFilterSchemaWithou
 		}
 	},
 	{
+		key: 'catchall:',
+		update: (filter) => {
+			filter.isCatchall = true;
+		}
+	},
+	{
+		key: '!catchall:',
+		update: (filter) => {
+			filter.isCatchall = false;
+		}
+	},
+	{
 		key: ['!accountType:', '!type:'],
 		update: (filter, newFilter) => {
 			if (newFilter.length === 0) return;

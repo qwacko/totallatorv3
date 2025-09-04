@@ -19,6 +19,7 @@ import { combinedAccountTitleSplitRequired } from '../helpers/combinedAccountTit
 import { streamingDelay } from '../server/testingDelay';
 import { accountCreateInsertionData } from './helpers/account/accountCreateInsertionData';
 import { accountFilterToQuery } from './helpers/account/accountFilterToQuery';
+import { accountGetById } from './helpers/account/accountGetById';
 import { accountTitleSplit } from './helpers/account/accountTitleSplit';
 import { getCorrectAccountTable } from './helpers/account/getCorrectAccountTable';
 import { getCommonData } from './helpers/misc/getCommonData';
@@ -82,13 +83,7 @@ export const accountActions: AccountActionsType & {
 		);
 		return latestUpdate[0].lastUpdated || new Date();
 	},
-	getById: async (id) => {
-		const db = getContextDB();
-		return dbExecuteLogger(
-			db.query.account.findFirst({ where: eq(account.id, id) }),
-			'Accounts - Get By ID'
-		);
-	},
+	getById: accountGetById,
 	count: async (filter) => {
 		const db = getContextDB();
 		const { table, target } = await getCorrectAccountTable();
@@ -162,6 +157,7 @@ export const accountActions: AccountActionsType & {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
+	listRecommendationsFromPayee: async () => [],
 	generateCSVData: async ({ filter, returnType }) => {
 		const data = await accountActions.list({
 			filter: { ...filter, page: 0, pageSize: 100000 }
@@ -177,6 +173,7 @@ export const accountActions: AccountActionsType & {
 					endDate: item.endDate || undefined,
 					isCash: item.isCash,
 					isNetWorth: item.isNetWorth,
+					isCatchall: item.isCatchall,
 					status: item.status
 				} satisfies CreateAccountSchemaType;
 			}
@@ -193,6 +190,7 @@ export const accountActions: AccountActionsType & {
 				accountTitleCombined: item.accountTitleCombined,
 				isCash: item.isCash,
 				isNetWorth: item.isNetWorth,
+				isCatchall: item.isCatchall,
 				startDate: item.startDate,
 				endDate: item.endDate,
 				sum: item.sum,
@@ -234,6 +232,7 @@ export const accountActions: AccountActionsType & {
 		const type = getCommonData('type', accounts);
 		const isNetWorth = getCommonData('isNetWorth', accounts);
 		const isCash = getCommonData('isCash', accounts);
+		const isCatchall = getCommonData('isCatchall', accounts);
 		const startDate = getCommonData('startDate', accounts);
 		const endDate = getCommonData('endDate', accounts);
 		const status = getCommonData('status', accounts);
@@ -252,6 +251,7 @@ export const accountActions: AccountActionsType & {
 			type,
 			isNetWorth,
 			isCash,
+			isCatchall,
 			startDate,
 			endDate
 		};
@@ -502,6 +502,10 @@ export const accountActions: AccountActionsType & {
 							title: title || currentAccount.title,
 							accountGroupCombined: ''
 						}),
+						isCatchall:
+							restData.isCatchall === null || restData.isCatchall === undefined
+								? currentAccount.isCatchall
+								: restData.isCatchall,
 						...updatedTime()
 					})
 					.where(eq(account.id, id)),
@@ -530,6 +534,7 @@ export const accountActions: AccountActionsType & {
 						endDate,
 						isCash,
 						isNetWorth,
+						isCatchall: false,
 						type: type || currentAccount.type,
 						...statusUpdate(status),
 						...combinedAccountTitleSplitRequired({

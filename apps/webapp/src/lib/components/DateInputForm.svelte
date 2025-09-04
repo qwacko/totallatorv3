@@ -1,12 +1,10 @@
 <script lang="ts" generics="T extends Record<string|number|symbol, unknown>">
-	import type { ComponentProps } from 'svelte';
+	import type { DatepickerProps } from 'flowbite-svelte';
 	import type { Writable } from 'svelte/store';
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
 
 	import DateInput from './DateInput.svelte';
-
-	type DateInputProps = ComponentProps<typeof DateInput>;
 
 	const {
 		form,
@@ -24,7 +22,7 @@
 		highlightTainted?: boolean;
 		class?: string;
 	} & Omit<
-		DateInputProps,
+		DatepickerProps,
 		| 'title'
 		| 'name'
 		| 'value'
@@ -51,7 +49,7 @@
 	{highlightTainted}
 	aria-invalid={$errors ? 'true' : undefined}
 	class={className}
-	{wrapperClass}
 	{...$constraints}
 	{...restProps}
 />
+<input type="hidden" name={field} value={$stringValue} />

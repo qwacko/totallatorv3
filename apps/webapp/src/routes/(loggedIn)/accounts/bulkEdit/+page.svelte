@@ -123,6 +123,13 @@
 				title="Is Net Worth"
 				errorMessage=""
 			/>
+		{:else}
+			<CheckboxInput
+				name="isCatchall"
+				bind:value={$formData.isCatchall}
+				title="Is Catch-All"
+				errorMessage=""
+			/>
 		{/if}
 		<Button type="submit" class="col-span-1 md:col-span-2">Update</Button>
 		<Button type="button" onclick={() => form.reset()} class="col-span-1 md:col-span-2">

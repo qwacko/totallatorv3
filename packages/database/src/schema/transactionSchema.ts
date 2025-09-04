@@ -88,6 +88,7 @@ export const account = pgTable(
 
 		isCash: boolean('is_cash').notNull().default(false),
 		isNetWorth: boolean('is_net_worth').notNull().default(false),
+		isCatchall: boolean('is_catchall').notNull().default(false),
 		accountGroup: text('account_group').notNull(),
 		accountGroup2: text('account_group_2').notNull(),
 		accountGroup3: text('account_group_3').notNull(),

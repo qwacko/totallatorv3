@@ -4,6 +4,10 @@
 	import type { UpdateJournalSchemaType } from '@totallator/shared';
 
 	import ComboSelectForm from '$lib/components/ComboSelectForm.svelte';
+	import RecommendBills from '$lib/components/recommendLinks/RecommendBills.svelte';
+	import RecommendBudgets from '$lib/components/recommendLinks/RecommendBudgets.svelte';
+	import RecommendCategories from '$lib/components/recommendLinks/RecommendCategories.svelte';
+	import RecommendTags from '$lib/components/recommendLinks/RecommendTags.svelte';
 	import {
 		accountDropdownData,
 		billDropdownData,
@@ -71,7 +75,13 @@
 	createField="tagTitle"
 	bind:createValue={$formData.tagTitle}
 	createDesc="New Tag"
-/>
+>
+	<RecommendTags
+		payeeId={$formData.otherAccountId}
+		currentTagId={$formData.tagId}
+		updateId={(newId) => form.form.update((value) => ({ ...value, tagId: newId }))}
+	/>
+</ComboSelectForm>
 <ComboSelectForm
 	{form}
 	title="Category"
@@ -89,7 +99,13 @@
 	createField="categoryTitle"
 	bind:createValue={$formData.categoryTitle}
 	createDesc="New Category"
-/>
+>
+	<RecommendCategories
+		payeeId={$formData.otherAccountId}
+		currentCategoryId={$formData.categoryId}
+		updateId={(newId) => form.form.update((value) => ({ ...value, categoryId: newId }))}
+	/>
+</ComboSelectForm>
 <ComboSelectForm
 	{form}
 	title="Bill"
@@ -107,7 +123,13 @@
 	createField="billTitle"
 	bind:createValue={$formData.billTitle}
 	createDesc="New Bill"
-/>
+>
+	<RecommendBills
+		payeeId={$formData.otherAccountId}
+		currentBillId={$formData.billId}
+		updateId={(newId) => form.form.update((value) => ({ ...value, billId: newId }))}
+	/>
+</ComboSelectForm>
 <ComboSelectForm
 	{form}
 	title="Budget"
@@ -125,4 +147,10 @@
 	createField="budgetTitle"
 	bind:createValue={$formData.budgetTitle}
 	createDesc="New Budget"
-/>
+>
+	<RecommendBudgets
+		payeeId={$formData.otherAccountId}
+		currentBudgetId={$formData.budgetId}
+		updateId={(newId) => form.form.update((value) => ({ ...value, budgetId: newId }))}
+	/>
+</ComboSelectForm>

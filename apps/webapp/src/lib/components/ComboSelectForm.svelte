@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts" generics="T extends Record<string|number|symbol, unknown>, U extends IDRecord">
+	import type { Snippet } from 'svelte';
 	import type { Writable } from 'svelte/store';
 	import type { FormPathLeaves } from 'sveltekit-superforms';
 	import { formFieldProxy, type SuperForm } from 'sveltekit-superforms';
@@ -24,7 +25,8 @@
 		clearable = false,
 		items,
 		itemToOption,
-		itemToDisplay
+		itemToDisplay,
+		children
 	}: {
 		form: SuperForm<T, unknown>;
 		field: FormPathLeaves<T>;
@@ -41,6 +43,7 @@
 		items?: Promise<U[]> | U[];
 		itemToOption: OptionFunction<U>;
 		itemToDisplay: DisplayFunction<U>;
+		children?: Snippet;
 	} = $props();
 
 	const { value, tainted } = formFieldProxy(form, field);
@@ -69,5 +72,6 @@
 		bind:createValue
 		{highlightTainted}
 		{highlightSearch}
+		{children}
 	/>
 {/await}

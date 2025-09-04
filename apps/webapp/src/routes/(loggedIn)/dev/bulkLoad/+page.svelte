@@ -14,6 +14,7 @@
 <CustomHeader pageTitle="Bulk Load Actions" />
 
 <PageLayout title="Bulk Actions">
+	<Heading tag="h3">Remote Functions</Heading>
 	<BulkCreateDisplay
 		title="Journals"
 		createAction="?/bulkAddJournals"

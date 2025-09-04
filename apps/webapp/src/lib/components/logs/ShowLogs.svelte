@@ -33,8 +33,6 @@
 
 	const logs = $derived(await getLogs(filter));
 
-	$inspect(`Logs: ${JSON.stringify(logs)}`);
-
 	const currentPage = $derived(Math.floor(filter.offset / filter.limit) + 1);
 	const totalPages = $derived(Math.ceil(logs.logCount / filter.limit));
 	$effect(() => {

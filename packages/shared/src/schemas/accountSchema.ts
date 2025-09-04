@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import is from 'zod/v4/locales/is.cjs';
 
 import { accountTypeEnum } from './accountTypeSchema.js';
 import { dateStringSchema } from './dateStringSchema.js';
@@ -15,6 +16,7 @@ export const createAccountSchema = z.object({
 	endDate: dateStringSchema.or(z.string().trim().length(0)).optional(),
 	isCash: z.coerce.boolean<boolean>().optional(),
 	isNetWorth: z.coerce.boolean<boolean>().optional(),
+	isCatchall: z.coerce.boolean<boolean>().optional(),
 	status: z.enum(statusEnum).default('active'),
 	importId: z.coerce.string<string>().optional(),
 	importDetailId: z.coerce.string<string>().optional()
@@ -37,6 +39,7 @@ export const updateAccountSchema = z.object({
 	endDate: dateStringSchema.optional().nullable(),
 	isCash: z.boolean().optional(),
 	isNetWorth: z.boolean().optional(),
+	isCatchall: z.boolean().optional(),
 	status: z.enum(statusEnum).optional()
 });
 
@@ -85,6 +88,7 @@ export const accountOrderByEnum = [
 	'type',
 	'isCash',
 	'isNetWorth',
+	'isCatchall',
 	'startDate',
 	'endDate',
 	'status',
@@ -111,6 +115,7 @@ const enumTitles: OrderByEnumTitles = {
 	accountTitleCombined: 'Account Title Combined',
 	isCash: 'Is Cash',
 	isNetWorth: 'Is Net Worth',
+	isCatchall: 'Is Catch-All',
 	startDate: 'Start Date',
 	endDate: 'End Date',
 	status: 'Status',
@@ -165,6 +170,7 @@ export const accountFilterSchema = z.object({
 	active: z.boolean().optional(),
 	isCash: z.coerce.boolean<boolean>().optional(),
 	isNetWorth: z.coerce.boolean<boolean>().optional(),
+	isCatchall: z.coerce.boolean<boolean>().optional(),
 	startDateBefore: dateStringSchema.optional(),
 	startDateAfter: dateStringSchema.optional(),
 	endDateBefore: dateStringSchema.optional(),
