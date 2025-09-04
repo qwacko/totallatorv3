@@ -62,8 +62,12 @@
 	</div>
 </div>
 <div class="flex">
-	<button onclick={() => persistedCount.current++}>Increment</button>
-	<button onclick={() => persistedCount.current--}>Decrement</button>
+	<button onclick={() => persistedCount.current !== undefined && persistedCount.current++}>
+		Increment
+	</button>
+	<button onclick={() => persistedCount.current !== undefined && persistedCount.current--}>
+		Decrement
+	</button>
 	<button onclick={() => (persistedCount.current = 0)}>Reset</button>
 	<p>Count: {persistedCount.current}</p>
 </div>
