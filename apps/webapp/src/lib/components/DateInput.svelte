@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Datepicker, type InputProps, Label } from 'flowbite-svelte';
-	import type { ChangeEventHandler } from 'svelte/elements';
+	import { Button, Datepicker, type DatepickerProps, Label } from 'flowbite-svelte';
+	import type { FormEventHandler } from 'svelte/elements';
 
 	import { userInfoStore } from '$lib/stores/userInfoStore';
 
@@ -20,7 +20,7 @@
 		placeholder = 'Select date...',
 		disabled,
 		...restProps
-	}: Omit<InputProps<string>, 'name' | 'required' | 'value' | 'children'> & {
+	}: Omit<DatepickerProps, 'title' | 'name' | 'required' | 'value' | 'children'> & {
 		errorMessage: string | string[] | null | undefined;
 		title: string | null;
 		name: string;
@@ -36,10 +36,11 @@
 	const usedValue = $derived(value ? value : '');
 	const clearableVisible = $derived(clearable && value);
 
-	const handleUpdate: ChangeEventHandler<HTMLInputElement> = (e) => {
+	const handleUpdate: FormEventHandler<HTMLDivElement> = (e) => {
 		const { target } = e;
 		const target2 = target ? (target as unknown as HTMLInputElement) : target;
 		const newValue = target2?.value ? target2.value : null;
+		console.log('DateInput: handleUpdate', { newValue });
 		value = newValue;
 	};
 
@@ -100,7 +101,27 @@
 		class="{className} {highlightTainted && tainted ? 'ring-2' : ''} "
 		dateFormat={dateFormat.format}
 		locale={dateFormat.locale}
-	/>
+		value={new Date(usedValue)}
+		onchange={handleUpdate}
+		onselect={(newDate) => {
+			console.log('DateInput: onselect', { newDate });
+			if (newDate instanceof Date) {
+				const localDate = new Date(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
+				const yyyy = localDate.getFullYear();
+				const mm = String(localDate.getMonth() + 1).padStart(2, '0');
+				const dd = String(localDate.getDate()).padStart(2, '0');
+				value = `${yyyy}-${mm}-${dd}`;
+			}
+		}}
+	>
+		{#snippet actionSlot({ handleClear })}
+			{#if clearableVisible}
+				<div class="mt-2 flex gap-2">
+					<Button size="sm" onclick={handleClear}>Clear</Button>
+				</div>
+			{/if}
+		{/snippet}
+	</Datepicker>
 	<!-- <Input
 		{...restProps}
 		{name}
