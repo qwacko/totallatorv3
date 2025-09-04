@@ -634,14 +634,6 @@ export const journalMaterializedViewActions = {
 			recommendations.push(...enhancedSimilarityRecommendations);
 		}
 
-		// Get LLM recommendations if enabled
-		if (includeLlmSuggestions) {
-			getLogger('llm').warn({
-				code: 'LLM_0010',
-				title: 'LLM Recommendations are currently disabled'
-			});
-		}
-
 		// Sort recommendations by confidence/similarity score (descending)
 		recommendations.sort((a, b) => {
 			const aScore = a.source === 'llm' ? a.llmConfidence || 0 : a.checkSimilarity;

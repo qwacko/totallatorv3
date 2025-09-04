@@ -122,23 +122,6 @@
 			{/if}
 		{/snippet}
 	</Datepicker>
-	<!-- <Input
-		{...restProps}
-		{name}
-		{required}
-		class="{className} {highlightTainted && tainted ? 'ring-2' : ''} "
-	>
-		{#snippet right()}
-			<Button
-				size="sm"
-				class="px-2 py-1 {clearableVisible ? '' : 'hidden'}"
-				outline
-				onclick={() => (value = null)}
-			>
-				<CancelIcon />
-			</Button>
-		{/snippet}
-		<input type="date" value={usedValue} onchange={handleUpdate} />
-	</Input> -->
+
 	<ErrorText message={errorMessage} />
 </Label>

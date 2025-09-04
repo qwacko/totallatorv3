@@ -52,5 +52,4 @@
 	{...$constraints}
 	{...restProps}
 />
-{$stringValue}
 <input type="hidden" name={field} value={$stringValue} />

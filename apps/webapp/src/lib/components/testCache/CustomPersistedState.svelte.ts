@@ -42,13 +42,13 @@ export class CustomPersistedState<DataType extends any> {
 
 	private async getIDB(): Promise<IDBDatabase> {
 		if (this.idbPromise) return this.idbPromise;
-		
+
 		this.idbPromise = new Promise((resolve, reject) => {
 			const request = indexedDB.open('CustomPersistedState', 1);
-			
+
 			request.onerror = () => reject(request.error);
 			request.onsuccess = () => resolve(request.result);
-			
+
 			request.onupgradeneeded = () => {
 				const db = request.result;
 				if (!db.objectStoreNames.contains('keyValueStore')) {
@@ -56,7 +56,7 @@ export class CustomPersistedState<DataType extends any> {
 				}
 			};
 		});
-		
+
 		return this.idbPromise;
 	}
 
@@ -124,16 +124,21 @@ export class CustomPersistedState<DataType extends any> {
 			this.loadFromIndexedDB();
 			return this.initialValue;
 		}
-		
+
 		try {
 			const compositeKey = this.getCompositeKey();
 			const stored = this.storage?.getItem(compositeKey);
 			if (stored) {
 				const deserialize = this.options.deserialize ?? JSON.parse;
 				const parsedData = deserialize(stored);
-				
+
 				// Expect wrapped format with timestamp
-				if (parsedData && typeof parsedData === 'object' && 'timestamp' in parsedData && 'value' in parsedData) {
+				if (
+					parsedData &&
+					typeof parsedData === 'object' &&
+					'timestamp' in parsedData &&
+					'value' in parsedData
+				) {
 					const unwrapped = this.unwrapData(parsedData as StoredData<DataType>);
 					if (unwrapped !== null) {
 						return unwrapped;
@@ -151,21 +156,26 @@ export class CustomPersistedState<DataType extends any> {
 
 	private async loadFromIndexedDB(): Promise<void> {
 		if (typeof window === 'undefined') return;
-		
+
 		try {
 			const db = await this.getIDB();
 			const transaction = db.transaction(['keyValueStore'], 'readonly');
 			const store = transaction.objectStore('keyValueStore');
 			const compositeKey = this.getCompositeKey();
-			
+
 			const request = store.get(compositeKey);
 			request.onsuccess = () => {
 				if (request.result !== undefined) {
 					const deserialize = this.options.deserialize ?? JSON.parse;
 					const parsedData = deserialize(request.result);
-					
+
 					// Expect wrapped format with timestamp
-					if (parsedData && typeof parsedData === 'object' && 'timestamp' in parsedData && 'value' in parsedData) {
+					if (
+						parsedData &&
+						typeof parsedData === 'object' &&
+						'timestamp' in parsedData &&
+						'value' in parsedData
+					) {
 						const finalValue = this.unwrapData(parsedData as StoredData<DataType>);
 						if (finalValue !== null) {
 							this.isUpdating = true;
@@ -189,11 +199,11 @@ export class CustomPersistedState<DataType extends any> {
 			this.saveToIndexedDB(value);
 			return;
 		}
-		
+
 		try {
 			const serialize = this.options.serialize ?? JSON.stringify;
 			const compositeKey = this.getCompositeKey();
-			
+
 			// Always wrap with timestamp for consistent storage format
 			const dataToStore = this.wrapData(value);
 			this.storage?.setItem(compositeKey, serialize(dataToStore));
@@ -204,20 +214,20 @@ export class CustomPersistedState<DataType extends any> {
 
 	private async saveToIndexedDB(value: DataType): Promise<void> {
 		if (typeof window === 'undefined') return;
-		
+
 		try {
 			const db = await this.getIDB();
 			const transaction = db.transaction(['keyValueStore'], 'readwrite');
 			const store = transaction.objectStore('keyValueStore');
 			const serialize = this.options.serialize ?? JSON.stringify;
 			const compositeKey = this.getCompositeKey();
-			
+
 			// Always wrap with timestamp for consistent storage format
 			const dataToStore = this.wrapData(value);
 			const serializedData = serialize(dataToStore);
-			
+
 			store.put(serializedData, compositeKey);
-			
+
 			// Broadcast changes to other tabs if syncTabs is enabled
 			if (this.options.syncTabs && this.broadcastChannel) {
 				this.broadcastChannel.postMessage({
@@ -251,9 +261,14 @@ export class CustomPersistedState<DataType extends any> {
 						try {
 							const deserialize = this.options.deserialize ?? JSON.parse;
 							const parsedData = deserialize(e.newValue);
-							
+
 							// Expect wrapped format with timestamp
-							if (parsedData && typeof parsedData === 'object' && 'timestamp' in parsedData && 'value' in parsedData) {
+							if (
+								parsedData &&
+								typeof parsedData === 'object' &&
+								'timestamp' in parsedData &&
+								'value' in parsedData
+							) {
 								const finalValue = this.unwrapData(parsedData as StoredData<DataType>);
 								if (finalValue !== null) {
 									this.isUpdating = true;
@@ -278,9 +293,14 @@ export class CustomPersistedState<DataType extends any> {
 						try {
 							const deserialize = this.options.deserialize ?? JSON.parse;
 							const parsedData = deserialize(event.data.value);
-							
+
 							// Expect wrapped format with timestamp
-							if (parsedData && typeof parsedData === 'object' && 'timestamp' in parsedData && 'value' in parsedData) {
+							if (
+								parsedData &&
+								typeof parsedData === 'object' &&
+								'timestamp' in parsedData &&
+								'value' in parsedData
+							) {
 								const finalValue = this.unwrapData(parsedData as StoredData<DataType>);
 								if (finalValue !== null) {
 									this.isUpdating = true;
@@ -322,19 +342,19 @@ export class CustomPersistedState<DataType extends any> {
 	reset(): void {
 		this.current = this.initialValue;
 		const compositeKey = this.getCompositeKey();
-		
+
 		if (this.options.storage === 'indexeddb') {
 			this.removeFromIndexedDB(compositeKey);
 		} else {
 			this.storage?.removeItem(compositeKey);
 		}
-		
+
 		this.syncOtherInstances(this.initialValue);
 	}
 
 	private async removeFromIndexedDB(compositeKey: string): Promise<void> {
 		if (typeof window === 'undefined') return;
-		
+
 		try {
 			const db = await this.getIDB();
 			const transaction = db.transaction(['keyValueStore'], 'readwrite');
@@ -347,13 +367,13 @@ export class CustomPersistedState<DataType extends any> {
 
 	destroy(): void {
 		this.unregisterInstance();
-		
+
 		// Clean up storage event listener
 		if (this.storageEventHandler) {
 			window.removeEventListener('storage', this.storageEventHandler);
 			this.storageEventHandler = undefined;
 		}
-		
+
 		// Clean up broadcast channel
 		if (this.broadcastChannel) {
 			this.broadcastChannel.close();

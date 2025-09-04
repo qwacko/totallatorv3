@@ -60,7 +60,6 @@ export function remoteCachePersisted<TArg, TReturn>(
 		const callFunctionFunc = () => {
 			fn(latestArgs)
 				.then((result) => {
-					console.log('New Result', result);
 					state.current = result;
 					error = undefined;
 				})
@@ -81,7 +80,6 @@ export function remoteCachePersisted<TArg, TReturn>(
 			loadingInternal = false;
 		}
 		if (callFunction) {
-			console.log('Refreshing Function');
 			fn(latestArgs)
 				.refresh()
 				.then(() => {
@@ -122,7 +120,6 @@ export function remoteCachePersisted<TArg, TReturn>(
 		},
 		refresh: () => refresh(true),
 		setValue: (val: TReturn) => {
-			console.log('Updating Value:', val);
 			state.current = val;
 		}
 	};
