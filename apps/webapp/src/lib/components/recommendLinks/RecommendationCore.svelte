@@ -45,7 +45,7 @@
 	});
 
 	const result = remoteCachePersisted(getItems, () => delayedParams, {
-		storage: 'local',
+		storage: 'indexeddb',
 		syncTabs: true,
 		key
 	});

@@ -5,16 +5,19 @@ export class CustomPersistedState<DataType extends any> {
 	current = $state<DataType>();
 	private isUpdating = false;
 	private storageEventHandler?: (e: StorageEvent) => void;
+	private broadcastChannel?: BroadcastChannel;
+	private idbPromise?: Promise<IDBDatabase>;
 
 	constructor(
 		private key: string,
 		private initialValue: DataType,
 		private options: {
-			storage: 'local' | 'session';
+			storage: 'local' | 'session' | 'indexeddb';
 			syncTabs: boolean;
 			serialize?: (value: DataType) => string;
 			deserialize?: (value: string) => DataType;
 			uniquekey?: string;
+			timeoutMinutes?: number | null;
 		} = {
 			storage: 'local',
 			syncTabs: false,
@@ -28,7 +31,28 @@ export class CustomPersistedState<DataType extends any> {
 
 	private get storage(): Storage | null {
 		if (typeof window === 'undefined') return null;
+		if (this.options.storage === 'indexeddb') return null;
 		return this.options.storage === 'local' ? window.localStorage : window.sessionStorage;
+	}
+
+	private async getIDB(): Promise<IDBDatabase> {
+		if (this.idbPromise) return this.idbPromise;
+		
+		this.idbPromise = new Promise((resolve, reject) => {
+			const request = indexedDB.open('CustomPersistedState', 1);
+			
+			request.onerror = () => reject(request.error);
+			request.onsuccess = () => resolve(request.result);
+			
+			request.onupgradeneeded = () => {
+				const db = request.result;
+				if (!db.objectStoreNames.contains('keyValueStore')) {
+					db.createObjectStore('keyValueStore');
+				}
+			};
+		});
+		
+		return this.idbPromise;
 	}
 
 	private getCompositeKey(): string {
@@ -66,6 +90,12 @@ export class CustomPersistedState<DataType extends any> {
 	}
 
 	private loadFromStorage(): DataType {
+		if (this.options.storage === 'indexeddb') {
+			// For IndexedDB, we'll load asynchronously and update current later
+			this.loadFromIndexedDB();
+			return this.initialValue;
+		}
+		
 		try {
 			const compositeKey = this.getCompositeKey();
 			const stored = this.storage?.getItem(compositeKey);
@@ -79,13 +109,66 @@ export class CustomPersistedState<DataType extends any> {
 		return this.initialValue;
 	}
 
+	private async loadFromIndexedDB(): Promise<void> {
+		if (typeof window === 'undefined') return;
+		
+		try {
+			const db = await this.getIDB();
+			const transaction = db.transaction(['keyValueStore'], 'readonly');
+			const store = transaction.objectStore('keyValueStore');
+			const compositeKey = this.getCompositeKey();
+			
+			const request = store.get(compositeKey);
+			request.onsuccess = () => {
+				if (request.result !== undefined) {
+					const deserialize = this.options.deserialize ?? JSON.parse;
+					const value = deserialize(request.result);
+					this.isUpdating = true;
+					this.current = value;
+					this.isUpdating = false;
+				}
+			};
+		} catch (error) {
+			console.warn(`Failed to load from IndexedDB for key "${this.getCompositeKey()}":`, error);
+		}
+	}
+
 	private saveToStorage(value: DataType): void {
+		if (this.options.storage === 'indexeddb') {
+			this.saveToIndexedDB(value);
+			return;
+		}
+		
 		try {
 			const serialize = this.options.serialize ?? JSON.stringify;
 			const compositeKey = this.getCompositeKey();
 			this.storage?.setItem(compositeKey, serialize(value));
 		} catch (error) {
 			console.warn(`Failed to save persisted state for key "${this.getCompositeKey()}":`, error);
+		}
+	}
+
+	private async saveToIndexedDB(value: DataType): Promise<void> {
+		if (typeof window === 'undefined') return;
+		
+		try {
+			const db = await this.getIDB();
+			const transaction = db.transaction(['keyValueStore'], 'readwrite');
+			const store = transaction.objectStore('keyValueStore');
+			const serialize = this.options.serialize ?? JSON.stringify;
+			const compositeKey = this.getCompositeKey();
+			
+			store.put(serialize(value), compositeKey);
+			
+			// Broadcast changes to other tabs if syncTabs is enabled
+			if (this.options.syncTabs && this.broadcastChannel) {
+				this.broadcastChannel.postMessage({
+					key: compositeKey,
+					value: serialize(value)
+				});
+			}
+		} catch (error) {
+			console.warn(`Failed to save to IndexedDB for key "${this.getCompositeKey()}":`, error);
 		}
 	}
 
@@ -101,23 +184,44 @@ export class CustomPersistedState<DataType extends any> {
 		});
 
 		// Set up cross-tab synchronization if enabled
-		if (this.options.syncTabs && this.options.storage === 'local') {
-			this.storageEventHandler = (e: StorageEvent) => {
-				const compositeKey = this.getCompositeKey();
-				if (e.key === compositeKey && e.newValue && !this.isUpdating) {
-					try {
-						const deserialize = this.options.deserialize ?? JSON.parse;
-						const newValue = deserialize(e.newValue);
-						this.isUpdating = true;
-						this.current = newValue;
-						this.isUpdating = false;
-						this.syncOtherInstances(newValue);
-					} catch (error) {
-						console.warn(`Failed to sync state from storage for key "${compositeKey}":`, error);
+		if (this.options.syncTabs) {
+			if (this.options.storage === 'local') {
+				// Use storage event for localStorage
+				this.storageEventHandler = (e: StorageEvent) => {
+					const compositeKey = this.getCompositeKey();
+					if (e.key === compositeKey && e.newValue && !this.isUpdating) {
+						try {
+							const deserialize = this.options.deserialize ?? JSON.parse;
+							const newValue = deserialize(e.newValue);
+							this.isUpdating = true;
+							this.current = newValue;
+							this.isUpdating = false;
+							this.syncOtherInstances(newValue);
+						} catch (error) {
+							console.warn(`Failed to sync state from storage for key "${compositeKey}":`, error);
+						}
 					}
-				}
-			};
-			window.addEventListener('storage', this.storageEventHandler);
+				};
+				window.addEventListener('storage', this.storageEventHandler);
+			} else if (this.options.storage === 'indexeddb') {
+				// Use BroadcastChannel for IndexedDB
+				const compositeKey = this.getCompositeKey();
+				this.broadcastChannel = new BroadcastChannel(`CustomPersistedState-${compositeKey}`);
+				this.broadcastChannel.onmessage = (event) => {
+					if (event.data.key === compositeKey && !this.isUpdating) {
+						try {
+							const deserialize = this.options.deserialize ?? JSON.parse;
+							const newValue = deserialize(event.data.value);
+							this.isUpdating = true;
+							this.current = newValue;
+							this.isUpdating = false;
+							this.syncOtherInstances(newValue);
+						} catch (error) {
+							console.warn(`Failed to sync state from broadcast for key "${compositeKey}":`, error);
+						}
+					}
+				};
+			}
 		}
 	}
 
@@ -144,16 +248,42 @@ export class CustomPersistedState<DataType extends any> {
 	reset(): void {
 		this.current = this.initialValue;
 		const compositeKey = this.getCompositeKey();
-		this.storage?.removeItem(compositeKey);
+		
+		if (this.options.storage === 'indexeddb') {
+			this.removeFromIndexedDB(compositeKey);
+		} else {
+			this.storage?.removeItem(compositeKey);
+		}
+		
 		this.syncOtherInstances(this.initialValue);
+	}
+
+	private async removeFromIndexedDB(compositeKey: string): Promise<void> {
+		if (typeof window === 'undefined') return;
+		
+		try {
+			const db = await this.getIDB();
+			const transaction = db.transaction(['keyValueStore'], 'readwrite');
+			const store = transaction.objectStore('keyValueStore');
+			store.delete(compositeKey);
+		} catch (error) {
+			console.warn(`Failed to remove from IndexedDB for key "${compositeKey}":`, error);
+		}
 	}
 
 	destroy(): void {
 		this.unregisterInstance();
+		
 		// Clean up storage event listener
 		if (this.storageEventHandler) {
 			window.removeEventListener('storage', this.storageEventHandler);
 			this.storageEventHandler = undefined;
+		}
+		
+		// Clean up broadcast channel
+		if (this.broadcastChannel) {
+			this.broadcastChannel.close();
+			this.broadcastChannel = undefined;
 		}
 	}
 }
