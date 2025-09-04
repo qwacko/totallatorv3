@@ -1,6 +1,11 @@
 // Global registry to track instances by key
 const instanceRegistry = new Map<string, Set<CustomPersistedState<any>>>();
 
+interface StoredData<T> {
+	value: T;
+	timestamp: number;
+}
+
 export class CustomPersistedState<DataType extends any> {
 	current = $state<DataType>();
 	private isUpdating = false;
@@ -59,6 +64,30 @@ export class CustomPersistedState<DataType extends any> {
 		return this.options.uniquekey ? `${this.key}:${this.options.uniquekey}` : this.key;
 	}
 
+	private isTimeoutEnabled(): boolean {
+		return this.options.timeoutMinutes != null && this.options.timeoutMinutes > 0;
+	}
+
+	private isDataExpired(timestamp: number): boolean {
+		if (!this.isTimeoutEnabled()) return false;
+		const timeoutMs = this.options.timeoutMinutes! * 60 * 1000;
+		return Date.now() - timestamp > timeoutMs;
+	}
+
+	private wrapData(value: DataType): StoredData<DataType> {
+		return {
+			value,
+			timestamp: Date.now()
+		};
+	}
+
+	private unwrapData(storedData: StoredData<DataType>): DataType | null {
+		if (this.isDataExpired(storedData.timestamp)) {
+			return null; // Data is expired
+		}
+		return storedData.value;
+	}
+
 	private registerInstance(): void {
 		if (!instanceRegistry.has(this.key)) {
 			instanceRegistry.set(this.key, new Set());
@@ -101,7 +130,18 @@ export class CustomPersistedState<DataType extends any> {
 			const stored = this.storage?.getItem(compositeKey);
 			if (stored) {
 				const deserialize = this.options.deserialize ?? JSON.parse;
-				return deserialize(stored);
+				const parsedData = deserialize(stored);
+				
+				// Expect wrapped format with timestamp
+				if (parsedData && typeof parsedData === 'object' && 'timestamp' in parsedData && 'value' in parsedData) {
+					const unwrapped = this.unwrapData(parsedData as StoredData<DataType>);
+					if (unwrapped !== null) {
+						return unwrapped;
+					}
+					// Data expired, remove it
+					this.storage?.removeItem(compositeKey);
+				}
+				// If data is not in expected format, ignore it (treat as invalid)
 			}
 		} catch (error) {
 			console.warn(`Failed to load persisted state for key "${this.getCompositeKey()}":`, error);
@@ -122,10 +162,21 @@ export class CustomPersistedState<DataType extends any> {
 			request.onsuccess = () => {
 				if (request.result !== undefined) {
 					const deserialize = this.options.deserialize ?? JSON.parse;
-					const value = deserialize(request.result);
-					this.isUpdating = true;
-					this.current = value;
-					this.isUpdating = false;
+					const parsedData = deserialize(request.result);
+					
+					// Expect wrapped format with timestamp
+					if (parsedData && typeof parsedData === 'object' && 'timestamp' in parsedData && 'value' in parsedData) {
+						const finalValue = this.unwrapData(parsedData as StoredData<DataType>);
+						if (finalValue !== null) {
+							this.isUpdating = true;
+							this.current = finalValue;
+							this.isUpdating = false;
+						} else {
+							// Data expired, remove it
+							this.removeFromIndexedDB(compositeKey);
+						}
+					}
+					// If data is not in expected format, ignore it (treat as invalid)
 				}
 			};
 		} catch (error) {
@@ -142,7 +193,10 @@ export class CustomPersistedState<DataType extends any> {
 		try {
 			const serialize = this.options.serialize ?? JSON.stringify;
 			const compositeKey = this.getCompositeKey();
-			this.storage?.setItem(compositeKey, serialize(value));
+			
+			// Always wrap with timestamp for consistent storage format
+			const dataToStore = this.wrapData(value);
+			this.storage?.setItem(compositeKey, serialize(dataToStore));
 		} catch (error) {
 			console.warn(`Failed to save persisted state for key "${this.getCompositeKey()}":`, error);
 		}
@@ -158,13 +212,17 @@ export class CustomPersistedState<DataType extends any> {
 			const serialize = this.options.serialize ?? JSON.stringify;
 			const compositeKey = this.getCompositeKey();
 			
-			store.put(serialize(value), compositeKey);
+			// Always wrap with timestamp for consistent storage format
+			const dataToStore = this.wrapData(value);
+			const serializedData = serialize(dataToStore);
+			
+			store.put(serializedData, compositeKey);
 			
 			// Broadcast changes to other tabs if syncTabs is enabled
 			if (this.options.syncTabs && this.broadcastChannel) {
 				this.broadcastChannel.postMessage({
 					key: compositeKey,
-					value: serialize(value)
+					value: serializedData
 				});
 			}
 		} catch (error) {
@@ -192,11 +250,19 @@ export class CustomPersistedState<DataType extends any> {
 					if (e.key === compositeKey && e.newValue && !this.isUpdating) {
 						try {
 							const deserialize = this.options.deserialize ?? JSON.parse;
-							const newValue = deserialize(e.newValue);
-							this.isUpdating = true;
-							this.current = newValue;
-							this.isUpdating = false;
-							this.syncOtherInstances(newValue);
+							const parsedData = deserialize(e.newValue);
+							
+							// Expect wrapped format with timestamp
+							if (parsedData && typeof parsedData === 'object' && 'timestamp' in parsedData && 'value' in parsedData) {
+								const finalValue = this.unwrapData(parsedData as StoredData<DataType>);
+								if (finalValue !== null) {
+									this.isUpdating = true;
+									this.current = finalValue;
+									this.isUpdating = false;
+									this.syncOtherInstances(finalValue);
+								}
+							}
+							// If data is not in expected format, ignore it (treat as invalid)
 						} catch (error) {
 							console.warn(`Failed to sync state from storage for key "${compositeKey}":`, error);
 						}
@@ -211,11 +277,19 @@ export class CustomPersistedState<DataType extends any> {
 					if (event.data.key === compositeKey && !this.isUpdating) {
 						try {
 							const deserialize = this.options.deserialize ?? JSON.parse;
-							const newValue = deserialize(event.data.value);
-							this.isUpdating = true;
-							this.current = newValue;
-							this.isUpdating = false;
-							this.syncOtherInstances(newValue);
+							const parsedData = deserialize(event.data.value);
+							
+							// Expect wrapped format with timestamp
+							if (parsedData && typeof parsedData === 'object' && 'timestamp' in parsedData && 'value' in parsedData) {
+								const finalValue = this.unwrapData(parsedData as StoredData<DataType>);
+								if (finalValue !== null) {
+									this.isUpdating = true;
+									this.current = finalValue;
+									this.isUpdating = false;
+									this.syncOtherInstances(finalValue);
+								}
+							}
+							// If data is not in expected format, ignore it (treat as invalid)
 						} catch (error) {
 							console.warn(`Failed to sync state from broadcast for key "${compositeKey}":`, error);
 						}
