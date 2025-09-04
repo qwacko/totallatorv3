@@ -16,7 +16,6 @@ import { summaryCacheDataSchema, type SummaryCacheSchemaDataType } from '@totall
 import type { DownloadTypeEnumType } from '@totallator/shared';
 import type { LlmReviewStatusEnumType } from '@totallator/shared';
 
-import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { type EnhancedRecommendationType } from '@/server/services/journalRecommendationService';
 
@@ -594,8 +593,7 @@ export const journalMaterializedViewActions = {
 	 */
 	listCombinedRecommendations: async ({
 		journals,
-		similarityThreshold = 0.3,
-		includeLlmSuggestions = true
+		similarityThreshold = 0.3
 	}: {
 		db: DBType;
 		similarityThreshold?: number;

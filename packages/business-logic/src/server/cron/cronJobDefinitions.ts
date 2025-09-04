@@ -446,58 +446,5 @@ export const cronJobDefinitions: CronJobDefinition[] = [
 				};
 			}
 		}
-	},
-
-	{
-		id: 'llm-journal-processing',
-		name: 'Process LLM Journal Reviews',
-		description: 'Processes journals for LLM-based categorization and recommendations',
-		schedule: '${LLM_REVIEW_SCHEDULE}', // Will be replaced with actual env var
-		isEnabled: true,
-		timeoutMs: 300000, // 5 minutes
-		maxRetries: 1,
-		job: async (context) => {
-			const startTime = Date.now();
-			try {
-				// Check if LLM processing is enabled
-				if (!process.env.LLM_REVIEW_ENABLED || process.env.LLM_REVIEW_ENABLED !== 'true') {
-					return {
-						success: true,
-						message: 'LLM review processing is disabled',
-						metrics: {
-							executionTimeMs: Date.now() - startTime
-						}
-					};
-				}
-
-				const result = await llmProcessor.processRequiredJournals({
-					batchSize: 20,
-					maxProcessingTime: 45000,
-					skipIfNoProviders: true
-				});
-
-				return {
-					success: true,
-					message: `LLM journal processing completed`,
-					data: {
-						processed: result.processed,
-						errors: result.errors,
-						duration: result.duration
-					},
-					metrics: {
-						itemsProcessed: result.processed,
-						executionTimeMs: Date.now() - startTime
-					}
-				};
-			} catch (error) {
-				return {
-					success: false,
-					message: `LLM journal processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-					metrics: {
-						executionTimeMs: Date.now() - startTime
-					}
-				};
-			}
-		}
 	}
 ];
