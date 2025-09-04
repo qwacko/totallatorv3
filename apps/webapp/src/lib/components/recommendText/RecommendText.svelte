@@ -15,5 +15,6 @@
 		getItems={recommendTextFromAccount}
 		params={{ payeeId: payeeId }}
 		updateId={(text) => updateText(text)}
+		key="recommend-text"
 	/>
 {/if}

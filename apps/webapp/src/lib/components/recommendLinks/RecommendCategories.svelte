@@ -16,5 +16,6 @@
 		getItems={recommendCategoryRemote}
 		params={{ payee: payeeId }}
 		{updateId}
+		key="recommend-categories"
 	/>
 {/if}

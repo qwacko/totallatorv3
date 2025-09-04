@@ -4,7 +4,7 @@
 	import { untrack } from 'svelte';
 
 	import LoadingSpinner from '../LoadingSpinner.svelte';
-	import { remoteCache } from '../testCache/remoteCache.svelte';
+	import { remoteCachePersisted } from '../testCache/remoteCache.svelte';
 
 	type ReturnType = {
 		recommendations: {
@@ -19,12 +19,14 @@
 		params,
 		getItems,
 		currentId,
-		updateId
+		updateId,
+		key
 	}: {
 		params: ParamType;
 		getItems: RemoteQueryFunction<ParamType, ReturnType>;
 		currentId?: string;
 		updateId: (id: string) => void;
+		key: string;
 	} = $props();
 
 	let delayedParams = $state<ParamType | undefined>(undefined);
@@ -42,16 +44,20 @@
 		});
 	});
 
-	const result = remoteCache(getItems, () => delayedParams);
+	const result = remoteCachePersisted(getItems, () => delayedParams, {
+		storage: 'local',
+		syncTabs: true,
+		key
+	});
 </script>
 
 {#if currentId === undefined && delayedParams !== undefined}
-	{#if result.value.loading}
+	{#if result.loading}
 		<LoadingSpinner loadingText="Loading Recommendations" />
-	{:else if result.value.error}{:else if result.value.value}
-		{@const maxFraction = Math.max(...result.value.value.recommendations.map((r) => r.fraction))}
+	{:else if result.error}{:else if result.value.current}
+		{@const maxFraction = Math.max(...result.value.current.recommendations.map((r) => r.fraction))}
 		<div class="@md:grid-cols-2 grid grid-cols-1 gap-2 self-stretch">
-			{#each result.value.value.recommendations as data}
+			{#each result.value.current.recommendations as data}
 				<Button
 					class="relative justify-start overflow-hidden text-left"
 					color="alternative"

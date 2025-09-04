@@ -16,5 +16,6 @@
 		getItems={recommendTagRemote}
 		params={{ payee: payeeId }}
 		{updateId}
+		key="recommend-tags"
 	/>
 {/if}

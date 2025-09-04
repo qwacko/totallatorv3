@@ -16,5 +16,6 @@
 		getItems={recommendBudgetRemote}
 		params={{ payee: payeeId }}
 		{updateId}
+		key="recommend-budgets"
 	/>
 {/if}
