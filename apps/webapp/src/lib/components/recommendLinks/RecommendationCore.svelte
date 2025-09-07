@@ -46,6 +46,7 @@
 
 	const result = remoteFunctionCache(getItems, () => delayedParams, {
 		storage: 'indexeddb',
+		autoSync: true,
 		syncTabs: true,
 		key
 	});
