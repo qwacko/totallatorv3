@@ -109,6 +109,7 @@
 		"nanoid": "^5.1.5",
 		"node-schedule": "^2.1.1",
 		"postgres": "^3.4.7",
+		"remotefunctioncache": "^0.1.0",
 		"runed": "^0.31.1",
 		"sharp": "^0.34.3",
 		"skguard": "^0.1.1",
