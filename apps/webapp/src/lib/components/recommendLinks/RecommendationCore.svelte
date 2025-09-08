@@ -57,7 +57,7 @@
 		<LoadingSpinner loadingText="Loading Recommendations" />
 	{:else if result.error}{:else if result.value.current}
 		{@const maxFraction = Math.max(...result.value.current.recommendations.map((r) => r.fraction))}
-		<div class="grid grid-cols-1 gap-2 self-stretch @md:grid-cols-2">
+		<div class="@md:grid-cols-2 grid grid-cols-1 gap-2 self-stretch">
 			{#each result.value.current.recommendations as data}
 				<Button
 					class="relative justify-start overflow-hidden text-left"

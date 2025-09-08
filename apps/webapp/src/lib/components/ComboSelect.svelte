@@ -180,7 +180,7 @@
 		<Label {...$label}>{title}</Label>
 	{/if}
 
-	<div class="flex w-full flex-col gap-2 @md:flex-row">
+	<div class="@md:flex-row flex w-full flex-col gap-2">
 		{#if !items}
 			<div class="flex flex-row items-center gap-2">
 				<Spinner size="4" /><P size="sm" weight="semibold" class="text-gray-400">Loading...</P>
@@ -203,7 +203,7 @@
 						: ''}"
 					{placeholder}
 				/>
-				<div class="text-magnum-900 absolute top-1/2 right-2 z-10 -translate-y-1/2">
+				<div class="text-magnum-900 absolute right-2 top-1/2 z-10 -translate-y-1/2">
 					{#if $open}
 						<ChevronUp class="square-4" />
 					{:else}
@@ -215,7 +215,7 @@
 				{#if creatable && createValue === undefined}
 					<Button
 						onclick={setCreate}
-						class="flex grow basis-0 @md:grow-0 @md:whitespace-nowrap"
+						class="@md:grow-0 @md:whitespace-nowrap flex grow basis-0"
 						color="light"
 					>
 						{createDesc}
@@ -224,7 +224,7 @@
 				{#if clearable}
 					<Button
 						onclick={clearSelection}
-						class="flex grow basis-0 @md:grow-0 @md:whitespace-nowrap"
+						class="@md:grow-0 @md:whitespace-nowrap flex grow basis-0"
 						color="light"
 						disabled={clearValue}
 					>
@@ -260,11 +260,11 @@
 					{...$option(currentItemOption)}
 					use:option
 					class="data-[highlighted]:bg-magnum-200 data-[highlighted]:text-magnum-900 relative cursor-pointer scroll-my-2 rounded-md py-2
-        pr-4 pl-4
+        pl-4 pr-4
           data-[disabled]:opacity-50 {currentHighlighted ? 'bg-gray-200 dark:bg-gray-500' : ''}"
 				>
 					{#if currentSelected}
-						<div class="check text-magnum-900 absolute top-1/2 left-2 z-10">
+						<div class="check text-magnum-900 absolute left-2 top-1/2 z-10">
 							<Check class="square-4" />
 						</div>
 					{/if}
