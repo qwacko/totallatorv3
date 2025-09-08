@@ -1,10 +1,10 @@
 <script lang="ts" generics="ParamType extends any">
 	import type { RemoteQueryFunction } from '@sveltejs/kit';
 	import { Button } from 'flowbite-svelte';
+	import { remoteFunctionCache } from 'remotefunctioncache';
 	import { untrack } from 'svelte';
 
 	import LoadingSpinner from '../LoadingSpinner.svelte';
-	import { remoteCachePersisted } from '../testCache/remoteCache.svelte';
 
 	type ReturnType = {
 		recommendations: {
@@ -44,8 +44,9 @@
 		});
 	});
 
-	const result = remoteCachePersisted(getItems, () => delayedParams, {
+	const result = remoteFunctionCache(getItems, () => delayedParams, {
 		storage: 'indexeddb',
+		autoSync: true,
 		syncTabs: true,
 		key
 	});

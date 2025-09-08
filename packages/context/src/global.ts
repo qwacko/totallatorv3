@@ -60,11 +60,7 @@ export async function initializeGlobalContext(
 	if (!loggingClient) {
 		throw new Error('Logging database client is required for logging system initialization');
 	}
-	const logging = await createLogger(
-		contextId,
-		loggingClient,
-		getRequestContext
-	);
+	const logging = await createLogger(contextId, loggingClient, getRequestContext);
 
 	// Create database connection
 	const { db, postgresDatabase } = createDatabase({
@@ -113,18 +109,21 @@ export async function initializeGlobalContext(
 
 	console.log('[initializeGlobalContext] Creating global context with logging:', {
 		logDatabaseOpsExists: !!logging.logDatabaseOps,
-		hasGetAllLogConfigurations: logging.logDatabaseOps && typeof logging.logDatabaseOps.getAllLogConfigurations === 'function'
+		hasGetAllLogConfigurations:
+			logging.logDatabaseOps && typeof logging.logDatabaseOps.getAllLogConfigurations === 'function'
 	});
 
 	globalContext = {
 		contextId,
 		logging: {
-			getAllLogConfigurations: logging.logDatabaseOps 
+			getAllLogConfigurations: logging.logDatabaseOps
 				? logging.logDatabaseOps.getAllLogConfigurations.bind(logging.logDatabaseOps)
 				: async () => {
-					console.warn('[GlobalContext] getAllLogConfigurations called but logDatabaseOps is null');
-					return [];
-				},
+						console.warn(
+							'[GlobalContext] getAllLogConfigurations called but logDatabaseOps is null'
+						);
+						return [];
+					},
 			getLoggedItemsCount: logging.getLoggedItemsCount,
 			queryLoggedItems: logging.queryLoggedItems,
 			setLogLevel: logging.setLogLevel,

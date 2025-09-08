@@ -14,7 +14,7 @@ export async function initializeLogDatabase(client: Client) {
 		clientProvided: !!client,
 		clientType: typeof client
 	});
-	
+
 	const db = getDB(client);
 	console.log('[initializeLogDatabase] Created db object:', {
 		dbExists: !!db,
@@ -65,6 +65,6 @@ export async function initializeLogDatabase(client: Client) {
 		dbType: typeof db,
 		hasSelect: db && typeof db.select === 'function'
 	});
-	
+
 	return db;
 }

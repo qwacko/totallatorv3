@@ -227,7 +227,9 @@ export const llmActions = {
 			const success = deleted.length > 0;
 			getLogger('llm').info({
 				code: 'LLM_SETTINGS_012',
-				title: success ? `LLM settings deleted successfully: ${id}` : `LLM settings deletion failed - not found: ${id}`,
+				title: success
+					? `LLM settings deleted successfully: ${id}`
+					: `LLM settings deletion failed - not found: ${id}`,
 				id,
 				success
 			});
@@ -253,7 +255,7 @@ export const llmActions = {
 			code: 'LLM_SETTINGS_014',
 			title: `Retrieved ${results.length} enabled LLM settings`,
 			count: results.length,
-			settings: results.map(r => ({ id: r.id, title: r.title }))
+			settings: results.map((r) => ({ id: r.id, title: r.title }))
 		});
 		return results.map((result) => ({
 			...result,
