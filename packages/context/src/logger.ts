@@ -187,14 +187,14 @@ export const createLogger = async (
 				clientExists: !!databaseClient,
 				clientType: typeof databaseClient
 			});
-			
+
 			loggingDB = await initializeLogDatabase(databaseClient);
 			console.log('[createLogger] initializeLogDatabase returned:', {
 				loggingDBExists: !!loggingDB,
 				loggingDBType: typeof loggingDB,
 				hasSelect: loggingDB && typeof loggingDB.select === 'function'
 			});
-			
+
 			logDatabaseOps = new LogDatabaseOperations(loggingDB);
 			console.log('[createLogger] Created LogDatabaseOperations:', {
 				logDatabaseOpsExists: !!logDatabaseOps

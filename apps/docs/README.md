@@ -8,7 +8,7 @@ This is the VitePress documentation site for Totallator.
 # Start development server
 pnpm dev
 
-# Build for production  
+# Build for production
 pnpm build
 
 # Preview production build
