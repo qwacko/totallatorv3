@@ -1,10 +1,8 @@
 import { serverPageInfo } from '$lib/routes.server';
 import { getBullMQStatus } from '$lib/server/bullmq/bullmqService';
 
-import type { PageServerLoad } from './$types';
-
-export const load: PageServerLoad = async () => {
-	const pageInfo = await serverPageInfo();
+export const load = async (data) => {
+	const pageInfo = await serverPageInfo(data.route.id, data);
 	const bullmqStatus = await getBullMQStatus();
 
 	return {
