@@ -100,7 +100,11 @@ export const serverEnvSchema = z.object({
 		defaultBoolean: true,
 		optional: true
 	}),
-	ENCRYPTION_KEY: z.string().optional()
+	ENCRYPTION_KEY: z.string().optional(),
+	REDIS_HOST: z.string().optional().default('localhost'),
+	REDIS_PORT: z.coerce.number<number>().optional().default(6379),
+	REDIS_PASSWORD: z.string().optional(),
+	REDIS_DB: z.coerce.number<number>().optional().default(0)
 });
 
 export type ServerEnvSchemaType = z.infer<typeof serverEnvSchema>;

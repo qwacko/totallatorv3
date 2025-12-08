@@ -3,6 +3,7 @@ import type { GlobalContext } from '@totallator/context';
 import type { CoreDBType } from '@totallator/database';
 
 import { standaloneContext } from '../../../hooks.server';
+import { initializeBullMQService, shutdownBullMQService } from '../bullmq/bullmqService';
 
 let cronService: CronJobService | null = null;
 
@@ -10,6 +11,7 @@ let cronService: CronJobService | null = null;
  * Initialize the new cron service
  */
 export const initializeNewCronService = async (getContext: () => Promise<GlobalContext>) => {
+	console.log('Initializing new cron service...');
 	if (cronService) {
 		await cronService.shutdown();
 	}
@@ -20,6 +22,9 @@ export const initializeNewCronService = async (getContext: () => Promise<GlobalC
 
 	cronService = new CronJobService(coreDb, standaloneContext);
 	await cronService.initialize();
+
+	// Initialize BullMQ service
+	await initializeBullMQService(getContext);
 
 	console.log('New cron service initialized successfully');
 	return cronService;
@@ -41,4 +46,7 @@ export const shutdownCronService = async () => {
 		cronService = null;
 		console.log('Cron service shutdown successfully');
 	}
+
+	// Shutdown BullMQ service
+	await shutdownBullMQService();
 };
