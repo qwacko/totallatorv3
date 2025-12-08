@@ -104,7 +104,15 @@ export const serverEnvSchema = z.object({
 	REDIS_HOST: z.string().optional().default('localhost'),
 	REDIS_PORT: z.coerce.number<number>().optional().default(6379),
 	REDIS_PASSWORD: z.string().optional(),
-	REDIS_DB: z.coerce.number<number>().optional().default(0)
+	REDIS_DB: z.coerce.number<number>().optional().default(0),
+	// OpenTelemetry Configuration
+	OTEL_ENABLE_TRACING: parseEnvStringToBoolean({
+		defaultBoolean: false,
+		optional: true
+	}),
+	OTEL_SERVICE_NAME: z.string().optional().default('totallator'),
+	OTEL_SERVICE_VERSION: z.string().optional().default('1.0.0'),
+	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional().default('http://otel-lgtm:4318')
 });
 
 export type ServerEnvSchemaType = z.infer<typeof serverEnvSchema>;

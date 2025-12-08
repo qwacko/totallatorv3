@@ -1,3 +1,4 @@
+import { type Span, SpanStatusCode, trace } from '@opentelemetry/api';
 import pino from 'pino';
 import pretty from 'pino-pretty';
 
@@ -39,6 +40,28 @@ export const loggerActions = logActionEnum;
 export type LoggerAction = LogActionType;
 
 type LogLevelCacheType = Map<string, LogLevelType>;
+
+/**
+ * Extract current trace context from OpenTelemetry API
+ */
+function getTraceContext(): { traceId?: string; spanId?: string; traceFlags?: string } {
+	try {
+		const activeSpan = trace.getActiveSpan();
+		if (!activeSpan) {
+			return {};
+		}
+
+		const spanContext = activeSpan.spanContext();
+		return {
+			traceId: spanContext.traceId,
+			spanId: spanContext.spanId,
+			traceFlags: spanContext.traceFlags?.toString(16)
+		};
+	} catch (error) {
+		// OpenTelemetry not available or no active span
+		return {};
+	}
+}
 
 /**
  * Complete logging system interface including database operations and management
@@ -272,6 +295,9 @@ export const createLogger = async (
 					}
 				}
 
+				// Get OpenTelemetry trace context
+				const traceContext = getTraceContext();
+
 				const logEntry: LogEntryInsert = {
 					date: new Date(),
 					logLevel: level,
@@ -287,7 +313,13 @@ export const createLogger = async (
 					domain: domain as LogDomainType,
 					code: data.code,
 					title: data.title,
-					data: restData
+					data: {
+						...restData,
+						// Add trace context to log data for correlation
+						...(traceContext.traceId && { traceId: traceContext.traceId }),
+						...(traceContext.spanId && { spanId: traceContext.spanId }),
+						...(traceContext.traceFlags && { traceFlags: traceContext.traceFlags })
+					}
 				};
 
 				try {
@@ -301,27 +333,67 @@ export const createLogger = async (
 		return {
 			error: (data: StructuredLogData) => {
 				const { title, ...rest } = data;
-				pinoLogger.error(rest, title);
+				const traceContext = getTraceContext();
+				pinoLogger.error(
+					{
+						...rest,
+						...(traceContext.traceId && { traceId: traceContext.traceId }),
+						...(traceContext.spanId && { spanId: traceContext.spanId })
+					},
+					title
+				);
 				logToDatabase('ERROR', data);
 			},
 			warn: (data: StructuredLogData) => {
 				const { title, ...rest } = data;
-				pinoLogger.warn(rest, title);
+				const traceContext = getTraceContext();
+				pinoLogger.warn(
+					{
+						...rest,
+						...(traceContext.traceId && { traceId: traceContext.traceId }),
+						...(traceContext.spanId && { spanId: traceContext.spanId })
+					},
+					title
+				);
 				logToDatabase('WARN', data);
 			},
 			info: (data: StructuredLogData) => {
 				const { title, ...rest } = data;
-				pinoLogger.info(rest, title);
+				const traceContext = getTraceContext();
+				pinoLogger.info(
+					{
+						...rest,
+						...(traceContext.traceId && { traceId: traceContext.traceId }),
+						...(traceContext.spanId && { spanId: traceContext.spanId })
+					},
+					title
+				);
 				logToDatabase('INFO', data);
 			},
 			debug: (data: StructuredLogData) => {
 				const { title, ...rest } = data;
-				pinoLogger.debug(rest, title);
+				const traceContext = getTraceContext();
+				pinoLogger.debug(
+					{
+						...rest,
+						...(traceContext.traceId && { traceId: traceContext.traceId }),
+						...(traceContext.spanId && { spanId: traceContext.spanId })
+					},
+					title
+				);
 				logToDatabase('DEBUG', data);
 			},
 			trace: (data: StructuredLogData) => {
 				const { title, ...rest } = data;
-				pinoLogger.trace(rest, title);
+				const traceContext = getTraceContext();
+				pinoLogger.trace(
+					{
+						...rest,
+						...(traceContext.traceId && { traceId: traceContext.traceId }),
+						...(traceContext.spanId && { spanId: traceContext.spanId })
+					},
+					title
+				);
 				logToDatabase('TRACE', data);
 			},
 			pino: pinoLogger

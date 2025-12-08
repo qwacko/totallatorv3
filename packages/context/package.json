@@ -21,6 +21,7 @@
 		"lint": "prettier --check ."
 	},
 	"dependencies": {
+		"@opentelemetry/api": "^1.9.0",
 		"@totallator/database": "workspace:*",
 		"@totallator/log-database": "workspace:*",
 		"@totallator/shared": "workspace:*",
