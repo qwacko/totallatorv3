@@ -112,7 +112,15 @@ export const serverEnvSchema = z.object({
 	}),
 	OTEL_SERVICE_NAME: z.string().optional().default('totallator'),
 	OTEL_SERVICE_VERSION: z.string().optional().default('1.0.0'),
-	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional().default('http://otel-lgtm:4318')
+	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional().default('http://otel-lgtm:4318'),
+	// Loki Configuration
+	LOKI_ENABLE: parseEnvStringToBoolean({
+		defaultBoolean: false,
+		optional: true
+	}),
+	LOKI_ENDPOINT: z.string().optional().default('http://loki:3100/loki/api/v1/push'),
+	LOKI_BATCH_SIZE: z.coerce.number().optional().default(100),
+	LOKI_FLUSH_INTERVAL: z.coerce.number().optional().default(5000)
 });
 
 export type ServerEnvSchemaType = z.infer<typeof serverEnvSchema>;
