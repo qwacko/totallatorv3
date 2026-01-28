@@ -96,7 +96,31 @@ async function forwardToLoki(
 	if (process.env.LOKI_ENABLE !== 'true') return;
 
 	try {
-		const lokiEntry: LokiLogEntryType = {
+		// Create log message as plain string (not JSON encoded)
+		const logMessage = `${data.title}${data.message ? ': ' + data.message : ''}`;
+
+		// Build stream labels with proper trace ID format for Grafana correlation
+		const streamLabels: Record<string, string> = {
+			service: 'totallator',
+			level: level.toLowerCase(),
+			domain,
+			...(action && { action }),
+			...(enhancedContext?.request?.user?.id && { user_id: enhancedContext.request.user.id }),
+			...(enhancedContext?.request?.requestId && { request_id: enhancedContext.request.requestId }),
+			...(enhancedContext?.request?.routeId && { route_id: enhancedContext.request.routeId })
+		};
+
+		// Add trace and span IDs in Grafana-compatible format
+		if (traceContext.traceId) {
+			// Grafana Tempo expects trace_id in this format for correlation
+			streamLabels.trace_id = traceContext.traceId;
+		}
+		if (traceContext.spanId) {
+			streamLabels.span_id = traceContext.spanId;
+		}
+
+		// Build log entry with all data for Loki
+		const logEntry = {
 			timestamp: Date.now(),
 			level: level.toLowerCase(),
 			domain,
@@ -114,9 +138,6 @@ async function forwardToLoki(
 			)
 		};
 
-		// Create log message as plain string (not JSON encoded)
-		const logMessage = `${data.title}${data.message ? ': ' + data.message : ''}`;
-
 		// Send to Loki using simple fetch (non-blocking)
 		fetch(process.env.LOKI_ENDPOINT || 'http://loki:3100/loki/api/v1/push', {
 			method: 'POST',
@@ -126,18 +147,8 @@ async function forwardToLoki(
 			body: JSON.stringify({
 				streams: [
 					{
-						stream: {
-							service: 'totallator',
-							level: level.toLowerCase(),
-							domain,
-							...(action && { action }),
-							...(lokiEntry.userId && { user_id: lokiEntry.userId }),
-							...(lokiEntry.requestId && { request_id: lokiEntry.requestId }),
-							...(lokiEntry.routeId && { route_id: lokiEntry.routeId }),
-							...(lokiEntry.traceId && { trace_id: lokiEntry.traceId }),
-							...(lokiEntry.spanId && { span_id: lokiEntry.spanId })
-						},
-						values: [[`${lokiEntry.timestamp}000000`, logMessage]]
+						stream: streamLabels,
+						values: [[`${logEntry.timestamp}000000`, JSON.stringify(logEntry)]]
 					}
 				]
 			})
@@ -358,12 +369,6 @@ export const createLogger = async (
 		const logToDatabase = async (level: LogLevelType, data: StructuredLogData) => {
 			if (!logDatabaseOps) return;
 
-			// Check if database destination should log this level
-			const dbLevel = logLevelCache.get(
-				action ? `database:${domain}:${action}` : `database:${domain}`
-			);
-			if (!dbLevel) return;
-
 			// Convert level to priority for comparison (lower number = higher priority)
 			const levelPriority: Record<LogLevelType, number> = {
 				ERROR: 1,
@@ -373,21 +378,26 @@ export const createLogger = async (
 				TRACE: 5
 			};
 
-			if (levelPriority[level] <= levelPriority[dbLevel]) {
-				const { code, title, ...restData } = data;
-
-				// Try to get enhanced context if available
-				let enhancedContext: any = null;
-				if (getRequestContext) {
-					try {
-						enhancedContext = getRequestContext();
-					} catch (error) {
-						// Context not available (e.g., during startup, standalone operations)
-					}
+			// Try to get enhanced context if available
+			let enhancedContext: any = null;
+			if (getRequestContext) {
+				try {
+					enhancedContext = getRequestContext();
+				} catch (error) {
+					// Context not available (e.g., during startup, standalone operations)
 				}
+			}
 
-				// Get OpenTelemetry trace context
-				const traceContext = getTraceContext();
+			// Get OpenTelemetry trace context
+			const traceContext = getTraceContext();
+
+			// Check if database destination should log this level
+			const dbLevel = logLevelCache.get(
+				action ? `database:${domain}:${action}` : `database:${domain}`
+			);
+
+			if (dbLevel && levelPriority[level] <= levelPriority[dbLevel]) {
+				const { code, title, ...restData } = data;
 
 				const logEntry: LogEntryInsert = {
 					date: new Date(),
@@ -415,12 +425,17 @@ export const createLogger = async (
 
 				try {
 					await logDatabaseOps.insertLog(logEntry);
-
-					// Forward to Loki asynchronously (non-blocking)
-					forwardToLoki(level, domain, action, data, traceContext, enhancedContext);
 				} catch (error) {
 					// Silently fail to avoid logging loops
 				}
+			}
+
+			// Check if Loki destination should log this level
+			const lokiLevel = logLevelCache.get(action ? `loki:${domain}:${action}` : `loki:${domain}`);
+
+			if (lokiLevel && levelPriority[level] <= levelPriority[lokiLevel]) {
+				// Forward to Loki asynchronously (non-blocking)
+				forwardToLoki(level, domain, action, data, traceContext, enhancedContext);
 			}
 		};
 
