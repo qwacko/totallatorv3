@@ -13,7 +13,7 @@
 
 	const { data } = $props();
 
-	const { message, enhance } = superForm(data.form);
+	const { message, enhance } = $derived(superForm(data.form));
 	const urlInfo = pageInfo('/(loggedIn)/llm/providers/[id]/delete', () => page);
 
 	const formatTimestamp = (timestamp: string | Date) => {

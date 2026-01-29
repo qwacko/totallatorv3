@@ -25,15 +25,17 @@
 
 	let loading = $state(false);
 
-	const configForm = superForm(formData, {
-		timeoutMs: 500,
-		...superFormNotificationHelper({
-			setLoading: (value) => (loading = value),
-			successMessage: 'Report Element Config Updated Successfully',
-			errorMessage: 'Error Updating Report Element Config',
-			invalidate: true
+	const configForm = $derived(
+		superForm(formData, {
+			timeoutMs: 500,
+			...superFormNotificationHelper({
+				setLoading: (value) => (loading = value),
+				successMessage: 'Report Element Config Updated Successfully',
+				errorMessage: 'Error Updating Report Element Config',
+				invalidate: true
+			})
 		})
-	});
+	);
 
 	const form = $derived(configForm.form);
 	const enhance = $derived(configForm.enhance);

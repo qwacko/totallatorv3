@@ -27,7 +27,7 @@
 		disabled?: boolean;
 	} = $props();
 
-	const { value } = formFieldProxy(form, field);
+	const { value } = $derived(formFieldProxy(form, field));
 
 	const booleanValue = $derived(value as Writable<boolean | undefined>);
 </script>

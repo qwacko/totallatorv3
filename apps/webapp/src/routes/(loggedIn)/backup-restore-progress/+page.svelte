@@ -9,15 +9,14 @@
 
 	let intervalDelay = $state(1000);
 
-	const interval = useInterval(
-		() => {
+	const interval = useInterval(() => intervalDelay, {
+		callback: () => {
 			if (shouldAutoRefresh(progress)) {
 				invalidateAll();
 			}
 		},
-		() => intervalDelay,
-		{ immediate: false }
-	);
+		immediate: false
+	});
 
 	function shouldAutoRefresh(progressData: any): boolean {
 		return (

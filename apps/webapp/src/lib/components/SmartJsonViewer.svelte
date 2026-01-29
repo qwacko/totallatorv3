@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button } from 'flowbite-svelte';
+	import { untrack } from 'svelte';
 
 	import ArrowDownIcon from '$lib/components/icons/ArrowDownIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
@@ -13,7 +14,12 @@
 
 	let { data, level = 0, defaultExpanded = false }: SmartJsonViewerProps = $props();
 
-	let isExpanded = $state(defaultExpanded);
+	let isExpanded = $state(false);
+
+	$effect(() => {
+		defaultExpanded;
+		untrack(() => (isExpanded = defaultExpanded));
+	});
 
 	// Check if a string looks like JSON
 	function looksLikeJSON(str: string): boolean {
@@ -126,7 +132,7 @@
 
 	// Use smaller indentation and cap the maximum indent
 	const maxIndent = 3; // Maximum 3rem indentation
-	const indent = Math.min(level * 0.75, maxIndent);
+	const indent = $derived(Math.min(level * 0.75, maxIndent));
 </script>
 
 <div class="font-mono text-sm" style="margin-left: {indent}rem">

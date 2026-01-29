@@ -43,13 +43,17 @@
 		isEnabled: z.boolean()
 	});
 
-	const { form: triggerForm, enhance: triggerEnhance } = superForm(data.triggerJobForm, {
-		validators: zod4Client(triggerJobSchema)
-	});
+	const { form: triggerForm, enhance: triggerEnhance } = $derived(
+		superForm(data.triggerJobForm, {
+			validators: zod4Client(triggerJobSchema)
+		})
+	);
 
-	const { form: toggleForm, enhance: toggleEnhance } = superForm(data.toggleJobForm, {
-		validators: zod4Client(toggleJobSchema)
-	});
+	const { form: toggleForm, enhance: toggleEnhance } = $derived(
+		superForm(data.toggleJobForm, {
+			validators: zod4Client(toggleJobSchema)
+		})
+	);
 
 	// Remove unused formatDuration function
 

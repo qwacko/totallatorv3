@@ -80,8 +80,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
 			maxConcurrency: 1,
 			maxWorkers: 1,
 			testTimeout: 10000,
-			pool: 'forks',
-			poolOptions: { forks: { singleFork: true } }
+			pool: 'forks'
 		}
 	};
 });

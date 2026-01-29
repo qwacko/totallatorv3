@@ -28,13 +28,15 @@
 
 	const urlInfo = pageInfo('/(loggedIn)/journals/bulkEdit', () => page);
 
-	const form = superForm(data.form, {
-		validators: zod4Client(updateJournalSchema),
-		onError: () => {
-			loadingUpdate = undefined;
-			loadingUpdateAndSave = undefined;
-		}
-	});
+	const form = $derived(
+		superForm(data.form, {
+			validators: zod4Client(updateJournalSchema),
+			onError: () => {
+				loadingUpdate = undefined;
+				loadingUpdateAndSave = undefined;
+			}
+		})
+	);
 
 	const enhance = $derived(form.enhance);
 	const formData = $derived(form.form);

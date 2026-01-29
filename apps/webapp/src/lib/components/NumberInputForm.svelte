@@ -40,7 +40,7 @@
 		| 'class'
 	> = $props();
 
-	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
+	const { value, errors, constraints, tainted } = $derived(formFieldProxy(form, field));
 
 	const stringValue = $derived(value as Writable<number>);
 </script>

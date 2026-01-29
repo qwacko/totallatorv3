@@ -22,14 +22,16 @@
 
 	let loading = $state(false);
 
-	const form = superForm(data.itemForm, {
-		...superFormNotificationHelper({
-			errorMessage: 'Error Updating Report Element Item',
-			successMessage: 'Report Element Item Updated Successfully',
-			invalidate: true,
-			setLoading: (value) => (loading = value)
+	const form = $derived(
+		superForm(data.itemForm, {
+			...superFormNotificationHelper({
+				errorMessage: 'Error Updating Report Element Item',
+				successMessage: 'Report Element Item Updated Successfully',
+				invalidate: true,
+				setLoading: (value) => (loading = value)
+			})
 		})
-	});
+	);
 
 	const enhance = $derived(form.enhance);
 	const errors = $derived(form.errors);

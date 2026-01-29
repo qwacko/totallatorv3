@@ -22,7 +22,7 @@
 
 	const urlInfo = pageInfo('/(loggedIn)/accounts/bulkEdit', () => page);
 
-	const form = superForm(data.form, {});
+	const form = $derived(superForm(data.form, {}));
 
 	let updateAccountGrouping = $state(false);
 

@@ -22,13 +22,15 @@
 		error: 'red'
 	} as const;
 
-	const filterUrl = urlGenerator({
-		address: '/(loggedIn)/journals',
-		searchParamsValue: {
-			...currentFilter,
-			llmReviewStatus: [status]
-		}
-	});
+	const filterUrl = $derived(
+		urlGenerator({
+			address: '/(loggedIn)/journals',
+			searchParamsValue: {
+				...currentFilter,
+				llmReviewStatus: [status]
+			}
+		})
+	);
 </script>
 
 <Badge color={statusColors[status]} href={filterUrl.url} class="cursor-pointer hover:opacity-80">

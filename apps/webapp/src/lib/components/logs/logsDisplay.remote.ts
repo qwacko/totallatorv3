@@ -52,12 +52,12 @@ export const getLogConfigurations = query(async () => {
 	};
 });
 
-export const setLogConfiguration = form(async (data) => {
+export const setLogConfiguration = form(async () => {
 	const globalContext = getContext();
-	const logLevelIn = data.get('level');
-	const domain = data.get('domain');
-	const action = data.get('action');
-	const destination = data.get('destination');
+	const logLevelIn = '';
+	const domain = '';
+	const action = '';
+	const destination = '';
 
 	// Validate destination
 	const validDestinations = ['console', 'database', 'loki'];

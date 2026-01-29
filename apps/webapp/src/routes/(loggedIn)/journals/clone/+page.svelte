@@ -18,7 +18,7 @@
 
 	const urlInfo = pageInfo('/(loggedIn)/journals/clone', () => page);
 
-	const form = superForm(data.form);
+	const form = $derived(superForm(data.form));
 
 	const enhance = $derived(form.enhance);
 	const tainted = $derived(form.tainted);

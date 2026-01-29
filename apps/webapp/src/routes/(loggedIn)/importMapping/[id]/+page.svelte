@@ -14,11 +14,13 @@
 
 	const { data } = $props();
 
-	const form = superForm(data.form);
-	const detailForm = superForm(data.detailForm, {
-		validators: zod4Client(importMappingDetailSchema),
-		validationMethod: 'oninput'
-	});
+	const form = $derived(superForm(data.form));
+	const detailForm = $derived(
+		superForm(data.detailForm, {
+			validators: zod4Client(importMappingDetailSchema),
+			validationMethod: 'oninput'
+		})
+	);
 </script>
 
 <CustomHeader pageTitle="Edit Import Mapping - {data.importMapping.title}" />

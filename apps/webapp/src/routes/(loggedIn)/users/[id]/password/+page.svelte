@@ -12,7 +12,7 @@
 
 	const { data } = $props();
 
-	const { form, errors, constraints, message, enhance } = superForm(data.form);
+	const { form, errors, constraints, message, enhance } = $derived(superForm(data.form));
 
 	const userId = $derived(page.params.id);
 </script>

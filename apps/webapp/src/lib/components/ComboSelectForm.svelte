@@ -46,7 +46,7 @@
 		children?: Snippet;
 	} = $props();
 
-	const { value, tainted } = formFieldProxy(form, field);
+	const { value, tainted } = $derived(formFieldProxy(form, field));
 
 	const stringValue = $derived(value as Writable<string | undefined>);
 	const inClearable = $derived(clearField !== undefined || clearable);

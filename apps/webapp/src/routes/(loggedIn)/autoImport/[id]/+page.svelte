@@ -19,16 +19,18 @@
 
 	const { data } = $props();
 
-	const form = superForm(data.form, {
-		onSubmit: () => {
-			updatingEnabled = true;
-		},
-		onResult: () => {
-			updatingEnabled = false;
-		}
-	});
+	const form = $derived(
+		superForm(data.form, {
+			onSubmit: () => {
+				updatingEnabled = true;
+			},
+			onResult: () => {
+				updatingEnabled = false;
+			}
+		})
+	);
 
-	const proxyForm: AutoImportFormProxy = {
+	const proxyForm: AutoImportFormProxy = $derived({
 		title: formFieldProxy(form, 'title'),
 		enabled: formFieldProxy(form, 'enabled'),
 		importMappingId: formFieldProxy(form, 'importMappingId'),
@@ -44,7 +46,7 @@
 		userAccessToken: formFieldProxy(form, 'userAccessToken'),
 		autoProcess: formFieldProxy(form, 'autoProcess'),
 		autoClean: formFieldProxy(form, 'autoClean')
-	};
+	});
 
 	const title = $derived(data.autoImportDetail.title);
 

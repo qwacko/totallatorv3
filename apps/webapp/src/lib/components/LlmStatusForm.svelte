@@ -20,7 +20,7 @@
 		title?: string;
 	} = $props();
 
-	const { value } = formFieldProxy(form, field);
+	const { value } = $derived(formFieldProxy(form, field));
 	const enumValue = $derived(value as Writable<LlmReviewStatusEnumType | undefined>);
 
 	let currentValue = $state<LlmReviewStatusEnumType | undefined>(undefined);

@@ -19,7 +19,7 @@
 
 	const { data } = $props();
 
-	const form = superForm(data.form);
+	const form = $derived(superForm(data.form));
 
 	const urlInfo = pageInfo('/(loggedIn)/journals/create', () => page);
 	const enhance = $derived(form.enhance);

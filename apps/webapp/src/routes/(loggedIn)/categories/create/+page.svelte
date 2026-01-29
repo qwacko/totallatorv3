@@ -17,7 +17,7 @@
 
 	const { data } = $props();
 
-	const { form, errors, constraints, message, enhance } = superForm(data.form);
+	const { form, errors, constraints, message, enhance } = $derived(superForm(data.form));
 
 	const urlInfo = pageInfo('/(loggedIn)/categories/create', () => page);
 </script>

@@ -31,25 +31,27 @@
 
 	const journalRecommendations = $derived(recommendations[journal.id]);
 
-	const form = superForm(
-		{},
-		{
-			validators: zod4Client(
-				z.object({
-					...updateJournalSchema.shape,
-					filter: journalFilterSchemaWithoutPagination
-				})
-			),
-			onResult: ({ result }) => {
-				if (result.type === 'success') {
-					open = false;
-				} else {
-					loadingUpdate = undefined;
-					loadingUpdateAndSave = undefined;
-				}
-			},
-			dataType: 'json'
-		}
+	const form = $derived(
+		superForm(
+			{},
+			{
+				validators: zod4Client(
+					z.object({
+						...updateJournalSchema.shape,
+						filter: journalFilterSchemaWithoutPagination
+					})
+				),
+				onResult: ({ result }) => {
+					if (result.type === 'success') {
+						open = false;
+					} else {
+						loadingUpdate = undefined;
+						loadingUpdateAndSave = undefined;
+					}
+				},
+				dataType: 'json'
+			}
+		)
 	);
 
 	const enhance = $derived(form.enhance);

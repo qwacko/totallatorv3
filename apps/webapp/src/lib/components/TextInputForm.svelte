@@ -46,8 +46,8 @@
 		| 'field'
 	> = $props();
 
-	const { value, errors, constraints, tainted } = formFieldProxy(form, field);
-	const { value: clearValueOriginal } = formFieldProxy(form, clearField);
+	const { value, errors, constraints, tainted } = $derived(formFieldProxy(form, field));
+	const { value: clearValueOriginal } = $derived(formFieldProxy(form, clearField));
 
 	const stringValue = $derived(value as Writable<string>);
 	const clearValue = $derived(clearValueOriginal as Writable<boolean | undefined>);

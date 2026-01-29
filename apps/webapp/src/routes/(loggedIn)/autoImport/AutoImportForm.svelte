@@ -29,21 +29,27 @@
 		closeAccordian?: boolean;
 	} = $props();
 
-	const { value: typeValue, errors: typeErrors } = proxyForm.type;
-	const { value: titleValue, errors: titleErrors } = proxyForm.title;
-	const { value: enabledValue } = proxyForm.enabled;
-	const { value: importMappingIdValue, errors: importMappingIdErrors } = proxyForm.importMappingId;
-	const { value: frequencyValue, errors: frequencyErrors } = proxyForm.frequency;
-	const { value: accountIdValue, errors: accountIdErrors } = proxyForm.accountId;
-	const { value: appAccessTokenValue, errors: appAccessTokenErrors } = proxyForm.appAccessToken;
-	const { value: appIdValue, errors: appIdErrors } = proxyForm.appId;
-	const { value: connectionIdValue, errors: connectionIdErrors } = proxyForm.connectionId;
-	const { value: secretValue, errors: secretErrors } = proxyForm.secret;
-	const { value: userAccessTokenValue, errors: userAccessTokenErrors } = proxyForm.userAccessToken;
-	const { value: lookbackDaysValue, errors: lookbackDaysErrors } = proxyForm.lookbackDays;
-	const { value: startDateValue, errors: startDateErrors } = proxyForm.startDate;
-	const { value: autoProcessValue } = proxyForm.autoProcess;
-	const { value: autoCleanValue } = proxyForm.autoClean;
+	const { value: typeValue, errors: typeErrors } = $derived(proxyForm.type);
+	const { value: titleValue, errors: titleErrors } = $derived(proxyForm.title);
+	const { value: enabledValue } = $derived(proxyForm.enabled);
+	const { value: importMappingIdValue, errors: importMappingIdErrors } = $derived(
+		proxyForm.importMappingId
+	);
+	const { value: frequencyValue, errors: frequencyErrors } = $derived(proxyForm.frequency);
+	const { value: accountIdValue, errors: accountIdErrors } = $derived(proxyForm.accountId);
+	const { value: appAccessTokenValue, errors: appAccessTokenErrors } = $derived(
+		proxyForm.appAccessToken
+	);
+	const { value: appIdValue, errors: appIdErrors } = $derived(proxyForm.appId);
+	const { value: connectionIdValue, errors: connectionIdErrors } = $derived(proxyForm.connectionId);
+	const { value: secretValue, errors: secretErrors } = $derived(proxyForm.secret);
+	const { value: userAccessTokenValue, errors: userAccessTokenErrors } = $derived(
+		proxyForm.userAccessToken
+	);
+	const { value: lookbackDaysValue, errors: lookbackDaysErrors } = $derived(proxyForm.lookbackDays);
+	const { value: startDateValue, errors: startDateErrors } = $derived(proxyForm.startDate);
+	const { value: autoProcessValue } = $derived(proxyForm.autoProcess);
+	const { value: autoCleanValue } = $derived(proxyForm.autoClean);
 
 	const formElements = $derived(autoImportFormItemDisplay[$typeValue]);
 </script>

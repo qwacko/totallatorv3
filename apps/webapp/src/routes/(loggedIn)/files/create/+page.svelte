@@ -22,14 +22,16 @@
 
 	let loading = $state(false);
 
-	const form = superForm(
-		data.form,
-		superFormNotificationHelper({
-			errorMessage: 'Failed to upload file',
-			successMessage: 'File Uploaded',
-			setLoading: (value) => (loading = value),
-			invalidate: true
-		})
+	const form = $derived(
+		superForm(
+			data.form,
+			superFormNotificationHelper({
+				errorMessage: 'Failed to upload file',
+				successMessage: 'File Uploaded',
+				setLoading: (value) => (loading = value),
+				invalidate: true
+			})
+		)
 	);
 	const enhance = $derived(form.enhance);
 	const message = $derived(form.message);

@@ -15,15 +15,15 @@
 
 	const { data } = $props();
 
-	const { form, errors, constraints, message, enhance } = superForm(data.form);
+	const { form, errors, constraints, message, enhance } = $derived(superForm(data.form));
 
 	const urlInfo = pageInfo('/(loggedIn)/llm/providers/[id]', () => page);
 
 	// Provider configuration
-	const predefinedProviders = data.predefinedProviders;
+	const predefinedProviders = $derived(data.predefinedProviders);
 
 	// Track selected provider type - initialize with current provider
-	let selectedProvider = $state($form.apiUrl || predefinedProviders[0]?.id || 'openai');
+	let selectedProvider = $state((() => $form.apiUrl || predefinedProviders[0]?.id || 'openai')());
 
 	// When provider changes, update form values
 	$effect(() => {
@@ -41,10 +41,12 @@
 	});
 
 	// Provider options for dropdown
-	const providerOptions = predefinedProviders.map((p) => ({
-		value: p.id,
-		name: `${p.name} - ${p.description}`
-	}));
+	const providerOptions = $derived(
+		predefinedProviders.map((p) => ({
+			value: p.id,
+			name: `${p.name} - ${p.description}`
+		}))
+	);
 
 	// Get suggested models for selected provider
 	const suggestedModels = $derived.by(() => {

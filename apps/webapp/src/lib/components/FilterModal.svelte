@@ -3,7 +3,7 @@
 	generics="F extends JournalFilterSchemaType | JournalFilterSchemaWithoutPaginationType"
 >
 	import { Button, Modal } from 'flowbite-svelte';
-	import type { Snippet } from 'svelte';
+	import { type Snippet, untrack } from 'svelte';
 
 	import type {
 		JournalFilterSchemaType,
@@ -30,7 +30,11 @@
 	} = $props();
 
 	let url = $state('');
-	let activeFilter = $state(currentFilter);
+	let activeFilter = $state((() => currentFilter)());
+	$effect(() => {
+		currentFilter;
+		untrack(() => (activeFilter = currentFilter));
+	});
 </script>
 
 <Button color="light" onclick={() => (opened = true)}>

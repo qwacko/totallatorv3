@@ -12,13 +12,15 @@
 
 	const { data } = $props();
 
-	const { form, errors, constraints, message, enhance } = superForm(data.form, {
-		onResult: async ({ result }) => {
-			if (result.type === 'success') {
-				await goto('/users');
+	const { form, errors, constraints, message, enhance } = $derived(
+		superForm(data.form, {
+			onResult: async ({ result }) => {
+				if (result.type === 'success') {
+					await goto('/users');
+				}
 			}
-		}
-	});
+		})
+	);
 </script>
 
 <CustomHeader pageTitle="New User" />

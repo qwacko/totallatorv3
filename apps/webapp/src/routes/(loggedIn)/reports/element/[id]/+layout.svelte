@@ -26,18 +26,20 @@
 		constraints,
 		errors,
 		enhance: elementEnhance
-	} = superForm(data.form, {
-		onError: onError('Error updating report element'),
-		onResult: ({ result }) => {
-			if (result.type === 'success') {
-				notificationStore.send({
-					type: 'success',
-					message: 'Report element updated successfully',
-					duration: 2000
-				});
+	} = $derived(
+		superForm(data.form, {
+			onError: onError('Error updating report element'),
+			onResult: ({ result }) => {
+				if (result.type === 'success') {
+					notificationStore.send({
+						type: 'success',
+						message: 'Report element updated successfully',
+						duration: 2000
+					});
+				}
 			}
-		}
-	});
+		})
+	);
 </script>
 
 <CustomHeader pageTitle={data.elementData.title || 'Report Element'} />

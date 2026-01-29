@@ -22,11 +22,13 @@
 		changeText: string[] | undefined;
 	} = $props();
 
-	const form = superForm(modificationFormData, {
-		onResult: () => {
-			changeModal = false;
-		}
-	});
+	const form = $derived(
+		superForm(modificationFormData, {
+			onResult: () => {
+				changeModal = false;
+			}
+		})
+	);
 
 	const modificationFormValue = $derived(form.form);
 	const enhance = $derived(form.enhance);

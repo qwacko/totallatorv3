@@ -8,7 +8,7 @@
 	import TextInput from '$lib/components/TextInput.svelte';
 
 	const { data } = $props();
-	const { form, errors, constraints, message, enhance } = superForm(data.form);
+	const { form, errors, constraints, message, enhance } = $derived(superForm(data.form));
 </script>
 
 <CustomHeader pageTitle="Create First User" />

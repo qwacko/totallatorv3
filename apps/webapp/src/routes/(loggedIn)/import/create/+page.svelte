@@ -15,14 +15,16 @@
 
 	const { data } = $props();
 
-	const form = superForm(data.form, {
-		...superFormNotificationHelper({
-			setLoading: (newLoading) => (importing = newLoading),
-			errorMessage: 'Error Creating Import',
-			successMessage: 'Import Created Successfully',
-			invalidate: true
+	const form = $derived(
+		superForm(data.form, {
+			...superFormNotificationHelper({
+				setLoading: (newLoading) => (importing = newLoading),
+				errorMessage: 'Error Creating Import',
+				successMessage: 'Import Created Successfully',
+				invalidate: true
+			})
 		})
-	});
+	);
 	const formData = $derived(form.form);
 	const enhance = $derived(form.enhance);
 	const errors = $derived(form.errors);

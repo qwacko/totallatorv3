@@ -12,7 +12,7 @@
 
 	const { form }: { form: SuperForm<UpdateJournalSchemaType> } = $props();
 
-	const formData = form.form;
+	const formData = $derived(form.form);
 </script>
 
 <TextInputForm title="Description" {form} field="description">

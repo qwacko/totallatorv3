@@ -23,13 +23,13 @@
 	];
 
 	// LLM Settings options for filter
-	const llmSettingsOptions = [
+	const llmSettingsOptions = $derived([
 		{ value: '', name: 'All Settings' },
 		...data.llmSettings.map((setting) => ({
 			value: setting.id,
 			name: setting.title
 		}))
-	];
+	]);
 
 	const formatDuration = (ms: number) => {
 		if (ms < 1000) return `${ms}ms`;

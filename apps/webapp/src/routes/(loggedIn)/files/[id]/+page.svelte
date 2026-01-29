@@ -13,10 +13,12 @@
 	const { data } = $props();
 	let updating = $state(false);
 
-	const { enhance, form, constraints, errors } = superForm(data.form, {
-		onSubmit: () => (updating = true),
-		onResult: () => (updating = false)
-	});
+	const { enhance, form, constraints, errors } = $derived(
+		superForm(data.form, {
+			onSubmit: () => (updating = true),
+			onResult: () => (updating = false)
+		})
+	);
 
 	const deleteURL = $derived(
 		urlGenerator({

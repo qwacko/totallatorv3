@@ -7,7 +7,7 @@
 	import SmartJsonViewer from '$lib/components/SmartJsonViewer.svelte';
 
 	const { data } = $props();
-	const { log } = data;
+	const { log } = $derived(data);
 
 	const formatDuration = (ms: number) => {
 		if (ms < 1000) return `${ms}ms`;

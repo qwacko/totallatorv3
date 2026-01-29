@@ -115,13 +115,15 @@
 		}
 	};
 
-	const filteredItems = remoteFunctionCache(
-		itemGetter,
-		() => ({
-			search: $touchedInput ? $inputValue : '',
-			count: maxItems
-		}),
-		{ key: queryKey, storage: 'indexeddb', autoSync: true }
+	const filteredItems = $derived(
+		remoteFunctionCache(
+			itemGetter,
+			() => ({
+				search: $touchedInput ? $inputValue : '',
+				count: maxItems
+			}),
+			{ key: queryKey, storage: 'indexeddb', autoSync: true }
+		)
 	);
 	const selectedVal = $derived($selected ? $selected.value : undefined);
 

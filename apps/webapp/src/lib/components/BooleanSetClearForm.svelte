@@ -28,8 +28,8 @@
 		hideClear?: boolean;
 	} = $props();
 
-	const { value: setValue } = formFieldProxy(form, setField);
-	const { value: clearValue } = formFieldProxy(form, clearField);
+	const { value: setValue } = $derived(formFieldProxy(form, setField));
+	const { value: clearValue } = $derived(formFieldProxy(form, clearField));
 
 	const booleanSetValue = $derived(setValue as Writable<string | boolean | undefined>);
 	const booleanClearValue = $derived(clearValue as Writable<string | boolean | undefined>);

@@ -15,8 +15,9 @@
 		class: className = ''
 	}: { data: ReportConfigPartWithData_Sparkline; class?: string } = $props();
 
-	const type: 'area' | 'bar' =
-		data.type === 'sparkline' ? 'area' : data.type === 'sparklinebar' ? 'bar' : 'area';
+	const type: 'area' | 'bar' = $derived(
+		data.type === 'sparkline' ? 'area' : data.type === 'sparklinebar' ? 'bar' : 'area'
+	);
 
 	let width = $state<number | undefined>();
 	let height = $state<number | undefined>();

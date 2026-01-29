@@ -11,9 +11,9 @@
 
 	const { data } = $props();
 
-	const form = superForm(data.form);
+	const form = $derived(superForm(data.form));
 
-	const proxyForm: AutoImportFormProxy = {
+	const proxyForm: AutoImportFormProxy = $derived({
 		title: formFieldProxy(form, 'title'),
 		enabled: formFieldProxy(form, 'enabled'),
 		importMappingId: formFieldProxy(form, 'importMappingId'),
@@ -29,7 +29,7 @@
 		userAccessToken: formFieldProxy(form, 'userAccessToken'),
 		autoProcess: formFieldProxy(form, 'autoProcess'),
 		autoClean: formFieldProxy(form, 'autoClean')
-	};
+	});
 
 	const message = $derived(form.message);
 	const enhance = $derived(form.enhance);

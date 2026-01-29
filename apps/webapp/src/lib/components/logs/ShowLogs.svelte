@@ -42,13 +42,12 @@
 	});
 	let updateTime = $state(new Date());
 
-	const interval = useInterval(
-		async () => {
+	const interval = useInterval(() => refreshInterval, {
+		callback: async () => {
 			await getLogs(filter).refresh();
 			updateTime = new Date();
-		},
-		() => refreshInterval
-	);
+		}
+	});
 
 	const refreshNow = async () => {
 		await getLogs(filter).refresh();

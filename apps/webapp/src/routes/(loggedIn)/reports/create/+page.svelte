@@ -24,10 +24,12 @@
 
 	const { data } = $props();
 
-	const formAll = superForm(data.form, {
-		onSubmit: () => (loading = true),
-		onResult: () => (loading = false)
-	});
+	const formAll = $derived(
+		superForm(data.form, {
+			onSubmit: () => (loading = true),
+			onResult: () => (loading = false)
+		})
+	);
 
 	const form = $derived(formAll.form);
 	const errors = $derived(formAll.errors);

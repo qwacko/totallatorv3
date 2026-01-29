@@ -19,7 +19,7 @@
 		includeHigher?: boolean;
 	} = $props();
 
-	const creationOptions = [
+	const creationOptions = $derived([
 		{ title: '+ 10', count: 10 },
 		{ title: '+ 40', count: 40 },
 		{ title: '+ 100', count: 100 },
@@ -31,7 +31,7 @@
 					{ title: '+ 10000', count: 10000 }
 				]
 			: [])
-	];
+	]);
 </script>
 
 <div class="flex flex-col gap-2">

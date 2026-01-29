@@ -27,19 +27,21 @@
 		defaultTitle?: string;
 	} = $props();
 
-	const form = superForm<CreateNoteJournalSchemaInputType>(
-		{
-			title: defaultTitle || `Data at ${formatDate(new Date(), $userDateFormat)}`,
-			includeCount: true,
-			includeSum: true,
-			includeDateRange: true,
-			filter,
-			...target
-		},
-		{
-			validators: zod4Client(createNoteJournalSchema),
-			dataType: 'json'
-		}
+	const form = $derived(
+		superForm<CreateNoteJournalSchemaInputType>(
+			{
+				title: defaultTitle || `Data at ${formatDate(new Date(), $userDateFormat)}`,
+				includeCount: true,
+				includeSum: true,
+				includeDateRange: true,
+				filter,
+				...target
+			},
+			{
+				validators: zod4Client(createNoteJournalSchema),
+				dataType: 'json'
+			}
+		)
 	);
 
 	const enhance = $derived(form.enhance);
