@@ -11,7 +11,6 @@
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import DisabledIcon from '$lib/components/icons/DisabledIcon.svelte';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
-	import EyeIcon from '$lib/components/icons/EyeIcon.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
@@ -21,7 +20,6 @@
 	const { data } = $props();
 
 	let filterOpened = $state(false);
-	let processingJournals = $state(false);
 
 	onNavigate(() => {
 		filterOpened = false;
@@ -45,26 +43,6 @@
 <PageLayout title="LLM Providers" size="xl">
 	{#snippet slotRight()}
 		<div class="flex gap-2">
-			<form
-				method="POST"
-				action="?/processJournals"
-				use:enhance={() => {
-					processingJournals = true;
-
-					return ({ update }) => {
-						processingJournals = false;
-						update();
-					};
-				}}
-			>
-				<Button
-					type="submit"
-					color="primary"
-					disabled={processingJournals || data.providers.filter((p) => p.enabled).length === 0}
-				>
-					{processingJournals ? 'Processing...' : 'Process Journals'}
-				</Button>
-			</form>
 			<Button
 				href={urlGenerator({ address: '/(loggedIn)/llm/providers/create' }).url}
 				color="light"
@@ -137,22 +115,10 @@
 					paramsValue: { id: currentRow.id }
 				}).url}
 
-				{@const logsURL = urlGenerator({
-					address: '/(loggedIn)/llm/logs',
-					searchParamsValue: {
-						page: 0,
-						pageSize: 20,
-						llmSettingsId: currentRow.id
-					}
-				}).url}
-
 				<div class="flex flex-row justify-center">
 					<form method="POST" action="?/update" use:enhance>
 						<input type="hidden" name="id" value={currentRow.id} />
 						<ButtonGroup>
-							<Button href={logsURL} class="p-2" outline color="blue">
-								<EyeIcon height={15} width={15} />
-							</Button>
 							<Button href={detailURL} class="p-2" outline>
 								<EditIcon height={15} width={15} />
 							</Button>
@@ -188,18 +154,7 @@
 			{/if}
 		{/snippet}
 
-		{#snippet slotFilterButtons()}
-			<Button
-				href={urlGenerator({
-					address: '/(loggedIn)/llm/logs',
-					searchParamsValue: { page: 0, pageSize: 10 }
-				}).url}
-				color="light"
-				outline
-			>
-				View All Logs
-			</Button>
-		{/snippet}
+		{#snippet slotFilterButtons()}{/snippet}
 	</CustomTable>
 
 	{#if data.providers.length === 0}

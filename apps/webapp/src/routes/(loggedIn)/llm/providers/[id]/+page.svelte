@@ -67,17 +67,6 @@
 			paramsValue: { id: data.provider.id }
 		}).url
 	);
-
-	const logsURL = $derived(
-		urlGenerator({
-			address: '/(loggedIn)/llm/logs',
-			searchParamsValue: {
-				page: 0,
-				pageSize: 20,
-				llmSettingsId: data.provider.id
-			}
-		}).url
-	);
 </script>
 
 <CustomHeader pageTitle="Edit LLM Provider" filterText={data.provider.title} />
@@ -183,7 +172,6 @@
 
 	<div class="mt-6 flex flex-col gap-2">
 		<PrevPageButton outline>Cancel</PrevPageButton>
-		<Button outline color="blue" href={logsURL}>View Logs for this Provider</Button>
 		<Button outline color="green" href={testConnectionURL}>Test Connection</Button>
 		<Button outline color="red" href={deleteURL}>Delete</Button>
 	</div>

@@ -45,7 +45,6 @@ export * from './schemas/enum/fileOrderByEnum.js';
 export * from './schemas/enum/fileReasonEnum.js';
 export * from './schemas/enum/fileTypeEnum.js';
 export * from './schemas/enum/groupedQueryLogOrderByEnum.js';
-export * from './schemas/enum/llmReviewStatusEnum.js';
 export * from './schemas/enum/noteOrderByEnum.js';
 export * from './schemas/enum/noteTypeEnum.js';
 export * from './schemas/enum/queryLogOrderByEnum.js';

@@ -2,7 +2,6 @@
 	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
 
 	import { defaultAllJournalFilter, defaultJournalFilter } from '@totallator/shared';
-	import { llmReviewStatusEnumSelection } from '@totallator/shared';
 
 	import { enhance } from '$app/forms';
 	import { onNavigate } from '$app/navigation';
@@ -16,7 +15,6 @@
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DateInput from '$lib/components/DateInput.svelte';
 	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
-	import EnumArraySelection from '$lib/components/EnumArraySelection.svelte';
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import FilterModalContent from '$lib/components/FilterModalContent.svelte';
 	import ArrowDownIcon from '$lib/components/icons/ArrowDownIcon.svelte';
@@ -33,7 +31,6 @@
 	import ReconciledIcon from '$lib/components/icons/ReconciledIcon.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
-	import LlmReviewStatusBadge from '$lib/components/LlmReviewStatusBadge.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
 	import RawDataModal from '$lib/components/RawDataModal.svelte';
 	import RecommendationButton from '$lib/components/RecommendationButton.svelte';
@@ -140,7 +137,7 @@
 					rowToDisplay: (row) => row.description,
 					filterActive: Boolean(
 						urlInfo.current.searchParams.description &&
-							urlInfo.current.searchParams.description.length > 0
+						urlInfo.current.searchParams.description.length > 0
 					)
 				},
 				{
@@ -159,13 +156,6 @@
 						amount: row.total
 					}),
 					showTitleOnMobile: true
-				},
-				{
-					id: 'llmReviewStatus',
-					title: 'LLM Status',
-					sortKey: 'llmReviewStatus',
-					customCell: true,
-					filterActive: Boolean(urlInfo.current.searchParams.llmReviewStatus)
 				},
 				{ id: 'relations', title: 'Relations', customCell: true }
 			]}
@@ -435,11 +425,6 @@
 							/>
 						{/each}
 					</div>
-				{:else if currentColumn.id === 'llmReviewStatus'}
-					<LlmReviewStatusBadge
-						status={currentJournal.llmReviewStatus}
-						currentFilter={urlInfo.current.searchParams || defaultJournalFilter()}
-					/>
 				{/if}
 			{/snippet}
 			{#snippet slotHeaderItem({ currentColumn })}
@@ -464,13 +449,6 @@
 							bind:params={urlInfo.current.searchParams.payee}
 							key="title"
 						/>
-					{:else if currentColumn.id === 'llmReviewStatus'}
-						<DropdownItem>
-							<EnumArraySelection
-								bind:values={urlInfo.current.searchParams.llmReviewStatus}
-								enumSelection={llmReviewStatusEnumSelection}
-							/>
-						</DropdownItem>
 					{:else if currentColumn.id === 'dateText'}
 						<DropdownItem>
 							<DateInput

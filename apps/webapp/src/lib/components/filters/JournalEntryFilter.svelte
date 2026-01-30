@@ -5,14 +5,12 @@
 	import { Button, Input } from 'flowbite-svelte';
 
 	import { getDateSpanDropdown } from '@totallator/shared';
-	import { llmReviewStatusEnumSelection } from '@totallator/shared';
 	import type {
 		JournalFilterSchemaType,
 		JournalFilterSchemaWithoutPaginationType
 	} from '@totallator/shared';
 
 	import DateInput from '../DateInput.svelte';
-	import EnumArraySelection from '../EnumArraySelection.svelte';
 	import SelectInput from '../SelectInput.svelte';
 	import TextInput from '../TextInput.svelte';
 	import BooleanFilterButtons from './BooleanFilterButtons.svelte';
@@ -179,10 +177,5 @@
 		onTitle="Reconciled"
 		offTitle="Unreconciled"
 		bind:value={activeFilter.reconciled}
-	/>
-	<div class="flex text-sm font-semibold text-black">LLM Review Status</div>
-	<EnumArraySelection
-		bind:values={activeFilter.llmReviewStatus}
-		enumSelection={llmReviewStatusEnumSelection}
 	/>
 </div>

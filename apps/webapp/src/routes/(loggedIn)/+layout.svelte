@@ -165,15 +165,6 @@
 						active: pageIsLLM,
 						icon: IdeaIcon,
 						href: urlGenerator({ address: '/(loggedIn)/llm/providers' })
-					},
-					{
-						label: 'Logs',
-						active: pageIsLLM,
-						icon: EyeIcon,
-						href: urlGenerator({
-							address: '/(loggedIn)/llm/logs',
-							searchParamsValue: { page: 0, pageSize: 20 }
-						})
 					}
 				]
 			: [],

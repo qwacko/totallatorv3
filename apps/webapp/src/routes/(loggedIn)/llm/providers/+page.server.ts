@@ -1,4 +1,4 @@
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
@@ -57,24 +57,5 @@ export const actions = {
 			});
 			return error(500, 'Error updating LLM provider');
 		}
-	},
-
-	processJournals: async ({ locals }) => {
-		try {
-			locals.global.logger('llm').info({
-				code: 'LLM_0004',
-				title: 'Manual LLM batch processing triggered'
-			});
-		} catch (e) {
-			locals.global.logger('llm').error({
-				code: 'LLM_0006',
-				title: 'LLM Batch Processing Error',
-				error: e
-			});
-			return error(500, 'Error processing journals with LLM');
-		}
-
-		// Redirect back with success message after successful processing
-		throw redirect(302, '/llm/providers?processed=true');
 	}
 };

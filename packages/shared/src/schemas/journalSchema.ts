@@ -7,7 +7,6 @@ import { budgetFilterSchema } from './budgetSchema.js';
 import { categoryFilterSchema } from './categorySchema.js';
 import { dateSpanEnum } from './dateSpanSchema.js';
 import { dateStringSchema } from './dateStringSchema.js';
-import { llmReviewStatusEnum } from './enum/llmReviewStatusEnum.js';
 import { labelFilterSchema } from './labelSchema.js';
 import { linkedFileFilterSchema } from './linkedFileFilterSchema.js';
 import { linkedNoteFilterSchema } from './linkedNoteFilterSchema.js';
@@ -37,8 +36,7 @@ export const createJournalDBCore = z.object({
 	linked: z.boolean().default(true).optional(),
 	reconciled: z.boolean().default(false).optional(),
 	dataChecked: z.boolean().default(false).optional(),
-	complete: z.boolean().default(false).optional(),
-	llmReviewStatus: z.enum(llmReviewStatusEnum).optional()
+	complete: z.boolean().default(false).optional()
 });
 
 export type CreateJournalDBCoreType = z.infer<typeof createJournalDBCore>;
@@ -175,8 +173,7 @@ export const updateJournalSchema = z.object({
 	setComplete: z.coerce.boolean<boolean>().optional().default(false),
 	clearComplete: z.coerce.boolean<boolean>().optional().default(false),
 	setLinked: z.coerce.boolean<boolean>().optional().default(false),
-	clearLinked: z.coerce.boolean<boolean>().optional().default(false),
-	llmReviewStatus: z.enum(llmReviewStatusEnum).optional()
+	clearLinked: z.coerce.boolean<boolean>().optional().default(false)
 });
 
 export const cloneJournalUpdateSchema = z.object({
@@ -207,7 +204,6 @@ export const journalOrderByEnum = [
 	'reconciled',
 	'dataChecked',
 	'complete',
-	'llmReviewStatus',
 	'accountName'
 ] as const;
 
@@ -235,7 +231,6 @@ export const journalFilterSchemaWithoutPagination = z.object({
 	reconciled: z.coerce.boolean<boolean>().optional(),
 	dataChecked: z.coerce.boolean<boolean>().optional(),
 	complete: z.boolean().optional(),
-	llmReviewStatus: z.array(z.enum(llmReviewStatusEnum)).optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
 
@@ -339,7 +334,6 @@ const enumTitles: OrderByEnumTitles = {
 	reconciled: 'Reconciled',
 	dataChecked: 'Data Checked',
 	complete: 'Complete',
-	llmReviewStatus: 'LLM Review Status',
 	accountName: 'Account Title'
 };
 

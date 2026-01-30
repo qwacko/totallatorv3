@@ -57,19 +57,17 @@ import { _routeConfig as routeConfig49 } from '../../../src/routes/(loggedIn)/la
 import { _routeConfig as routeConfig50 } from '../../../src/routes/(loggedIn)/labels/[id]/+page.server';
 import { _routeConfig as routeConfig51 } from '../../../src/routes/(loggedIn)/labels/[id]/delete/+page.server';
 import { _routeConfig as routeConfig52 } from '../../../src/routes/(loggedIn)/labels/download/+server';
-import { _routeConfig as routeConfig53 } from '../../../src/routes/(loggedIn)/llm/logs/+page.server';
-import { _routeConfig as routeConfig54 } from '../../../src/routes/(loggedIn)/llm/logs/[id]/+page.server';
-import { _routeConfig as routeConfig55 } from '../../../src/routes/(loggedIn)/llm/providers/[id]/+page.server';
-import { _routeConfig as routeConfig56 } from '../../../src/routes/(loggedIn)/llm/providers/[id]/delete/+page.server';
-import { _routeConfig as routeConfig57 } from '../../../src/routes/(loggedIn)/queries/grouped/+page.server';
-import { _routeConfig as routeConfig58 } from '../../../src/routes/(loggedIn)/queries/list/+page.server';
-import { _routeConfig as routeConfig59 } from '../../../src/routes/(loggedIn)/reports/[id]/+page.server';
-import { _routeConfig as routeConfig60 } from '../../../src/routes/(loggedIn)/reports/[id]/delete/+page.server';
-import { _routeConfig as routeConfig61 } from '../../../src/routes/(loggedIn)/tags/+page.server';
-import { _routeConfig as routeConfig62 } from '../../../src/routes/(loggedIn)/tags/[id]/+page.server';
-import { _routeConfig as routeConfig63 } from '../../../src/routes/(loggedIn)/tags/[id]/delete/+page.server';
-import { _routeConfig as routeConfig64 } from '../../../src/routes/(loggedIn)/tags/download/+server';
-import { _routeConfig as routeConfig65 } from '../../../src/routes/(loggedIn)/users/+page.server';
+import { _routeConfig as routeConfig53 } from '../../../src/routes/(loggedIn)/llm/providers/[id]/+page.server';
+import { _routeConfig as routeConfig54 } from '../../../src/routes/(loggedIn)/llm/providers/[id]/delete/+page.server';
+import { _routeConfig as routeConfig55 } from '../../../src/routes/(loggedIn)/queries/grouped/+page.server';
+import { _routeConfig as routeConfig56 } from '../../../src/routes/(loggedIn)/queries/list/+page.server';
+import { _routeConfig as routeConfig57 } from '../../../src/routes/(loggedIn)/reports/[id]/+page.server';
+import { _routeConfig as routeConfig58 } from '../../../src/routes/(loggedIn)/reports/[id]/delete/+page.server';
+import { _routeConfig as routeConfig59 } from '../../../src/routes/(loggedIn)/tags/+page.server';
+import { _routeConfig as routeConfig60 } from '../../../src/routes/(loggedIn)/tags/[id]/+page.server';
+import { _routeConfig as routeConfig61 } from '../../../src/routes/(loggedIn)/tags/[id]/delete/+page.server';
+import { _routeConfig as routeConfig62 } from '../../../src/routes/(loggedIn)/tags/download/+server';
+import { _routeConfig as routeConfig63 } from '../../../src/routes/(loggedIn)/users/+page.server';
 
 export const serverRouteConfig = {
   '/(loggedIn)/accounts': {
@@ -596,28 +594,8 @@ export const serverRouteConfig = {
       },
           searchParamsValidation: routeConfig52.searchParamsValidation,
         },
-  '/(loggedIn)/llm/logs': {
-          paramsValidation: {
-        '~standard': {
-          version: 1,
-          vendor: 'skroutes',
-          validate: (v: any) => ({ value: {} })
-        }
-      },
-          searchParamsValidation: routeConfig53.searchParamsValidation,
-        },
-  '/(loggedIn)/llm/logs/[id]': {
-          paramsValidation: routeConfig54.paramsValidation,
-          searchParamsValidation: {
-        '~standard': {
-          version: 1,
-          vendor: 'skroutes',
-          validate: (v: any) => ({ value: {} })
-        }
-      },
-        },
   '/(loggedIn)/llm/providers/[id]': {
-          paramsValidation: routeConfig55.paramsValidation,
+          paramsValidation: routeConfig53.paramsValidation,
           searchParamsValidation: {
         '~standard': {
           version: 1,
@@ -627,7 +605,7 @@ export const serverRouteConfig = {
       },
         },
   '/(loggedIn)/llm/providers/[id]/delete': {
-          paramsValidation: routeConfig56.paramsValidation,
+          paramsValidation: routeConfig54.paramsValidation,
           searchParamsValidation: {
         '~standard': {
           version: 1,
@@ -644,7 +622,7 @@ export const serverRouteConfig = {
           validate: (v: any) => ({ value: {} })
         }
       },
-          searchParamsValidation: routeConfig57.searchParamsValidation,
+          searchParamsValidation: routeConfig55.searchParamsValidation,
         },
   '/(loggedIn)/queries/list': {
           paramsValidation: {
@@ -654,14 +632,14 @@ export const serverRouteConfig = {
           validate: (v: any) => ({ value: {} })
         }
       },
-          searchParamsValidation: routeConfig58.searchParamsValidation,
+          searchParamsValidation: routeConfig56.searchParamsValidation,
         },
   '/(loggedIn)/reports/[id]': {
-          paramsValidation: routeConfig59.paramsValidation,
-          searchParamsValidation: routeConfig59.searchParamsValidation,
+          paramsValidation: routeConfig57.paramsValidation,
+          searchParamsValidation: routeConfig57.searchParamsValidation,
         },
   '/(loggedIn)/reports/[id]/delete': {
-          paramsValidation: routeConfig60.paramsValidation,
+          paramsValidation: routeConfig58.paramsValidation,
           searchParamsValidation: {
         '~standard': {
           version: 1,
@@ -678,10 +656,10 @@ export const serverRouteConfig = {
           validate: (v: any) => ({ value: {} })
         }
       },
-          searchParamsValidation: routeConfig61.searchParamsValidation,
+          searchParamsValidation: routeConfig59.searchParamsValidation,
         },
   '/(loggedIn)/tags/[id]': {
-          paramsValidation: routeConfig62.paramsValidation,
+          paramsValidation: routeConfig60.paramsValidation,
           searchParamsValidation: {
         '~standard': {
           version: 1,
@@ -691,7 +669,7 @@ export const serverRouteConfig = {
       },
         },
   '/(loggedIn)/tags/[id]/delete': {
-          paramsValidation: routeConfig63.paramsValidation,
+          paramsValidation: routeConfig61.paramsValidation,
           searchParamsValidation: {
         '~standard': {
           version: 1,
@@ -708,7 +686,7 @@ export const serverRouteConfig = {
           validate: (v: any) => ({ value: {} })
         }
       },
-          searchParamsValidation: routeConfig64.searchParamsValidation,
+          searchParamsValidation: routeConfig62.searchParamsValidation,
         },
   '/(loggedIn)/users': {
           paramsValidation: {
@@ -718,7 +696,7 @@ export const serverRouteConfig = {
           validate: (v: any) => ({ value: {} })
         }
       },
-          searchParamsValidation: routeConfig65.searchParamsValidation,
+          searchParamsValidation: routeConfig63.searchParamsValidation,
         },
   '/(loggedIn)/accounts/create': {
           paramsValidation: {
@@ -1522,7 +1500,7 @@ export const serverRouteConfig = {
 } as const;
 
 // Export complete route keys for type checking (server has full visibility)
-export type ServerRouteKeys = '/(loggedIn)/accounts' | '/(loggedIn)/accounts/[id]/delete' | '/(loggedIn)/accounts/bulkEdit' | '/(loggedIn)/accounts/download' | '/(loggedIn)/admin/cron' | '/(loggedIn)/admin/cron/[id]' | '/(loggedIn)/admin/cron/executions' | '/(loggedIn)/associated' | '/(loggedIn)/autoImport' | '/(loggedIn)/autoImport/[id]' | '/(loggedIn)/autoImport/[id]/[filename]' | '/(loggedIn)/autoImport/[id]/delete' | '/(loggedIn)/backup' | '/(loggedIn)/backup/[id]' | '/(loggedIn)/backup/download/[filename]' | '/(loggedIn)/bills' | '/(loggedIn)/bills/[id]' | '/(loggedIn)/bills/[id]/delete' | '/(loggedIn)/bills/download' | '/(loggedIn)/budgets' | '/(loggedIn)/budgets/[id]' | '/(loggedIn)/budgets/[id]/delete' | '/(loggedIn)/budgets/download' | '/(loggedIn)/categories' | '/(loggedIn)/categories/[id]' | '/(loggedIn)/categories/[id]/delete' | '/(loggedIn)/categories/download' | '/(loggedIn)/files' | '/(loggedIn)/files/linkUnlinked' | '/(loggedIn)/filters' | '/(loggedIn)/filters/[id]' | '/(loggedIn)/filters/[id]/apply' | '/(loggedIn)/filters/[id]/delete' | '/(loggedIn)/filters/create' | '/(loggedIn)/import' | '/(loggedIn)/import/[id]' | '/(loggedIn)/import/[id]/delete' | '/(loggedIn)/import/[id]/deleteLinked' | '/(loggedIn)/import/[id]/forget' | '/(loggedIn)/importMapping' | '/(loggedIn)/importMapping/[id]' | '/(loggedIn)/importMapping/[id]/delete' | '/(loggedIn)/journals' | '/(loggedIn)/journals/bulkEdit' | '/(loggedIn)/journals/clone' | '/(loggedIn)/journals/create' | '/(loggedIn)/journals/delete' | '/(loggedIn)/journals/download' | '/(loggedIn)/journals/summaryData' | '/(loggedIn)/labels' | '/(loggedIn)/labels/[id]' | '/(loggedIn)/labels/[id]/delete' | '/(loggedIn)/labels/download' | '/(loggedIn)/llm/logs' | '/(loggedIn)/llm/logs/[id]' | '/(loggedIn)/llm/providers/[id]' | '/(loggedIn)/llm/providers/[id]/delete' | '/(loggedIn)/queries/grouped' | '/(loggedIn)/queries/list' | '/(loggedIn)/reports/[id]' | '/(loggedIn)/reports/[id]/delete' | '/(loggedIn)/tags' | '/(loggedIn)/tags/[id]' | '/(loggedIn)/tags/[id]/delete' | '/(loggedIn)/tags/download' | '/(loggedIn)/users' | '/(loggedIn)/accounts/create' | '/(loggedIn)/admin/bullmq' | '/(loggedIn)/autoImport/create' | '/(loggedIn)/backup/import' | '/(loggedIn)/backup-restore-progress' | '/(loggedIn)/bills/create' | '/(loggedIn)/budgets/create' | '/(loggedIn)/categories/create' | '/(loggedIn)/dev/bulkLoad' | '/(loggedIn)/dropdowns/accounts' | '/(loggedIn)/dropdowns/bills' | '/(loggedIn)/dropdowns/budgets' | '/(loggedIn)/dropdowns/categories' | '/(loggedIn)/dropdowns/importMappings' | '/(loggedIn)/dropdowns/labels' | '/(loggedIn)/dropdowns/tags' | '/(loggedIn)/files/[id]' | '/(loggedIn)/files/[id]/[filename]' | '/(loggedIn)/files/[id]/delete' | '/(loggedIn)/files/[id]/image/[filename]' | '/(loggedIn)/files/create' | '/(loggedIn)/files/linkToTransaction/[id]' | '/(loggedIn)/import/create' | '/(loggedIn)/importMapping/create' | '/(loggedIn)/labels/create' | '/(loggedIn)/llm/providers' | '/(loggedIn)/llm/providers/create' | '/(loggedIn)/logConfiguration' | '/(loggedIn)/logout' | '/(loggedIn)/logs' | '/(loggedIn)/reports' | '/(loggedIn)/reports/create' | '/(loggedIn)/reports/element/[id]' | '/(loggedIn)/reports/element/[id]/[item]' | '/(loggedIn)/settings' | '/(loggedIn)/tags/create' | '/(loggedIn)/test' | '/(loggedIn)/users/[id]' | '/(loggedIn)/users/[id]/delete' | '/(loggedIn)/users/[id]/password' | '/(loggedIn)/users/create' | '/(loggedOut)/firstUser' | '/(loggedOut)/login' | '/(loggedOut)/signup' | '/' | '/api/test-tracing';
+export type ServerRouteKeys = '/(loggedIn)/accounts' | '/(loggedIn)/accounts/[id]/delete' | '/(loggedIn)/accounts/bulkEdit' | '/(loggedIn)/accounts/download' | '/(loggedIn)/admin/cron' | '/(loggedIn)/admin/cron/[id]' | '/(loggedIn)/admin/cron/executions' | '/(loggedIn)/associated' | '/(loggedIn)/autoImport' | '/(loggedIn)/autoImport/[id]' | '/(loggedIn)/autoImport/[id]/[filename]' | '/(loggedIn)/autoImport/[id]/delete' | '/(loggedIn)/backup' | '/(loggedIn)/backup/[id]' | '/(loggedIn)/backup/download/[filename]' | '/(loggedIn)/bills' | '/(loggedIn)/bills/[id]' | '/(loggedIn)/bills/[id]/delete' | '/(loggedIn)/bills/download' | '/(loggedIn)/budgets' | '/(loggedIn)/budgets/[id]' | '/(loggedIn)/budgets/[id]/delete' | '/(loggedIn)/budgets/download' | '/(loggedIn)/categories' | '/(loggedIn)/categories/[id]' | '/(loggedIn)/categories/[id]/delete' | '/(loggedIn)/categories/download' | '/(loggedIn)/files' | '/(loggedIn)/files/linkUnlinked' | '/(loggedIn)/filters' | '/(loggedIn)/filters/[id]' | '/(loggedIn)/filters/[id]/apply' | '/(loggedIn)/filters/[id]/delete' | '/(loggedIn)/filters/create' | '/(loggedIn)/import' | '/(loggedIn)/import/[id]' | '/(loggedIn)/import/[id]/delete' | '/(loggedIn)/import/[id]/deleteLinked' | '/(loggedIn)/import/[id]/forget' | '/(loggedIn)/importMapping' | '/(loggedIn)/importMapping/[id]' | '/(loggedIn)/importMapping/[id]/delete' | '/(loggedIn)/journals' | '/(loggedIn)/journals/bulkEdit' | '/(loggedIn)/journals/clone' | '/(loggedIn)/journals/create' | '/(loggedIn)/journals/delete' | '/(loggedIn)/journals/download' | '/(loggedIn)/journals/summaryData' | '/(loggedIn)/labels' | '/(loggedIn)/labels/[id]' | '/(loggedIn)/labels/[id]/delete' | '/(loggedIn)/labels/download' | '/(loggedIn)/llm/providers/[id]' | '/(loggedIn)/llm/providers/[id]/delete' | '/(loggedIn)/queries/grouped' | '/(loggedIn)/queries/list' | '/(loggedIn)/reports/[id]' | '/(loggedIn)/reports/[id]/delete' | '/(loggedIn)/tags' | '/(loggedIn)/tags/[id]' | '/(loggedIn)/tags/[id]/delete' | '/(loggedIn)/tags/download' | '/(loggedIn)/users' | '/(loggedIn)/accounts/create' | '/(loggedIn)/admin/bullmq' | '/(loggedIn)/autoImport/create' | '/(loggedIn)/backup/import' | '/(loggedIn)/backup-restore-progress' | '/(loggedIn)/bills/create' | '/(loggedIn)/budgets/create' | '/(loggedIn)/categories/create' | '/(loggedIn)/dev/bulkLoad' | '/(loggedIn)/dropdowns/accounts' | '/(loggedIn)/dropdowns/bills' | '/(loggedIn)/dropdowns/budgets' | '/(loggedIn)/dropdowns/categories' | '/(loggedIn)/dropdowns/importMappings' | '/(loggedIn)/dropdowns/labels' | '/(loggedIn)/dropdowns/tags' | '/(loggedIn)/files/[id]' | '/(loggedIn)/files/[id]/[filename]' | '/(loggedIn)/files/[id]/delete' | '/(loggedIn)/files/[id]/image/[filename]' | '/(loggedIn)/files/create' | '/(loggedIn)/files/linkToTransaction/[id]' | '/(loggedIn)/import/create' | '/(loggedIn)/importMapping/create' | '/(loggedIn)/labels/create' | '/(loggedIn)/llm/providers' | '/(loggedIn)/llm/providers/create' | '/(loggedIn)/logConfiguration' | '/(loggedIn)/logout' | '/(loggedIn)/logs' | '/(loggedIn)/reports' | '/(loggedIn)/reports/create' | '/(loggedIn)/reports/element/[id]' | '/(loggedIn)/reports/element/[id]/[item]' | '/(loggedIn)/settings' | '/(loggedIn)/tags/create' | '/(loggedIn)/test' | '/(loggedIn)/users/[id]' | '/(loggedIn)/users/[id]/delete' | '/(loggedIn)/users/[id]/password' | '/(loggedIn)/users/create' | '/(loggedOut)/firstUser' | '/(loggedOut)/login' | '/(loggedOut)/signup' | '/' | '/api/test-tracing';
 
 // Export complete type mapping for schema inference (server has full visibility)
 export type ServerRouteTypeMap = {
@@ -1579,19 +1557,17 @@ export type ServerRouteTypeMap = {
   '/(loggedIn)/labels/[id]': { params: StandardSchemaV1.InferOutput<typeof routeConfig50.paramsValidation>; searchParams: {} };
   '/(loggedIn)/labels/[id]/delete': { params: StandardSchemaV1.InferOutput<typeof routeConfig51.paramsValidation>; searchParams: {} };
   '/(loggedIn)/labels/download': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig52.searchParamsValidation> };
-  '/(loggedIn)/llm/logs': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig53.searchParamsValidation> };
-  '/(loggedIn)/llm/logs/[id]': { params: StandardSchemaV1.InferOutput<typeof routeConfig54.paramsValidation>; searchParams: {} };
-  '/(loggedIn)/llm/providers/[id]': { params: StandardSchemaV1.InferOutput<typeof routeConfig55.paramsValidation>; searchParams: {} };
-  '/(loggedIn)/llm/providers/[id]/delete': { params: StandardSchemaV1.InferOutput<typeof routeConfig56.paramsValidation>; searchParams: {} };
-  '/(loggedIn)/queries/grouped': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig57.searchParamsValidation> };
-  '/(loggedIn)/queries/list': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig58.searchParamsValidation> };
-  '/(loggedIn)/reports/[id]': { params: StandardSchemaV1.InferOutput<typeof routeConfig59.paramsValidation>; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig59.searchParamsValidation> };
-  '/(loggedIn)/reports/[id]/delete': { params: StandardSchemaV1.InferOutput<typeof routeConfig60.paramsValidation>; searchParams: {} };
-  '/(loggedIn)/tags': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig61.searchParamsValidation> };
-  '/(loggedIn)/tags/[id]': { params: StandardSchemaV1.InferOutput<typeof routeConfig62.paramsValidation>; searchParams: {} };
-  '/(loggedIn)/tags/[id]/delete': { params: StandardSchemaV1.InferOutput<typeof routeConfig63.paramsValidation>; searchParams: {} };
-  '/(loggedIn)/tags/download': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig64.searchParamsValidation> };
-  '/(loggedIn)/users': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig65.searchParamsValidation> };
+  '/(loggedIn)/llm/providers/[id]': { params: StandardSchemaV1.InferOutput<typeof routeConfig53.paramsValidation>; searchParams: {} };
+  '/(loggedIn)/llm/providers/[id]/delete': { params: StandardSchemaV1.InferOutput<typeof routeConfig54.paramsValidation>; searchParams: {} };
+  '/(loggedIn)/queries/grouped': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig55.searchParamsValidation> };
+  '/(loggedIn)/queries/list': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig56.searchParamsValidation> };
+  '/(loggedIn)/reports/[id]': { params: StandardSchemaV1.InferOutput<typeof routeConfig57.paramsValidation>; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig57.searchParamsValidation> };
+  '/(loggedIn)/reports/[id]/delete': { params: StandardSchemaV1.InferOutput<typeof routeConfig58.paramsValidation>; searchParams: {} };
+  '/(loggedIn)/tags': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig59.searchParamsValidation> };
+  '/(loggedIn)/tags/[id]': { params: StandardSchemaV1.InferOutput<typeof routeConfig60.paramsValidation>; searchParams: {} };
+  '/(loggedIn)/tags/[id]/delete': { params: StandardSchemaV1.InferOutput<typeof routeConfig61.paramsValidation>; searchParams: {} };
+  '/(loggedIn)/tags/download': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig62.searchParamsValidation> };
+  '/(loggedIn)/users': { params: {}; searchParams: StandardSchemaV1.InferOutput<typeof routeConfig63.searchParamsValidation> };
   '/(loggedIn)/accounts/create': { params: {}; searchParams: {} };
   '/(loggedIn)/admin/bullmq': { params: {}; searchParams: {} };
   '/(loggedIn)/autoImport/create': { params: {}; searchParams: {} };

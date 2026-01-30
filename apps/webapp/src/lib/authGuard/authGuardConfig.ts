@@ -120,7 +120,6 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			...adminOnlyConfig,
 			POSTCheck: {
 				update: POSTAllowAdminOnly,
-				processJournals: POSTAllowAdminOnly,
 				...notesActions,
 				...filesActions,
 				...associatedInfoActions
@@ -143,12 +142,6 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				default: POSTAllowAdminOnly
 			}
-		},
-		'/(loggedIn)/llm/logs': {
-			...adminOnlyConfig
-		},
-		'/(loggedIn)/llm/logs/[id]': {
-			...adminOnlyConfig
 		},
 
 		// Admin - Cron Jobs
