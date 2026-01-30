@@ -12,9 +12,9 @@
 		"webapp:preview": "pnpm --filter @totallator/webapp preview",
 		"test": "pnpm --filter @totallator/webapp test",
 		"test:integration": "pnpm --filter @totallator/webapp test:integration",
-		"test:unit": "pnpm --filter @totallator/webapp test:unit",
-		"check": "pnpm --filter @totallator/webapp check",
-		"check:watch": "pnpm --filter @totallator/webapp check:watch",
+		"test:unit": "pnpm --filter @totallator/webapp  --workspace-concurrency=2  test:unit",
+		"check": "pnpm --recursive --filter='!@totallator/docs' check",
+		"check:watch": "pnpm --recursive --filter='!@totallator/docs' check:watch",
 		"lint": "pnpm --recursive lint",
 		"format": "pnpm --recursive format",
 		"lint:webapp": "pnpm --filter @totallator/webapp lint",
@@ -32,9 +32,9 @@
 		"circular:context": "pnpm --filter @totallator/context circular"
 	},
 	"devDependencies": {
-		"@trivago/prettier-plugin-sort-imports": "^6.0.0",
-		"prettier": "^3.7.4",
-		"prettier-plugin-svelte": "^3.4.0",
+		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
+		"prettier": "^3.8.1",
+		"prettier-plugin-svelte": "^3.4.1",
 		"prettier-plugin-tailwindcss": "^0.7.2",
 		"typescript": "^5.9.3"
 	}

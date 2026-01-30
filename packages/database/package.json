@@ -27,17 +27,17 @@
 	},
 	"dependencies": {
 		"@totallator/shared": "workspace:*",
-		"drizzle-orm": "^0.45.0",
-		"postgres": "^3.4.7",
-		"prettier": "^3.7.4",
-		"sql-formatter": "^15.6.10",
-		"zod": "^4.1.13"
+		"drizzle-orm": "^0.45.1",
+		"postgres": "^3.4.8",
+		"prettier": "^3.8.1",
+		"sql-formatter": "^15.7.0",
+		"zod": "^4.3.6"
 	},
 	"devDependencies": {
-		"@trivago/prettier-plugin-sort-imports": "^6.0.0",
-		"@types/node": "^24.10.2",
+		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
+		"@types/node": "^25.1.0",
 		"drizzle-kit": "^0.31.8",
-		"knip": "^5.72.0",
+		"knip": "^5.82.1",
 		"madge": "^8.0.0",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.9.3"

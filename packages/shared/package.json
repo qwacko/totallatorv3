@@ -23,13 +23,13 @@
 		"prepack": "pnpm run build"
 	},
 	"dependencies": {
-		"arktype": "^2.1.28",
-		"lodash-es": "^4.17.21",
-		"prettier": "^3.7.4",
-		"zod": "^4.1.13"
+		"arktype": "^2.1.29",
+		"lodash-es": "^4.17.23",
+		"prettier": "^3.8.1",
+		"zod": "^4.3.6"
 	},
 	"devDependencies": {
-		"@trivago/prettier-plugin-sort-imports": "^6.0.0",
+		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
 		"@types/lodash-es": "^4.17.12",
 		"madge": "^8.0.0",
 		"tsc-alias": "^1.8.16",

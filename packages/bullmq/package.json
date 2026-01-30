@@ -23,13 +23,13 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "bullmq": "^5.65.1",
-    "ioredis": "^5.8.2"
+    "bullmq": "^5.67.2",
+    "ioredis": "^5.9.2"
   },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "madge": "^8.0.0",
-    "prettier": "^3.7.4",
+    "prettier": "^3.8.1",
     "tsc-alias": "^1.8.16",
     "typescript": "^5.9.3"
   }
