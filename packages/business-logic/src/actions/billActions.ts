@@ -48,7 +48,13 @@ type BillActionsType = ItemActionsType<
 	number
 >;
 
-export const billActions: BillActionsType = {
+type ListRecommendationsFromPayeeFunction = (data: { payeeId: string }) => Promise<
+	{ id: string; title: string; fraction: number; count: number }[]
+>;
+
+export const billActions: BillActionsType & {
+	listRecommendationsFromPayee: ListRecommendationsFromPayeeFunction;
+} = {
 	latestUpdate: async () => {
 		const db = getContextDB();
 		const latestUpdate = await dbExecuteLogger(

@@ -212,13 +212,6 @@ export const llmActions = {
 		const result = await runInTransactionWithLogging('Delete LLM Settings', async () => {
 			const db = getContextDB();
 
-			// First delete all related LLM logs
-			await dbExecuteLogger(
-				db.delete(llmLogs).where(eq(llmLogs.llmSettingsId, id)),
-				'LLM Logs - Delete Related'
-			);
-
-			// Then delete the LLM settings
 			const deleted = await dbExecuteLogger(
 				db.delete(llmSettings).where(eq(llmSettings.id, id)).returning(),
 				'LLM Settings - Delete'

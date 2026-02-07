@@ -16,7 +16,6 @@ import { summaryCacheDataSchema, type SummaryCacheSchemaDataType } from '@totall
 import type { DownloadTypeEnumType } from '@totallator/shared';
 
 import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { type EnhancedRecommendationType } from '@/server/services/journalRecommendationService';
 
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import {
@@ -423,7 +422,6 @@ export const journalMaterializedViewActions = {
 			reconciled: boolean | undefined;
 			complete: boolean | undefined;
 			dataChecked: boolean | undefined;
-			llmReviewStatus: LlmReviewStatusEnumType | undefined;
 			otherAccountId: string | undefined;
 			allLabelIds: string[];
 			commonLabelIds: string[];
@@ -447,7 +445,6 @@ export const journalMaterializedViewActions = {
 		const reconciled = getCommonData('reconciled', journalInformation.data);
 		const complete = getCommonData('complete', journalInformation.data);
 		const dataChecked = getCommonData('dataChecked', journalInformation.data);
-		const llmReviewStatus = getCommonData('llmReviewStatus', journalInformation.data);
 		const labelData = getCommonLabelData(journalInformation.data);
 		const otherAccountId = getCommonOtherAccountData(journalInformation.data);
 
@@ -469,7 +466,6 @@ export const journalMaterializedViewActions = {
 				reconciled,
 				complete,
 				dataChecked,
-				llmReviewStatus,
 				...cloneData,
 				...labelData
 			}
@@ -657,6 +653,12 @@ export type RecommendationType = {
 	checkSimilarity: number;
 	checkDescription: string;
 	searchDescription: string;
+};
+
+export type EnhancedRecommendationType = RecommendationType & {
+	source: 'similarity' | 'llm';
+	llmConfidence?: number;
+	llmReasoning?: string;
 };
 
 export type JournalSummaryType = Awaited<

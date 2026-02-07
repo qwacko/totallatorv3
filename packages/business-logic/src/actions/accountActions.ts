@@ -157,7 +157,6 @@ export const accountActions: AccountActionsType & {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	listRecommendationsFromPayee: async () => [],
 	generateCSVData: async ({ filter, returnType }) => {
 		const data = await accountActions.list({
 			filter: { ...filter, page: 0, pageSize: 100000 }

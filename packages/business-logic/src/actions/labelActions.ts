@@ -212,7 +212,6 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 
 		return { count, data: results, pageCount, page, pageSize };
 	},
-	listRecommendationsFromPayee: async () => [],
 	generateCSVData: async ({ filter, returnType }) => {
 		getLogger('labels').info({
 			code: 'LABEL_060',

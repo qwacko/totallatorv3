@@ -50,7 +50,13 @@ type CategoryActionsType = ItemActionsType<
 	number
 >;
 
-export const categoryActions: CategoryActionsType = {
+type ListRecommendationsFromPayeeFunction = (data: { payeeId: string }) => Promise<
+	{ id: string; title: string; fraction: number; count: number }[]
+>;
+
+export const categoryActions: CategoryActionsType & {
+	listRecommendationsFromPayee: ListRecommendationsFromPayeeFunction;
+} = {
 	latestUpdate: async () => {
 		const db = getContextDB();
 		const latestUpdate = await dbExecuteLogger(
