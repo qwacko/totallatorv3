@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
-import { llmLogs, llmSettings, type LLMSettings } from '@totallator/database';
+import { llmSettings, type LLMSettings } from '@totallator/database';
 
 import { getLogger } from '@/logger';
 import { dbExecuteLogger } from '@/server/db/dbLogger';

@@ -53,7 +53,6 @@ export type { ReportLayoutConfigType } from './actions/reportActions.js';
 export type { ReportElementData } from './actions/reportActions.js';
 export type { ReusableFilterDropdownListType } from './actions/reusableFilterActions.js';
 export type { AssociatedInfoLinkType } from './actions/associatedInfoActions.js';
-export type { EnhancedRecommendationType } from './server/services/journalRecommendationService.js';
 
 // Export cron-related types
 export type {

@@ -1,5 +1,4 @@
 import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
-import { llmReviewStatusEnum, type LlmReviewStatusEnumType } from '@totallator/shared';
 
 import { accountTextFilterKeys } from '../account/accountTextFilter';
 import { billTextFilterKeys } from '../bill/billTextFilter';
@@ -198,28 +197,27 @@ const filterArray: TextFilterOptionsType<JournalFilterSchemaWithoutPaginationTyp
 		}
 	},
 	{
-		key: '!complete',
+		key: '!complete:',
 		update: (filter) => {
 			filter.complete = false;
 		}
 	},
 	{
-		key: 'llm:',
-		update: (filter, newFilter) => {
-			if (newFilter.length === 0) return;
-
-			const splitFilter = newFilter.trim().replace('|', ',').split(',');
-
-			for (const currentFilter of splitFilter) {
-				const llmStatus = currentFilter.trim().toLowerCase() as LlmReviewStatusEnumType;
-
-				if (llmReviewStatusEnum.includes(llmStatus)) {
-					if (filter.llmReviewStatus === undefined) {
-						filter.llmReviewStatus = [];
-					}
-					filter.llmReviewStatus.push(llmStatus);
-				}
-			}
+		key: 'linked:',
+		update: (filter) => {
+			filter.linked = true;
+		}
+	},
+	{
+		key: '!linked:',
+		update: (filter) => {
+			filter.linked = false;
+		}
+	},
+	{
+		key: '!complete',
+		update: (filter) => {
+			filter.complete = false;
 		}
 	},
 	{

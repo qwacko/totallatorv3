@@ -14,7 +14,6 @@ import type {
 } from '@totallator/shared';
 import { summaryCacheDataSchema, type SummaryCacheSchemaDataType } from '@totallator/shared';
 import type { DownloadTypeEnumType } from '@totallator/shared';
-import type { LlmReviewStatusEnumType } from '@totallator/shared';
 
 import { dbExecuteLogger } from '@/server/db/dbLogger';
 import { type EnhancedRecommendationType } from '@/server/services/journalRecommendationService';

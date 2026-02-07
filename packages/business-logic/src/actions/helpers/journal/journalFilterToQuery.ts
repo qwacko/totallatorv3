@@ -1,7 +1,6 @@
 import { type DBType } from '@totallator/database';
-import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
+import { type JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import { dateSpanInfo } from '@totallator/shared';
-import { llmReviewStatusEnumTitles } from '@totallator/shared';
 
 import { accountFilterToText, accountIdsToTitles } from '../account/accountFilterToQuery';
 import { billFilterToText } from '../bill/billFilterToQuery';
@@ -119,12 +118,7 @@ export const journalFilterToText = async ({
 		);
 	if (filterInternal.reconciled !== undefined)
 		stringArray.push(filterInternal.reconciled ? 'Is Reconciled' : 'Is Not Reconciled');
-	if (filterInternal.llmReviewStatus && filterInternal.llmReviewStatus.length > 0) {
-		const statusNames = filterInternal.llmReviewStatus.map(
-			(status) => llmReviewStatusEnumTitles[status]
-		);
-		stringArray.push(`LLM Review Status is ${statusNames.join(', ')}`);
-	}
+
 	if (filterInternal.importIdArray && filterInternal.importIdArray.length > 0)
 		stringArray.push(
 			await arrayToText({

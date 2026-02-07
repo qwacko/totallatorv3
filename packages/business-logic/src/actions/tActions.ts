@@ -16,7 +16,6 @@ import { journalLlmSuggestionActions } from './journalLlmSuggestionActions';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { labelActions } from './labelActions';
 import { llmActions } from './llmActions';
-import { llmLogActions } from './llmLogActions';
 import { materializedViewActions } from './materializedViewActions';
 import { noteActions } from './noteActions';
 import { queryLogActions } from './queryLogActions';
@@ -47,7 +46,6 @@ export const tActions = {
 	queryLog: queryLogActions,
 	associatedInfo: associatedInfoActions,
 	llm: llmActions,
-	llmLog: llmLogActions,
 	journalLlmSuggestion: journalLlmSuggestionActions,
 	auth: auth,
 	cronJob: cronJobActions,

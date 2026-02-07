@@ -18,9 +18,6 @@ export type ItemActionsType<
 	count: (filter?: FilterSchema) => Promise<number>;
 	listWithTransactionCount: () => Promise<{ id: string; journalCount: number }[]>;
 	list: (data: { filter: FilterSchema }) => Promise<PaginatedResults<ViewTableType>>;
-	listRecommendationsFromPayee: (data: {
-		payeeId: string;
-	}) => Promise<{ id: string; title: string; count: number; fraction: number }[]>;
 	generateCSVData: (data: {
 		filter?: FilterSchema;
 		returnType: DownloadTypeEnumType;

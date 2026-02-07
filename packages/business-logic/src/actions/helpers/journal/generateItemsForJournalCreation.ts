@@ -3,10 +3,8 @@ import { nanoid } from 'nanoid';
 import type { DBType } from '@totallator/database';
 import { createJournalDBCore, type CreateJournalSchemaType } from '@totallator/shared';
 import type { StatusEnumType } from '@totallator/shared';
-import type { LlmReviewStatusEnumType } from '@totallator/shared';
 
 import { getLogger } from '@/logger';
-import { getServerEnv } from '@/serverEnv';
 
 import { updatedTime } from '../misc/updatedTime';
 import { expandDate } from './expandDate';
@@ -102,47 +100,11 @@ export const generateItemsForJournalCreation = async ({
 	const { labels, accountId, ...restJournalData } = processedJournalData.data;
 	const id = journalId; // Use the previously generated ID
 
-	// Determine LLM review status based on environment variables
-	const determineReviewStatus = (): LlmReviewStatusEnumType => {
-		// If LLM review is globally disabled, never require review
-		if (!getServerEnv().LLM_REVIEW_ENABLED) {
-			return 'not_required';
-		}
-
-		// If this is an import and auto-import review is enabled
-		if (isImport && getServerEnv().LLM_REVIEW_AUTO_IMPORT) {
-			return 'required';
-		}
-
-		// If this is a manual creation and manual create review is enabled
-		if (!isImport && getServerEnv().LLM_REVIEW_MANUAL_CREATE) {
-			return 'required';
-		}
-
-		// Default to not required
-		return 'not_required';
-	};
-
-	const llmReviewStatus = determineReviewStatus();
-
-	getLogger('journals').trace({
-		code: 'JOURNAL_GEN_006',
-		title: 'LLM review status determined',
-		transactionId,
-		journalId: id,
-		llmReviewStatus,
-		isImport,
-		llmEnabled: getServerEnv().LLM_REVIEW_ENABLED,
-		autoImportReview: getServerEnv().LLM_REVIEW_AUTO_IMPORT,
-		manualCreateReview: getServerEnv().LLM_REVIEW_MANUAL_CREATE
-	});
-
 	const journalForCreation = {
 		id,
 		transactionId,
 		accountId: accountId || '',
 		...restJournalData,
-		llmReviewStatus,
 		...updatedTime(),
 		...expandDate(restJournalData.date)
 	};
@@ -162,7 +124,6 @@ export const generateItemsForJournalCreation = async ({
 		journalId: id,
 		duration,
 		labelCount: labelsForCreation.length,
-		llmReviewStatus,
 		accountId: accountId || '',
 		amount: restJournalData.amount
 	});
