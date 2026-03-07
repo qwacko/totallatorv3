@@ -44,3 +44,8 @@ Recent commit history favors short, imperative summaries (for example: `Fix type
 - Copy `.env.example` to `.env` for local setup.
 - Never commit secrets or tokens.
 - For schema changes, update the relevant package under `packages/database` (or `packages/logDatabase`) and include migration files.
+
+## Database Migration Workflow
+- Generate migrations with tooling only: `pnpm --filter @totallator/database db:generate` (or `db:custom` for custom cases).
+- Do not hand-edit `packages/database/src/migrations/meta/_journal.json` or snapshot files in `packages/database/src/migrations/meta/`.
+- If a migration needs manual SQL adjustment, regenerate via CLI so SQL + metadata stay in sync.
