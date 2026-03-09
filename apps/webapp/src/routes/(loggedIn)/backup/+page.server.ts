@@ -7,6 +7,9 @@ import { tActions } from '@totallator/business-logic';
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { failWrapper } from '$lib/helpers/customEnhance';
 import { serverPageInfo, urlGeneratorServer as urlGenerator } from '$lib/routes.server';
+import { addTypedJob } from '$lib/server/bullmq/bullmqService';
+import { WEBAPP_QUEUES } from '$lib/server/bullmq/jobContracts';
+import type { WorkerJobMap } from '$lib/server/bullmq/jobContracts';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -50,11 +53,15 @@ export const load = async (data) => {
 };
 
 export const actions = {
-	refresh: async ({ request, locals }) => {
-		await tActions.backup.refreshList();
+	refresh: async () => {
+		await addTypedJob<WorkerJobMap, 'backup-refresh'>(
+			WEBAPP_QUEUES.BACKGROUND,
+			'backup-refresh',
+			{}
+		);
 	},
-	tidyBackups: async ({ request, locals }) => {
-		await tActions.backup.trimBackups();
+	tidyBackups: async () => {
+		await addTypedJob<WorkerJobMap, 'backup-trim'>(WEBAPP_QUEUES.BACKGROUND, 'backup-trim', {});
 	},
 	backup: async ({ request, locals }) => {
 		try {
@@ -64,7 +71,7 @@ export const actions = {
 			const backupNameValidated =
 				backupName && backupName.length > 0 ? backupName : 'Manual Backup';
 
-			await tActions.backup.storeBackup({
+			await addTypedJob<WorkerJobMap, 'backup-store'>(WEBAPP_QUEUES.BACKGROUND, 'backup-store', {
 				title: backupNameValidated,
 				compress: true,
 				createdBy: 'User',
@@ -84,7 +91,7 @@ export const actions = {
 			const backupNameValidated =
 				backupName && backupName.length > 0 ? backupName : 'Manual Backup';
 
-			await tActions.backup.storeBackup({
+			await addTypedJob<WorkerJobMap, 'backup-store'>(WEBAPP_QUEUES.BACKGROUND, 'backup-store', {
 				title: backupNameValidated,
 				compress: false,
 				createdBy: 'User',

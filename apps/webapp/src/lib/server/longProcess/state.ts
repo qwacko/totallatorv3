@@ -266,3 +266,58 @@ export const getLongJobState = async (jobId: string) => {
 	const raw = await redis.get(getJobStateKey(jobId));
 	return parseJson<LongProcessJobState>(raw);
 };
+
+const getJobStateKeys = async (limit = 200) => {
+	const redis = getRedisClient();
+	let cursor = '0';
+	const keys: string[] = [];
+
+	do {
+		const [nextCursor, batch] = await redis.scan(
+			cursor,
+			'MATCH',
+			`${JOB_STATE_KEY_PREFIX}*:state`,
+			'COUNT',
+			100
+		);
+		cursor = nextCursor;
+		keys.push(...batch);
+		if (keys.length >= limit) {
+			break;
+		}
+	} while (cursor !== '0');
+
+	return keys.slice(0, limit);
+};
+
+export const getLatestLongJobState = async () => {
+	const redis = getRedisClient();
+	const keys = await getJobStateKeys();
+	if (keys.length === 0) {
+		return null;
+	}
+
+	const states = (await redis.mget(...keys))
+		.map((value) => parseJson<LongProcessJobState>(value))
+		.filter((value): value is LongProcessJobState => value !== null);
+
+	if (states.length === 0) {
+		return null;
+	}
+
+	states.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+	return states[0];
+};
+
+export const getLongProcessSnapshot = async () => {
+	const [lock, latestJob] = await Promise.all([getWriteLock(), getLatestLongJobState()]);
+	const activeJob = lock ? (await getLongJobState(lock.jobId)) ?? latestJob : null;
+
+	return {
+		writeLockEnabled: isWriteLockEnabled(),
+		locked: Boolean(lock),
+		lock,
+		activeJob,
+		latestJob
+	};
+};

@@ -10,6 +10,9 @@ import type { ImportFilterSchemaType } from '@totallator/shared';
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { urlGenerator } from '$lib/routes';
 import { serverPageInfo } from '$lib/routes.server';
+import { addTypedJob } from '$lib/server/bullmq/bullmqService';
+import { WEBAPP_QUEUES } from '$lib/server/bullmq/jobContracts';
+import type { WorkerJobMap } from '$lib/server/bullmq/jobContracts';
 
 export const load = async (request) => {
 	authGuard(request);
@@ -105,9 +108,14 @@ export const actions = {
 		});
 	},
 	trigger: async (request) => {
-		await tActions.autoImport.trigger({
-			id: request.params.id
-		});
+		await addTypedJob<WorkerJobMap, 'auto-import-trigger'>(
+			WEBAPP_QUEUES.BACKGROUND,
+			'auto-import-trigger',
+			{
+				autoImportId: request.params.id,
+				triggeredByUserId: request.locals.user?.id
+			}
+		);
 	}
 };
 

@@ -1,5 +1,10 @@
 import { WorkerFactory } from '@totallator/bullmq';
+import {
+	clearInProgressBackupRestores,
+	initializeEventCallbacks
+} from '@totallator/business-logic';
 
+import { globalContext } from '../context/workerContext';
 import {
 	executeCronJobById,
 	setCronQueue,
@@ -9,6 +14,7 @@ import { workerEnv } from '../serverEnv';
 import { WORKER_QUEUES } from './jobContracts';
 import type { WorkerJobMap } from './jobContracts';
 import './jobProcessors/cronControl';
+import './jobProcessors/longRunning';
 import './jobProcessors/testJob';
 
 const createLogger = (category: string) => {
@@ -39,12 +45,17 @@ export const startWorkerService = async () => {
 		concurrency: 2
 	});
 
+	initializeEventCallbacks();
+	await clearInProgressBackupRestores();
+
 	const contextFactory = async () => {
+		const context = await globalContext();
+
 		return {
 			logger: createLogger,
-			db: {} as any,
+			db: context.db,
 			serverEnv: workerEnv,
-			getGlobalContext: undefined
+			getGlobalContext: async () => context
 		};
 	};
 

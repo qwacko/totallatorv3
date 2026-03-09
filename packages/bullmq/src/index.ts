@@ -9,3 +9,6 @@ export * from "./workerFactory.js";
 
 // Export job definitions
 export * from "./jobDefinitions.js";
+
+// Export Totallator job contracts
+export * from "./totallatorJobContracts.js";

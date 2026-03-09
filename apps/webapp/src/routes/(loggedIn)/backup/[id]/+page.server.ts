@@ -7,6 +7,9 @@ import { tActions } from '@totallator/business-logic';
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { failWrapper } from '$lib/helpers/customEnhance';
 import { serverPageInfo, urlGeneratorServer as urlGenerator } from '$lib/routes.server';
+import { addTypedJob } from '$lib/server/bullmq/bullmqService';
+import { WEBAPP_QUEUES } from '$lib/server/bullmq/jobContracts';
+import type { WorkerJobMap } from '$lib/server/bullmq/jobContracts';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -99,11 +102,18 @@ export const actions = {
 		}
 
 		try {
-			await tActions.backup.restoreTrigger({
-				id,
-				includeUsers: false,
-				userId: locals.user?.id
-			});
+			await addTypedJob<WorkerJobMap, 'backup-restore'>(
+				WEBAPP_QUEUES.LONG_RUNNING,
+				'backup-restore',
+				{
+					backupId: id,
+					includeUsers: false,
+					userId: locals.user?.id
+				},
+				{
+					jobId: `backup-restore:${id}`
+				}
+			);
 		} catch (e) {
 			locals.global.logger('backup').error({
 				code: 'BCK_0004',
@@ -127,7 +137,9 @@ export const actions = {
 		}
 
 		try {
-			await tActions.backup.deleteBackup({ id });
+			await addTypedJob<WorkerJobMap, 'backup-delete'>(WEBAPP_QUEUES.BACKGROUND, 'backup-delete', {
+				backupId: id
+			});
 		} catch (e) {
 			locals.global
 				.logger('backup')

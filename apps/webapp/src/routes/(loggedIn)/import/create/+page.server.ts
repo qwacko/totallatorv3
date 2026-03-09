@@ -8,6 +8,10 @@ import { createImportSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
 import { urlGenerator } from '$lib/routes.js';
+import { addTypedJob } from '$lib/server/bullmq/bullmqService';
+import { stageUploadedFile } from '$lib/server/bullmq/fileStaging';
+import { WEBAPP_QUEUES } from '$lib/server/bullmq/jobContracts';
+import type { WorkerJobMap } from '$lib/server/bullmq/jobContracts';
 
 export const load = async (data) => {
 	authGuard(data);
@@ -47,8 +51,6 @@ export const actions = {
 			autoProcess: form.data.autoProcess
 		});
 
-		let newId: undefined | string = undefined;
-
 		try {
 			if (form.data.importMappingId) {
 				const result = await tActions.importMapping.getById({
@@ -69,16 +71,22 @@ export const actions = {
 				}
 			}
 
-			newId = await tActions.import.store({
-				data: form.data
+			const staged = await stageUploadedFile(form.data.file, 'import-store');
+
+			await addTypedJob<WorkerJobMap, 'import-store'>(WEBAPP_QUEUES.LONG_RUNNING, 'import-store', {
+				importType: form.data.importType,
+				importMappingId: form.data.importMappingId,
+				autoProcess: form.data.autoProcess,
+				autoClean: form.data.autoClean,
+				checkImportedOnly: form.data.checkImportedOnly,
+				file: staged
 			});
 
 			const duration = Date.now() - startTime;
 			locals.global.logger('imports').info({
 				code: 'WEB_IMP_014',
-				title: 'Import created successfully via web',
+				title: 'Import queued successfully via web',
 				userId: locals.user?.id,
-				importId: newId,
 				importType: form.data.importType,
 				autoProcess: form.data.autoProcess,
 				duration
@@ -100,31 +108,6 @@ export const actions = {
 			return message(form, 'Unknown Error Loading File', { status: 400 });
 		}
 
-		if (newId) {
-			if (form.data.autoProcess) {
-				locals.global.logger('imports').debug({
-					code: 'WEB_IMP_016',
-					title: 'Import created with auto-process - redirecting to import list',
-					userId: locals.user?.id,
-					importId: newId
-				});
-				redirect(302, urlGenerator({ address: '/(loggedIn)/import', searchParamsValue: {} }).url);
-			} else {
-				locals.global.logger('imports').debug({
-					code: 'WEB_IMP_017',
-					title: 'Import created without auto-process - redirecting to import detail',
-					userId: locals.user?.id,
-					importId: newId
-				});
-				redirect(
-					302,
-					urlGenerator({
-						address: '/(loggedIn)/import/[id]',
-						paramsValue: { id: newId }
-					}).url
-				);
-			}
-		}
-		return message(form, 'Unknown Error. Not Processed');
+		redirect(302, urlGenerator({ address: '/(loggedIn)/import', searchParamsValue: {} }).url);
 	}
 };

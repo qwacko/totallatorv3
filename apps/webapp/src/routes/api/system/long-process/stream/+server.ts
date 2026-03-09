@@ -1,6 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit';
 
-import { getLongProcessEventsChannel, getWriteLock } from '$lib/server/longProcess/state';
+import { getLongProcessEventsChannel, getLongProcessSnapshot } from '$lib/server/longProcess/state';
 import { createRedisSubscriber } from '$lib/server/redis/redisClient';
 
 export const GET: RequestHandler = async () => {
@@ -27,8 +27,8 @@ export const GET: RequestHandler = async () => {
 				}
 			});
 
-			getWriteLock().then((lock) => {
-				sendEvent('snapshot', { lock });
+			getLongProcessSnapshot().then((snapshot) => {
+				sendEvent('snapshot', snapshot);
 			});
 
 			heartbeatInterval = setInterval(() => {

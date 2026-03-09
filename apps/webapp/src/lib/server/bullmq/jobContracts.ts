@@ -1,5 +1,5 @@
-export const WEBAPP_QUEUES = {
-	CRON: 'cron',
-	BACKGROUND: 'background',
-	LONG_RUNNING: 'long-running'
-} as const;
+export { TOTALLATOR_QUEUES as WEBAPP_QUEUES } from '@totallator/bullmq';
+export type {
+	CronControlJobData,
+	TotallatorWorkerJobMap as WorkerJobMap
+} from '@totallator/bullmq';

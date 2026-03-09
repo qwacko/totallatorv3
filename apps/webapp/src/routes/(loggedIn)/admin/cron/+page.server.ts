@@ -9,7 +9,9 @@ import { cronJobUrlFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes.server';
-import { addJob } from '$lib/server/bullmq/bullmqService';
+import { addTypedJob } from '$lib/server/bullmq/bullmqService';
+import { WEBAPP_QUEUES } from '$lib/server/bullmq/jobContracts';
+import type { WorkerJobMap } from '$lib/server/bullmq/jobContracts';
 
 import type { Actions } from './$types';
 
@@ -70,7 +72,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			await addJob('background', 'cron-control', {
+			await addTypedJob<WorkerJobMap, 'cron-control'>(WEBAPP_QUEUES.BACKGROUND, 'cron-control', {
 				action: 'trigger',
 				jobId: form.data.jobId,
 				userId: locals.user.id
@@ -102,7 +104,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			await addJob('background', 'cron-control', {
+			await addTypedJob<WorkerJobMap, 'cron-control'>(WEBAPP_QUEUES.BACKGROUND, 'cron-control', {
 				action: 'toggle',
 				jobId: form.data.jobId,
 				isEnabled: form.data.isEnabled,
