@@ -1,10 +1,12 @@
 import { redirect } from '@sveltejs/kit';
 import type { SingleServerRouteConfig } from 'skroutes';
 
-import { tActions } from '@totallator/business-logic';
 import { idSchema } from '@totallator/shared';
 
 import { urlGenerator } from '$lib/routes';
+import { addTypedJob } from '$lib/server/bullmq/bullmqService';
+import { WEBAPP_QUEUES } from '$lib/server/bullmq/jobContracts';
+import type { WorkerJobMap } from '$lib/server/bullmq/jobContracts';
 
 export const load = async (data) => {
 	const parentData = await data.parent();
@@ -26,7 +28,9 @@ export const actions = {
 	default: async ({ params, locals }) => {
 		let deleted = false;
 		try {
-			await tActions.import.delete({ id: params.id });
+			await addTypedJob<WorkerJobMap, 'import-delete'>(WEBAPP_QUEUES.BACKGROUND, 'import-delete', {
+				importId: params.id
+			});
 			deleted = true;
 		} catch (e) {
 			locals.global.logger('import').error({

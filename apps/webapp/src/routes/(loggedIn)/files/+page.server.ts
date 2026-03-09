@@ -6,6 +6,9 @@ import { fileFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes.server';
+import { addTypedJob } from '$lib/server/bullmq/bullmqService';
+import { WEBAPP_QUEUES } from '$lib/server/bullmq/jobContracts';
+import type { WorkerJobMap } from '$lib/server/bullmq/jobContracts';
 import { extractAutocompleteFromTextFilter } from '$lib/server/helpers/filterConfigExtractor.js';
 
 export const _routeConfig = {
@@ -36,7 +39,11 @@ export const load = async (data) => {
 };
 
 export const actions = {
-	checkFiles: async (data) => {
-		await tActions.file.checkFilesExist();
+	checkFiles: async () => {
+		await addTypedJob<WorkerJobMap, 'file-check-exists'>(
+			WEBAPP_QUEUES.BACKGROUND,
+			'file-check-exists',
+			{}
+		);
 	}
 };

@@ -1,15 +1,20 @@
-import { redirect } from '@sveltejs/kit';
 import type { SingleServerRouteConfig } from 'skroutes';
 
 import { tActions } from '@totallator/business-logic';
 import { idSchema } from '@totallator/shared';
 
-import { urlGenerator } from '$lib/routes';
+import { addTypedJob } from '$lib/server/bullmq/bullmqService';
+import { WEBAPP_QUEUES } from '$lib/server/bullmq/jobContracts';
+import type { WorkerJobMap } from '$lib/server/bullmq/jobContracts';
 
 export const actions = {
 	reprocess: async ({ params, locals }) => {
 		try {
-			await tActions.import.reprocess({ id: params.id });
+			await addTypedJob<WorkerJobMap, 'import-reprocess'>(
+				WEBAPP_QUEUES.BACKGROUND,
+				'import-reprocess',
+				{ importId: params.id }
+			);
 		} catch (e) {
 			locals.global.logger('import').error({
 				code: 'IMP_0003',
@@ -18,10 +23,15 @@ export const actions = {
 			});
 		}
 	},
-	triggerImport: async ({ params, locals }) => tActions.import.triggerImport({ id: params.id }),
+	triggerImport: async ({ params }) =>
+		addTypedJob<WorkerJobMap, 'import-trigger'>(WEBAPP_QUEUES.BACKGROUND, 'import-trigger', {
+			importId: params.id
+		}),
 	clean: async ({ params, locals }) => {
 		try {
-			await tActions.import.clean({ id: params.id });
+			await addTypedJob<WorkerJobMap, 'import-clean'>(WEBAPP_QUEUES.BACKGROUND, 'import-clean', {
+				importId: params.id
+			});
 		} catch (e) {
 			locals.global.logger('import').error({
 				code: 'IMP_0004',
@@ -29,19 +39,8 @@ export const actions = {
 				error: JSON.stringify(e, null, 2)
 			});
 		}
-
-		const importData = await tActions.import.get({
-			id: params.id
-		});
-
-		if (!importData.importInfo) {
-			return redirect(
-				302,
-				urlGenerator({ address: '/(loggedIn)/import', searchParamsValue: {} }).url
-			);
-		}
 	},
-	toggleAutoClean: async ({ params, locals }) => {
+	toggleAutoClean: async ({ params }) => {
 		const id = params.id;
 
 		const importData = await tActions.import.get({ id });
@@ -54,7 +53,7 @@ export const actions = {
 			data: { id, autoClean: !importData.importInfo.import.autoClean }
 		});
 	},
-	toggleAutoProcess: async ({ params, locals }) => {
+	toggleAutoProcess: async ({ params }) => {
 		const id = params.id;
 
 		const importData = await tActions.import.get({ id });

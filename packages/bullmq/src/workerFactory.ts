@@ -1,4 +1,4 @@
-import { Queue, type QueueOptions, Worker } from "bullmq";
+import { Queue, type Job, type QueueOptions, Worker } from "bullmq";
 import IORedis from "ioredis";
 
 import type {
@@ -21,12 +21,15 @@ export interface WorkerFactoryConfig {
 }
 
 export type AddJobOptions = {
+  jobId?: string;
   delay?: number;
   repeat?: { pattern: string };
   priority?: number;
   attempts?: number;
   backoff?: string;
 };
+
+type QueueFactoryOptions = Omit<QueueOptions, "connection">;
 
 export class WorkerFactory {
   private workers: Map<string, Worker> = new Map();
@@ -55,8 +58,8 @@ export class WorkerFactory {
   ): Worker {
     const worker = new Worker(
       queueName,
-      async (job) => {
-        const { type, metadata } = job.data as JobData;
+      async (job: Job<JobData>) => {
+        const { type, metadata } = job.data;
         const processor = workerRegistry.getProcessor(type);
 
         if (!processor) {
@@ -87,15 +90,15 @@ export class WorkerFactory {
       },
     );
 
-    worker.on("completed", (job) => {
+    worker.on("completed", (job: Job<JobData>) => {
       console.log(`✅ Job ${job.id} (${job.data.type}) completed`);
     });
 
-    worker.on("failed", (job, err) => {
+    worker.on("failed", (job: Job<JobData> | undefined, err: Error) => {
       console.error(`❌ Job ${job?.id} (${job?.data?.type}) failed:`, err);
     });
 
-    worker.on("error", (err) => {
+    worker.on("error", (err: Error) => {
       console.error(`🚨 Worker error for ${queueName}:`, err);
     });
 
@@ -106,11 +109,11 @@ export class WorkerFactory {
   /**
    * Get queue instance
    */
-  getQueue(queueName: string, options: QueueOptions = {}): Queue {
+  getQueue(queueName: string, options: QueueFactoryOptions = {}): Queue {
     if (!this.queues.has(queueName)) {
       const queue = new Queue(queueName, {
-        connection: this.connection,
         ...options,
+        connection: this.connection,
       });
       this.queues.set(queueName, queue);
     }
@@ -139,6 +142,7 @@ export class WorkerFactory {
         type: options.backoff || "exponential",
         delay: 2000,
       },
+      jobId: options.jobId,
       delay: options.delay,
       repeat: options.repeat,
       priority: options.priority,
