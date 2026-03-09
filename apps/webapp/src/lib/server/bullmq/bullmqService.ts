@@ -1,75 +1,87 @@
-import type { GlobalContext } from '@totallator/context';
+import { WorkerFactory } from '@totallator/bullmq';
+import type { DefaultJobMap } from '@totallator/bullmq';
 
-import { getQueueStatus, initializeWorker, shutdownWorker } from './setup';
-import { registerTestJob, scheduleTestJob } from './testJob';
+import { serverEnv } from '../serverEnv';
+import { WEBAPP_QUEUES } from './jobContracts';
 
-let isInitialized = false;
+let workerFactory: WorkerFactory | null = null;
 
-/**
- * Initialize BullMQ service
- */
-export const initializeBullMQService = async (getContext: () => Promise<GlobalContext>) => {
-	console.log('[BullMQ] Initializing service...');
-	if (isInitialized) {
-		return;
+const getWorkerFactory = () => {
+	if (!workerFactory) {
+		workerFactory = new WorkerFactory({
+			redis: {
+				host: serverEnv.REDIS_HOST,
+				port: serverEnv.REDIS_PORT,
+				password: serverEnv.REDIS_PASSWORD,
+				db: serverEnv.REDIS_DB
+			},
+			workerId: 'webapp-client',
+			concurrency: 1
+		});
 	}
 
-	try {
-		// Initialize the worker
-		initializeWorker(getContext);
-
-		// Register job processors
-		registerTestJob();
-
-		// Schedule initial jobs
-		await scheduleTestJob();
-
-		isInitialized = true;
-		console.log('[BullMQ] Service initialized successfully');
-	} catch (error) {
-		console.error('[BullMQ] Failed to initialize service:', error);
-		throw error;
-	}
+	return workerFactory;
 };
 
-/**
- * Get BullMQ service status
- */
 export const getBullMQStatus = async () => {
-	if (!isInitialized) {
-		return { initialized: false };
-	}
-
 	try {
-		const queueStatus = await getQueueStatus();
+		const factory = getWorkerFactory();
+		const [cronStatus, backgroundStatus, longRunningStatus] = await Promise.all([
+			getQueueStats(factory.getQueue(WEBAPP_QUEUES.CRON)),
+			getQueueStats(factory.getQueue(WEBAPP_QUEUES.BACKGROUND)),
+			getQueueStats(factory.getQueue(WEBAPP_QUEUES.LONG_RUNNING))
+		]);
+
 		return {
 			initialized: true,
 			queues: {
-				cron: queueStatus
+				cron: cronStatus,
+				background: backgroundStatus,
+				longRunning: longRunningStatus
 			}
 		};
 	} catch (error) {
-		console.error('[BullMQ] Failed to get status:', error);
 		return {
-			initialized: true,
+			initialized: false,
 			error: error instanceof Error ? error.message : 'Unknown error'
 		};
 	}
 };
 
-/**
- * Shutdown BullMQ service
- */
-export const shutdownBullMQService = async () => {
-	if (!isInitialized) {
-		return;
-	}
+async function getQueueStats(queue: any) {
+	const [waiting, active, completed, failed] = await Promise.all([
+		queue.getWaitingCount(),
+		queue.getActiveCount(),
+		queue.getCompletedCount(),
+		queue.getFailedCount()
+	]);
 
-	try {
-		await shutdownWorker();
-		isInitialized = false;
-		console.log('[BullMQ] Service shutdown successfully');
-	} catch (error) {
-		console.error('[BullMQ] Failed to shutdown service:', error);
+	return {
+		waiting,
+		active,
+		completed,
+		failed
+	};
+}
+
+export const addJob = async (queueName: string, type: string, data: unknown, options?: any) => {
+	const factory = getWorkerFactory();
+	return await factory.addJob(queueName, type, data, options);
+};
+
+export const addTypedJob = async <TJobMap extends DefaultJobMap, K extends keyof TJobMap & string>(
+	queueName: string,
+	type: K,
+	data: TJobMap[K]['data'],
+	options?: any
+) => {
+	const factory = getWorkerFactory();
+	return await factory.addTypedJob<TJobMap, K>(queueName, type, data, options);
+};
+
+export const shutdownBullMQService = async () => {
+	if (workerFactory) {
+		await workerFactory.shutdown();
+		workerFactory = null;
 	}
 };

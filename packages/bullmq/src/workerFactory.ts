@@ -1,8 +1,12 @@
-// packages/bullmq/src/workerFactory.ts
-import { Queue, Worker } from "bullmq";
+import { Queue, type QueueOptions, Worker } from "bullmq";
 import IORedis from "ioredis";
 
-import type { JobData, WorkerContext } from "./types.js";
+import type {
+  DefaultJobMap,
+  JobData,
+  TypedJobProcessor,
+  WorkerContext,
+} from "./types.js";
 import { workerRegistry } from "./workerRegistry.js";
 
 export interface WorkerFactoryConfig {
@@ -15,6 +19,14 @@ export interface WorkerFactoryConfig {
   workerId?: string;
   concurrency?: number;
 }
+
+export type AddJobOptions = {
+  delay?: number;
+  repeat?: { pattern: string };
+  priority?: number;
+  attempts?: number;
+  backoff?: string;
+};
 
 export class WorkerFactory {
   private workers: Map<string, Worker> = new Map();
@@ -44,7 +56,7 @@ export class WorkerFactory {
     const worker = new Worker(
       queueName,
       async (job) => {
-        const { type, data, metadata } = job.data as JobData;
+        const { type, metadata } = job.data as JobData;
         const processor = workerRegistry.getProcessor(type);
 
         if (!processor) {
@@ -53,9 +65,8 @@ export class WorkerFactory {
 
         try {
           const context = await contextFactory();
-          const result = await processor(job, context);
+          const result = await processor(job as any, context);
 
-          // Log job completion
           context.logger("bullmq").info({
             title: `Job ${type} completed`,
             code: "BULLMQ_JOB_COMPLETE",
@@ -76,7 +87,6 @@ export class WorkerFactory {
       },
     );
 
-    // Event handlers
     worker.on("completed", (job) => {
       console.log(`✅ Job ${job.id} (${job.data.type}) completed`);
     });
@@ -96,9 +106,12 @@ export class WorkerFactory {
   /**
    * Get queue instance
    */
-  getQueue(queueName: string): Queue {
+  getQueue(queueName: string, options: QueueOptions = {}): Queue {
     if (!this.queues.has(queueName)) {
-      const queue = new Queue(queueName, { connection: this.connection });
+      const queue = new Queue(queueName, {
+        connection: this.connection,
+        ...options,
+      });
       this.queues.set(queueName, queue);
     }
     return this.queues.get(queueName)!;
@@ -110,14 +123,8 @@ export class WorkerFactory {
   async addJob(
     queueName: string,
     type: string,
-    data: any,
-    options: {
-      delay?: number;
-      repeat?: { pattern: string };
-      priority?: number;
-      attempts?: number;
-      backoff?: string;
-    } = {},
+    data: unknown,
+    options: AddJobOptions = {},
   ) {
     const queue = this.getQueue(queueName);
     const jobDef = workerRegistry
@@ -127,9 +134,9 @@ export class WorkerFactory {
     const jobOptions = {
       removeOnComplete: 100,
       removeOnFail: 50,
-      attempts: jobDef?.options?.attempts || 3,
+      attempts: options.attempts || jobDef?.options?.attempts || 3,
       backoff: {
-        type: "exponential",
+        type: options.backoff || "exponential",
         delay: 2000,
       },
       delay: options.delay,
@@ -138,6 +145,33 @@ export class WorkerFactory {
     };
 
     return await queue.add(type, { type, data }, jobOptions);
+  }
+
+  async addTypedJob<
+    TJobMap extends DefaultJobMap,
+    K extends keyof TJobMap & string,
+  >(
+    queueName: string,
+    type: K,
+    data: TJobMap[K]["data"],
+    options: AddJobOptions = {},
+  ) {
+    return this.addJob(queueName, type, data, options);
+  }
+
+  registerTypedProcessor<
+    TJobMap extends DefaultJobMap,
+    K extends keyof TJobMap & string,
+  >(
+    type: K,
+    processor: TypedJobProcessor<TJobMap, K>,
+    options?: {
+      defaultRepeat?: string;
+      defaultPriority?: number;
+      attempts?: number;
+    },
+  ) {
+    workerRegistry.registerTyped(type, processor, options);
   }
 
   /**

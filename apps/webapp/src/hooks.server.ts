@@ -1,5 +1,5 @@
 import { createClient } from '@libsql/client';
-import { redirect, type ServerInit } from '@sveltejs/kit';
+import { json, redirect, type ServerInit } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { nanoid } from 'nanoid';
 import path from 'path';
@@ -28,7 +28,7 @@ import { building } from '$app/environment';
 import { loadConfigServer } from '$lib/routes.server.js';
 
 import { authGuard } from './lib/authGuard/authGuardConfig.js';
-import { initializeNewCronService } from './lib/server/cron/newCronService.js';
+import { getWriteLock, isWriteLocked } from './lib/server/longProcess/state.js';
 import { getServerEnv } from './lib/server/serverEnv.js';
 
 // Set up the paths
@@ -212,6 +212,27 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 			const isNonGetRequest = event.request.method !== 'GET';
 
 			if (isNonGetRequest) {
+				const lockEnabled = await isWriteLocked();
+				if (lockEnabled) {
+					const lock = await getWriteLock();
+					context.global.logger('server').warn({
+						title: 'Write request blocked due to active long-running process lock',
+						code: 'SRV_004',
+						requestId: context.request.requestId,
+						requestURL: event.request.url,
+						lock
+					});
+
+					return json(
+						{
+							message:
+								'Write operations are temporarily locked due to an active long-running process.',
+							lock
+						},
+						{ status: 423 }
+					);
+				}
+
 				context.global.logger('database').debug({
 					title: `Wrapping ${event.request.method} request in transaction`,
 					code: 'DB_005',
@@ -222,9 +243,9 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 				return context.global.db.transaction(async () => {
 					return await resolve(event);
 				});
-			} else {
-				return resolve(event);
 			}
+
+			return resolve(event);
 		} finally {
 			clearTimeout(timeout);
 		}
@@ -274,23 +295,6 @@ export const init: ServerInit = async () => {
 			console.error('Failed to initialize event callbacks:', error);
 		}
 	}, 1500);
-
-	// Initialize cron service
-	setTimeout(async () => {
-		try {
-			await initializeNewCronService(globalContext);
-		} catch (error) {
-			console.error('Failed to initialize cron service:', error);
-			// Retry after 5 seconds if it fails
-			setTimeout(async () => {
-				try {
-					await initializeNewCronService(globalContext);
-				} catch (retryError) {
-					console.error('Failed to initialize cron service on retry:', retryError);
-				}
-			}, 5000);
-		}
-	}, 1000);
 };
 
 // Simple, clean hook sequence

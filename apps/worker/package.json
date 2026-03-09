@@ -1,0 +1,30 @@
+{
+	"name": "@totallator/worker",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "tsx watch src/main.ts",
+		"build": "tsc",
+		"check": "tsc --noEmit",
+		"format": "prettier --write .",
+		"lint": "prettier --check .",
+		"check:watch": "tsc --noEmit --watch"
+	},
+	"dependencies": {
+		"@libsql/client": "^0.17.0",
+		"@totallator/bullmq": "workspace:*",
+		"@totallator/business-logic": "workspace:*",
+		"@totallator/context": "workspace:*",
+		"@totallator/database": "workspace:*",
+		"@totallator/shared": "workspace:*",
+		"dotenv": "^17.2.3"
+	},
+	"devDependencies": {
+		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
+		"@types/node": "^25.1.0",
+		"prettier": "^3.8.1",
+		"tsx": "^4.20.6",
+		"typescript": "^5.9.3"
+	}
+}

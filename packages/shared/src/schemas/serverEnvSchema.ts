@@ -105,6 +105,12 @@ export const serverEnvSchema = z.object({
 	REDIS_PORT: z.coerce.number<number>().optional().default(6379),
 	REDIS_PASSWORD: z.string().optional(),
 	REDIS_DB: z.coerce.number<number>().optional().default(0),
+
+	ENABLE_GLOBAL_WRITE_LOCK: parseEnvStringToBoolean({
+		defaultBoolean: false,
+		optional: true
+	}),
+	LONG_PROCESS_LOCK_TTL_SECONDS: z.coerce.number<number>().optional().default(300),
 	// OpenTelemetry Configuration
 	OTEL_ENABLE_TRACING: parseEnvStringToBoolean({
 		defaultBoolean: false,
