@@ -29,7 +29,12 @@
 		"circular:webapp": "pnpm --filter @totallator/webapp circular",
 		"circular:shared": "pnpm --filter @totallator/shared circular",
 		"circular:database": "pnpm --filter @totallator/database circular",
-		"circular:context": "pnpm --filter @totallator/context circular"
+		"circular:context": "pnpm --filter @totallator/context circular",
+		"worker:dev": "pnpm --filter @totallator/worker dev",
+		"worker:build": "pnpm --filter @totallator/worker build",
+		"worker:check": "pnpm --filter @totallator/worker check",
+		"typecheck": "pnpm check",
+		"dev:root": "pnpm dev"
 	},
 	"devDependencies": {
 		"@trivago/prettier-plugin-sort-imports": "^6.0.2",

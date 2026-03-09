@@ -1,24 +1,29 @@
-// packages/bullmq/src/workerRegistry.ts
-import type { JobData, JobProcessor } from "./types.js";
+import type {
+  DefaultJobMap,
+  JobProcessor,
+  TypedJobProcessor,
+} from "./types.js";
+
+type RegisteredJobDefinition = {
+  type: string;
+  processor: JobProcessor;
+  options?: {
+    defaultRepeat?: string;
+    defaultPriority?: number;
+    attempts?: number;
+  };
+};
 
 export class WorkerRegistry {
   private processors = new Map<string, JobProcessor>();
-  private jobDefinitions: Array<{
-    type: string;
-    processor: JobProcessor;
-    options?: {
-      defaultRepeat?: string;
-      defaultPriority?: number;
-      attempts?: number;
-    };
-  }> = [];
+  private jobDefinitions: RegisteredJobDefinition[] = [];
 
   /**
    * Register a job processor with optional default configuration
    */
-  register<T = any>(
+  register(
     type: string,
-    processor: JobProcessor<T>,
+    processor: JobProcessor,
     options?: {
       defaultRepeat?: string;
       defaultPriority?: number;
@@ -26,7 +31,25 @@ export class WorkerRegistry {
     },
   ) {
     this.processors.set(type, processor);
+    this.jobDefinitions = this.jobDefinitions.filter(
+      (jobDefinition) => jobDefinition.type !== type,
+    );
     this.jobDefinitions.push({ type, processor, options });
+  }
+
+  registerTyped<
+    TJobMap extends DefaultJobMap,
+    K extends keyof TJobMap & string,
+  >(
+    type: K,
+    processor: TypedJobProcessor<TJobMap, K>,
+    options?: {
+      defaultRepeat?: string;
+      defaultPriority?: number;
+      attempts?: number;
+    },
+  ) {
+    this.register(type, processor as JobProcessor, options);
   }
 
   /**
@@ -41,6 +64,15 @@ export class WorkerRegistry {
    */
   getProcessor(type: string): JobProcessor | undefined {
     return this.processors.get(type);
+  }
+
+  getTypedProcessor<
+    TJobMap extends DefaultJobMap,
+    K extends keyof TJobMap & string,
+  >(type: K): TypedJobProcessor<TJobMap, K> | undefined {
+    return this.processors.get(type) as
+      | TypedJobProcessor<TJobMap, K>
+      | undefined;
   }
 
   /**

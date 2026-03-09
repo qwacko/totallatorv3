@@ -9,7 +9,7 @@ import { cronJobUrlFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes.server';
-import { getCronService } from '$lib/server/cron/newCronService';
+import { addJob } from '$lib/server/bullmq/bullmqService';
 
 import type { Actions } from './$types';
 
@@ -70,21 +70,16 @@ export const actions: Actions = {
 		}
 
 		try {
-			const cronService = getCronService();
-			if (!cronService) {
-				return fail(500, { form, message: 'Cron service not available' });
-			}
-
-			const result = await cronService.triggerJob(form.data.jobId, locals.user.id);
-
-			if (!result.success) {
-				return fail(400, { form, message: result.message });
-			}
+			await addJob('background', 'cron-control', {
+				action: 'trigger',
+				jobId: form.data.jobId,
+				userId: locals.user.id
+			});
 
 			return {
 				form,
 				success: true,
-				message: `Job triggered successfully. Execution ID: ${result.executionId}`
+				message: 'Job trigger request queued successfully'
 			};
 		} catch (error) {
 			console.error('Error triggering job:', error);
@@ -107,17 +102,17 @@ export const actions: Actions = {
 		}
 
 		try {
-			const cronService = getCronService();
-			if (!cronService) {
-				return fail(500, { form, message: 'Cron service not available' });
-			}
-
-			await cronService.updateJobStatus(form.data.jobId, form.data.isEnabled, locals.user.id);
+			await addJob('background', 'cron-control', {
+				action: 'toggle',
+				jobId: form.data.jobId,
+				isEnabled: form.data.isEnabled,
+				modifiedBy: locals.user.id
+			});
 
 			return {
 				form,
 				success: true,
-				message: `Job ${form.data.isEnabled ? 'enabled' : 'disabled'} successfully`
+				message: `Job ${form.data.isEnabled ? 'enable' : 'disable'} request queued successfully`
 			};
 		} catch (error) {
 			console.error('Error toggling job:', error);

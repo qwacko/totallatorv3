@@ -1,19 +1,28 @@
-// packages/bullmq/src/types.ts
 import type { Job } from "bullmq";
 
-export interface JobData {
-  type: string;
-  data: any;
-  metadata?: {
-    tenantId?: string;
-    userId?: string;
-    requestId?: string;
+export interface DefaultJobMap {
+  [jobType: string]: {
+    data: unknown;
+    result: JobResult;
+    metadata?: JobMetadata;
   };
 }
 
+export type JobMetadata = {
+  tenantId?: string;
+  userId?: string;
+  requestId?: string;
+};
+
+export type JobData<TData = unknown, TType extends string = string> = {
+  type: TType;
+  data: TData;
+  metadata?: JobMetadata;
+};
+
 export interface JobResult {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
   metrics?: {
     executionTimeMs?: number;
@@ -21,16 +30,21 @@ export interface JobResult {
   };
 }
 
-export interface JobProcessor<T = any> {
-  (job: Job<any>, context: WorkerContext): Promise<JobResult>;
+export interface JobProcessor<TData = unknown, TResult = JobResult> {
+  (job: Job<JobData<TData>>, context: WorkerContext): Promise<TResult>;
 }
+
+export type TypedJobProcessor<
+  TJobMap extends DefaultJobMap,
+  K extends keyof TJobMap & string,
+> = JobProcessor<TJobMap[K]["data"], TJobMap[K]["result"]>;
 
 // Generic types that will be provided by consuming applications
 export interface Logger {
-  info: (data: any) => void;
-  error: (data: any) => void;
-  warn: (data: any) => void;
-  debug: (data: any) => void;
+  info: (data: unknown) => void;
+  error: (data: unknown) => void;
+  warn: (data: unknown) => void;
+  debug: (data: unknown) => void;
 }
 
 export type LoggerFactory = (category: string) => Logger;
