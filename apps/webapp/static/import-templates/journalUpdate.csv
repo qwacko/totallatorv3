@@ -1,0 +1,2 @@
+id,date,description,amount,accountTitle,otherAccountTitle,tagTitle,categoryTitle,billTitle,budgetTitle,addLabelTitles,removeLabels,setReconciled,setDataChecked,setComplete
+journal_existing_123,2026-01-15,Updated memo,6.5,Personal:Banking:Checking,,Recurring,Food,,,Tax Related,,true,true,false

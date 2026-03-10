@@ -1,0 +1,10 @@
+[
+	{
+		"date": "2026-01-15",
+		"description": "Example row",
+		"amount": 6.5,
+		"fromAccountTitle": "Personal:Banking:Checking",
+		"toAccountTitle": "Expenses:Food:Coffee",
+		"uniqueId": "mapped_001"
+	}
+]

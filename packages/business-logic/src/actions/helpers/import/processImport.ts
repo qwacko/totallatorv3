@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import Papa from 'papaparse';
 import { z } from 'zod';
 
@@ -15,6 +15,7 @@ import {
 	tag
 } from '@totallator/database';
 import { createSimpleTransactionSchema } from '@totallator/shared';
+import { updateJournalSchema } from '@totallator/shared';
 import { createAccountSchema } from '@totallator/shared';
 import { createBillSchema } from '@totallator/shared';
 import { createBudgetSchema } from '@totallator/shared';
@@ -35,6 +36,23 @@ import { getImportDetail } from './getImportDetail';
 import { importProcessItems } from './importProcessItems';
 
 type ImportTableType = typeof importTable.$inferSelect;
+
+const createAccountImportSchema = createAccountSchema.extend({
+	id: z.string().optional()
+});
+const createCategoryImportSchema = createCategorySchema.extend({
+	id: z.string().optional()
+});
+const createTagImportSchema = createTagSchema.extend({
+	id: z.string().optional()
+});
+const createLabelImportSchema = createLabelSchema.extend({
+	id: z.string().optional()
+});
+
+const updateJournalImportSchema = updateJournalSchema.extend({
+	id: z.string()
+});
 
 export const processCreatedImport = async ({ id }: { id: string }): Promise<void> => {
 	const db = getContextDB();
@@ -68,6 +86,19 @@ export const processCreatedImport = async ({ id }: { id: string }): Promise<void
 			}
 			return await innerFunc(data);
 		};
+	const splitPrefixedIdentifiers = (data: string[]) => {
+		const idValues: string[] = [];
+		const titleValues: string[] = [];
+		for (const currentItem of data) {
+			if (currentItem.startsWith('id:')) {
+				idValues.push(currentItem.slice(3));
+			} else {
+				titleValues.push(currentItem);
+			}
+		}
+
+		return { idValues, titleValues };
+	};
 	if (importData.source === 'csv') {
 		const rowsToSkip = importMappingInformation?.configuration
 			? importMappingInformation.configuration.rowsToSkip
@@ -103,19 +134,40 @@ export const processCreatedImport = async ({ id }: { id: string }): Promise<void
 					data: processedData,
 					schema: createSimpleTransactionSchema
 				});
+			} else if (importData.type === 'journalUpdate') {
+				await importProcessItems({
+					id,
+					data: processedData,
+					schema: updateJournalImportSchema,
+					getUniqueIdentifier: (data) => `id:${data.id}`,
+					checkUniqueIdentifiers: checkImportDuplicates(async () => [])
+				});
 			} else if (importData.type === 'account') {
 				await importProcessItems({
 					id,
 					data: processedData,
-					schema: createAccountSchema,
+					schema: createAccountImportSchema,
 					getUniqueIdentifier: (data) =>
-						`${data.accountGroupCombined ? data.accountGroupCombined + ':' : ''}:${data.title}`,
+						data.id
+							? `id:${data.id}`
+							: `${data.accountGroupCombined ? data.accountGroupCombined + ':' : ''}:${data.title}`,
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
+						const { idValues, titleValues } = splitPrefixedIdentifiers(data);
 						const existingAccounts = await dbExecuteLogger(
-							db.select().from(account).where(inArrayWrapped(account.accountTitleCombined, data)),
+							db
+								.select()
+								.from(account)
+								.where(
+									or(
+										inArrayWrapped(account.accountTitleCombined, titleValues),
+										inArrayWrapped(account.id, idValues)
+									)
+								),
 							'checkImportDuplicates - account'
 						);
-						return existingAccounts.map((item) => item.accountTitleCombined);
+						return existingAccounts.map((item) =>
+							idValues.includes(item.id) ? `id:${item.id}` : item.accountTitleCombined
+						);
 					})
 				});
 			} else if (importData.type === 'bill') {
@@ -150,42 +202,69 @@ export const processCreatedImport = async ({ id }: { id: string }): Promise<void
 				await importProcessItems({
 					id,
 					data: processedData,
-					schema: createCategorySchema,
-					getUniqueIdentifier: (data) => data.title,
+					schema: createCategoryImportSchema,
+					getUniqueIdentifier: (data) => (data.id ? `id:${data.id}` : data.title),
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
+						const { idValues, titleValues } = splitPrefixedIdentifiers(data);
 						const existingCategories = await dbExecuteLogger(
-							db.select().from(category).where(inArrayWrapped(category.title, data)),
+							db
+								.select()
+								.from(category)
+								.where(
+									or(
+										inArrayWrapped(category.title, titleValues),
+										inArrayWrapped(category.id, idValues)
+									)
+								),
 							'checkImportDuplicates - category'
 						);
-						return existingCategories.map((item) => item.title);
+						return existingCategories.map((item) =>
+							idValues.includes(item.id) ? `id:${item.id}` : item.title
+						);
 					})
 				});
 			} else if (importData.type === 'tag') {
 				await importProcessItems({
 					id,
 					data: processedData,
-					schema: createTagSchema,
-					getUniqueIdentifier: (data) => data.title,
+					schema: createTagImportSchema,
+					getUniqueIdentifier: (data) => (data.id ? `id:${data.id}` : data.title),
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
+						const { idValues, titleValues } = splitPrefixedIdentifiers(data);
 						const existingTags = await dbExecuteLogger(
-							db.select().from(tag).where(inArrayWrapped(tag.title, data)),
+							db
+								.select()
+								.from(tag)
+								.where(
+									or(inArrayWrapped(tag.title, titleValues), inArrayWrapped(tag.id, idValues))
+								),
 							'checkImportDuplicates - tag'
 						);
-						return existingTags.map((item) => item.title);
+						return existingTags.map((item) =>
+							idValues.includes(item.id) ? `id:${item.id}` : item.title
+						);
 					})
 				});
 			} else if (importData.type === 'label') {
 				await importProcessItems({
 					id,
 					data: processedData,
-					schema: createLabelSchema,
-					getUniqueIdentifier: (data) => data.title,
+					schema: createLabelImportSchema,
+					getUniqueIdentifier: (data) => (data.id ? `id:${data.id}` : data.title),
 					checkUniqueIdentifiers: checkImportDuplicates(async (data) => {
+						const { idValues, titleValues } = splitPrefixedIdentifiers(data);
 						const existingLabels = await dbExecuteLogger(
-							db.select().from(label).where(inArrayWrapped(label.title, data)),
+							db
+								.select()
+								.from(label)
+								.where(
+									or(inArrayWrapped(label.title, titleValues), inArrayWrapped(label.id, idValues))
+								),
 							'checkImportDuplicates - label'
 						);
-						return existingLabels.map((item) => item.title);
+						return existingLabels.map((item) =>
+							idValues.includes(item.id) ? `id:${item.id}` : item.title
+						);
 					})
 				});
 			} else if (importData.type === 'mappedImport') {

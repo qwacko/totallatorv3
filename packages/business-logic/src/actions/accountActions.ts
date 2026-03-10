@@ -165,6 +165,7 @@ export const accountActions: AccountActionsType & {
 		const preppedData = data.data.map((item, row) => {
 			if (returnType === 'import') {
 				return {
+					id: item.id,
 					title: item.title,
 					accountGroupCombined: item.accountGroupCombined,
 					type: item.type,
@@ -174,7 +175,7 @@ export const accountActions: AccountActionsType & {
 					isNetWorth: item.isNetWorth,
 					isCatchall: item.isCatchall,
 					status: item.status
-				} satisfies CreateAccountSchemaType;
+				};
 			}
 			return {
 				row,

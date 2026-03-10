@@ -1,0 +1,3 @@
+id,title,accountGroupCombined,type,status,startDate,endDate,isCash,isNetWorth,isCatchall
+,Groceries,,expense,active,,,false,false,false
+acc_existing_123,Checking,Personal:Banking,asset,active,,,true,false,false

@@ -45,9 +45,9 @@ type TagActionsType = ItemActionsType<
 	number
 >;
 
-type ListRecommendationsFromPayeeFunction = (data: { payeeId: string }) => Promise<
-	{ id: string; title: string; fraction: number; count: number }[]
->;
+type ListRecommendationsFromPayeeFunction = (data: {
+	payeeId: string;
+}) => Promise<{ id: string; title: string; fraction: number; count: number }[]>;
 
 export const tagActions: TagActionsType & {
 	listRecommendationsFromPayee: ListRecommendationsFromPayeeFunction;
@@ -184,9 +184,10 @@ export const tagActions: TagActionsType & {
 		const preppedData = data.data.map((item, row) => {
 			if (returnType === 'import') {
 				return {
+					id: item.id,
 					title: item.title,
 					status: item.status
-				} satisfies CreateTagSchemaType;
+				};
 			}
 			return {
 				row,

@@ -7,7 +7,6 @@ import { getContextDB } from '@totallator/context';
 import type { DBType } from '@totallator/database';
 import { journalEntry } from '@totallator/database';
 import type {
-	CreateSimpleTransactionType,
 	JournalFilterSchemaInputType,
 	JournalFilterSchemaType,
 	JournalFilterSchemaWithoutPaginationType
@@ -353,34 +352,21 @@ export const journalMaterializedViewActions = {
 
 		const preppedData = journalDataToUse.map((item, row) => {
 			if (returnType === 'import') {
-				const fromAccountTitle =
-					item.amount > 0 ? item.otherJournals[0].accountTitle : item.accountTitle;
-				const toAccountTitle =
-					item.amount <= 0 ? item.otherJournals[0].accountTitle : item.accountTitle;
-				const amount = item.amount > 0 ? item.amount : -1 * item.amount;
-
 				return {
+					id: item.id,
 					date: item.date.toString().slice(0, 10),
-					fromAccountTitle: fromAccountTitle || undefined,
-					toAccountTitle: toAccountTitle || undefined,
-					amount,
 					description: item.description,
+					amount: item.amount,
+					accountTitle: item.accountTitle || undefined,
+					otherAccountTitle: item.otherJournals[0]?.accountTitle || undefined,
 					billTitle: item.billTitle || undefined,
 					budgetTitle: item.budgetTitle || undefined,
 					categoryTitle: item.categoryTitle || undefined,
 					tagTitle: item.tagTitle || undefined,
-					complete: item.complete,
-					dataChecked: item.dataChecked,
-					reconciled: item.reconciled,
-					importId: undefined,
-					importDetailId: undefined,
-					billId: undefined,
-					budgetId: undefined,
-					categoryId: undefined,
-					tagId: undefined,
-					fromAccountId: undefined,
-					toAccountId: undefined
-				} satisfies CreateSimpleTransactionType;
+					setComplete: item.complete,
+					setDataChecked: item.dataChecked,
+					setReconciled: item.reconciled
+				};
 			}
 			return {
 				row,

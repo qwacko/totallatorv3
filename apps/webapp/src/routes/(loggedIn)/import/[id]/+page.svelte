@@ -136,6 +136,29 @@
 					<JournalEntryIcon />
 				</Button>
 			{/if}
+
+			<Button
+				href={urlGenerator({
+					address: '/(loggedIn)/import/[id]/export',
+					paramsValue: { id: importData.detail.id },
+					searchParamsValue: { scope: 'all' }
+				}).url}
+				outline
+				color="light"
+			>
+				Export All Rows
+			</Button>
+			<Button
+				href={urlGenerator({
+					address: '/(loggedIn)/import/[id]/export',
+					paramsValue: { id: importData.detail.id },
+					searchParamsValue: { scope: 'errors' }
+				}).url}
+				outline
+				color="red"
+			>
+				Export Error Rows
+			</Button>
 			{#if importData.detail.status !== 'complete' && importData.detail.status !== 'importing' && importData.detail.status !== 'awaitingImport' && importCount === 0}
 				<form method="post" action="?/reprocess" use:enhance class="flex self-center">
 					<Button color="blue" type="submit">Reprocess</Button>
