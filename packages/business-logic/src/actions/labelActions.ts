@@ -227,9 +227,10 @@ export const labelActions: Omit<LabelActionsType, 'delete' | 'deleteMany'> & {
 		const preppedData = data.data.map((item, row) => {
 			if (returnType === 'import') {
 				return {
+					id: item.id,
 					title: item.title,
 					status: item.status
-				} satisfies CreateLabelSchemaType;
+				};
 			}
 			return {
 				row,

@@ -1,0 +1,2 @@
+date,description,amount,fromAccountTitle,toAccountTitle,tagTitle,categoryTitle,billTitle,budgetTitle,uniqueId
+2026-01-15,Coffee shop,6.5,Personal:Banking:Checking,Expenses:Food:Coffee,Recurring,Food,,,txn_001

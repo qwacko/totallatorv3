@@ -47,7 +47,10 @@ import {
 	importLabel,
 	importTag
 } from './helpers/import/importHelpers';
-import { importTransaction } from './helpers/import/importHelpers_importTransaction';
+import {
+	importJournalUpdate,
+	importTransaction
+} from './helpers/import/importHelpers_importTransaction';
 import {
 	importListSubquery,
 	type ImportSubqueryReturnData
@@ -604,6 +607,8 @@ export const importActions = {
 					const item = importDetails[index];
 					if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
 						await importTransaction({ item, trx });
+					} else if (importInfo.type === 'journalUpdate') {
+						await importJournalUpdate({ item, trx });
 					} else if (importInfo.type === 'account') {
 						await importAccount({ item, trx });
 					} else if (importInfo.type === 'bill') {

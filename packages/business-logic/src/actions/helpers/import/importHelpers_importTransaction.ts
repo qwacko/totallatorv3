@@ -1,8 +1,13 @@
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 
 import type { DBType } from '@totallator/database';
 import { importItemDetail, transaction } from '@totallator/database';
-import { createCombinedTransactionSchema, createSimpleTransactionSchema } from '@totallator/shared';
+import {
+	createCombinedTransactionSchema,
+	createSimpleTransactionSchema,
+	updateJournalSchema
+} from '@totallator/shared';
 
 import { journalActions } from '@/actions/journalActions';
 import { getLogger } from '@/logger';
@@ -10,6 +15,10 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 import { simpleSchemaToCombinedSchema } from '../journal/simpleSchemaToCombinedSchema';
 import { updatedTime } from '../misc/updatedTime';
+
+const updateJournalImportSchema = updateJournalSchema.extend({
+	id: z.string()
+});
 
 export async function importTransaction({
 	item,
@@ -93,7 +102,6 @@ export async function importTransaction({
 					})
 				);
 			} catch (e) {
-				// Enhanced error logging to capture more details
 				const errorDetails = {
 					message: e instanceof Error ? e.message : 'Unknown error',
 					stack: e instanceof Error ? e.stack : undefined,
@@ -166,6 +174,107 @@ export async function importTransaction({
 				})
 				.where(eq(importItemDetail.id, item.id)),
 			'importTransaction - Mark Error 4'
+		);
+	}
+}
+
+export async function importJournalUpdate({
+	item,
+	trx
+}: {
+	item: typeof importItemDetail.$inferSelect;
+	trx: DBType;
+}): Promise<void> {
+	const processedInfo = item.processedInfo;
+	const processedItem = updateJournalImportSchema.safeParse(
+		processedInfo ? processedInfo.dataToUse : undefined
+	);
+
+	if (!processedItem.success) {
+		await dbExecuteLogger(
+			trx
+				.update(importItemDetail)
+				.set({
+					status: 'importError',
+					errorInfo: { errors: processedItem.error.flatten().formErrors },
+					...updatedTime()
+				})
+				.where(eq(importItemDetail.id, item.id)),
+			'importJournalUpdate - Mark Error Invalid Schema'
+		);
+		return;
+	}
+
+	try {
+		const updatedJournalIds = await journalActions.updateJournals({
+			filter: { idArray: [processedItem.data.id] },
+			journalData: processedItem.data
+		});
+
+		if (!updatedJournalIds || updatedJournalIds.length === 0) {
+			await dbExecuteLogger(
+				trx
+					.update(importItemDetail)
+					.set({
+						status: 'importError',
+						errorInfo: {
+							errors: [
+								'Journal update could not be applied (journal not found or disallowed update)'
+							]
+						},
+						...updatedTime()
+					})
+					.where(eq(importItemDetail.id, item.id)),
+				'importJournalUpdate - Mark Error Update Not Applied'
+			);
+			return;
+		}
+
+		const updatedJournal = await dbExecuteLogger(
+			trx.query.journalEntry.findFirst({
+				where: (journalEntry, { eq }) => eq(journalEntry.id, processedItem.data.id)
+			}),
+			'importJournalUpdate - Find Updated Journal'
+		);
+
+		if (!updatedJournal) {
+			await dbExecuteLogger(
+				trx
+					.update(importItemDetail)
+					.set({
+						status: 'importError',
+						errorInfo: { errors: ['Journal Not Found'] },
+						...updatedTime()
+					})
+					.where(eq(importItemDetail.id, item.id)),
+				'importJournalUpdate - Mark Error Not Found'
+			);
+			return;
+		}
+
+		await dbExecuteLogger(
+			trx
+				.update(importItemDetail)
+				.set({
+					status: 'imported',
+					importInfo: updatedJournal,
+					relationId: updatedJournal.id,
+					...updatedTime()
+				})
+				.where(eq(importItemDetail.id, item.id)),
+			'importJournalUpdate - Mark Imported'
+		);
+	} catch (e) {
+		await dbExecuteLogger(
+			trx
+				.update(importItemDetail)
+				.set({
+					status: 'importError',
+					errorInfo: { error: e },
+					...updatedTime()
+				})
+				.where(eq(importItemDetail.id, item.id)),
+			'importJournalUpdate - Mark Error'
 		);
 	}
 }

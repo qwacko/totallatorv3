@@ -40,6 +40,48 @@
 
 	const isMappedImport = $derived($formData.importType === 'mappedImport');
 	const isTransactionImport = $derived($formData.importType === 'transaction');
+
+	const importTemplateMap: Record<string, { href: string; filename: string }> = {
+		transaction: {
+			href: '/import-templates/transaction.csv',
+			filename: 'transaction-import-template.csv'
+		},
+		journalUpdate: {
+			href: '/import-templates/journalUpdate.csv',
+			filename: 'journal-update-import-template.csv'
+		},
+		account: {
+			href: '/import-templates/account.csv',
+			filename: 'account-import-template.csv'
+		},
+		bill: {
+			href: '/import-templates/bill.csv',
+			filename: 'bill-import-template.csv'
+		},
+		budget: {
+			href: '/import-templates/budget.csv',
+			filename: 'budget-import-template.csv'
+		},
+		category: {
+			href: '/import-templates/category.csv',
+			filename: 'category-import-template.csv'
+		},
+		tag: {
+			href: '/import-templates/tag.csv',
+			filename: 'tag-import-template.csv'
+		},
+		label: {
+			href: '/import-templates/label.csv',
+			filename: 'label-import-template.csv'
+		},
+		mappedImport: {
+			href: '/import-templates/mappedImport.json',
+			filename: 'mapped-import-template.json'
+		}
+	};
+	const selectedImportTemplate = $derived(
+		importTemplateMap[$formData.importType ?? 'mappedImport']
+	);
 </script>
 
 <CustomHeader pageTitle="New Import" />
@@ -65,6 +107,36 @@
 			bind:value={$formData.importType}
 			errorMessage={$errors.importType}
 		/>
+
+		{#if selectedImportTemplate}
+			<div
+				class="rounded border border-blue-200 bg-blue-50 p-3 text-sm dark:border-blue-900 dark:bg-blue-950/30"
+			>
+				<div class="font-medium">Need a starter file?</div>
+				<a
+					href={selectedImportTemplate.href}
+					download={selectedImportTemplate.filename}
+					class="text-blue-700 underline hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-200"
+				>
+					Download {importTypeToTitle($formData.importType, true)} template
+				</a>
+
+				<div class="mt-2 text-xs text-blue-900/90 dark:text-blue-200/90">
+					Templates include example headers. For account/category/tag/label imports, providing an
+					<code>id</code>
+					 updates an existing row; leaving it blank creates a new row.
+				</div>
+			</div>
+		{/if}
+
+		{#if $formData.importType === 'journalUpdate'}
+			<div
+				class="rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
+			>
+				Journal update imports are applied by journal <code>id</code>
+				 and can affect linked entries in the same transaction based on update rules.
+			</div>
+		{/if}
 		{#if isMappedImport}
 			<SelectInput
 				errorMessage={$errors.importMappingId}

@@ -10,7 +10,11 @@ export const linkToImportItems = ({
 	importId: string;
 	importType: importTypeType;
 }) => {
-	if (importType === 'transaction' || importType === 'mappedImport') {
+	if (
+		importType === 'transaction' ||
+		importType === 'journalUpdate' ||
+		importType === 'mappedImport'
+	) {
 		return urlGenerator({
 			address: '/(loggedIn)/journals',
 			searchParamsValue: {

@@ -9,6 +9,7 @@ export const importTypeEnum = [
 	'category',
 	'tag',
 	'label',
+	'journalUpdate',
 	'mappedImport'
 ] as const;
 
@@ -35,6 +36,9 @@ export const importTypeToTitle = (type: importTypeType, single = false) => {
 	}
 	if (type === 'label') {
 		return single ? 'Label' : 'Labels';
+	}
+	if (type === 'journalUpdate') {
+		return single ? 'Journal Update' : 'Journal Updates';
 	}
 	if (type === 'mappedImport') {
 		return single ? 'Mapped Import' : 'Mapped Imports';

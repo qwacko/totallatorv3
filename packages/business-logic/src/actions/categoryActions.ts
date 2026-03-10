@@ -50,9 +50,9 @@ type CategoryActionsType = ItemActionsType<
 	number
 >;
 
-type ListRecommendationsFromPayeeFunction = (data: { payeeId: string }) => Promise<
-	{ id: string; title: string; fraction: number; count: number }[]
->;
+type ListRecommendationsFromPayeeFunction = (data: {
+	payeeId: string;
+}) => Promise<{ id: string; title: string; fraction: number; count: number }[]>;
 
 export const categoryActions: CategoryActionsType & {
 	listRecommendationsFromPayee: ListRecommendationsFromPayeeFunction;
@@ -240,9 +240,10 @@ export const categoryActions: CategoryActionsType & {
 		const preppedData = data.data.map((item, row) => {
 			if (returnType === 'import') {
 				return {
+					id: item.id,
 					title: item.title,
 					status: item.status
-				} satisfies CreateCategorySchemaType;
+				};
 			}
 			return {
 				row,

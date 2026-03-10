@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 
 import type { DBType } from '@totallator/database';
 import {
@@ -27,6 +28,11 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 import { importItem } from './importItem';
 
+const createAccountImportSchema = createAccountSchema.extend({ id: z.string().optional() });
+const createCategoryImportSchema = createCategorySchema.extend({ id: z.string().optional() });
+const createTagImportSchema = createTagSchema.extend({ id: z.string().optional() });
+const createLabelImportSchema = createLabelSchema.extend({ id: z.string().optional() });
+
 export const importAccount = async ({
 	item,
 	trx
@@ -37,8 +43,28 @@ export const importAccount = async ({
 	importItem({
 		db: trx,
 		item,
-		schema: createAccountSchema,
+		schema: createAccountImportSchema,
 		createItem: async (data) => {
+			if (data.item.id) {
+				await accountActions.update({
+					id: data.item.id,
+					data: {
+						...data.item
+					}
+				});
+
+				const updatedItem = await dbExecuteLogger(
+					trx.query.account.findFirst({
+						where: eq(account.id, data.item.id)
+					}),
+					'importAccount - Find Updated Account'
+				);
+
+				if (updatedItem) {
+					return updatedItem;
+				}
+			}
+
 			const importedData = await accountActions.create({
 				...data.item,
 				type: data.item.type || 'expense',
@@ -125,8 +151,28 @@ export const importCategory = async ({
 	importItem({
 		db: trx,
 		item,
-		schema: createCategorySchema,
+		schema: createCategoryImportSchema,
 		createItem: async (data) => {
+			if (data.item.id) {
+				await categoryActions.update({
+					id: data.item.id,
+					data: {
+						...data.item
+					}
+				});
+
+				const updatedItem = await dbExecuteLogger(
+					trx.query.category.findFirst({
+						where: eq(category.id, data.item.id)
+					}),
+					'importCategory - Find Updated Category'
+				);
+
+				if (updatedItem) {
+					return updatedItem;
+				}
+			}
+
 			const importedData = await categoryActions.create({
 				...data.item,
 				status: data.item.status || 'active',
@@ -154,8 +200,28 @@ export const importTag = async ({
 	importItem({
 		db: trx,
 		item,
-		schema: createTagSchema,
+		schema: createTagImportSchema,
 		createItem: async (data) => {
+			if (data.item.id) {
+				await tagActions.update({
+					id: data.item.id,
+					data: {
+						...data.item
+					}
+				});
+
+				const updatedItem = await dbExecuteLogger(
+					trx.query.tag.findFirst({
+						where: eq(tag.id, data.item.id)
+					}),
+					'importTag - Find Updated Tag'
+				);
+
+				if (updatedItem) {
+					return updatedItem;
+				}
+			}
+
 			const importedData = await tagActions.create({
 				...data.item,
 				status: data.item.status || 'active',
@@ -180,11 +246,31 @@ export const importLabel = async ({
 	item: typeof importItemDetail.$inferSelect;
 	trx: DBType;
 }) =>
-	importItem<typeof createLabelSchema, typeof label.$inferSelect>({
+	importItem<typeof createLabelImportSchema, typeof label.$inferSelect>({
 		db: trx,
 		item,
-		schema: createLabelSchema,
+		schema: createLabelImportSchema,
 		createItem: async (data) => {
+			if (data.item.id) {
+				await labelActions.update({
+					id: data.item.id,
+					data: {
+						...data.item
+					}
+				});
+
+				const updatedItem = await dbExecuteLogger(
+					trx.query.label.findFirst({
+						where: eq(label.id, data.item.id)
+					}),
+					'importLabel - Find Updated Label'
+				);
+
+				if (updatedItem) {
+					return updatedItem;
+				}
+			}
+
 			const importedData = await labelActions.create({
 				...data.item,
 				status: data.item.status || 'active',
