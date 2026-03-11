@@ -14,7 +14,6 @@
 		"baseUrl": "./",
 		"paths": {
 			"@/*": ["../../packages/business-logic/src/*"],
-			"@totallator/bullmq": ["../../packages/bullmq/src/index.ts"],
 			"@totallator/business-logic": ["../../packages/business-logic/src/index.ts"],
 			"@totallator/context": ["../../packages/context/src/index.ts"],
 			"@totallator/database": ["../../packages/database/src/index.ts"],
