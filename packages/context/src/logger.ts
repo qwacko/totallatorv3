@@ -1,4 +1,4 @@
-import { type Span, SpanStatusCode, trace } from '@opentelemetry/api';
+import { trace } from '@opentelemetry/api';
 import pino from 'pino';
 import pretty from 'pino-pretty';
 
@@ -6,37 +6,19 @@ import {
 	initializeLogDatabase,
 	type LogActionType,
 	LogDatabaseOperations,
-	LogDBType,
 	type LogDestinationType,
 	type LogDomainType,
 	type LogEntry,
-	LogEntryInsert,
 	type LogLevelType
 } from '@totallator/log-database';
+import type { LogDBType, LogEntryInsert } from '@totallator/log-database';
 import type {
 	LogFilterConfigValidationOutputType,
 	LogFilterValidationOutputType
 } from '@totallator/shared';
 import { logActionEnum, logDomainEnum } from '@totallator/shared';
 
-import { LokiForwarder, type LokiLogEntry } from './lokiForwarder';
-
-// Local Loki types to avoid import issues
-interface LokiLogEntryType {
-	timestamp: number;
-	level: string;
-	domain: string;
-	action?: string;
-	code: string;
-	title: string;
-	message?: string;
-	userId?: string;
-	requestId?: string;
-	routeId?: string;
-	traceId?: string;
-	spanId?: string;
-	[key: string]: any;
-}
+import { LokiForwarder } from './lokiForwarder';
 
 /**
  * Available log levels in order of increasing verbosity.
@@ -96,9 +78,6 @@ async function forwardToLoki(
 	if (process.env.LOKI_ENABLE !== 'true') return;
 
 	try {
-		// Create log message as plain string (not JSON encoded)
-		const logMessage = `${data.title}${data.message ? ': ' + data.message : ''}`;
-
 		// Build stream labels with proper trace ID format for Grafana correlation
 		const streamLabels: Record<string, string> = {
 			service: 'totallator',

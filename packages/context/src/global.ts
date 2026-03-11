@@ -5,8 +5,8 @@ import { initializeLogDatabase } from '@totallator/log-database';
 import { type ServerEnvSchemaType } from '@totallator/shared';
 
 import { createEventEmitter } from './eventEmitter.js';
-import { GlobalContext } from './GlobalContext.js';
-import { createLogger, LoggerDomain, type LoggingSystem } from './logger.js';
+import type { GlobalContext } from './GlobalContext.js';
+import { createLogger } from './logger.js';
 import { createRateLimiter } from './rateLimiter.js';
 
 let globalContext: GlobalContext | null = null;

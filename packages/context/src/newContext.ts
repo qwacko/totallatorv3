@@ -8,7 +8,7 @@ import type { SessionDBType, UserDBType } from '@totallator/database';
 
 import { createContextHandler } from './contextHandler.js';
 import type { GlobalContext } from './GlobalContext.js';
-import { LoggerAction, LoggerDomain } from './logger.js';
+import type { LoggerAction, LoggerDomain } from './logger.js';
 
 /**
  * Enhanced request context that includes all the original fields plus additional metadata
