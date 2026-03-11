@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid';
 import { getContextDB } from '@totallator/context';
 import { journalLlmSuggestions } from '@totallator/database';
 
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 export type CreateJournalLlmSuggestionType = {
 	journalId: string;

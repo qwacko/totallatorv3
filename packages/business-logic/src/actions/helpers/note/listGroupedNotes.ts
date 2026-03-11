@@ -2,11 +2,11 @@ import { desc, eq } from 'drizzle-orm';
 
 import { getContextDB } from '@totallator/context';
 import { associatedInfoTable, notesTable, user } from '@totallator/database';
-import { NoteTypeType } from '@totallator/shared';
+import type { NoteTypeType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
-import { GroupingOptions } from '../file/FilesAndNotesActions';
+import type { GroupingOptions } from '../file/FilesAndNotesActions';
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 
 export const listGroupedNotes = async ({

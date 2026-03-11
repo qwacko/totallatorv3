@@ -1,7 +1,7 @@
 import type { DBType } from '@totallator/database';
 import { budget } from '@totallator/database';
 
-import { budgetCreateInsertionData } from '@/actions/helpers/budget/budgetCreateInsertionData';
+import { budgetCreateInsertionData } from '@totallator/business-logic/actions/helpers/budget/budgetCreateInsertionData';
 
 export const seedTestBudgets = async (db: DBType) =>
 	db.insert(budget).values([

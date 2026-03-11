@@ -8,9 +8,9 @@ import { it } from 'vitest';
 import * as schema from '@totallator/database';
 import type { DBType } from '@totallator/database';
 
-import { materializedViewActions } from '@/actions/materializedViewActions';
-import { getLogger } from '@/logger';
-import { getServerEnv } from '@/serverEnv';
+import { materializedViewActions } from '@totallator/business-logic/actions/materializedViewActions';
+import { getLogger } from '@totallator/business-logic/logger';
+import { getServerEnv } from '@totallator/business-logic/serverEnv';
 
 import { seedTestAccounts } from './seedTestAccounts';
 import { seedTestBills } from './seedTestBills';

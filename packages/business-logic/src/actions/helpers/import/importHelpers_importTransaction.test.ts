@@ -5,18 +5,18 @@ import { importJournalUpdate } from './importHelpers_importTransaction';
 const updateJournalsMock = vi.fn();
 const dbExecuteLoggerMock = vi.fn(async (query: any) => query);
 
-vi.mock('@/actions/journalActions', () => ({
+vi.mock('@totallator/business-logic/actions/journalActions', () => ({
 	journalActions: {
 		updateJournals: (args: any) => updateJournalsMock(args),
 		createManyTransactionJournals: vi.fn()
 	}
 }));
 
-vi.mock('@/logger', () => ({
+vi.mock('@totallator/business-logic/logger', () => ({
 	getLogger: () => ({ debug: vi.fn(), info: vi.fn(), error: vi.fn() })
 }));
 
-vi.mock('@/server/db/dbLogger', () => ({
+vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({
 	dbExecuteLogger: (...args: any[]) => dbExecuteLoggerMock(...args)
 }));
 

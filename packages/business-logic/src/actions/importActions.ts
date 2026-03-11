@@ -25,9 +25,9 @@ import {
 	type UpdateImportSchemaType
 } from '@totallator/shared';
 
-import { getLogger } from '@/logger';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
-import { getServerEnv } from '@/serverEnv';
+import { getLogger } from '@totallator/business-logic/logger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { getServerEnv } from '@totallator/business-logic/serverEnv';
 
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { importFileHandler } from '../server/files/fileHandler';

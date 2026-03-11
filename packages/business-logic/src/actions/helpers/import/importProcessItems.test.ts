@@ -13,7 +13,7 @@ vi.mock('@totallator/context', () => ({
 	})
 }));
 
-vi.mock('@/server/db/dbLogger', () => ({
+vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({
 	dbExecuteLogger: async (query: { value: any }) => {
 		insertedRows.push(query.value);
 		return [];

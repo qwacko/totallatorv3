@@ -9,7 +9,7 @@ import {
 	createTestWrapper,
 	getTestDB,
 	initialiseTestDB
-} from '@/server/db/test/dbTest';
+} from '@totallator/business-logic/server/db/test/dbTest';
 
 import { accountActions } from './accountActions';
 import { journalActions } from './journalActions';

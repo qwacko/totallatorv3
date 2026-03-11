@@ -2,10 +2,10 @@ import { desc, eq } from 'drizzle-orm';
 
 import { getContextDB } from '@totallator/context';
 import { associatedInfoTable, fileTable, user } from '@totallator/database';
-import { FileTypeType } from '@totallator/shared';
+import type { FileTypeType } from '@totallator/shared';
 
 import { inArrayWrapped } from '../misc/inArrayWrapped';
-import { GroupingOptions } from './FilesAndNotesActions';
+import type { GroupingOptions } from './FilesAndNotesActions';
 
 export const listGroupedFiles = async ({
 	ids,

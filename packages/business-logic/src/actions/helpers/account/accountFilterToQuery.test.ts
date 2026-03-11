@@ -11,7 +11,7 @@ import {
 	createTestWrapper,
 	getTestDB,
 	initialiseTestDB
-} from '@/server/db/test/dbTest';
+} from '@totallator/business-logic/server/db/test/dbTest';
 
 import { accountFilterToQuery, accountFilterToText } from './accountFilterToQuery';
 

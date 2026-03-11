@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { importTable } from '@totallator/database';
 import type { DBType } from '@totallator/database';
 
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 const importIdToTitle = async (db: DBType, id: string) => {
 	const foundImport = await dbExecuteLogger(

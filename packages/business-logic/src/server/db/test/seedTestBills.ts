@@ -1,7 +1,7 @@
 import type { DBType } from '@totallator/database';
 import { bill } from '@totallator/database';
 
-import { billCreateInsertionData } from '@/actions/helpers/bill/billCreateInsertionData';
+import { billCreateInsertionData } from '@totallator/business-logic/actions/helpers/bill/billCreateInsertionData';
 
 export const seedTestBills = async (db: DBType) =>
 	db.insert(bill).values([

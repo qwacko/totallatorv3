@@ -4,7 +4,7 @@ import { queryContentsTable, queryLogTable, queryLogTitleTable } from '@totallat
 import type { DBType } from '@totallator/database';
 import type { QueryLogFilterSchemaWithoutPaginationType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 import { arrayToText } from '../misc/arrayToText';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';

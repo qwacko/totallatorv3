@@ -1,6 +1,6 @@
 import type { CreateAccountSchemaType } from '@totallator/shared';
 
-import { combinedAccountTitleSplitRequired } from '@/helpers/combinedAccountTitleSplit';
+import { combinedAccountTitleSplitRequired } from '@totallator/business-logic/helpers/combinedAccountTitleSplit';
 
 import { statusUpdate } from '../misc/statusUpdate';
 import { updatedTime } from '../misc/updatedTime';

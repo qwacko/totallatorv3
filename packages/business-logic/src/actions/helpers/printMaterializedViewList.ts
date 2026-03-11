@@ -9,7 +9,7 @@ import fs from 'fs';
 
 import { buildMaterializedIndexes, dropMaterializedIndexes } from '@totallator/database';
 
-import { getLogger } from '@/logger';
+import { getLogger } from '@totallator/business-logic/logger';
 
 import { sqlToText } from './sqlToText';
 

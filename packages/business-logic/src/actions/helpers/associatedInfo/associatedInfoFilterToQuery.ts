@@ -4,7 +4,7 @@ import type { DBType } from '@totallator/database';
 import { associatedInfoTable } from '@totallator/database';
 import type { AssociatedInfoFilterSchemaType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';
 import { idTitleFilterToQueryMapped, idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';

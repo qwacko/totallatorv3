@@ -14,10 +14,10 @@ import type { currencyFormatType } from '@totallator/shared';
 
 import { type DBDateRangeType, filtersToDateRange } from './filtersToDateRange';
 import {
-	ConfigFilters,
 	getCombinedFilters,
 	type GetDataForFilterKeyType
 } from './getCombinedFilters';
+import type { ConfigFilters } from './getCombinedFilters';
 import { groupedMathConfigToNumber } from './groupedMathConfigToNumber';
 import { mathConfigToNumber } from './mathConfigToNumber';
 import { sparklineConfigToData } from './sparklineConfigToData';

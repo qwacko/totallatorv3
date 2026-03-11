@@ -31,7 +31,7 @@ export interface AppEvents {
 
 ### 2. Create Event Handler
 
-Add a handler function in `packages/business-logic/src/events/eventCallbacks.ts`:
+Add a handler function in `packages@totallator/business-logic/src/events/eventCallbacks.ts`:
 
 ```typescript
 import { type EventListener } from '@totallator/context';

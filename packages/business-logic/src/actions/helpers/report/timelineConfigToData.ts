@@ -5,8 +5,8 @@ import type { ReportConfigPartSchemaTimeGraphType } from '@totallator/shared';
 import { reportConfigPartTrendDisplayInfo } from '@totallator/shared';
 import { reportConfigPartItemGroupingInfo } from '@totallator/shared';
 
-import { filterNullUndefinedAndDuplicates } from '@/helpers/filterNullUndefinedAndDuplicates';
-import { getLogger } from '@/logger';
+import { filterNullUndefinedAndDuplicates } from '@totallator/business-logic/helpers/filterNullUndefinedAndDuplicates';
+import { getLogger } from '@totallator/business-logic/logger';
 
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';

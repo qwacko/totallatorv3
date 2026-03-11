@@ -13,8 +13,6 @@
 		"declaration": false,
 		"baseUrl": "./",
 		"paths": {
-			"@/*": ["../../packages/business-logic/src/*"],
-			"@totallator/business-logic": ["../../packages/business-logic/src/index.ts"],
 			"@totallator/log-database": ["../../packages/logDatabase/src/index.ts"]
 		}
 	},

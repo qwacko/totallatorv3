@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 
-import { getServerEnv } from '@/serverEnv';
+import { getServerEnv } from '@totallator/business-logic/serverEnv';
 
 const ALGORITHM = 'aes-256-cbc';
 const KEY_LENGTH = 32;

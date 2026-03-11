@@ -6,8 +6,8 @@ import type { UserDBType } from '@totallator/database';
 import { key, user } from '@totallator/database';
 import { updateUserSchema, type updateUserSchemaType } from '@totallator/shared';
 
-import { getLogger } from '@/logger';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { getLogger } from '@totallator/business-logic/logger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 import { fixedDelay } from '../helpers/fixedDelay';
 import { checkHashedPassword, hashPassword } from './helpers/hashPassword';

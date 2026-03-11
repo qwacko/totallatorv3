@@ -4,7 +4,7 @@ import type { DBType } from '@totallator/database';
 import { llmSettings } from '@totallator/database';
 import { llmLogs } from '@totallator/database';
 
-import { closeTestDB, getTestDB } from '@/server/db/test/dbTest';
+import { closeTestDB, getTestDB } from '@totallator/business-logic/server/db/test/dbTest';
 
 import { type CreateLLMSettingsType, llmActions, type UpdateLLMSettingsType } from './llmActions';
 

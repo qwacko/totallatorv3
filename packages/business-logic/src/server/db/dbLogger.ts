@@ -1,10 +1,11 @@
 import { PgRaw } from 'drizzle-orm/pg-core/query-builders/raw';
 import { nanoid } from 'nanoid';
 
-import { getContext, GlobalContext } from '@totallator/context';
+import { getContext } from '@totallator/context';
+import type { GlobalContext } from '@totallator/context';
 import { queryLogTable } from '@totallator/database';
 
-import { queryLogActions } from '@/actions/queryLogActions';
+import { queryLogActions } from '@totallator/business-logic/actions/queryLogActions';
 
 type QueryCache = {
 	title?: string;

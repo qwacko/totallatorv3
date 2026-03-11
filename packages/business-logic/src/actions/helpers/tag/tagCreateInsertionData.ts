@@ -1,6 +1,6 @@
 import type { CreateTagSchemaType } from '@totallator/shared';
 
-import { combinedTitleSplitRequired } from '@/helpers/combinedTitleSplit';
+import { combinedTitleSplitRequired } from '@totallator/business-logic/helpers/combinedTitleSplit';
 
 import { statusUpdate } from '../misc/statusUpdate';
 import { updatedTime } from '../misc/updatedTime';

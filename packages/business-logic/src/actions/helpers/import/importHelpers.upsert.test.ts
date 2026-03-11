@@ -16,37 +16,37 @@ vi.mock('./importItem', () => ({
 	importItem: (args: any) => importItemMock(args)
 }));
 
-vi.mock('@/actions/accountActions', () => ({
+vi.mock('@totallator/business-logic/actions/accountActions', () => ({
 	accountActions: {
 		update: (args: any) => accountUpdateMock(args),
 		create: (args: any) => accountCreateMock(args)
 	}
 }));
 
-vi.mock('@/actions/categoryActions', () => ({
+vi.mock('@totallator/business-logic/actions/categoryActions', () => ({
 	categoryActions: {
 		update: (args: any) => categoryUpdateMock(args),
 		create: (args: any) => categoryCreateMock(args)
 	}
 }));
 
-vi.mock('@/actions/tagActions', () => ({
+vi.mock('@totallator/business-logic/actions/tagActions', () => ({
 	tagActions: {
 		update: (args: any) => tagUpdateMock(args),
 		create: (args: any) => tagCreateMock(args)
 	}
 }));
 
-vi.mock('@/actions/labelActions', () => ({
+vi.mock('@totallator/business-logic/actions/labelActions', () => ({
 	labelActions: {
 		update: (args: any) => labelUpdateMock(args),
 		create: (args: any) => labelCreateMock(args)
 	}
 }));
 
-vi.mock('@/actions/billActions', () => ({ billActions: { create: vi.fn() } }));
-vi.mock('@/actions/budgetActions', () => ({ budgetActions: { create: vi.fn() } }));
-vi.mock('@/server/db/dbLogger', () => ({ dbExecuteLogger: async (fn: any) => fn }));
+vi.mock('@totallator/business-logic/actions/billActions', () => ({ billActions: { create: vi.fn() } }));
+vi.mock('@totallator/business-logic/actions/budgetActions', () => ({ budgetActions: { create: vi.fn() } }));
+vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({ dbExecuteLogger: async (fn: any) => fn }));
 
 const createTrx = ({ accountFound, categoryFound, tagFound, labelFound }: any) =>
 	({

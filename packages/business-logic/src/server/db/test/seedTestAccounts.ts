@@ -1,8 +1,8 @@
 import type { DBType } from '@totallator/database';
 import { account } from '@totallator/database';
 
-import { accountCreateInsertionData } from '@/actions/helpers/account/accountCreateInsertionData';
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { accountCreateInsertionData } from '@totallator/business-logic/actions/helpers/account/accountCreateInsertionData';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 export const seedTestAccounts = async (db: DBType) => {
 	await dbExecuteLogger(

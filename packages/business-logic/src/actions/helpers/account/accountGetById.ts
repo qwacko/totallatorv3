@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { getContextDB } from '@totallator/context';
 import { account } from '@totallator/database';
 
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 export const accountGetById = async (id: string) => {
 	const db = getContextDB();

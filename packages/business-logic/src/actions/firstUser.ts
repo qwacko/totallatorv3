@@ -4,7 +4,7 @@ import type { GlobalContext } from '@totallator/context';
 import type { DBType } from '@totallator/database';
 import { user } from '@totallator/database';
 
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 // Legacy function - kept for backward compatibility
 export const dbUserCount = async (db: DBType): Promise<number> => {

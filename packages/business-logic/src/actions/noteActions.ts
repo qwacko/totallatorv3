@@ -24,7 +24,7 @@ import {
 	type UpdateNoteSchemaType
 } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@/server/db/dbLogger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { accountActions } from './accountActions';
@@ -37,7 +37,8 @@ import type { FilesAndNotesActions } from './helpers/file/FilesAndNotesActions';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { addNoteToAssociatedInfo } from './helpers/note/addNoteToAssociatedInfo';
-import { GroupedNotesType, listGroupedNotes } from './helpers/note/listGroupedNotes';
+import { listGroupedNotes } from './helpers/note/listGroupedNotes';
+import type { GroupedNotesType } from './helpers/note/listGroupedNotes';
 import { noteFilterToQuery, noteFilterToText } from './helpers/note/noteFilterToQuery';
 import { noteToOrderByToSQL } from './helpers/note/noteOrderByToSQL';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';

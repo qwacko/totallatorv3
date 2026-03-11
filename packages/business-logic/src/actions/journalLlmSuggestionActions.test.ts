@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { clearTestDB, closeTestDB, getTestDB, initialiseTestDB } from '@/server/db/test/dbTest';
+import { clearTestDB, closeTestDB, getTestDB, initialiseTestDB } from '@totallator/business-logic/server/db/test/dbTest';
 
 import { journalActions } from './journalActions';
 import { journalLlmSuggestionActions } from './journalLlmSuggestionActions';

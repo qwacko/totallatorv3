@@ -1,4 +1,4 @@
-import { getServerEnv } from '@/serverEnv';
+import { getServerEnv } from '@totallator/business-logic/serverEnv';
 
 import { fixedDelay } from '../helpers/fixedDelay';
 
