@@ -1,8 +1,8 @@
 import type { Queue } from 'bullmq';
-import { eq } from 'drizzle-orm';
 
-import { cronJobDefinitions } from '@totallator/business-logic/server/cron/cronJobDefinitions';
+import { cronJobDefinitions } from '@totallator/business-logic';
 import { cronJob, cronJobExecution } from '@totallator/database';
+import { eq } from 'drizzle-orm';
 
 import { globalContext, standaloneContext } from '../context/workerContext';
 
@@ -38,9 +38,11 @@ export const syncCronDefinitionsAndSchedules = async () => {
 
 	for (const jobDef of cronJobDefinitions) {
 		const schedule = resolveScheduleExpression(jobDef.schedule, env);
-		const existing = await db.select().from(cronJob).where(eq(cronJob.name, jobDef.name)).limit(1);
+		const existing = await db.query.cronJob.findFirst({
+			where: (cronjob, { eq }) => eq(cronjob.name, jobDef.name)
+		});
 
-		if (existing.length === 0) {
+		if (!existing) {
 			await db.insert(cronJob).values({
 				name: jobDef.name,
 				description: jobDef.description,
@@ -62,7 +64,7 @@ export const syncCronDefinitionsAndSchedules = async () => {
 					updatedAt: new Date(),
 					lastModifiedBy: 'system'
 				})
-				.where(eq(cronJob.id, existing[0].id));
+				.where(eq(cronJob.id, existing.id));
 		}
 	}
 
@@ -77,7 +79,9 @@ export const syncCronDefinitionsAndSchedules = async () => {
 			continue;
 		}
 
-		const expectedPattern = desiredRepeatJobs.get(repeatableJob.id);
+		const expectedPattern = repeatableJob.id
+			? desiredRepeatJobs.get(repeatableJob.id)
+			: undefined;
 		if (!expectedPattern || expectedPattern !== repeatableJob.pattern) {
 			await cronQueue.removeRepeatableByKey(repeatableJob.key);
 		}

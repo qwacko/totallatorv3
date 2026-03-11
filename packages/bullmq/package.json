@@ -23,6 +23,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
+    "@totallator/shared": "workspace:*",
     "bullmq": "^5.67.2",
     "ioredis": "^5.9.2"
   },

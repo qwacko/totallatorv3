@@ -2,20 +2,24 @@
 	"compilerOptions": {
 		"target": "ES2022",
 		"module": "ESNext",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"isolatedModules": true,
-		"noEmit": false,
+		"noEmit": true,
 		"strict": true,
 		"skipLibCheck": true,
 		"declaration": false,
-		"outDir": "./dist",
-		"rootDir": "./src",
 		"baseUrl": "./",
 		"paths": {
-			"@/*": ["src/*"]
+			"@/*": ["../../packages/business-logic/src/*"],
+			"@totallator/bullmq": ["../../packages/bullmq/src/index.ts"],
+			"@totallator/business-logic": ["../../packages/business-logic/src/index.ts"],
+			"@totallator/context": ["../../packages/context/src/index.ts"],
+			"@totallator/database": ["../../packages/database/src/index.ts"],
+			"@totallator/log-database": ["../../packages/logDatabase/src/index.ts"],
+			"@totallator/shared": ["../../packages/shared/src/index.ts"]
 		}
 	},
 	"include": ["src/**/*"],

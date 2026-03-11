@@ -54,7 +54,7 @@ const getStorage = () => {
 export const readStagedFile = async (file: StagedFileData) => {
 	const storage = getStorage();
 	const data = await storage.readToBuffer(file.storageKey);
-	return new File([data], file.originalName, { type: file.mimeType });
+	return new File([Uint8Array.from(data)], file.originalName, { type: file.mimeType });
 };
 
 export const cleanupStagedFile = async (file: StagedFileData) => {
