@@ -1,5 +1,15 @@
 import type { DefaultJobMap, JobResult } from "./types.js";
-import type { importTypeType } from "@totallator/shared";
+
+type ImportStoreType =
+  | "transaction"
+  | "account"
+  | "bill"
+  | "budget"
+  | "category"
+  | "tag"
+  | "label"
+  | "journalUpdate"
+  | "mappedImport";
 
 export const TOTALLATOR_QUEUES = {
   CRON: "cron",
@@ -42,7 +52,7 @@ export type AutoImportTriggerJobData = {
 };
 
 export type ImportStoreJobData = {
-  importType: importTypeType;
+  importType: ImportStoreType;
   importMappingId?: string;
   autoProcess: boolean;
   autoClean: boolean;

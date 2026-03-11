@@ -51,7 +51,7 @@ describe('importProcessItems', () => {
 		expect(insertedRows[1].uniqueId).toBe('id:abc');
 	});
 
-	it('stores field-level zod errors for invalid rows', async () => {
+	it('stores flattened zod errors for invalid rows', async () => {
 		await importProcessItems({
 			id: 'import-2',
 			data: {
@@ -65,9 +65,8 @@ describe('importProcessItems', () => {
 
 		expect(insertedRows).toHaveLength(1);
 		expect(insertedRows[0].status).toBe('error');
-		expect(insertedRows[0].errorInfo.fieldErrors).toMatchObject({
-			title: expect.any(Array),
-			amount: expect.any(Array)
-		});
+		expect(insertedRows[0].errorInfo.errors).toEqual(
+			expect.arrayContaining([expect.stringContaining('title:'), expect.stringContaining('amount:')])
+		);
 	});
 });

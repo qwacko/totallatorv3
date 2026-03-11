@@ -20,6 +20,22 @@ const updateJournalImportSchema = updateJournalSchema.extend({
 	id: z.string()
 });
 
+const serializeError = (error: unknown): Record<string, unknown> => {
+	if (error instanceof Error) {
+		return {
+			message: error.message,
+			name: error.name,
+			stack: error.stack
+		};
+	}
+
+	if (error && typeof error === 'object' && !Array.isArray(error)) {
+		return error as Record<string, unknown>;
+	}
+
+	return { value: error };
+};
+
 export async function importTransaction({
 	item,
 	trx
@@ -266,14 +282,14 @@ export async function importJournalUpdate({
 		);
 	} catch (e) {
 		await dbExecuteLogger(
-			trx
-				.update(importItemDetail)
-				.set({
-					status: 'importError',
-					errorInfo: { error: e },
-					...updatedTime()
-				})
-				.where(eq(importItemDetail.id, item.id)),
+				trx
+					.update(importItemDetail)
+					.set({
+						status: 'importError',
+						errorInfo: { error: serializeError(e) },
+						...updatedTime()
+					})
+					.where(eq(importItemDetail.id, item.id)),
 			'importJournalUpdate - Mark Error'
 		);
 	}

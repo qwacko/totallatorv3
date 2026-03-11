@@ -19,6 +19,20 @@ import { dbExecuteLogger } from '@/server/db/dbLogger';
 
 import { updatedTime } from '../misc/updatedTime';
 
+const toRecord = (value: unknown): Record<string, unknown> => {
+	if (value && typeof value === 'object' && !Array.isArray(value)) {
+		return value as Record<string, unknown>;
+	}
+
+	return { value };
+};
+
+const flattenFieldErrors = (fieldErrors: Record<string, string[] | undefined>): string[] => {
+	return Object.entries(fieldErrors).flatMap(([field, errors]) =>
+		(errors || []).map((error) => `${field}: ${error}`)
+	);
+};
+
 type ProcessItemsType =
 	| typeof createSimpleTransactionSchema
 	| typeof createAccountSchema
@@ -55,15 +69,15 @@ export const importProcessItems = async <S extends ProcessItemsType>({
 		const importDetailId = nanoid();
 		const preprocessedData = importDataToSchema(row);
 		if ('errors' in preprocessedData) {
-			await dbExecuteLogger(
-				db.insert(importItemDetail).values({
-					id: importDetailId,
-					...updatedTime(),
-					status: 'error',
-					processedInfo: { source: row },
-					errorInfo: { errors: preprocessedData.errors },
-					importId: id
-				}),
+				await dbExecuteLogger(
+					db.insert(importItemDetail).values({
+						id: importDetailId,
+						...updatedTime(),
+						status: 'error',
+						processedInfo: { source: toRecord(row) },
+						errorInfo: { errors: preprocessedData.errors },
+						importId: id
+					}),
 				'Import - Process Items - Error'
 			);
 			continue;
@@ -89,9 +103,9 @@ export const importProcessItems = async <S extends ProcessItemsType>({
 						...updatedTime(),
 						status: 'duplicate',
 						processedInfo: {
-							dataToUse: validatedData.data,
-							source: row,
-							processed: preprocessedData
+							dataToUse: toRecord(validatedData.data),
+							source: toRecord(row),
+							processed: toRecord(preprocessedData)
 						},
 						importId: id,
 						uniqueId: uniqueIdentifier
@@ -108,9 +122,9 @@ export const importProcessItems = async <S extends ProcessItemsType>({
 						...updatedTime(),
 						status: 'processed',
 						processedInfo: {
-							dataToUse: validatedData.data,
-							source: row,
-							processed: preprocessedData
+							dataToUse: toRecord(validatedData.data),
+							source: toRecord(row),
+							processed: toRecord(preprocessedData)
 						},
 						importId: id,
 						uniqueId: uniqueIdentifier
@@ -120,17 +134,19 @@ export const importProcessItems = async <S extends ProcessItemsType>({
 			}
 		} else {
 			await dbExecuteLogger(
-				db.insert(importItemDetail).values({
-					id: importDetailId,
-					...updatedTime(),
-					status: 'error',
-					processedInfo: { source: row, processed: preprocessedData },
-					errorInfo: {
-						errors: validatedData.error.flatten().formErrors,
-						fieldErrors: validatedData.error.flatten().fieldErrors
-					},
-					importId: id
-				}),
+					db.insert(importItemDetail).values({
+						id: importDetailId,
+						...updatedTime(),
+						status: 'error',
+						processedInfo: { source: toRecord(row), processed: toRecord(preprocessedData) },
+						errorInfo: {
+							errors: [
+								...validatedData.error.flatten().formErrors,
+								...flattenFieldErrors(validatedData.error.flatten().fieldErrors)
+							]
+						},
+						importId: id
+					}),
 				'Import - Process Items - Error 2'
 			);
 		}

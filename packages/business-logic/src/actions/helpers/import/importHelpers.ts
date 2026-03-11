@@ -33,6 +33,11 @@ const createCategoryImportSchema = createCategorySchema.extend({ id: z.string().
 const createTagImportSchema = createTagSchema.extend({ id: z.string().optional() });
 const createLabelImportSchema = createLabelSchema.extend({ id: z.string().optional() });
 
+const withoutId = <T extends { id?: string }>(data: T): Omit<T, 'id'> => {
+	const { id: _id, ...rest } = data;
+	return rest;
+};
+
 export const importAccount = async ({
 	item,
 	trx
@@ -153,13 +158,14 @@ export const importCategory = async ({
 		item,
 		schema: createCategoryImportSchema,
 		createItem: async (data) => {
-			if (data.item.id) {
-				await categoryActions.update({
-					id: data.item.id,
-					data: {
-						...data.item
-					}
-				});
+				if (data.item.id) {
+					await categoryActions.update({
+						id: data.item.id,
+						data: {
+							id: data.item.id,
+							...withoutId(data.item)
+						}
+					});
 
 				const updatedItem = await dbExecuteLogger(
 					trx.query.category.findFirst({
@@ -174,7 +180,7 @@ export const importCategory = async ({
 			}
 
 			const importedData = await categoryActions.create({
-				...data.item,
+				...withoutId(data.item),
 				status: data.item.status || 'active',
 				importId: item.importId,
 				importDetailId: item.id
@@ -202,13 +208,14 @@ export const importTag = async ({
 		item,
 		schema: createTagImportSchema,
 		createItem: async (data) => {
-			if (data.item.id) {
-				await tagActions.update({
-					id: data.item.id,
-					data: {
-						...data.item
-					}
-				});
+				if (data.item.id) {
+					await tagActions.update({
+						id: data.item.id,
+						data: {
+							id: data.item.id,
+							...withoutId(data.item)
+						}
+					});
 
 				const updatedItem = await dbExecuteLogger(
 					trx.query.tag.findFirst({
@@ -223,7 +230,7 @@ export const importTag = async ({
 			}
 
 			const importedData = await tagActions.create({
-				...data.item,
+				...withoutId(data.item),
 				status: data.item.status || 'active',
 				importId: item.importId,
 				importDetailId: item.id
@@ -251,13 +258,14 @@ export const importLabel = async ({
 		item,
 		schema: createLabelImportSchema,
 		createItem: async (data) => {
-			if (data.item.id) {
-				await labelActions.update({
-					id: data.item.id,
-					data: {
-						...data.item
-					}
-				});
+				if (data.item.id) {
+					await labelActions.update({
+						id: data.item.id,
+						data: {
+							id: data.item.id,
+							...withoutId(data.item)
+						}
+					});
 
 				const updatedItem = await dbExecuteLogger(
 					trx.query.label.findFirst({
@@ -272,7 +280,7 @@ export const importLabel = async ({
 			}
 
 			const importedData = await labelActions.create({
-				...data.item,
+				...withoutId(data.item),
 				status: data.item.status || 'active',
 				importId: item.importId,
 				importDetailId: item.id

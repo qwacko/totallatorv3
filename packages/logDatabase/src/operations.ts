@@ -7,8 +7,9 @@ import type {
 } from '@totallator/shared';
 import { logActionEnum, logDestinationEnum, logDomainEnum, logLevelEnum } from '@totallator/shared';
 
-import { LogDBType } from './connection.js';
+import type { LogDBType } from './connection.js';
 import {
+	type ConfigurationInsert,
 	type ConfigurationSelect,
 	configurationTable,
 	type LogInsert,
@@ -207,10 +208,10 @@ export class LogDatabaseOperations {
 	async initLogConfiguration() {
 		try {
 			const requiredConfigs = logDestinationEnum
-				.map((destination) => {
+				.map((destination: LogDestinationType) => {
 					return logActionEnum
-						.map((action) => {
-							return logDomainEnum.map((domain) => ({
+						.map((action: LogActionType) => {
+							return logDomainEnum.map((domain: LogDomainType) => ({
 								destination,
 								domain,
 								action,
@@ -223,7 +224,7 @@ export class LogDatabaseOperations {
 
 			const existingLogConfiguration = await this.getAllLogConfigurations();
 
-			const configurationsToCreate = requiredConfigs.filter((configuration) => {
+			const configurationsToCreate = requiredConfigs.filter((configuration: ConfigurationInsert) => {
 				return !existingLogConfiguration.some((existingConfig) => {
 					return (
 						existingConfig.destination === configuration.destination &&
@@ -234,7 +235,7 @@ export class LogDatabaseOperations {
 			});
 
 			const configurationsToDelete = existingLogConfiguration.filter((existingConfig) => {
-				return !requiredConfigs.some((requiredConfig) => {
+				return !requiredConfigs.some((requiredConfig: ConfigurationInsert) => {
 					return (
 						requiredConfig.destination === existingConfig.destination &&
 						requiredConfig.domain === existingConfig.domain &&
