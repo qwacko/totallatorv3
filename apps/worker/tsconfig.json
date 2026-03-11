@@ -17,8 +17,7 @@
 			"@totallator/business-logic": ["../../packages/business-logic/src/index.ts"],
 			"@totallator/context": ["../../packages/context/src/index.ts"],
 			"@totallator/database": ["../../packages/database/src/index.ts"],
-			"@totallator/log-database": ["../../packages/logDatabase/src/index.ts"],
-			"@totallator/shared": ["../../packages/shared/src/index.ts"]
+			"@totallator/log-database": ["../../packages/logDatabase/src/index.ts"]
 		}
 	},
 	"include": ["src/**/*"],

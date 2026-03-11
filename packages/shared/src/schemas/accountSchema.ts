@@ -1,5 +1,4 @@
 import * as z from 'zod';
-import is from 'zod/v4/locales/is.cjs';
 
 import { accountTypeEnum } from './accountTypeSchema.js';
 import { dateStringSchema } from './dateStringSchema.js';

@@ -46,8 +46,6 @@ const cronJobOrderByEnum = [
 	'successRate'
 ] as const;
 
-type CronJobOrderByEnumType = (typeof cronJobOrderByEnum)[number];
-
 // Cron job filter schema
 export const cronJobFilterSchema = z.object({
 	textFilter: z.string().optional(),
@@ -92,8 +90,6 @@ const cronExecutionOrderByEnum = [
 	'retryCount',
 	'jobName'
 ] as const;
-
-type CronExecutionOrderByEnumType = (typeof cronExecutionOrderByEnum)[number];
 
 // Cron job execution filter schema
 export const cronExecutionFilterSchema = z.object({
