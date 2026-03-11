@@ -1,5 +1,5 @@
 import * as devalue from 'devalue';
-import { and, asc, count, desc, eq, gte, inArray, lte } from 'drizzle-orm';
+import { and, asc, count, desc, inArray, lte } from 'drizzle-orm';
 
 import type {
 	LogFilterConfigValidationOutputType,

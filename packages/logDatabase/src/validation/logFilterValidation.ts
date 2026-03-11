@@ -1,4 +1,5 @@
-import { eq, gte, inArray, like, lte, or, SQLWrapper } from 'drizzle-orm';
+import { eq, gte, inArray, like, lte, or } from 'drizzle-orm';
+import type { SQLWrapper } from 'drizzle-orm';
 
 import type { LogFilterValidationOutputType } from '@totallator/shared';
 
