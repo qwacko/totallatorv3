@@ -81,11 +81,15 @@ export const cronJobDefinitions: CronJobDefinition[] = [
 	{
 		id: 'automatic-filters',
 		name: 'Apply Automatic Filters',
-		description: 'Runs all automatic reusable filters to categorize and process journals',
-		schedule: '${AUTOMATIC_FILTER_SCHEDULE}', // Will be replaced with actual env var
+		description: 'Recovery sweep for automatic reusable filters and stale journal state',
+		schedule: '*/15 * * * *', // Every 15 minutes
 		isEnabled: true,
 		timeoutMs: 180000, // 3 minutes
 		maxRetries: 1,
+		longProcess: {
+			type: 'automatic-filters-sweeper',
+			message: 'Automatic filters sweeper'
+		},
 		job: async (context) => {
 			const startTime = Date.now();
 			try {
@@ -217,11 +221,15 @@ export const cronJobDefinitions: CronJobDefinition[] = [
 	{
 		id: 'automatic-import-processing',
 		name: 'Automatic Import Processing',
-		description: 'Processes pending automatic imports every minute (rate-limited internally)',
-		schedule: '* * * * *', // Every minute
+		description: 'Recovery sweep for stalled or orphaned import execution',
+		schedule: '*/15 * * * *', // Every 15 minutes
 		isEnabled: true,
 		timeoutMs: 300000, // 5 minutes
 		maxRetries: 0, // No retries for frequent job
+		longProcess: {
+			type: 'import-sweeper',
+			message: 'Import sweeper'
+		},
 		job: async (context) => {
 			const startTime = Date.now();
 			try {

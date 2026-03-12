@@ -1,10 +1,11 @@
 import type { Queue } from 'bullmq';
-
-import { cronJobDefinitions } from '@totallator/business-logic';
-import { cronJob, cronJobExecution } from '@totallator/database';
 import { eq } from 'drizzle-orm';
 
+import { cronJobDefinitions, tActions } from '@totallator/business-logic';
+import { cronJob, cronJobExecution } from '@totallator/database';
+
 import { globalContext, standaloneContext } from '../context/workerContext';
+import { runTrackedLongProcess } from '../longProcess/state';
 
 type TriggeredBy = 'scheduler' | 'manual' | 'api';
 
@@ -79,9 +80,7 @@ export const syncCronDefinitionsAndSchedules = async () => {
 			continue;
 		}
 
-		const expectedPattern = repeatableJob.id
-			? desiredRepeatJobs.get(repeatableJob.id)
-			: undefined;
+		const expectedPattern = repeatableJob.id ? desiredRepeatJobs.get(repeatableJob.id) : undefined;
 		if (!expectedPattern || expectedPattern !== repeatableJob.pattern) {
 			await cronQueue.removeRepeatableByKey(repeatableJob.key);
 		}
@@ -145,19 +144,96 @@ export const executeCronJobById = async (payload: ExecuteCronPayload) => {
 		.returning({ id: cronJobExecution.id });
 
 	try {
-		const result = await standaloneContext(
-			{
-				requestId: `worker-cron-${execution.id}`,
-				routeId: `worker/cron/${jobRecord.name}`,
-				url: `/worker/cron/${jobRecord.name}`,
-				method: 'CRON',
-				startTime,
-				ip: '127.0.0.1'
-			},
-			async (runContext) => {
-				return await jobDefinition.job(runContext.global as any);
-			}
-		);
+		const executeDefinition = async () =>
+			standaloneContext(
+				{
+					requestId: `worker-cron-${execution.id}`,
+					routeId: `worker/cron/${jobRecord.name}`,
+					url: `/worker/cron/${jobRecord.name}`,
+					method: 'CRON',
+					startTime,
+					ip: '127.0.0.1'
+				},
+				async (runContext) => {
+					return await jobDefinition.job(runContext.global as any);
+				}
+			);
+
+		const result = jobDefinition.longProcess
+			? await runTrackedLongProcess({
+					type: jobDefinition.longProcess.type,
+					message: jobDefinition.longProcess.message,
+					reason: jobDefinition.longProcess.reason,
+					maxRuntimeMs: jobRecord.timeoutMs,
+					run: async ({ reportProgress }) => {
+						if (jobDefinition.id === 'automatic-import-processing') {
+							await standaloneContext(
+								{
+									requestId: `worker-cron-${execution.id}`,
+									routeId: `worker/cron/${jobRecord.name}`,
+									url: `/worker/cron/${jobRecord.name}`,
+									method: 'CRON',
+									startTime,
+									ip: '127.0.0.1'
+								},
+								async () => {
+									await tActions.import.doRequiredImports({
+										reportProgress: async (update) => {
+											await reportProgress({
+												progress: update.progress ?? 90,
+												message: update.message,
+												metadata: update.metadata
+											});
+										}
+									});
+								}
+							);
+
+							return {
+								success: true,
+								message: 'Automatic import recovery sweep completed',
+								metrics: {
+									executionTimeMs: Date.now() - startTime
+								}
+							};
+						}
+
+						if (jobDefinition.id === 'automatic-filters') {
+							await standaloneContext(
+								{
+									requestId: `worker-cron-${execution.id}`,
+									routeId: `worker/cron/${jobRecord.name}`,
+									url: `/worker/cron/${jobRecord.name}`,
+									method: 'CRON',
+									startTime,
+									ip: '127.0.0.1'
+								},
+								async () => {
+									await tActions.reusableFitler.applyAllAutomatic({
+										reportProgress: async (update) => {
+											await reportProgress({
+												progress: update.progress ?? 90,
+												message: update.message,
+												metadata: update.metadata
+											});
+										}
+									});
+								}
+							);
+
+							return {
+								success: true,
+								message: 'Automatic filter sweep completed',
+								metrics: {
+									executionTimeMs: Date.now() - startTime
+								}
+							};
+						}
+
+						return await executeDefinition();
+					}
+				})
+			: await executeDefinition();
 
 		await db
 			.update(cronJobExecution)

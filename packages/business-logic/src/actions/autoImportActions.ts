@@ -1,6 +1,8 @@
 import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
+import { getLogger } from '@totallator/business-logic/logger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
 	autoImportTable,
@@ -16,13 +18,11 @@ import {
 	updateAutoImportSchema
 } from '@totallator/shared';
 
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
-
 import { autoImportFilterToQuery } from './helpers/autoImport/autoImportFilterToQuery';
 import { autoImportToOrderByToSQL } from './helpers/autoImport/autoImportOrderByToSQL';
 import { getData_Common } from './helpers/autoImport/getData_Common';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
+import type { LongRunningTaskProgressReporter } from './helpers/longRunningTaskProgress';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { importActions } from './importActions';
 import { importMappingActions } from './importMappingActions';
@@ -216,7 +216,13 @@ export const autoImportActions = {
 			await autoImportActions.trigger({ id: currentAutoImport.id });
 		}
 	},
-	trigger: async ({ id }: { id: string }): Promise<void> => {
+	trigger: async ({
+		id,
+		reportProgress
+	}: {
+		id: string;
+		reportProgress?: LongRunningTaskProgressReporter;
+	}): Promise<void> => {
 		const autoImport = await autoImportActions.getById({ id });
 
 		if (!autoImport) {
@@ -238,8 +244,9 @@ export const autoImportActions = {
 			type: 'application/json'
 		});
 
-		await importActions.store({
+		await importActions.runImportLifecycle({
 			autoImportId: id,
+			reportProgress,
 			data: {
 				autoClean: autoImport.autoClean,
 				autoProcess: autoImport.autoProcess,

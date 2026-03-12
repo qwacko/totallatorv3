@@ -18,6 +18,12 @@ export interface CronJobDefinition {
 	timeoutMs: number;
 	/** Maximum number of retry attempts on failure */
 	maxRetries: number;
+	/** Optional realtime tracking metadata for worker-side long process reporting */
+	longProcess?: {
+		type: string;
+		message: string;
+		reason?: string;
+	};
 	/** The actual job function to execute */
 	job: (context: GlobalContext) => Promise<CronJobResult>;
 }

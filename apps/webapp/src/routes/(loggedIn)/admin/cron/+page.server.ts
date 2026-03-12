@@ -37,7 +37,7 @@ export const load = async (data) => {
 	// Get all cron jobs with their execution history
 	const cronJobsResult = await tActions.cronJob.getAllCronJobs(searchParams);
 
-	console.log('Cron jobs loaded:', cronJobsResult);
+	// console.log('Cron jobs loaded:', cronJobsResult);
 
 	// Get recent execution statistics
 	const statistics = await tActions.cronExecution.getCronJobStatistics({

@@ -2,6 +2,8 @@ import { and, asc, desc, eq, type InferSelectModel } from 'drizzle-orm';
 import { count as drizzleCount } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
+import { getLogger } from '@totallator/business-logic/logger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import { importTable, reusableFilter } from '@totallator/database';
 import {
@@ -13,14 +15,15 @@ import {
 } from '@totallator/shared';
 import { journalFilterSchema, updateJournalSchema } from '@totallator/shared';
 
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
-
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { streamingDelay, testingDelay } from '../server/testingDelay';
 import { journalFilterToText } from './helpers/journal/journalFilterToQuery';
 import { journalUpdateToText } from './helpers/journal/journalUpdateToText';
 import { reusableFilterToQuery } from './helpers/journal/reusableFilterToQuery';
+import {
+	type LongRunningTaskProgressReporter,
+	reportLongRunningTaskProgress
+} from './helpers/longRunningTaskProgress';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { seedReusableFilterData } from './helpers/seed/seedReusableFilterData';
@@ -277,7 +280,15 @@ export const reusableFilterActions = {
 
 		return;
 	},
-	applyFollowingImport: async ({ importId, timeout }: { importId: string; timeout?: Date }) => {
+	applyFollowingImport: async ({
+		importId,
+		timeout,
+		reportProgress
+	}: {
+		importId: string;
+		timeout?: Date;
+		reportProgress?: LongRunningTaskProgressReporter;
+	}) => {
 		const db = getContextDB();
 		const items = await dbExecuteLogger(
 			db
@@ -303,6 +314,14 @@ export const reusableFilterActions = {
 				.where(eq(importTable.id, importId)),
 			'Reusable Filter - Apply Following Import - Update Import Status'
 		);
+
+		await reportLongRunningTaskProgress(reportProgress, {
+			progress: items.length === 0 ? 100 : 0,
+			message:
+				items.length > 0
+					? `Applying ${items.length} post-import filters`
+					: 'No post-import filters to apply'
+		});
 
 		let index = 1;
 
@@ -352,6 +371,14 @@ export const reusableFilterActions = {
 				);
 			});
 
+			await reportLongRunningTaskProgress(reportProgress, {
+				progress: Math.floor(
+					((currentImportStatus.complete + 1) / currentImportStatus.count) * 100
+				),
+				message: `Applied ${currentImportStatus.complete + 1} of ${currentImportStatus.count} post-import filters`,
+				metadata: { reusableFilterId: currentImportId }
+			});
+
 			if (timeout && new Date() > timeout) {
 				getLogger('queries').error({
 					code: 'FILTER_002',
@@ -372,7 +399,11 @@ export const reusableFilterActions = {
 			'Reusable Filter - Apply Following Import - Clear Import Status'
 		);
 	},
-	applyAllAutomatic: async () => {
+	applyAllAutomatic: async ({
+		reportProgress
+	}: {
+		reportProgress?: LongRunningTaskProgressReporter;
+	} = {}) => {
 		const db = getContextDB();
 		const items = await dbExecuteLogger(
 			db
@@ -382,11 +413,23 @@ export const reusableFilterActions = {
 			'Reusable Filter - Apply All Automatic'
 		);
 
-		await Promise.all(
-			items.map(async (currentItem) => {
-				await reusableFilterActions.applyById({ id: currentItem.id });
-			})
-		);
+		await reportLongRunningTaskProgress(reportProgress, {
+			progress: items.length === 0 ? 100 : 5,
+			message:
+				items.length > 0
+					? `Applying ${items.length} automatic filters`
+					: 'No automatic filters to apply'
+		});
+
+		for (let index = 0; index < items.length; index++) {
+			const currentItem = items[index];
+			await reusableFilterActions.applyById({ id: currentItem.id });
+			await reportLongRunningTaskProgress(reportProgress, {
+				progress: Math.floor(((index + 1) / items.length) * 100),
+				message: `Applied ${index + 1} of ${items.length} automatic filters`,
+				metadata: { reusableFilterId: currentItem.id }
+			});
+		}
 	},
 	createMany: async ({ data }: { data: CreateReusableFilterSchemaType[] }) => {
 		const newFilters = await runInTransactionWithLogging(

@@ -2,6 +2,9 @@ import { and, count as drizzleCount, eq, lt, not } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
 
+import { getLogger } from '@totallator/business-logic/logger';
+import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { getServerEnv } from '@totallator/business-logic/serverEnv';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
 	account,
@@ -22,12 +25,9 @@ import {
 import {
 	type CreateImportSchemaType,
 	type ImportFilterSchemaType,
+	type ImportStatusType,
 	type UpdateImportSchemaType
 } from '@totallator/shared';
-
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
-import { getServerEnv } from '@totallator/business-logic/serverEnv';
 
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { importFileHandler } from '../server/files/fileHandler';
@@ -58,6 +58,10 @@ import {
 import { importToOrderByToSQL } from './helpers/import/importOrderByToSQL';
 import { processCreatedImport } from './helpers/import/processImport';
 import type { PaginatedResults } from './helpers/journal/PaginationType';
+import {
+	type LongRunningTaskProgressReporter,
+	reportLongRunningTaskProgress
+} from './helpers/longRunningTaskProgress';
 import { inArrayWrapped } from './helpers/misc/inArrayWrapped';
 import { updatedTime } from './helpers/misc/updatedTime';
 import { importMappingActions } from './importMappingActions';
@@ -149,10 +153,12 @@ export const importActions = {
 	},
 	store: async ({
 		data,
-		autoImportId
+		autoImportId,
+		reportProgress
 	}: {
 		data: CreateImportSchemaType;
 		autoImportId?: string;
+		reportProgress?: LongRunningTaskProgressReporter;
 	}): Promise<string> => {
 		const startTime = Date.now();
 		const db = getContextDB();
@@ -280,6 +286,13 @@ export const importActions = {
 			'Import - Store - Insert'
 		);
 
+		await reportLongRunningTaskProgress(reportProgress, {
+			progress: 30,
+			message: 'Import record created',
+			entityId: id,
+			metadata: { importId: id }
+		});
+
 		getLogger('import').info({
 			code: 'IMP_061',
 			title: 'Import record created, starting processing',
@@ -288,6 +301,12 @@ export const importActions = {
 
 		try {
 			await processCreatedImport({ id });
+			await reportLongRunningTaskProgress(reportProgress, {
+				progress: 55,
+				message: 'Import preprocessing completed',
+				entityId: id,
+				metadata: { importId: id }
+			});
 
 			const duration = Date.now() - startTime;
 			getLogger('import').info({
@@ -310,9 +329,68 @@ export const importActions = {
 					.where(eq(importTable.id, id)),
 				'Import - Store - Error'
 			);
+
+			throw e;
 		}
 
 		return id;
+	},
+	runImportLifecycle: async ({
+		data,
+		autoImportId,
+		reportProgress
+	}: {
+		data: CreateImportSchemaType;
+		autoImportId?: string;
+		reportProgress?: LongRunningTaskProgressReporter;
+	}): Promise<{ importId: string; status: ImportStatusType }> => {
+		const importId = await importActions.store({
+			data,
+			autoImportId,
+			reportProgress
+		});
+
+		const db = getContextDB();
+		const importInfo = await dbExecuteLogger(
+			db.query.importTable.findFirst({
+				where: eq(importTable.id, importId)
+			}),
+			'Import - Run Lifecycle - Get Import'
+		);
+
+		if (!importInfo) {
+			throw new Error('Import Not Found');
+		}
+
+		if (importInfo.autoProcess && importInfo.status === 'processed') {
+			await reportLongRunningTaskProgress(reportProgress, {
+				progress: 60,
+				message: 'Executing import',
+				entityId: importId,
+				metadata: { importId }
+			});
+			await importActions.doImport({ id: importId, reportProgress });
+		} else if (importInfo.status === 'processed') {
+			await reportLongRunningTaskProgress(reportProgress, {
+				progress: 90,
+				message: 'Import prepared and awaiting manual execution',
+				entityId: importId,
+				metadata: { importId }
+			});
+		}
+
+		const finalImportInfo = await dbExecuteLogger(
+			db.query.importTable.findFirst({
+				where: eq(importTable.id, importId)
+			}),
+			'Import - Run Lifecycle - Get Final Import'
+		);
+
+		if (!finalImportInfo) {
+			throw new Error('Import Not Found');
+		}
+
+		return { importId, status: finalImportInfo.status };
 	},
 	get: async ({
 		id
@@ -503,21 +581,57 @@ export const importActions = {
 				.update(importTable)
 				.set({ status: 'error', errorInfo: e })
 				.where(eq(importTable.id, id));
+
+			throw e;
 		}
 	},
-	doRequiredImports: async (): Promise<void> => {
+	executeImportLifecycle: async ({
+		id,
+		reportProgress
+	}: {
+		id: string;
+		reportProgress?: LongRunningTaskProgressReporter;
+	}): Promise<void> => {
+		await importActions.triggerImport({ id });
+		await reportLongRunningTaskProgress(reportProgress, {
+			progress: 25,
+			message: 'Queued import for execution',
+			entityId: id,
+			metadata: { importId: id }
+		});
+		await importActions.doImport({ id, reportProgress });
+	},
+	doRequiredImports: async ({
+		reportProgress
+	}: {
+		reportProgress?: LongRunningTaskProgressReporter;
+	} = {}): Promise<void> => {
 		const db = getContextDB();
 		const importTimeoutms = getServerEnv().IMPORT_TIMEOUT_MIN * 60 * 1000;
 		const earliestUpdatedAt = new Date(Date.now() - importTimeoutms);
 
+		await reportLongRunningTaskProgress(reportProgress, {
+			progress: 10,
+			message: 'Scanning imports for recovery'
+		});
+
 		//Upate All Imports That Are Set To Auto Process to Awaiting Import
-		await dbExecuteLogger(
+		const autoProcessRecoveries = await dbExecuteLogger(
 			db
 				.update(importTable)
 				.set({ status: 'awaitingImport', ...updatedTime() })
-				.where(and(eq(importTable.status, 'processed'), eq(importTable.autoProcess, true))),
+				.where(and(eq(importTable.status, 'processed'), eq(importTable.autoProcess, true)))
+				.returning({ id: importTable.id }),
 			'Import - Do Required Imports - Update'
 		);
+
+		await reportLongRunningTaskProgress(reportProgress, {
+			progress: 30,
+			message:
+				autoProcessRecoveries.length > 0
+					? `Recovered ${autoProcessRecoveries.length} auto-process imports`
+					: 'No stranded auto-process imports found'
+		});
 
 		const numberImportingTooLong = await dbExecuteLogger(
 			db
@@ -545,6 +659,14 @@ export const importActions = {
 			})
 		);
 
+		await reportLongRunningTaskProgress(reportProgress, {
+			progress: 50,
+			message:
+				numberImportingTooLong.length > 0
+					? `Marked ${numberImportingTooLong.length} stale imports as failed`
+					: 'No stale importing records found'
+		});
+
 		const numberImporting = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.status, 'importing')),
 			'Import - Do Required Imports - Get Importing'
@@ -552,6 +674,10 @@ export const importActions = {
 
 		//Only One Import Should Be Executing At A Time
 		if (numberImporting.length > 0) {
+			await reportLongRunningTaskProgress(reportProgress, {
+				progress: 80,
+				message: 'Skipping recovery import because another import is active'
+			});
 			return;
 		}
 
@@ -560,13 +686,23 @@ export const importActions = {
 			'Import - Do Required Imports - Get Awaiting Import'
 		);
 
-		await Promise.all(
-			importDetails.map(async (item) => {
-				await importActions.doImport({ id: item.id });
-			})
-		);
+		for (const item of importDetails) {
+			await reportLongRunningTaskProgress(reportProgress, {
+				progress: 85,
+				message: `Recovering import ${item.id}`,
+				entityId: item.id,
+				metadata: { importId: item.id }
+			});
+			await importActions.doImport({ id: item.id, reportProgress });
+		}
 	},
-	doImport: async ({ id }: { id: string }): Promise<void> => {
+	doImport: async ({
+		id,
+		reportProgress
+	}: {
+		id: string;
+		reportProgress?: LongRunningTaskProgressReporter;
+	}): Promise<void> => {
 		const db = getContextDB();
 		const importInfoList = await dbExecuteLogger(
 			db.select().from(importTable).where(eq(importTable.id, id)),
@@ -590,6 +726,13 @@ export const importActions = {
 			'Import - Do Import - Update'
 		);
 
+		await reportLongRunningTaskProgress(reportProgress, {
+			progress: 65,
+			message: 'Importing rows',
+			entityId: id,
+			metadata: { importId: id }
+		});
+
 		try {
 			const importDetails = await dbExecuteLogger(
 				db
@@ -603,6 +746,7 @@ export const importActions = {
 			const maxTime = new Date(startTime.getTime() + getServerEnv().IMPORT_TIMEOUT_MIN * 60 * 1000);
 
 			await runInTransactionWithLogging('Do Import', async (trx) => {
+				let lastProgress = 64;
 				for (let index = 0; index < importDetails.length; index++) {
 					const item = importDetails[index];
 					if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
@@ -628,6 +772,19 @@ export const importActions = {
 						title: `Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
 					});
 
+					if (importDetails.length > 0) {
+						const progress = 65 + Math.floor(((index + 1) / importDetails.length) * 20);
+						if (progress > lastProgress) {
+							lastProgress = progress;
+							await reportLongRunningTaskProgress(reportProgress, {
+								progress,
+								message: `Imported ${index + 1} of ${importDetails.length} rows`,
+								entityId: id,
+								metadata: { importId: id }
+							});
+						}
+					}
+
 					if (new Date() > maxTime) {
 						throw new Error('Import Timed Out');
 					}
@@ -640,11 +797,40 @@ export const importActions = {
 			});
 
 			if (numberItems) {
+				await reportLongRunningTaskProgress(reportProgress, {
+					progress: 88,
+					message: 'Running post-import filters',
+					entityId: id,
+					metadata: { importId: id }
+				});
 				await reusableFilterActions.applyFollowingImport({
 					importId: id,
-					timeout: maxTime
+					timeout: maxTime,
+					reportProgress: async (update) => {
+						const nestedProgress =
+							update.progress === undefined
+								? undefined
+								: Math.min(98, 88 + Math.floor((update.progress / 100) * 10));
+
+						await reportLongRunningTaskProgress(reportProgress, {
+							progress: nestedProgress,
+							message: update.message,
+							entityId: id,
+							metadata: {
+								importId: id,
+								...(update.metadata ?? {})
+							}
+						});
+					}
 				});
 			}
+
+			await reportLongRunningTaskProgress(reportProgress, {
+				progress: 99,
+				message: 'Finalizing import',
+				entityId: id,
+				metadata: { importId: id }
+			});
 
 			await dbExecuteLogger(
 				db
@@ -673,6 +859,8 @@ export const importActions = {
 					'Import - Do Import - Update Error'
 				);
 			}
+
+			throw e;
 		}
 	},
 	forgetImport: async ({ id }: { id: string }): Promise<void> => {

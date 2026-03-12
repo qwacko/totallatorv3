@@ -198,7 +198,7 @@ export const autoImportTriggerProcessor: TypedJobProcessor<
 		entityId: payload.autoImportId,
 		message: `Auto import ${payload.autoImportId}`,
 		metadata: { autoImportId: payload.autoImportId },
-		run: async () =>
+		run: async ({ reportProgress }) =>
 			standaloneContext(
 				{
 					requestId: `worker-auto-import-${payload.autoImportId}`,
@@ -209,7 +209,25 @@ export const autoImportTriggerProcessor: TypedJobProcessor<
 					ip: '127.0.0.1'
 				},
 				async () => {
-					await tActions.autoImport.trigger({ id: payload.autoImportId });
+					await reportProgress({ progress: 10, message: 'Collecting automatic import data' });
+					await tActions.autoImport.trigger({
+						id: payload.autoImportId,
+						reportProgress: async (update) => {
+							const scaledProgress =
+								update.progress === undefined
+									? 90
+									: Math.min(98, 10 + Math.floor((update.progress / 100) * 88));
+							await reportProgress({
+								progress: scaledProgress,
+								message: update.message,
+								metadata: {
+									autoImportId: payload.autoImportId,
+									...(update.entityId ? { entityId: update.entityId } : {}),
+									...(update.metadata ?? {})
+								}
+							});
+						}
+					});
 				}
 			)
 	});
@@ -249,9 +267,26 @@ export const importStoreProcessor: TypedJobProcessor<WorkerJobMap, 'import-store
 					await reportProgress({ progress: 5, message: 'Preparing import file' });
 					const stagedFile = await readStagedFile(payload.file);
 					try {
-						await reportProgress({ progress: 20, message: 'Processing import file' });
-						await tActions.import.store({
+						await reportProgress({ progress: 15, message: 'Processing import file' });
+						await tActions.import.runImportLifecycle({
 							autoImportId: payload.autoImportId,
+							reportProgress: async (update) => {
+								const scaledProgress =
+									update.progress === undefined
+										? 90
+										: Math.min(98, 15 + Math.floor((update.progress / 100) * 83));
+								await reportProgress({
+									progress: scaledProgress,
+									message: update.message,
+									metadata: update.entityId
+										? {
+												entityType: 'import',
+												entityId: update.entityId,
+												...(update.metadata ?? {})
+											}
+										: update.metadata
+								});
+							},
 							data: {
 								importType: payload.importType,
 								importMappingId: payload.importMappingId,
@@ -261,7 +296,6 @@ export const importStoreProcessor: TypedJobProcessor<WorkerJobMap, 'import-store
 								file: stagedFile
 							}
 						});
-						await reportProgress({ progress: 90, message: 'Running post-import checks' });
 					} finally {
 						await cleanupStagedFile(payload.file);
 					}
@@ -352,9 +386,17 @@ export const importTriggerProcessor: TypedJobProcessor<WorkerJobMap, 'import-tri
 					ip: '127.0.0.1'
 				},
 				async () => {
-					await reportProgress({ progress: 20, message: 'Starting import processing' });
-					await tActions.import.triggerImport({ id: job.data.data.importId });
-					await reportProgress({ progress: 90, message: 'Running import validation and updates' });
+					await reportProgress({ progress: 15, message: 'Preparing import execution' });
+					await tActions.import.executeImportLifecycle({
+						id: job.data.data.importId,
+						reportProgress: async (update) => {
+							await reportProgress({
+								progress: update.progress ?? 90,
+								message: update.message,
+								metadata: update.metadata
+							});
+						}
+					});
 				}
 			)
 	});
