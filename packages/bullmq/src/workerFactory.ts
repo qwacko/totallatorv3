@@ -59,7 +59,8 @@ export class WorkerFactory {
     const worker = new Worker(
       queueName,
       async (job: Job<JobData>) => {
-        const { type, metadata } = job.data;
+        const normalizedJobData = this.normalizeJobData(job);
+        const { type, metadata } = normalizedJobData;
         const processor = workerRegistry.getProcessor(type);
 
         if (!processor) {
@@ -68,7 +69,10 @@ export class WorkerFactory {
 
         try {
           const context = await contextFactory();
-          const result = await processor(job as any, context);
+          const normalizedJob = Object.assign(job, {
+            data: normalizedJobData,
+          }) as Job<JobData>;
+          const result = await processor(normalizedJob as any, context);
 
           context.logger("bullmq").info({
             title: `Job ${type} completed`,
@@ -104,6 +108,19 @@ export class WorkerFactory {
 
     this.workers.set(queueName, worker);
     return worker;
+  }
+
+  private normalizeJobData(job: Job<JobData>): JobData {
+    const data = job.data as Partial<JobData> | undefined;
+
+    if (data?.type && "data" in data) {
+      return data as JobData;
+    }
+
+    return {
+      type: job.name,
+      data: job.data,
+    };
   }
 
   /**

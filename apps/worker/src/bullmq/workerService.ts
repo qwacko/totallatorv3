@@ -75,10 +75,6 @@ export const startWorkerService = async () => {
 	workerFactory.createWorker(WORKER_QUEUES.BACKGROUND, contextFactory, { concurrency: 5 });
 	workerFactory.createWorker(WORKER_QUEUES.LONG_RUNNING, contextFactory, { concurrency: 1 });
 
-	const cronQueue = workerFactory.getQueue(WORKER_QUEUES.CRON);
-	setCronQueue(cronQueue);
-	await syncCronDefinitionsAndSchedules();
-
 	// Processor for scheduled cron execution jobs
 	workerFactory.registerTypedProcessor<WorkerJobMap, 'cron-execute'>(
 		'cron-execute',
@@ -88,6 +84,10 @@ export const startWorkerService = async () => {
 			return { success: result.success, data: result };
 		}
 	);
+
+	const cronQueue = workerFactory.getQueue(WORKER_QUEUES.CRON);
+	setCronQueue(cronQueue);
+	await syncCronDefinitionsAndSchedules();
 
 	cronSyncTimer = setInterval(() => {
 		void syncCronDefinitionsAndSchedules();

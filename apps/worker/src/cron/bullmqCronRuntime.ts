@@ -90,7 +90,10 @@ export const syncCronDefinitionsAndSchedules = async () => {
 	for (const enabled of enabledJobs) {
 		await cronQueue.add(
 			'cron-execute',
-			{ cronJobId: enabled.id, triggeredBy: 'scheduler' },
+			{
+				type: 'cron-execute',
+				data: { cronJobId: enabled.id, triggeredBy: 'scheduler' }
+			},
 			{
 				jobId: getRepeatJobId(enabled.id),
 				repeat: { pattern: enabled.schedule },
@@ -191,10 +194,13 @@ export const executeCronJobById = async (payload: ExecuteCronPayload) => {
 			await cronQueue.add(
 				'cron-execute',
 				{
-					cronJobId: payload.cronJobId,
-					triggeredBy: payload.triggeredBy || 'manual',
-					triggeredByUserId: payload.triggeredByUserId,
-					retryCount: currentRetry + 1
+					type: 'cron-execute',
+					data: {
+						cronJobId: payload.cronJobId,
+						triggeredBy: payload.triggeredBy || 'manual',
+						triggeredByUserId: payload.triggeredByUserId,
+						retryCount: currentRetry + 1
+					}
 				},
 				{ delay: 5000 }
 			);
