@@ -1,5 +1,6 @@
 import { createClient } from '@libsql/client';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import { materializedViewActions } from '@totallator/business-logic';
 import {
@@ -12,7 +13,9 @@ import {
 
 import { workerEnv } from '../serverEnv';
 
-const migrationsPath = path.join(process.cwd(), 'packages/database/src/migrations');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const migrationsPath = path.join(__dirname, '../../../../packages/database/src/migrations');
 
 const { standaloneContext, globalContext } = hookBuilder({
 	initGlobalContext: async (

@@ -4,7 +4,7 @@ import {
 	initializeEventCallbacks
 } from '@totallator/business-logic';
 
-import { globalContext } from '../context/workerContext';
+import { globalContext, standaloneContext } from '../context/workerContext';
 import {
 	executeCronJobById,
 	setCronQueue,
@@ -45,8 +45,20 @@ export const startWorkerService = async () => {
 		concurrency: 2
 	});
 
-	initializeEventCallbacks();
-	await clearInProgressBackupRestores();
+	await standaloneContext(
+		{
+			requestId: 'worker-startup',
+			routeId: 'internal/worker-startup',
+			url: '/internal/worker-startup',
+			method: 'INIT',
+			startTime: Date.now(),
+			ip: '127.0.0.1'
+		},
+		async () => {
+			initializeEventCallbacks();
+			await clearInProgressBackupRestores();
+		}
+	);
 
 	const contextFactory = async () => {
 		const context = await globalContext();
