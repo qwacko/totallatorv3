@@ -1,5 +1,13 @@
 import { nanoid } from 'nanoid';
 
+import type {
+	RealtimeEntityType,
+	RealtimeEventMap,
+	RealtimeLongProcess,
+	RealtimeSnapshot,
+	RealtimeWriteLock
+} from '@totallator/shared';
+
 import { getRedisClient } from '../redis/redisClient';
 import { serverEnv } from '../serverEnv';
 
@@ -21,29 +29,17 @@ export type LongProcessJobState = {
 	type: string;
 	status: 'running' | 'completed' | 'failed' | 'cancelled';
 	progress: number;
+	label: string;
 	message?: string;
 	startedAt: string;
 	updatedAt: string;
 	completedAt?: string;
-	metadata?: Record<string, unknown>;
+	metadata?: Record<string, unknown> & {
+		entityType?: RealtimeEntityType;
+		entityId?: string;
+	};
 	error?: string;
 };
-
-export type LongProcessEventMap = {
-	'lock-acquired': LongProcessLock;
-	'lock-heartbeat': LongProcessLock;
-	progress: LongProcessJobState;
-	completed: LongProcessJobState;
-	failed: LongProcessJobState;
-	'lock-released': LongProcessLock;
-};
-
-export type LongProcessEvent<TEvent extends keyof LongProcessEventMap = keyof LongProcessEventMap> =
-	{
-		event: TEvent;
-		payload: LongProcessEventMap[TEvent];
-		timestamp: string;
-	};
 
 const getNow = () => new Date().toISOString();
 
@@ -63,17 +59,38 @@ const parseJson = <T>(value: string | null): T | null => {
 	}
 };
 
-const publishEvent = async <TEvent extends keyof LongProcessEventMap>(
+const toRealtimeWriteLock = (lock: LongProcessLock | null): RealtimeWriteLock => ({
+	enabled: serverEnv.ENABLE_GLOBAL_WRITE_LOCK,
+	locked: lock !== null,
+	jobId: lock?.jobId,
+	processType: lock?.type,
+	reason: lock?.reason,
+	startedAt: lock?.startedAt,
+	expiresAt: lock?.expiresAt,
+	owner: lock?.owner
+});
+
+const toRealtimeLongProcess = (state: LongProcessJobState): RealtimeLongProcess => ({
+	jobId: state.jobId,
+	processType: state.type,
+	status: state.status,
+	progress: state.progress,
+	label: state.label,
+	message: state.message,
+	entityType: state.metadata?.entityType,
+	entityId: state.metadata?.entityId,
+	startedAt: state.startedAt,
+	updatedAt: state.updatedAt,
+	completedAt: state.completedAt,
+	error: state.error
+});
+
+const publishEvent = async <TEvent extends keyof RealtimeEventMap>(
 	event: TEvent,
-	payload: LongProcessEventMap[TEvent]
+	payload: RealtimeEventMap[TEvent]
 ) => {
 	const redis = getRedisClient();
-	const eventPayload: LongProcessEvent<TEvent> = {
-		event,
-		payload,
-		timestamp: getNow()
-	};
-	await redis.publish(EVENTS_CHANNEL, JSON.stringify(eventPayload));
+	await redis.publish(EVENTS_CHANNEL, JSON.stringify({ event, payload, timestamp: getNow() }));
 };
 
 export const getLongProcessEventsChannel = () => EVENTS_CHANNEL;
@@ -126,7 +143,7 @@ export const acquireWriteLock = async (params: {
 		return null;
 	}
 
-	await publishEvent('lock-acquired', lock);
+	await publishEvent('write_lock.changed', toRealtimeWriteLock(lock));
 	return lock;
 };
 
@@ -146,7 +163,7 @@ export const refreshWriteLock = async (jobId: string) => {
 	};
 
 	await redis.set(WRITE_LOCK_KEY, JSON.stringify(updatedLock), 'EX', ttlSeconds);
-	await publishEvent('lock-heartbeat', updatedLock);
+	await publishEvent('write_lock.changed', toRealtimeWriteLock(updatedLock));
 
 	return updatedLock;
 };
@@ -160,12 +177,14 @@ export const releaseWriteLock = async (jobId: string) => {
 	}
 
 	await redis.del(WRITE_LOCK_KEY);
-	await publishEvent('lock-released', currentLock);
+	await publishEvent('write_lock.changed', toRealtimeWriteLock(null));
 	return true;
 };
 
 export const startLongJob = async (params: {
 	type: string;
+	entityType?: RealtimeEntityType;
+	entityId?: string;
 	message?: string;
 	metadata?: Record<string, unknown>;
 	owner?: string;
@@ -186,15 +205,20 @@ export const startLongJob = async (params: {
 		type: params.type,
 		status: 'running',
 		progress: 0,
+		label: params.message || params.type,
 		message: params.message,
 		startedAt: now,
 		updatedAt: now,
-		metadata: params.metadata
+		metadata: {
+			...params.metadata,
+			entityType: params.entityType,
+			entityId: params.entityId
+		}
 	};
 
 	const redis = getRedisClient();
 	await redis.set(getJobStateKey(jobState.jobId), JSON.stringify(jobState), 'EX', 60 * 60 * 24);
-	await publishEvent('progress', jobState);
+	await publishEvent('long_process.started', toRealtimeLongProcess(jobState));
 
 	return jobState;
 };
@@ -218,13 +242,17 @@ export const updateLongJob = async (
 		...existing,
 		status: 'running',
 		progress: Math.max(0, Math.min(100, params.progress)),
+		label: existing.label,
 		message: params.message || existing.message,
-		metadata: params.metadata || existing.metadata,
+		metadata: {
+			...existing.metadata,
+			...(params.metadata || {})
+		},
 		updatedAt: getNow()
 	};
 
 	await redis.set(key, JSON.stringify(updated), 'EX', 60 * 60 * 24);
-	await publishEvent('progress', updated);
+	await publishEvent('long_process.progress', toRealtimeLongProcess(updated));
 
 	return updated;
 };
@@ -248,6 +276,7 @@ export const finishLongJob = async (
 		...existing,
 		status: params.status,
 		progress: params.status === 'completed' ? 100 : existing.progress,
+		label: existing.label,
 		message: params.message || existing.message,
 		error: params.error,
 		updatedAt: getNow(),
@@ -255,7 +284,10 @@ export const finishLongJob = async (
 	};
 
 	await redis.set(key, JSON.stringify(finalState), 'EX', 60 * 60 * 24);
-	await publishEvent(params.status === 'completed' ? 'completed' : 'failed', finalState);
+	await publishEvent(
+		params.status === 'completed' ? 'long_process.completed' : 'long_process.failed',
+		toRealtimeLongProcess(finalState)
+	);
 	await releaseWriteLock(jobId);
 
 	return finalState;
@@ -309,15 +341,13 @@ export const getLatestLongJobState = async () => {
 	return states[0];
 };
 
-export const getLongProcessSnapshot = async () => {
+export const getLongProcessSnapshot = async (): Promise<RealtimeSnapshot> => {
 	const [lock, latestJob] = await Promise.all([getWriteLock(), getLatestLongJobState()]);
-	const activeJob = lock ? (await getLongJobState(lock.jobId)) ?? latestJob : null;
+	const activeJob = lock ? ((await getLongJobState(lock.jobId)) ?? latestJob) : null;
 
 	return {
-		writeLockEnabled: isWriteLockEnabled(),
-		locked: Boolean(lock),
-		lock,
-		activeJob,
-		latestJob
+		writeLock: toRealtimeWriteLock(lock),
+		activeLongProcesses: activeJob ? [toRealtimeLongProcess(activeJob)] : [],
+		latestLongProcess: latestJob ? toRealtimeLongProcess(latestJob) : null
 	};
 };

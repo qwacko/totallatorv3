@@ -46,6 +46,7 @@ describe('accountCreateInsertionData', () => {
 				active: true,
 				allowUpdate: true,
 				disabled: false,
+				isCatchall: false,
 				startDate: '2020-02-02',
 				endDate: '2021-01-01'
 			});
@@ -90,10 +91,48 @@ describe('accountCreateInsertionData', () => {
 				allowUpdate: true,
 				disabled: false,
 				isCash: false,
+				isCatchall: false,
 				isNetWorth: false,
 				startDate: null,
 				endDate: null
 			});
+		});
+	});
+
+	it('preserves catch-all on expense accounts only', () => {
+		const date = new Date(2020, 1, 1, 1, 0, 0, 0);
+		vi.setSystemTime(date);
+
+		expect(
+			accountCreateInsertionData(
+				{
+					title: 'Expense Catchall',
+					type: 'expense',
+					accountGroupCombined: '',
+					status: 'active',
+					isCatchall: true
+				},
+				'expense-1'
+			)
+		).toMatchObject({
+			id: 'expense-1',
+			isCatchall: true
+		});
+
+		expect(
+			accountCreateInsertionData(
+				{
+					title: 'Asset Catchall',
+					type: 'asset',
+					accountGroupCombined: 'Assets',
+					status: 'active',
+					isCatchall: true
+				},
+				'asset-1'
+			)
+		).toMatchObject({
+			id: 'asset-1',
+			isCatchall: false
 		});
 	});
 

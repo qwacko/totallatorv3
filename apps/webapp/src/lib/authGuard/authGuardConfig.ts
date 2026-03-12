@@ -108,6 +108,18 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 		'/(loggedIn)/backup/download/[filename]': { ...adminOnlyConfig },
 		'/(loggedIn)/backup-restore-progress': { ...adminOnlyConfig },
 
+		// System API
+		// ----------------------------------------
+		'/api/system/long-process/stream': {
+			...userOnlyConfig
+		},
+		'/api/system/long-process/status': {
+			...userOnlyConfig
+		},
+		'/api/test-tracing': {
+			...adminOnlyConfig
+		},
+
 		// Settings Actions
 		// ----------------------------------------
 		'/(loggedIn)/settings': {
@@ -249,6 +261,9 @@ export const { backend: authGuard, frontend: authGuardFrontend } = skGuard({
 			POSTCheck: {
 				default: POSTAllowAdminOnly
 			}
+		},
+		'/(loggedIn)/import/[id]/export': {
+			...adminOnlyConfig
 		},
 
 		// Journals

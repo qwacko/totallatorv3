@@ -1,13 +1,19 @@
 <script lang="ts">
 	import { Badge, Button, ButtonGroup, Input, Spinner } from 'flowbite-svelte';
 
-	import { importStatusToColour, importStatusToTest, importTypeToTitle } from '@totallator/shared';
-	import { defaultJournalFilter } from '@totallator/shared';
+	import {
+		defaultJournalFilter,
+		importStatusToColour,
+		importStatusToTest,
+		importTypeToTitle,
+		type RealtimeEventMap,
+		type RealtimeLongProcess
+	} from '@totallator/shared';
 
-	import { browser } from '$app/environment';
 	import { invalidateAll, onNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 
+	import { useSSE } from '$lib/client/useSSE.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
@@ -23,17 +29,67 @@
 	const urlInfo = pageInfo('/(loggedIn)/import', () => page);
 
 	let filterOpened = $state(false);
+	let activeImportJob = $state<RealtimeLongProcess | null>(null);
+	let latestImportJobEventUpdatedAt = $state<string | null>(null);
+
+	const eventStreamUrl = '/api/system/long-process/stream';
+	const isImportProcess = (process: RealtimeLongProcess | null | undefined) =>
+		Boolean(
+			process &&
+			(process.processType.startsWith('import-') || process.processType === 'auto-import-trigger')
+		);
+
+	useSSE<RealtimeEventMap, 'system.snapshot'>({
+		url: eventStreamUrl,
+		event: 'system.snapshot',
+		callback: (snapshot) => {
+			activeImportJob = snapshot.activeLongProcesses.find(isImportProcess) ?? null;
+		}
+	});
+
+	const handleImportEvent = (process: RealtimeLongProcess) => {
+		if (!isImportProcess(process)) {
+			return;
+		}
+
+		activeImportJob = process.status === 'running' ? process : null;
+		latestImportJobEventUpdatedAt = process.updatedAt;
+	};
+
+	useSSE<RealtimeEventMap, 'long_process.started'>({
+		url: eventStreamUrl,
+		event: 'long_process.started',
+		callback: handleImportEvent
+	});
+
+	useSSE<RealtimeEventMap, 'long_process.progress'>({
+		url: eventStreamUrl,
+		event: 'long_process.progress',
+		callback: handleImportEvent
+	});
+
+	useSSE<RealtimeEventMap, 'long_process.completed'>({
+		url: eventStreamUrl,
+		event: 'long_process.completed',
+		callback: handleImportEvent
+	});
+
+	useSSE<RealtimeEventMap, 'long_process.failed'>({
+		url: eventStreamUrl,
+		event: 'long_process.failed',
+		callback: handleImportEvent
+	});
 
 	onNavigate(() => {
 		filterOpened = false;
 	});
 
 	$effect(() => {
-		if (browser && data.needsRefresh) {
-			setTimeout(() => {
-				invalidateAll();
-			}, 2000);
+		if (!latestImportJobEventUpdatedAt) {
+			return;
 		}
+
+		invalidateAll();
 	});
 </script>
 
@@ -45,6 +101,22 @@
 			Add
 		</Button>
 	{/snippet}
+
+	{#if activeImportJob}
+		<div
+			class="mb-4 rounded border border-blue-200 bg-blue-50 p-4 text-sm dark:border-blue-900 dark:bg-blue-950/30"
+		>
+			<div class="flex items-center justify-between gap-4">
+				<div>
+					<div class="font-medium text-blue-900 dark:text-blue-200">Background import job</div>
+					<div class="text-blue-700 dark:text-blue-300">
+						{activeImportJob.message || activeImportJob.processType} ({activeImportJob.progress}%)
+					</div>
+				</div>
+				<Spinner size="5" color="green" />
+			</div>
+		</div>
+	{/if}
 
 	{#if urlInfo.current.searchParams && data.searchParams}
 		<CustomTable

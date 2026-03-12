@@ -38,6 +38,7 @@ export * from './schemas/logFilterValidation.js';
 
 // Export helper schemas
 export * from './schemas/helpers/fileNoteRelationship.js';
+export * from './schemas/helpers/booleanishSchema.js';
 
 // Export enum schemas
 export * from './schemas/enum/associatedInfoOrderByEnum.js';
@@ -71,3 +72,4 @@ export * from './reportLayoutOptions.js';
 
 // Export logging helpers
 export * from './helpers/logging.js';
+export * from './realtime/realtimeEvents.js';

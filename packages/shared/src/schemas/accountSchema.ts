@@ -2,6 +2,7 @@ import * as z from 'zod';
 
 import { accountTypeEnum } from './accountTypeSchema.js';
 import { dateStringSchema } from './dateStringSchema.js';
+import { booleanishSchema } from './helpers/booleanishSchema.js';
 import { linkedFileFilterSchema } from './linkedFileFilterSchema.js';
 import { linkedNoteFilterSchema } from './linkedNoteFilterSchema.js';
 import { statusEnum } from './statusSchema.js';
@@ -13,9 +14,9 @@ export const createAccountSchema = z.object({
 	type: z.enum(accountTypeEnum).optional().default('expense'),
 	startDate: dateStringSchema.or(z.string().trim().length(0)).optional(),
 	endDate: dateStringSchema.or(z.string().trim().length(0)).optional(),
-	isCash: z.coerce.boolean<boolean>().optional(),
-	isNetWorth: z.coerce.boolean<boolean>().optional(),
-	isCatchall: z.coerce.boolean<boolean>().optional(),
+	isCash: booleanishSchema.optional(),
+	isNetWorth: booleanishSchema.optional(),
+	isCatchall: booleanishSchema.optional(),
 	status: z.enum(statusEnum).default('active'),
 	importId: z.coerce.string<string>().optional(),
 	importDetailId: z.coerce.string<string>().optional()
@@ -167,9 +168,9 @@ export const accountFilterSchema = z.object({
 	disabled: z.boolean().optional(),
 	allowUpdate: z.boolean().optional(),
 	active: z.boolean().optional(),
-	isCash: z.coerce.boolean<boolean>().optional(),
-	isNetWorth: z.coerce.boolean<boolean>().optional(),
-	isCatchall: z.coerce.boolean<boolean>().optional(),
+	isCash: booleanishSchema.optional(),
+	isNetWorth: booleanishSchema.optional(),
+	isCatchall: booleanishSchema.optional(),
 	startDateBefore: dateStringSchema.optional(),
 	startDateAfter: dateStringSchema.optional(),
 	endDateBefore: dateStringSchema.optional(),

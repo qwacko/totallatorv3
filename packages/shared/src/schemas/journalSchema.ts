@@ -7,6 +7,7 @@ import { budgetFilterSchema } from './budgetSchema.js';
 import { categoryFilterSchema } from './categorySchema.js';
 import { dateSpanEnum } from './dateSpanSchema.js';
 import { dateStringSchema } from './dateStringSchema.js';
+import { booleanishSchema } from './helpers/booleanishSchema.js';
 import { labelFilterSchema } from './labelSchema.js';
 import { linkedFileFilterSchema } from './linkedFileFilterSchema.js';
 import { linkedNoteFilterSchema } from './linkedNoteFilterSchema.js';
@@ -166,14 +167,14 @@ export const updateJournalSchema = z.object({
 	labels: z.array(z.string()).optional(),
 	labelTitles: z.array(z.string()).optional(),
 	clearLabels: z.boolean().optional().default(false),
-	setReconciled: z.coerce.boolean<boolean>().optional().default(false),
-	clearReconciled: z.coerce.boolean<boolean>().optional().default(false),
-	setDataChecked: z.coerce.boolean<boolean>().optional().default(false),
-	clearDataChecked: z.coerce.boolean<boolean>().optional().default(false),
-	setComplete: z.coerce.boolean<boolean>().optional().default(false),
-	clearComplete: z.coerce.boolean<boolean>().optional().default(false),
-	setLinked: z.coerce.boolean<boolean>().optional().default(false),
-	clearLinked: z.coerce.boolean<boolean>().optional().default(false)
+	setReconciled: booleanishSchema.optional().default(false),
+	clearReconciled: booleanishSchema.optional().default(false),
+	setDataChecked: booleanishSchema.optional().default(false),
+	clearDataChecked: booleanishSchema.optional().default(false),
+	setComplete: booleanishSchema.optional().default(false),
+	clearComplete: booleanishSchema.optional().default(false),
+	setLinked: booleanishSchema.optional().default(false),
+	clearLinked: booleanishSchema.optional().default(false)
 });
 
 export const cloneJournalUpdateSchema = z.object({
@@ -226,10 +227,10 @@ export const journalFilterSchemaWithoutPagination = z.object({
 	descriptionArray: z.array(z.string()).optional(),
 	excludeDescription: z.coerce.string<string>().optional(),
 	excludeDescriptionArray: z.array(z.string()).optional(),
-	transfer: z.coerce.boolean<boolean>().optional(),
-	linked: z.coerce.boolean<boolean>().optional(),
-	reconciled: z.coerce.boolean<boolean>().optional(),
-	dataChecked: z.coerce.boolean<boolean>().optional(),
+	transfer: booleanishSchema.optional(),
+	linked: booleanishSchema.optional(),
+	reconciled: booleanishSchema.optional(),
+	dataChecked: booleanishSchema.optional(),
 	complete: z.boolean().optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),

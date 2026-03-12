@@ -1,6 +1,5 @@
-import type { CreateAccountSchemaType } from '@totallator/shared';
-
 import { combinedAccountTitleSplitRequired } from '@totallator/business-logic/helpers/combinedAccountTitleSplit';
+import type { CreateAccountSchemaType } from '@totallator/shared';
 
 import { statusUpdate } from '../misc/statusUpdate';
 import { updatedTime } from '../misc/updatedTime';
@@ -35,7 +34,7 @@ export const accountCreateInsertionData = (data: CreateAccountSchemaType, id: st
 			...statusUpdate(data.status),
 			...updatedTime(),
 			...combinedAccountTitleSplitRequired(data),
-			isCatchAll: false
+			isCatchall: false
 		};
 	} else {
 		return {
@@ -50,7 +49,7 @@ export const accountCreateInsertionData = (data: CreateAccountSchemaType, id: st
 			startDate: null,
 			endDate: null,
 			isCash: false,
-			isCatchAll: data.isCatchall || false,
+			isCatchall: data.isCatchall || false,
 			isNetWorth: false
 		};
 	}

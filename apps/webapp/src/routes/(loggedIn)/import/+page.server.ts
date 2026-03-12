@@ -26,7 +26,6 @@ export const load = async (data) => {
 	try {
 		const imports = await tActions.import.list({ filter: searchParams });
 		const filterText = await importFilterToText({ db, filter: searchParams });
-		const needsRefresh = (await tActions.import.numberActive()) > 0;
 
 		const duration = Date.now() - startTime;
 		data.locals.global.logger('imports').debug({
@@ -35,15 +34,13 @@ export const load = async (data) => {
 			userId: data.locals.user?.id,
 			importCount: imports.data.length,
 			totalImports: imports.count,
-			needsRefresh,
 			duration
 		});
 
 		return {
 			imports,
 			searchParams,
-			filterText,
-			needsRefresh
+			filterText
 		};
 	} catch (e) {
 		const duration = Date.now() - startTime;

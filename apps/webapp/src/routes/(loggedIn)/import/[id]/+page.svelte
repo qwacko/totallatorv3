@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
 
-	import { importTypeToTitle } from '@totallator/shared';
+	import {
+		importTypeToTitle,
+		type RealtimeEventMap,
+		type RealtimeLongProcess
+	} from '@totallator/shared';
 
-	import { browser } from '$app/environment';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 
+	import { useSSE } from '$lib/client/useSSE.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import JournalEntryIcon from '$lib/components/icons/JournalEntryIcon.svelte';
@@ -21,18 +25,59 @@
 	import { linkToImportItems } from './linkToImportItems';
 
 	const { data } = $props();
+	let activeImportJob = $state<RealtimeLongProcess | null>(null);
+	let latestImportJobEventUpdatedAt = $state<string | null>(null);
+	const eventStreamUrl = '/api/system/long-process/stream';
+	const isMatchingImportProcess = (process: RealtimeLongProcess | null | undefined) =>
+		Boolean(process && process.entityType === 'import' && process.entityId === data.id);
+
+	useSSE<RealtimeEventMap, 'system.snapshot'>({
+		url: eventStreamUrl,
+		event: 'system.snapshot',
+		callback: (snapshot) => {
+			activeImportJob = snapshot.activeLongProcesses.find(isMatchingImportProcess) ?? null;
+		}
+	});
+
+	const handleImportEvent = (process: RealtimeLongProcess) => {
+		if (!isMatchingImportProcess(process)) {
+			return;
+		}
+
+		activeImportJob = process.status === 'running' ? process : null;
+		latestImportJobEventUpdatedAt = process.updatedAt;
+	};
+
+	useSSE<RealtimeEventMap, 'long_process.started'>({
+		url: eventStreamUrl,
+		event: 'long_process.started',
+		callback: handleImportEvent
+	});
+
+	useSSE<RealtimeEventMap, 'long_process.progress'>({
+		url: eventStreamUrl,
+		event: 'long_process.progress',
+		callback: handleImportEvent
+	});
+
+	useSSE<RealtimeEventMap, 'long_process.completed'>({
+		url: eventStreamUrl,
+		event: 'long_process.completed',
+		callback: handleImportEvent
+	});
+
+	useSSE<RealtimeEventMap, 'long_process.failed'>({
+		url: eventStreamUrl,
+		event: 'long_process.failed',
+		callback: handleImportEvent
+	});
 
 	$effect(() => {
-		if (browser) {
-			if (
-				data.streaming.data.detail.status === 'importing' ||
-				data.streaming.data.detail.status === 'awaitingImport'
-			) {
-				setTimeout(() => {
-					invalidateAll();
-				}, 2000);
-			}
+		if (!latestImportJobEventUpdatedAt) {
+			return;
 		}
+
+		invalidateAll();
 	});
 </script>
 
@@ -51,6 +96,22 @@
 		{@const importCount = importData.detail.importDetails.filter(
 			(d) => d.status === 'imported'
 		).length}
+
+		{#if activeImportJob}
+			<div
+				class="rounded border border-blue-200 bg-blue-50 p-4 text-sm dark:border-blue-900 dark:bg-blue-950/30"
+			>
+				<div class="flex items-center justify-between gap-4">
+					<div>
+						<div class="font-medium text-blue-900 dark:text-blue-200">Background task</div>
+						<div class="text-blue-700 dark:text-blue-300">
+							{activeImportJob.message || activeImportJob.processType} ({activeImportJob.progress}%)
+						</div>
+					</div>
+					<Spinner size="5" color="green" />
+				</div>
+			</div>
+		{/if}
 
 		<div class="flex flex-row items-center gap-4 self-center">
 			<i>Type :</i>

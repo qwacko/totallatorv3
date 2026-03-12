@@ -15,6 +15,8 @@ export const backupRestoreProcessor: TypedJobProcessor<WorkerJobMap, 'backup-res
 
 	await runTrackedLongProcess({
 		type: 'backup-restore',
+		entityType: 'backup',
+		entityId: payload.backupId,
 		message: `Backup restore ${payload.backupId}`,
 		metadata: { backupId: payload.backupId },
 		maxRuntimeMs: 2 * 60 * 60 * 1000,
@@ -52,6 +54,7 @@ export const backupStoreProcessor: TypedJobProcessor<WorkerJobMap, 'backup-store
 ) => {
 	await runTrackedLongProcess({
 		type: 'backup-store',
+		entityType: 'backup',
 		message: 'Backup store',
 		run: async () =>
 			standaloneContext(
@@ -77,6 +80,7 @@ export const backupRefreshProcessor: TypedJobProcessor<
 > = async () => {
 	await runTrackedLongProcess({
 		type: 'backup-refresh',
+		entityType: 'backup',
 		message: 'Backup refresh',
 		run: async () =>
 			standaloneContext(
@@ -99,6 +103,7 @@ export const backupRefreshProcessor: TypedJobProcessor<
 export const backupTrimProcessor: TypedJobProcessor<WorkerJobMap, 'backup-trim'> = async () => {
 	await runTrackedLongProcess({
 		type: 'backup-trim',
+		entityType: 'backup',
 		message: 'Backup trim',
 		run: async () =>
 			standaloneContext(
@@ -123,6 +128,8 @@ export const backupDeleteProcessor: TypedJobProcessor<WorkerJobMap, 'backup-dele
 ) => {
 	await runTrackedLongProcess({
 		type: 'backup-delete',
+		entityType: 'backup',
+		entityId: job.data.data.backupId,
 		message: `Backup delete ${job.data.data.backupId}`,
 		metadata: { backupId: job.data.data.backupId },
 		run: async () =>
@@ -150,6 +157,8 @@ export const backupImportProcessor: TypedJobProcessor<WorkerJobMap, 'backup-impo
 
 	await runTrackedLongProcess({
 		type: 'backup-import',
+		entityType: 'backup',
+		entityId: payload.backupId,
 		message: `Backup import ${payload.backupId}`,
 		metadata: { backupId: payload.backupId },
 		maxRuntimeMs: 2 * 60 * 60 * 1000,
@@ -185,6 +194,8 @@ export const autoImportTriggerProcessor: TypedJobProcessor<
 
 	await runTrackedLongProcess({
 		type: 'auto-import-trigger',
+		entityType: 'autoImport',
+		entityId: payload.autoImportId,
 		message: `Auto import ${payload.autoImportId}`,
 		metadata: { autoImportId: payload.autoImportId },
 		run: async () =>
@@ -220,6 +231,7 @@ export const importStoreProcessor: TypedJobProcessor<WorkerJobMap, 'import-store
 
 	await runTrackedLongProcess({
 		type: 'import-store',
+		entityType: 'import',
 		message: 'Import store',
 		metadata: { importType: payload.importType, autoProcess: payload.autoProcess },
 		maxRuntimeMs: 3 * 60 * 60 * 1000,
@@ -264,6 +276,8 @@ export const importReprocessProcessor: TypedJobProcessor<WorkerJobMap, 'import-r
 ) => {
 	await runTrackedLongProcess({
 		type: 'import-reprocess',
+		entityType: 'import',
+		entityId: job.data.data.importId,
 		message: `Import reprocess ${job.data.data.importId}`,
 		metadata: { importId: job.data.data.importId },
 		maxRuntimeMs: 2 * 60 * 60 * 1000,
@@ -292,6 +306,8 @@ export const importCleanProcessor: TypedJobProcessor<WorkerJobMap, 'import-clean
 ) => {
 	await runTrackedLongProcess({
 		type: 'import-clean',
+		entityType: 'import',
+		entityId: job.data.data.importId,
 		message: `Import clean ${job.data.data.importId}`,
 		metadata: { importId: job.data.data.importId },
 		maxRuntimeMs: 2 * 60 * 60 * 1000,
@@ -320,6 +336,8 @@ export const importTriggerProcessor: TypedJobProcessor<WorkerJobMap, 'import-tri
 ) => {
 	await runTrackedLongProcess({
 		type: 'import-trigger',
+		entityType: 'import',
+		entityId: job.data.data.importId,
 		message: `Import trigger ${job.data.data.importId}`,
 		metadata: { importId: job.data.data.importId },
 		maxRuntimeMs: 2 * 60 * 60 * 1000,
@@ -348,6 +366,8 @@ export const importDeleteProcessor: TypedJobProcessor<WorkerJobMap, 'import-dele
 ) => {
 	await runTrackedLongProcess({
 		type: 'import-delete',
+		entityType: 'import',
+		entityId: job.data.data.importId,
 		message: `Import delete ${job.data.data.importId}`,
 		metadata: { importId: job.data.data.importId },
 		run: async () =>
@@ -374,6 +394,8 @@ export const importDeleteLinkedProcessor: TypedJobProcessor<
 > = async (job) => {
 	await runTrackedLongProcess({
 		type: 'import-delete-linked',
+		entityType: 'import',
+		entityId: job.data.data.importId,
 		message: `Import delete linked ${job.data.data.importId}`,
 		metadata: { importId: job.data.data.importId },
 		run: async () =>
@@ -399,6 +421,8 @@ export const importForgetProcessor: TypedJobProcessor<WorkerJobMap, 'import-forg
 ) => {
 	await runTrackedLongProcess({
 		type: 'import-forget',
+		entityType: 'import',
+		entityId: job.data.data.importId,
 		message: `Import forget ${job.data.data.importId}`,
 		metadata: { importId: job.data.data.importId },
 		run: async () =>

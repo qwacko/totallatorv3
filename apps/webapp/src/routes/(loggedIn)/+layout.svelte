@@ -31,6 +31,7 @@
 	import UsersIcon from '$lib/components/icons/UsersIcon.svelte';
 	import NotificationDisplay from '$lib/components/NotificationDisplay.svelte';
 	import ReportDropdown from '$lib/components/report/ReportDropdown.svelte';
+	import GlobalRealtimeStatus from '$lib/components/system/GlobalRealtimeStatus.svelte';
 	import { urlGenerator } from '$lib/routes';
 	import UpdateDropdowns from '$lib/stores/UpdateDropdowns.svelte';
 	import { userInfoUpdateStore } from '$lib/stores/userInfoStore.js';
@@ -300,6 +301,7 @@
 <UpdateDropdowns dataUpdated={data.dataUpdated} />
 
 <div class="flex flex-col justify-stretch p-2">
+	<GlobalRealtimeStatus />
 	<div class="flex flex-row gap-2 pt-4 pb-8 md:hidden">
 		<FilterSelectionModal
 			showDefaultJournalFilters
