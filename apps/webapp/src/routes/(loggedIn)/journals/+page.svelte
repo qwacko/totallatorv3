@@ -14,9 +14,9 @@
 	import CategoryBadge from '$lib/components/CategoryBadge.svelte';
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import DateInput from '$lib/components/DateInput.svelte';
-	import DownloadDropdown from '$lib/components/DownloadDropdown.svelte';
 	import FilterDropdown from '$lib/components/FilterDropdown.svelte';
 	import FilterModalContent from '$lib/components/FilterModalContent.svelte';
+	import JournalDownloadDropdown from '$lib/components/JournalDownloadDropdown.svelte';
 	import ArrowDownIcon from '$lib/components/icons/ArrowDownIcon.svelte';
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
@@ -185,7 +185,7 @@
 							urlInfo.updateParamsURLGenerator({ searchParams: newFilter }).url}
 						currentFilter={urlInfo.current.searchParams}
 					/>
-					<DownloadDropdown
+					<JournalDownloadDropdown
 						urlGenerator={(downloadType) => {
 							if (urlInfo.current.searchParams) {
 								return urlGenerator({

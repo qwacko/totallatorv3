@@ -13,6 +13,30 @@ import { linkedFileFilterSchema } from './linkedFileFilterSchema.js';
 import { linkedNoteFilterSchema } from './linkedNoteFilterSchema.js';
 import { tagFilterSchema } from './tagSchema.js';
 
+const csvStringArraySchema = z
+	.union([z.array(z.string()), z.string()])
+	.optional()
+	.transform((value) => {
+		if (Array.isArray(value)) {
+			return value.length > 0 ? value : undefined;
+		}
+		if (typeof value !== 'string') {
+			return undefined;
+		}
+
+		const trimmed = value.trim();
+		if (trimmed.length === 0) {
+			return undefined;
+		}
+
+		const items = trimmed
+			.split(',')
+			.map((item) => item.trim())
+			.filter((item) => item.length > 0);
+
+		return items.length > 0 ? items : undefined;
+	});
+
 const zodStringBlanking = z
 	.string()
 	.optional()
@@ -161,11 +185,11 @@ export const updateJournalSchema = z.object({
 	accountTitle: zodStringBlanking,
 	otherAccountId: zodStringBlanking,
 	otherAccountTitle: zodStringBlanking,
-	addLabels: z.array(z.string()).optional(),
-	addLabelTitles: z.array(z.string()).optional(),
-	removeLabels: z.array(z.string()).optional(),
-	labels: z.array(z.string()).optional(),
-	labelTitles: z.array(z.string()).optional(),
+	addLabels: csvStringArraySchema,
+	addLabelTitles: csvStringArraySchema,
+	removeLabels: csvStringArraySchema,
+	labels: csvStringArraySchema,
+	labelTitles: csvStringArraySchema,
 	clearLabels: z.boolean().optional().default(false),
 	setReconciled: booleanishSchema.optional().default(false),
 	clearReconciled: booleanishSchema.optional().default(false),

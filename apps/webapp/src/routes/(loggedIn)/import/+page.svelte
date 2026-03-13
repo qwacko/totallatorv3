@@ -30,7 +30,7 @@
 
 	let filterOpened = $state(false);
 	let activeImportJob = $state<RealtimeLongProcess | null>(null);
-	let latestImportJobEventUpdatedAt = $state<string | null>(null);
+	let importEventVersion = $state(0);
 
 	const eventStreamUrl = '/api/system/long-process/stream';
 	const isImportProcess = (process: RealtimeLongProcess | null | undefined) =>
@@ -53,7 +53,7 @@
 		}
 
 		activeImportJob = process.status === 'running' ? process : null;
-		latestImportJobEventUpdatedAt = process.updatedAt;
+		importEventVersion += 1;
 	};
 
 	useSSE<RealtimeEventMap, 'long_process.started'>({
@@ -85,7 +85,7 @@
 	});
 
 	$effect(() => {
-		if (!latestImportJobEventUpdatedAt) {
+		if (importEventVersion === 0) {
 			return;
 		}
 

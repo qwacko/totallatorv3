@@ -33,4 +33,4 @@ const normalizeBooleanish = (value: unknown) => {
 	return value;
 };
 
-export const booleanishSchema = z.preprocess(normalizeBooleanish, z.boolean());
+export const booleanishSchema = z.preprocess(normalizeBooleanish, z.boolean().optional());

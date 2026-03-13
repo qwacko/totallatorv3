@@ -369,7 +369,7 @@ export const importActions = {
 				entityId: importId,
 				metadata: { importId }
 			});
-			await importActions.doImport({ id: importId, reportProgress });
+			await importActions.executeImportLifecycle({ id: importId, reportProgress });
 		} else if (importInfo.status === 'processed') {
 			await reportLongRunningTaskProgress(reportProgress, {
 				progress: 90,
@@ -945,6 +945,8 @@ export const importActions = {
 			return true;
 		} else if (importInfo.type === 'transaction') {
 			return true;
+		} else if (importInfo.type === 'journalUpdate') {
+			return false;
 		} else if (importInfo.type === 'account') {
 			const accounts = await dbExecuteLogger(
 				db.select().from(account).where(eq(account.importId, id)),
@@ -1008,10 +1010,12 @@ export const importActions = {
 			);
 			await runInTransactionWithLogging('Delete Import Linked Items', async () => {
 				if (importDetails) {
-					const transactionIds = filterNullUndefinedAndDuplicates(
-						importDetails.journals.map((item) => item.transactionId)
-					);
-					await journalActions.hardDeleteTransactions({ transactionIds });
+					if (importDetails.type !== 'journalUpdate') {
+						const transactionIds = filterNullUndefinedAndDuplicates(
+							importDetails.journals.map((item) => item.transactionId)
+						);
+						await journalActions.hardDeleteTransactions({ transactionIds });
+					}
 
 					await billActions.deleteMany(importDetails.bills.map((item) => ({ id: item.id })));
 					await budgetActions.deleteMany(importDetails.budgets.map((item) => ({ id: item.id })));

@@ -274,7 +274,8 @@ export async function importJournalUpdate({
 				.set({
 					status: 'imported',
 					importInfo: updatedJournal,
-					relationId: updatedJournal.id,
+					relationId: null,
+					relation2Id: null,
 					...updatedTime()
 				})
 				.where(eq(importItemDetail.id, item.id)),

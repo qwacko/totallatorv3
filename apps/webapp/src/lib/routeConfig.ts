@@ -9,6 +9,7 @@ import { labelFilterSchema } from '@totallator/shared';
 import { accountFilterSchema } from '@totallator/shared';
 import {
 	defaultJournalFilter,
+	journalDownloadTypeSchema,
 	journalFilterSchema,
 	journalFilterSchemaWithoutPagination
 } from '@totallator/shared';
@@ -114,7 +115,7 @@ export const skConfigOld = {
 	},
 	'/(loggedIn)/journals/download': {
 		searchParamsValidation: z
-			.object({ ...journalFilterSchema.shape, ...downloadTypeSchema.shape })
+			.object({ ...journalFilterSchema.shape, ...journalDownloadTypeSchema.shape })
 			.optional()
 			.catch(defaultJournalFilter())
 	},

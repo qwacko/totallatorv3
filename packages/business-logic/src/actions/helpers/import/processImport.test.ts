@@ -6,11 +6,17 @@ type ImportType = 'account' | 'tag' | 'journalUpdate';
 
 let currentImportType: ImportType = 'account';
 let importProcessItemsArgs: any[] = [];
+let currentImportCheckImportedOnly = true;
 
 vi.mock('@totallator/context', () => ({
 	getContextDB: () => ({
 		select: () => ({
 			from: () => ({
+				where: () => ({})
+			})
+		}),
+		update: () => ({
+			set: () => ({
 				where: () => ({})
 			})
 		})
@@ -35,6 +41,19 @@ vi.mock('./importProcessItems', () => ({
 	}
 }));
 
+vi.mock('./getImportDetail', () => ({
+	getImportDetail: async () => ({
+		linkedItemStatus: {
+			error: 0,
+			importError: 0,
+			duplicate: 0,
+			processed: 1,
+			imported: 0,
+			all: 1
+		}
+	})
+}));
+
 vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({
 	dbExecuteLogger: async (_query: any, label: string) => {
 		if (label === 'getImportData') {
@@ -45,7 +64,7 @@ vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({
 					status: 'created',
 					source: 'csv',
 					type: currentImportType,
-					checkImportedOnly: true,
+					checkImportedOnly: currentImportCheckImportedOnly,
 					importMappingId: null
 				}
 			];
@@ -63,10 +82,12 @@ vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({
 describe('processCreatedImport duplicate key callbacks', () => {
 	beforeEach(() => {
 		importProcessItemsArgs = [];
+		currentImportCheckImportedOnly = true;
 	});
 
-	it('normalizes account duplicate keys for id-based and title-based identifiers', async () => {
+	it('allows account imports with existing ids to proceed as updates', async () => {
 		currentImportType = 'account';
+		currentImportCheckImportedOnly = false;
 
 		await processCreatedImport({ id: 'import-1' });
 
@@ -75,14 +96,15 @@ describe('processCreatedImport duplicate key callbacks', () => {
 			values: string[]
 		) => Promise<string[]>;
 
-		await expect(checkUniqueIdentifiers(['id:account-1'])).resolves.toEqual(['id:account-1']);
+		await expect(checkUniqueIdentifiers(['id:account-1'])).resolves.toEqual([]);
 		await expect(checkUniqueIdentifiers(['Assets:Cash:Cash Wallet'])).resolves.toEqual([
 			'Assets:Cash:Cash Wallet'
 		]);
 	});
 
-	it('normalizes tag duplicate keys for id-based and title-based identifiers', async () => {
+	it('allows tag imports with existing ids to proceed as updates', async () => {
 		currentImportType = 'tag';
+		currentImportCheckImportedOnly = false;
 
 		await processCreatedImport({ id: 'import-1' });
 
@@ -91,7 +113,7 @@ describe('processCreatedImport duplicate key callbacks', () => {
 			values: string[]
 		) => Promise<string[]>;
 
-		await expect(checkUniqueIdentifiers(['id:tag-1'])).resolves.toEqual(['id:tag-1']);
+		await expect(checkUniqueIdentifiers(['id:tag-1'])).resolves.toEqual([]);
 		await expect(checkUniqueIdentifiers(['Groceries'])).resolves.toEqual(['Groceries']);
 	});
 

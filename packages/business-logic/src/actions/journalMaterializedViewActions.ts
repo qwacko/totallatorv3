@@ -9,10 +9,10 @@ import { journalEntry } from '@totallator/database';
 import type {
 	JournalFilterSchemaInputType,
 	JournalFilterSchemaType,
-	JournalFilterSchemaWithoutPaginationType
+	JournalFilterSchemaWithoutPaginationType,
+	JournalDownloadTypeEnumType
 } from '@totallator/shared';
 import { summaryCacheDataSchema, type SummaryCacheSchemaDataType } from '@totallator/shared';
-import type { DownloadTypeEnumType } from '@totallator/shared';
 
 import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
@@ -332,7 +332,7 @@ export const journalMaterializedViewActions = {
 		returnType
 	}: {
 		filter?: JournalFilterSchemaInputType;
-		returnType: DownloadTypeEnumType;
+		returnType: JournalDownloadTypeEnumType;
 	}): Promise<string> => {
 		const journalData = await journalMaterializedViewActions.list({
 			filter: { ...filter, page: 0, pageSize: 100000 }
@@ -354,7 +354,7 @@ export const journalMaterializedViewActions = {
 			if (returnType === 'import') {
 				return {
 					id: item.id,
-					date: item.date.toString().slice(0, 10),
+					date: item.dateText,
 					description: item.description,
 					amount: item.amount,
 					accountTitle: item.accountTitle || undefined,
@@ -366,6 +366,29 @@ export const journalMaterializedViewActions = {
 					setComplete: item.complete,
 					setDataChecked: item.dataChecked,
 					setReconciled: item.reconciled
+				};
+			}
+			if (returnType === 'journalUpdate') {
+				return {
+					id: item.id,
+					date: item.dateText,
+					description: item.description,
+					amount: item.amount,
+					accountTitle: item.accountTitle || undefined,
+					otherAccountTitle: item.otherJournals[0]?.accountTitle || undefined,
+					billTitle: item.billTitle || undefined,
+					budgetTitle: item.budgetTitle || undefined,
+					categoryTitle: item.categoryTitle || undefined,
+					tagTitle: item.tagTitle || undefined,
+					labelTitles: item.labels.map((label) => label.title).join(', ') || undefined,
+					setLinked: item.linked || undefined,
+					clearLinked: item.linked ? undefined : true,
+					setComplete: item.complete || undefined,
+					clearComplete: item.complete ? undefined : true,
+					setDataChecked: item.dataChecked || undefined,
+					clearDataChecked: item.dataChecked ? undefined : true,
+					setReconciled: item.reconciled || undefined,
+					clearReconciled: item.reconciled ? undefined : true
 				};
 			}
 			return {
