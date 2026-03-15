@@ -1,5 +1,6 @@
 import { and, count, desc, eq, not, or } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
 
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import type { DBType } from '@totallator/database';
@@ -43,6 +44,8 @@ import { seedTransactionData } from './helpers/seed/seedTransactionData';
 import { labelActions } from './labelActions';
 import { materializedViewActions } from './materializedViewActions';
 import { tagActions } from './tagActions';
+
+const journalTracer = trace.getTracer('@totallator/business-logic/journals');
 
 export const journalActions = {
 	createFromSimpleTransaction: async ({
@@ -603,393 +606,555 @@ export const journalActions = {
 		filter: JournalFilterSchemaInputType;
 		journalData: UpdateJournalSchemaInputType;
 	}): Promise<undefined | string[]> => {
-		const db = getContextDB();
-		const processedData = updateJournalSchema.safeParse(journalData);
+		return await journalTracer.startActiveSpan(
+			'journals.update',
+			async (span) => {
+				try {
+					const db = getContextDB();
+					const processedData = updateJournalSchema.safeParse(journalData);
 
-		if (!processedData.success) {
-			getLogger('journals').error({
-				code: 'JOURNAL_003',
-				title: 'Invalid Journal Update Data',
-				error: processedData.error
-			});
-			throw new Error('Invalid Journal Update Data');
-		}
+					if (!processedData.success) {
+						getLogger('journals').error({
+							code: 'JOURNAL_003',
+							title: 'Invalid Journal Update Data',
+							error: processedData.error
+						});
+						span.addEvent('journals.update.invalid-data');
+						throw new Error('Invalid Journal Update Data');
+					}
 
-		const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
-		const journals = await journalMaterialisedList({
-			filter: processedFilter,
-			db
-		});
-
-		if (journals.data.length === 0) return;
-
-		const completedCount = journals.data.filter((journal) => journal.complete).length;
-
-		if (completedCount > 0) {
-			const updatingLabelsOnly = checkUpdateLabelsOnly(processedData.data);
-
-			if (!updatingLabelsOnly) {
-				getLogger('journals').error({
-					code: 'JOURNAL_004',
-					title: 'Cannot update journals that are already complete',
-					filter: processedFilter,
-					data: processedData.data
-				});
-				return undefined;
-			}
-		}
-
-		const linkedJournals = journals.data.filter((journal) => journal.linked);
-		const unlinkedJournals = journals.data.filter((journal) => !journal.linked);
-		const linkedTransactionIds = filterNullUndefinedAndDuplicates(
-			linkedJournals.map((item) => item.transactionId)
-		);
-		const allTransactionIds = filterNullUndefinedAndDuplicates(
-			journals.data.map((item) => item.transactionId)
-		);
-
-		const journalIds = [...new Set(unlinkedJournals.map((item) => item.id))];
-		const targetJournals = (
-			await dbExecuteLogger(
-				db
-					.select({ id: journalEntry.id })
-					.from(journalEntry)
-					.where(
-						or(
-							inArrayWrapped(journalEntry.id, journalIds),
-							inArrayWrapped(journalEntry.transactionId, linkedTransactionIds)
-						)
-					),
-				'Transaction Journals - Update Journals - Select Journals'
-			)
-		).map((item) => item.id);
-
-		await runInTransactionWithLogging('Update Journals', async () => {
-			const db = getContextDB();
-			const tagId = handleLinkedItem({
-				db,
-				id: processedData.data.tagId,
-				title: processedData.data.tagTitle,
-				clear: processedData.data.tagClear,
-				requireActive: true,
-				createOrGetItem: tagActions.createOrGet
-			});
-			const categoryId = handleLinkedItem({
-				db,
-				id: processedData.data.categoryId,
-				title: processedData.data.categoryTitle,
-				clear: processedData.data.categoryClear,
-				requireActive: true,
-				createOrGetItem: categoryActions.createOrGet
-			});
-			const billId = handleLinkedItem({
-				db,
-				id: processedData.data.billId,
-				title: processedData.data.billTitle,
-				clear: processedData.data.billClear,
-				requireActive: true,
-				createOrGetItem: billActions.createOrGet
-			});
-			const budgetId = handleLinkedItem({
-				db,
-				id: processedData.data.budgetId,
-				title: processedData.data.budgetTitle,
-				clear: processedData.data.budgetClear,
-				requireActive: true,
-				createOrGetItem: budgetActions.createOrGet
-			});
-
-			const accountId = (
-				await accountActions.createOrGet({
-					title: processedData.data.accountTitle || undefined,
-					id: processedData.data.accountId || undefined,
-					requireActive: true
-				})
-			)?.id;
-
-			const otherAccountId = (
-				await accountActions.createOrGet({
-					title: processedData.data.otherAccountTitle || undefined,
-					id: processedData.data.otherAccountId || undefined,
-					requireActive: true
-				})
-			)?.id;
-
-			const targetDate = processedData.data.date ? expandDate(processedData.data.date) : {};
-
-			const complete =
-				processedData.data.setComplete === true
-					? true
-					: processedData.data.clearComplete === true
-						? false
-						: undefined;
-			const reconciled =
-				complete === true
-					? true
-					: processedData.data.setReconciled === true
-						? true
-						: processedData.data.clearReconciled === true
-							? false
-							: undefined;
-			const dataChecked =
-				complete === true
-					? true
-					: processedData.data.setDataChecked === true
-						? true
-						: processedData.data.clearDataChecked === true
-							? false
-							: undefined;
-
-			if (linkedJournals.length > 0) {
-				await dbExecuteLogger(
-					db
-						.update(journalEntry)
-						.set({
-							tagId: await tagId,
-							categoryId: await categoryId,
-							billId: await billId,
-							budgetId: await budgetId,
-							complete,
-							dataChecked,
-							reconciled,
-							description: processedData.data.description,
-							...targetDate,
-							...updatedTime()
-						})
-						.where(inArrayWrapped(journalEntry.transactionId, linkedTransactionIds)),
-					'Transaction Journals - Update Journals - Update Linked Journals'
-				);
-			}
-
-			if (unlinkedJournals.length > 0) {
-				const journalIds = unlinkedJournals.map((journal) => journal.id);
-				await dbExecuteLogger(
-					db
-						.update(journalEntry)
-						.set({
-							tagId: await tagId,
-							categoryId: await categoryId,
-							billId: await billId,
-							budgetId: await budgetId,
-							complete,
-							dataChecked,
-							reconciled,
-							...targetDate,
-							...updatedTime()
-						})
-						.where(inArrayWrapped(journalEntry.id, journalIds)),
-					'Transaction Journals - Update Journals - Update Unlinked Journals'
-				);
-			}
-			if (accountId) {
-				const journalIds = journals.data.map((journal) => journal.id);
-
-				await dbExecuteLogger(
-					db
-						.update(journalEntry)
-						.set({ accountId })
-						.where(inArrayWrapped(journalEntry.id, journalIds)),
-					'Transaction Journals - Update Journals - Update Account Id'
-				);
-			}
-			if (otherAccountId) {
-				const numberWithMoreThan1 = journals.data.reduce(
-					(prev, current) => (current.otherJournals.length > 1 ? prev + 1 : prev),
-					0
-				);
-				if (numberWithMoreThan1 > 0)
-					throw new Error(
-						'Cannot update other account if there is a transaction with more than 2 journals'
+					span.setAttribute(
+						'journals.update.has_date',
+						processedData.data.date ? true : false
+					);
+					span.setAttribute(
+						'journals.update.has_description',
+						processedData.data.description ? true : false
+					);
+					span.setAttribute(
+						'journals.update.label_title_count',
+						processedData.data.labelTitles?.length || 0
+					);
+					span.setAttribute(
+						'journals.update.add_label_title_count',
+						processedData.data.addLabelTitles?.length || 0
 					);
 
-				const updatingJournalIds = journals.data.reduce((prev, current) => {
-					return [...prev, ...current.otherJournals.map((item) => item.id)];
-				}, [] as string[]);
+					const processedFilter = journalFilterSchema.catch(defaultJournalFilter()).parse(filter);
+					const journals = await journalMaterialisedList({
+						filter: processedFilter,
+						db
+					});
 
-				await dbExecuteLogger(
-					db
-						.update(journalEntry)
-						.set({ accountId: otherAccountId })
-						.where(inArrayWrapped(journalEntry.id, updatingJournalIds)),
-					'Transaction Journals - Update Journals - Update Other Account Id'
-				);
-			}
+					span.setAttribute('journals.update.matched_count', journals.data.length);
+					span.addEvent('journals.update.matched-journals', {
+						'journals.update.matched_count': journals.data.length,
+						'journals.update.sample_ids': journals.data
+							.slice(0, 5)
+							.map((journal) => journal.id)
+							.join(',')
+					});
 
-			if (processedData.data.amount !== undefined && processedData.data.amount !== null) {
-				const journalIds = journals.data.map((journal) => journal.id);
+					if (journals.data.length === 0) {
+						span.addEvent('journals.update.no-matches');
+						span.setStatus({ code: SpanStatusCode.OK });
+						return undefined;
+					}
 
-				await dbExecuteLogger(
-					db
-						.update(journalEntry)
-						.set({ amount: processedData.data.amount, ...updatedTime() })
-						.where(
-							and(
-								inArrayWrapped(journalEntry.id, journalIds),
-								not(eq(journalEntry.amount, processedData.data.amount))
-							)
-						),
-					'Transaction Journals - Update Journals - Update Amount'
-				);
+					const completedCount = journals.data.filter((journal) => journal.complete).length;
+					span.setAttribute('journals.update.complete_match_count', completedCount);
 
-				//Get Transactions that have a non-zero combined total and update the one with the oldest update time.
-				const transactionIds = filterNullUndefinedAndDuplicates(
-					journals.data.map((journal) => journal.transactionId)
-				);
+					if (completedCount > 0) {
+						const updatingLabelsOnly = checkUpdateLabelsOnly(processedData.data);
+						span.setAttribute('journals.update.labels_only', updatingLabelsOnly);
 
-				const transactionJournals = await dbExecuteLogger(
-					db.query.transaction.findMany({
-						where: inArrayWrapped(transaction.id, transactionIds),
-						columns: {
-							id: true
-						},
-						with: {
-							journals: {
-								columns: {
-									id: true,
-									amount: true,
-									updatedAt: true
-								}
-							}
+						if (!updatingLabelsOnly) {
+							getLogger('journals').error({
+								code: 'JOURNAL_004',
+								title: 'Cannot update journals that are already complete',
+								filter: processedFilter,
+								data: processedData.data
+							});
+							span.addEvent('journals.update.complete-journals-blocked');
+							span.setStatus({
+								code: SpanStatusCode.ERROR,
+								message: 'Cannot update complete journals unless updating labels only'
+							});
+							return undefined;
 						}
-					}),
-					'Transaction Journals - Update Journals - Select Transactions'
-				);
+					}
 
-				await Promise.all(
-					transactionJournals.map(async (transaction) => {
-						const total = transaction.journals.reduce((prev, current) => prev + current.amount, 0);
+					const linkedJournals = journals.data.filter((journal) => journal.linked);
+					const unlinkedJournals = journals.data.filter((journal) => !journal.linked);
+					const linkedTransactionIds = filterNullUndefinedAndDuplicates(
+						linkedJournals.map((item) => item.transactionId)
+					);
+					const allTransactionIds = filterNullUndefinedAndDuplicates(
+						journals.data.map((item) => item.transactionId)
+					);
+					span.setAttribute('journals.update.linked_match_count', linkedJournals.length);
+					span.setAttribute('journals.update.unlinked_match_count', unlinkedJournals.length);
+					span.addEvent('journals.update.linked-expansion', {
+						'journals.update.linked_transaction_count': linkedTransactionIds.length,
+						'journals.update.all_transaction_count': allTransactionIds.length
+					});
 
-						if (total !== 0) {
-							const journalToUpdate = transaction.journals.sort((a, b) =>
-								new Date(a.updatedAt)
-									.toISOString()
-									.localeCompare(new Date(b.updatedAt).toISOString())
-							)[0];
+					const journalIds = [...new Set(unlinkedJournals.map((item) => item.id))];
+					const targetJournals = (
+						await dbExecuteLogger(
+							db
+								.select({ id: journalEntry.id })
+								.from(journalEntry)
+								.where(
+									or(
+										inArrayWrapped(journalEntry.id, journalIds),
+										inArrayWrapped(journalEntry.transactionId, linkedTransactionIds)
+									)
+								),
+							'Transaction Journals - Update Journals - Select Journals'
+						)
+					).map((item) => item.id);
+					span.setAttribute('journals.update.target_journal_count', targetJournals.length);
+					span.addEvent('journals.update.target-journals-selected', {
+						'journals.update.target_journal_count': targetJournals.length,
+						'journals.update.target_sample_ids': targetJournals.slice(0, 5).join(',')
+					});
+					span.addEvent('journals.update.requested-mutations', {
+						'journals.update.requested_description': processedData.data.description ? true : false,
+						'journals.update.requested_date': processedData.data.date ? true : false,
+						'journals.update.requested_amount':
+							processedData.data.amount !== undefined && processedData.data.amount !== null,
+						'journals.update.requested_account': Boolean(
+							processedData.data.accountId || processedData.data.accountTitle
+						),
+						'journals.update.requested_other_account': Boolean(
+							processedData.data.otherAccountId || processedData.data.otherAccountTitle
+						),
+						'journals.update.requested_tag': Boolean(
+							processedData.data.tagId || processedData.data.tagTitle || processedData.data.tagClear
+						),
+						'journals.update.requested_category': Boolean(
+							processedData.data.categoryId ||
+								processedData.data.categoryTitle ||
+								processedData.data.categoryClear
+						),
+						'journals.update.requested_bill': Boolean(
+							processedData.data.billId || processedData.data.billTitle || processedData.data.billClear
+						),
+						'journals.update.requested_budget': Boolean(
+							processedData.data.budgetId ||
+								processedData.data.budgetTitle ||
+								processedData.data.budgetClear
+						),
+						'journals.update.requested_label_titles':
+							processedData.data.labelTitles?.length || 0,
+						'journals.update.requested_add_label_titles':
+							processedData.data.addLabelTitles?.length || 0,
+						'journals.update.requested_remove_labels':
+							processedData.data.removeLabels?.length || 0
+					});
+
+					await runInTransactionWithLogging('Update Journals', async () => {
+						const db = getContextDB();
+						const tagId = handleLinkedItem({
+							db,
+							id: processedData.data.tagId,
+							title: processedData.data.tagTitle,
+							clear: processedData.data.tagClear,
+							requireActive: true,
+							createOrGetItem: tagActions.createOrGet
+						});
+						const categoryId = handleLinkedItem({
+							db,
+							id: processedData.data.categoryId,
+							title: processedData.data.categoryTitle,
+							clear: processedData.data.categoryClear,
+							requireActive: true,
+							createOrGetItem: categoryActions.createOrGet
+						});
+						const billId = handleLinkedItem({
+							db,
+							id: processedData.data.billId,
+							title: processedData.data.billTitle,
+							clear: processedData.data.billClear,
+							requireActive: true,
+							createOrGetItem: billActions.createOrGet
+						});
+						const budgetId = handleLinkedItem({
+							db,
+							id: processedData.data.budgetId,
+							title: processedData.data.budgetTitle,
+							clear: processedData.data.budgetClear,
+							requireActive: true,
+							createOrGetItem: budgetActions.createOrGet
+						});
+
+						const accountId = (
+							await accountActions.createOrGet({
+								title: processedData.data.accountTitle || undefined,
+								id: processedData.data.accountId || undefined,
+								requireActive: true
+							})
+						)?.id;
+
+						const otherAccountId = (
+							await accountActions.createOrGet({
+								title: processedData.data.otherAccountTitle || undefined,
+								id: processedData.data.otherAccountId || undefined,
+								requireActive: true
+							})
+						)?.id;
+
+						const targetDate = processedData.data.date
+							? expandDate(processedData.data.date)
+							: {};
+
+						const complete =
+							processedData.data.setComplete === true
+								? true
+								: processedData.data.clearComplete === true
+									? false
+									: undefined;
+						const reconciled =
+							complete === true
+								? true
+								: processedData.data.setReconciled === true
+									? true
+									: processedData.data.clearReconciled === true
+										? false
+										: undefined;
+						const dataChecked =
+							complete === true
+								? true
+								: processedData.data.setDataChecked === true
+									? true
+									: processedData.data.clearDataChecked === true
+										? false
+										: undefined;
+						span.addEvent('journals.update.resolved-flags', {
+							'journals.update.complete_resolved':
+								complete === undefined ? 'unchanged' : complete ? 'true' : 'false',
+							'journals.update.reconciled_resolved':
+								reconciled === undefined ? 'unchanged' : reconciled ? 'true' : 'false',
+							'journals.update.data_checked_resolved':
+								dataChecked === undefined ? 'unchanged' : dataChecked ? 'true' : 'false'
+						});
+
+						if (linkedJournals.length > 0) {
+							span.addEvent('journals.update.phase.linked', {
+								'journals.update.linked_transaction_count': linkedTransactionIds.length
+							});
 							await dbExecuteLogger(
 								db
 									.update(journalEntry)
 									.set({
-										amount: journalToUpdate.amount - total,
+										tagId: await tagId,
+										categoryId: await categoryId,
+										billId: await billId,
+										budgetId: await budgetId,
+										complete,
+										dataChecked,
+										reconciled,
+										description: processedData.data.description,
+										...targetDate,
 										...updatedTime()
 									})
-									.where(eq(journalEntry.id, journalToUpdate.id)),
-								'Transaction Journals - Update Journals - Update Transaction Amount'
+									.where(inArrayWrapped(journalEntry.transactionId, linkedTransactionIds)),
+								'Transaction Journals - Update Journals - Update Linked Journals'
 							);
 						}
-					})
-				);
-			}
 
-			const labelSetting: { id?: string; title?: string }[] = [
-				...(processedData.data.labels ? processedData.data.labels.map((id) => ({ id })) : []),
-				...(processedData.data.labelTitles
-					? processedData.data.labelTitles.map((title) => ({ title }))
-					: [])
-			];
+						if (unlinkedJournals.length > 0) {
+							const journalIds = unlinkedJournals.map((journal) => journal.id);
+							span.addEvent('journals.update.phase.unlinked', {
+								'journals.update.unlinked_journal_count': journalIds.length
+							});
+							await dbExecuteLogger(
+								db
+									.update(journalEntry)
+									.set({
+										tagId: await tagId,
+										categoryId: await categoryId,
+										billId: await billId,
+										budgetId: await budgetId,
+										complete,
+										dataChecked,
+										reconciled,
+										...targetDate,
+										...updatedTime()
+									})
+									.where(inArrayWrapped(journalEntry.id, journalIds)),
+								'Transaction Journals - Update Journals - Update Unlinked Journals'
+							);
+						}
+						if (accountId) {
+							const journalIds = journals.data.map((journal) => journal.id);
+							span.addEvent('journals.update.phase.account', {
+								'journals.update.account_journal_count': journalIds.length
+							});
 
-			const labelAddition: { id?: string; title?: string }[] = [
-				...(processedData.data.addLabels ? processedData.data.addLabels.map((id) => ({ id })) : []),
-				...(processedData.data.addLabelTitles
-					? processedData.data.addLabelTitles.map((title) => ({ title }))
-					: [])
-			];
+							await dbExecuteLogger(
+								db
+									.update(journalEntry)
+									.set({ accountId })
+									.where(inArrayWrapped(journalEntry.id, journalIds)),
+								'Transaction Journals - Update Journals - Update Account Id'
+							);
+						}
+						if (otherAccountId) {
+							const numberWithMoreThan1 = journals.data.reduce(
+								(prev, current) => (current.otherJournals.length > 1 ? prev + 1 : prev),
+								0
+							);
+							if (numberWithMoreThan1 > 0) {
+								throw new Error(
+									'Cannot update other account if there is a transaction with more than 2 journals'
+								);
+							}
 
-			const labelSettingIds = await Promise.all(
-				labelSetting.map(async (currentAdd) => {
-					return labelActions.createOrGet({
-						...currentAdd,
-						requireActive: true
-					});
-				})
-			);
+							const updatingJournalIds = journals.data.reduce((prev, current) => {
+								return [...prev, ...current.otherJournals.map((item) => item.id)];
+							}, [] as string[]);
+							span.addEvent('journals.update.phase.other-account', {
+								'journals.update.other_account_journal_count': updatingJournalIds.length
+							});
 
-			const labelAdditionIds = await Promise.all(
-				labelAddition.map(async (currentAdd) => {
-					return labelActions.createOrGet({
-						...currentAdd,
-						requireActive: true
-					});
-				})
-			);
+							await dbExecuteLogger(
+								db
+									.update(journalEntry)
+									.set({ accountId: otherAccountId })
+									.where(inArrayWrapped(journalEntry.id, updatingJournalIds)),
+								'Transaction Journals - Update Journals - Update Other Account Id'
+							);
+						}
 
-			const combinedLabels = [...labelSettingIds, ...labelAdditionIds];
+						if (processedData.data.amount !== undefined && processedData.data.amount !== null) {
+							const journalIds = journals.data.map((journal) => journal.id);
+							span.addEvent('journals.update.phase.amount', {
+								'journals.update.amount_journal_count': journalIds.length,
+								'journals.update.amount_value': processedData.data.amount
+							});
 
-			//Create Label Relationships for those to be added, as well as for those to be the only items
-			if (combinedLabels.length > 0) {
-				const itemsToCreate = targetJournals.reduce(
-					(prev, currentJournalId) => {
-						return [
-							...prev,
-							...combinedLabels
-								.filter((currentLabel) => currentLabel)
-								.map((currentLabelId) => {
-									return {
-										id: nanoid(),
-										labelId: currentLabelId?.id || 'unknown',
-										journalId: currentJournalId,
-										...updatedTime(),
-										createdAt: new Date()
-									};
+							await dbExecuteLogger(
+								db
+									.update(journalEntry)
+									.set({ amount: processedData.data.amount, ...updatedTime() })
+									.where(
+										and(
+											inArrayWrapped(journalEntry.id, journalIds),
+											not(eq(journalEntry.amount, processedData.data.amount))
+										)
+									),
+								'Transaction Journals - Update Journals - Update Amount'
+							);
+
+							const transactionIds = filterNullUndefinedAndDuplicates(
+								journals.data.map((journal) => journal.transactionId)
+							);
+
+							const transactionJournals = await dbExecuteLogger(
+								db.query.transaction.findMany({
+									where: inArrayWrapped(transaction.id, transactionIds),
+									columns: {
+										id: true
+									},
+									with: {
+										journals: {
+											columns: {
+												id: true,
+												amount: true,
+												updatedAt: true
+											}
+										}
+									}
+								}),
+								'Transaction Journals - Update Journals - Select Transactions'
+							);
+
+							await Promise.all(
+								transactionJournals.map(async (transaction) => {
+									const total = transaction.journals.reduce(
+										(prev, current) => prev + current.amount,
+										0
+									);
+
+									if (total !== 0) {
+										const journalToUpdate = transaction.journals.sort((a, b) =>
+											new Date(a.updatedAt)
+												.toISOString()
+												.localeCompare(new Date(b.updatedAt).toISOString())
+										)[0];
+										await dbExecuteLogger(
+											db
+												.update(journalEntry)
+												.set({
+													amount: journalToUpdate.amount - total,
+													...updatedTime()
+												})
+												.where(eq(journalEntry.id, journalToUpdate.id)),
+											'Transaction Journals - Update Journals - Update Transaction Amount'
+										);
+									}
 								})
+							);
+						}
+
+						const labelSetting: { id?: string; title?: string }[] = [
+							...(processedData.data.labels
+								? processedData.data.labels.map((id) => ({ id }))
+								: []),
+							...(processedData.data.labelTitles
+								? processedData.data.labelTitles.map((title) => ({ title }))
+								: [])
 						];
-					},
-					[] as {
-						id: string;
-						journalId: string;
-						labelId: string;
-						createdAt: Date;
-						updatedAt: Date;
-					}[]
-				);
 
-				await dbExecuteLogger(
-					db
-						.insert(labelsToJournals)
-						.values(itemsToCreate)
-						.onConflictDoNothing({
-							target: [labelsToJournals.journalId, labelsToJournals.labelId]
-						}),
-					'Transaction Journals - Update Journals - Insert Labels'
-				);
+						const labelAddition: { id?: string; title?: string }[] = [
+							...(processedData.data.addLabels
+								? processedData.data.addLabels.map((id) => ({ id }))
+								: []),
+							...(processedData.data.addLabelTitles
+								? processedData.data.addLabelTitles.map((title) => ({ title }))
+								: [])
+						];
+
+						const labelSettingIds = await Promise.all(
+							labelSetting.map(async (currentAdd) => {
+								return labelActions.createOrGet({
+									...currentAdd,
+									requireActive: true
+								});
+							})
+						);
+
+						const labelAdditionIds = await Promise.all(
+							labelAddition.map(async (currentAdd) => {
+								return labelActions.createOrGet({
+									...currentAdd,
+									requireActive: true
+								});
+							})
+						);
+
+						const combinedLabels = [...labelSettingIds, ...labelAdditionIds];
+						span.addEvent('journals.update.phase.labels', {
+							'journals.update.label_setting_count': labelSettingIds.length,
+							'journals.update.label_addition_count': labelAdditionIds.length,
+							'journals.update.target_journal_count': targetJournals.length
+						});
+						span.setAttribute('journals.update.label_replace_mode', labelSettingIds.length > 0);
+						span.setAttribute('journals.update.label_remove_count', processedData.data.removeLabels?.length || 0);
+						span.addEvent('journals.update.label-resolution', {
+							'journals.update.label_setting_ids': labelSettingIds
+								.map((item) => item?.id)
+								.filter(Boolean)
+								.slice(0, 10)
+								.join(','),
+							'journals.update.label_addition_ids': labelAdditionIds
+								.map((item) => item?.id)
+								.filter(Boolean)
+								.slice(0, 10)
+								.join(','),
+							'journals.update.target_sample_ids': targetJournals.slice(0, 10).join(',')
+						});
+
+						if (combinedLabels.length > 0) {
+							const itemsToCreate = targetJournals.reduce(
+								(prev, currentJournalId) => {
+									return [
+										...prev,
+										...combinedLabels
+											.filter((currentLabel) => currentLabel)
+											.map((currentLabelId) => {
+												return {
+													id: nanoid(),
+													labelId: currentLabelId?.id || 'unknown',
+													journalId: currentJournalId,
+													...updatedTime(),
+													createdAt: new Date()
+												};
+											})
+									];
+								},
+								[] as {
+									id: string;
+									journalId: string;
+									labelId: string;
+									createdAt: Date;
+									updatedAt: Date;
+								}[]
+							);
+
+							await dbExecuteLogger(
+								db
+									.insert(labelsToJournals)
+									.values(itemsToCreate)
+									.onConflictDoNothing({
+										target: [labelsToJournals.journalId, labelsToJournals.labelId]
+									}),
+								'Transaction Journals - Update Journals - Insert Labels'
+							);
+						}
+
+						if (processedData.data.removeLabels && processedData.data.removeLabels.length > 0) {
+							span.addEvent('journals.update.phase.remove-explicit-labels', {
+								'journals.update.explicit_remove_label_count':
+									processedData.data.removeLabels.length,
+								'journals.update.target_journal_count': targetJournals.length
+							});
+							await dbExecuteLogger(
+								db
+									.delete(labelsToJournals)
+									.where(
+										and(
+											inArrayWrapped(labelsToJournals.labelId, processedData.data.removeLabels),
+											inArrayWrapped(labelsToJournals.journalId, targetJournals)
+										)
+									),
+								'Transaction Journals - Update Journals - Remove Labels'
+							);
+						}
+
+						if (labelSettingIds.length > 0) {
+							const labelIdArray = labelSettingIds.map((item) => item?.id || 'unknown');
+							span.addEvent('journals.update.phase.replace-labels', {
+								'journals.update.replace_label_count': labelIdArray.length,
+								'journals.update.target_journal_count': targetJournals.length,
+								'journals.update.replace_label_ids': labelIdArray.slice(0, 10).join(',')
+							});
+							await dbExecuteLogger(
+								db
+									.delete(labelsToJournals)
+									.where(
+										and(
+											inArrayWrapped(labelsToJournals.journalId, targetJournals),
+											not(inArrayWrapped(labelsToJournals.labelId, labelIdArray))
+										)
+									),
+								'Transaction Journals - Update Journals - Remove Labels'
+							);
+						}
+
+						await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
+						span.addEvent('journals.update.transfer-refresh', {
+							'journals.update.transaction_count': allTransactionIds.length
+						});
+					});
+
+					await materializedViewActions.setRefreshRequired();
+					span.setStatus({ code: SpanStatusCode.OK });
+					return targetJournals;
+				} catch (error) {
+					span.recordException(error as Error);
+					span.setStatus({
+						code: SpanStatusCode.ERROR,
+						message: error instanceof Error ? error.message : 'Unknown error'
+					});
+					throw error;
+				} finally {
+					span.end();
+				}
 			}
-
-			//Remove the labels that should be removed
-			if (processedData.data.removeLabels && processedData.data.removeLabels.length > 0) {
-				await dbExecuteLogger(
-					db
-						.delete(labelsToJournals)
-						.where(
-							and(
-								inArrayWrapped(labelsToJournals.labelId, processedData.data.removeLabels),
-								inArrayWrapped(labelsToJournals.journalId, targetJournals)
-							)
-						),
-					'Transaction Journals - Update Journals - Remove Labels'
-				);
-			}
-
-			//When a specific set of labels are specified, then remove the ones that aren't in that list
-			if (labelSettingIds.length > 0) {
-				const labelIdArray = labelSettingIds.map((item) => item?.id || 'unknown');
-				await dbExecuteLogger(
-					db
-						.delete(labelsToJournals)
-						.where(
-							and(
-								inArrayWrapped(labelsToJournals.journalId, targetJournals),
-								not(inArrayWrapped(labelsToJournals.labelId, labelIdArray))
-							)
-						),
-					'Transaction Journals - Update Journals - Remove Labels'
-				);
-			}
-
-			await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
-		});
-
-		await materializedViewActions.setRefreshRequired();
-
-		return targetJournals;
+		);
 	},
 	cloneJournals: async ({
 		filter,

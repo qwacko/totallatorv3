@@ -1,5 +1,6 @@
 import { and, count as drizzleCount, eq, lt, not } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
 import { z } from 'zod';
 
 import { getLogger } from '@totallator/business-logic/logger';
@@ -69,6 +70,8 @@ import { journalActions } from './journalActions';
 import { labelActions } from './labelActions';
 import { reusableFilterActions } from './reusableFilterActions';
 import { tagActions } from './tagActions';
+
+const importTracer = trace.getTracer('@totallator/business-logic/imports');
 
 export const importActions = {
 	numberActive: async (): Promise<number> => {
@@ -592,14 +595,39 @@ export const importActions = {
 		id: string;
 		reportProgress?: LongRunningTaskProgressReporter;
 	}): Promise<void> => {
-		await importActions.triggerImport({ id });
-		await reportLongRunningTaskProgress(reportProgress, {
-			progress: 25,
-			message: 'Queued import for execution',
-			entityId: id,
-			metadata: { importId: id }
-		});
-		await importActions.doImport({ id, reportProgress });
+		await importTracer.startActiveSpan(
+			'import.execute-lifecycle',
+			{
+				attributes: {
+					'import.id': id
+				}
+			},
+			async (span) => {
+				try {
+					span.addEvent('import.lifecycle.start');
+					await importActions.triggerImport({ id });
+					span.addEvent('import.lifecycle.queued-for-execution');
+					await reportLongRunningTaskProgress(reportProgress, {
+						progress: 25,
+						message: 'Queued import for execution',
+						entityId: id,
+						metadata: { importId: id }
+					});
+					await importActions.doImport({ id, reportProgress });
+					span.addEvent('import.lifecycle.completed');
+					span.setStatus({ code: SpanStatusCode.OK });
+				} catch (error) {
+					span.recordException(error as Error);
+					span.setStatus({
+						code: SpanStatusCode.ERROR,
+						message: error instanceof Error ? error.message : 'Unknown error'
+					});
+					throw error;
+				} finally {
+					span.end();
+				}
+			}
+		);
 	},
 	doRequiredImports: async ({
 		reportProgress
@@ -704,164 +732,205 @@ export const importActions = {
 		reportProgress?: LongRunningTaskProgressReporter;
 	}): Promise<void> => {
 		const db = getContextDB();
-		const importInfoList = await dbExecuteLogger(
-			db.select().from(importTable).where(eq(importTable.id, id)),
-			'Import - Do Import - Get'
-		);
+		await importTracer.startActiveSpan(
+			'import.do-import',
+			{
+				attributes: {
+					'import.id': id
+				}
+			},
+			async (span) => {
+				try {
+					const importInfoList = await dbExecuteLogger(
+						db.select().from(importTable).where(eq(importTable.id, id)),
+						'Import - Do Import - Get'
+					);
 
-		const importInfo = importInfoList[0];
-		if (!importInfo) {
-			throw new Error('Import Not Found');
-		}
-		if (importInfo.status !== 'awaitingImport') {
-			throw new Error('Import is not in state Awaiting Import. Cannot import.');
-		}
-
-		//Mark as importing
-		await dbExecuteLogger(
-			db
-				.update(importTable)
-				.set({ status: 'importing', ...updatedTime() })
-				.where(eq(importTable.id, id)),
-			'Import - Do Import - Update'
-		);
-
-		await reportLongRunningTaskProgress(reportProgress, {
-			progress: 65,
-			message: 'Importing rows',
-			entityId: id,
-			metadata: { importId: id }
-		});
-
-		try {
-			const importDetails = await dbExecuteLogger(
-				db
-					.select()
-					.from(importItemDetail)
-					.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'processed'))),
-				'Import - Do Import - Get Details'
-			);
-
-			const startTime = new Date();
-			const maxTime = new Date(startTime.getTime() + getServerEnv().IMPORT_TIMEOUT_MIN * 60 * 1000);
-
-			await runInTransactionWithLogging('Do Import', async (trx) => {
-				let lastProgress = 64;
-				for (let index = 0; index < importDetails.length; index++) {
-					const item = importDetails[index];
-					if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
-						await importTransaction({ item, trx });
-					} else if (importInfo.type === 'journalUpdate') {
-						await importJournalUpdate({ item, trx });
-					} else if (importInfo.type === 'account') {
-						await importAccount({ item, trx });
-					} else if (importInfo.type === 'bill') {
-						await importBill({ item, trx });
-					} else if (importInfo.type === 'budget') {
-						await importBudget({ item, trx });
-					} else if (importInfo.type === 'category') {
-						await importCategory({ item, trx });
-					} else if (importInfo.type === 'tag') {
-						await importTag({ item, trx });
-					} else if (importInfo.type === 'label') {
-						await importLabel({ item, trx });
+					const importInfo = importInfoList[0];
+					if (!importInfo) {
+						span.addEvent('import.do-import.not-found');
+						throw new Error('Import Not Found');
+					}
+					span.setAttribute('import.type', importInfo.type);
+					span.setAttribute('import.status.before', importInfo.status);
+					if (importInfo.status !== 'awaitingImport') {
+						span.addEvent('import.do-import.invalid-state', {
+							'import.status.before': importInfo.status
+						});
+						throw new Error('Import is not in state Awaiting Import. Cannot import.');
 					}
 
-					getLogger('import').debug({
-						code: 'IMP_001',
-						title: `Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
+					await dbExecuteLogger(
+						db
+							.update(importTable)
+							.set({ status: 'importing', ...updatedTime() })
+							.where(eq(importTable.id, id)),
+						'Import - Do Import - Update'
+					);
+					span.addEvent('import.do-import.marked-importing');
+
+					await reportLongRunningTaskProgress(reportProgress, {
+						progress: 65,
+						message: 'Importing rows',
+						entityId: id,
+						metadata: { importId: id }
 					});
 
-					if (importDetails.length > 0) {
-						const progress = 65 + Math.floor(((index + 1) / importDetails.length) * 20);
-						if (progress > lastProgress) {
-							lastProgress = progress;
-							await reportLongRunningTaskProgress(reportProgress, {
-								progress,
-								message: `Imported ${index + 1} of ${importDetails.length} rows`,
-								entityId: id,
-								metadata: { importId: id }
+					const importDetails = await dbExecuteLogger(
+						db
+							.select()
+							.from(importItemDetail)
+							.where(and(eq(importItemDetail.importId, id), eq(importItemDetail.status, 'processed'))),
+						'Import - Do Import - Get Details'
+					);
+					span.setAttribute('import.processed_row_count', importDetails.length);
+					span.addEvent('import.do-import.loaded-rows', {
+						'import.processed_row_count': importDetails.length
+					});
+
+					const startTime = new Date();
+					const maxTime = new Date(
+						startTime.getTime() + getServerEnv().IMPORT_TIMEOUT_MIN * 60 * 1000
+					);
+
+					await runInTransactionWithLogging('Do Import', async (trx) => {
+						let lastProgress = 64;
+						for (let index = 0; index < importDetails.length; index++) {
+							const item = importDetails[index];
+							span.addEvent('import.do-import.row.start', {
+								'import.row.index': index,
+								'import.row.id': item.id,
+								'import.type': importInfo.type
 							});
+
+							if (importInfo.type === 'transaction' || importInfo.type == 'mappedImport') {
+								await importTransaction({ item, trx });
+							} else if (importInfo.type === 'journalUpdate') {
+								await importJournalUpdate({ item, trx });
+							} else if (importInfo.type === 'account') {
+								await importAccount({ item, trx });
+							} else if (importInfo.type === 'bill') {
+								await importBill({ item, trx });
+							} else if (importInfo.type === 'budget') {
+								await importBudget({ item, trx });
+							} else if (importInfo.type === 'category') {
+								await importCategory({ item, trx });
+							} else if (importInfo.type === 'tag') {
+								await importTag({ item, trx });
+							} else if (importInfo.type === 'label') {
+								await importLabel({ item, trx });
+							}
+
+							getLogger('import').debug({
+								code: 'IMP_001',
+								title: `Importing item ${index}. Time = ${(new Date().getTime() - startTime.getTime()) / 1000}s`
+							});
+
+							span.addEvent('import.do-import.row.complete', {
+								'import.row.index': index,
+								'import.row.id': item.id
+							});
+
+							if (importDetails.length > 0) {
+								const progress = 65 + Math.floor(((index + 1) / importDetails.length) * 20);
+								if (progress > lastProgress) {
+									lastProgress = progress;
+									await reportLongRunningTaskProgress(reportProgress, {
+										progress,
+										message: `Imported ${index + 1} of ${importDetails.length} rows`,
+										entityId: id,
+										metadata: { importId: id }
+									});
+								}
+							}
+
+							if (new Date() > maxTime) {
+								span.addEvent('import.do-import.timeout');
+								throw new Error('Import Timed Out');
+							}
 						}
-					}
+					});
 
-					if (new Date() > maxTime) {
-						throw new Error('Import Timed Out');
-					}
-				}
-			});
+					const numberItems = await db.query.journalEntry.findFirst({
+						where: (journalEntry) => eq(journalEntry.importId, id)
+					});
 
-			// Logic to only run the actions following import if there was actually an item created.
-			const numberItems = await db.query.journalEntry.findFirst({
-				where: (journalEntry) => eq(journalEntry.importId, id)
-			});
-
-			if (numberItems) {
-				await reportLongRunningTaskProgress(reportProgress, {
-					progress: 88,
-					message: 'Running post-import filters',
-					entityId: id,
-					metadata: { importId: id }
-				});
-				await reusableFilterActions.applyFollowingImport({
-					importId: id,
-					timeout: maxTime,
-					reportProgress: async (update) => {
-						const nestedProgress =
-							update.progress === undefined
-								? undefined
-								: Math.min(98, 88 + Math.floor((update.progress / 100) * 10));
-
+					span.setAttribute('import.created_journal_rows', numberItems ? 1 : 0);
+					if (numberItems) {
+						span.addEvent('import.do-import.post-import-filters.start');
 						await reportLongRunningTaskProgress(reportProgress, {
-							progress: nestedProgress,
-							message: update.message,
+							progress: 88,
+							message: 'Running post-import filters',
 							entityId: id,
-							metadata: {
-								importId: id,
-								...(update.metadata ?? {})
+							metadata: { importId: id }
+						});
+						await reusableFilterActions.applyFollowingImport({
+							importId: id,
+							timeout: maxTime,
+							reportProgress: async (update) => {
+								const nestedProgress =
+									update.progress === undefined
+										? undefined
+										: Math.min(98, 88 + Math.floor((update.progress / 100) * 10));
+
+								await reportLongRunningTaskProgress(reportProgress, {
+									progress: nestedProgress,
+									message: update.message,
+									entityId: id,
+									metadata: {
+										importId: id,
+										...(update.metadata ?? {})
+									}
+								});
 							}
 						});
+						span.addEvent('import.do-import.post-import-filters.complete');
 					}
-				});
+
+					await reportLongRunningTaskProgress(reportProgress, {
+						progress: 99,
+						message: 'Finalizing import',
+						entityId: id,
+						metadata: { importId: id }
+					});
+
+					await dbExecuteLogger(
+						db
+							.update(importTable)
+							.set({ status: 'complete', ...updatedTime() })
+							.where(eq(importTable.id, id)),
+						'Import - Do Import - Update Complete'
+					);
+					span.addEvent('import.do-import.marked-complete');
+					span.setStatus({ code: SpanStatusCode.OK });
+				} catch (e) {
+					const importInfoList = await dbExecuteLogger(
+						db.select().from(importTable).where(eq(importTable.id, id)).limit(1),
+						'Import - Do Import - Get 2'
+					);
+
+					const importInfo = importInfoList[0];
+
+					if (importInfo && importInfo.status === 'importing') {
+						await dbExecuteLogger(
+							db
+								.update(importTable)
+								.set({ status: 'error', errorInfo: e, ...updatedTime() })
+								.where(eq(importTable.id, id)),
+							'Import - Do Import - Update Error'
+						);
+					}
+					span.recordException(e as Error);
+					span.setStatus({
+						code: SpanStatusCode.ERROR,
+						message: e instanceof Error ? e.message : 'Unknown error'
+					});
+					throw e;
+				} finally {
+					span.end();
+				}
 			}
-
-			await reportLongRunningTaskProgress(reportProgress, {
-				progress: 99,
-				message: 'Finalizing import',
-				entityId: id,
-				metadata: { importId: id }
-			});
-
-			await dbExecuteLogger(
-				db
-					.update(importTable)
-					.set({ status: 'complete', ...updatedTime() })
-					.where(eq(importTable.id, id)),
-				'Import - Do Import - Update Complete'
-			);
-		} catch (e) {
-			//Check if the import is still in the importing state
-			const importInfoList = await dbExecuteLogger(
-				db.select().from(importTable).where(eq(importTable.id, id)).limit(1),
-				'Import - Do Import - Get 2'
-			);
-
-			const importInfo = importInfoList[0];
-
-			if (importInfo && importInfo.status === 'importing') {
-				//Mark as error
-
-				await dbExecuteLogger(
-					db
-						.update(importTable)
-						.set({ status: 'error', errorInfo: e, ...updatedTime() })
-						.where(eq(importTable.id, id)),
-					'Import - Do Import - Update Error'
-				);
-			}
-
-			throw e;
-		}
+		);
 	},
 	forgetImport: async ({ id }: { id: string }): Promise<void> => {
 		await runInTransactionWithLogging('Forget Import', async () => {

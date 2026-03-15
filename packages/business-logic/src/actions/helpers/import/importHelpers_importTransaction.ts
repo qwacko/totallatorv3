@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
 import { z } from 'zod';
 
 import type { DBType } from '@totallator/database';
@@ -19,6 +20,7 @@ import { updatedTime } from '../misc/updatedTime';
 const updateJournalImportSchema = updateJournalSchema.extend({
 	id: z.string()
 });
+const importTracer = trace.getTracer('@totallator/business-logic/imports');
 
 const serializeError = (error: unknown): Record<string, unknown> => {
 	if (error instanceof Error) {
@@ -201,97 +203,201 @@ export async function importJournalUpdate({
 	item: typeof importItemDetail.$inferSelect;
 	trx: DBType;
 }): Promise<void> {
-	const processedInfo = item.processedInfo;
-	const processedItem = updateJournalImportSchema.safeParse(
-		processedInfo ? processedInfo.dataToUse : undefined
+	await importTracer.startActiveSpan(
+		'import.journal-update.row',
+		{
+			attributes: {
+				'import.detail.id': item.id,
+				'import.row.has_processed_info': item.processedInfo ? true : false
+			}
+		},
+		async (span) => {
+			const processedInfo = item.processedInfo;
+			const processedItem = updateJournalImportSchema.safeParse(
+				processedInfo ? processedInfo.dataToUse : undefined
+			);
+
+			if (!processedItem.success) {
+				span.addEvent('import.journal-update.invalid-schema', {
+					'import.detail.id': item.id
+				});
+				await dbExecuteLogger(
+					trx
+						.update(importItemDetail)
+						.set({
+							status: 'importError',
+							errorInfo: { errors: processedItem.error.flatten().formErrors },
+							...updatedTime()
+						})
+						.where(eq(importItemDetail.id, item.id)),
+					'importJournalUpdate - Mark Error Invalid Schema'
+				);
+				span.setStatus({ code: SpanStatusCode.ERROR, message: 'Invalid schema' });
+				span.end();
+				return;
+			}
+
+			span.setAttribute('journal.target.id', processedItem.data.id);
+			span.setAttribute('journal.update.has_date', processedItem.data.date ? true : false);
+			span.setAttribute(
+				'journal.update.label_title_count',
+				processedItem.data.labelTitles?.length || 0
+			);
+			span.setAttribute(
+				'journal.update.add_label_title_count',
+				processedItem.data.addLabelTitles?.length || 0
+			);
+			span.setAttribute(
+				'journal.update.remove_label_count',
+				processedItem.data.removeLabels?.length || 0
+			);
+			span.addEvent('import.journal-update.parsed', {
+				'journal.target.id': processedItem.data.id,
+				'journal.update.description_set': processedItem.data.description ? true : false,
+				'journal.update.account_title_set': processedItem.data.accountTitle ? true : false,
+				'journal.update.other_account_title_set': processedItem.data.otherAccountTitle ? true : false,
+				'journal.update.amount_set':
+					processedItem.data.amount !== undefined && processedItem.data.amount !== null,
+				'journal.update.clear_complete': processedItem.data.clearComplete === true,
+				'journal.update.set_complete': processedItem.data.setComplete === true,
+				'journal.update.clear_reconciled': processedItem.data.clearReconciled === true,
+				'journal.update.set_reconciled': processedItem.data.setReconciled === true,
+				'journal.update.clear_data_checked': processedItem.data.clearDataChecked === true,
+				'journal.update.set_data_checked': processedItem.data.setDataChecked === true
+			});
+
+			try {
+				const existingJournal = await dbExecuteLogger(
+					trx.query.journalEntry.findFirst({
+						where: (journalEntry, { eq }) => eq(journalEntry.id, processedItem.data.id)
+					}),
+					'importJournalUpdate - Find Existing Journal'
+				);
+
+				if (existingJournal) {
+					span.addEvent('import.journal-update.before-state', {
+						'journal.before.id': existingJournal.id,
+						'journal.before.transaction_id': existingJournal.transactionId,
+						'journal.before.account_id': existingJournal.accountId,
+						'journal.before.amount': existingJournal.amount,
+						'journal.before.date': existingJournal.date.toISOString(),
+						'journal.before.complete': existingJournal.complete,
+						'journal.before.reconciled': existingJournal.reconciled,
+						'journal.before.data_checked': existingJournal.dataChecked,
+						'journal.before.transfer': existingJournal.transfer
+					});
+				} else {
+					span.addEvent('import.journal-update.before-state.missing', {
+						'journal.target.id': processedItem.data.id
+					});
+				}
+
+				const updatedJournalIds = await journalActions.updateJournals({
+					filter: { idArray: [processedItem.data.id] },
+					journalData: processedItem.data
+				});
+				span.addEvent('import.journal-update.update-journals-result', {
+					'journal.update.updated_id_count': updatedJournalIds?.length || 0
+				});
+
+				if (!updatedJournalIds || updatedJournalIds.length === 0) {
+					await dbExecuteLogger(
+						trx
+							.update(importItemDetail)
+							.set({
+								status: 'importError',
+								errorInfo: {
+									errors: [
+										'Journal update could not be applied (journal not found or disallowed update)'
+									]
+								},
+								...updatedTime()
+							})
+							.where(eq(importItemDetail.id, item.id)),
+						'importJournalUpdate - Mark Error Update Not Applied'
+					);
+					span.setStatus({
+						code: SpanStatusCode.ERROR,
+						message: 'Journal update could not be applied'
+					});
+					span.end();
+					return;
+				}
+
+				const updatedJournal = await dbExecuteLogger(
+					trx.query.journalEntry.findFirst({
+						where: (journalEntry, { eq }) => eq(journalEntry.id, processedItem.data.id)
+					}),
+					'importJournalUpdate - Find Updated Journal'
+				);
+
+				if (!updatedJournal) {
+					await dbExecuteLogger(
+						trx
+							.update(importItemDetail)
+							.set({
+								status: 'importError',
+								errorInfo: { errors: ['Journal Not Found'] },
+								...updatedTime()
+							})
+							.where(eq(importItemDetail.id, item.id)),
+						'importJournalUpdate - Mark Error Not Found'
+					);
+					span.setStatus({ code: SpanStatusCode.ERROR, message: 'Updated journal not found' });
+					span.end();
+					return;
+				}
+
+				span.addEvent('import.journal-update.updated-journal-loaded', {
+					'journal.target.id': updatedJournal.id,
+					'journal.updated.transaction_id': updatedJournal.transactionId
+				});
+				span.addEvent('import.journal-update.after-state', {
+					'journal.after.id': updatedJournal.id,
+					'journal.after.transaction_id': updatedJournal.transactionId,
+					'journal.after.account_id': updatedJournal.accountId,
+					'journal.after.amount': updatedJournal.amount,
+					'journal.after.date': updatedJournal.date.toISOString(),
+					'journal.after.complete': updatedJournal.complete,
+					'journal.after.reconciled': updatedJournal.reconciled,
+					'journal.after.data_checked': updatedJournal.dataChecked,
+					'journal.after.transfer': updatedJournal.transfer
+				});
+
+				await dbExecuteLogger(
+					trx
+						.update(importItemDetail)
+						.set({
+							status: 'imported',
+							importInfo: updatedJournal,
+							relationId: null,
+							relation2Id: null,
+							...updatedTime()
+						})
+						.where(eq(importItemDetail.id, item.id)),
+					'importJournalUpdate - Mark Imported'
+				);
+				span.setStatus({ code: SpanStatusCode.OK });
+			} catch (e) {
+				span.recordException(e as Error);
+				await dbExecuteLogger(
+						trx
+							.update(importItemDetail)
+							.set({
+								status: 'importError',
+								errorInfo: { error: serializeError(e) },
+								...updatedTime()
+							})
+							.where(eq(importItemDetail.id, item.id)),
+					'importJournalUpdate - Mark Error'
+				);
+				span.setStatus({
+					code: SpanStatusCode.ERROR,
+					message: e instanceof Error ? e.message : 'Unknown error'
+				});
+			} finally {
+				span.end();
+			}
+		}
 	);
-
-	if (!processedItem.success) {
-		await dbExecuteLogger(
-			trx
-				.update(importItemDetail)
-				.set({
-					status: 'importError',
-					errorInfo: { errors: processedItem.error.flatten().formErrors },
-					...updatedTime()
-				})
-				.where(eq(importItemDetail.id, item.id)),
-			'importJournalUpdate - Mark Error Invalid Schema'
-		);
-		return;
-	}
-
-	try {
-		const updatedJournalIds = await journalActions.updateJournals({
-			filter: { idArray: [processedItem.data.id] },
-			journalData: processedItem.data
-		});
-
-		if (!updatedJournalIds || updatedJournalIds.length === 0) {
-			await dbExecuteLogger(
-				trx
-					.update(importItemDetail)
-					.set({
-						status: 'importError',
-						errorInfo: {
-							errors: [
-								'Journal update could not be applied (journal not found or disallowed update)'
-							]
-						},
-						...updatedTime()
-					})
-					.where(eq(importItemDetail.id, item.id)),
-				'importJournalUpdate - Mark Error Update Not Applied'
-			);
-			return;
-		}
-
-		const updatedJournal = await dbExecuteLogger(
-			trx.query.journalEntry.findFirst({
-				where: (journalEntry, { eq }) => eq(journalEntry.id, processedItem.data.id)
-			}),
-			'importJournalUpdate - Find Updated Journal'
-		);
-
-		if (!updatedJournal) {
-			await dbExecuteLogger(
-				trx
-					.update(importItemDetail)
-					.set({
-						status: 'importError',
-						errorInfo: { errors: ['Journal Not Found'] },
-						...updatedTime()
-					})
-					.where(eq(importItemDetail.id, item.id)),
-				'importJournalUpdate - Mark Error Not Found'
-			);
-			return;
-		}
-
-		await dbExecuteLogger(
-			trx
-				.update(importItemDetail)
-				.set({
-					status: 'imported',
-					importInfo: updatedJournal,
-					relationId: null,
-					relation2Id: null,
-					...updatedTime()
-				})
-				.where(eq(importItemDetail.id, item.id)),
-			'importJournalUpdate - Mark Imported'
-		);
-	} catch (e) {
-		await dbExecuteLogger(
-				trx
-					.update(importItemDetail)
-					.set({
-						status: 'importError',
-						errorInfo: { error: serializeError(e) },
-						...updatedTime()
-					})
-					.where(eq(importItemDetail.id, item.id)),
-			'importJournalUpdate - Mark Error'
-		);
-	}
 }
