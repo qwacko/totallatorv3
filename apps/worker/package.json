@@ -4,12 +4,13 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "tsx watch --tsconfig tsconfig.json src/main.ts",
+		"dev": "tsx watch --clear-screen=false --tsconfig tsconfig.json --import ./src/instrument.ts src/main.ts",
 		"build": "tsc --project tsconfig.build.json",
 		"check": "tsc --project tsconfig.json",
 		"format": "prettier --write .",
 		"lint": "prettier --check .",
-		"check:watch": "tsc --project tsconfig.json --watch"
+		"check:watch": "tsc --project tsconfig.json --watch",
+		"start": "node --import ./dist/instrument.js ./dist/main.js"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.978.0",
@@ -22,6 +23,7 @@
 		"@totallator/context": "workspace:*",
 		"@totallator/database": "workspace:*",
 		"@totallator/shared": "workspace:*",
+		"@totallator/telemetry": "workspace:*",
 		"bullmq": "^5.67.2",
 		"dotenv": "^17.2.3",
 		"drizzle-orm": "^0.45.1",

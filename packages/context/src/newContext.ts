@@ -5,6 +5,7 @@
  * flexible, type-safe approach that works better in monorepo environments.
  */
 import type { SessionDBType, UserDBType } from '@totallator/database';
+import { context as otelContext } from '@opentelemetry/api';
 
 import { createContextHandler } from './contextHandler.js';
 import type { GlobalContext } from './GlobalContext.js';
@@ -79,13 +80,16 @@ export async function runInTransactionWithLogging<T>(
 ): Promise<T> {
 	const context = getContext();
 	const { global } = context;
+	const activeOtelContext = otelContext.active();
 	const enableTransactionLogging = global.serverEnv.TRANSACTIONLOG_ENABLE;
 	const enableTransactionStartLogging = global.serverEnv.TRANSACTIONLOG_ENABLESTART;
 	const transactionLoggingThreshold = global.serverEnv.TRANSACTIONLOG_TIME_MS;
 
 	// If logging is disabled, run without timing overhead
 	if (!enableTransactionLogging) {
-		return global.db.transaction(callback);
+		return global.db.transaction((txDb: any) =>
+			otelContext.with(activeOtelContext, () => callback(txDb))
+		);
 	}
 
 	const start = Date.now();
@@ -97,7 +101,9 @@ export async function runInTransactionWithLogging<T>(
 	}
 
 	try {
-		const result = await global.db.transaction(callback);
+		const result = await global.db.transaction((txDb: any) =>
+			otelContext.with(activeOtelContext, () => callback(txDb))
+		);
 		const duration = Date.now() - start;
 		if (duration > transactionLoggingThreshold) {
 			global.logger('database').info({

@@ -1,5 +1,6 @@
 import type { Handle, RequestEvent } from '@sveltejs/kit';
 import { AsyncLocalStorage } from 'async_hooks';
+import { context as otelContext } from '@opentelemetry/api';
 
 /**
  * Combined context containing both global and request-scoped data
@@ -94,12 +95,15 @@ export class ContextHandler<GlobalContextType, RequestContextType> {
 	runInTransaction = async <T>(callback: () => Promise<T> | T): Promise<T> => {
 		const context = this.getContext();
 		const { global } = context;
+		const activeOtelContext = otelContext.active();
 
 		if (global && typeof (global as any).db?.transaction === 'function') {
-			return (global as any).db.transaction(() => callback());
+			return (global as any).db.transaction(() =>
+				otelContext.with(activeOtelContext, () => callback())
+			);
 		}
 
-		return Promise.resolve(callback());
+		return Promise.resolve(otelContext.with(activeOtelContext, () => callback()));
 	};
 
 	/**
@@ -146,6 +150,7 @@ export class ContextHandler<GlobalContextType, RequestContextType> {
 		const hook: Handle = async ({ event, resolve }) => {
 			const global = await this.getOrInitGlobalContext(initGlobalContext);
 			const request = createRequestContext(event);
+			const activeOtelContext = otelContext.active();
 
 			const context: CombinedContext<GlobalContextType, RequestContextType> = {
 				global,
@@ -157,15 +162,17 @@ export class ContextHandler<GlobalContextType, RequestContextType> {
 				updateLocals(event, context);
 			}
 
-			return this.contextStorage.run(context, async () => {
-				// Allow user to customize resolve behavior (handle transactions, etc.)
-				if (customResolve) {
-					return customResolve(context, event, resolve);
-				}
+			return otelContext.with(activeOtelContext, () =>
+				this.contextStorage.run(context, async () => {
+					// Allow user to customize resolve behavior (handle transactions, etc.)
+					if (customResolve) {
+						return customResolve(context, event, resolve);
+					}
 
-				// Default behavior - just resolve
-				return resolve(event);
-			});
+					// Default behavior - just resolve
+					return resolve(event);
+				})
+			);
 		};
 
 		const standaloneContext = async <T>(
@@ -173,6 +180,7 @@ export class ContextHandler<GlobalContextType, RequestContextType> {
 			callback: (context: CombinedContext<GlobalContextType, RequestContextType>) => Promise<T> | T
 		): Promise<T> => {
 			const global = await this.getOrInitGlobalContext(initGlobalContext);
+			const activeOtelContext = otelContext.active();
 
 			// User provides the full request context structure
 			const request = {
@@ -184,7 +192,9 @@ export class ContextHandler<GlobalContextType, RequestContextType> {
 				request
 			};
 
-			return this.contextStorage.run(context, () => callback(context));
+			return otelContext.with(activeOtelContext, () =>
+				this.contextStorage.run(context, () => callback(context))
+			);
 		};
 
 		const globalContext = async (): Promise<GlobalContextType> => {

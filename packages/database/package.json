@@ -24,7 +24,9 @@
 		"knip": "knip"
 	},
 	"dependencies": {
+		"@kubiks/otel-drizzle": "^2.1.0",
 		"@totallator/shared": "workspace:*",
+		"@totallator/telemetry": "workspace:*",
 		"drizzle-orm": "^0.45.1",
 		"postgres": "^3.4.8",
 		"prettier": "^3.8.1",

@@ -12,6 +12,8 @@ export type JobMetadata = {
   tenantId?: string;
   userId?: string;
   requestId?: string;
+  traceContext?: Record<string, string>;
+  [key: string]: unknown;
 };
 
 export type JobData<TData = unknown, TType extends string = string> = {

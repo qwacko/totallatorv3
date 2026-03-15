@@ -1,4 +1,5 @@
 import { createClient } from '@libsql/client';
+import { SpanStatusCode, context as otelContext, trace } from '@opentelemetry/api';
 import { json, redirect, type ServerInit } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { nanoid } from 'nanoid';
@@ -37,6 +38,29 @@ const __dirname = path.dirname(__filename);
 const migrationsPath = path.join(__dirname, '../../../packages/database/src/migrations');
 
 console.log('Migrations Path:', migrationsPath);
+
+const webappTracer = trace.getTracer('@totallator/webapp');
+
+const withServerSpan = async <T>(
+	name: string,
+	attributes: Record<string, string | number | boolean | undefined>,
+	callback: () => Promise<T>
+): Promise<T> => {
+	return await webappTracer.startActiveSpan(name, { attributes }, async (span) => {
+		try {
+			return await callback();
+		} catch (error) {
+			span.recordException(error as Error);
+			span.setStatus({
+				code: SpanStatusCode.ERROR,
+				message: error instanceof Error ? error.message : 'Unknown error'
+			});
+			throw error;
+		} finally {
+			span.end();
+		}
+	});
+};
 
 // Create the new context system
 const { hook, standaloneContext, globalContext } = hookBuilder({
@@ -122,6 +146,14 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 
 	// Handle all the custom logic that was in the old hooks
 	customResolve: async (context, event, resolve) => {
+		event.tracing.root.setAttribute('totallator.request.id', context.request.requestId);
+		event.tracing.root.setAttribute('totallator.request.route', context.request.routeId);
+		event.tracing.root.setAttribute('http.method', context.request.method);
+		event.tracing.root.setAttribute('url.path', context.request.url);
+		if (context.request.user?.id) {
+			event.tracing.root.setAttribute('enduser.id', context.request.user.id);
+		}
+
 		// Set up timeout monitoring
 		const timeLimit = context.global.serverEnv.PAGE_TIMEOUT_MS;
 		const timeout = setTimeout(() => {
@@ -136,27 +168,45 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 
 		try {
 			// Authentication logic
-			const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
-			if (sessionToken) {
-				const { session, user } = await tActions.auth.validateSessionToken(sessionToken);
-				if (session !== null) {
-					tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
-				} else {
-					tActions.auth.deleteSessionTokenCookie(event);
-				}
-				event.locals.user = user || undefined;
-				event.locals.session = session || undefined;
+			await withServerSpan(
+				'auth.validate-session',
+				{
+					routeId: context.request.routeId,
+					requestId: context.request.requestId
+				},
+				async () => {
+					const sessionToken = event.cookies.get(tActions.auth.sessionCookieName);
+					if (sessionToken) {
+						const { session, user } = await tActions.auth.validateSessionToken(sessionToken);
+						if (session !== null) {
+							tActions.auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+						} else {
+							tActions.auth.deleteSessionTokenCookie(event);
+						}
+						event.locals.user = user || undefined;
+						event.locals.session = session || undefined;
 
-				// Update context request with auth info
-				context.request.user = user || undefined;
-				context.request.session = session || undefined;
-			} else {
-				event.locals.user = undefined;
-				event.locals.session = undefined;
-			}
+						context.request.user = user || undefined;
+						context.request.session = session || undefined;
+						if (user?.id) {
+							event.tracing.root.setAttribute('enduser.id', user.id);
+						}
+					} else {
+						event.locals.user = undefined;
+						event.locals.session = undefined;
+					}
+				}
+			);
 
 			// Route logic
-			const noAdmin = await noAdmins({ global: context.global });
+			const noAdmin = await withServerSpan(
+				'auth.check-bootstrap-state',
+				{
+					routeId: context.request.routeId,
+					requestId: context.request.requestId
+				},
+				async () => await noAdmins({ global: context.global })
+			);
 
 			if (event.route.id === null) {
 				// Allow null route
@@ -187,7 +237,14 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 				!event.route.id.includes('backup-restore-progress')
 			) {
 				try {
-					const hasActiveRestore = await hasActiveBackupRestore();
+					const hasActiveRestore = await withServerSpan(
+						'backup.check-active-restore',
+						{
+							routeId: context.request.routeId,
+							requestId: context.request.requestId
+						},
+						async () => await hasActiveBackupRestore()
+					);
 					if (hasActiveRestore) {
 						redirect(302, '/backup-restore-progress');
 					}
@@ -205,7 +262,16 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 
 			// Auth guard
 			if (event.route.id) {
-				authGuard(event as Parameters<typeof authGuard>[0]);
+				await withServerSpan(
+					'auth.guard',
+					{
+						routeId: context.request.routeId,
+						requestId: context.request.requestId
+					},
+					async () => {
+						authGuard(event as Parameters<typeof authGuard>[0]);
+					}
+				);
 			}
 
 			// Transaction wrapping for non-GET requests
@@ -240,12 +306,32 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 					requestURL: event.request.url
 				});
 
+				const activeOtelContext = otelContext.active();
+
 				return context.global.db.transaction(async () => {
-					return await resolve(event);
+					return await otelContext.with(activeOtelContext, async () =>
+						await withServerSpan(
+							'request.resolve.transaction',
+							{
+								routeId: context.request.routeId,
+								requestId: context.request.requestId,
+								method: context.request.method
+							},
+							async () => await resolve(event)
+						)
+					);
 				});
 			}
 
-			return resolve(event);
+			return await withServerSpan(
+				'request.resolve',
+				{
+					routeId: context.request.routeId,
+					requestId: context.request.requestId,
+					method: context.request.method
+				},
+				async () => await resolve(event)
+			);
 		} finally {
 			clearTimeout(timeout);
 		}

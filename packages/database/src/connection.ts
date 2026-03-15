@@ -1,7 +1,10 @@
+import { instrumentDrizzleClient } from '@kubiks/otel-drizzle';
 import { type Logger } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+
+import { getActiveSpan } from '@totallator/telemetry';
 
 import * as schema from './schema';
 
@@ -24,11 +27,43 @@ class DatabaseLogger implements Logger {
 	) {}
 
 	logQuery(query: string, params: unknown[]): void {
-		if (query.startsWith('update') && this.enableLogger && this.isDev && this.logger) {
-			this.logger('DB Query', { query, params });
+		const activeSpan = getActiveSpan();
+		if (activeSpan) {
+			activeSpan.addEvent('db.query', {
+				'db.system': 'postgresql',
+				'db.statement': query,
+				'db.operation': query.trim().split(/\s+/, 1)[0]?.toUpperCase() || 'UNKNOWN'
+			});
+		}
+
+		if (this.enableLogger && this.logger) {
+			this.logger('DB Query', {
+				query,
+				params,
+				isDev: this.isDev
+			});
 		}
 	}
 }
+
+const getPostgresTelemetryOptions = (postgresUrl: string) => {
+	try {
+		const parsedUrl = new URL(postgresUrl);
+		const dbName = parsedUrl.pathname.replace(/^\//, '') || undefined;
+		const peerPort = parsedUrl.port ? Number(parsedUrl.port) : undefined;
+
+		return {
+			dbSystem: 'postgresql' as const,
+			dbName,
+			peerName: parsedUrl.hostname || undefined,
+			peerPort
+		};
+	} catch {
+		return {
+			dbSystem: 'postgresql' as const
+		};
+	}
+};
 
 export function createDatabase(config: DatabaseConfig) {
 	const postgresDatabase = postgres(config.isBuilding ? '' : config.postgresUrl || '', {
@@ -40,6 +75,14 @@ export function createDatabase(config: DatabaseConfig) {
 		schema,
 		logger: new DatabaseLogger(config.enableQueryLog, config.isDev, config.logger)
 	});
+
+	if (!config.isBuilding && config.postgresUrl) {
+		instrumentDrizzleClient(db, {
+			...getPostgresTelemetryOptions(config.postgresUrl),
+			captureQueryText: true,
+			maxQueryTextLength: 2000
+		});
+	}
 
 	return { db, postgresDatabase };
 }

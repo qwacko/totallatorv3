@@ -1,5 +1,6 @@
 import { Queue, type Job, type QueueOptions, Worker } from "bullmq";
 import IORedis from "ioredis";
+import { getBullMQTelemetry } from "@totallator/telemetry";
 
 import type {
   DefaultJobMap,
@@ -27,6 +28,7 @@ export type AddJobOptions = {
   priority?: number;
   attempts?: number;
   backoff?: string;
+  metadata?: JobData["metadata"];
 };
 
 type QueueFactoryOptions = Omit<QueueOptions, "connection">;
@@ -42,6 +44,7 @@ export class WorkerFactory {
       port: config.redis.port,
       password: config.redis.password,
       db: config.redis.db,
+      connectionName: config.workerId,
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
       lazyConnect: true,
@@ -91,6 +94,7 @@ export class WorkerFactory {
       {
         connection: this.connection,
         concurrency: options.concurrency || this.config.concurrency || 1,
+        telemetry: getBullMQTelemetry(),
       },
     );
 
@@ -131,6 +135,7 @@ export class WorkerFactory {
       const queue = new Queue(queueName, {
         ...options,
         connection: this.connection,
+        telemetry: getBullMQTelemetry(),
       });
       this.queues.set(queueName, queue);
     }
@@ -163,9 +168,14 @@ export class WorkerFactory {
       delay: options.delay,
       repeat: options.repeat,
       priority: options.priority,
+      metadata: options.metadata,
     };
 
-    return await queue.add(type, { type, data }, jobOptions);
+    return await queue.add(
+      type,
+      { type, data, metadata: options.metadata },
+      jobOptions,
+    );
   }
 
   async addTypedJob<
