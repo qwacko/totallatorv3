@@ -122,3 +122,5 @@ export function printMaterializedViews() {
 export type CoreDBType = ReturnType<typeof createDatabase>['db'];
 export type TransactionType = Parameters<Parameters<CoreDBType['transaction']>[0]>[0];
 export type DBType = CoreDBType | TransactionType;
+export type PostgresDBType = CoreDBType;
+export type PostgresTransactionType = TransactionType;

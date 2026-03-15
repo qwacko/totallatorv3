@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'async_hooks';
 import { eq, sql } from 'drizzle-orm';
 
 import { getContextStore } from '@totallator/context';
@@ -13,12 +14,23 @@ import {
 	labelMaterializedView,
 	tagMaterializedView
 } from '@totallator/database';
+import type { DBType } from '@totallator/database';
+import { serverEnvSchema, type ServerEnvSchemaType } from '@totallator/shared';
 
 import { getLogger } from '@totallator/business-logic/logger';
 import { dbExecuteLogger, dbExecuteRawLogger } from '@totallator/business-logic/server/db/dbLogger';
 import { getServerEnv } from '@totallator/business-logic/serverEnv';
 
 import { booleanKeyValueStore } from './helpers/keyValueStore';
+
+type StructuredLoggerLike = {
+	error: (data: Record<string, unknown>) => void;
+	warn: (data: Record<string, unknown>) => void;
+	info: (data: Record<string, unknown>) => void;
+	debug: (data: Record<string, unknown>) => void;
+	trace: (data: Record<string, unknown>) => void;
+	pino: unknown;
+};
 
 const refreshRequiredStore = booleanKeyValueStore('journalExtendedViewRefresh', true);
 const accountRefreshRequiredStore = booleanKeyValueStore('accountViewRefresh', true);
@@ -32,16 +44,83 @@ const importCheckRefreshRequiredStore = booleanKeyValueStore('importCheckViewRef
 
 const logRefreshTime = false;
 
+type MaterializedViewTestContext = {
+	db: DBType;
+	serverEnv: ServerEnvSchemaType;
+	logger: StructuredLoggerLike;
+	viewRefreshLimiter: { updateLastRequest: () => void };
+};
+
+const materializedViewTestContext = new AsyncLocalStorage<MaterializedViewTestContext>();
+
+const getMaterializedViewDb = () => {
+	const testContext = materializedViewTestContext.getStore();
+
+	if (testContext) {
+		try {
+			return getContextStore().global.db || testContext.db;
+		} catch {
+			return testContext.db;
+		}
+	}
+
+	return getContextStore().global.db;
+};
+const getMaterializedViewLogger = () =>
+	materializedViewTestContext.getStore()?.logger || getLogger('materialized-views');
+const getMaterializedViewServerEnv = () =>
+	materializedViewTestContext.getStore()?.serverEnv || getServerEnv();
+const getMaterializedViewRefreshLimiter = () =>
+	materializedViewTestContext.getStore()?.viewRefreshLimiter || getContextStore().global.viewRefreshLimiter;
+
+export const runWithMaterializedViewTestContext = async <T>({
+	db,
+	serverEnv,
+	callback
+}: {
+	db: DBType;
+	serverEnv?: ServerEnvSchemaType;
+	callback: () => Promise<T>;
+}): Promise<T> => {
+	const logger: StructuredLoggerLike = {
+		error: () => {},
+		warn: () => {},
+		info: () => {},
+		debug: () => {},
+		trace: () => {},
+		pino: console as never
+	};
+
+	return await materializedViewTestContext.run(
+		{
+			db,
+			serverEnv:
+				serverEnv ||
+				serverEnvSchema.parse({
+					TEST_ENV: 'true',
+					CONCURRENT_REFRESH: 'false',
+					DB_QUERY_LOG: 'false',
+					DEV: false
+				}),
+			logger,
+			viewRefreshLimiter: {
+				updateLastRequest: () => {}
+			}
+		},
+		callback
+	);
+};
+
 const timePromise = async <T>(title: string, enable: boolean | undefined, fn: () => Promise<T>) => {
 	if (!enable) {
-		getLogger('materialized-views').trace({
+		getMaterializedViewLogger().trace({
 			code: 'MV_060',
 			title: `Skipping ${title} - not enabled in refresh items`
 		});
 		return;
 	}
 
-	getLogger('materialized-views').debug({
+	getMaterializedViewLogger().debug({
 		code: 'MV_061',
 		title: `Starting ${title}`,
 		viewTitle: title
@@ -54,7 +133,7 @@ const timePromise = async <T>(title: string, enable: boolean | undefined, fn: ()
 		const duration = endTime - startTime;
 
 		if (logRefreshTime) {
-			getLogger('materialized-views').info({
+			getMaterializedViewLogger().info({
 				code: 'MAT_VIEW_001',
 				title: `${title} took ${duration}ms`,
 				viewTitle: title,
@@ -62,7 +141,7 @@ const timePromise = async <T>(title: string, enable: boolean | undefined, fn: ()
 			});
 		}
 
-		getLogger('materialized-views').debug({
+		getMaterializedViewLogger().debug({
 			code: 'MV_062',
 			title: `Successfully completed ${title}`,
 			viewTitle: title,
@@ -74,7 +153,7 @@ const timePromise = async <T>(title: string, enable: boolean | undefined, fn: ()
 		const endTime = Date.now();
 		const duration = endTime - startTime;
 
-		getLogger('materialized-views').error({
+		getMaterializedViewLogger().error({
 			code: 'MV_063',
 			title: `Failed to complete ${title}`,
 			viewTitle: title,
@@ -108,7 +187,11 @@ const itemsDefault = {
 };
 
 const useConcurrentRefresh = () =>
-	getServerEnv().CONCURRENT_REFRESH === undefined ? true : getServerEnv().CONCURRENT_REFRESH;
+	getMaterializedViewServerEnv().TEST_ENV
+		? false
+		: getMaterializedViewServerEnv().CONCURRENT_REFRESH === undefined
+			? true
+			: getMaterializedViewServerEnv().CONCURRENT_REFRESH;
 
 export const materializedViewActions = {
 	refresh: async ({
@@ -120,7 +203,7 @@ export const materializedViewActions = {
 		const refreshStartTime = Date.now();
 		const viewsToRefresh = Object.keys(items).filter((key) => items[key as keyof typeof items]);
 
-		getLogger('materialized-views').info({
+		getMaterializedViewLogger().info({
 			code: 'MV_010',
 			title: 'Starting materialized view refresh',
 			viewsToRefresh,
@@ -128,8 +211,7 @@ export const materializedViewActions = {
 			concurrentRefresh: useConcurrentRefresh()
 		});
 
-		const context = getContextStore();
-		const db = context.global.db;
+		const db = getMaterializedViewDb();
 
 		try {
 			await Promise.all([
@@ -247,7 +329,7 @@ export const materializedViewActions = {
 			]);
 
 			const refreshDuration = Date.now() - refreshStartTime;
-			getLogger('materialized-views').info({
+			getMaterializedViewLogger().info({
 				code: 'MV_011',
 				title: 'Materialized view refresh completed',
 				viewsRefreshed: viewsToRefresh,
@@ -256,7 +338,7 @@ export const materializedViewActions = {
 			});
 		} catch (error) {
 			const refreshDuration = Date.now() - refreshStartTime;
-			getLogger('materialized-views').error({
+			getMaterializedViewLogger().error({
 				code: 'MV_012',
 				title: 'Materialized view refresh failed',
 				viewsToRefresh,
@@ -268,14 +350,13 @@ export const materializedViewActions = {
 		}
 	},
 	needsRefresh: async ({ items = itemsDefault }: { items?: itemsType }): Promise<boolean> => {
-		getLogger('materialized-views').debug({
+		getMaterializedViewLogger().debug({
 			code: 'MV_020',
 			title: 'Checking if materialized views need refresh',
 			itemsToCheck: Object.keys(items).filter((key) => items[key as keyof typeof items])
 		});
 
-		const context = getContextStore();
-		const db = context.global.db;
+		const db = getMaterializedViewDb();
 
 		try {
 			const itemsRequiringUpdate = {
@@ -297,7 +378,7 @@ export const materializedViewActions = {
 				.filter((key) => items[key as keyof typeof items])
 				.filter((key) => itemsRequiringUpdate[key as keyof typeof itemsRequiringUpdate]);
 
-			getLogger('materialized-views').debug({
+			getMaterializedViewLogger().debug({
 				code: 'MV_021',
 				title: 'Materialized view refresh check completed',
 				needsUpdate,
@@ -308,7 +389,7 @@ export const materializedViewActions = {
 
 			return needsUpdate;
 		} catch (error) {
-			getLogger('materialized-views').error({
+			getMaterializedViewLogger().error({
 				code: 'MV_022',
 				title: 'Failed to check materialized view refresh status',
 				itemsToCheck: Object.keys(items).filter((key) => items[key as keyof typeof items]),
@@ -324,7 +405,7 @@ export const materializedViewActions = {
 		logStats?: boolean;
 		items?: itemsType;
 	}): Promise<boolean> => {
-		getLogger('materialized-views').debug({
+		getMaterializedViewLogger().debug({
 			code: 'MV_030',
 			title: 'Starting conditional materialized view refresh',
 			logStats,
@@ -335,28 +416,28 @@ export const materializedViewActions = {
 			const needsUpdate = await materializedViewActions.needsRefresh({ items });
 
 			if (!needsUpdate) {
-				getLogger('materialized-views').debug({
+				getMaterializedViewLogger().debug({
 					code: 'MV_031',
 					title: 'Conditional refresh skipped - no views need updating'
 				});
 				return false;
 			}
 
-			getLogger('materialized-views').info({
+			getMaterializedViewLogger().info({
 				code: 'MV_032',
 				title: 'Conditional refresh proceeding - views need updating'
 			});
 
 			await materializedViewActions.refresh({ logStats, items });
 
-			getLogger('materialized-views').debug({
+			getMaterializedViewLogger().debug({
 				code: 'MV_033',
 				title: 'Conditional refresh completed successfully'
 			});
 
 			return true;
 		} catch (error) {
-			getLogger('materialized-views').error({
+			getMaterializedViewLogger().error({
 				code: 'MV_034',
 				title: 'Conditional refresh failed',
 				logStats,
@@ -375,7 +456,7 @@ export const materializedViewActions = {
 		logStats?: boolean;
 		items?: itemsType;
 	}): Promise<boolean> => {
-		getLogger('materialized-views').trace({
+		getMaterializedViewLogger().trace({
 			code: 'MV_040',
 			title: 'Context-based conditional refresh called',
 			logStats,
@@ -388,7 +469,7 @@ export const materializedViewActions = {
 				items
 			});
 
-			getLogger('materialized-views').trace({
+			getMaterializedViewLogger().trace({
 				code: 'MV_041',
 				title: 'Context-based conditional refresh completed',
 				refreshPerformed: result
@@ -396,7 +477,7 @@ export const materializedViewActions = {
 
 			return result;
 		} catch (error) {
-			getLogger('materialized-views').error({
+			getMaterializedViewLogger().error({
 				code: 'MV_042',
 				title: 'Context-based conditional refresh failed',
 				logStats,
@@ -407,13 +488,12 @@ export const materializedViewActions = {
 		}
 	},
 	setRefreshRequired: async (): Promise<void> => {
-		getLogger('materialized-views').info({
+		getMaterializedViewLogger().info({
 			code: 'MV_050',
 			title: 'Setting all materialized views as requiring refresh'
 		});
 
-		const context = getContextStore();
-		const db = context.global.db;
+		const db = getMaterializedViewDb();
 
 		try {
 			await Promise.all([
@@ -435,14 +515,14 @@ export const materializedViewActions = {
 				)
 			]);
 
-			context.global.viewRefreshLimiter.updateLastRequest();
+			getMaterializedViewRefreshLimiter().updateLastRequest();
 
-			getLogger('materialized-views').debug({
+			getMaterializedViewLogger().debug({
 				code: 'MV_051',
 				title: 'Successfully set all materialized views as requiring refresh'
 			});
 		} catch (error) {
-			getLogger('materialized-views').error({
+			getMaterializedViewLogger().error({
 				code: 'MV_052',
 				title: 'Failed to set materialized views as requiring refresh',
 				error

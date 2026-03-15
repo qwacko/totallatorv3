@@ -498,11 +498,9 @@ export const accountActions: AccountActionsType & {
 		});
 
 		await runInTransactionWithLogging('Update Many Accounts', async () => {
-			await Promise.all(
-				items.data.map(async (item) => {
-					await accountActions.update({ data, id: item.id });
-				})
-			);
+			for (const item of items.data) {
+				await accountActions.update({ data, id: item.id });
+			}
 		});
 	},
 	update: async ({ data, id }) => {

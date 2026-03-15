@@ -8,11 +8,11 @@ import {
 	closeTestDB,
 	createTestWrapper,
 	getTestDB,
-	initialiseTestDB
+	initialiseTestDB,
+	seedSimpleTransferJournal
 } from '@totallator/business-logic/server/db/test/dbTest';
 
 import { accountActions } from './accountActions';
-import { journalActions } from './journalActions';
 import { materializedViewActions } from './materializedViewActions';
 
 describe('accountActions', async () => {
@@ -20,8 +20,8 @@ describe('accountActions', async () => {
 
 	beforeAll(async () => {
 		db = await getTestDB();
-		await clearTestDB(db.testDB);
-	});
+		await clearTestDB(db.testDB, { refreshViews: false });
+	}, 30000);
 	afterAll(async () => {
 		if (db) {
 			await closeTestDB(db);
@@ -32,29 +32,15 @@ describe('accountActions', async () => {
 	const testIT = await createTestWrapper({
 		getDB: () => (db ? db.testDB : undefined),
 		beforeEach: async (db, id) => {
-			await clearTestDB(db);
-			await initialiseTestDB({ db, accounts: true, id });
-			await journalActions.createFromSimpleTransaction({
+			await clearTestDB(db, { refreshViews: false });
+			await initialiseTestDB({ db, accounts: true, refreshViews: false });
+			await seedSimpleTransferJournal({
 				db,
-				transaction: {
-					amount: 100,
-					date: '2020-01-01',
-					description: 'Description',
-					fromAccountId: `Account1`,
-					toAccountId: `Account2`,
-					importId: undefined,
-					importDetailId: undefined,
-					tagId: undefined,
-					billId: undefined,
-					budgetId: undefined,
-					categoryId: undefined,
-					billTitle: undefined,
-					budgetTitle: undefined,
-					categoryTitle: undefined,
-					tagTitle: undefined,
-					fromAccountTitle: undefined,
-					toAccountTitle: undefined
-				}
+				amount: 100,
+				date: '2020-01-01',
+				description: 'Description',
+				fromAccountId: `Account1`,
+				toAccountId: `Account2`
 			});
 			await materializedViewActions.setRefreshRequired();
 		}
@@ -64,27 +50,25 @@ describe('accountActions', async () => {
 		testIT('Created Account Should Have Correct Group Data - (asset / liability)', async (db) => {
 			const types = ['income', 'expense'] as const;
 
-			await Promise.all(
-				types.map(async (type) => {
-					const title = `Test ${type} Account`;
+			for (const type of types) {
+				const title = `Test ${type} Account`;
 
-					const createdAccount = await accountActions.createAndGet(db, {
-						title,
-						type: 'asset',
-						accountGroupCombined: 'Group1:Group2:Group3',
-						status: 'active'
-					});
+				const createdAccount = await accountActions.createAndGet({
+					title,
+					type: 'asset',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status: 'active'
+				});
 
-					expect(createdAccount).not.toBeUndefined();
+				expect(createdAccount).not.toBeUndefined();
 
-					expect(createdAccount?.title).toEqual(title);
-					expect(createdAccount?.accountGroup).toEqual('Group1');
-					expect(createdAccount?.accountGroup2).toEqual('Group2');
-					expect(createdAccount?.accountGroup3).toEqual('Group3');
-					expect(createdAccount?.accountGroupCombined).toEqual('Group1:Group2:Group3');
-					expect(createdAccount?.accountTitleCombined).toEqual(`Group1:Group2:Group3:${title}`);
-				})
-			);
+				expect(createdAccount?.title).toEqual(title);
+				expect(createdAccount?.accountGroup).toEqual('Group1');
+				expect(createdAccount?.accountGroup2).toEqual('Group2');
+				expect(createdAccount?.accountGroup3).toEqual('Group3');
+				expect(createdAccount?.accountGroupCombined).toEqual('Group1:Group2:Group3');
+				expect(createdAccount?.accountTitleCombined).toEqual(`Group1:Group2:Group3:${title}`);
+			}
 		});
 
 		testIT(
@@ -92,51 +76,47 @@ describe('accountActions', async () => {
 			async (db) => {
 				const types = ['income', 'expense'] as const;
 
-				await Promise.all(
-					types.map(async (type) => {
-						const title = `Test ${type} Account`;
-						const createdAccount = await accountActions.createAndGet(db, {
-							title,
-							type,
-							accountGroupCombined: 'Group1:Group2:Group3',
-							status: 'active'
-						});
+				for (const type of types) {
+					const title = `Test ${type} Account`;
+					const createdAccount = await accountActions.createAndGet({
+						title,
+						type,
+						accountGroupCombined: 'Group1:Group2:Group3',
+						status: 'active'
+					});
 
-						expect(createdAccount).not.toBeUndefined();
-						expect(createdAccount?.title).toEqual(title);
-						expect(createdAccount?.accountGroup).toEqual('');
-						expect(createdAccount?.accountGroup2).toEqual('');
-						expect(createdAccount?.accountGroup3).toEqual('');
-						expect(createdAccount?.accountGroupCombined).toEqual('');
-						expect(createdAccount?.accountTitleCombined).toEqual(title);
-					})
-				);
+					expect(createdAccount).not.toBeUndefined();
+					expect(createdAccount?.title).toEqual(title);
+					expect(createdAccount?.accountGroup).toEqual('');
+					expect(createdAccount?.accountGroup2).toEqual('');
+					expect(createdAccount?.accountGroup3).toEqual('');
+					expect(createdAccount?.accountGroupCombined).toEqual('');
+					expect(createdAccount?.accountTitleCombined).toEqual(title);
+				}
 			}
 		);
 
 		testIT('Created Account Should Reflect Correct Status', async (db) => {
 			const statuses = ['active', 'disabled'] as const;
 
-			await Promise.all(
-				statuses.map(async (status) => {
-					const title = `Test Account with status ${status}`;
+			for (const status of statuses) {
+				const title = `Test Account with status ${status}`;
 
-					const createdAccount = await accountActions.createAndGet(db, {
-						title,
-						type: 'asset',
-						accountGroupCombined: 'Group1:Group2:Group3',
-						status
-					});
+				const createdAccount = await accountActions.createAndGet({
+					title,
+					type: 'asset',
+					accountGroupCombined: 'Group1:Group2:Group3',
+					status
+				});
 
-					expect(createdAccount?.status).toEqual(status);
-				})
-			);
+				expect(createdAccount?.status).toEqual(status);
+			}
 		});
 
 		testIT('Creating an account With Long End Date Should Work Correctly', async (db) => {
 			const endDate = new Date().toISOString();
 			await expect(() =>
-				accountActions.createAndGet(db, {
+				accountActions.createAndGet({
 					title: 'Created Account',
 					type: 'asset',
 					accountGroupCombined: 'Group1:Group2:Group3',
@@ -150,7 +130,7 @@ describe('accountActions', async () => {
 		testIT('Creating an account With Long Start Date Should Work Correctly', async (db) => {
 			const startDate = new Date().toISOString();
 			await expect(() =>
-				accountActions.createAndGet(db, {
+				accountActions.createAndGet({
 					title: 'Created Account',
 					type: 'asset',
 					accountGroupCombined: 'Group1:Group2:Group3',
@@ -164,7 +144,7 @@ describe('accountActions', async () => {
 		testIT('Creating an account With A Bad End Date Should Error', async (db) => {
 			await expect(
 				async () =>
-					await accountActions.createAndGet(db, {
+					await accountActions.createAndGet({
 						title: 'Created Account',
 						type: 'asset',
 						accountGroupCombined: 'Group1:Group2:Group3',
@@ -178,7 +158,7 @@ describe('accountActions', async () => {
 		testIT('Creating an account With A Bad Start Date Should Error', async (db) => {
 			await expect(
 				async () =>
-					await accountActions.createAndGet(db, {
+					await accountActions.createAndGet({
 						title: 'Created Account',
 						type: 'asset',
 						accountGroupCombined: 'Group1:Group2:Group3',
@@ -196,7 +176,7 @@ describe('accountActions', async () => {
 
 			console.log('First Account Creation', id);
 
-			await accountActions.createAndGet(db, {
+			await accountActions.createAndGet({
 				title,
 				type: 'asset',
 				accountGroupCombined,
@@ -207,7 +187,7 @@ describe('accountActions', async () => {
 
 			await expect(
 				async () =>
-					await accountActions.createAndGet(db, {
+					await accountActions.createAndGet({
 						title,
 						type: 'liability',
 						accountGroupCombined,
@@ -223,7 +203,7 @@ describe('accountActions', async () => {
 
 	describe('getById', async () => {
 		testIT('Should return the correct account', async (db, id) => {
-			const account = await accountActions.getById(db, `Account1`);
+			const account = await accountActions.getById(`Account1`);
 
 			expect(account).not.toBeUndefined();
 			expect(account?.id).toEqual(`Account1`);
@@ -231,7 +211,7 @@ describe('accountActions', async () => {
 		});
 
 		testIT('Should return undefined if no account is found', async (db) => {
-			const account = await accountActions.getById(db, 'Account0');
+			const account = await accountActions.getById('Account0');
 
 			expect(account).toBeUndefined();
 		});
@@ -239,19 +219,19 @@ describe('accountActions', async () => {
 
 	describe('count', async () => {
 		testIT('Should return the correct number of accounts', async (db) => {
-			const count = await accountActions.count(db);
+			const count = await accountActions.count();
 
 			expect(count).toEqual(6);
 		});
 
 		testIT('Should return the correct number of accounts when filtered', async (db) => {
-			const count = await accountActions.count(db, { type: ['asset'] });
+			const count = await accountActions.count({ type: ['asset'] });
 
 			expect(count).toEqual(2);
 		});
 
 		testIT('Should Return 0 When No Accounts Are Found', async (db) => {
-			const count = await accountActions.count(db, { title: 'Doesnt Exist' });
+			const count = await accountActions.count({ title: 'Doesnt Exist' });
 
 			expect(count).toEqual(0);
 		});
@@ -373,7 +353,7 @@ describe('accountActions', async () => {
 				}
 			});
 
-			const updatedAccount = await accountActions.getById(db, `Account1`);
+			const updatedAccount = await accountActions.getById(`Account1`);
 
 			expect(updatedAccount).not.toBeUndefined();
 			expect(updatedAccount?.title).toEqual('Updated Account');
@@ -394,7 +374,7 @@ describe('accountActions', async () => {
 				}
 			});
 
-			const updatedAccount = await accountActions.getById(db, `Account4`);
+			const updatedAccount = await accountActions.getById(`Account4`);
 
 			expect(updatedAccount).not.toBeUndefined();
 			expect(updatedAccount?.title).toEqual(`Updated Account`);
@@ -417,7 +397,7 @@ describe('accountActions', async () => {
 					}
 				});
 
-				const updatedAccount = await accountActions.getById(db, `Account1`);
+				const updatedAccount = await accountActions.getById(`Account1`);
 
 				expect(updatedAccount).not.toBeUndefined();
 				expect(updatedAccount?.title).toEqual(`Updated Account`);
@@ -441,7 +421,7 @@ describe('accountActions', async () => {
 					}
 				});
 
-				const updatedAccount = await accountActions.getById(db, `Account4`);
+				const updatedAccount = await accountActions.getById(`Account4`);
 
 				expect(updatedAccount).not.toBeUndefined();
 				expect(updatedAccount?.title).toEqual(`Updated Account`);
@@ -491,8 +471,8 @@ describe('accountActions', async () => {
 					}
 				});
 
-				const updatedAccount = await accountActions.getById(db, `Account1`);
-				const updatedAccount2 = await accountActions.getById(db, `Account4`);
+				const updatedAccount = await accountActions.getById(`Account1`);
+				const updatedAccount2 = await accountActions.getById(`Account4`);
 
 				expect(updatedAccount?.active).toEqual(false);
 				expect(updatedAccount?.disabled).toEqual(true);
@@ -536,13 +516,13 @@ describe('accountActions', async () => {
 
 	describe('Can Delete', async () => {
 		testIT('Items with no journals can be deleted', async (db, id) => {
-			const canDelete = await accountActions.canDelete(db, { id: `Account3` });
+			const canDelete = await accountActions.canDelete({ id: `Account3` });
 
 			expect(canDelete).toEqual(true);
 		});
 
 		testIT('Items with journals cannot be deleted', async (db, id) => {
-			const canDelete = await accountActions.canDelete(db, { id: `Account2` });
+			const canDelete = await accountActions.canDelete({ id: `Account2` });
 
 			expect(canDelete).toEqual(false);
 		});
@@ -552,7 +532,7 @@ describe('accountActions', async () => {
 		testIT(
 			'If one item in a list cannot be deleted, the whole list cannot be deleted',
 			async (db, id) => {
-				const canDelete = await accountActions.canDeleteMany(db, [`Account1`, `Account3`]);
+				const canDelete = await accountActions.canDeleteMany([`Account1`, `Account3`]);
 
 				expect(canDelete).toEqual(false);
 			}
@@ -561,7 +541,7 @@ describe('accountActions', async () => {
 		testIT(
 			'If all items in a list can be deleted, the whole list can be deleted',
 			async (db, id) => {
-				const canDelete = await accountActions.canDeleteMany(db, [`Account3`, `Account4`]);
+				const canDelete = await accountActions.canDeleteMany([`Account3`, `Account4`]);
 
 				expect(canDelete).toEqual(true);
 			}
@@ -570,17 +550,17 @@ describe('accountActions', async () => {
 
 	describe('Delete', async () => {
 		testIT('If an account that can be deleted is deleted correctly', async (db, id) => {
-			await accountActions.delete(db, { id: `Account3` });
+			await accountActions.delete({ id: `Account3` });
 
-			const account = await accountActions.getById(db, `Account3`);
+			const account = await accountActions.getById(`Account3`);
 
 			expect(account).toBeUndefined();
 		});
 
 		testIT("If an account cannot be deleted then it isn't deleted", async (db, id) => {
-			await accountActions.delete(db, { id: `Account2` });
+			await accountActions.delete({ id: `Account2` });
 
-			const accountCheck = await accountActions.getById(db, `Account2`);
+			const accountCheck = await accountActions.getById(`Account2`);
 
 			expect(accountCheck).not.toBeUndefined();
 		});
@@ -588,17 +568,17 @@ describe('accountActions', async () => {
 
 	describe('Delete Many', async () => {
 		testIT('If an account that can be deleted is deleted correctly', async (db, id) => {
-			await accountActions.deleteMany(db, [{ id: `Account3` }]);
+			await accountActions.deleteMany([{ id: `Account3` }]);
 
-			const account = await accountActions.getById(db, `Account3`);
+			const account = await accountActions.getById(`Account3`);
 
 			expect(account).toBeUndefined();
 		});
 
 		testIT("If an account cannot be deleted then it isn't deleted", async (db, id) => {
-			await accountActions.deleteMany(db, [{ id: `Account2` }]);
+			await accountActions.deleteMany([{ id: `Account2` }]);
 
-			const accountCheck = await accountActions.getById(db, `Account2`);
+			const accountCheck = await accountActions.getById(`Account2`);
 
 			expect(accountCheck).not.toBeUndefined();
 		});
@@ -736,7 +716,7 @@ describe('accountActions', async () => {
 					}
 				});
 
-				const accountItem = await accountActions.getById(db, `Account1`);
+				const accountItem = await accountActions.getById(`Account1`);
 
 				expect(commonProperties.type).toEqual(accountItem?.type);
 				expect(commonProperties.accountGroupCombined).toEqual(accountItem?.accountGroupCombined);

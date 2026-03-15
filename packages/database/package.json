@@ -17,13 +17,16 @@
 		"circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
 		"format": "prettier --write .",
 		"lint": "prettier --check .",
-		"db:generate": "drizzle-kit generate --config=\"drizzle.config.ts\"",
-		"db:studio": "drizzle-kit studio --config=\"drizzle.config.ts\"",
-		"db:custom": "drizzle-kit  generate --custom  --config=\"drizzle.config.ts\"",
-		"db:undo": "drizzle-kit drop --config=\"drizzle.config.ts\"",
+		"db:generate": "tsx ./node_modules/drizzle-kit/bin.cjs generate --config=\"drizzle.config.ts\"",
+		"db:test:generate": "tsx ./node_modules/drizzle-kit/bin.cjs generate --config=\"drizzle.test.config.ts\"",
+		"db:test:migrator-probe": "tsx ./src/pgliteDrizzleMigratorProbe.ts",
+		"db:studio": "tsx ./node_modules/drizzle-kit/bin.cjs studio --config=\"drizzle.config.ts\"",
+		"db:custom": "tsx ./node_modules/drizzle-kit/bin.cjs generate --custom --config=\"drizzle.config.ts\"",
+		"db:undo": "tsx ./node_modules/drizzle-kit/bin.cjs drop --config=\"drizzle.config.ts\"",
 		"knip": "knip"
 	},
 	"dependencies": {
+		"@electric-sql/pglite": "^0.3.16",
 		"@kubiks/otel-drizzle": "^2.1.0",
 		"@totallator/shared": "workspace:*",
 		"@totallator/telemetry": "workspace:*",
@@ -39,7 +42,9 @@
 		"drizzle-kit": "^0.31.8",
 		"knip": "^5.82.1",
 		"madge": "^8.0.0",
+		"tsx": "^4.21.0",
 		"tsc-alias": "^1.8.16",
+		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	}
 }
