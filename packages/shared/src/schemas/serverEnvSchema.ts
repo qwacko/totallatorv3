@@ -34,7 +34,6 @@ export const serverEnvSchema = z.object({
 		optional: true
 	}),
 	POSTGRES_URL: z.string().optional(),
-	POSTGRES_TEST_URL: z.string().optional(),
 	POSTGRES_MAX_CONNECTIONS: z.coerce.number<number>().optional().default(10),
 	DB_QUERY_LOG: parseEnvStringToBoolean({
 		defaultBoolean: false,

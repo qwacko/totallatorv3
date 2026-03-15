@@ -45,7 +45,6 @@ export const load = async (data) => {
 		},
 		database: {
 			postgresURLPresent: !!serverEnv.POSTGRES_URL,
-			postgresTestURLPresent: !!serverEnv.POSTGRES_TEST_URL,
 			maxConnections: serverEnv.POSTGRES_MAX_CONNECTIONS,
 			testingDelay: serverEnv.TESTING_DELAY,
 			disableBuffering: serverEnv.DISABLE_BUFFERING,

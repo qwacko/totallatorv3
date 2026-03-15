@@ -240,12 +240,6 @@ Allows the addition of a delay in some responses to allow for longer delays to b
 
 Prevents database migrations, and disables some logging. This is used as part of the testing to avoid unnecessary modifications to the database.
 
-### `POSTGRES_TEST_URL`
-
-- Type: `string`
-
-Sets the postgres database to use for testing. If this remains blank, then the production database is used `POSTGRES_URL`
-
 ### `DB_QUERY_LOG`
 
 - Type: `boolean`

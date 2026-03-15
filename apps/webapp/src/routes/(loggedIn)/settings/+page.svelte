@@ -247,10 +247,6 @@
 						options: trueFalseToButtons(data.settingsToSend.database.postgresURLPresent)
 					},
 					{
-						title: 'Test URL Present',
-						options: trueFalseToButtons(data.settingsToSend.database.postgresTestURLPresent)
-					},
-					{
 						title: 'Maximum Connections',
 						textValue: `${data.settingsToSend.database.maxConnections}`
 					},

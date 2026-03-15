@@ -30,6 +30,8 @@ Run from repository root:
 ## Testing Guidelines
 - Unit tests use Vitest (configured for `src/**/*.{test,spec}.{js,ts}`).
 - Integration tests use Playwright (`pnpm test:integration` in `apps/webapp`).
+- DB-backed `packages/business-logic` tests use the shared helpers in `packages/business-logic/src/server/db/test/dbTest.ts`, which now create isolated in-memory PGlite databases per suite/file.
+- PGlite test schema bootstrapping comes from Drizzle-generated files in `packages/database/src/test-migrations`; regenerate them with `pnpm --filter @totallator/database db:test:generate` when schema changes affect DB-backed tests.
 - Add/adjust tests for behavior changes in touched packages/apps.
 - CI currently enforces `pnpm build`, `pnpm check`, and `pnpm test:unit`.
 
@@ -47,5 +49,7 @@ Recent commit history favors short, imperative summaries (for example: `Fix type
 
 ## Database Migration Workflow
 - Generate migrations with tooling only: `pnpm --filter @totallator/database db:generate` (or `db:custom` for custom cases).
+- Keep the test bootstrap schema in sync with the current Drizzle schema: run `pnpm --filter @totallator/database db:test:generate` after schema changes that affect PGlite-backed tests.
 - Do not hand-edit `packages/database/src/migrations/meta/_journal.json` or snapshot files in `packages/database/src/migrations/meta/`.
+- Do not hand-edit generated files in `packages/database/src/test-migrations/`; regenerate them via `db:test:generate`.
 - If a migration needs manual SQL adjustment, regenerate via CLI so SQL + metadata stay in sync.
