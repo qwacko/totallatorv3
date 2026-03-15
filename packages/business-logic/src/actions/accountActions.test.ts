@@ -279,6 +279,31 @@ describe('accountActions', async () => {
 			expect(account?.title).toEqual(`New Account`);
 		});
 
+		testIT('Should fall back to a unique plain title match when combined title is not provided', async () => {
+			const account = await accountActions.createOrGet({
+				title: `Cash`
+			});
+
+			expect(account).not.toBeUndefined();
+			expect(account?.id).toEqual(`Account1`);
+			expect(account?.title).toEqual('Cash');
+		});
+
+		testIT('Should throw when plain title fallback is ambiguous', async (db) => {
+			await accountActions.create({
+				title: 'Cash',
+				type: 'liability',
+				accountGroupCombined: 'Other',
+				status: 'active'
+			});
+
+			await expect(
+				accountActions.createOrGet({
+					title: 'Cash'
+				})
+			).rejects.toThrowError('Account title "Cash" is ambiguous; use the full account title');
+		});
+
 		testIT('If Id is supplied, it will fuction correctly', async (db, id) => {
 			const account = await accountActions.createOrGet({
 				db,

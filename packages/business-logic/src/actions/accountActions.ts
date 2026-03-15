@@ -70,6 +70,56 @@ type CreateAndGetAccountFunction = (
 	data: CreateAccountSchemaType
 ) => Promise<AccountTableType | undefined>;
 
+type CreateOrGetAccountMatch = Pick<
+	AccountTableType,
+	'id' | 'title' | 'status'
+> & {
+	accountTitleCombined?: AccountTableType['accountTitleCombined'];
+};
+
+const ensureActiveAccount = (
+	currentAccount: CreateOrGetAccountMatch,
+	requireActive: boolean,
+	titleOrId: string
+) => {
+	if (requireActive && currentAccount.status !== 'active') {
+		getLogger('accounts').warn({
+			code: 'ACC_044',
+			title: 'Account found but not active',
+			accountLookup: titleOrId,
+			accountStatus: currentAccount.status
+		});
+		throw new Error(`Account ${currentAccount.title} is not active`);
+	}
+};
+
+const getFallbackTitleMatches = async ({
+	db,
+	title,
+	cachedData
+}: {
+	db: ReturnType<typeof getContextDB>;
+	title: string;
+	cachedData?: CreateOrGetAccountMatch[];
+}) => {
+	if (cachedData) {
+		return cachedData.filter((item) => item.title === title);
+	}
+
+	return await dbExecuteLogger(
+		db.query.account.findMany({
+			where: eq(account.title, title),
+			columns: {
+				id: true,
+				title: true,
+				status: true,
+				accountTitleCombined: true
+			}
+		}),
+		'Accounts - Create Or Get - Fallback By Title'
+	);
+};
+
 export const accountActions: AccountActionsType & {
 	listCommonProperties: ListCommonPropertiesFunction;
 	updateMany: UpdateManyAccountsFunction;
@@ -323,20 +373,12 @@ export const accountActions: AccountActionsType & {
 				: await dbExecuteLogger(
 						db.query.account.findFirst({
 							where: eq(account.id, id),
-							columns: { id: true, title: true, status: true }
+							columns: { id: true, title: true, status: true, accountTitleCombined: true }
 						})
 					);
 
 			if (currentAccount) {
-				if (requireActive && currentAccount.status !== 'active') {
-					getLogger('accounts').warn({
-						code: 'ACC_041',
-						title: 'Account found but not active',
-						accountId: id,
-						accountStatus: currentAccount.status
-					});
-					throw new Error(`Account ${currentAccount.title} is not active`);
-				}
+				ensureActiveAccount(currentAccount, requireActive, id);
 				getLogger('accounts').debug({
 					code: 'ACC_042',
 					title: 'Found existing account by ID',
@@ -360,27 +402,53 @@ export const accountActions: AccountActionsType & {
 				: await dbExecuteLogger(
 						db.query.account.findFirst({
 							where: eq(account.accountTitleCombined, title),
-							columns: { id: true, title: true, status: true }
+							columns: { id: true, title: true, status: true, accountTitleCombined: true }
 						}),
 						'Accounts - Create Or Get - Check Exists'
 					);
 
 			if (currentAccount) {
-				if (requireActive && currentAccount.status !== 'active') {
-					getLogger('accounts').warn({
-						code: 'ACC_044',
-						title: 'Account found by title but not active',
-						accountTitle: title,
-						accountStatus: currentAccount.status
-					});
-					throw new Error(`Account ${currentAccount.title} is not active`);
-				}
+				ensureActiveAccount(currentAccount, requireActive, title);
 				getLogger('accounts').debug({
 					code: 'ACC_045',
 					title: 'Found existing account by title',
 					accountTitle: title
 				});
 				return currentAccount;
+			}
+
+			const fallbackMatches = await getFallbackTitleMatches({
+				db,
+				title: accountTitleInfo.title,
+				cachedData
+			});
+
+			if (fallbackMatches.length === 1) {
+				const fallbackAccount = fallbackMatches[0];
+				ensureActiveAccount(fallbackAccount, requireActive, accountTitleInfo.title);
+				getLogger('accounts').warn({
+					code: 'ACC_047',
+					title: 'Falling back to plain account title match after combined title miss',
+					accountTitle: title,
+					fallbackTitle: accountTitleInfo.title,
+					fallbackAccountId: fallbackAccount.id,
+					fallbackAccountTitleCombined: fallbackAccount.accountTitleCombined
+				});
+				return fallbackAccount;
+			}
+
+			if (fallbackMatches.length > 1) {
+				getLogger('accounts').error({
+					code: 'ACC_048',
+					title: 'Ambiguous plain account title match after combined title miss',
+					accountTitle: title,
+					fallbackTitle: accountTitleInfo.title,
+					matchIds: fallbackMatches.map((item) => item.id),
+					matchCombinedTitles: fallbackMatches.map((item) => item.accountTitleCombined)
+				});
+				throw new Error(
+					`Account title "${accountTitleInfo.title}" is ambiguous; use the full account title`
+				);
 			}
 
 			getLogger('accounts').info({

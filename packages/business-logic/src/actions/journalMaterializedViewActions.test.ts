@@ -14,8 +14,11 @@ describe('journalMaterializedViewActions.generateCSVData', () => {
 					dateText: '2026-03-12',
 					description: 'Coffee',
 					amount: -6.5,
-					accountTitle: 'Assets:Cash:Wallet',
-					otherJournals: [{ accountTitle: 'Expenses:Food:Coffee' }],
+					accountTitle: 'Wallet',
+					accountTitleCombined: 'Assets:Cash:Wallet',
+					otherJournals: [
+						{ accountTitle: 'Coffee', accountGroup: 'Expenses:Food' }
+					],
 					billTitle: null,
 					budgetTitle: null,
 					categoryTitle: 'Food',
@@ -36,6 +39,8 @@ describe('journalMaterializedViewActions.generateCSVData', () => {
 		expect(parsed.errors).toEqual([]);
 		expect(parsed.data).toHaveLength(1);
 		expect(parsed.data[0]?.date).toBe('2026-03-12');
+		expect(parsed.data[0]?.accountTitle).toBe('Assets:Cash:Wallet');
+		expect(parsed.data[0]?.otherAccountTitle).toBe('Expenses:Food:Coffee');
 
 		listSpy.mockRestore();
 	});

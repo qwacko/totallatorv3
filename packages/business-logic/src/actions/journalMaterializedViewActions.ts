@@ -350,6 +350,22 @@ export const journalMaterializedViewActions = {
 					)
 				: journalData.data;
 
+		const toCombinedAccountTitle = (item: {
+			accountTitle?: string | null;
+			accountTitleCombined?: string | null;
+			accountGroup?: string | null;
+		}) => {
+			if (item.accountTitleCombined) {
+				return item.accountTitleCombined;
+			}
+
+			if (!item.accountTitle) {
+				return undefined;
+			}
+
+			return item.accountGroup ? `${item.accountGroup}:${item.accountTitle}` : item.accountTitle;
+		};
+
 		const preppedData = journalDataToUse.map((item, row) => {
 			if (returnType === 'import') {
 				return {
@@ -357,8 +373,8 @@ export const journalMaterializedViewActions = {
 					date: item.dateText,
 					description: item.description,
 					amount: item.amount,
-					accountTitle: item.accountTitle || undefined,
-					otherAccountTitle: item.otherJournals[0]?.accountTitle || undefined,
+					accountTitle: toCombinedAccountTitle(item),
+					otherAccountTitle: toCombinedAccountTitle(item.otherJournals[0] || {}),
 					billTitle: item.billTitle || undefined,
 					budgetTitle: item.budgetTitle || undefined,
 					categoryTitle: item.categoryTitle || undefined,
@@ -374,8 +390,8 @@ export const journalMaterializedViewActions = {
 					date: item.dateText,
 					description: item.description,
 					amount: item.amount,
-					accountTitle: item.accountTitle || undefined,
-					otherAccountTitle: item.otherJournals[0]?.accountTitle || undefined,
+					accountTitle: toCombinedAccountTitle(item),
+					otherAccountTitle: toCombinedAccountTitle(item.otherJournals[0] || {}),
 					billTitle: item.billTitle || undefined,
 					budgetTitle: item.budgetTitle || undefined,
 					categoryTitle: item.categoryTitle || undefined,
