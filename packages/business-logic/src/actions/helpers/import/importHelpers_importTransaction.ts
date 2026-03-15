@@ -38,6 +38,159 @@ const serializeError = (error: unknown): Record<string, unknown> => {
 	return { value: error };
 };
 
+const areStringSetsEqual = (left: (string | undefined | null)[], right: (string | undefined | null)[]) => {
+	const normalize = (values: (string | undefined | null)[]) =>
+		values
+			.filter((value): value is string => Boolean(value))
+			.map((value) => value.trim())
+			.sort();
+
+	const normalizedLeft = normalize(left);
+	const normalizedRight = normalize(right);
+
+	return (
+		normalizedLeft.length === normalizedRight.length &&
+		normalizedLeft.every((value, index) => value === normalizedRight[index])
+	);
+};
+
+const normalizeNoOpJournalUpdate = ({
+	journalData,
+	existingJournal
+}: {
+	journalData: z.infer<typeof updateJournalImportSchema>;
+	existingJournal: any;
+}) => {
+	const normalizedData = { ...journalData } as any;
+
+	if (normalizedData.description === existingJournal.description) {
+		delete normalizedData.description;
+	}
+	if (normalizedData.amount === existingJournal.amount) {
+		delete normalizedData.amount;
+	}
+	if (normalizedData.date === existingJournal.dateText) {
+		delete normalizedData.date;
+	}
+
+	if (normalizedData.accountId === existingJournal.accountId) {
+		delete normalizedData.accountId;
+	}
+	if (normalizedData.accountTitle === existingJournal.account?.accountTitleCombined) {
+		delete normalizedData.accountTitle;
+	}
+
+	const currentOtherJournal = existingJournal.transaction?.journals?.find(
+		(currentJournal: any) => currentJournal.id !== existingJournal.id
+	);
+	if (normalizedData.otherAccountId === currentOtherJournal?.accountId) {
+		delete normalizedData.otherAccountId;
+	}
+	if (normalizedData.otherAccountTitle === currentOtherJournal?.account?.accountTitleCombined) {
+		delete normalizedData.otherAccountTitle;
+	}
+
+	if (normalizedData.tagId === existingJournal.tagId) {
+		delete normalizedData.tagId;
+	}
+	if (normalizedData.tagTitle === existingJournal.tag?.title) {
+		delete normalizedData.tagTitle;
+	}
+	if (normalizedData.billId === existingJournal.billId) {
+		delete normalizedData.billId;
+	}
+	if (normalizedData.billTitle === existingJournal.bill?.title) {
+		delete normalizedData.billTitle;
+	}
+	if (normalizedData.budgetId === existingJournal.budgetId) {
+		delete normalizedData.budgetId;
+	}
+	if (normalizedData.budgetTitle === existingJournal.budget?.title) {
+		delete normalizedData.budgetTitle;
+	}
+	if (normalizedData.categoryId === existingJournal.categoryId) {
+		delete normalizedData.categoryId;
+	}
+	if (normalizedData.categoryTitle === existingJournal.category?.title) {
+		delete normalizedData.categoryTitle;
+	}
+
+	const currentLabelIds = existingJournal.labels?.map((item: any) => item.label?.id) || [];
+	const currentLabelTitles = existingJournal.labels?.map((item: any) => item.label?.title) || [];
+
+	if (normalizedData.labels && areStringSetsEqual(normalizedData.labels, currentLabelIds)) {
+		delete normalizedData.labels;
+	}
+	if (
+		normalizedData.labelTitles &&
+		areStringSetsEqual(normalizedData.labelTitles, currentLabelTitles)
+	) {
+		delete normalizedData.labelTitles;
+	}
+	if (normalizedData.addLabels) {
+		const filteredAddLabels = normalizedData.addLabels.filter(
+			(labelId: string) => !currentLabelIds.includes(labelId)
+		);
+		if (filteredAddLabels.length > 0) normalizedData.addLabels = filteredAddLabels;
+		else delete normalizedData.addLabels;
+	}
+	if (normalizedData.addLabelTitles) {
+		const filteredAddLabelTitles = normalizedData.addLabelTitles.filter(
+			(title: string) => !currentLabelTitles.includes(title)
+		);
+		if (filteredAddLabelTitles.length > 0) normalizedData.addLabelTitles = filteredAddLabelTitles;
+		else delete normalizedData.addLabelTitles;
+	}
+	if (normalizedData.removeLabels) {
+		const filteredRemoveLabels = normalizedData.removeLabels.filter((labelId: string) =>
+			// Only keep actual removals; no-op removals are stripped.
+			currentLabelIds.includes(labelId)
+		);
+		if (filteredRemoveLabels.length > 0) normalizedData.removeLabels = filteredRemoveLabels;
+		else delete normalizedData.removeLabels;
+	}
+
+	if (normalizedData.setComplete === true && existingJournal.complete) {
+		delete normalizedData.setComplete;
+	}
+	if (normalizedData.clearComplete === true && !existingJournal.complete) {
+		delete normalizedData.clearComplete;
+	}
+	if (normalizedData.setReconciled === true && existingJournal.reconciled) {
+		delete normalizedData.setReconciled;
+	}
+	if (normalizedData.clearReconciled === true && !existingJournal.reconciled) {
+		delete normalizedData.clearReconciled;
+	}
+	if (normalizedData.setDataChecked === true && existingJournal.dataChecked) {
+		delete normalizedData.setDataChecked;
+	}
+	if (normalizedData.clearDataChecked === true && !existingJournal.dataChecked) {
+		delete normalizedData.clearDataChecked;
+	}
+	if (normalizedData.setLinked === true && existingJournal.linked) {
+		delete normalizedData.setLinked;
+	}
+	if (normalizedData.clearLinked === true && !existingJournal.linked) {
+		delete normalizedData.clearLinked;
+	}
+
+	if (normalizedData.tagClear === true && !existingJournal.tagId) {
+		delete normalizedData.tagClear;
+	}
+	if (normalizedData.billClear === true && !existingJournal.billId) {
+		delete normalizedData.billClear;
+	}
+	if (normalizedData.budgetClear === true && !existingJournal.budgetId) {
+		delete normalizedData.budgetClear;
+	}
+	if (normalizedData.categoryClear === true && !existingJournal.categoryId) {
+		delete normalizedData.categoryClear;
+	}
+
+	return normalizedData as z.input<typeof updateJournalImportSchema>;
+};
+
 export async function importTransaction({
 	item,
 	trx
@@ -269,7 +422,50 @@ export async function importJournalUpdate({
 			try {
 				const existingJournal = await dbExecuteLogger(
 					trx.query.journalEntry.findFirst({
-						where: (journalEntry, { eq }) => eq(journalEntry.id, processedItem.data.id)
+						where: (journalEntry, { eq }) => eq(journalEntry.id, processedItem.data.id),
+						with: {
+							account: {
+								columns: {
+									id: true,
+									accountTitleCombined: true
+								}
+							},
+							tag: { columns: { id: true, title: true } },
+							bill: { columns: { id: true, title: true } },
+							budget: { columns: { id: true, title: true } },
+							category: { columns: { id: true, title: true } },
+							labels: {
+								with: {
+									label: {
+										columns: {
+											id: true,
+											title: true
+										}
+									}
+								}
+							},
+							transaction: {
+								columns: {
+									id: true
+								},
+								with: {
+									journals: {
+										columns: {
+											id: true,
+											accountId: true
+										},
+										with: {
+											account: {
+												columns: {
+													id: true,
+													accountTitleCombined: true
+												}
+											}
+										}
+									}
+								}
+							}
+						}
 					}),
 					'importJournalUpdate - Find Existing Journal'
 				);
@@ -292,9 +488,19 @@ export async function importJournalUpdate({
 					});
 				}
 
+				const normalizedJournalData = existingJournal
+					? normalizeNoOpJournalUpdate({
+							journalData: processedItem.data,
+							existingJournal
+						})
+					: processedItem.data;
+
 				const updatedJournalIds = await journalActions.updateJournals({
-					filter: { idArray: [processedItem.data.id] },
-					journalData: processedItem.data
+					filter: {
+						idArray: [processedItem.data.id],
+						account: { type: ['asset', 'liability', 'expense', 'income'] }
+					},
+					journalData: normalizedJournalData
 				});
 				span.addEvent('import.journal-update.update-journals-result', {
 					'journal.update.updated_id_count': updatedJournalIds?.length || 0

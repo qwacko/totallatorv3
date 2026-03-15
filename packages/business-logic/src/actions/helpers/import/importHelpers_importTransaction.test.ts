@@ -22,10 +22,23 @@ vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({
 
 const createTrx = ({ updatedJournal }: { updatedJournal?: any }) => {
 	const updateSetCalls: any[] = [];
+	const journalRecord = updatedJournal
+		? {
+				transactionId: 'transaction-1',
+				accountId: 'account-1',
+				amount: -10,
+				date: new Date('2026-03-12T00:00:00.000Z'),
+				complete: false,
+				reconciled: false,
+				dataChecked: false,
+				transfer: false,
+				...updatedJournal
+			}
+		: updatedJournal;
 	const trx = {
 		query: {
 			journalEntry: {
-				findFirst: vi.fn(async () => updatedJournal)
+				findFirst: vi.fn(async () => journalRecord)
 			}
 		},
 		update: vi.fn(() => ({
@@ -71,7 +84,10 @@ describe('importJournalUpdate', () => {
 
 		expect(updateJournalsMock).toHaveBeenCalledTimes(1);
 		expect(updateJournalsMock.mock.calls[0]?.[0]).toMatchObject({
-			filter: { idArray: ['journal-1'] },
+			filter: {
+				idArray: ['journal-1'],
+				account: { type: ['asset', 'liability', 'expense', 'income'] }
+			},
 			journalData: { id: 'journal-1', description: 'change' }
 		});
 		expect(updateSetCalls[0].status).toBe('importError');
@@ -115,19 +131,20 @@ describe('importJournalUpdate', () => {
 
 		expect(updateJournalsMock).toHaveBeenCalledTimes(1);
 		expect(updateJournalsMock.mock.calls[0]?.[0]).toMatchObject({
-			filter: { idArray: ['journal-1'] },
+			filter: {
+				idArray: ['journal-1'],
+				account: { type: ['asset', 'liability', 'expense', 'income'] }
+			},
 			journalData: {
 				id: 'journal-1',
 				date: '2026-03-12',
-				description: 'Coffee shop',
 				amount: -6.5,
 				accountTitle: 'Assets:Cash:Wallet',
 				otherAccountTitle: 'Expenses:Food:Coffee',
 				labelTitles: ['Cafe', 'Work'],
 				setLinked: true,
 				clearLinked: false,
-				setComplete: false,
-				clearComplete: true
+				setComplete: false
 			}
 		});
 	});
