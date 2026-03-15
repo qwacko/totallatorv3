@@ -3,6 +3,8 @@ import { label } from '@totallator/database';
 
 import { labelCreateInsertionData } from '@totallator/business-logic/actions/helpers/label/labelCreateInsertionData';
 
+import { testImportSeedIds } from './seedTestImports';
+
 export const seedTestLabels = async (db: DBType) =>
 	db.insert(label).values([
 		labelCreateInsertionData(
@@ -46,5 +48,14 @@ export const seedTestLabels = async (db: DBType) =>
 				status: 'disabled'
 			},
 			'Label6'
+		),
+		labelCreateInsertionData(
+			{
+				title: 'Imported Label',
+				status: 'active',
+				importId: testImportSeedIds.label.importId,
+				importDetailId: testImportSeedIds.label.importDetailId
+			},
+			'Label7'
 		)
 	]);

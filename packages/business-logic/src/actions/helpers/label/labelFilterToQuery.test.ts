@@ -237,7 +237,7 @@ describe('Label Filter To Text', async () => {
 
 	beforeAll(async () => {
 		db = await getTestDB();
-	});
+	}, 30000);
 	afterAll(async () => {
 		if (db) {
 			await closeTestDB(db);

@@ -3,6 +3,8 @@ import { bill } from '@totallator/database';
 
 import { billCreateInsertionData } from '@totallator/business-logic/actions/helpers/bill/billCreateInsertionData';
 
+import { testImportSeedIds } from './seedTestImports';
+
 export const seedTestBills = async (db: DBType) =>
 	db.insert(bill).values([
 		billCreateInsertionData(
@@ -46,5 +48,14 @@ export const seedTestBills = async (db: DBType) =>
 				status: 'disabled'
 			},
 			'Bill6'
+		),
+		billCreateInsertionData(
+			{
+				title: 'Mobile Plan',
+				status: 'active',
+				importId: testImportSeedIds.bill.importId,
+				importDetailId: testImportSeedIds.bill.importDetailId
+			},
+			'Bill7'
 		)
 	]);

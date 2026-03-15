@@ -3,6 +3,8 @@ import { budget } from '@totallator/database';
 
 import { budgetCreateInsertionData } from '@totallator/business-logic/actions/helpers/budget/budgetCreateInsertionData';
 
+import { testImportSeedIds } from './seedTestImports';
+
 export const seedTestBudgets = async (db: DBType) =>
 	db.insert(budget).values([
 		budgetCreateInsertionData(
@@ -46,5 +48,14 @@ export const seedTestBudgets = async (db: DBType) =>
 				status: 'disabled'
 			},
 			'Budget6'
+		),
+		budgetCreateInsertionData(
+			{
+				title: 'Emergency Fund',
+				status: 'active',
+				importId: testImportSeedIds.budget.importId,
+				importDetailId: testImportSeedIds.budget.importDetailId
+			},
+			'Budget7'
 		)
 	]);

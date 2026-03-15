@@ -221,13 +221,13 @@ describe('accountActions', async () => {
 		testIT('Should return the correct number of accounts', async (db) => {
 			const count = await accountActions.count();
 
-			expect(count).toEqual(6);
+			expect(count).toEqual(10);
 		});
 
 		testIT('Should return the correct number of accounts when filtered', async (db) => {
 			const count = await accountActions.count({ type: ['asset'] });
 
-			expect(count).toEqual(2);
+			expect(count).toEqual(3);
 		});
 
 		testIT('Should Return 0 When No Accounts Are Found', async (db) => {
@@ -507,10 +507,13 @@ describe('accountActions', async () => {
 				.where(eq(account.type, 'liability'))
 				.execute();
 
-			liabilityAccounts.forEach((account) => {
-				expect(account.active).toEqual(true);
-				expect(account.disabled).toEqual(false);
-			});
+			const existingActiveLiability = liabilityAccounts.find((item) => item.id === 'Account3');
+			const existingDisabledLiability = liabilityAccounts.find((item) => item.id === 'Account9');
+
+			expect(existingActiveLiability?.active).toEqual(true);
+			expect(existingActiveLiability?.disabled).toEqual(false);
+			expect(existingDisabledLiability?.active).toEqual(false);
+			expect(existingDisabledLiability?.disabled).toEqual(true);
 		});
 	});
 
@@ -591,7 +594,7 @@ describe('accountActions', async () => {
 				filter: { page: 0, pageSize: 100000 }
 			});
 
-			expect(accounts.count).toEqual(6);
+			expect(accounts.count).toEqual(10);
 		});
 
 		testIT('List Filtering Should Work', async (db) => {
@@ -602,7 +605,7 @@ describe('accountActions', async () => {
 				}
 			});
 
-			expect(accounts.count).toEqual(2);
+			expect(accounts.count).toEqual(3);
 		});
 
 		testIT('Pagination Works Correctly', async (db) => {
@@ -614,9 +617,9 @@ describe('accountActions', async () => {
 				}
 			});
 
-			expect(accounts.count).toEqual(6);
+			expect(accounts.count).toEqual(10);
 			expect(accounts.data.length).toEqual(2);
-			expect(accounts.pageCount).toEqual(3);
+			expect(accounts.pageCount).toEqual(5);
 			expect(accounts.pageSize).toEqual(2);
 			expect(accounts.page).toEqual(1);
 		});
@@ -630,9 +633,9 @@ describe('accountActions', async () => {
 				}
 			});
 
-			expect(accounts.count).toEqual(6);
-			expect(accounts.data.length).toEqual(0);
-			expect(accounts.pageCount).toEqual(3);
+			expect(accounts.count).toEqual(10);
+			expect(accounts.data.length).toEqual(2);
+			expect(accounts.pageCount).toEqual(5);
 			expect(accounts.pageSize).toEqual(2);
 			expect(accounts.page).toEqual(4);
 		});
@@ -650,10 +653,10 @@ describe('accountActions', async () => {
 				}
 			});
 
-			expect(accounts.count).toEqual(6);
-			expect(accounts.data.length).toEqual(6);
-			expect(accounts.data[0].title).toEqual('Bank');
-			expect(accounts.data[5].title).toEqual('Shop 2');
+			expect(accounts.count).toEqual(10);
+			expect(accounts.data.length).toEqual(10);
+			expect(accounts.data[0].title).toEqual('Archived Salary');
+			expect(accounts.data[9].title).toEqual('Travel Card');
 
 			const accounts2 = await accountActions.list({
 				db,
@@ -667,10 +670,10 @@ describe('accountActions', async () => {
 				}
 			});
 
-			expect(accounts2.count).toEqual(6);
-			expect(accounts2.data.length).toEqual(6);
-			expect(accounts2.data[0].title).toEqual('Shop 2');
-			expect(accounts2.data[5].title).toEqual('Bank');
+			expect(accounts2.count).toEqual(10);
+			expect(accounts2.data.length).toEqual(10);
+			expect(accounts2.data[0].title).toEqual('Travel Card');
+			expect(accounts2.data[9].title).toEqual('Archived Salary');
 		});
 
 		testIT('Default Page Size Is 10', async (db) => {
@@ -681,8 +684,8 @@ describe('accountActions', async () => {
 				}
 			});
 
-			expect(accounts.count).toEqual(6);
-			expect(accounts.data.length).toEqual(6);
+			expect(accounts.count).toEqual(10);
+			expect(accounts.data.length).toEqual(10);
 			expect(accounts.pageCount).toEqual(1);
 			expect(accounts.pageSize).toEqual(10);
 			expect(accounts.page).toEqual(0);

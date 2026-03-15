@@ -21,6 +21,8 @@ import { seedTestBudgets } from './seedTestBudgets';
 import { seedTestCategories } from './seedTestCategories';
 import { seedTestLabels } from './seedTestLabels';
 import { seedTestTags } from './seedTestTags';
+import { seedTestImports } from './seedTestImports';
+import { seedTestTransactions } from './seedTestTransactions';
 import { expandDate } from '../../../actions/helpers/journal/expandDate';
 import { updatedTime } from '../../../actions/helpers/misc/updatedTime';
 
@@ -229,6 +231,10 @@ export const initialiseTestDB = async ({
 }) => {
 	let itemCount = 0;
 
+	if (accounts || bills || budgets || categories || labels || transactions || tags) {
+		await seedTestImports(db);
+	}
+
 	if (accounts) {
 		await seedTestAccounts(db);
 	}
@@ -245,7 +251,8 @@ export const initialiseTestDB = async ({
 		await seedTestLabels(db);
 	}
 	if (transactions) {
-		itemCount++;
+		await seedTestTransactions(db);
+		itemCount += 2;
 	}
 	if (tags) {
 		await seedTestTags(db);

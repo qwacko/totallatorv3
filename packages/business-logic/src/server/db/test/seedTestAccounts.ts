@@ -4,6 +4,8 @@ import { account } from '@totallator/database';
 import { accountCreateInsertionData } from '@totallator/business-logic/actions/helpers/account/accountCreateInsertionData';
 import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
+import { testImportSeedIds } from './seedTestImports';
+
 export const seedTestAccounts = async (db: DBType) => {
 	await dbExecuteLogger(
 		db.insert(account).values([
@@ -24,8 +26,9 @@ export const seedTestAccounts = async (db: DBType) => {
 					accountGroupCombined: `Cash`,
 					status: 'active',
 					type: 'asset',
-					isCash: true,
-					isNetWorth: true
+					isCash: false,
+					isNetWorth: true,
+					startDate: '2019-01-01'
 				},
 				`Account2`
 			),
@@ -35,8 +38,10 @@ export const seedTestAccounts = async (db: DBType) => {
 					accountGroupCombined: `Cash`,
 					status: 'active',
 					type: 'liability',
-					isCash: true,
-					isNetWorth: true
+					isCash: false,
+					isNetWorth: false,
+					startDate: '2018-01-01',
+					endDate: '2025-12-31'
 				},
 				`Account3`
 			),
@@ -68,10 +73,55 @@ export const seedTestAccounts = async (db: DBType) => {
 					accountGroupCombined: '',
 					status: 'active',
 					type: 'income',
-					isCash: true,
-					isNetWorth: true
+					isCatchall: false
 				},
 				`Account6`
+			),
+			accountCreateInsertionData(
+				{
+					title: `Catchall Expenses`,
+					accountGroupCombined: '',
+					status: 'active',
+					type: 'expense',
+					isCatchall: true
+				},
+				`Account7`
+			),
+			accountCreateInsertionData(
+				{
+					title: `Archived Salary`,
+					accountGroupCombined: '',
+					status: 'disabled',
+					type: 'income'
+				},
+				`Account8`
+			),
+			accountCreateInsertionData(
+				{
+					title: 'Travel Card',
+					accountGroupCombined: `Debt`,
+					status: 'disabled',
+					type: 'liability',
+					isCash: false,
+					isNetWorth: false,
+					startDate: '2020-01-01',
+					endDate: '2024-12-31'
+				},
+				`Account9`
+			),
+			accountCreateInsertionData(
+				{
+					title: 'Savings',
+					accountGroupCombined: `Cash`,
+					status: 'active',
+					type: 'asset',
+					isCash: false,
+					isNetWorth: true,
+					startDate: '2020-01-01',
+					importId: testImportSeedIds.account.importId,
+					importDetailId: testImportSeedIds.account.importDetailId
+				},
+				`Account10`
 			)
 		]),
 		'Seed Test Accounts'

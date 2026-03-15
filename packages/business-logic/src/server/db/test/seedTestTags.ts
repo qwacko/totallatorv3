@@ -3,6 +3,8 @@ import { tag } from '@totallator/database';
 
 import { tagCreateInsertionData } from '@totallator/business-logic/actions/helpers/tag/tagCreateInsertionData';
 
+import { testImportSeedIds } from './seedTestImports';
+
 export const seedTestTags = async (db: DBType) =>
 	db.insert(tag).values([
 		tagCreateInsertionData(
@@ -46,5 +48,14 @@ export const seedTestTags = async (db: DBType) =>
 				status: 'disabled'
 			},
 			'Tag6'
+		),
+		tagCreateInsertionData(
+			{
+				title: 'Travel:Work',
+				status: 'active',
+				importId: testImportSeedIds.tag.importId,
+				importDetailId: testImportSeedIds.tag.importDetailId
+			},
+			'Tag7'
 		)
 	]);

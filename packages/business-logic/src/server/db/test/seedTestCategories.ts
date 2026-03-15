@@ -3,6 +3,8 @@ import { category } from '@totallator/database';
 
 import { categoryCreateInsertionData } from '@totallator/business-logic/actions/helpers/category/categoryCreateInsertionData';
 
+import { testImportSeedIds } from './seedTestImports';
+
 export const seedTestCategories = async (db: DBType) =>
 	db.insert(category).values([
 		categoryCreateInsertionData(
@@ -46,5 +48,14 @@ export const seedTestCategories = async (db: DBType) =>
 				status: 'disabled'
 			},
 			'Category6'
+		),
+		categoryCreateInsertionData(
+			{
+				title: 'Travel:Flights',
+				status: 'active',
+				importId: testImportSeedIds.category.importId,
+				importDetailId: testImportSeedIds.category.importDetailId
+			},
+			'Category7'
 		)
 	]);
