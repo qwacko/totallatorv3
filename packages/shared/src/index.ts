@@ -31,6 +31,7 @@ export * from './schemas/summaryCacheSchema.js';
 export * from './schemas/summarySchema.js';
 export * from './schemas/tagSchema.js';
 export * from './schemas/textFilterSchema.js';
+export * from './schemas/transactionChangeSchema.js';
 export * from './schemas/updatePasswordSchema.js';
 export * from './schemas/userSchema.js';
 export * from './schemas/logConfigFilterValidation.js';

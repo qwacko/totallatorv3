@@ -8,7 +8,13 @@ import { nanoid } from 'nanoid';
 import { afterAll, beforeAll, describe, expect } from 'vitest';
 
 import { getContext } from '@totallator/context';
-import { importTable, journalEntry, labelsToJournals, type DBType } from '@totallator/database';
+import {
+	importTable,
+	journalEntry,
+	labelsToJournals,
+	transactionChange,
+	type DBType
+} from '@totallator/database';
 
 import {
 	clearTestDB,
@@ -148,13 +154,24 @@ describe('importActions journalUpdate CSV coverage', async () => {
 				}
 			]);
 
-			expect(importInfo?.importDetails).toHaveLength(1);
-			expect(importInfo?.importDetails[0]).toMatchObject({
-				status: 'imported',
-				relationId: null
-			});
+				expect(importInfo?.importDetails).toHaveLength(1);
+				expect(importInfo?.importDetails[0]).toMatchObject({
+					status: 'imported',
+					relationId: seeded!.groceryExpenseId
+				});
 
-			const journals = await getTransactionJournals(db, seeded!.groceryTransactionId);
+				const history = await db.query.transactionChange.findMany({
+					where: eq(transactionChange.transactionId, seeded!.groceryTransactionId)
+				});
+				expect(history).toHaveLength(1);
+				expect(history[0]).toMatchObject({
+					changeType: 'update',
+					sourceType: 'import',
+					sourceImportId: importInfo?.id,
+					sourceImportDetailId: importInfo?.importDetails[0]?.id
+				});
+
+				const journals = await getTransactionJournals(db, seeded!.groceryTransactionId);
 			expect(journals).toHaveLength(2);
 
 			const expenseJournal = journals.find((journal) => journal.id === seeded!.groceryExpenseId);

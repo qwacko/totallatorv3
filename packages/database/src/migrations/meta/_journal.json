@@ -533,6 +533,13 @@
       "when": 1773622911335,
       "tag": "0075_restore_journal_extended_view_unique_index",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1773630270944,
+      "tag": "0076_slimy_sprite",
+      "breakpoints": true
     }
   ]
 }

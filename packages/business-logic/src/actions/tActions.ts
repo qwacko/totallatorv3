@@ -22,6 +22,7 @@ import { queryLogActions } from './queryLogActions';
 import { reportActions } from './reportActions';
 import { reusableFilterActions } from './reusableFilterActions';
 import { tagActions } from './tagActions';
+import { transactionChangeActions } from './transactionChangeActions';
 import { userActions } from './userActions';
 
 export const tActions = {
@@ -33,6 +34,7 @@ export const tActions = {
 	account: accountActions,
 	journal: journalActions,
 	import: importActions,
+	transactionChange: transactionChangeActions,
 	reusableFitler: reusableFilterActions,
 	importMapping: importMappingActions,
 	backup: backupActions,

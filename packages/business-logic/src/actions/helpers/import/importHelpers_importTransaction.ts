@@ -219,7 +219,13 @@ export async function importTransaction({
 				});
 				const importedData = await journalActions.createManyTransactionJournals({
 					journalEntries: [processedCombinedTransaction.data],
-					isImport: true // This is from an import process
+					isImport: true, // This is from an import process
+					auditSource: {
+						sourceType: 'import',
+						importId: item.importId,
+						importDetailId: item.id,
+						summary: 'Created from import'
+					}
 				});
 
 				getLogger('import', 'Other').debug({
@@ -500,7 +506,13 @@ export async function importJournalUpdate({
 						idArray: [processedItem.data.id],
 						account: { type: ['asset', 'liability', 'expense', 'income'] }
 					},
-					journalData: normalizedJournalData
+					journalData: normalizedJournalData,
+					auditSource: {
+						sourceType: 'import',
+						importId: item.importId,
+						importDetailId: item.id,
+						summary: 'Updated from import'
+					}
 				});
 				span.addEvent('import.journal-update.update-journals-result', {
 					'journal.update.updated_id_count': updatedJournalIds?.length || 0
@@ -570,16 +582,17 @@ export async function importJournalUpdate({
 					'journal.after.transfer': updatedJournal.transfer
 				});
 
-				await dbExecuteLogger(
-					trx
-						.update(importItemDetail)
-						.set({
-							status: 'imported',
-							importInfo: updatedJournal,
-							relationId: null,
-							relation2Id: null,
-							...updatedTime()
-						})
+					await dbExecuteLogger(
+						trx
+							.update(importItemDetail)
+							.set({
+								status: 'imported',
+								importInfo: updatedJournal,
+								relationId: processedItem.data.id,
+								relation2Id:
+									updatedJournalIds.find((journalId) => journalId !== processedItem.data.id) || null,
+								...updatedTime()
+							})
 						.where(eq(importItemDetail.id, item.id)),
 					'importJournalUpdate - Mark Imported'
 				);

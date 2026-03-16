@@ -22,3 +22,4 @@ apps/docs/.vitepress/cache
 .pnpm-store
 *.tsbuildinfo
 .opencode
+/temp

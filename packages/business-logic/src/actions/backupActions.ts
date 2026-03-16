@@ -41,6 +41,7 @@ import {
 	reusableFilter,
 	session,
 	tag,
+	transactionChange,
 	transaction,
 	user
 } from '@totallator/database';
@@ -387,6 +388,11 @@ export const backupActions = {
 				key: 'labelsToJournals'
 			},
 			{ table: transaction, name: 'Transactions', key: 'transaction' },
+			{
+				table: transactionChange,
+				name: 'Transaction Changes',
+				key: 'transactionChange'
+			},
 			{ table: journalEntry, name: 'Journal Entries', key: 'journalEntry' },
 			{
 				table: importItemDetail,
@@ -493,7 +499,7 @@ export const backupActions = {
 		}
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 12,
+			version: 13,
 			data: tableData
 		};
 
@@ -516,6 +522,7 @@ export const backupActions = {
 					numberBudgets: backupDataDB.data.budget.length,
 					numberCategories: backupDataDB.data.category.length,
 					numberTransactions: backupDataDB.data.transaction.length,
+					numberTransactionChanges: backupDataDB.data.transactionChange.length,
 					numberJournalEntries: backupDataDB.data.journalEntry.length,
 					numberLabels: backupDataDB.data.label.length,
 					numberLabelsToJournals: backupDataDB.data.labelsToJournals.length,
@@ -856,7 +863,7 @@ export const backupActions = {
 
 			// Step 4: Calculate operation counts for progress tracking
 			emitProgress('pre-backup', 4, 6, 'Calculating restoration plan');
-			const deleteOperations = includeUsers ? 24 : 21; // Number of delete operations
+			const deleteOperations = includeUsers ? 25 : 22; // Number of delete operations
 			const insertOperations = Object.keys(checkedBackupData.data).length; // Number of data types to insert
 			let currentDeleteStep = 0;
 			let currentInsertStep = 0;
@@ -904,6 +911,16 @@ export const backupActions = {
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted labels');
 				await dbExecuteLogger(db.delete(transaction), 'Backup Restore - Delete Transactions');
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted transactions');
+				await dbExecuteLogger(
+					db.delete(transactionChange),
+					'Backup Restore - Delete Transaction Changes'
+				);
+				emitProgress(
+					'deleting',
+					++currentDeleteStep,
+					deleteOperations,
+					'Deleted transaction changes'
+				);
 				await dbExecuteLogger(db.delete(journalEntry), 'Backup Restore - Delete Journal Entries');
 				emitProgress('deleting', ++currentDeleteStep, deleteOperations, 'Deleted journal entries');
 				await dbExecuteLogger(
@@ -1087,6 +1104,19 @@ export const backupActions = {
 					count: checkedBackupData.data.transaction.length,
 					duration: transactionDuration
 				});
+
+				await chunker(checkedBackupData.data.transactionChange, 1000, async (data) =>
+					dbExecuteLogger(
+						db.insert(transactionChange).values(data),
+						'Backup Restore - Insert Transaction Changes'
+					)
+				);
+				emitProgress(
+					'restoring',
+					++currentInsertStep,
+					insertOperations,
+					'Restored transaction changes'
+				);
 
 				getLogger('backup').info({
 					code: 'BAK_025',

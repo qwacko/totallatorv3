@@ -44,6 +44,11 @@ import { seedTransactionData } from './helpers/seed/seedTransactionData';
 import { labelActions } from './labelActions';
 import { materializedViewActions } from './materializedViewActions';
 import { tagActions } from './tagActions';
+import {
+	buildTransactionSnapshots,
+	transactionChangeActions,
+	type AuditSourceInput
+} from './transactionChangeActions';
 
 const journalTracer = trace.getTracer('@totallator/business-logic/journals');
 
@@ -97,10 +102,12 @@ export const journalActions = {
 	},
 	createManyTransactionJournals: async ({
 		journalEntries,
-		isImport = false
+		isImport = false,
+		auditSource
 	}: {
 		journalEntries: CreateCombinedTransactionType[];
 		isImport?: boolean;
+		auditSource?: AuditSourceInput;
 	}): Promise<string[]> => {
 		const startTime = Date.now();
 		let transactionIds: string[] = [];
@@ -248,6 +255,17 @@ export const journalActions = {
 			});
 
 			await updateManyTransferInfo({ db: dbContext, transactionIds });
+			const afterSnapshots = await buildTransactionSnapshots({
+				db: dbContext,
+				transactionIds
+			});
+			await transactionChangeActions.recordChanges({
+				db: dbContext,
+				transactionIds,
+				changeType: 'create',
+				afterSnapshots,
+				source: auditSource
+			});
 		};
 
 		// Create a new transaction
@@ -275,9 +293,11 @@ export const journalActions = {
 		return transactionIds;
 	},
 	hardDeleteTransactions: async ({
-		transactionIds
+		transactionIds,
+		auditSource
 	}: {
 		transactionIds: string[];
+		auditSource?: AuditSourceInput;
 	}): Promise<void> => {
 		if (transactionIds.length === 0) {
 			getLogger('journals').warn({
@@ -306,6 +326,10 @@ export const journalActions = {
 
 			await Promise.all(
 				splitTransactionList.map(async (currentTransactionIds, chunkIndex) => {
+					const beforeSnapshots = await buildTransactionSnapshots({
+						db,
+						transactionIds: currentTransactionIds
+					});
 					getLogger('journals').debug({
 						code: 'JOURNAL_031',
 						title: 'Processing deletion chunk',
@@ -348,6 +372,13 @@ export const journalActions = {
 						),
 						'Transaction Journals - Hard Delete Transactions - Delete Labels'
 					);
+					await transactionChangeActions.recordChanges({
+						db,
+						transactionIds: currentTransactionIds,
+						changeType: 'delete',
+						beforeSnapshots,
+						source: auditSource
+					});
 
 					getLogger('journals').debug({
 						code: 'JOURNAL_033',
@@ -601,10 +632,12 @@ export const journalActions = {
 	},
 	updateJournals: async ({
 		filter,
-		journalData
+		journalData,
+		auditSource
 	}: {
 		filter: JournalFilterSchemaInputType;
 		journalData: UpdateJournalSchemaInputType;
+		auditSource?: AuditSourceInput;
 	}): Promise<undefined | string[]> => {
 		return await journalTracer.startActiveSpan(
 			'journals.update',
@@ -756,6 +789,10 @@ export const journalActions = {
 
 					await runInTransactionWithLogging('Update Journals', async () => {
 						const db = getContextDB();
+						const beforeSnapshots = await buildTransactionSnapshots({
+							db,
+							transactionIds: allTransactionIds
+						});
 						const tagId = handleLinkedItem({
 							db,
 							id: processedData.data.tagId,
@@ -1135,6 +1172,18 @@ export const journalActions = {
 						}
 
 						await updateManyTransferInfo({ db, transactionIds: allTransactionIds });
+						const afterSnapshots = await buildTransactionSnapshots({
+							db,
+							transactionIds: allTransactionIds
+						});
+						await transactionChangeActions.recordChanges({
+							db,
+							transactionIds: allTransactionIds,
+							changeType: 'update',
+							beforeSnapshots,
+							afterSnapshots,
+							source: auditSource
+						});
 						span.addEvent('journals.update.transfer-refresh', {
 							'journals.update.transaction_count': allTransactionIds.length
 						});

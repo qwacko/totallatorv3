@@ -1079,12 +1079,19 @@ export const importActions = {
 			);
 			await runInTransactionWithLogging('Delete Import Linked Items', async () => {
 				if (importDetails) {
-					if (importDetails.type !== 'journalUpdate') {
-						const transactionIds = filterNullUndefinedAndDuplicates(
-							importDetails.journals.map((item) => item.transactionId)
-						);
-						await journalActions.hardDeleteTransactions({ transactionIds });
-					}
+						if (importDetails.type !== 'journalUpdate') {
+							const transactionIds = filterNullUndefinedAndDuplicates(
+								importDetails.journals.map((item) => item.transactionId)
+							);
+							await journalActions.hardDeleteTransactions({
+								transactionIds,
+								auditSource: {
+									sourceType: 'import',
+									importId: id,
+									summary: 'Deleted linked transactions for import'
+								}
+							});
+						}
 
 					await billActions.deleteMany(importDetails.bills.map((item) => ({ id: item.id })));
 					await budgetActions.deleteMany(importDetails.budgets.map((item) => ({ id: item.id })));

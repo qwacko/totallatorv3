@@ -35,6 +35,11 @@ import type { ReportConfigPartSchemaType } from '@totallator/shared';
 import { noteTypeEnum } from '@totallator/shared';
 import { fileReasonEnum } from '@totallator/shared';
 import { fileTypeEnum } from '@totallator/shared';
+import {
+	transactionChangeSourceTypeEnum,
+	transactionChangeTypeEnum,
+	type TransactionHistorySnapshotType
+} from '@totallator/shared';
 
 import type { CombinedBackupSchemaInfoType } from '../backups/backupSchema';
 import { user } from './userSchema';
@@ -340,6 +345,45 @@ export const transactionRelations = relations(transaction, ({ many }) => ({
 	journals: many(journalEntry),
 	files: many(fileTable),
 	notes: many(notesTable)
+}));
+
+export const transactionChange = pgTable(
+	'transaction_change',
+	{
+		...idColumn,
+		transactionId: text('transaction_id').notNull(),
+		changeType: text('change_type', { enum: transactionChangeTypeEnum }).notNull(),
+		sourceType: text('source_type', { enum: transactionChangeSourceTypeEnum }).notNull(),
+		actorUserId: text('actor_user_id'),
+		actorUserName: text('actor_user_name'),
+		sourceImportId: text('source_import_id'),
+		sourceImportTitle: text('source_import_title'),
+		sourceImportDetailId: text('source_import_detail_id'),
+		sourceFilterId: text('source_filter_id'),
+		sourceFilterTitle: text('source_filter_title'),
+		summary: text('summary'),
+		changedFields: jsonb('changed_fields').$type<string[] | null>(),
+		beforeSnapshot: jsonb('before_snapshot').$type<TransactionHistorySnapshotType | null>(),
+		afterSnapshot: jsonb('after_snapshot').$type<TransactionHistorySnapshotType | null>(),
+		...timestampColumns
+	},
+	(t) => ({
+		transactionIdIdx: index('transaction_change_transaction_id_idx').on(t.transactionId),
+		changeTypeIdx: index('transaction_change_change_type_idx').on(t.changeType),
+		sourceTypeIdx: index('transaction_change_source_type_idx').on(t.sourceType),
+		sourceImportIdIdx: index('transaction_change_source_import_id_idx').on(t.sourceImportId),
+		actorUserIdIdx: index('transaction_change_actor_user_id_idx').on(t.actorUserId),
+		createdAtIdx: index('transaction_change_created_at_idx').on(t.createdAt)
+	})
+);
+
+export type TransactionChangeTableType = typeof transactionChange.$inferSelect;
+
+export const transactionChangeRelations = relations(transactionChange, ({ one }) => ({
+	transaction: one(transaction, {
+		fields: [transactionChange.transactionId],
+		references: [transaction.id]
+	})
 }));
 
 export const journalEntry = pgTable(
