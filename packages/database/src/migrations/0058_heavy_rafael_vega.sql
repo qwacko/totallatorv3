@@ -42,7 +42,7 @@ DROP VIEW "public"."account_view";--> statement-breakpoint
 DROP VIEW "public"."bill_view";--> statement-breakpoint
 DROP VIEW "public"."budget_view";--> statement-breakpoint
 DROP VIEW "public"."category_view";--> statement-breakpoint
-DROP VIEW "public"."journal_view";--> statement-breakpoint
+DROP VIEW "public"."journal_view" CASCADE;--> statement-breakpoint
 DROP VIEW "public"."label_view";--> statement-breakpoint
 DROP VIEW "public"."tag_view";--> statement-breakpoint
 ALTER TABLE "files" ADD COLUMN "associated_info_id" text NOT NULL;--> statement-breakpoint

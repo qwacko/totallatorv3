@@ -1,6 +1,6 @@
 ALTER TABLE "llm_logs" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-DROP VIEW "public"."journal_view";--> statement-breakpoint
-DROP MATERIALIZED VIEW "public"."journal_extended_view";--> statement-breakpoint
+DROP VIEW "public"."journal_view" CASCADE;--> statement-breakpoint
+DROP MATERIALIZED VIEW IF EXISTS "public"."journal_extended_view";--> statement-breakpoint
 DROP TABLE "llm_logs" CASCADE;--> statement-breakpoint
 DROP INDEX "journalEntry_llm_review_status_idx";--> statement-breakpoint
 ALTER TABLE "journal_entry" DROP COLUMN "llm_review_status";--> statement-breakpoint

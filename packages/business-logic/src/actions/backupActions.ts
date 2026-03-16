@@ -762,11 +762,18 @@ export const backupActions = {
 	restoreBackup: async ({
 		id,
 		includeUsers = false,
-		userId
+		userId,
+		onProgress
 	}: {
 		id: string;
 		includeUsers?: boolean;
 		userId?: string;
+		onProgress?: (update: {
+			phase: 'retrieving' | 'pre-backup' | 'deleting' | 'restoring';
+			current: number;
+			total: number;
+			message?: string;
+		}) => void | Promise<void>;
 	}): Promise<void> => {
 		const startTime = Date.now();
 
@@ -786,6 +793,12 @@ export const backupActions = {
 					total,
 					message,
 					userId
+				});
+				void onProgress?.({
+					phase,
+					current,
+					total,
+					message
 				});
 			}, 0);
 		};

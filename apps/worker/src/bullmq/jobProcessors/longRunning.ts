@@ -13,6 +13,30 @@ export const backupRestoreProcessor: TypedJobProcessor<WorkerJobMap, 'backup-res
 ) => {
 	const payload = job.data.data;
 
+	const backupRestoreProgressToPercent = ({
+		phase,
+		current,
+		total
+	}: {
+		phase: 'retrieving' | 'pre-backup' | 'deleting' | 'restoring';
+		current: number;
+		total: number;
+	}) => {
+		const safeTotal = Math.max(total, 1);
+		const phaseProgress = Math.max(0, Math.min(1, current / safeTotal));
+
+		switch (phase) {
+			case 'retrieving':
+				return Math.round(phaseProgress * 10);
+			case 'pre-backup':
+				return Math.round(10 + phaseProgress * 20);
+			case 'deleting':
+				return Math.round(30 + phaseProgress * 30);
+			case 'restoring':
+				return Math.round(60 + phaseProgress * 39);
+		}
+	};
+
 	await runTrackedLongProcess({
 		type: 'backup-restore',
 		entityType: 'backup',
@@ -20,7 +44,7 @@ export const backupRestoreProcessor: TypedJobProcessor<WorkerJobMap, 'backup-res
 		message: `Backup restore ${payload.backupId}`,
 		metadata: { backupId: payload.backupId },
 		maxRuntimeMs: 2 * 60 * 60 * 1000,
-		run: async () =>
+		run: async ({ reportProgress }) =>
 			standaloneContext(
 				{
 					requestId: `worker-backup-restore-${payload.backupId}`,
@@ -34,7 +58,25 @@ export const backupRestoreProcessor: TypedJobProcessor<WorkerJobMap, 'backup-res
 					await tActions.backup.restoreBackup({
 						id: payload.backupId,
 						includeUsers: payload.includeUsers ?? false,
-						userId: payload.userId
+						userId: payload.userId,
+						onProgress: async (update) => {
+							const progress = backupRestoreProgressToPercent(update);
+							const phaseLabel =
+								update.phase === 'retrieving'
+									? 'Retrieving backup data'
+									: update.phase === 'pre-backup'
+										? 'Preparing restoration'
+										: update.phase === 'deleting'
+											? 'Deleting existing data'
+											: 'Restoring backup data';
+
+							await reportProgress({
+								progress,
+								message: update.message
+									? `${phaseLabel}: ${update.message}`
+									: phaseLabel
+							});
+						}
 					});
 				}
 			)

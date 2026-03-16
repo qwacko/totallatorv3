@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Badge, Spinner } from 'flowbite-svelte';
+	import { Badge, Heading, Toast } from 'flowbite-svelte';
+	import { blur } from 'svelte/transition';
 
 	import type { RealtimeEventMap, RealtimeLongProcess, RealtimeSnapshot } from '@totallator/shared';
 
@@ -19,6 +20,7 @@
 		connectionStatus === 'reconnecting' || connectionStatus === 'error'
 	);
 	const showStatus = $derived(showConnectionWarning || snapshot.writeLock.locked || activeProcess);
+	const activeProcessProgress = $derived(Math.max(0, Math.min(100, activeProcess?.progress ?? 0)));
 
 	const mergeProcess = (process: RealtimeLongProcess) => {
 		const existing = snapshot.activeLongProcesses.filter((item) => item.jobId !== process.jobId);
@@ -79,53 +81,68 @@
 </script>
 
 {#if showStatus}
-	<div class="mb-3 flex flex-col gap-2">
+	<div class="pointer-events-none fixed top-4 right-4 z-40 flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-3">
 		{#if snapshot.writeLock.locked}
-			<div
-				class="rounded border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950/30"
+			<Toast
+				class="pointer-events-auto w-full border-amber-200 bg-amber-50/95 text-amber-950 shadow-lg backdrop-blur dark:border-amber-900 dark:bg-amber-950/85 dark:text-amber-100"
+				color="yellow"
+				transition={blur}
+				params={{ amount: 10 }}
 			>
-				<div class="font-medium text-amber-900 dark:text-amber-200">Write operations locked</div>
-				<div class="text-amber-700 dark:text-amber-300">
+				<Heading tag="h2" class="text-sm font-semibold text-amber-900 dark:text-amber-100">
+					Write operations locked
+				</Heading>
+				<div class="text-sm text-amber-700 dark:text-amber-300">
 					{snapshot.writeLock.processType || 'Long-running process active'}
 					{#if snapshot.writeLock.reason}
 						: {snapshot.writeLock.reason}
 					{/if}
 				</div>
-			</div>
+			</Toast>
 		{/if}
 
 		{#if activeProcess}
-			<div
-				class="rounded border border-blue-200 bg-blue-50 p-3 text-sm dark:border-blue-900 dark:bg-blue-950/30"
+			<Toast
+				class="pointer-events-auto w-full border-blue-200 bg-blue-50/95 text-blue-950 shadow-lg backdrop-blur dark:border-blue-900 dark:bg-blue-950/85 dark:text-blue-100"
+				color="blue"
+				transition={blur}
+				params={{ amount: 10 }}
 			>
-				<div class="flex items-center justify-between gap-4">
-					<div>
-						<div class="font-medium text-blue-900 dark:text-blue-200">
+				<div class="flex items-start justify-between gap-4">
+					<div class="min-w-0 flex-1">
+						<Heading tag="h2" class="truncate text-sm font-semibold text-blue-900 dark:text-blue-100">
 							{activeProcess.label}
+						</Heading>
+						<div class="truncate text-sm text-blue-700 dark:text-blue-300">
+							{activeProcess.message || activeProcess.processType}
 						</div>
-						<div class="text-blue-700 dark:text-blue-300">
-							{activeProcess.message || activeProcess.processType} ({activeProcess.progress}%)
+						<div class="mt-3 h-2 overflow-hidden rounded-full bg-blue-200/70 dark:bg-blue-900/70">
+							<div
+								class="h-full rounded-full bg-blue-600 transition-[width] duration-300 dark:bg-blue-400"
+								style={`width: ${activeProcessProgress}%`}
+							></div>
+						</div>
+						<div class="mt-2 text-xs font-medium tracking-wide text-blue-700 dark:text-blue-300">
+							{activeProcessProgress}%
 						</div>
 					</div>
-					<Badge color="blue">
-						<div class="flex items-center gap-2">
-							<Spinner size="4" color="green" />
-							Running
-						</div>
-					</Badge>
+					<Badge color="blue" large>Running</Badge>
 				</div>
-			</div>
+			</Toast>
 		{/if}
 
 		{#if showConnectionWarning}
-			<div
-				class="rounded border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900 dark:bg-red-950/30"
+			<Toast
+				class="pointer-events-auto w-full border-red-200 bg-red-50/95 text-red-950 shadow-lg backdrop-blur dark:border-red-900 dark:bg-red-950/85 dark:text-red-100"
+				color="red"
+				transition={blur}
+				params={{ amount: 10 }}
 			>
-				<div class="font-medium text-red-900 dark:text-red-200">Realtime connection issue</div>
-				<div class="text-red-700 dark:text-red-300">
-					Connection status: {connectionStatus}
-				</div>
-			</div>
+				<Heading tag="h2" class="text-sm font-semibold text-red-900 dark:text-red-100">
+					Realtime connection issue
+				</Heading>
+				<div class="text-sm text-red-700 dark:text-red-300">Connection status: {connectionStatus}</div>
+			</Toast>
 		{/if}
 	</div>
 {/if}

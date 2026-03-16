@@ -301,7 +301,6 @@
 <UpdateDropdowns dataUpdated={data.dataUpdated} />
 
 <div class="flex flex-col justify-stretch p-2">
-	<GlobalRealtimeStatus />
 	<div class="flex flex-row gap-2 pt-4 pb-8 md:hidden">
 		<FilterSelectionModal
 			showDefaultJournalFilters
@@ -615,5 +614,6 @@
 		<DarkMode />
 	</div>
 	{@render children()}
+	<GlobalRealtimeStatus />
 	<NotificationDisplay />
 </div>
