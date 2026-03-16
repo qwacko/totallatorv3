@@ -526,6 +526,13 @@
       "when": 1773607973237,
       "tag": "0074_exotic_whizzer",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1773622911335,
+      "tag": "0075_restore_journal_extended_view_unique_index",
+      "breakpoints": true
     }
   ]
 }

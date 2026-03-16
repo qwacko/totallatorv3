@@ -25,6 +25,7 @@ const importTypeEnum = [
 	'category',
 	'tag',
 	'label',
+	'journalUpdate',
 	'mappedImport'
 ] as const;
 

@@ -493,7 +493,7 @@ export const backupActions = {
 		}
 
 		const backupDataDB: Omit<CurrentBackupSchemaType, 'information'> = {
-			version: 11,
+			version: 12,
 			data: tableData
 		};
 
@@ -1370,6 +1370,8 @@ export const backupActions = {
 				duration,
 				userId
 			});
+			// Give async event listeners time to persist the terminal state before the worker context exits.
+			await fixedDelay(50);
 		} catch (error) {
 			// Emit failure event
 			const errorMessage = error instanceof Error ? error.message : String(error);
@@ -1379,6 +1381,8 @@ export const backupActions = {
 				error: errorMessage,
 				userId
 			});
+			// Give async event listeners time to persist the terminal state before the worker context exits.
+			await fixedDelay(50);
 
 			getLogger('backup').error({
 				code: 'BAK_043',

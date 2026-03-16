@@ -11,6 +11,7 @@ import { backupSchemaRev08 } from './backupSchema.Rev08';
 import { backupSchemaRev09 } from './backupSchema.Rev09';
 import { backupSchemaRev10 } from './backupSchema.Rev10';
 import { backupSchemaRev11 } from './backupSchema.Rev11';
+import { backupSchemaRev12 } from './backupSchema.Rev12';
 import {
 	backupSchemaMigrate_01to02,
 	backupSchemaMigrate_01to02Information
@@ -51,8 +52,12 @@ import {
 	backupSchemaMigrate_10to11,
 	backupSchemaMigrate_10to11Information
 } from './backupSchemaMigrate_10to11';
+import {
+	backupSchemaMigrate_11to12,
+	backupSchemaMigrate_11to12Information
+} from './backupSchemaMigrate_11to12';
 
-export const currentBackupSchema = backupSchemaRev11;
+export const currentBackupSchema = backupSchemaRev12;
 export type CurrentBackupSchemaType = z.infer<typeof currentBackupSchema>;
 export type CurrentBackupSchemaInfoType = Pick<CurrentBackupSchemaType, 'information' | 'version'>;
 
@@ -73,7 +78,8 @@ export const combinedBackupSchema = z.union([
 	backupSchemaRev08,
 	backupSchemaRev09,
 	backupSchemaRev10,
-	backupSchemaRev11
+	backupSchemaRev11,
+	backupSchemaRev12
 ]);
 
 export const combinedBackupInfoSchema = z.union([
@@ -87,7 +93,8 @@ export const combinedBackupInfoSchema = z.union([
 	backupSchemaRev08.pick({ information: true, version: true }),
 	backupSchemaRev09.pick({ information: true, version: true }),
 	backupSchemaRev10.pick({ information: true, version: true }),
-	backupSchemaRev11.pick({ information: true, version: true })
+	backupSchemaRev11.pick({ information: true, version: true }),
+	backupSchemaRev12.pick({ information: true, version: true })
 ]);
 
 export const backupSchemaInfoToLatest = (
@@ -143,7 +150,12 @@ export const backupSchemaInfoToLatest = (
 			? backupDataParsed10
 			: backupSchemaMigrate_10to11Information(backupDataParsed10);
 
-	return backupDataParsed11;
+	const backupDataParsed12 =
+		backupDataParsed11.version !== 11
+			? backupDataParsed11
+			: backupSchemaMigrate_11to12Information(backupDataParsed11);
+
+	return backupDataParsed12;
 };
 
 export const backupSchemaToLatest = (
@@ -199,5 +211,10 @@ export const backupSchemaToLatest = (
 			? backupDataParsed10
 			: backupSchemaMigrate_10to11(backupDataParsed10);
 
-	return backupDataParsed11;
+	const backupDataParsed12 =
+		backupDataParsed11.version !== 11
+			? backupDataParsed11
+			: backupSchemaMigrate_11to12(backupDataParsed11);
+
+	return backupDataParsed12;
 };

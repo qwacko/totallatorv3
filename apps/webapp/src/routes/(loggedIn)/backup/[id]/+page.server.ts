@@ -111,14 +111,15 @@ export const actions = {
 					userId: locals.user?.id
 				},
 				{
-					jobId: `backup-restore:${id}`
+					jobId: `backup-restore-${id}`
 				}
 			);
 		} catch (e) {
+			const errorMessage = e instanceof Error ? e.message : String(e);
 			locals.global.logger('backup').error({
 				code: 'BCK_0004',
 				title: 'Error Triggering Backup Restore',
-				error: e
+				error: errorMessage
 			});
 			return failWrapper('Error Starting Backup Restore');
 		}
