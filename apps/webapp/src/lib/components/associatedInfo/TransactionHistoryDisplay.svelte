@@ -2,14 +2,48 @@
 	import type { TransactionHistoryItemType } from '@totallator/business-logic';
 	import { formatDate, getCurrencyFormatter } from '@totallator/shared';
 
+	import { urlGenerator } from '$lib/routes';
 	import { currencyFormat, userDateFormat } from '$lib/stores/userInfoStore';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
 
 	const { item }: { item: TransactionHistoryItemType } = $props();
 
 	const actorText = $derived(
-		item.actorUserName || item.sourceImportTitle || item.sourceFilterTitle || item.sourceType
+		item.actorUserName ||
+			(!item.sourceImportId && !item.sourceFilterId ? item.sourceType : null)
 	);
+	const primarySourceLink = $derived.by(() => {
+		if (item.sourceType === 'import' && item.sourceImportId) {
+			return {
+				kind: 'import',
+				label: item.sourceImportTitle || item.sourceImportId,
+				href: urlGenerator({
+					address: '/(loggedIn)/import/[id]',
+					paramsValue: { id: item.sourceImportId }
+				}).url
+			};
+		}
+		if (item.sourceType === 'filter' && item.sourceFilterId) {
+			return {
+				kind: 'reusable filter',
+				label: item.sourceFilterTitle || item.sourceFilterId,
+				href: urlGenerator({
+					address: '/(loggedIn)/filters/[id]',
+					paramsValue: { id: item.sourceFilterId }
+				}).url
+			};
+		}
+		return null;
+	});
+	const secondaryContext = $derived.by(() => {
+		if (item.sourceType === 'filter' && item.sourceImportId) {
+			return `Triggered during import ${item.sourceImportTitle || item.sourceImportId}`;
+		}
+		if (item.sourceType === 'import' && item.sourceFilterId) {
+			return `Applied via reusable filter ${item.sourceFilterTitle || item.sourceFilterId}`;
+		}
+		return null;
+	});
 	const beforeJournals = $derived(item.beforeSnapshot?.journals || []);
 	const afterJournals = $derived(item.afterSnapshot?.journals || []);
 	const formatter = $derived(getCurrencyFormatter($currencyFormat));
@@ -327,6 +361,22 @@
 
 		{#if item.summary}
 			<div class="mt-2 text-sm text-gray-700 dark:text-gray-300">{item.summary}</div>
+		{/if}
+		{#if primarySourceLink || secondaryContext}
+			<div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
+				{#if primarySourceLink}
+					<a
+						href={primarySourceLink.href}
+						class="rounded border border-blue-200 bg-blue-50 px-2 py-1 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200"
+					>
+						Open {primarySourceLink.kind}
+					</a>
+					<span class="text-gray-600 dark:text-gray-300">{primarySourceLink.label}</span>
+				{/if}
+				{#if secondaryContext}
+					<span class="text-gray-500 dark:text-gray-400">{secondaryContext}</span>
+				{/if}
+			</div>
 		{/if}
 
 		<div class="mt-2 flex flex-col gap-1 text-sm text-gray-700 dark:text-gray-300">

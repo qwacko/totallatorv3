@@ -261,6 +261,21 @@ export const transactionChangeActions = {
 			'Transaction Change - List By Import Id'
 		);
 	},
+	listByFilterId: async ({
+		filterId
+	}: {
+		filterId: string;
+	}): Promise<TransactionChangeTableType[]> => {
+		const db = getContextDB();
+		return await dbExecuteLogger(
+			db
+				.select()
+				.from(transactionChange)
+				.where(eq(transactionChange.sourceFilterId, filterId))
+				.orderBy(desc(transactionChange.createdAt)),
+			'Transaction Change - List By Filter Id'
+		);
+	},
 	recordChanges: async ({
 		db,
 		transactionIds,

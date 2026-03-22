@@ -28,6 +28,7 @@ import { journalActions } from './journalActions';
 import { journalMaterializedViewActions } from './journalMaterializedViewActions';
 import { materializedViewActions } from './materializedViewActions';
 import { reusableFilterActions } from './reusableFilterActions';
+import { transactionChangeActions } from './transactionChangeActions';
 
 type SeededTransactions = Awaited<ReturnType<typeof seedTestTransactions>>;
 
@@ -210,6 +211,51 @@ describe('transaction change history', async () => {
 
 		expect(results.data.some((item) => item.transactionId === seeded!.groceryTransactionId)).toBe(true);
 		expect(results.data.some((item) => item.description === 'Import-linked update')).toBe(true);
+	});
+
+	testIt('lists and filters journals by reusable filter id using transaction history links', async () => {
+		const seeded = seededTransactions;
+		expect(seeded).toBeDefined();
+
+		const reusableFilter = await reusableFilterActions.create({
+			data: {
+				title: 'Filter Navigation Test',
+				filter: {
+					transactionIdArray: [seeded!.groceryTransactionId]
+				},
+				change: {
+					description: 'Filter-linked update'
+				}
+			}
+		});
+
+		await reusableFilterActions.applyById({
+			id: reusableFilter.id
+		});
+
+		const history = await reusableFilterActions.getById({ id: reusableFilter.id });
+		expect(history?.id).toBe(reusableFilter.id);
+
+		const filterHistory = await transactionChangeActions.listByFilterId({
+			filterId: reusableFilter.id
+		});
+		expect(filterHistory).toHaveLength(1);
+		expect(filterHistory[0]).toMatchObject({
+			sourceType: 'filter',
+			sourceFilterId: reusableFilter.id,
+			sourceFilterTitle: 'Filter Navigation Test'
+		});
+
+		const results = await journalMaterializedViewActions.list({
+			filter: {
+				filterIdArray: [reusableFilter.id],
+				page: 0,
+				pageSize: 100
+			}
+		});
+
+		expect(results.data.some((item) => item.transactionId === seeded!.groceryTransactionId)).toBe(true);
+		expect(results.data.some((item) => item.description === 'Filter-linked update')).toBe(true);
 	});
 
 	testIt(

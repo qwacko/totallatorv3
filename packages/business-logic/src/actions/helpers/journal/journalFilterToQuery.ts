@@ -11,6 +11,7 @@ import { importIdsToTitles } from '../import/importIdsToTitles';
 import { labelFilterToText } from '../label/labelFilterToQuery';
 import { arrayToText } from '../misc/arrayToText';
 import { linkedNoteFilterToText } from '../note/noteFilterToQuery';
+import { reusableFilterIdsToTitles } from '../reusableFilter/reusableFilterIdsToTitles';
 import { tagFilterToText } from '../tag/tagFilterToQuery';
 import { processJournalTextFilter } from './processJournalTextFilter';
 
@@ -132,6 +133,14 @@ export const journalFilterToText = async ({
 			await arrayToText({
 				data: filterInternal.importDetailIdArray,
 				singularName: 'Import Detail ID'
+			})
+		);
+	if (filterInternal.filterIdArray && filterInternal.filterIdArray.length > 0)
+		stringArray.push(
+			await arrayToText({
+				data: filterInternal.filterIdArray,
+				singularName: 'Reusable Filter',
+				inputToText: (title) => reusableFilterIdsToTitles(db, title)
 			})
 		);
 

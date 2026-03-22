@@ -98,3 +98,11 @@ export const importTransactionHistoryQuerySchema = z.object({
 export type ImportTransactionHistoryQuerySchemaType = z.infer<
 	typeof importTransactionHistoryQuerySchema
 >;
+
+export const filterTransactionHistoryQuerySchema = z.object({
+	filterId: z.string()
+});
+
+export type FilterTransactionHistoryQuerySchemaType = z.infer<
+	typeof filterTransactionHistoryQuerySchema
+>;

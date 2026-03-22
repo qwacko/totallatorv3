@@ -258,6 +258,7 @@ export const journalFilterSchemaWithoutPagination = z.object({
 	complete: z.boolean().optional(),
 	importIdArray: z.array(z.string()).optional(),
 	importDetailIdArray: z.array(z.string()).optional(),
+	filterIdArray: z.array(z.string()).optional(),
 
 	payee: z
 		.object({

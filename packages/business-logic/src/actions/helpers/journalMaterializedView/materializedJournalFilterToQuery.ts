@@ -1,4 +1,15 @@
-import { and, eq, exists, gte, ilike, inArray, lte, not, notInArray, or, SQL } from 'drizzle-orm';
+import {
+	eq,
+	gte,
+	ilike,
+	inArray,
+	lte,
+	not,
+	notInArray,
+	or,
+	sql,
+	SQL
+} from 'drizzle-orm';
 
 import { journalExtendedView, journalView, transactionChange } from '@totallator/database';
 import { type DBType } from '@totallator/database';
@@ -39,6 +50,32 @@ export const materializedJournalFilterToQuery = async (
 	const where: SQL<unknown>[] = [];
 
 	const targetTable = target === 'view' ? journalView : journalExtendedView;
+	const transactionIdsForImportFilter =
+		filter.importIdArray && filter.importIdArray.length > 0
+			? [
+					...new Set(
+						(
+							await db
+								.select({ transactionId: transactionChange.transactionId })
+								.from(transactionChange)
+								.where(inArrayWrapped(transactionChange.sourceImportId, filter.importIdArray))
+						).map((item) => item.transactionId)
+					)
+				]
+			: [];
+	const transactionIdsForFilterFilter =
+		filter.filterIdArray && filter.filterIdArray.length > 0
+			? [
+					...new Set(
+						(
+							await db
+								.select({ transactionId: transactionChange.transactionId })
+								.from(transactionChange)
+								.where(inArrayWrapped(transactionChange.sourceFilterId, filter.filterIdArray))
+						).map((item) => item.transactionId)
+					)
+				]
+			: [];
 
 	if (filter.id) where.push(eq(targetTable.id, filter.id));
 	if (filter.excludeId) where.push(not(eq(targetTable.id, filter.excludeId)));
@@ -90,22 +127,21 @@ export const materializedJournalFilterToQuery = async (
 		where.push(
 			or(
 				inArrayWrapped(targetTable.importId, filter.importIdArray),
-				exists(
-					db
-						.select({ id: transactionChange.id })
-						.from(transactionChange)
-						.where(
-							and(
-								eq(transactionChange.transactionId, targetTable.transactionId),
-								inArrayWrapped(transactionChange.sourceImportId, filter.importIdArray)
-							)
-						)
-				)
+				transactionIdsForImportFilter.length > 0
+					? inArrayWrapped(targetTable.transactionId, transactionIdsForImportFilter)
+					: sql`false`
 			) as SQL<unknown>
 		);
 	}
 	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
 		where.push(inArrayWrapped(targetTable.importDetailId, filter.importDetailIdArray));
+	if (filter.filterIdArray && filter.filterIdArray.length > 0) {
+		where.push(
+			transactionIdsForFilterFilter.length > 0
+				? inArrayWrapped(targetTable.transactionId, transactionIdsForFilterFilter)
+				: sql`false`
+		);
+	}
 
 	if (filter.account) {
 		if (filter.account.id) {

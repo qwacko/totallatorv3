@@ -17,6 +17,7 @@
 	import { urlGenerator } from '$lib/routes';
 
 	import UpdateReusableFilterChanges from './UpdateReusableFilterChanges.svelte';
+	import FilterHistoryTab from './FilterHistoryTab.svelte';
 	import UpdateReusableFilterFilter from './UpdateReusableFilterFilter.svelte';
 
 	const { data } = $props();
@@ -156,5 +157,9 @@
 				bind:changeModal
 			/>
 		{/if}
+	</div>
+	<div class="mt-6 flex flex-col gap-2">
+		<div class="text-sm font-semibold">Related Changes</div>
+		<FilterHistoryTab filterId={data.id} />
 	</div>
 </PageLayout>
