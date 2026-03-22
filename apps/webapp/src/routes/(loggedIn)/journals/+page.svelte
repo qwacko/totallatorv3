@@ -8,7 +8,6 @@
 	import { page } from '$app/state';
 
 	import AccountBadge from '$lib/components/AccountBadge.svelte';
-	import AssociatedInfoButtonPromise from '$lib/components/AssociatedInfoButtonPromise.svelte';
 	import BillBadge from '$lib/components/BillBadge.svelte';
 	import BudgetBadge from '$lib/components/BudgetBadge.svelte';
 	import CategoryBadge from '$lib/components/CategoryBadge.svelte';
@@ -21,19 +20,15 @@
 	import ArrowLeftIcon from '$lib/components/icons/ArrowLeftIcon.svelte';
 	import ArrowRightIcon from '$lib/components/icons/ArrowRightIcon.svelte';
 	import ArrowUpIcon from '$lib/components/icons/ArrowUpIcon.svelte';
-	import CloneIcon from '$lib/components/icons/CloneIcon.svelte';
 	import CompleteIcon from '$lib/components/icons/CompleteIcon.svelte';
 	import DataCheckedIcon from '$lib/components/icons/DataCheckedIcon.svelte';
-	import DeleteIcon from '$lib/components/icons/DeleteIcon.svelte';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
-	import FilterIcon from '$lib/components/icons/FilterIcon.svelte';
+	import MoreIcon from '$lib/components/icons/MoreIcon.svelte';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 	import ReconciledIcon from '$lib/components/icons/ReconciledIcon.svelte';
 	import JournalSummaryWithFetch from '$lib/components/JournalSummaryWithFetch.svelte';
 	import LabelBadge from '$lib/components/LabelBadge.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
-	import RawDataModal from '$lib/components/RawDataModal.svelte';
-	import RecommendationButton from '$lib/components/RecommendationButton.svelte';
 	import SearchInput from '$lib/components/SearchInput.svelte';
 	import CustomTable from '$lib/components/table/CustomTable.svelte';
 	import DropdownFilterNestedText from '$lib/components/table/DropdownFilterNestedText.svelte';
@@ -42,6 +37,7 @@
 	import { journalColumnsStore } from '$lib/stores/columnDisplayStores.js';
 
 	import BulkJournalActions from './BulkJournalActions.svelte';
+	import JournalActionMenu from './JournalActionMenu.svelte';
 
 	const { data } = $props();
 
@@ -225,6 +221,7 @@
 			{/snippet}
 			{#snippet slotCustomBodyCell({ row: currentJournal, currentColumn })}
 				{#if currentColumn.id === 'actions'}
+					{@const actionMenuId = `journal-action-menu-${currentJournal.id}`}
 					<form action="?/update" method="post" use:enhance>
 						<input type="hidden" value={currentJournal.id} name="journalId" />
 						<ButtonGroup size="sm" class="flex-wrap md:flex-nowrap">
@@ -239,51 +236,6 @@
 								class="p-2"
 							>
 								<EditIcon height="15" width="15" />
-							</Button>
-							<Button
-								disabled={false}
-								href={urlGenerator({
-									address: '/(loggedIn)/journals/clone',
-									searchParamsValue: {
-										idArray: [currentJournal.id],
-										...defaultAllJournalFilter()
-									}
-								}).url}
-								class="p-2"
-							>
-								<CloneIcon height="15" width="15" />
-							</Button>
-							<Button
-								disabled={false}
-								href={urlGenerator({
-									address: '/(loggedIn)/journals/delete',
-									searchParamsValue: {
-										idArray: [currentJournal.id],
-										...defaultAllJournalFilter()
-									}
-								}).url}
-								class="p-2"
-							>
-								<DeleteIcon height="15" width="15" />
-							</Button>
-							<Button
-								disabled={false}
-								href={urlGenerator({
-									address: '/(loggedIn)/journals',
-									searchParamsValue: {
-										...defaultJournalFilter(),
-										account: {
-											idArray: [currentJournal.accountId]
-										},
-										payee: {
-											idArray: currentJournal.otherJournals.map((journal) => journal.accountId)
-										},
-										description: currentJournal.description
-									}
-								}).url}
-								class="p-2"
-							>
-								<FilterIcon height="15" width="15" />
 							</Button>
 							{#if currentJournal.complete}
 								<Button class="p-2" type="submit" name="action" color="primary" value="uncomplete">
@@ -339,19 +291,64 @@
 									<DataCheckedIcon height="15" width="15" />
 								</Button>
 							{/if}
-
-							<AssociatedInfoButtonPromise
-								data={currentJournal.associated}
-								target={{ transactionId: currentJournal.transactionId }}
-								id={currentJournal.id}
-							/>
-
-							<RecommendationButton
-								recommendations={data.journalRecommendations}
-								journal={currentJournal}
-							/>
-							<RawDataModal data={currentJournal} dev={true} title="Journal Data" icon="more" />
+							<Button id={actionMenuId} class="relative p-2" type="button">
+								<MoreIcon />
+								{#if currentJournal.associated}
+									{#await currentJournal.associated then targetData}
+										{@const hasAssociatedInfo = targetData.some(
+											(item) =>
+												item.notes.length > 0 ||
+												item.files.length > 0 ||
+												item.journalSnapshots.length > 0
+										)}
+										{#if hasAssociatedInfo}
+											<span class="absolute right-1 top-1 h-2 w-2 rounded-full bg-blue-500"></span>
+										{/if}
+									{/await}
+								{/if}
+								{#await data.journalRecommendations[currentJournal.id] then recs}
+									{#if recs && recs.length > 0}
+										<span class="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+									{/if}
+								{/await}
+							</Button>
 						</ButtonGroup>
+						<JournalActionMenu
+							data={currentJournal.associated}
+							target={{ transactionId: currentJournal.transactionId }}
+							rawData={currentJournal}
+							recommendations={data.journalRecommendations}
+							journal={currentJournal}
+							triggeredBy={`#${actionMenuId}`}
+							dev={data.dev}
+							filterHref={urlGenerator({
+								address: '/(loggedIn)/journals',
+								searchParamsValue: {
+									...defaultJournalFilter(),
+									account: {
+										idArray: [currentJournal.accountId]
+									},
+									payee: {
+										idArray: currentJournal.otherJournals.map((journal) => journal.accountId)
+									},
+									description: currentJournal.description
+								}
+							}).url}
+							cloneHref={urlGenerator({
+								address: '/(loggedIn)/journals/clone',
+								searchParamsValue: {
+									idArray: [currentJournal.id],
+									...defaultAllJournalFilter()
+								}
+							}).url}
+							deleteHref={urlGenerator({
+								address: '/(loggedIn)/journals/delete',
+								searchParamsValue: {
+									idArray: [currentJournal.id],
+									...defaultAllJournalFilter()
+								}
+							}).url}
+						/>
 					</form>
 				{:else if currentColumn.id === 'account'}
 					<AccountBadge

@@ -80,3 +80,12 @@ export const linkToImportItems = ({
 
 	return '';
 };
+
+export const linkToImportDetailItems = ({ journalIds }: { journalIds: string[] }) =>
+	urlGenerator({
+		address: '/(loggedIn)/journals',
+		searchParamsValue: {
+			...defaultJournalFilter(),
+			idArray: journalIds
+		}
+	}).url;

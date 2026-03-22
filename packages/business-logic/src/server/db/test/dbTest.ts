@@ -199,6 +199,7 @@ export const clearTestDB = async (db: DBType, { refreshViews = true }: { refresh
 		await db.delete(schema.importMapping).execute();
 		await db.delete(schema.importTable).execute();
 		await db.delete(schema.journalEntry).execute();
+		await db.delete(schema.transactionChange).execute();
 		await db.delete(schema.transaction).execute();
 		await db.delete(schema.reusableFilter).execute();
 		if (refreshViews) {
@@ -277,21 +278,29 @@ export const createTestWrapper = async ({
 	afterEach?: (db: DBType, id: string) => Promise<void>;
 	getDB: () => DBType | undefined;
 }) => {
-	return (name: string, testFunction: (db: DBType, id: string) => Promise<void>) => {
-		it(name, async () => {
-			const id = nanoid();
-			const db = getDB();
+	return (
+		name: string,
+		testFunction: (db: DBType, id: string) => Promise<void>,
+		timeout?: number
+	) => {
+		it(
+			name,
+			async () => {
+				const id = nanoid();
+				const db = getDB();
 
-			if (!db) {
-				return;
-			}
+				if (!db) {
+					return;
+				}
 
-			await withTestDbContext(db, async () => {
-				if (beforeEach) await beforeEach(db, id);
-				await testFunction(db, id);
-				if (afterEach) await afterEach(db, id);
-			});
-		});
+				await withTestDbContext(db, async () => {
+					if (beforeEach) await beforeEach(db, id);
+					await testFunction(db, id);
+					if (afterEach) await afterEach(db, id);
+				});
+			},
+			timeout
+		);
 	};
 };
 

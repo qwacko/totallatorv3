@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
+	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner, TabItem, Tabs } from 'flowbite-svelte';
 
 	import {
 		importTypeToTitle,
@@ -21,8 +21,9 @@
 	import ToggleInputForm from '$lib/components/ToggleInputForm.svelte';
 	import { urlGenerator } from '$lib/routes.js';
 
+	import ImportHistoryTab from './ImportHistoryTab.svelte';
 	import { importProgressToText, timeSinceImportStart } from '../importProgressToText';
-	import { linkToImportItems } from './linkToImportItems';
+	import { linkToImportDetailItems, linkToImportItems } from './linkToImportItems';
 
 	const { data } = $props();
 	let activeImportJob = $state<RealtimeLongProcess | null>(null);
@@ -79,6 +80,15 @@
 
 		invalidateAll();
 	});
+
+	const hasLinkedJournals = (currentImportDetail: (typeof data.streaming.data.detail.importDetails)[number]) =>
+		Boolean(currentImportDetail.relationId || currentImportDetail.relation2Id);
+
+	const relatedJournalIds = (
+		currentImportDetail: (typeof data.streaming.data.detail.importDetails)[number]
+	) => [currentImportDetail.relationId, currentImportDetail.relation2Id].filter(
+		(value): value is string => Boolean(value)
+	);
 </script>
 
 <CustomHeader pageTitle="Import" filterText={data.info.importInfo.import.title} />
@@ -307,69 +317,112 @@
 				<ImportCountBadges {importData} hideZero={false} />
 				<RawDataModal data={importData.detail} dev={data.dev} buttonText="Import Data" outline />
 			</div>
-			<div class="grid grid-cols-1 gap-2 md:grid-cols-3">
-				{#each importData.detail.importDetails as currentImportDetail, i}
-					{#if currentImportDetail.status === 'imported'}
-						<Card size="xl" class="flex flex-col gap-2 p-6" color="green">
-							<div class="flex flex-row items-center justify-between">
-								Row {i + 1}
-								<Badge color="green">Imported</Badge>
-							</div>
-							<RawDataModal
-								color="green"
-								data={currentImportDetail.importInfo}
-								dev={true}
-								buttonText="Import Details"
-								title="Row {i + 1} Import Details"
-							/>
-						</Card>
-					{:else if currentImportDetail.status === 'error' || currentImportDetail.status === 'importError'}
-						<Card size="xl" class="flex flex-col gap-2 p-6" color="red">
-							<div class="flex flex-row items-center justify-between">
-								Row {i + 1}
-								<Badge color="red">
-									{currentImportDetail.status === 'error' ? 'Error' : 'Import Error'}
-								</Badge>
-							</div>
-							<RawDataModal
-								color="red"
-								data={currentImportDetail.errorInfo}
-								dev={true}
-								buttonText="Error Details"
-								title="Row {i + 1} Error Details"
-							/>
-						</Card>
-					{:else if currentImportDetail.status === 'processed'}
-						<Card size="xl" class="flex flex-col gap-2 p-6" color="blue">
-							<div class="flex flex-row items-center justify-between">
-								Row {i + 1}
-								<Badge color="blue">Processed</Badge>
-							</div>
-							<RawDataModal
-								color="blue"
-								data={currentImportDetail.processedInfo}
-								dev={true}
-								buttonText="Processed Details"
-								title="Row {i + 1} Processed Details"
-							/>
-						</Card>
-					{:else if currentImportDetail.status === 'duplicate'}
-						<Card size="xl" class="flex flex-col gap-2 p-6" color="secondary">
-							<div class="flex flex-row items-center justify-between">
-								Row {i + 1}
-								<Badge color="secondary">Duplicate</Badge>
-							</div>
-							<RawDataModal
-								color="dark"
-								data={currentImportDetail.processedInfo}
-								dev={true}
-								buttonText="Processed Details"
-								title="Row {i + 1} Processed Details"
-							/>
-						</Card>
-					{/if}
-				{/each}
-			</div>
+			<Tabs style="underline">
+				<TabItem open title={`Rows (${importData.detail.importDetails.length})`}>
+					<div class="grid grid-cols-1 gap-2 md:grid-cols-3">
+						{#each importData.detail.importDetails as currentImportDetail, i}
+							{#if currentImportDetail.status === 'imported'}
+								<Card size="xl" class="flex flex-col gap-2 p-6" color="green">
+									<div class="flex flex-row items-center justify-between">
+										Row {i + 1}
+										<Badge color="green">Imported</Badge>
+									</div>
+									<RawDataModal
+										color="green"
+										data={currentImportDetail.importInfo}
+										dev={true}
+										buttonText="Import Details"
+										title="Row {i + 1} Import Details"
+									/>
+									{#if hasLinkedJournals(currentImportDetail)}
+										<Button
+											size="sm"
+											color="light"
+											outline
+											href={linkToImportDetailItems({
+												journalIds: relatedJournalIds(currentImportDetail)
+											})}
+										>
+											View affected journals
+										</Button>
+									{/if}
+								</Card>
+							{:else if currentImportDetail.status === 'error' || currentImportDetail.status === 'importError'}
+								<Card size="xl" class="flex flex-col gap-2 p-6" color="red">
+									<div class="flex flex-row items-center justify-between">
+										Row {i + 1}
+										<Badge color="red">
+											{currentImportDetail.status === 'error' ? 'Error' : 'Import Error'}
+										</Badge>
+									</div>
+									<RawDataModal
+										color="red"
+										data={currentImportDetail.errorInfo}
+										dev={true}
+										buttonText="Error Details"
+										title="Row {i + 1} Error Details"
+									/>
+								</Card>
+							{:else if currentImportDetail.status === 'processed'}
+								<Card size="xl" class="flex flex-col gap-2 p-6" color="blue">
+									<div class="flex flex-row items-center justify-between">
+										Row {i + 1}
+										<Badge color="blue">Processed</Badge>
+									</div>
+									<RawDataModal
+										color="blue"
+										data={currentImportDetail.processedInfo}
+										dev={true}
+										buttonText="Processed Details"
+										title="Row {i + 1} Processed Details"
+									/>
+									{#if hasLinkedJournals(currentImportDetail)}
+										<Button
+											size="sm"
+											color="light"
+											outline
+											href={linkToImportDetailItems({
+												journalIds: relatedJournalIds(currentImportDetail)
+											})}
+										>
+											View affected journals
+										</Button>
+									{/if}
+								</Card>
+							{:else if currentImportDetail.status === 'duplicate'}
+								<Card size="xl" class="flex flex-col gap-2 p-6" color="secondary">
+									<div class="flex flex-row items-center justify-between">
+										Row {i + 1}
+										<Badge color="secondary">Duplicate</Badge>
+									</div>
+									<RawDataModal
+										color="dark"
+										data={currentImportDetail.processedInfo}
+										dev={true}
+										buttonText="Processed Details"
+										title="Row {i + 1} Processed Details"
+									/>
+									{#if hasLinkedJournals(currentImportDetail)}
+										<Button
+											size="sm"
+											color="light"
+											outline
+											href={linkToImportDetailItems({
+												journalIds: relatedJournalIds(currentImportDetail)
+											})}
+										>
+											View affected journals
+										</Button>
+									{/if}
+								</Card>
+							{/if}
+						{/each}
+					</div>
+				</TabItem>
+				<TabItem title="Related Changes">
+					<ImportHistoryTab importId={importData.detail.id} />
+				</TabItem>
+			</Tabs>
 		{/if}
 	{/if}
 </PageLayout>

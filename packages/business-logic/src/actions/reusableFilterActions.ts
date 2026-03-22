@@ -271,7 +271,16 @@ export const reusableFilterActions = {
 					page: 0,
 					pageSize: 100000
 				},
-				journalData: item.change
+				journalData: item.change,
+				auditSource: {
+					sourceType: 'filter',
+					filterId: item.id,
+					filterTitle: item.title,
+					importId,
+					summary: importId
+						? `Updated by reusable filter after import`
+						: `Updated by reusable filter`
+				}
 			});
 		}
 

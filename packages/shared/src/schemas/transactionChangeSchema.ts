@@ -90,3 +90,11 @@ export const transactionHistoryQuerySchema = z.object({
 });
 
 export type TransactionHistoryQuerySchemaType = z.infer<typeof transactionHistoryQuerySchema>;
+
+export const importTransactionHistoryQuerySchema = z.object({
+	importId: z.string()
+});
+
+export type ImportTransactionHistoryQuerySchemaType = z.infer<
+	typeof importTransactionHistoryQuerySchema
+>;

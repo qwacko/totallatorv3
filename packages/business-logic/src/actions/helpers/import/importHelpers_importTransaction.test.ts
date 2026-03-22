@@ -1,14 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { importJournalUpdate } from './importHelpers_importTransaction';
+import { importJournalUpdate, importTransaction } from './importHelpers_importTransaction';
 
 const updateJournalsMock = vi.fn();
+const createManyTransactionJournalsMock = vi.fn();
 const dbExecuteLoggerMock = vi.fn(async (query: any) => query);
 
 vi.mock('@totallator/business-logic/actions/journalActions', () => ({
 	journalActions: {
 		updateJournals: (args: any) => updateJournalsMock(args),
-		createManyTransactionJournals: vi.fn()
+		createManyTransactionJournals: (args: any) => createManyTransactionJournalsMock(args)
 	}
 }));
 
@@ -94,7 +95,7 @@ describe('importJournalUpdate', () => {
 		expect(updateSetCalls[0].errorInfo.errors[0]).toContain('could not be applied');
 	});
 
-	it('marks imported without linking destructive journal relations when journal update succeeds', async () => {
+	it('marks imported and links the updated journals when journal update succeeds', async () => {
 		updateJournalsMock.mockResolvedValue(['journal-1']);
 		const updatedJournal = { id: 'journal-1', description: 'updated-description' };
 		const { trx, updateSetCalls } = createTrx({ updatedJournal });
@@ -104,7 +105,7 @@ describe('importJournalUpdate', () => {
 
 		expect(updateSetCalls[0]).toMatchObject({
 			status: 'imported',
-			relationId: null,
+			relationId: 'journal-1',
 			importInfo: updatedJournal
 		});
 	});
@@ -164,5 +165,68 @@ describe('importJournalUpdate', () => {
 		});
 		expect(updateSetCalls[0].errorInfo.error.message).toContain('Inactive label cannot be linked');
 		expect(updateSetCalls[0].relationId).toBeUndefined();
+	});
+});
+
+describe('importTransaction', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('creates transactions with import audit metadata and backlinks the created journals', async () => {
+		createManyTransactionJournalsMock.mockResolvedValue(['transaction-1']);
+
+		const updateSetCalls: any[] = [];
+		const trx = {
+			query: {
+				transaction: {
+					findFirst: vi.fn(async () => ({
+						id: 'transaction-1',
+						journals: [{ id: 'journal-a' }, { id: 'journal-b' }]
+					}))
+				}
+			},
+			update: vi.fn(() => ({
+				set: (payload: any) => {
+					updateSetCalls.push(payload);
+					return {
+						where: () => payload
+					};
+				}
+			}))
+		} as any;
+
+		const item = {
+			id: 'import-detail-1',
+			importId: 'import-1',
+			processedInfo: {
+				dataToUse: {
+					date: '2026-03-12',
+					description: 'Coffee',
+					amount: 5.25,
+					fromAccountTitle: 'Assets:Cash:Wallet',
+					toAccountTitle: 'Expenses:Food:Coffee'
+				}
+			}
+		} as any;
+
+		await importTransaction({ item, trx });
+
+		expect(createManyTransactionJournalsMock).toHaveBeenCalledWith(
+			expect.objectContaining({
+				isImport: true,
+				auditSource: {
+					sourceType: 'import',
+					importId: 'import-1',
+					importDetailId: 'import-detail-1',
+					summary: 'Created from import'
+				}
+			})
+		);
+		expect(updateSetCalls[0]).toMatchObject({
+			status: 'imported',
+			relationId: 'journal-a',
+			relation2Id: 'journal-b'
+		});
 	});
 });

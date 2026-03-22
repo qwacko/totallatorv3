@@ -1,6 +1,6 @@
-import { eq, gte, ilike, inArray, lte, not, notInArray, SQL } from 'drizzle-orm';
+import { and, eq, exists, gte, ilike, inArray, lte, not, notInArray, or, SQL } from 'drizzle-orm';
 
-import { journalExtendedView, journalView } from '@totallator/database';
+import { journalExtendedView, journalView, transactionChange } from '@totallator/database';
 import { type DBType } from '@totallator/database';
 import type { JournalFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import { dateSpanInfo } from '@totallator/shared';
@@ -86,8 +86,24 @@ export const materializedJournalFilterToQuery = async (
 	if (filter.linked !== undefined) where.push(eq(targetTable.linked, filter.linked));
 	if (filter.dataChecked !== undefined) where.push(eq(targetTable.dataChecked, filter.dataChecked));
 	if (filter.reconciled !== undefined) where.push(eq(targetTable.reconciled, filter.reconciled));
-	if (filter.importIdArray && filter.importIdArray.length > 0)
-		where.push(inArrayWrapped(targetTable.importId, filter.importIdArray));
+	if (filter.importIdArray && filter.importIdArray.length > 0) {
+		where.push(
+			or(
+				inArrayWrapped(targetTable.importId, filter.importIdArray),
+				exists(
+					db
+						.select({ id: transactionChange.id })
+						.from(transactionChange)
+						.where(
+							and(
+								eq(transactionChange.transactionId, targetTable.transactionId),
+								inArrayWrapped(transactionChange.sourceImportId, filter.importIdArray)
+							)
+						)
+				)
+			) as SQL<unknown>
+		);
+	}
 	if (filter.importDetailIdArray && filter.importDetailIdArray.length > 0)
 		where.push(inArrayWrapped(targetTable.importDetailId, filter.importDetailIdArray));
 
