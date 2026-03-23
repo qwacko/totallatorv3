@@ -39,6 +39,20 @@ import {
 	resolveApiUrl
 } from './server/llm/providerConfig.js';
 
+/**
+ * Grouped helper surface for `@totallator/business-logic`.
+ *
+ * Use this for support functionality that sits next to the business actions but
+ * is not itself the main mutation/orchestration API. Typical examples are:
+ *
+ * - filter/query text conversion
+ * - search/filter token builders
+ * - journal text/list helpers
+ * - cron definitions
+ * - event bootstrap helpers
+ * - system/bootstrap helpers
+ * - LLM provider metadata
+ */
 export const tHelpers = {
 	account: { filterToText: accountFilterToText, filterArray: accountFilterArray },
 	associatedInfo: { filterToText: associatedInfoFilterToText },
@@ -83,6 +97,11 @@ export const tHelpers = {
 	tag: { filterToText: tagFilterToText, filterArray: tagFilterArray }
 };
 
+/**
+ * Legacy compatibility helper subset.
+ *
+ * Prefer `tHelpers` for all new code.
+ */
 export const actionHelpers = {
 	expandDate,
 	updateManyTransferInfo,

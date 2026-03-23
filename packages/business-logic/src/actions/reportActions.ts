@@ -39,6 +39,12 @@ import { updatedTime } from './helpers/misc/updatedTime';
 import type { DBDateRangeType } from './helpers/report/filtersToDateRange';
 import { getItemData } from './helpers/report/getData';
 
+/**
+ * Report configuration and report-data orchestration.
+ *
+ * This module owns report records, report elements, report filter linkage, and
+ * the data-loading/configuration sub-APIs used by the reporting UI.
+ */
 export const reportActions = {
 	delete: async ({ id }: { id: string }): Promise<void> => {
 		const reportInfo = await reportActions.getReportConfig({ id });
@@ -69,6 +75,10 @@ export const reportActions = {
 			);
 		});
 	},
+	/**
+	 * Creates a report and seeds the initial report elements from the selected
+	 * report layout template.
+	 */
 	create: async ({ data }: { data: CreateReportType }): Promise<string> => {
 		const id = nanoid();
 
@@ -166,6 +176,10 @@ export const reportActions = {
 
 		return { ...reportConfig, reportElementsWithData: reportElementData };
 	},
+	/**
+	 * Reconciles persisted report elements with a client-provided layout model by
+	 * removing missing elements, updating existing ones, and creating new ones.
+	 */
 	updateLayout: async ({ layoutConfig }: { layoutConfig: UpdateReportLayoutType }) => {
 		const { id, reportElements } = layoutConfig;
 
@@ -295,6 +309,10 @@ export const reportActions = {
 
 		return;
 	},
+	/**
+	 * Ensures a report has a linked filter record and then updates it with the
+	 * provided journal-style filter payload.
+	 */
 	upsertFilter: async ({
 		id,
 		filter

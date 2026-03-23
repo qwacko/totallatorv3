@@ -25,7 +25,17 @@ export type UpdateLLMSettingsType = {
 	enabled?: boolean;
 };
 
+/**
+ * Encrypted persistence layer for LLM provider settings.
+ *
+ * API keys are encrypted before storage and only decrypted on reads that
+ * explicitly require the secret value.
+ */
 export const llmActions = {
+	/**
+	 * Creates a new provider/settings row and encrypts the supplied API key before
+	 * persistence.
+	 */
 	create: async ({ data }: { data: CreateLLMSettingsType }): Promise<LLMSettings> => {
 		getLogger('llm').info({
 			code: 'LLM_SETTINGS_001',
@@ -98,6 +108,9 @@ export const llmActions = {
 		return results;
 	},
 
+	/**
+	 * Loads a single settings row and optionally decrypts the API key.
+	 */
 	getById: async ({
 		id,
 		includeApiKey = false
@@ -232,6 +245,10 @@ export const llmActions = {
 		return result;
 	},
 
+	/**
+	 * Returns all enabled provider settings with decrypted API keys so they can be
+	 * used for outbound LLM calls.
+	 */
 	getEnabled: async (): Promise<LLMSettings[]> => {
 		getLogger('llm').debug({
 			code: 'LLM_SETTINGS_013',

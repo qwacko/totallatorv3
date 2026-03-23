@@ -1,6 +1,15 @@
 # Cron Job Management System
 
-This package provides a comprehensive cron job management system that allows for scheduled task execution, monitoring, and manual triggering through a web interface.
+This folder contains cron job definitions and supporting runtime documentation.
+
+From outside this package, the public access points are:
+
+```ts
+import { tActions, tHelpers } from '@totallator/business-logic';
+
+const jobs = tHelpers.cron.jobDefinitions;
+const listed = await tActions.cronJob.getAllCronJobs();
+```
 
 ## Architecture Overview
 
@@ -44,9 +53,9 @@ Database operations for cron job management:
 ### Basic Setup
 
 ```typescript
-import { cronJobDefinitions, tActions } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 
-const jobs = cronJobDefinitions;
+const jobs = tHelpers.cron.jobDefinitions;
 const listed = await tActions.cronJob.getAllCronJobs();
 ```
 

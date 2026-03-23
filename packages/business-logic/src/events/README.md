@@ -1,12 +1,20 @@
 # Event Emitter System
 
-This module provides a type-safe event emitter system for the Totallator application. It allows you to emit events from your business logic that can be handled asynchronously without blocking the main execution flow.
+This folder contains event callback registration and backup-restore progress helpers for Totallator.
+
+From outside this package, these helpers are exposed through:
+
+```ts
+import { tHelpers } from '@totallator/business-logic';
+
+tHelpers.events.initializeEventCallbacks();
+```
 
 ## Architecture
 
 - **Event Emitter**: Located in `@totallator/context` package as part of the global context
 - **Event Callbacks**: Located in `@totallator/business-logic` package
-- **Helper Functions**: Convenience functions to emit events from business logic
+- **Public Runtime Access**: `tHelpers.events`
 
 ## Setup
 
@@ -64,28 +72,15 @@ export function initializeEventCallbacks(): void {
 
 ### 4. Emit Events
 
-From any business logic function or endpoint:
+From business-logic internals, emit events through the package's internal event helpers and callbacks. External application code should usually interact with the initialized event system rather than importing event internals directly.
 
-```typescript
-import { emitEvent } from './eventHelper.js';
+## Public Helpers
 
-export async function createUser(userData: any) {
-	// Your business logic here
-	const user = await db.insert(userTable).values(userData);
-
-	// Emit event (non-blocking)
-	emitEvent('user.created', {
-		userId: user.id,
-		email: user.email
-	});
-
-	return user;
-}
-```
-
-## Helper Functions
-
-- **`emitEvent(eventName, payload)`**: Emit a single event
+- `tHelpers.events.initializeEventCallbacks()`
+- `tHelpers.events.getEventListenerCounts()`
+- `tHelpers.events.clearInProgressBackupRestores()`
+- `tHelpers.events.getBackupRestoreProgress()`
+- `tHelpers.events.hasActiveBackupRestore()`
 
 ## Error Handling
 

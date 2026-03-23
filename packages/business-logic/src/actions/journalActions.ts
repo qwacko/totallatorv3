@@ -52,7 +52,19 @@ import {
 
 const journalTracer = trace.getTracer('@totallator/business-logic/journals');
 
+/**
+ * Journal and transaction orchestration.
+ *
+ * This module owns transaction/journal creation, bulk mutation, completion
+ * state changes, cloning, transfer reconciliation, and audit snapshot
+ * generation.
+ */
 export const journalActions = {
+	/**
+	 * Validates a simplified transaction payload, expands it into the internal
+	 * combined transaction schema, and persists the resulting journals and
+	 * transactions.
+	 */
 	createFromSimpleTransaction: async ({
 		transaction
 	}: {
@@ -100,6 +112,11 @@ export const journalActions = {
 
 		return createdTransaction;
 	},
+	/**
+	 * Creates one or more combined transaction/journal payloads in a single
+	 * workflow. This performs batched inserts, transfer-info reconciliation, and
+	 * transaction snapshot/audit recording.
+	 */
 	createManyTransactionJournals: async ({
 		journalEntries,
 		isImport = false,
@@ -630,6 +647,13 @@ export const journalActions = {
 		);
 		await materializedViewActions.setRefreshRequired();
 	},
+	/**
+	 * Main bulk journal mutation entrypoint.
+	 *
+	 * Depending on the payload, this can perform label-only updates or broader
+	 * journal and transaction edits, reconcile linked entities, refresh
+	 * materialized views, and emit audit history.
+	 */
 	updateJournals: async ({
 		filter,
 		journalData,
@@ -1205,6 +1229,10 @@ export const journalActions = {
 			}
 		);
 	},
+	/**
+	 * Clones the journals matched by the supplied filter into new transactions and
+	 * journals, optionally applying a clone-update payload.
+	 */
 	cloneJournals: async ({
 		filter,
 		journalData

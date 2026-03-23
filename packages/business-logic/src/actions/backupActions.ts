@@ -135,7 +135,17 @@ const chunker = async <D, R>(
 	return Promise.all(chunks.map(calledFunction));
 };
 
+/**
+ * Backup retention, storage, metadata, and restore workflow.
+ *
+ * Restore operations can repopulate or replace large portions of persisted
+ * application state and emit progress events consumed elsewhere in the system.
+ */
 export const backupActions = {
+	/**
+	 * Applies the retention policy by locking representative historical backups
+	 * and deleting old unlocked backups within configured safety thresholds.
+	 */
 	trimBackups: async (): Promise<void> => {
 		const db = getContextDB();
 		const firstBackup = await dbExecuteLogger(
@@ -345,6 +355,9 @@ export const backupActions = {
 
 		return id;
 	},
+	/**
+	 * Stores a full backup snapshot and the associated metadata/file artifact.
+	 */
 	storeBackup: async ({
 		title = 'Backup',
 		compress = true,
@@ -723,6 +736,10 @@ export const backupActions = {
 
 		return;
 	},
+	/**
+	 * Performs cursory validation and emits the event that starts background
+	 * restoration.
+	 */
 	restoreTrigger: async ({
 		id,
 		includeUsers = false,
@@ -766,6 +783,10 @@ export const backupActions = {
 			title: `Backup restore triggered for backup: ${backup.filename}`
 		});
 	},
+	/**
+	 * Executes the full restore workflow for a backup, including schema upgrade,
+	 * table replacement, linked file handling, and progress event emission.
+	 */
 	restoreBackup: async ({
 		id,
 		includeUsers = false,

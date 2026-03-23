@@ -73,6 +73,13 @@ import { tagActions } from './tagActions';
 
 const importTracer = trace.getTracer('@totallator/business-logic/imports');
 
+/**
+ * Import ingestion and execution lifecycle.
+ *
+ * This module owns file storage, import metadata, validation, mapping-aware
+ * processing, import execution, reprocessing, cleanup, and deletion of linked
+ * imported data.
+ */
 export const importActions = {
 	numberActive: async (): Promise<number> => {
 		const db = getContextDB();
@@ -154,6 +161,11 @@ export const importActions = {
 			'Import - Update'
 		);
 	},
+	/**
+	 * Stores an uploaded import file, validates it against the selected import
+	 * mode, persists the import row, and can report progress for long-running UI
+	 * flows.
+	 */
 	store: async ({
 		data,
 		autoImportId,
@@ -338,6 +350,10 @@ export const importActions = {
 
 		return id;
 	},
+	/**
+	 * Convenience entrypoint that stores an import and, when appropriate, runs the
+	 * remainder of the lifecycle automatically.
+	 */
 	runImportLifecycle: async ({
 		data,
 		autoImportId,
@@ -588,6 +604,10 @@ export const importActions = {
 			throw e;
 		}
 	},
+	/**
+	 * Executes the lifecycle around a stored import, including status transitions
+	 * and the final import run.
+	 */
 	executeImportLifecycle: async ({
 		id,
 		reportProgress
@@ -724,6 +744,11 @@ export const importActions = {
 			await importActions.doImport({ id: item.id, reportProgress });
 		}
 	},
+	/**
+	 * Performs the actual import for a prepared import row. This is where rows are
+	 * translated into domain entities such as accounts, categories, labels, tags,
+	 * journals, and related linked records.
+	 */
 	doImport: async ({
 		id,
 		reportProgress
@@ -1058,6 +1083,10 @@ export const importActions = {
 			throw new Error('Import Type Error');
 		}
 	},
+	/**
+	 * Deletes or forgets data linked to an import while preserving the import row
+	 * itself. This is used by reprocessing and cleanup flows.
+	 */
 	deleteLinked: async ({ id }: { id: string }): Promise<void> => {
 		const db = getContextDB();
 		const canDelete = await importActions.canDelete({ id });

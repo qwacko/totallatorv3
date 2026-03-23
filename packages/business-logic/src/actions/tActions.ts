@@ -26,6 +26,12 @@ import { tagActions } from './tagActions';
 import { transactionChangeActions } from './transactionChangeActions';
 import { userActions } from './userActions';
 
+/**
+ * Grouped action surface for `@totallator/business-logic`.
+ *
+ * This is the primary runtime entrypoint for business operations. Each property
+ * maps to a domain or workflow-specific action module.
+ */
 export const tActions = {
 	agentRun: agentRunActions,
 	tag: tagActions,
