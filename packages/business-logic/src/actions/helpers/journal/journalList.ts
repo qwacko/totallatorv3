@@ -19,8 +19,8 @@ import {
 } from '@totallator/shared';
 import type { AccountTypeEnumType } from '@totallator/shared';
 
-import { filterNullUndefinedAndDuplicates } from '@totallator/business-logic/helpers/filterNullUndefinedAndDuplicates';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { filterNullUndefinedAndDuplicates } from '../../../helpers/filterNullUndefinedAndDuplicates';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import { getCorrectJournalTable } from '../../helpers/journalMaterializedView/getCorrectJournalTable';
 import {

@@ -7,7 +7,7 @@ import {
 	closeTestDB,
 	getTestDB,
 	withTestDbContext
-} from '@totallator/business-logic/server/db/test/dbTest';
+} from '../server/db/test/dbTest';
 
 import { type CreateLLMSettingsType, llmActions, type UpdateLLMSettingsType } from './llmActions';
 

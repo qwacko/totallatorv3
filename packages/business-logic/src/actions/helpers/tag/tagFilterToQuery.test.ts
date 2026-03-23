@@ -10,7 +10,7 @@ import {
 	createTestWrapper,
 	getTestDB,
 	initialiseTestDB
-} from '@totallator/business-logic/server/db/test/dbTest';
+} from '../../../server/db/test/dbTest';
 
 import { tagFilterToQuery, tagFilterToText } from './tagFilterToQuery';
 

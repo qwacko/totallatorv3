@@ -3,9 +3,9 @@ import { nanoid } from 'nanoid';
 import { SpanStatusCode, trace } from '@opentelemetry/api';
 import { z } from 'zod';
 
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
-import { getServerEnv } from '@totallator/business-logic/serverEnv';
+import { getLogger } from '../logger';
+import { dbExecuteLogger } from '../server/db/dbLogger';
+import { getServerEnv } from '../serverEnv';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
 	account,

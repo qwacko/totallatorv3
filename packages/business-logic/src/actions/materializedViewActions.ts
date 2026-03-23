@@ -17,9 +17,9 @@ import {
 import type { DBType } from '@totallator/database';
 import { serverEnvSchema, type ServerEnvSchemaType } from '@totallator/shared';
 
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger, dbExecuteRawLogger } from '@totallator/business-logic/server/db/dbLogger';
-import { getServerEnv } from '@totallator/business-logic/serverEnv';
+import { getLogger } from '../logger';
+import { dbExecuteLogger, dbExecuteRawLogger } from '../server/db/dbLogger';
+import { getServerEnv } from '../serverEnv';
 
 import { booleanKeyValueStore } from './helpers/keyValueStore';
 

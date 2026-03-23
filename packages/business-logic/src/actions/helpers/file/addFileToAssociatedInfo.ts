@@ -5,8 +5,8 @@ import { getContextDB } from '@totallator/context';
 import { fileTable } from '@totallator/database';
 import type { CreateFileSchemaCoreType, FileTypeType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
-import { fileFileHandler } from '@totallator/business-logic/server/files/fileHandler';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
+import { fileFileHandler } from '../../../server/files/fileHandler';
 
 import { updatedTime } from '../misc/updatedTime';
 

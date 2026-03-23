@@ -8,7 +8,7 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./client": "./src/client.ts",
-		"./*": "./src/*.ts"
+		"./testing": "./src/testing.ts"
 	},
 	"scripts": {
 		"build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",

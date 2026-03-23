@@ -4,7 +4,7 @@ import type { DBType } from '@totallator/database';
 import { createJournalDBCore, type CreateJournalSchemaType } from '@totallator/shared';
 import type { StatusEnumType } from '@totallator/shared';
 
-import { getLogger } from '@totallator/business-logic/logger';
+import { getLogger } from '../../../logger';
 
 import { updatedTime } from '../misc/updatedTime';
 import { expandDate } from './expandDate';

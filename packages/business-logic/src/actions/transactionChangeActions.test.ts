@@ -13,15 +13,15 @@ import {
 	closeTestDB,
 	createTestWrapper,
 	getTestDB
-} from '@totallator/business-logic/server/db/test/dbTest';
-import { seedTestAccounts } from '@totallator/business-logic/server/db/test/seedTestAccounts';
-import { seedTestBills } from '@totallator/business-logic/server/db/test/seedTestBills';
-import { seedTestBudgets } from '@totallator/business-logic/server/db/test/seedTestBudgets';
-import { seedTestCategories } from '@totallator/business-logic/server/db/test/seedTestCategories';
-import { seedTestImports } from '@totallator/business-logic/server/db/test/seedTestImports';
-import { seedTestLabels } from '@totallator/business-logic/server/db/test/seedTestLabels';
-import { seedTestTags } from '@totallator/business-logic/server/db/test/seedTestTags';
-import { seedTestTransactions } from '@totallator/business-logic/server/db/test/seedTestTransactions';
+} from '../server/db/test/dbTest';
+import { seedTestAccounts } from '../server/db/test/seedTestAccounts';
+import { seedTestBills } from '../server/db/test/seedTestBills';
+import { seedTestBudgets } from '../server/db/test/seedTestBudgets';
+import { seedTestCategories } from '../server/db/test/seedTestCategories';
+import { seedTestImports } from '../server/db/test/seedTestImports';
+import { seedTestLabels } from '../server/db/test/seedTestLabels';
+import { seedTestTags } from '../server/db/test/seedTestTags';
+import { seedTestTransactions } from '../server/db/test/seedTestTransactions';
 
 import { backupActions } from './backupActions';
 import { journalActions } from './journalActions';

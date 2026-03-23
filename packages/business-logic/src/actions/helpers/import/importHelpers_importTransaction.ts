@@ -10,9 +10,9 @@ import {
 	updateJournalSchema
 } from '@totallator/shared';
 
-import { journalActions } from '@totallator/business-logic/actions/journalActions';
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { journalActions } from '../../journalActions';
+import { getLogger } from '../../../logger';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import { simpleSchemaToCombinedSchema } from '../journal/simpleSchemaToCombinedSchema';
 import { updatedTime } from '../misc/updatedTime';

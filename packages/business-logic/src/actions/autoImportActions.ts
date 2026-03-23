@@ -1,8 +1,8 @@
 import { and, count as drizzleCount, eq, getTableColumns } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { getLogger } from '../logger';
+import { dbExecuteLogger } from '../server/db/dbLogger';
 import { getContextDB, runInTransactionWithLogging } from '@totallator/context';
 import {
 	autoImportTable,

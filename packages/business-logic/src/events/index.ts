@@ -15,4 +15,4 @@ export {
 	getBackupRestoreProgress,
 	hasActiveBackupRestore
 } from './eventCallbacks.js';
-export { emitEvent, canEmitEvents, emitMultipleEvents } from './eventHelper.js';
+export { emitEvent } from './eventHelper.js';

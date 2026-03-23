@@ -4,7 +4,7 @@ import { getContextDB } from '@totallator/context';
 import { associatedInfoTable, notesTable, user } from '@totallator/database';
 import type { NoteTypeType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import type { GroupingOptions } from '../file/FilesAndNotesActions';
 import { inArrayWrapped } from '../misc/inArrayWrapped';

@@ -10,7 +10,7 @@ import {
 } from '@totallator/database';
 import type { AccountFilterSchemaWithoutPaginationType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import { linkedFileFilterQuery, linkedFileFilterToText } from '../file/fileFilterToQuery';
 import { arrayToText } from '../misc/arrayToText';

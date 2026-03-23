@@ -8,7 +8,7 @@ import {
 	importTypeToTitle
 } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import { autoImportIdToTitle } from '../autoImport/autoImportFilterToQuery';
 import { idTitleFilterToText } from '../misc/filterToQueryTitleIDCore';

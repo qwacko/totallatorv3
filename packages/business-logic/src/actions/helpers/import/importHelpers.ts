@@ -18,13 +18,13 @@ import { createCategorySchema } from '@totallator/shared';
 import { createTagSchema } from '@totallator/shared';
 import { createLabelSchema } from '@totallator/shared';
 
-import { accountActions } from '@totallator/business-logic/actions/accountActions';
-import { billActions } from '@totallator/business-logic/actions/billActions';
-import { budgetActions } from '@totallator/business-logic/actions/budgetActions';
-import { categoryActions } from '@totallator/business-logic/actions/categoryActions';
-import { labelActions } from '@totallator/business-logic/actions/labelActions';
-import { tagActions } from '@totallator/business-logic/actions/tagActions';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { accountActions } from '../../accountActions';
+import { billActions } from '../../billActions';
+import { budgetActions } from '../../budgetActions';
+import { categoryActions } from '../../categoryActions';
+import { labelActions } from '../../labelActions';
+import { tagActions } from '../../tagActions';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import { importItem } from './importItem';
 

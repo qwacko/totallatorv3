@@ -11,7 +11,7 @@ import {
 	user as userTable
 } from '@totallator/database';
 
-import { getLogger } from '@totallator/business-logic/logger';
+import { getLogger } from '../logger';
 
 function generateSessionToken(): string {
 	const bytes = new Uint8Array(20);

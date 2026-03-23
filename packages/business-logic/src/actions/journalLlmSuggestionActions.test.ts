@@ -7,7 +7,7 @@ import {
 	initialiseTestDB,
 	seedSimpleTransferJournal,
 	withTestDbContext
-} from '@totallator/business-logic/server/db/test/dbTest';
+} from '../server/db/test/dbTest';
 
 import { journalLlmSuggestionActions } from './journalLlmSuggestionActions';
 import { llmActions } from './llmActions';

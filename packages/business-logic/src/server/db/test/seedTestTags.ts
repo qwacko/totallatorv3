@@ -1,7 +1,7 @@
 import type { DBType } from '@totallator/database';
 import { tag } from '@totallator/database';
 
-import { tagCreateInsertionData } from '@totallator/business-logic/actions/helpers/tag/tagCreateInsertionData';
+import { tagCreateInsertionData } from '../../../actions/helpers/tag/tagCreateInsertionData';
 
 import { testImportSeedIds } from './seedTestImports';
 

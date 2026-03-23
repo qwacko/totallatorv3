@@ -14,20 +14,7 @@ The cron system is built with the following components:
 
 ### 2. Core Components
 
-#### CronJobService
-
-The main service class that manages cron job scheduling and execution.
-
-**Key Features:**
-
-- Automatic initialization and synchronization of job definitions
-- Execution tracking with timeout handling
-- Retry logic with exponential backoff
-- Graceful shutdown and restart capabilities
-- Manual job triggering
-- Concurrent execution prevention
-
-#### CronJobDefinitions
+#### Cron Job Definitions
 
 Contains all predefined cron jobs with their schedules and business logic.
 
@@ -57,14 +44,10 @@ Database operations for cron job management:
 ### Basic Setup
 
 ```typescript
-import { CronJobService } from '@totallator/business-logic';
+import { cronJobDefinitions, tActions } from '@totallator/business-logic';
 
-// Initialize the cron service
-const cronService = new CronJobService(database, getGlobalContext);
-await cronService.initialize();
-
-// Graceful shutdown
-await cronService.shutdown();
+const jobs = cronJobDefinitions;
+const listed = await tActions.cronJob.getAllCronJobs();
 ```
 
 ### Adding New Cron Jobs
@@ -102,15 +85,14 @@ await cronService.shutdown();
 }
 ```
 
-2. **Restart the Service** to pick up new job definitions.
+2. **Restart the worker runtime** to pick up new job definitions.
 
 ### Manual Job Triggering
 
 ```typescript
-const result = await cronService.triggerJob(jobId, userId);
-if (result.success) {
-	console.log(`Job triggered with execution ID: ${result.executionId}`);
-}
+await tActions.cronExecution.getCronJobExecutions({
+	cronJobId: jobId
+});
 ```
 
 ### Environment Variable Support

@@ -10,7 +10,7 @@ import {
 	getTestDB,
 	initialiseTestDB,
 	seedSimpleTransferJournal
-} from '@totallator/business-logic/server/db/test/dbTest';
+} from '../server/db/test/dbTest';
 
 import { accountActions } from './accountActions';
 import { materializedViewActions } from './materializedViewActions';

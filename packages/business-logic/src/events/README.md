@@ -67,7 +67,7 @@ export function initializeEventCallbacks(): void {
 From any business logic function or endpoint:
 
 ```typescript
-import { emitEvent } from '@totallator/business-logic';
+import { emitEvent } from './eventHelper.js';
 
 export async function createUser(userData: any) {
 	// Your business logic here
@@ -86,8 +86,6 @@ export async function createUser(userData: any) {
 ## Helper Functions
 
 - **`emitEvent(eventName, payload)`**: Emit a single event
-- **`canEmitEvents()`**: Check if event emitter is available
-- **`emitMultipleEvents(events)`**: Emit multiple events in sequence
 
 ## Error Handling
 

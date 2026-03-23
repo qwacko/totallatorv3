@@ -2,7 +2,7 @@ import type { DBType } from '@totallator/database';
 import type { ReportConfigPartNumberDisplayType } from '@totallator/shared';
 import type { currencyFormatType } from '@totallator/shared';
 
-import { convertNumberToText } from '@totallator/business-logic/helpers/convertNumberToText';
+import { convertNumberToText } from '../../../helpers/convertNumberToText';
 
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { mathConfigToNumber } from './mathConfigToNumber';

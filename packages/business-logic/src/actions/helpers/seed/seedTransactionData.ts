@@ -1,6 +1,6 @@
 import type { CreateCombinedTransactionType } from '@totallator/shared';
 
-import { getLogger } from '@totallator/business-logic/logger';
+import { getLogger } from '../../../logger';
 
 import {
 	getRandomArrayElement,

@@ -1,4 +1,4 @@
-import { getLogger } from '@totallator/business-logic/logger';
+import { getLogger } from '../logger';
 
 export const timerHelperFunction = (title: string) => {
 	const startTime = Date.now();

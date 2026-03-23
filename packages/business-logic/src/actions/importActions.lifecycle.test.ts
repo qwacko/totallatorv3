@@ -14,11 +14,11 @@ vi.mock('@totallator/context', () => ({
 	runInTransactionWithLogging: vi.fn()
 }));
 
-vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({
+vi.mock('../server/db/dbLogger', () => ({
 	dbExecuteLogger: (...args: any[]) => dbExecuteLoggerMock(...args)
 }));
 
-vi.mock('@totallator/business-logic/logger', () => ({
+vi.mock('../logger', () => ({
 	getLogger: () => ({ info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() })
 }));
 

@@ -40,7 +40,7 @@ import type { CreateFileSchemaCoreType } from '@totallator/shared';
 import type { CreateNoteSchemaCoreType } from '@totallator/shared';
 import type { IdSchemaType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../server/db/dbLogger';
 
 import { associatedInfoFilterToQuery } from './helpers/associatedInfo/associatedInfoFilterToQuery';
 import { addFileToAssociatedInfo } from './helpers/file/addFileToAssociatedInfo';

@@ -1,6 +1,6 @@
 import type { MonthlySummarySchemaType } from '@totallator/shared';
 
-import { generateYearMonthsBetween } from '@totallator/business-logic/helpers/generateYearMonthsBetween';
+import { generateYearMonthsBetween } from '../../../helpers/generateYearMonthsBetween';
 
 export type MonthlySummaryType = {
 	yearMonth: string;

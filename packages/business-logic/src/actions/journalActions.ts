@@ -18,8 +18,8 @@ import {
 	type UpdateJournalSchemaInputType
 } from '@totallator/shared';
 
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { getLogger } from '../logger';
+import { dbExecuteLogger } from '../server/db/dbLogger';
 
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import { accountActions } from './accountActions';

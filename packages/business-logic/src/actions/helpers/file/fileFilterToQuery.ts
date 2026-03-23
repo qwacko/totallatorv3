@@ -5,7 +5,7 @@ import type { DBType } from '@totallator/database';
 import type { FileFilterSchemaWithoutPaginationType } from '@totallator/shared';
 import type { LinkedFileFilterSchemaType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import { arrayToText } from '../misc/arrayToText';
 import { filterToQueryFinal } from '../misc/filterToQueryFinal';

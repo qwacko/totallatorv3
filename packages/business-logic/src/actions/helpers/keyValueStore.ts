@@ -3,9 +3,9 @@ import { eq } from 'drizzle-orm';
 import { type DBType } from '@totallator/database';
 import { keyValueTable } from '@totallator/database';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../../server/db/dbLogger';
 
-export const keyValueStore = (key: string) => {
+const keyValueStore = (key: string) => {
 	return {
 		get: async (db: DBType) => {
 			const keyValue = await dbExecuteLogger(
@@ -58,26 +58,6 @@ export const booleanKeyValueStore = (key: string, defaultValue: boolean = false)
 		},
 		set: async (db: DBType, value: boolean) => {
 			await store.set(db, value ? 'true' : 'false');
-		},
-		clear: store.clear
-	};
-};
-
-export const enumKeyValueStore = <T extends string>(key: string, defaultValue: T) => {
-	const store = keyValueStore(key);
-
-	return {
-		get: async (db: DBType) => {
-			const value = await store.get(db);
-
-			if (value === undefined) {
-				return defaultValue;
-			}
-
-			return value as T;
-		},
-		set: async (db: DBType, value: T) => {
-			await store.set(db, value);
 		},
 		clear: store.clear
 	};

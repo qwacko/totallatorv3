@@ -4,9 +4,9 @@ import type { DBType } from '@totallator/database';
 import type { ReportConfigPartSchemaSparklineType } from '@totallator/shared';
 import { type currencyFormatType } from '@totallator/shared';
 
-import { convertNumberToText } from '@totallator/business-logic/helpers/convertNumberToText';
-import { filterNullUndefinedAndDuplicates } from '@totallator/business-logic/helpers/filterNullUndefinedAndDuplicates';
-import { getLogger } from '@totallator/business-logic/logger';
+import { convertNumberToText } from '../../../helpers/convertNumberToText';
+import { filterNullUndefinedAndDuplicates } from '../../../helpers/filterNullUndefinedAndDuplicates';
+import { getLogger } from '../../../logger';
 
 import type { GetDataForFilterKeyType } from './getCombinedFilters';
 import { getFiltersFromMathConfig } from './getFiltersFromMathConfig';

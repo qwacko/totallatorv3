@@ -6,18 +6,18 @@ const updateJournalsMock = vi.fn();
 const createManyTransactionJournalsMock = vi.fn();
 const dbExecuteLoggerMock = vi.fn(async (query: any) => query);
 
-vi.mock('@totallator/business-logic/actions/journalActions', () => ({
+vi.mock('../../journalActions', () => ({
 	journalActions: {
 		updateJournals: (args: any) => updateJournalsMock(args),
 		createManyTransactionJournals: (args: any) => createManyTransactionJournalsMock(args)
 	}
 }));
 
-vi.mock('@totallator/business-logic/logger', () => ({
+vi.mock('../../../logger', () => ({
 	getLogger: () => ({ debug: vi.fn(), info: vi.fn(), error: vi.fn() })
 }));
 
-vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({
+vi.mock('../../../server/db/dbLogger', () => ({
 	dbExecuteLogger: (...args: any[]) => dbExecuteLoggerMock(...args)
 }));
 

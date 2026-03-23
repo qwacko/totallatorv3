@@ -11,7 +11,7 @@ import {
 	type ImportMappingFilterSchema
 } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../server/db/dbLogger';
 
 import { streamingDelay } from '../server/testingDelay';
 import { importMappingFilterToQuery } from './helpers/import/importMappingFilterToQuery';

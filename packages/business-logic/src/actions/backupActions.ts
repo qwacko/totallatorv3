@@ -46,10 +46,10 @@ import {
 	user
 } from '@totallator/database';
 
-import { fixedDelay } from '@totallator/business-logic/helpers/fixedDelay';
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
-import { getServerEnv } from '@totallator/business-logic/serverEnv';
+import { fixedDelay } from '../helpers/fixedDelay';
+import { getLogger } from '../logger';
+import { dbExecuteLogger } from '../server/db/dbLogger';
+import { getServerEnv } from '../serverEnv';
 
 import { emitEvent } from '../events/eventHelper.js';
 import { backupFileHandler } from '../server/files/fileHandler';

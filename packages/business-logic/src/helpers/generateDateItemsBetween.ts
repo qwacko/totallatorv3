@@ -1,4 +1,4 @@
-import { expandDate } from '@totallator/business-logic/actions/helpers/journal/expandDate';
+import { expandDate } from '../actions/helpers/journal/expandDate';
 
 import { filterNullUndefinedAndDuplicates } from './filterNullUndefinedAndDuplicates';
 

@@ -9,8 +9,8 @@ import type {
 	QueryLogFilterSchemaWithoutPaginationType
 } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
-import { getServerEnv } from '@totallator/business-logic/serverEnv';
+import { dbExecuteLogger } from '../server/db/dbLogger';
+import { getServerEnv } from '../serverEnv';
 
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import type { PaginatedResults } from './helpers/journal/PaginationType';

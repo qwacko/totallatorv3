@@ -1,5 +1,5 @@
-import { getLogger } from '@totallator/business-logic/logger';
-import { getServerEnv } from '@totallator/business-logic/serverEnv';
+import { getLogger } from '../../logger';
+import { getServerEnv } from '../../serverEnv';
 
 export const tLogger = async <T>(title: string, query: Promise<T>) => {
 	const transactionLoggingThreshold = getServerEnv().TRANSACTIONLOG_TIME_MS;

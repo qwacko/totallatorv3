@@ -12,8 +12,8 @@ import {
 	createTagSchema
 } from '@totallator/shared';
 
-import { getLogger } from '@totallator/business-logic/logger';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { getLogger } from '../../../logger';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import { updatedTime } from '../misc/updatedTime';
 

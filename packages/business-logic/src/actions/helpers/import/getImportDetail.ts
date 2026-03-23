@@ -15,7 +15,7 @@ import {
 import type { DBType } from '@totallator/database';
 import type { importTypeType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 export const getImportDetail = async ({
 	db,

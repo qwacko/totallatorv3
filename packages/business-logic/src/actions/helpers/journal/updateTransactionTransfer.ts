@@ -4,7 +4,7 @@ import type { DBType } from '@totallator/database';
 import { journalEntry } from '@totallator/database';
 import type { AccountTypeEnumType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import { inArrayWrapped } from '../misc/inArrayWrapped';
 

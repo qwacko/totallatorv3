@@ -1,4 +1,4 @@
-import { getLogger } from '@totallator/business-logic/logger';
+import { getLogger } from '../../../logger';
 
 export const getCommonData = <
 	T extends string,

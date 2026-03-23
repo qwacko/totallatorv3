@@ -14,7 +14,7 @@ import type {
 } from '@totallator/shared';
 import { summaryCacheDataSchema, type SummaryCacheSchemaDataType } from '@totallator/shared';
 
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { dbExecuteLogger } from '../server/db/dbLogger';
 
 import { filterNullUndefinedAndDuplicates } from '../helpers/filterNullUndefinedAndDuplicates';
 import {

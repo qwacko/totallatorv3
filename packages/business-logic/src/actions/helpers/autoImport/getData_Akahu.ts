@@ -2,7 +2,7 @@ import { type Account, AkahuClient, type Transaction } from 'akahu';
 
 import type { AutoImportAkahuSchemaType } from '@totallator/shared';
 
-import { getLogger } from '@totallator/business-logic/logger';
+import { getLogger } from '../../../logger';
 
 import { getStartDateToUse } from './getStartDateToUse';
 

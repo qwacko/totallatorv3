@@ -5,7 +5,7 @@ import { getContext } from '@totallator/context';
 import type { GlobalContext } from '@totallator/context';
 import { queryLogTable } from '@totallator/database';
 
-import { queryLogActions } from '@totallator/business-logic/actions/queryLogActions';
+import { queryLogActions } from '../../actions/queryLogActions';
 
 type QueryCache = {
 	title?: string;

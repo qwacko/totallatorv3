@@ -12,8 +12,8 @@ import { serverEnvSchema } from '@totallator/shared';
 import {
 	materializedViewActions,
 	runWithMaterializedViewTestContext
-} from '@totallator/business-logic/actions/materializedViewActions';
-import { getLogger } from '@totallator/business-logic/logger';
+} from '../../../actions/materializedViewActions';
+import { getLogger } from '../../../logger';
 
 import { seedTestAccounts } from './seedTestAccounts';
 import { seedTestBills } from './seedTestBills';

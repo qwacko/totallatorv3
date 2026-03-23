@@ -4,8 +4,8 @@ import { getContextDB } from '@totallator/context';
 import { notesTable } from '@totallator/database';
 import type { CreateNoteSchemaCoreType } from '@totallator/shared';
 
-import { materializedViewActions } from '@totallator/business-logic/actions/materializedViewActions';
-import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
+import { materializedViewActions } from '../../materializedViewActions';
+import { dbExecuteLogger } from '../../../server/db/dbLogger';
 
 import { updatedTime } from '../misc/updatedTime';
 

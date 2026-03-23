@@ -23,34 +23,3 @@ export function emitEvent<T extends keyof AppEvents>(eventName: T, payload: AppE
 		});
 	}
 }
-
-/**
- * Check if the event emitter is available in the current context
- *
- * Useful for conditional event emission when not sure if running
- * within the proper context.
- */
-export function canEmitEvents(): boolean {
-	try {
-		getEventEmitter();
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-/**
- * Emit multiple events in sequence
- *
- * Useful when a single operation should trigger multiple events.
- */
-export function emitMultipleEvents<T extends keyof AppEvents>(
-	events: Array<{
-		name: T;
-		payload: AppEvents[T];
-	}>
-): void {
-	for (const event of events) {
-		emitEvent(event.name, event.payload);
-	}
-}

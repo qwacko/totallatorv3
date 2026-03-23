@@ -21,13 +21,8 @@ export {
 	getEventListenerCounts,
 	clearInProgressBackupRestores,
 	getBackupRestoreProgress,
-	hasActiveBackupRestore,
-	emitEvent,
-	canEmitEvents,
-	emitMultipleEvents
+	hasActiveBackupRestore
 } from './events/index.js';
-
-export type TestType = string;
 
 // Export key types that are needed by the webapp
 export type { TagDropdownType } from './actions/tagActions.js';
@@ -61,33 +56,15 @@ export type { AssociatedInfoLinkType } from './actions/associatedInfoActions.js'
 export type { TransactionHistoryItemType } from './actions/transactionChangeActions.js';
 
 // Export cron-related types
-export type {
-	CronJobDefinition,
-	CronJobResult,
-	CronJobExecutionContext,
-	CronJobExecutionStatus,
-	CronJobExecutionFilter
-} from './server/cron/types.js';
-
 // Export functions and actions that are imported by the webapp
 export {
-	dbAdminCount,
-	dbUserCount,
 	dbNoAdmins,
 	noAdmins,
-	isFirstUser,
 	getAdminCount,
 	getUserCount
 } from './actions/firstUser.js';
 export { userActions } from './actions/userActions.js';
 export { reusableFilterActions } from './actions/reusableFilterActions.js';
-
-// Export key-value store utilities
-export {
-	keyValueStore,
-	booleanKeyValueStore,
-	enumKeyValueStore
-} from './actions/helpers/keyValueStore.js';
 
 // Export materialized view actions
 export { materializedViewActions } from './actions/materializedViewActions.js';
@@ -115,7 +92,6 @@ export { categoryFilterToText } from './actions/helpers/category/categoryFilterT
 export { categoryFilterArray } from './actions/helpers/category/categoryTextFilter.js';
 
 // Export cron service
-export { CronJobService } from './server/cron/cronJobService';
 export { cronJobDefinitions } from './server/cron/cronJobDefinitions';
 
 export const actionHelpers = {
@@ -128,9 +104,4 @@ export const actionHelpers = {
 	resolveApiUrl,
 	getProviderType,
 	initDBLogger: initDBLogger
-};
-
-export const clientHelpers = {
-	resolveApiUrl,
-	getProviderDisplayName
 };

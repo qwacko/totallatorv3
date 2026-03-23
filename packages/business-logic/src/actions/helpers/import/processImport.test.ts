@@ -23,7 +23,7 @@ vi.mock('@totallator/context', () => ({
 	})
 }));
 
-vi.mock('@totallator/business-logic/server/files/fileHandler', () => ({
+vi.mock('../../../server/files/fileHandler', () => ({
 	importFileHandler: () => ({
 		readToString: async () => 'id,title\nrow-1,Row 1'
 	})
@@ -54,7 +54,7 @@ vi.mock('./getImportDetail', () => ({
 	})
 }));
 
-vi.mock('@totallator/business-logic/server/db/dbLogger', () => ({
+vi.mock('../../../server/db/dbLogger', () => ({
 	dbExecuteLogger: async (_query: any, label: string) => {
 		if (label === 'getImportData') {
 			return [

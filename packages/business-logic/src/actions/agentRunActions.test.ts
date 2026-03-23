@@ -5,7 +5,7 @@ import {
 	closeTestDB,
 	getTestDB,
 	withTestDbContext
-} from '@totallator/business-logic/server/db/test/dbTest';
+} from '../server/db/test/dbTest';
 import { getEventEmitter } from '@totallator/context';
 import type { DBType } from '@totallator/database';
 

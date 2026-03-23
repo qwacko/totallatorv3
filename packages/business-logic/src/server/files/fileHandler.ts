@@ -4,8 +4,8 @@ import { AwsS3StorageAdapter } from '@flystorage/aws-s3';
 import { FileStorage } from '@flystorage/file-storage';
 import { LocalStorageAdapter } from '@flystorage/local-fs';
 
-import { getLogger } from '@totallator/business-logic/logger';
-import { getServerEnv } from '@totallator/business-logic/serverEnv';
+import { getLogger } from '../../logger';
+import { getServerEnv } from '../../serverEnv';
 
 const fileHandler = (getAddress: () => string, title: string) => {
 	return () => {

@@ -6,8 +6,9 @@ import {
 	closeTestDB,
 	getTestDB,
 	initialiseTestDB,
+	testImportSeedIds,
 	withTestDbContext
-} from '@totallator/business-logic/server/db/test/dbTest';
+} from '@totallator/business-logic/testing';
 import type { DBType } from '@totallator/database';
 import {
 	agentRun,
@@ -17,8 +18,6 @@ import {
 	llmSettings
 } from '@totallator/database';
 import { and, eq } from 'drizzle-orm';
-
-import { testImportSeedIds } from '@totallator/business-logic/server/db/test/seedTestImports';
 
 import { runJournalRecommendationAgent } from './journalSuggestionAgent';
 

@@ -1,6 +1,6 @@
 import type { CreateCategorySchemaType } from '@totallator/shared';
 
-import { combinedTitleSplitRequired } from '@totallator/business-logic/helpers/combinedTitleSplit';
+import { combinedTitleSplitRequired } from '../../../helpers/combinedTitleSplit';
 
 import { statusUpdate } from '../misc/statusUpdate';
 import { updatedTime } from '../misc/updatedTime';
