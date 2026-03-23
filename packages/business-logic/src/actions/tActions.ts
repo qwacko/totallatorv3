@@ -1,4 +1,5 @@
 import { accountActions } from './accountActions';
+import { agentRunActions } from './agentRunActions';
 import { associatedInfoActions } from './associatedInfoActions';
 import { auth } from './authActions';
 import { autoImportActions } from './autoImportActions';
@@ -26,6 +27,7 @@ import { transactionChangeActions } from './transactionChangeActions';
 import { userActions } from './userActions';
 
 export const tActions = {
+	agentRun: agentRunActions,
 	tag: tagActions,
 	category: categoryActions,
 	bill: billActions,
@@ -35,6 +37,7 @@ export const tActions = {
 	journal: journalActions,
 	import: importActions,
 	transactionChange: transactionChangeActions,
+	reusableFilter: reusableFilterActions,
 	reusableFitler: reusableFilterActions,
 	importMapping: importMappingActions,
 	backup: backupActions,

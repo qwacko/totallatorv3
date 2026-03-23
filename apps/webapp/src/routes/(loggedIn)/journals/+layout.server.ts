@@ -1,7 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 
-import { journalFilterToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import type { EnhancedRecommendationType } from '@totallator/business-logic';
 import type { JournalFilterSchemaType } from '@totallator/shared';
 
@@ -40,12 +39,12 @@ export const load = async (data) => {
 		return acc;
 	}, {});
 
-	const filterText = await journalFilterToText({
+	const filterText = await tHelpers.journal.filterToText({
 		db,
 		filter,
 		prefix: 'Journal'
 	});
-	const filterDropdown = await tActions.reusableFitler.listForDropdown();
+	const filterDropdown = await tActions.reusableFilter.listForDropdown();
 
 	return {
 		journals: journalData,

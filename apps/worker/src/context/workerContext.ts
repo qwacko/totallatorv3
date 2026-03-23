@@ -2,7 +2,7 @@ import { createClient } from '@libsql/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { materializedViewActions } from '@totallator/business-logic';
+import { tActions } from '@totallator/business-logic';
 import {
 	type CombinedContext,
 	type EnhancedRequestContext,
@@ -26,7 +26,7 @@ const { standaloneContext, globalContext } = hookBuilder({
 				serverEnv: workerEnv,
 				isBuilding: false,
 				viewRefreshAction: async () => {
-					return await materializedViewActions.conditionalRefreshWithContext({});
+					return await tActions.materializedViews.conditionalRefreshWithContext({});
 				},
 				migrationsPath,
 				createLoggingDBClient: () => {

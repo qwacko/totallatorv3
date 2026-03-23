@@ -4,8 +4,7 @@ import { message, superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { tActions } from '@totallator/business-logic';
-import { journalFilterArray } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import {
 	defaultJournalFilter,
 	journalFilterSchema,
@@ -62,7 +61,10 @@ export const load = async (data) => {
 		const latestUpdate = await tActions.journalView.getLatestUpdateDate();
 
 		// Generate autocomplete configuration from server-side filter array
-		const autocompleteKeys = extractAutocompleteFromTextFilter(journalFilterArray, 'journal');
+		const autocompleteKeys = extractAutocompleteFromTextFilter(
+			tHelpers.journal.filterArray,
+			'journal'
+		);
 
 		const duration = Date.now() - startTime;
 		data.locals.global.logger('journals').debug({

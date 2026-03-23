@@ -4,9 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { tagFilterToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
-import { tagFilterArray } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { defaultJournalFilter, tagFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
@@ -38,13 +36,13 @@ export const load = async (data) => {
 		filter: { ...defaultJournalFilter(), tag: pageInfo.searchParams }
 	});
 
-	const filterText = await tagFilterToText({
+	const filterText = await tHelpers.tag.filterToText({
 		db,
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 
 	// Generate autocomplete configuration from server-side filter array
-	const autocompleteKeys = extractAutocompleteFromTextFilter(tagFilterArray, 'tag');
+	const autocompleteKeys = extractAutocompleteFromTextFilter(tHelpers.tag.filterArray, 'tag');
 
 	return {
 		tags: tActions.associatedInfo.addToItems({

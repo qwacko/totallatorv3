@@ -21,7 +21,7 @@ export const load = async (data) => {
 		);
 	}
 
-	const filterInfo = await tActions.reusableFitler.getById({
+	const filterInfo = await tActions.reusableFilter.getById({
 		id: current.params.id
 	});
 
@@ -46,7 +46,7 @@ export const actions = {
 		const form = await request.formData();
 		const prevPage = form.get('prevPage');
 
-		await tActions.reusableFitler.delete({ id });
+		await tActions.reusableFilter.delete({ id });
 
 		redirect(
 			302,

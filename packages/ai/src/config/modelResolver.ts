@@ -1,5 +1,5 @@
 import type { LLMSettings } from '@totallator/database';
-import { actionHelpers } from '@totallator/business-logic';
+import { tHelpers } from '@totallator/business-logic';
 
 import type { AITaskId } from '../tasks/taskIds';
 import { getTaskModelProfile } from './taskModelProfiles';
@@ -24,7 +24,7 @@ export const resolveTaskModelSelection = ({
 	overrideModel?: string;
 }): ResolvedTaskModelSelection => {
 	const profile = getTaskModelProfile(taskId);
-	const providerId = actionHelpers.getProviderType(llmSettings.apiUrl);
+	const providerId = tHelpers.llmProvider.getProviderType(llmSettings.apiUrl);
 
 	return {
 		taskId,

@@ -4,9 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { categoryFilterToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
-import { categoryFilterArray } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { categoryFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
@@ -30,13 +28,16 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const filterText = await categoryFilterToText({
+	const filterText = await tHelpers.category.filterToText({
 		db,
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 
 	// Generate autocomplete configuration from server-side filter array
-	const autocompleteKeys = extractAutocompleteFromTextFilter(categoryFilterArray, 'category');
+	const autocompleteKeys = extractAutocompleteFromTextFilter(
+		tHelpers.category.filterArray,
+		'category'
+	);
 
 	return {
 		categories: tActions.associatedInfo.addToItems({

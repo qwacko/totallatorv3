@@ -1,4 +1,4 @@
-import { actionHelpers, tActions } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 
 import { serverEnv } from '../serverEnv';
 import type { CronJob } from './cron';
@@ -25,7 +25,7 @@ export const cronJobs: CronJob[] = [
 				title: 'CRON: Updating Journal Transfer Settings',
 				code: 'CRON_0005'
 			});
-			actionHelpers.updateManyTransferInfo({ db: context.db });
+			tHelpers.journal.updateManyTransferInfo({ db: context.db });
 		}
 	},
 	{
@@ -33,7 +33,7 @@ export const cronJobs: CronJob[] = [
 		schedule: serverEnv.AUTOMATIC_FILTER_SCHEDULE,
 		job: async (context) => {
 			const startTime = new Date().getTime();
-			await tActions.reusableFitler.applyAllAutomatic();
+			await tActions.reusableFilter.applyAllAutomatic();
 			context.logger('cron').debug({
 				title:
 					'CRON: Running Automatic Filters - Took ' + (new Date().getTime() - startTime) + 'ms',
@@ -46,7 +46,7 @@ export const cronJobs: CronJob[] = [
 		schedule: '11 0 * * *',
 		job: async (context) => {
 			const startTime = new Date().getTime();
-			const numberModified = await tActions.reusableFitler.refreshAll({
+			const numberModified = await tActions.reusableFilter.refreshAll({
 				maximumTime: 60000
 			});
 
@@ -68,7 +68,7 @@ export const cronJobs: CronJob[] = [
 		schedule: '3 * * * *',
 		job: async (context) => {
 			const startTime = new Date().getTime();
-			const numberModified = await tActions.reusableFitler.refresh({
+			const numberModified = await tActions.reusableFilter.refresh({
 				maximumTime: 60000
 			});
 

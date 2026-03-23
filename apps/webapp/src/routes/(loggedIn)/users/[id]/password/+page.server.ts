@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 
-import { tActions, userActions } from '@totallator/business-logic';
+import { tActions } from '@totallator/business-logic';
 import { updatePasswordSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
@@ -55,7 +55,7 @@ export const actions = {
 		}
 
 		try {
-			await userActions.updatePassword({
+			await tActions.user.updatePassword({
 				userId: targetUserId,
 				password: form.data.password
 			});

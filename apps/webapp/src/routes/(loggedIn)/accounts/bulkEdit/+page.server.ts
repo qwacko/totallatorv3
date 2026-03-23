@@ -4,8 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { tActions } from '@totallator/business-logic';
-import { accountFilterToText } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { accountFilterSchema, updateAccountSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
@@ -53,7 +52,7 @@ export const load = async (data) => {
 		}
 
 		const form = await superValidate(commonData, zod4(updateAccountSchema));
-		const filterText = await accountFilterToText({ filter, db });
+		const filterText = await tHelpers.account.filterToText({ filter, db });
 
 		const titles = accounts.data.map((item) => item.title);
 		const numberItems = accounts.count;

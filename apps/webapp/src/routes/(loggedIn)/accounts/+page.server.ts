@@ -4,9 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { accountFilterToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
-import { accountFilterArray } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { accountFilterSchema, accountTypeEnum } from '@totallator/shared';
 import { defaultAllJournalFilter, type JournalFilterSchemaInputType } from '@totallator/shared';
 
@@ -70,13 +68,16 @@ export const load = async (data) => {
 			filter: filteredItems
 		});
 
-		const filterText = await accountFilterToText({
+		const filterText = await tHelpers.account.filterToText({
 			filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
 			db
 		});
 
 		// Generate autocomplete configuration from server-side filter array
-		const autocompleteKeys = extractAutocompleteFromTextFilter(accountFilterArray, 'account');
+		const autocompleteKeys = extractAutocompleteFromTextFilter(
+			tHelpers.account.filterArray,
+			'account'
+		);
 
 		const duration = Date.now() - startTime;
 		data.locals.global.logger('accounts').debug({

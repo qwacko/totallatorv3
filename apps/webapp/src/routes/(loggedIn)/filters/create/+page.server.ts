@@ -4,9 +4,7 @@ import { message, setError, superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { journalFilterToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
-import { journalUpdateToText } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { defaultJournalFilter, journalFilterSchema, updateJournalSchema } from '@totallator/shared';
 import {
 	createReusableFilterFormSchema,
@@ -28,8 +26,8 @@ export const load = async (data) => {
 	const filter = current.searchParams?.filter || defaultJournalFilter();
 	const change = current.searchParams?.change;
 
-	const filterText = await journalFilterToText({ db, filter });
-	const changeText = change ? await journalUpdateToText({ db, change }) : undefined;
+	const filterText = await tHelpers.journal.filterToText({ db, filter });
+	const changeText = change ? await tHelpers.journal.updateToText({ db, change }) : undefined;
 
 	const form = await superValidate(
 		{
@@ -108,7 +106,7 @@ export const actions = {
 		let newFilterId: string | undefined = undefined;
 
 		try {
-			const newFilter = await tActions.reusableFitler.create({
+			const newFilter = await tActions.reusableFilter.create({
 				data: processedCreation.data
 			});
 			if (newFilter?.id) {

@@ -1,7 +1,6 @@
 import type { SingleServerRouteConfig } from 'skroutes';
 
-import { importFilterToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { importFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
@@ -25,7 +24,7 @@ export const load = async (data) => {
 
 	try {
 		const imports = await tActions.import.list({ filter: searchParams });
-		const filterText = await importFilterToText({ db, filter: searchParams });
+		const filterText = await tHelpers.import.filterToText({ db, filter: searchParams });
 
 		const duration = Date.now() - startTime;
 		data.locals.global.logger('imports').debug({

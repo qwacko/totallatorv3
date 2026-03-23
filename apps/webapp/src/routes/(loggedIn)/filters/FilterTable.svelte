@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button, ButtonGroup, DropdownItem, Input } from 'flowbite-svelte';
 
-	import type { reusableFilterActions } from '@totallator/business-logic';
+	import type { tActions } from '@totallator/business-logic';
 	import { defaultJournalFilter } from '@totallator/shared';
 	import type { ReusableFilterFilterSchemaType } from '@totallator/shared';
 
@@ -32,7 +32,7 @@
 		urlForSort,
 		loading
 	}: {
-		dataForTable: Awaited<ReturnType<(typeof reusableFilterActions)['list']>>;
+		dataForTable: Awaited<ReturnType<(typeof tActions.reusableFilter)['list']>>;
 		filterText: string[];
 		urlParams: {
 			searchParams: ReusableFilterFilterSchemaType | undefined;

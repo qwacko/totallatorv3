@@ -4,9 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { budgetFilterToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
-import { budgetFilterArray } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { budgetFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
@@ -35,13 +33,13 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const filterText = await budgetFilterToText({
+	const filterText = await tHelpers.budget.filterToText({
 		db,
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 }
 	});
 
 	// Generate autocomplete configuration from server-side filter array
-	const autocompleteKeys = extractAutocompleteFromTextFilter(budgetFilterArray, 'budget');
+	const autocompleteKeys = extractAutocompleteFromTextFilter(tHelpers.budget.filterArray, 'budget');
 
 	return {
 		budgets: tActions.associatedInfo.addToItems({

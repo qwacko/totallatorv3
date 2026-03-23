@@ -1,8 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { SingleServerRouteConfig } from 'skroutes';
 
-import { tActions } from '@totallator/business-logic';
-import { associatedInfoFilterToText } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { associatedInfoFilterSchemaWithPagination } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
@@ -29,7 +28,7 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const filterText = await associatedInfoFilterToText({
+	const filterText = await tHelpers.associatedInfo.filterToText({
 		filter: pageInfo.searchParams || { page: 0, pageSize: 10 },
 		db
 	});

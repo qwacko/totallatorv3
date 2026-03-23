@@ -1,7 +1,6 @@
 import type { SingleServerRouteConfig } from 'skroutes';
 
-import { tActions } from '@totallator/business-logic';
-import { fileMainFilterArray } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { fileFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
@@ -28,7 +27,7 @@ export const load = async (data) => {
 	});
 
 	// Generate autocomplete configuration from server-side filter array
-	const autocompleteKeys = extractAutocompleteFromTextFilter(fileMainFilterArray, 'file');
+	const autocompleteKeys = extractAutocompleteFromTextFilter(tHelpers.file.filterArray, 'file');
 
 	return {
 		searchParams: current.searchParams,

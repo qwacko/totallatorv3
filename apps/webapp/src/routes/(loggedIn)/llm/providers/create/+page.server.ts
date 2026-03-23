@@ -3,8 +3,7 @@ import { message, superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { tActions } from '@totallator/business-logic';
-import { actionHelpers } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 
@@ -15,7 +14,7 @@ const createLLMProviderSchema = z.object({
 		.min(1, 'Provider is required')
 		.refine((value) => {
 			// Must be a predefined provider ID
-			return actionHelpers.isPredefinedProvider(value);
+			return tHelpers.llmProvider.isPredefinedProvider(value);
 		}, 'Must be a supported provider'),
 	apiKey: z.string().min(1, 'API key is required'),
 	defaultModel: z.string().min(1, 'Default model is required'),
@@ -28,7 +27,7 @@ export const load = async (data) => {
 	authGuard(data);
 
 	const form = await superValidate(zod4(createLLMProviderSchema));
-	const predefinedProviders = actionHelpers.getAllPredefinedProviders();
+	const predefinedProviders = tHelpers.llmProvider.getAllPredefinedProviders();
 
 	return {
 		form,

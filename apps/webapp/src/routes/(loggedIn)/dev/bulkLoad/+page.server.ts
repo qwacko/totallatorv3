@@ -40,7 +40,7 @@ export const load = async ({ locals }) => {
 		(item) => item.journalCount === 0
 	).length;
 
-	const reusableFilterCount = await tActions.reusableFitler.count();
+	const reusableFilterCount = await tActions.reusableFilter.count();
 
 	const journalCount = await tActions.journalView.count();
 	const deletableJournalCount = journalCount;
@@ -191,7 +191,7 @@ export const actions = {
 			const form = await data.request.formData();
 			const count = Number(form.get('count')?.toString() || '10');
 
-			await tActions.reusableFitler.seed({ count });
+			await tActions.reusableFilter.seed({ count });
 		} catch (e) {
 			data.locals.global.logger('server').error({
 				code: 'DEV_0009',
@@ -299,10 +299,10 @@ export const actions = {
 	},
 	deleteReusableFilters: async ({ locals }) => {
 		try {
-			const items = await tActions.reusableFitler.list({
+			const items = await tActions.reusableFilter.list({
 				filter: { pageSize: 10000 }
 			});
-			await tActions.reusableFitler.deleteMany({
+			await tActions.reusableFilter.deleteMany({
 				ids: items.data.map((item) => item.id)
 			});
 		} catch (e) {

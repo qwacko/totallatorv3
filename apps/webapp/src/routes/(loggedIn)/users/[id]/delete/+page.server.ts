@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 
-import { userActions } from '@totallator/business-logic';
+import { tActions } from '@totallator/business-logic';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { urlGenerator } from '$lib/routes.js';
@@ -19,7 +19,7 @@ export const actions = {
 			return;
 		}
 
-		await userActions.deleteUser({ userId: params.id });
+		await tActions.user.deleteUser({ userId: params.id });
 
 		redirect(
 			302,

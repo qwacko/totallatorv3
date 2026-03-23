@@ -1,4 +1,4 @@
-import { actionHelpers } from '@totallator/business-logic';
+import { tHelpers } from '@totallator/business-logic';
 
 import { filterNullUndefinedAndDuplicates } from './filterNullUndefinedAndDuplicates';
 
@@ -61,7 +61,7 @@ const getDateInfoForDate = ({
 	date: string;
 	timeUnit: 'month' | 'day' | 'year' | 'week' | 'quarter';
 }) => {
-	const dateInformation = actionHelpers.expandDate(date);
+	const dateInformation = tHelpers.journal.expandDate(date);
 
 	if (timeUnit === 'week') {
 		return dateInformation.yearWeek;

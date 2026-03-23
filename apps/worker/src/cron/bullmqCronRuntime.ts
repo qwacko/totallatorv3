@@ -260,7 +260,7 @@ export const executeCronJobById = async (payload: ExecuteCronPayload) => {
 											ip: '127.0.0.1'
 										},
 										async () => {
-											await tActions.reusableFitler.applyAllAutomatic({
+											await tActions.reusableFilter.applyAllAutomatic({
 												reportProgress: async (update) => {
 													await reportProgress({
 														progress: update.progress ?? 90,

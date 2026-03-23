@@ -4,9 +4,7 @@ import { setError, superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { journalFilterToText } from '@totallator/business-logic';
-import { journalUpdateToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { journalFilterSchema, updateJournalSchema } from '@totallator/shared';
 import {
 	reusableFilterCreationURLParams,
@@ -35,7 +33,7 @@ export const load = async (data) => {
 		);
 	}
 
-	const reusableFilter = await tActions.reusableFitler.getById({
+	const reusableFilter = await tActions.reusableFilter.getById({
 		id: current.params.id
 	});
 
@@ -50,9 +48,9 @@ export const load = async (data) => {
 	}
 
 	const change = current.searchParams?.change || reusableFilter.change;
-	const changeText = await journalUpdateToText({ db, change });
+	const changeText = await tHelpers.journal.updateToText({ db, change });
 	const filter = current.searchParams?.filter || reusableFilter.filter;
-	const filterText = await journalFilterToText({ db, filter });
+	const filterText = await tHelpers.journal.filterToText({ db, filter });
 
 	const form = await superValidate(
 		{
@@ -117,7 +115,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.reusableFitler.update({
+			await tActions.reusableFilter.update({
 				id,
 				data: processedUpdate.data
 			});
@@ -159,7 +157,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.reusableFitler.update({
+			await tActions.reusableFilter.update({
 				id,
 				data: { filter: filterProcessed.data }
 			});
@@ -183,7 +181,7 @@ export const actions = {
 		}
 
 		try {
-			await tActions.reusableFitler.update({
+			await tActions.reusableFilter.update({
 				id,
 				data: { change: form.data }
 			});

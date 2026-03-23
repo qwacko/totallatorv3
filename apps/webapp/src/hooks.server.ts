@@ -7,15 +7,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import {
-	actionHelpers,
 	clearInProgressBackupRestores,
 	getEventListenerCounts,
 	hasActiveBackupRestore,
 	initializeEventCallbacks,
-	materializedViewActions,
+	tHelpers,
 	tActions
 } from '@totallator/business-logic';
-import { noAdmins } from '@totallator/business-logic';
 import {
 	type CombinedContext,
 	type EnhancedRequestContext,
@@ -82,7 +80,7 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 				serverEnv: getServerEnv(),
 				isBuilding: building,
 				viewRefreshAction: async () => {
-					return await materializedViewActions.conditionalRefreshWithContext({});
+					return await tActions.materializedViews.conditionalRefreshWithContext({});
 				},
 				migrationsPath,
 				createLoggingDBClient: () => {
@@ -108,7 +106,7 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 		);
 
 		// Setup DB Logger
-		actionHelpers.initDBLogger(context);
+		tHelpers.system.initDBLogger(context);
 
 		context.logger('database').info({ title: 'New context system initialized', code: 'DB_006' });
 
@@ -206,7 +204,7 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 					routeId: context.request.routeId,
 					requestId: context.request.requestId
 				},
-				async () => await noAdmins({ global: context.global })
+				async () => await tHelpers.system.noAdmins({ global: context.global })
 			);
 
 			if (event.route.id === null) {

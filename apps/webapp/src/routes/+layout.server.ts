@@ -1,4 +1,4 @@
-import { getAdminCount, getUserCount } from '@totallator/business-logic';
+import { tHelpers } from '@totallator/business-logic';
 import { getContext } from '@totallator/context';
 
 import { dev } from '$app/environment';
@@ -13,8 +13,8 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		throw new Error('Global context not initialized');
 	}
 
-	const userCountValue = await getUserCount({ global: locals.global });
-	const adminCountValue = await getAdminCount({ global: locals.global });
+	const userCountValue = await tHelpers.system.getUserCount({ global: locals.global });
+	const adminCountValue = await tHelpers.system.getAdminCount({ global: locals.global });
 	return {
 		user: locals.user,
 		userCount: userCountValue,

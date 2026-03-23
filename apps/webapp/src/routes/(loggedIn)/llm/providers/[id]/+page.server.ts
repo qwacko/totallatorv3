@@ -4,8 +4,7 @@ import { message, superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import * as z from 'zod';
 
-import { tActions } from '@totallator/business-logic';
-import { actionHelpers } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
 import { serverPageInfo } from '$lib/routes.server';
@@ -18,7 +17,7 @@ const updateLLMProviderSchema = z.object({
 		.min(1, 'Provider is required')
 		.refine((value) => {
 			// Must be a predefined provider ID
-			return actionHelpers.isPredefinedProvider(value);
+			return tHelpers.llmProvider.isPredefinedProvider(value);
 		}, 'Must be a supported provider'),
 	apiKey: z.string().optional(), // Optional for updates - keep existing if not provided
 	defaultModel: z.string().min(1, 'Default model is required'),
@@ -54,7 +53,7 @@ export const load = async (data) => {
 	return {
 		provider,
 		form,
-		predefinedProviders: actionHelpers.getAllPredefinedProviders()
+		predefinedProviders: tHelpers.llmProvider.getAllPredefinedProviders()
 	};
 };
 

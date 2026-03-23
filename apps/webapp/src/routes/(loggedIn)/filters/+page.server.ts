@@ -1,8 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { SingleServerRouteConfig } from 'skroutes';
 
-import { reusableFilterToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { reusableFilterFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig.js';
@@ -16,7 +15,7 @@ export const load = async (data) => {
 
 	const filterInfo = current.searchParams || {};
 
-	const filters = await tActions.reusableFitler.list({
+	const filters = await tActions.reusableFilter.list({
 		filter: filterInfo
 	});
 
@@ -26,14 +25,14 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const filterText = await reusableFilterToText(current.searchParams || {});
+	const filterText = await tHelpers.journal.reusableFilterToText(current.searchParams || {});
 
 	return {
 		filters,
 		filterText,
 		searchParams: current.searchParams,
 		streamed: {
-			filters: tActions.reusableFitler.updateAndList({
+			filters: tActions.reusableFilter.updateAndList({
 				filter: filterInfo,
 				maximumTime: 2000
 			})
@@ -43,7 +42,7 @@ export const load = async (data) => {
 
 export const actions = {
 	refreshAll: async ({ locals }) => {
-		await tActions.reusableFitler.refreshAll({ maximumTime: 60000 });
+		await tActions.reusableFilter.refreshAll({ maximumTime: 60000 });
 	},
 	refreshSome: async ({ locals, params, request }) => {
 		const form = await request.formData();
@@ -52,7 +51,7 @@ export const actions = {
 		const idsArray = ids.map((id) => id.toString());
 
 		try {
-			await tActions.reusableFitler.refreshSome({ ids: idsArray });
+			await tActions.reusableFilter.refreshSome({ ids: idsArray });
 		} catch (e) {
 			locals.global.logger('queries').error({
 				code: 'QRY_0001',

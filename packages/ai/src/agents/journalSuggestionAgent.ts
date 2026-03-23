@@ -1,11 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { LanguageModel } from 'ai';
 
-import {
-	agentRunActions,
-	journalLlmSuggestionActions,
-	llmActions
-} from '@totallator/business-logic';
+import { tActions } from '@totallator/business-logic';
 import { getContextDB } from '@totallator/context';
 import { llmSettings } from '@totallator/database';
 
@@ -66,7 +62,7 @@ export const runJournalRecommendationAgent = async ({
 		overrideModel
 	});
 
-	const run = await agentRunActions.create({
+	const run = await tActions.agentRun.create({
 		taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,
 		triggerSource,
 		llmSettingsId,
@@ -74,14 +70,14 @@ export const runJournalRecommendationAgent = async ({
 		targetJournalCount: journalIds.length
 	});
 
-	await agentRunActions.markRunning({
+	await tActions.agentRun.markRunning({
 		id: run.id,
 		model: selection.model,
 		provider: selection.providerId,
 		promptVersion: 'v2-tool-loop-agent'
 	});
 
-	await agentRunActions.appendEvent({
+	await tActions.agentRun.appendEvent({
 		type: 'agent_run.started',
 		agentRunId: run.id,
 		taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,
@@ -102,7 +98,7 @@ export const runJournalRecommendationAgent = async ({
 			selection,
 			apiKey:
 				(
-					await llmActions.getById({
+					await tActions.llm.getById({
 						id: llmSettingsId,
 						includeApiKey: true
 					})
@@ -116,7 +112,7 @@ export const runJournalRecommendationAgent = async ({
 	let failureCount = 0;
 
 	for (const journalId of journalIds) {
-		await agentRunActions.appendEvent({
+		await tActions.agentRun.appendEvent({
 			type: 'agent_run.step_started',
 			agentRunId: run.id,
 			taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,
@@ -148,7 +144,7 @@ export const runJournalRecommendationAgent = async ({
 				onStepFinish: async (stepResult) => {
 					const currentStepIndex = stepIndex++;
 
-					await agentRunActions.appendEvent({
+					await tActions.agentRun.appendEvent({
 						type: 'agent_run.model_response',
 						agentRunId: run.id,
 						taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,
@@ -163,7 +159,7 @@ export const runJournalRecommendationAgent = async ({
 					});
 
 					for (const toolCall of stepResult.toolCalls) {
-						await agentRunActions.appendEvent({
+						await tActions.agentRun.appendEvent({
 							type: 'agent_run.tool_called',
 							agentRunId: run.id,
 							taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,
@@ -179,7 +175,7 @@ export const runJournalRecommendationAgent = async ({
 					}
 
 					for (const toolResult of stepResult.toolResults) {
-						await agentRunActions.appendEvent({
+						await tActions.agentRun.appendEvent({
 							type: 'agent_run.tool_completed',
 							agentRunId: run.id,
 							taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,
@@ -199,7 +195,7 @@ export const runJournalRecommendationAgent = async ({
 
 			const parsed = journalSuggestionResultSchema.parse(result.output);
 
-			await journalLlmSuggestionActions.create({
+			await tActions.journalLlmSuggestion.create({
 				data: {
 					id: `${run.id}:${journalId}`,
 					journalId,
@@ -220,7 +216,7 @@ export const runJournalRecommendationAgent = async ({
 
 			persistedSuggestions.push(parsed);
 
-			await agentRunActions.appendEvent({
+			await tActions.agentRun.appendEvent({
 				type: 'agent_run.journal_completed',
 				agentRunId: run.id,
 				taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,
@@ -234,7 +230,7 @@ export const runJournalRecommendationAgent = async ({
 		} catch (error) {
 			failureCount += 1;
 
-			await agentRunActions.appendEvent({
+			await tActions.agentRun.appendEvent({
 				type: 'agent_run.failed',
 				agentRunId: run.id,
 				taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,
@@ -246,12 +242,12 @@ export const runJournalRecommendationAgent = async ({
 	}
 
 	if (persistedSuggestions.length === 0 && failureCount > 0) {
-		await agentRunActions.markFailed({
+		await tActions.agentRun.markFailed({
 			id: run.id,
 			summary: `Recommendation run failed for all ${failureCount} journal(s)`
 		});
 
-		await agentRunActions.appendEvent({
+		await tActions.agentRun.appendEvent({
 			type: 'agent_run.failed',
 			agentRunId: run.id,
 			taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,
@@ -262,14 +258,14 @@ export const runJournalRecommendationAgent = async ({
 			}
 		});
 	} else {
-		await agentRunActions.markCompleted({
+		await tActions.agentRun.markCompleted({
 			id: run.id,
 			processedJournalCount: persistedSuggestions.length,
 			failureCount,
 			summary: `Completed recommendation run with ${persistedSuggestions.length} suggestion(s)`
 		});
 
-		await agentRunActions.appendEvent({
+		await tActions.agentRun.appendEvent({
 			type: 'agent_run.completed',
 			agentRunId: run.id,
 			taskId: AI_TASK_IDS.JOURNAL_RECOMMENDATION,

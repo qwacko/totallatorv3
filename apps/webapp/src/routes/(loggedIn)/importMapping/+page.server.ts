@@ -1,8 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { SingleServerRouteConfig } from 'skroutes';
 
-import { importMappingFilterToText } from '@totallator/business-logic';
-import { tActions } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { importMappingFilterSchema } from '@totallator/shared';
 
 import { authGuard } from '$lib/authGuard/authGuardConfig';
@@ -23,7 +22,7 @@ export const load = async (data) => {
 		redirect(302, updateParams({ searchParams: { page: targetPage } }).url);
 	}
 
-	const filterText = await importMappingFilterToText(db, current.searchParams || {});
+	const filterText = await tHelpers.importMapping.filterToText(db, current.searchParams || {});
 
 	return {
 		importMappings,

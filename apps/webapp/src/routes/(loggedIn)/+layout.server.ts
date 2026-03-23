@@ -6,7 +6,7 @@ export const load = async ({ locals }) => {
 	const latestJournalUpdate = await tActions.journalView.getLatestUpdateDate();
 
 	return {
-		filterDropdown: await tActions.reusableFitler.listForDropdown(),
+		filterDropdown: await tActions.reusableFilter.listForDropdown(),
 		reportDropdown: await tActions.report.listForDropdown(),
 		enableDBLog: serverEnv.DBLOG_ENABLE,
 		latestUpdate: latestJournalUpdate,
