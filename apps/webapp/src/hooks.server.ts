@@ -7,10 +7,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import {
-	clearInProgressBackupRestores,
-	getEventListenerCounts,
-	hasActiveBackupRestore,
-	initializeEventCallbacks,
 	tHelpers,
 	tActions
 } from '@totallator/business-logic';
@@ -242,7 +238,7 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 							routeId: context.request.routeId,
 							requestId: context.request.requestId
 						},
-						async () => await hasActiveBackupRestore()
+						async () => await tHelpers.events.hasActiveBackupRestore()
 					);
 					if (hasActiveRestore) {
 						redirect(302, '/backup-restore-progress');
@@ -365,15 +361,15 @@ export const init: ServerInit = async () => {
 				},
 				async () => {
 					console.log('Initializing event callbacks...');
-					initializeEventCallbacks();
+					tHelpers.events.initializeEventCallbacks();
 					initializeAgentRunRealtimeBridge();
 					console.log('Event callbacks initialized');
 
-					const listenerCounts = getEventListenerCounts();
+					const listenerCounts = tHelpers.events.getEventListenerCounts();
 					console.log('Registered event listeners:', listenerCounts);
 
 					console.log('Clearing in-progress backup restores...');
-					await clearInProgressBackupRestores();
+					await tHelpers.events.clearInProgressBackupRestores();
 					console.log('Backup restore cleanup completed');
 				}
 			);

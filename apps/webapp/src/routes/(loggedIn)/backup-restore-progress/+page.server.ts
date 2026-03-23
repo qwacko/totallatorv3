@@ -1,12 +1,12 @@
 import { error, redirect } from '@sveltejs/kit';
 
-import { getBackupRestoreProgress } from '@totallator/business-logic';
+import { tHelpers } from '@totallator/business-logic';
 
 import { urlGeneratorServer } from '$lib/routes.server';
 
 export const load = async () => {
 	try {
-		const progress = await getBackupRestoreProgress();
+		const progress = await tHelpers.events.getBackupRestoreProgress();
 
 		if (!progress) {
 			throw error(404, 'No backup restore in progress');

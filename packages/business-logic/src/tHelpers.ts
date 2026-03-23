@@ -22,6 +22,14 @@ import { labelFilterToText } from './actions/helpers/label/labelFilterToQuery.js
 import { tagFilterArray } from './actions/helpers/tag/tagTextFilter.js';
 import { tagFilterToText } from './actions/helpers/tag/tagFilterToQuery.js';
 import { dbNoAdmins, getAdminCount, getUserCount, noAdmins } from './actions/firstUser.js';
+import {
+	clearInProgressBackupRestores,
+	getBackupRestoreProgress,
+	getEventListenerCounts,
+	hasActiveBackupRestore,
+	initializeEventCallbacks
+} from './events/index.js';
+import { cronJobDefinitions } from './server/cron/cronJobDefinitions.js';
 import { initDBLogger } from './server/db/dbLogger.js';
 import {
 	getAllPredefinedProviders,
@@ -37,6 +45,14 @@ export const tHelpers = {
 	bill: { filterToText: billFilterToText, filterArray: billFilterArray },
 	budget: { filterToText: budgetFilterToText, filterArray: budgetFilterArray },
 	category: { filterToText: categoryFilterToText, filterArray: categoryFilterArray },
+	cron: { jobDefinitions: cronJobDefinitions },
+	events: {
+		initializeEventCallbacks,
+		getEventListenerCounts,
+		clearInProgressBackupRestores,
+		getBackupRestoreProgress,
+		hasActiveBackupRestore
+	},
 	file: { filterArray: fileMainFilterArray },
 	import: { filterToText: importFilterToText },
 	importMapping: { filterToText: importMappingFilterToText },

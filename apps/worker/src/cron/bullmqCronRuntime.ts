@@ -1,7 +1,7 @@
 import type { Queue } from 'bullmq';
 import { eq } from 'drizzle-orm';
 
-import { cronJobDefinitions, tActions } from '@totallator/business-logic';
+import { tActions, tHelpers } from '@totallator/business-logic';
 import { cronJob, cronJobExecution } from '@totallator/database';
 import { withSpan } from '@totallator/telemetry';
 
@@ -41,7 +41,7 @@ export const syncCronDefinitionsAndSchedules = async () => {
 			const db = context.db;
 			const env = process.env;
 
-			for (const jobDef of cronJobDefinitions) {
+			for (const jobDef of tHelpers.cron.jobDefinitions) {
 				await withSpan(
 					'worker.cron.sync-definition',
 					async (definitionSpan) => {
@@ -125,7 +125,7 @@ export const syncCronDefinitionsAndSchedules = async () => {
 		{
 			tracerName: '@totallator/worker',
 			attributes: {
-				'totallator.cron.definition_count': cronJobDefinitions.length
+				'totallator.cron.definition_count': tHelpers.cron.jobDefinitions.length
 			}
 		}
 	);
@@ -175,7 +175,7 @@ export const executeCronJobById = async (payload: ExecuteCronPayload) => {
 			span.setAttribute('totallator.cron.job_id', jobRecord.id);
 			span.setAttribute('totallator.cron.job_name', jobRecord.name);
 
-			const jobDefinition = cronJobDefinitions.find((def) => def.name === jobRecord.name);
+			const jobDefinition = tHelpers.cron.jobDefinitions.find((def) => def.name === jobRecord.name);
 			if (!jobDefinition) {
 				return { success: false, message: `Definition not found for ${jobRecord.name}` };
 			}

@@ -1,8 +1,5 @@
 import { WorkerFactory } from '@totallator/bullmq';
-import {
-	clearInProgressBackupRestores,
-	initializeEventCallbacks
-} from '@totallator/business-logic';
+import { tHelpers } from '@totallator/business-logic';
 import { withRootContext, withSpan } from '@totallator/telemetry';
 
 import { initializeAgentRunRealtimeBridge } from '../ai/agentRunRealtimeBridge';
@@ -77,9 +74,9 @@ export const startWorkerService = async () => {
 					ip: '127.0.0.1'
 				},
 				async () => {
-					initializeEventCallbacks();
+					tHelpers.events.initializeEventCallbacks();
 					initializeAgentRunRealtimeBridge();
-					await clearInProgressBackupRestores();
+					await tHelpers.events.clearInProgressBackupRestores();
 				}
 			);
 		},
