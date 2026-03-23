@@ -540,6 +540,20 @@
       "when": 1773630270944,
       "tag": "0076_slimy_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1774204412308,
+      "tag": "0077_brave_veda",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1774227780353,
+      "tag": "0078_moaning_starjammers",
+      "breakpoints": true
     }
   ]
 }

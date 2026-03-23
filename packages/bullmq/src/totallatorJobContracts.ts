@@ -61,6 +61,13 @@ export type ImportStoreJobData = {
   file: StagedFileData;
 };
 
+export type JournalSuggestionGenerateJobData = {
+  journalIds: string[];
+  llmSettingsId: string;
+  triggeredByUserId?: string;
+  triggerSource?: "manual-single" | "manual-bulk" | "reusable-filter";
+};
+
 export type TotallatorWorkerJobMap = DefaultJobMap & {
   "test-log-job": {
     data: {
@@ -131,6 +138,10 @@ export type TotallatorWorkerJobMap = DefaultJobMap & {
   };
   "import-delete-linked": {
     data: { importId: string };
+    result: JobResult;
+  };
+  "journal-suggestion-generate": {
+    data: JournalSuggestionGenerateJobData;
     result: JobResult;
   };
   "import-forget": {

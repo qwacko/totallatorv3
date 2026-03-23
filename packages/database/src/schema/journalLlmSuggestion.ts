@@ -1,6 +1,7 @@
-import { pgTable, real, text, timestamp } from 'drizzle-orm/pg-core';
+import { jsonb, pgTable, real, text, timestamp } from 'drizzle-orm/pg-core';
 
 import { llmSettings } from './llm';
+import { agentRun } from './aiSchema';
 import { journalEntry } from './transactionSchema';
 
 export const journalLlmSuggestions = pgTable('journal_llm_suggestions', {
@@ -11,6 +12,7 @@ export const journalLlmSuggestions = pgTable('journal_llm_suggestions', {
 	llmSettingsId: text('llm_settings_id')
 		.references(() => llmSettings.id)
 		.notNull(),
+	agentRunId: text('agent_run_id').references(() => agentRun.id),
 
 	// Suggested field values
 	suggestedPayee: text('suggested_payee'),
@@ -24,6 +26,7 @@ export const journalLlmSuggestions = pgTable('journal_llm_suggestions', {
 	// Metadata
 	confidenceScore: real('confidence_score'), // 0.0 to 1.0
 	reasoning: text('reasoning'), // LLM's explanation for the suggestion
+	suggestionPayload: jsonb('suggestion_payload').$type<Record<string, unknown> | null>(),
 	status: text('status').notNull().default('pending'), // 'pending', 'accepted', 'rejected', 'superseded'
 
 	// Audit trail

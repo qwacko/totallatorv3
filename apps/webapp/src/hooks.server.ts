@@ -27,6 +27,7 @@ import {
 import { building } from '$app/environment';
 
 import { loadConfigServer } from '$lib/routes.server.js';
+import { initializeAgentRunRealtimeBridge } from '$lib/server/ai/agentRunRealtimeBridge.js';
 
 import { authGuard } from './lib/authGuard/authGuardConfig.js';
 import { getWriteLock, isWriteLocked } from './lib/server/longProcess/state.js';
@@ -367,6 +368,7 @@ export const init: ServerInit = async () => {
 				async () => {
 					console.log('Initializing event callbacks...');
 					initializeEventCallbacks();
+					initializeAgentRunRealtimeBridge();
 					console.log('Event callbacks initialized');
 
 					const listenerCounts = getEventListenerCounts();

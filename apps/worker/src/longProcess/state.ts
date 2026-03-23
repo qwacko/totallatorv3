@@ -101,6 +101,8 @@ const publishEvent = async <TEvent extends keyof RealtimeEventMap>(
 	);
 };
 
+export const publishRealtimeEvent = publishEvent;
+
 const acquireWriteLock = async (jobId: string, type: string, reason?: string) => {
 	const now = Date.now();
 	const ttlSeconds = getLockTTLSeconds();

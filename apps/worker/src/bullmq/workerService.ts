@@ -5,6 +5,7 @@ import {
 } from '@totallator/business-logic';
 import { withRootContext, withSpan } from '@totallator/telemetry';
 
+import { initializeAgentRunRealtimeBridge } from '../ai/agentRunRealtimeBridge';
 import { globalContext, standaloneContext } from '../context/workerContext';
 import {
 	executeCronJobById,
@@ -15,6 +16,7 @@ import { workerEnv } from '../serverEnv';
 import { WORKER_QUEUES } from './jobContracts';
 import type { WorkerJobMap } from './jobContracts';
 import './jobProcessors/cronControl';
+import './jobProcessors/journalSuggestionGenerate';
 import './jobProcessors/longRunning';
 import './jobProcessors/testJob';
 
@@ -76,6 +78,7 @@ export const startWorkerService = async () => {
 				},
 				async () => {
 					initializeEventCallbacks();
+					initializeAgentRunRealtimeBridge();
 					await clearInProgressBackupRestores();
 				}
 			);

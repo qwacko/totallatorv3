@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import pino from 'pino';
+import type { RealtimeAgentRunEvent } from '@totallator/shared';
 
 /**
  * Event definitions interface for type safety
@@ -43,6 +44,7 @@ export interface AppEvents {
 		message?: string;
 		userId?: string;
 	};
+	'agent_run.realtime': RealtimeAgentRunEvent;
 }
 
 /**

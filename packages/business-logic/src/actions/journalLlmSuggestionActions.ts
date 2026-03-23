@@ -7,8 +7,10 @@ import { journalLlmSuggestions } from '@totallator/database';
 import { dbExecuteLogger } from '@totallator/business-logic/server/db/dbLogger';
 
 export type CreateJournalLlmSuggestionType = {
+	id?: string;
 	journalId: string;
 	llmSettingsId: string;
+	agentRunId?: string;
 	suggestedPayee?: string;
 	suggestedDescription?: string;
 	suggestedCategoryId?: string;
@@ -19,6 +21,8 @@ export type CreateJournalLlmSuggestionType = {
 	confidenceScore?: number;
 	reasoning?: string;
 	llmLogId?: string;
+	suggestionPayload?: Record<string, unknown>;
+	status?: 'pending' | 'accepted' | 'rejected' | 'superseded';
 };
 
 export type UpdateJournalLlmSuggestionType = {
@@ -30,7 +34,7 @@ export type UpdateJournalLlmSuggestionType = {
 export const journalLlmSuggestionActions = {
 	create: async ({ data }: { data: CreateJournalLlmSuggestionType }) => {
 		const db = getContextDB();
-		const id = nanoid();
+		const id = data.id || nanoid();
 
 		// Mark any existing suggestions for this journal as superseded
 		await dbExecuteLogger(

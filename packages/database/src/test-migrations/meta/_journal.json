@@ -15,6 +15,20 @@
       "when": 1773630270342,
       "tag": "0001_hard_mesmero",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774204432884,
+      "tag": "0002_friendly_jean_grey",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774227780140,
+      "tag": "0003_same_vindicator",
+      "breakpoints": true
     }
   ]
 }

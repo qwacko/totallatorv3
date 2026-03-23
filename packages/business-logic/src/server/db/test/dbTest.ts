@@ -192,7 +192,9 @@ export const clearTestDB = async (db: DBType, { refreshViews = true }: { refresh
 		await db.delete(schema.budget).execute();
 		await db.delete(schema.category).execute();
 		await db.delete(schema.label).execute();
+		await db.delete(schema.agentRunEvent).execute();
 		await db.delete(schema.journalLlmSuggestions).execute();
+		await db.delete(schema.agentRun).execute();
 		await db.delete(schema.llmSettings).execute();
 		await db.delete(schema.labelsToJournals).execute();
 		await db.delete(schema.importItemDetail).execute();

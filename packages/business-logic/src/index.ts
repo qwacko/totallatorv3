@@ -5,11 +5,15 @@ import { initDBLogger } from './server/db/dbLogger.js';
 import {
 	getAllPredefinedProviders,
 	getProviderDisplayName,
+	getProviderType,
 	isPredefinedProvider,
 	resolveApiUrl
 } from './server/llm/providerConfig.js';
 
 export { tActions } from './actions/tActions.js';
+export { agentRunActions } from './actions/agentRunActions.js';
+export { journalLlmSuggestionActions } from './actions/journalLlmSuggestionActions.js';
+export { llmActions } from './actions/llmActions.js';
 
 // Export event system
 export {
@@ -122,6 +126,7 @@ export const actionHelpers = {
 	isPredefinedProvider,
 	getProviderDisplayName,
 	resolveApiUrl,
+	getProviderType,
 	initDBLogger: initDBLogger
 };
 

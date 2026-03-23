@@ -93,6 +93,8 @@ const publishEvent = async <TEvent extends keyof RealtimeEventMap>(
 	await redis.publish(EVENTS_CHANNEL, JSON.stringify({ event, payload, timestamp: getNow() }));
 };
 
+export const publishRealtimeEvent = publishEvent;
+
 export const getLongProcessEventsChannel = () => EVENTS_CHANNEL;
 
 export const isWriteLockEnabled = () => serverEnv.ENABLE_GLOBAL_WRITE_LOCK;
