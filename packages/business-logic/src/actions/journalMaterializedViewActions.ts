@@ -354,11 +354,12 @@ export const journalMaterializedViewActions = {
 				: journalData.data;
 
 		const preppedData = journalDataToUse.map((item, row) => {
+			const otherJournalAccountTitle = item.otherJournals[0]?.accountTitle;
 			if (returnType === 'import') {
 				const fromAccountTitle =
-					item.amount > 0 ? item.otherJournals[0].accountTitle : item.accountTitle;
+					item.amount > 0 ? otherJournalAccountTitle : item.accountTitle;
 				const toAccountTitle =
-					item.amount <= 0 ? item.otherJournals[0].accountTitle : item.accountTitle;
+					item.amount <= 0 ? otherJournalAccountTitle : item.accountTitle;
 				const amount = item.amount > 0 ? item.amount : -1 * item.amount;
 
 				return {
@@ -392,7 +393,7 @@ export const journalMaterializedViewActions = {
 				amount: item.amount,
 				total: item.total,
 				accountTitle: item.accountTitle,
-				payeeTitle: item.otherJournals[0].accountTitle,
+				payeeTitle: otherJournalAccountTitle,
 				billTitle: item.billTitle,
 				budgetTitle: item.budgetTitle,
 				categoryTitle: item.categoryTitle,
