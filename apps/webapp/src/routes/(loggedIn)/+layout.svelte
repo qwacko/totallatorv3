@@ -309,7 +309,7 @@
 <UpdateDropdowns dataUpdated={data.dataUpdated} />
 
 <div class="flex flex-col justify-stretch p-2">
-	<div class="flex flex-row gap-2 pb-8 pt-4 md:hidden">
+	<div class="flex flex-row gap-2 pt-4 pb-8 md:hidden">
 		<FilterSelectionModal
 			showDefaultJournalFilters
 			filters={data.filterDropdown}
@@ -453,7 +453,7 @@
 		</Dropdown>
 	</div>
 
-	<div class="hidden flex-row flex-wrap justify-center gap-2 pb-8 pt-4 md:flex">
+	<div class="hidden flex-row flex-wrap justify-center gap-2 pt-4 pb-8 md:flex">
 		<Button href={urlGenerator({ address: '/(loggedIn)/files/create' }).url} outline size="xs">
 			<FileIcon />
 		</Button>

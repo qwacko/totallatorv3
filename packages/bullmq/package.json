@@ -1,0 +1,36 @@
+{
+  "name": "@totallator/bullmq",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc && tsc-alias",
+    "dev": "tsc --watch & tsc-alias --watch",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "check": "tsc --noEmit",
+    "circular": "madge --circular --extensions ts src/",
+    "circular:graph": "madge --circular --extensions ts --image circular-deps.svg src/",
+    "format": "prettier --write .",
+    "lint": "prettier --check .",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "bullmq": "^5.65.1",
+    "ioredis": "^5.8.2"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
+    "madge": "^8.0.0",
+    "prettier": "^3.7.4",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.9.3"
+  }
+}

@@ -31,4 +31,4 @@ export const logDomainEnum = [
 ] as const;
 export const logActionEnum = ['Read', 'Update', 'Create', 'Delete', 'Other', ''] as const;
 export const logLevelEnum = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR'] as const;
-export const logDestinationEnum = ['console', 'database'] as const;
+export const logDestinationEnum = ['console', 'database', 'loki'] as const;

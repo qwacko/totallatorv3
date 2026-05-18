@@ -5,6 +5,7 @@
 
 	import CustomHeader from '$lib/components/CustomHeader.svelte';
 	import PageLayout from '$lib/components/PageLayout.svelte';
+	import AccountComboSelect from '$lib/components/remoteFunctionDropdown/AccountComboSelect.svelte';
 
 	import BulkCreateDisplay from './BulkCreateDisplay.svelte';
 
@@ -15,6 +16,7 @@
 
 <PageLayout title="Bulk Actions">
 	<Heading tag="h3">Remote Functions</Heading>
+	<AccountComboSelect />
 	<BulkCreateDisplay
 		title="Journals"
 		createAction="?/bulkAddJournals"

@@ -264,7 +264,7 @@ export class LogDatabaseOperations {
 			hasSelect: this.db && typeof this.db.select === 'function',
 			thisContext: this.constructor.name
 		});
-		
+
 		try {
 			if (!this.db) {
 				throw new Error('Database connection is null/undefined');
@@ -272,7 +272,7 @@ export class LogDatabaseOperations {
 			if (typeof this.db.select !== 'function') {
 				throw new Error(`Database select method not available. DB type: ${typeof this.db}`);
 			}
-			
+
 			return await this.db
 				.select()
 				.from(configurationTable)

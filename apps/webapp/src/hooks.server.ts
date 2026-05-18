@@ -68,14 +68,14 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 						hasAuthToken: !!authToken,
 						authTokenLength: authToken?.length || 0
 					});
-					
+
 					const client = createClient({ url, authToken });
 					console.log('[hooks.server] Created client:', {
 						clientExists: !!client,
 						clientType: typeof client,
 						clientKeys: client ? Object.keys(client).slice(0, 10) : 'no client'
 					});
-					
+
 					return client;
 				}
 			},
@@ -99,7 +99,7 @@ const { hook, standaloneContext, globalContext } = hookBuilder({
 			// Fallback for development mode or when client address can't be determined
 			clientAddress = '127.0.0.1';
 		}
-		
+
 		return {
 			requestId: nanoid(),
 			startTime: Date.now(),

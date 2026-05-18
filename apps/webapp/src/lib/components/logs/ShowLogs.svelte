@@ -136,7 +136,7 @@
 				</label>
 				<div class="relative">
 					<SearchOutline
-						class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+						class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
 					/>
 					<Input
 						id="search"
@@ -368,7 +368,7 @@
 							</Button>
 						</TableBodyCell>
 						<TableBodyCell class="font-mono text-sm">{log.id}</TableBodyCell>
-						<TableBodyCell class="whitespace-nowrap font-mono text-sm">
+						<TableBodyCell class="font-mono text-sm whitespace-nowrap">
 							{log.date.toISOString()}
 						</TableBodyCell>
 						<TableBodyCell class="max-w-xs">
@@ -615,7 +615,7 @@
 						{#if (selectedLog as any).userAgent}
 							<div class="col-span-2">
 								<span class="font-medium text-gray-700 dark:text-gray-300">User Agent:</span>
-								<span class="break-all text-xs">{(selectedLog as any).userAgent}</span>
+								<span class="text-xs break-all">{(selectedLog as any).userAgent}</span>
 							</div>
 						{/if}
 						{#if (selectedLog as any).ip}
@@ -638,7 +638,7 @@
 					</h3>
 					<div class="max-h-96 overflow-auto rounded-lg bg-gray-100 p-4 dark:bg-gray-800">
 						<pre
-							class="whitespace-pre-wrap text-xs text-gray-900 dark:text-gray-100">{JSON.stringify(
+							class="text-xs whitespace-pre-wrap text-gray-900 dark:text-gray-100">{JSON.stringify(
 								selectedLog,
 								null,
 								2

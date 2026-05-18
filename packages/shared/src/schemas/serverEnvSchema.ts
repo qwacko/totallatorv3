@@ -100,7 +100,27 @@ export const serverEnvSchema = z.object({
 		defaultBoolean: true,
 		optional: true
 	}),
-	ENCRYPTION_KEY: z.string().optional()
+	ENCRYPTION_KEY: z.string().optional(),
+	REDIS_HOST: z.string().optional().default('localhost'),
+	REDIS_PORT: z.coerce.number<number>().optional().default(6379),
+	REDIS_PASSWORD: z.string().optional(),
+	REDIS_DB: z.coerce.number<number>().optional().default(0),
+	// OpenTelemetry Configuration
+	OTEL_ENABLE_TRACING: parseEnvStringToBoolean({
+		defaultBoolean: false,
+		optional: true
+	}),
+	OTEL_SERVICE_NAME: z.string().optional().default('totallator'),
+	OTEL_SERVICE_VERSION: z.string().optional().default('1.0.0'),
+	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional().default('http://otel-lgtm:4318'),
+	// Loki Configuration
+	LOKI_ENABLE: parseEnvStringToBoolean({
+		defaultBoolean: false,
+		optional: true
+	}),
+	LOKI_ENDPOINT: z.string().optional().default('http://loki:3100/loki/api/v1/push'),
+	LOKI_BATCH_SIZE: z.coerce.number().optional().default(100),
+	LOKI_FLUSH_INTERVAL: z.coerce.number().optional().default(5000)
 });
 
 export type ServerEnvSchemaType = z.infer<typeof serverEnvSchema>;
